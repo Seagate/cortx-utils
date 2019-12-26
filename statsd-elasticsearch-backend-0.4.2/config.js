@@ -1,6 +1,7 @@
 {
 backends: ['/opt/statsd-utils/statsd-elasticsearch-backend-0.4.2/lib/elasticsearch'],
  //debug: true,
+ //flushInterval: 5000,
  statsd_host: "localhost",
  elasticsearch: {
      port:          9200,
