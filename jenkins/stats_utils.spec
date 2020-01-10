@@ -1,6 +1,6 @@
 Name: stats_utils
 Version: %{version}
-Release: %{dist}
+Release: %{_build_number}_%{dist}
 Summary: STATS Tools
 License: Seagate Proprietary
 Requires: statsd
