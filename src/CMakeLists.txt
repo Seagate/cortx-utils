@@ -41,11 +41,16 @@ endif(FAULT_INJECT)
 add_subdirectory(fault)
 set(UTILS_FAULT utils-fault)
 
+# Build log dir
+add_subdirectory(log)
+set(UTILS_LOG utils-log)
+
 # Build test
 add_subdirectory(test)
 
 add_library(eos-utils SHARED
 		$<TARGET_OBJECTS:${UTILS_FAULT}>
+		$<TARGET_OBJECTS:${UTILS_LOG}>
 	)
 
 # CPack / rpmbuild specific stuff
