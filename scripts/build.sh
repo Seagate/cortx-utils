@@ -124,9 +124,9 @@ eos_utils_rpm_install() {
     local rpms_dir=$HOME/rpmbuild/RPMS/x86_64
     local suffix="$EOS_UTILS_VERSION-$EOS_UTILS_BUILD_VERSION.el7.centos.x86_64.rpm"
     local mypkg=(
-        libeos-utils
-        libeos-utils-debuginfo
-        libeos-utils-devel
+        eos-utils
+        eos-utils-debuginfo
+        eos-utils-devel
     )
     local myrpms=()
 
@@ -153,7 +153,7 @@ eos_utils_rpm_install() {
 }
 
 eos_utils_rpm_uninstall() {
-    sudo yum remove -y 'libeos_utils*'
+    sudo yum remove -y 'eos_utils*'
 }
 
 eos_utils_reinstall() {
