@@ -13,7 +13,7 @@ EOS_UTILS_SOURCE_ROOT=${EOS_UTILS_SOURCE_ROOT:-$PWD}
 # Root folder for out-of-tree builds, i.e. location for the build folder.
 # For superproject builds: it is derived from EOS_UTILS_BUILD_ROOT (utils/build-eos_utils).
 # For local builds: it is based on $PWD (./build-eos_utils).
-EOS_UTILS_CMAKE_BUILD_ROOT=${EOS_UTILS_BUILD_ROOT:-$EOS_UTILS_SOURCE_ROOT}
+EOS_UTILS_CMAKE_BUILD_ROOT=${EOS_FS_BUILD_ROOT:-$EOS_UTILS_SOURCE_ROOT}
 
 # Select EOS_UTILS Source Version.
 # Superproject: derived from eos-utils version.
