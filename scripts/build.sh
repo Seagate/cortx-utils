@@ -153,7 +153,7 @@ eos_utils_rpm_install() {
 }
 
 eos_utils_rpm_uninstall() {
-    sudo yum remove -y 'eos_utils*'
+    sudo yum remove -y 'eos-utils*'
 }
 
 eos_utils_reinstall() {
