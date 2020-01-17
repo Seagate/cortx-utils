@@ -55,9 +55,12 @@ make %{?_smp_mflags} || make %{?_smp_mflags} || make
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{_libdir}
 mkdir -p %{buildroot}%{_eos_utils_dir}
-mkdir -p %{buildroot}%{_eos_utils_include_dir}
+mkdir -p %{buildroot}%{_eos_utils_include_dir}/eos
+mkdir -p %{buildroot}%{_eos_utils_include_dir}/common
 mkdir -p %{buildroot}%{_libdir}/pkgconfig
 install -m 644 include/*.h  %{buildroot}%{_eos_utils_include_dir}
+install -m 644 include/eos/*.h  %{buildroot}%{_eos_utils_include_dir}/eos
+install -m 644 include/common/*.h  %{buildroot}%{_eos_utils_include_dir}/common
 install -m 744 libeos-utils.so %{buildroot}%{_eos_utils_dir}
 install -m 644 build/eos-utils.pc  %{buildroot}%{_libdir}/pkgconfig
 ln -s %{_eos_utils_dir}/libeos-utils.so %{buildroot}%{_libdir}/libeos-utils.so
@@ -74,5 +77,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 %{_libdir}/pkgconfig/eos-utils.pc
 %{_eos_utils_include_dir}/*.h
+%{_eos_utils_include_dir}/eos/*.h
+%{_eos_utils_include_dir}/common/*.h
 
 %changelog

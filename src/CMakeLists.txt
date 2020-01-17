@@ -44,12 +44,19 @@ set(UTILS_FAULT utils-fault)
 add_subdirectory(log)
 set(UTILS_LOG utils-log)
 
+# Build eos_helpers dir
+#if (USE_MERO_STORE OR USE_KVS_MERO)
+add_subdirectory(eos)
+set(UTILS_EOS utils-eos)
+#endif (USE_MERO_STORE OR USE_KVS_MERO)
+
 # Build test
 add_subdirectory(test)
 
 add_library(eos-utils SHARED
 		$<TARGET_OBJECTS:${UTILS_FAULT}>
 		$<TARGET_OBJECTS:${UTILS_LOG}>
+		$<TARGET_OBJECTS:${UTILS_EOS}>
 	)
 
 # CPack / rpmbuild specific stuff

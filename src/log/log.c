@@ -19,7 +19,7 @@
 #include <time.h>
 #include <unistd.h>
 #include "debug.h"
-#include "log.h"
+#include "common/log.h"
 
 static FILE *log_fp = NULL;
 static log_level_t log_level = LEVEL_INFO;
