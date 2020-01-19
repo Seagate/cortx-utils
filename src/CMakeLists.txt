@@ -44,6 +44,10 @@ set(UTILS_FAULT utils-fault)
 add_subdirectory(log)
 set(UTILS_LOG utils-log)
 
+# Build log dir
+add_subdirectory(common)
+set(UTILS_COMMON utils-common)
+
 # Build eos_helpers dir
 #if (USE_MERO_STORE OR USE_KVS_MERO)
 add_subdirectory(eos)

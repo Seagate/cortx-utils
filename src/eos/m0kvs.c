@@ -76,7 +76,7 @@ out:
 int m0idx_create(const struct m0_uint128 *fid, struct m0_clovis_idx **index)
 {
         int                     rc;
-	struct m0_clovis_op    *op;
+	struct m0_clovis_op    *op = NULL;
 	struct m0_clovis_idx   *idx = NULL;
 
 	*index = NULL;
