@@ -50,18 +50,12 @@ mkdir -p ${DIST}/rpmbuild/SOURCES
 cd $DIST
 tar -czf ${DIST}/rpmbuild/SOURCES/statsd-utils-${VER}.tar.gz statsd-utils
 
-# Install rpm-build
-rpm -q rpm-build || sudo yum install rpm-build -y
-
 TOPDIR=$(realpath ${DIST}/rpmbuild)
 echo rpmbuild --define "version $VER" --define "dist $GIT_VER" --define "_build_number ${BUILD_NUMBER}" --define "_topdir $TOPDIR" \
     -bb $BASE_DIR/jenkins/stats_utils.spec
 rpmbuild --define "version $VER" --define "dist $GIT_VER" --define "_build_number ${BUILD_NUMBER}" --define "_topdir $TOPDIR" \
     -bb $BASE_DIR/jenkins/stats_utils.spec
     
-# Remove rpm-build
-sudo yum remove rpm-build -y
-
 ############################ CLEANUP BUILD DIR #################################
 
 # Remove temporary directory
