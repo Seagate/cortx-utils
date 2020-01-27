@@ -1,0 +1,10 @@
+*.out
+*.o
+*.so*
+*.swp
+tags
+*.gdb_history
+TAGS
+*libfsalkvsfs.spec
+build-kvsns
+build-kvsfs
