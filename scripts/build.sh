@@ -24,7 +24,7 @@ EOS_UTILS_VERSION=${EOS_UTILS_VERSION:-"$(cat $EOS_UTILS_SOURCE_ROOT/VERSION)"}
 # Select EOS-UTILS Build Version.
 # Superproject: derived from eos-utils version.
 # Local: taken from git rev.
-EOS_UTILS_BUILD_VERSION=${EOS_UTILS_BUILD_VERSION:-"$(git rev-parse --short HEAD)"}
+EOS_UTILS_BUILD_VERSION=${EOS_FS_BUILD_VERSION:-"$(git rev-parse --short HEAD)"}
 
 ###############################################################################
 # Local variables
