@@ -15,6 +15,7 @@
 
 #include "m0common.h"
 #include "common/log.h"
+#include <debug.h>
 
 int m0kvs_reinit(void)
 {
@@ -317,6 +318,23 @@ int m0kvs_del(void *ctx, void *k, const size_t klen)
 	return rc;
 }
 
+int m0kvs_set_list(void *ctx, struct m0kvs_list *key,
+                   struct m0kvs_list *val)
+{
+	int rc;
+
+	rc = m0_op2_kvs(ctx, M0_CLOVIS_IC_PUT, &key->buf, &val->buf);
+	return rc;
+}
+
+int m0kvs_get_list(void *ctx, struct m0kvs_list *key,
+                   struct m0kvs_list *val)
+{
+	int rc;
+
+	rc = m0_op2_kvs(ctx, M0_CLOVIS_IC_GET, &key->buf, &val->buf);
+	return rc;
+}
 
 int m0kvs_pattern(void *ctx, char *k, char *pattern,
 		    get_list_cb cb, void *arg_cb)
@@ -499,4 +517,34 @@ void *m0kvs_alloc(uint64_t size)
 void m0kvs_free(void *ptr)
 {
 	return m0_free(ptr);
+}
+
+int m0kvs_list_alloc(struct m0kvs_list *kvs_list, uint32_t list_cnt)
+{
+	return m0_bufvec_empty_alloc(&kvs_list->buf, list_cnt);
+}
+
+void m0kvs_list_free(struct m0kvs_list *kvs_list)
+{
+	m0_bufvec_free(&kvs_list->buf);
+}
+
+int m0kvs_list_add(struct m0kvs_list *kvs_list, void *buf, size_t len,
+                   int pos)
+{
+	int rc = 0;
+
+	dassert(kvs_list->buf.ov_buf);
+	dassert(kvs_list->buf.ov_vec.v_count);
+
+	if (pos >= kvs_list->buf.ov_vec.v_nr)
+		return -ENOMEM;
+
+	dassert(kvs_list->buf.ov_vec.v_count[pos] == 0);
+	dassert(kvs_list->buf.ov_buf[pos] == NULL);
+
+	kvs_list->buf.ov_vec.v_count[pos] = len;
+	kvs_list->buf.ov_buf[pos] = buf;
+
+	return rc;
 }

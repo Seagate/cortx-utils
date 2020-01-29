@@ -38,6 +38,10 @@
 #define KLEN (256)
 #define VLEN (256)
 
+struct m0kvs_list {
+	struct m0_bufvec buf;
+};
+
 typedef bool (*get_list_cb)(char *k, void *arg);
 
 int m0init(struct collection_item *cfg_items);
@@ -62,8 +66,16 @@ int m0_ufid_get(struct m0_uint128 *ufid);
 int m0_fid_to_string(struct m0_uint128 *fid, char *fid_s);
 void *m0kvs_alloc(uint64_t size);
 void m0kvs_free(void *ptr);
+int m0kvs_list_alloc(struct m0kvs_list *buf, uint32_t list_cnt);
+void m0kvs_list_free(struct m0kvs_list *buf);
+int m0kvs_set_list(void *ctx, struct m0kvs_list *key,
+                   struct m0kvs_list *val);
+int m0kvs_get_list(void *ctx, struct m0kvs_list *key,
+                   struct m0kvs_list *val);
+int m0kvs_list_add(struct m0kvs_list *kvs_buf, void *buf, size_t buf_len,
+                   int index);
 
-/******************************************************************************/
+/*****************************************************************************/
 
 #define M0STORE_BLK_COUNT 10
 

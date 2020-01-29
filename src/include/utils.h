@@ -39,5 +39,17 @@ typedef struct str256 str256_t;
  * */
 int str256_from_cstr(str256_t *dst, const char *src, size_t src_len);
 
+struct buff {
+	/** The length of binary buffer. */
+	size_t len;
+	/** A buffer which stores binary values. */
+	void *buf;
+} __attribute__((packed));
+
+typedef struct buff buff_t;
+
+/* Initialize buff with given buffer and length of buffer */
+void buff_init(buff_t *dest, void *src, size_t src_len);
+
 #endif /* _EOS_UTILS_H_ */
 

@@ -39,3 +39,9 @@ int str256_from_cstr(str256_t *dst, const char *src, size_t src_len)
 out:
 	return rc;
 }
+
+void buff_init(buff_t *dest, void *src, size_t src_len)
+{
+	dest->buf = src;
+	dest->len = src_len;
+}
