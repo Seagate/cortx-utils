@@ -42,6 +42,15 @@ struct m0kvs_list {
 	struct m0_bufvec buf;
 };
 
+struct m0kvs_key_iter {
+	struct m0_bufvec key;
+	struct m0_bufvec val;
+	struct m0_clovis_op *op;
+	struct m0_clovis_idx *index;
+	int rcs[1];
+	bool initialized;
+};
+
 typedef bool (*get_list_cb)(char *k, void *arg);
 
 int m0init(struct collection_item *cfg_items);
@@ -59,7 +68,69 @@ void m0_iter_kvs(char *k);
 int m0kvs_pattern(void *ctx, char *k, char *pattern,
 		  get_list_cb cb, void *arg_cb);
 int m0kvs_key_prefix_exists(void *ctx, const void *kprefix, size_t klen,
-		  	    bool *result);
+			    bool *result);
+
+/******************************************************************************/
+/* Key Iterator */
+
+/* TODO:PERF:
+ *	Performance of key iterators can be improved by:
+ *	1. Usage of prefetch.
+ *	2. Async Clovis calls.
+ *	3. Piggyback data for records.
+ *	The features can be implemented without significant changes in
+ *	the caller code and mostly isolated in the m0common module.
+ *
+ *	1. The key prefetch feature requires an additional argument to specify
+ *	the amount of records to retrieve in a NEXT clovis call.
+ *	Then, key_iter_next walks over the prefetched records and issues
+ *	a NEXT call after the last portion of records was processed by the user.
+ *
+ *	2. The async clovis calls feature can be used to speed up the case
+ *	where the time of records processing by the caller is comparable with
+ *	the time needed to receive next bunch of records from Clovis.
+ *	In this case a initial next call synchronously gets a bunch of records,
+ *	and then immediately issues an asynchronous NEXT call.
+ *	The consequent next call waits for the issued records,
+ *	and again issues a NEXT call to clovis. In conjunction with the prefetch
+ *	feature, it can help to speed up readdir() by issuing NEXT (dentry)
+ *	and GET (inode attrs) concurrently.
+ *
+ *	3. Since readdir requires a combination of NEXT + GET calls,
+ *	the iterator can issue a GET call to get the inode attirbutes of
+ *	prefetched dentries along with the next portion of NEXT dentries.
+ *	So that, we can get a chunk of dentries and the attributes of the
+ *	previous chunck witin a single clovis call.
+ *	However, this feature make sense only for the recent version of
+ *	nfs-ganesha where a FSAL is resposible for filling in attrlist
+ *	(the current version calls fsal_getattr() instead of it).
+ */
+
+/** Cleanup key iterator object */
+void m0kvs_key_iter_fini(struct m0kvs_key_iter *priv);
+
+/** Find the first record following by the prefix and set iter to it.
+ * @param iter Iterator object to initialized with the starting record.
+ * @param prefix Key prefix to be found.
+ * @param prefix_len Length of the prefix.
+ * @return True if found, otherwise False. @see kvstore_iter::inner_rc for
+ * return code.
+ */
+int m0kvs_key_iter_find(const void* prefix, size_t prefix_len,
+                        struct m0kvs_key_iter *priv);
+
+/* Find the next record and set iter to it. */
+int m0kvs_key_iter_next(struct m0kvs_key_iter *priv);
+
+/**
+ * Get pointer to key data.
+ * @param[out] key View of key data owned by iter.
+ * @param[out] klen Size of key.
+ * @param[out] val View of value data owner by iter.
+ * @param[out] vlen Size of value.
+ */
+void m0kvs_key_iter_get_kv(struct m0kvs_key_iter *priv, void **key,
+                           size_t *klen, void **val, size_t *vlen);
 int m0store_create_object(struct m0_uint128 id);
 int m0store_delete_object(struct m0_uint128 id);
 int m0_ufid_get(struct m0_uint128 *ufid);
@@ -68,9 +139,9 @@ void *m0kvs_alloc(uint64_t size);
 void m0kvs_free(void *ptr);
 int m0kvs_list_alloc(struct m0kvs_list *buf, uint32_t list_cnt);
 void m0kvs_list_free(struct m0kvs_list *buf);
-int m0kvs_set_list(void *ctx, struct m0kvs_list *key,
+int m0kvs_list_set(void *ctx, struct m0kvs_list *key,
                    struct m0kvs_list *val);
-int m0kvs_get_list(void *ctx, struct m0kvs_list *key,
+int m0kvs_list_get(void *ctx, struct m0kvs_list *key,
                    struct m0kvs_list *val);
 int m0kvs_list_add(struct m0kvs_list *kvs_buf, void *buf, size_t buf_len,
                    int index);
