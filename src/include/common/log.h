@@ -60,5 +60,9 @@ int log_init(const char *log_path, log_level_t default_level);
  */
 int log_write(log_level_t level, const char *fmt, ...);
 
+/**
+ * Finishes initialized log subsystem
+ */
+int log_fini();
 #endif /* _LOG_H */
 
