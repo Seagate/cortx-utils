@@ -122,7 +122,8 @@ eos_utils_rpm_gen() {
 
 eos_utils_rpm_install() {
     local rpms_dir=$HOME/rpmbuild/RPMS/x86_64
-    local suffix="$EOS_UTILS_VERSION-$EOS_UTILS_BUILD_VERSION.el7.centos.x86_64.rpm"
+    local dist=$(rpm --eval '%{dist}')
+    local suffix="${EOS_UTILS_VERSION}-${EOS_UTILS_BUILD_VERSION}${dist}.x86_64.rpm"
     local mypkg=(
         eos-utils
         eos-utils-debuginfo

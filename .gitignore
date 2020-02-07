@@ -5,6 +5,5 @@
 tags
 *.gdb_history
 TAGS
-*libfsalkvsfs.spec
-build-kvsns
-build-kvsfs
+src/build/*.pc
+src/build/*.spec
