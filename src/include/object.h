@@ -16,6 +16,8 @@
 #ifndef _UTILS_OBJECT_H
 #define _UTILS_OBJECT_H
 
+#include <stdint.h>
+
 typedef struct obj_id {
         uint64_t f_hi;
         uint64_t f_lo;

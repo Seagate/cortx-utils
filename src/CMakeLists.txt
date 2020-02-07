@@ -61,6 +61,7 @@ add_library(eos-utils SHARED
 		$<TARGET_OBJECTS:${UTILS_FAULT}>
 		$<TARGET_OBJECTS:${UTILS_LOG}>
 		$<TARGET_OBJECTS:${UTILS_EOS}>
+		$<TARGET_OBJECTS:${UTILS_COMMON}>
 	)
 
 # CPack / rpmbuild specific stuff
