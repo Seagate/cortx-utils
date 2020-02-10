@@ -37,11 +37,15 @@ typedef enum {
 #define log_info(...) LOG(LEVEL_INFO, ##__VA_ARGS__)
 #define log_trace(...) LOG(LEVEL_TRACE, ##__VA_ARGS__)
 
-#ifndef DEBUG
 #define log_debug(...) LOG(LEVEL_DEBUG, ##__VA_ARGS__)
-#else
-#define log_debug(...)
-#endif /* DEBUG */
+
+/**
+ * Returns the log level string in log_level_t type
+ * @param[in] log level string
+ * @return error code. log level in log_level_t in success.
+ *         asserts on failure
+ */
+log_level_t log_level_no(const char *log_level);
 
 /**
  * Initializes log subsystem

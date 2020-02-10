@@ -20,9 +20,35 @@
 #include <unistd.h>
 #include "debug.h"
 #include "common/log.h"
+#include <string.h>
 
 static FILE *log_fp = NULL;
 static log_level_t log_level = LEVEL_INFO;
+
+const static struct {
+	log_level_t log_level;
+	const char *log_str;
+} log_conv [] = {
+	{ LEVEL_FATAL, "LEVEL_FATAL"},
+	{ LEVEL_ERR, "LEVEL_ERR"},
+	{ LEVEL_WARN, "LEVEL_WARN"},
+	{ LEVEL_INFO, "LEVEL_INFO"},
+	{ LEVEL_TRACE, "LEVEL_TRACE"},
+	{ LEVEL_DEBUG, "LEVEL_DEBUG"}
+};
+
+log_level_t log_level_no(const char *log_level)
+{
+	int i;
+
+	for(i = 0; i < sizeof(log_conv) / sizeof(log_conv[0]); ++i) {
+		if(strcmp(log_level, log_conv[i].log_str) == 0) {
+			return log_conv[i].log_level;
+		}
+	}
+	/* Invalid log level, assert out */
+	assert(0);
+}
 
 int log_init(const char *log_path, log_level_t default_level)
 {
