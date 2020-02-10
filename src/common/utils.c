@@ -18,28 +18,8 @@
 #include <common.h>
 #include <debug.h>
 #include <common/log.h>
-
+#include <str.h>
 /******************************************************************************/
-int str256_from_cstr(str256_t *dst, const char *src, size_t src_len)
-{
-	int rc = 0;
-
-	dassert(src_len != 0 && src_len <= sizeof(dst->s_str));
-
-	if (unlikely(src_len > sizeof(dst->s_str) - 1)) {
-		rc = -EINVAL;
-		goto out;
-	}
-
-	memset(dst->s_str, 0, sizeof(dst->s_str));
-	memcpy(dst->s_str, src, src_len);
-	dst->s_str[src_len] = '\0';
-	dst->s_len = src_len+1;
-
-out:
-	return rc;
-}
-
 void buff_init(buff_t *dest, void *src, size_t src_len)
 {
 	dest->buf = src;
