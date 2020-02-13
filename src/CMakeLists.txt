@@ -57,13 +57,21 @@ set(UTILS_EOS utils-eos)
 # Build test
 add_subdirectory(test)
 
+# UT
+add_subdirectory(ut)
+set(UTILS_UT utils-ut)
+
 add_library(eos-utils SHARED
 		$<TARGET_OBJECTS:${UTILS_FAULT}>
 		$<TARGET_OBJECTS:${UTILS_LOG}>
 		$<TARGET_OBJECTS:${UTILS_EOS}>
 		$<TARGET_OBJECTS:${UTILS_COMMON}>
+		$<TARGET_OBJECTS:${UTILS_UT}>
 	)
 
+target_link_libraries(eos-utils
+	cmocka
+)
 # CPack / rpmbuild specific stuff
 set(CPACK_PACKAGE_FILE_NAME "eos-utils-Source" )
 set(CPACK_PACKAGE_VENDOR "EOS-UTILS")
