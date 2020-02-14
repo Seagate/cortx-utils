@@ -19,7 +19,8 @@
 #define _PUBLIC			__attribute__ ((visibility ("default")))
 #define _PRIVATE		__attribute__ ((visibility ("hidden")))
 
-#define likely(x)       	__builtin_expect((x),1)
-#define unlikely(x)     	__builtin_expect((x),0)
+#define likely(__cond)   __builtin_expect(!!(__cond), 1)
+
+#define unlikely(__cond) __builtin_expect(!!(__cond), 0)
 
 #endif
