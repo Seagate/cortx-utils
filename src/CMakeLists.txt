@@ -54,6 +54,9 @@ add_subdirectory(eos)
 set(UTILS_EOS utils-eos)
 #endif (USE_MERO_STORE OR USE_KVS_MERO)
 
+# Build management dir
+add_subdirectory(management)
+set(UTILS_MANAGEMENT management_framework)
 # Build test
 add_subdirectory(test)
 
@@ -74,11 +77,18 @@ add_library(eos-utils SHARED
 		$<TARGET_OBJECTS:${UTILS_EOS}>
 		$<TARGET_OBJECTS:${UTILS_COMMON}>
 		$<TARGET_OBJECTS:${UTILS_UT}>
+		$<TARGET_OBJECTS:${UTILS_MANAGEMENT}>
 	)
+
 
 target_link_libraries(eos-utils
 	cmocka
+	event
+	ssl
+        crypto
+	event_openssl
 )
+
 # CPack / rpmbuild specific stuff
 set(CPACK_PACKAGE_FILE_NAME "eos-utils-Source" )
 set(CPACK_PACKAGE_VENDOR "EOS-UTILS")
