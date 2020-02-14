@@ -61,6 +61,13 @@ add_subdirectory(test)
 add_subdirectory(ut)
 set(UTILS_UT utils-ut)
 
+find_library(HAVE_CMOCKA cmocka)
+
+if((NOT HAVE_CMOCKA))
+	message (FATAL ERROR "Cannot find cmocka")
+endif((NOT HAVE_CMOCKA))
+
+
 add_library(eos-utils SHARED
 		$<TARGET_OBJECTS:${UTILS_FAULT}>
 		$<TARGET_OBJECTS:${UTILS_LOG}>

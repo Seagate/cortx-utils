@@ -1,3 +1,17 @@
+/*
+ * Filename: ut.h
+ * Description: Unit Test Framework
+ *
+ * Do NOT modify or remove this copyright and confidentiality notice!
+ * Copyright (c) 2019, Seagate Technology, LLC.
+ * The code contained herein is CONFIDENTIAL to Seagate Technology, LLC.
+ * Portions are also trade secret. Any use, duplication, derivation, distribution
+ * or disclosure of this code, for any reason, not expressly authorized is
+ * prohibited. All other rights are expressly reserved by Seagate Technology, LLC.
+ */
+/******************************************************************************/
+
+#include <errno.h>
 #include "ut.h"
 
 static int file_desc, saved_stdout, saved_stderr;
@@ -6,19 +20,12 @@ int ut_init(char * log_path)
 {
 	int rc = 0;
 
-	file_desc = open(log_path, O_WRONLY | O_APPEND | O_CREAT, 644); 
+	file_desc = open(log_path, O_WRONLY | O_APPEND | O_CREAT, 0644);
 	if (file_desc < 0) {
-		rc = -file_desc;
+		rc = -errno;
 		goto out;
 	}
-
-	rc = log_init("/var/log/eos/nfs_server.log", LEVEL_DEBUG);
-	if (rc != 0) {
-		fprintf(stderr, "Log init failed, rc: %d\n", rc);
-		goto out;
-	}
-
-	printf("Test results are logged to %s", log_path);
+	fprintf(stdout,"Test results are logged to %s\n", log_path);
 
 	saved_stdout = dup(STDOUT_FILENO);
 	saved_stderr = dup(STDERR_FILENO);
@@ -29,7 +36,7 @@ int ut_init(char * log_path)
 	time_t start_time;
 	time(&start_time);
 
-	printf("\n\nStrat time is %s", ctime(&start_time));
+	fprintf(stdout, "\n\nStart time is %s\n", ctime(&start_time));
 
 out:
 	return rc;
@@ -39,7 +46,7 @@ void ut_fini(void)
 {
 	time_t finish_time;
 	time(&finish_time);
-	printf("Finish time is %s", ctime(&finish_time));
+	fprintf(stdout, "Finish time is %s\n", ctime(&finish_time));
 
 	fflush(stdout);
 
@@ -47,8 +54,6 @@ void ut_fini(void)
 	dup2(saved_stderr, STDERR_FILENO);
 
 	close(file_desc);
-
-	log_fini();
 }
 
 int ut_run(struct test_case test_list[], int test_count)
