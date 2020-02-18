@@ -16,19 +16,26 @@
 #define _EOS_STR_H_
 
 #include <stdint.h>
+#include <debug.h>
 #include <linux/limits.h>
 
 #define STR256_F "%*.s"
 #define STR256_P(__s) ((__s)->s_len), ((__s)->s_str)
 
+/** A string object which has string pointe and its length. */
+struct str {
+    char *s_str;
+    uint16_t s_len;
+} __attribute__((packed));
+
+typedef struct str str_t;
+
 /** A string object which has a C string (up to 255 characters)
  * and its length.
  */
 struct str256 {
-        /** The length of the C string. */
-        uint8_t s_len;
-        /** A buffer which contains a null-terminated C string. */
-        char    s_str[256 + 1];
+	char    s_str[256]; /* Buffer containing null-terminated string. */
+	uint8_t s_len;      /* Length of the string. */
 } __attribute__((packed));
 
 typedef struct str256 str256_t;
@@ -39,21 +46,24 @@ typedef struct str256 str256_t;
  */
 #define str256_from_cstr(dst, src, len) 				\
 	do {                                                        	\
-        	memcpy(dst.s_str, src, len);                           	\
-        	dst.s_str[len] = '\0';                                 	\
-        	dst.s_len = len;                                       	\
-    	} while (0);
+		memcpy(dst.s_str, src, len);                           	\
+		dst.s_str[len] = '\0';                                 	\
+		dst.s_len = len;                                       	\
+	} while (0);
 
 /* String Comparison: Evaluates to ZERO if both the strings are same, else non-zero */
-#define str256_cmp(str1, str2) 							  \
-	((str1.s_len != str2.s_len) || memcmp(str1.s_str, str2.s_str, str1.s_len))
+#define str256_cmp(str1, str2)                            \
+	(((str1)->s_len != (str2)->s_len) || memcmp((str1)->s_str, (str2)->s_str, (str1)->s_len))
 
 /* String Copy: Copy Source String to Destination */
-#define str256_cp(dst, src)       		     		\
-	do {                                             	\
-		memcpy(dst.s_str, src.s_str, src.s_len);     	\
-        	dst.s_str[dst.s_len] = '\0';                 	\
-        	dst.s_len = src.s_len;                       	\
-    	} while (0);
+#define str256_cp(dst, src)                             	\
+	do {                                                	\
+		memcpy((dst)->s_str, (src)->s_str, src.s_len);  \
+		(dst)->s_str[(dst)->s_len] = '\0';              \
+		(dst)->s_len = (src)->s_len;                    \
+	} while (0);
+
+/* str256_isalphanum: Validate if ns_name is alpha numeric */
+int str256_isalphanum(const str256_t *name);
 
 #endif /* _EOS_STR_H_ */
