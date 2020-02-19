@@ -24,18 +24,19 @@
 
 /** A string object which has string pointe and its length. */
 struct str {
-    char *s_str;
     uint16_t s_len;
+    char *s_str;
 } __attribute__((packed));
 
 typedef struct str str_t;
 
 /** A string object which has a C string (up to 255 characters)
- * and its length.
+ * and its length. Note that the order of the fields of str256 cannot be
+ * changed as its space optimized.
  */
 struct str256 {
-	char    s_str[256]; /* Buffer containing null-terminated string. */
 	uint8_t s_len;      /* Length of the string. */
+	char    s_str[256]; /* Buffer containing null-terminated string. */
 } __attribute__((packed));
 
 typedef struct str256 str256_t;
