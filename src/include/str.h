@@ -19,8 +19,8 @@
 #include <debug.h>
 #include <linux/limits.h>
 
-#define STR256_F "%*.s"
-#define STR256_P(__s) ((__s)->s_len), ((__s)->s_str)
+#define STR256_F "%s"
+#define STR256_P(__s) ((__s)->s_str)
 
 /** A string object which has string pointe and its length. */
 struct str {
