@@ -37,16 +37,16 @@ struct controller* controller_find_by_name(struct server *server, char *name)
 	return controller;
 }
 
-struct controller* controller_find_by_api_path(struct server *server,
-					       char *api_path)
+struct controller* controller_find_by_api_uri(struct server *server,
+					      char *api_uri)
 {
 	struct controller *iterator = NULL;
 	struct controller *controller = NULL;
 
-	log_debug("Finding controller by api_path : %s.\n", api_path);
+	log_debug("Finding controller by api_uri : %s.\n", api_uri);
  
 	LIST_FOREACH(iterator, &server->controller_list, entries) {
-		if (!strcmp(iterator->api_path, api_path)) {
+		if (!strcmp(iterator->api_uri, api_uri)) {
 			controller = iterator;
 			break;
 		}

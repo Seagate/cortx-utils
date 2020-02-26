@@ -28,7 +28,7 @@ evhtp_res http_dispatch_request(evhtp_request_t *evhtp_req,
 				evhtp_headers_t *hdrs,
 				void *arg)
 {
-	int rc = EVHTP_RES_OK;
+	int rc = 0;
 	struct server *server = NULL;
 	struct request *request = NULL;
 	struct controller *controller = NULL;
@@ -51,8 +51,8 @@ evhtp_res http_dispatch_request(evhtp_request_t *evhtp_req,
 			       evhtp_req->buffer_out);
 
 	/* 1. Parse request. */
-	request = request_new(server, evhtp_req);
-	if (request == NULL) {
+	rc = request_init(server, evhtp_req, &request);
+	if (rc != 0) {
 		/**
 		 * Internal Error - Request alloc.
 		 * Send Internal error response.
@@ -99,13 +99,16 @@ evhtp_res http_dispatch_request(evhtp_request_t *evhtp_req,
 		  "\tApi name : %s\n", controller->name, api->name);
 
 	/* 4. Execute request */
-	request->execute(api);
+	request_execute(api);
 
 	/**
 	 * Store request in evhtp_request callback for further processing.
 	 * It will be mainly consumed in the http_process_request_data.
 	 */
 	evhtp_req->cbarg = request;
+
+	rc = EVHTP_RES_OK;
+
 error:
 	log_debug("Dispatched new request.\n");
 
@@ -134,10 +137,10 @@ evhtp_res http_process_request_data(evhtp_request_t *evhtp_req,
 	evbuffer_add_buffer(req_data, buf);
 
 	req_data_len = http->evbuffer_get_length(req_data);
-	request->read_len = req_data_len;
+	request->in_read_len = req_data_len;
 	
-	request->remaining_len -= req_data_len;
-	if (request->remaining_len != 0) {
+	request->in_remaining_len -= req_data_len;
+	if (request->in_remaining_len != 0) {
 		/**
 		 * We don't support chunked data.
 		 * Send error responce.
@@ -145,7 +148,7 @@ evhtp_res http_process_request_data(evhtp_request_t *evhtp_req,
 		goto error;
 	}
 
-	request->data = req_data;
+	request->in_buffer = req_data;
 
 	/* Notify controller api for the incoming data. */ 
 	request->read_cb(request->api);
@@ -162,15 +165,15 @@ evhtp_res http_set_connection_handlers(evhtp_connection_t *conn, void *arg)
 	log_info("Setting connection handlers.\n");
 
 	/* Set connection request handlers. */
-	evhtp_set_hook(&conn->hooks,
-		       evhtp_hook_on_headers,
-		       http_dispatch_request,
-		       arg);
+	evhtp_connection_set_hook(conn,
+				  evhtp_hook_on_headers,
+				  http_dispatch_request,
+				  arg);
 
-	evhtp_set_hook(&conn->hooks,
-		       evhtp_hook_on_read,
-		       http_process_request_data,
-		       NULL);
+	evhtp_connection_set_hook(conn,
+				  evhtp_hook_on_read,
+				  http_process_request_data,
+				  NULL);
 
 	log_info("Set connection handlers.\n");
 
@@ -183,15 +186,21 @@ void http_handler(evhtp_request_t *req, void *arg)
 	log_debug("Request Completed.\n");
 }
 
-evhtp_t* http_evhtp_new(evbase_t *ev_base,
-			struct server *server)
+int http_evhtp_init(evbase_t *ev_base,
+		   struct server *server,
+		   evhtp_t **new_ev_htp)
 {
+	int rc = 0;
 	evhtp_t *ev_htp = NULL;	
 
 	log_info("Creating evhtp instance.\n");
 
 	ev_htp = evhtp_new(ev_base, NULL);
-	dassert(ev_htp != NULL);
+	if (ev_htp == NULL) {
+		rc = ENOMEM;
+		log_err("Internal error : evhtp_new failed.\n");
+		goto error;
+	}
 
 	log_info("Created evhtp instance.\n");
 
@@ -215,10 +224,14 @@ evhtp_t* http_evhtp_new(evbase_t *ev_base,
 	*/
 	evhtp_set_gencb(ev_htp, http_handler, NULL);
 
-	return ev_htp;
+	/* Assign InOut param value. */
+	*new_ev_htp = ev_htp;
+
+error:
+	return rc;
 }
 
-void http_evhtp_free(evhtp_t *ev_htp)
+void http_evhtp_fini(evhtp_t *ev_htp)
 {
 	evhtp_free(ev_htp);
 }
@@ -298,12 +311,17 @@ size_t http_evbuffer_get_length(const struct evbuffer *buf)
 	return evbuffer_get_length(buf);
 }
 
-struct http* http_new(evhtp_request_t *evhtp_req)
+int http_init(evhtp_request_t *evhtp_req, struct http **new_http)
 {
+	int rc = 0;
 	struct http *http = NULL;
 
 	http = malloc(sizeof(struct http));
-	dassert(http != NULL);
+	if (http == NULL) {
+		rc = ENOMEM;
+		log_err("Internal error: No memory.");
+		goto error;
+	}
 
 	http->evhtp_req = evhtp_req;
 
@@ -323,5 +341,16 @@ struct http* http_new(evhtp_request_t *evhtp_req)
 	http->send_reply_end		= http_send_reply_end;
 	http->evbuffer_get_length	= http_evbuffer_get_length;
 
-	return http;
+	/* Assign InOut param value. */
+	*new_http = http;
+
+error:
+	return rc;
 }
+
+void http_fini(struct http *http)
+{
+	free(http);
+	http = NULL;
+}
+

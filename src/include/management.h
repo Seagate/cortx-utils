@@ -44,7 +44,7 @@
  * 	Register controllers:
  * 	1. Get the controller instance.
  * 	2. Register it.
- *	controller = {CONTROLLER}_new(server);
+ *	rc = {CONTROLLER}_new(server, &controller);
  *	controller_register(server, controller);
  *
  * 	...
@@ -63,18 +63,20 @@
  * 	Controller Interface Methods.
  *
  * 	Create an instance of the controller.
- * 	struct controller* {CONTROLLER}_new(struct server *server);
+ * 	int {CONTROLLER}_init(struct server *server,
+ * 			     struct controller** controller);
  *
  * 	Delete the controller instance.
- * 	void {CONTROLLER}_free(struct controller *fs_controller);
+ * 	void {CONTROLLER}_fini(struct controller *fs_controller);
  *
  * 	Get controller api instance.
- * 	struct controller_api* {CONTROLLER}_api_new(char *api_name,
- * 		struct controller *controller,
- * 		struct request *request);
+ * 	int {CONTROLLER}_api_init(char *api_name,
+ * 				  struct controller *controller,
+ * 				  struct request *request,
+ * 				  struct controller_api **api);
  *
  *	Free controller api instance.
- * 	void {CONTROLLER}_api_free(struct controller_api *fs_api)
+ * 	void {CONTROLLER}_api_fini(struct controller_api *api)
  *
  * @endcode
  *
@@ -85,13 +87,12 @@
  * 	Controller API Interface Methods.
  *
  * 	Create a controller api instance.
- * 	struct controller_api* {CONTROLLER}_{API}_new(
- * 			struct controller *controller,
- * 			struct request *request);
- *
+ * 	int {CONTROLLER}_{API}_init(struct controller *controller,
+ * 				    struct request *request,
+ * 				    struct controller_api **api);
  *
  * 	Delete controller api instance.
- * 	void fs_create_free(struct controller_api *fs_create);
+ * 	void {CONTROLLER}_{API}_fini(struct controller_api *api);
  *
  * @endcode
  */
@@ -118,22 +119,22 @@ struct http;
  */
 struct server {
 	/* Control server fields. */
-	struct params			* params;	/* User params. */
+	struct params			*params;	/* User params. */
 	LIST_HEAD(controller_list,
-		  controller)		  controller_list;
-	LIST_HEAD(request_list, request)  request_list;
+		  controller)		 controller_list;
+	LIST_HEAD(request_list, request) request_list;
 
 	/* Event fields. */
-	evbase_t			* ev_base;	/* Event base */
+	evbase_t			*ev_base;	/* Event base */
 
 	/* HTTP fileds. */
-	evhtp_t				* ev_htp_ipv4;	/* HTTP instance. */
-	evhtp_t				* ev_htp_ipv6;	/* HTTP instance. */
+	evhtp_t				*ev_htp_ipv4;	/* HTTP instance. */
+	evhtp_t				*ev_htp_ipv6;	/* HTTP instance. */
 
 	/* Thread Info */
-	pthread_t		  	thread_id;	/* Thread id. */
-	int			  	is_cancelled;	/* Is cancelled? */
-	int			  	is_launch_err;	/* Error in thread start */
+	pthread_t			 thread_id;	/* Thread id. */
+	int				 is_cancelled;	/* Is cancelled? */
+	int				 is_launch_err;	/* Error in thread start */
 };
 
 /**
@@ -162,16 +163,17 @@ int server_thread_cleanup(void);
  * Controller - Data Type.
  */
 struct controller {
-	struct server		* server;   /* Link to struct server instance. */
+	struct server		*server;   /* Link to struct server instance. */
 
 	/* Controller Fields. */
-	const char 		* name;     /* Controller name */
-	uint8_t			  type;	    /* User defined controller type,
-					       Should be unique. */
-	char			* api_path; /* API path. */
-	char		       ** api_list; /* Controller api list. */
-	controller_api_new_func	  api_new;  /* Controller api new. */
-	LIST_ENTRY(controller)	  entries;  /* Link. */
+	const char 		*name;     /* Controller name */
+	uint8_t			 type;	   /* User defined controller type,
+				              Should be unique. */
+	char			*api_uri; /* API uri path. */
+	char		       **api_list; /* Controller api list. */
+	controller_api_init_func api_init;  /* Controller api new. */
+	controller_api_fini_func api_fini; /* Controller api free. */
+	LIST_ENTRY(controller)	 entries;  /* Link. */
 };
 
 /**
@@ -191,15 +193,15 @@ void controller_unregister(struct controller *controller);
  */
 struct params {
 	/* Address Options. */
-	int		reuse_port;	/* Reuse port. */
-	uint16_t	port;	/* Port number */
-	const char    * addr_ipv4;	/* Addr ipv4. */
-	const char    * addr_ipv6;	/* Addr ipv6. */
-	int		bind_ipv4;	/* Bind to ipv4 addr. */
-	int		bind_ipv6;	/* Bind to ipv6 addr. */
+	int		 reuse_port;	/* Reuse port. */
+	uint16_t	 port;	/* Port number */
+	const char	*addr_ipv4;	/* Addr ipv4. */
+	const char	*addr_ipv6;	/* Addr ipv6. */
+	int		 bind_ipv4;	/* Bind to ipv4 addr. */
+	int		 bind_ipv6;	/* Bind to ipv6 addr. */
 
 	/* Local Options */
-	int		print_usage;	/* Print usage */
+	int		 print_usage;	/* Print usage */
 
 };
 

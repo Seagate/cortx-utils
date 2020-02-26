@@ -70,7 +70,6 @@ if((NOT HAVE_CMOCKA))
 	message (FATAL ERROR "Cannot find cmocka")
 endif((NOT HAVE_CMOCKA))
 
-
 add_library(eos-utils SHARED
 		$<TARGET_OBJECTS:${UTILS_FAULT}>
 		$<TARGET_OBJECTS:${UTILS_LOG}>
@@ -87,6 +86,8 @@ target_link_libraries(eos-utils
 	#ssl
 	#crypto
 	#event_openssl
+	#evhtp
+	#json
 )
 
 # CPack / rpmbuild specific stuff

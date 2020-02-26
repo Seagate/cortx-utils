@@ -25,6 +25,7 @@ int server_init(struct server *server, struct params *params)
 {
 	int rc = 0;
 	int old_cancel_state;
+	evhtp_t *ev_htp = NULL;	
 
 	/* Set control server params. */
 	server->params = params; 
@@ -42,15 +43,25 @@ int server_init(struct server *server, struct params *params)
 
 	/* Create and init ev_htp instance. */
 	if (server->params->bind_ipv4) {
-		server->ev_htp_ipv4 = http_evhtp_new(server->ev_base,
-						     server);
-		dassert(server->ev_htp_ipv4 != NULL);
+		rc = http_evhtp_init(server->ev_base,
+				     server,
+				     &ev_htp);
+		if (rc != 0) {
+			log_err("Internal error: http_evhtp_init failed.\n");
+			goto error;
+		}
+		server->ev_htp_ipv4 = ev_htp;
 	}
 
 	if (server->params->bind_ipv6) {
-		server->ev_htp_ipv6 = http_evhtp_new(server->ev_base,
-						     server);
-		dassert(server->ev_htp_ipv6 != NULL);
+		rc = http_evhtp_init(server->ev_base,
+				     server,
+				     &ev_htp);
+		if (rc != 0) {
+			log_err("Internal error: http_evhtp_init failed.\n");
+			goto error;
+		}
+		server->ev_htp_ipv6 = ev_htp;
 	}
 
 	/* Server Init. */ 
@@ -58,6 +69,7 @@ int server_init(struct server *server, struct params *params)
 	server->is_cancelled = 0;
 	server->is_launch_err = 0;
 
+error:
 	return rc;
 }
 
@@ -133,11 +145,12 @@ int server_start(struct server *server)
 	}
 
 	/**
-	 *  new flag in Libevent 2.1
-	 *  EVLOOP_NO_EXIT_ON_EMPTY tells event_base_loop()
-	 *  to keep looping even when there are no pending events
+	 * New flag in Libevent 2.1
+	 * EVLOOP_NO_EXIT_ON_EMPTY tells event_base_loop()
+	 * to keep looping even when there are no pending events
+	 * Removing EVLOOP_NO_EXIT_ON_EMPTY. It is not supported in 1.2.18.
 	 */
-	rc = event_base_loop(server->ev_base, EVLOOP_NO_EXIT_ON_EMPTY);
+	rc = event_base_loop(server->ev_base, 0);
 
 	return rc;
 
