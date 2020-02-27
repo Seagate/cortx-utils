@@ -16,7 +16,7 @@
 #ifndef _UTILS_COMMON_H
 #define _UTILS_COMMON_H
 
-#include <stddef.h> /*offsetof*/
+#include <stddef.h>
 
 #define _PUBLIC			__attribute__ ((visibility ("default")))
 #define _PRIVATE		__attribute__ ((visibility ("hidden")))
