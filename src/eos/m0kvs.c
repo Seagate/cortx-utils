@@ -608,6 +608,7 @@ int m0kvs_key_iter_find(const void* prefix, size_t prefix_len,
 	}
 
 	if (priv->rcs[0] != 0) {
+		rc = priv->rcs[0];
 		goto out_free_op;
 	}
 
@@ -631,7 +632,7 @@ out_free_key:
 		m0_bufvec_free(key);
 out:
 	if (rc != 0) {
-		memset(&priv, 0, sizeof(*priv));
+		memset(priv, 0, sizeof(*priv));
 	}
 
 	return rc;
