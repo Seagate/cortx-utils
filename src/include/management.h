@@ -142,9 +142,10 @@ struct server {
  */
 int server_main(int argc, char *argv[]);
 int server_init(struct server *server, struct params *params);
-int server_cleanup(struct server *server);
 int server_start(struct server *server);
-int server_stop(struct server *server);
+int server_cleanup(struct server *server);
+int management_init(void);
+int management_cleanup(void);
 
 /**
  * Control server thread APIs.
