@@ -144,7 +144,7 @@ int m0_ufid_get(struct m0_uint128 *ufid)
 {
 	int		  rc;
 
-	rc = m0_ufid_next(&kvsns_ufid_generator, 1, ufid);
+	rc = m0_ufid_next(&ufid_generator, 1, ufid);
 	if (rc != 0) {
 		log_err("Failed to generate a ufid: %d\n", rc);
 		return rc;

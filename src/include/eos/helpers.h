@@ -64,6 +64,7 @@ int m0kvs4_set(void *k, const size_t klen,
 int m0kvs_get(void *ctx, void *k, size_t klen, void **v, size_t *vlen);
 int m0kvs4_get(void *k, size_t klen, void **v, size_t *vlen);
 int m0kvs_del(void *ctx, void *k, const size_t klen);
+int m0kvs_get_new_fid(struct m0_uint128 *fid);
 void m0_iter_kvs(char *k);
 int m0kvs_pattern(void *ctx, char *k, char *pattern,
 		  get_list_cb cb, void *arg_cb);

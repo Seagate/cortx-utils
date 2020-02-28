@@ -51,7 +51,7 @@ struct m0_idx_dix_config	dix_conf;
 
 struct m0_clovis_realm     clovis_uber_realm;
 
-struct m0_ufid_generator kvsns_ufid_generator;
+struct m0_ufid_generator ufid_generator;
 
 /* Non-static function starts here */
 static pthread_mutex_t m0init_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -210,7 +210,7 @@ int init_clovis(void)
 	m0_clovis_idx_init(&idx, &clovis_container.co_realm,
 			   (struct m0_uint128 *)&ifid);
 
-	rc = m0_ufid_init(clovis_instance, &kvsns_ufid_generator);
+	rc = m0_ufid_init(clovis_instance, &ufid_generator);
 	if (rc != 0) {
 		log_err("Failed to initialise fid generator: %d\n", rc);
 		goto err_exit;

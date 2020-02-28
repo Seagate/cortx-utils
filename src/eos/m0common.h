@@ -81,7 +81,7 @@ extern struct m0_idx_dix_config	dix_conf;
 
 extern struct m0_clovis_realm     clovis_uber_realm;
 
-extern struct m0_ufid_generator kvsns_ufid_generator;
+extern struct m0_ufid_generator ufid_generator;
 
 #define WRAP_CONFIG(__name, __cfg, __item) ({\
 	int __rc = get_config_item("mero", __name, __cfg, &__item);\
