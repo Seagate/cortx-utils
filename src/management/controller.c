@@ -46,7 +46,9 @@ struct controller* controller_find_by_api_uri(struct server *server,
 	log_debug("Finding controller by api_uri : %s.\n", api_uri);
  
 	LIST_FOREACH(iterator, &server->controller_list, entries) {
-		if (!strcmp(iterator->api_uri, api_uri)) {
+		if (!strncmp(iterator->api_uri,
+			     api_uri,
+			     strlen(iterator->api_uri))) {
 			controller = iterator;
 			break;
 		}
