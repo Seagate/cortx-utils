@@ -318,15 +318,21 @@ int m0kvs_del(void *ctx, void *k, const size_t klen)
 	return rc;
 }
 
-int m0kvs_get_new_fid(struct m0_uint128 *fid)
+int m0kvs_idx_gen_fid(struct m0_uint128 *index_fid)
 {
 	int rc = 0;
 
-	rc = m0_ufid_next(&ufid_generator, 1, fid);
+	rc = m0_ufid_next(&ufid_generator, 1, index_fid);
 	if (rc != 0) {
 		log_err("Failed to generate a ufid: %d\n", rc);
+		goto out;
 	}
 
+	struct m0_fid tfid = M0_FID_TINIT('x', index_fid->u_hi, index_fid->u_lo);
+	index_fid->u_hi = tfid.f_container;
+	index_fid->u_lo = tfid.f_key;;
+
+out:
 	return rc;
 }
 
