@@ -71,6 +71,9 @@ if((NOT HAVE_CMOCKA))
 	message (FATAL ERROR "Cannot find cmocka")
 endif((NOT HAVE_CMOCKA))
 
+set(CMAKE_EV_LIB /usr/local/lib)
+link_directories(${CMAKE_EV_LIB})
+
 add_library(eos-utils SHARED
 		$<TARGET_OBJECTS:${UTILS_FAULT}>
 		$<TARGET_OBJECTS:${UTILS_LOG}>
