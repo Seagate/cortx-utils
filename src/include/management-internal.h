@@ -136,9 +136,11 @@ struct request {
 	int			 in_remaining_len;
 	struct json_object	*in_json_req_obj;
 
+	/* Response data info. */
 	evbuf_t			*out_buffer;
 	int			 out_content_len;
 	struct json_object	*out_json_req_obj;
+	int			 err_code;
 
 	/* Request Operations handlers and call backs. */
 	request_read_cb_func	 read_cb;

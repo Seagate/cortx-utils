@@ -1,5 +1,5 @@
 /**
- * Filename: request.c
+ * Filename: request-handler.c
  * Description: Control request handler.
  *
  * Do NOT modify or remove this copyright and confidentiality notice!
@@ -96,7 +96,6 @@ int request_validate_headers(struct request *request)
 	 * Add more common fs validations
 	 * ...
 	 */
-
 error:
 	return rc;
 }
@@ -129,7 +128,7 @@ void request_send_responce(struct request *request,
 
 	http = request->http;
 	body = request->out_buffer;
-	if ( body != NULL) {
+	if (body != NULL) {
 		evbuffer_add_buffer(http->evhtp_req->buffer_out, body);
 	} else {
 		request_set_out_header(request, "Content-Length", 0);
@@ -183,6 +182,7 @@ int request_init(struct server *server,
 	request->evhtp_req = evhtp_req;
 	rc = http_init(evhtp_req, &http);
 	if (rc != 0) {
+		free(request);
 		log_err("http_init failed. rc = %d.\n", rc);
 		goto error;
 	}
@@ -210,6 +210,8 @@ int request_init(struct server *server,
 	default:
 		request->api_method = STR_HTTP_METHOD_UNKNOWN;
 	}
+
+	request->err_code = 0;
 
 	/* Default request->api_* */
 	request->api_uri = NULL;

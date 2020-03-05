@@ -84,6 +84,8 @@ int log_write(log_level_t level, const char *fmt, ...)
 		rc = -len;
 	}
 
+	fflush(log_fp);
+
 out:
 	return rc;
 }

@@ -212,4 +212,9 @@ struct params {
 struct params* params_parse(int argc, char* argv[]);
 void params_free(struct params *params);
 
+/**
+ * Utility functions.
+ */
+int errno_to_http_code(int err_code);
+
 #endif

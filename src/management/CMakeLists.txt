@@ -8,6 +8,7 @@ SET(framework_LIB_SRCS
 	http.c
 	server.c
 	controller.c
+	utils.c
 )
 
 add_library(management_framework OBJECT
