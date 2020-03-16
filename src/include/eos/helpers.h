@@ -24,6 +24,7 @@
 #include <assert.h>
 #include <fnmatch.h>
 #include <ini_config.h>
+#include <utils.h>
 
 #include "clovis/clovis.h"
 #include "clovis/clovis_internal.h"

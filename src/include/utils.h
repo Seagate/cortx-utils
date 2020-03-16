@@ -17,6 +17,9 @@
 
 #include <stdint.h>
 #include <linux/limits.h>
+#include <common/log.h>
+
+struct collection_item;
 
 struct buff {
 	/** The length of binary buffer. */
@@ -29,6 +32,22 @@ typedef struct buff buff_t;
 
 /* Initialize buff with given buffer and length of buffer */
 void buff_init(buff_t *dest, void *src, size_t src_len);
+
+/* Initialize utils.
+ *  
+ * @param struct collection_item *cfg_items.
+ * 
+ * @return 0 if successful, a negative "-errno" value in case of failure.
+ */
+int utils_init(struct collection_item *cfg_items);
+
+/* finalize utils.
+ * 
+ * @param void.
+ * 
+ * @return 0 if successful, a negative "-errno" value in case of failure.
+ */
+int utils_fini(void);
 
 #endif /* _EOS_UTILS_H_ */
 
