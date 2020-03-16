@@ -162,8 +162,11 @@ int m0idx_open(const struct m0_uint128 *fid, struct m0_clovis_idx **index)
 {
 	int 			rc = 0;
 	struct m0_clovis_idx  	*idx = NULL;
-	
+
 	*index = NULL;
+
+	if (!my_init_done)
+		m0kvs_reinit();
 
 	idx = m0kvs_alloc(sizeof(struct m0_clovis_idx));
         if (idx == NULL) {
