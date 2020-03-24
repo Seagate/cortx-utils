@@ -55,7 +55,7 @@ static int m0_op_kvs(enum m0_clovis_idx_opcode opcode,
 		m0kvs_reinit();
 
 	rc = m0_clovis_idx_op(&idx, opcode, key, val,
-			      rcs, M0_OIF_OVERWRITE, false, &op);
+			      rcs, M0_OIF_OVERWRITE, &op);
 	if (rc)
 		return rc;
 
@@ -206,7 +206,7 @@ static int m0_op2_kvs(void *ctx,
 	index = ctx;
 
 	rc = m0_clovis_idx_op(index, opcode, key, val,
-			      rcs, M0_OIF_OVERWRITE, false, &op);
+			      rcs, M0_OIF_OVERWRITE, &op);
 	if (rc)
 		return rc;
 
@@ -397,7 +397,7 @@ int m0kvs_pattern(void *ctx, char *k, char *pattern,
 		strcpy(keys.ov_buf[0], myk);
 
 		rc = m0_clovis_idx_op(index, M0_CLOVIS_IC_NEXT, &keys, &vals,
-		                      rcs, flags, false, &op);
+		                      rcs, flags, &op);
 		if (rc != 0) {
 			m0_bufvec_free(&keys);
 			m0_bufvec_free(&vals);
@@ -485,7 +485,7 @@ int m0kvs_key_prefix_exists(void *ctx,
 	memcpy(keys.ov_buf[0], kprefix, klen);
 
 	rc = m0_clovis_idx_op(index, M0_CLOVIS_IC_NEXT, &keys, &vals,
-			      rcs, 0, false, &op);
+			      rcs, 0, &op);
 
 	if (rc != 0) {
 		goto out_free_vals;
@@ -602,7 +602,7 @@ int m0kvs_key_iter_find(const void* prefix, size_t prefix_len,
 	memcpy(priv->key.ov_buf[0], prefix, prefix_len);
 
 	rc = m0_clovis_idx_op(index, M0_CLOVIS_IC_NEXT, &priv->key, &priv->val,
-	                      priv->rcs, 0, false, op);
+	                      priv->rcs, 0, op);
 
 	if (rc != 0) {
 		goto out_free_val;
@@ -659,7 +659,7 @@ int m0kvs_key_iter_next(struct m0kvs_key_iter *priv)
 
 	rc = m0_clovis_idx_op(index, M0_CLOVIS_IC_NEXT,
 	                      &priv->key, &priv->val, priv->rcs,
-	                      M0_OIF_EXCLUDE_START_KEY, false, &priv->op);
+	                      M0_OIF_EXCLUDE_START_KEY, &priv->op);
 	if (rc != 0) {
 		goto out;
 	}
