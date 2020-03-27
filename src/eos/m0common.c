@@ -91,14 +91,25 @@ int m0init(struct collection_item *cfg_items)
 	return 0;
 }
 
+static void m0fini_resources(void)
+{
+	assert(my_init_done);
+	if (clovis_instance) {
+		/* Finalize Clovis instance */
+		m0_clovis_fini(clovis_instance, true);
+		clovis_instance = NULL;
+	}
+}	
+
 void m0fini(void)
 {
-	if (pthread_self() == m0init_thread) {
-		/* Finalize Clovis instance */
-		m0_clovis_idx_fini(&idx);
-		m0_clovis_fini(clovis_instance, true);
-	} else
+	if (my_init_done == true){
+		m0fini_resources();
+		my_init_done = false;
+	}
+	if (pthread_self() != m0init_thread) {
 		m0_thread_shun();
+	}
 }
 
 int get_clovis_conf(struct collection_item *cfg)
