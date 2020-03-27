@@ -29,7 +29,6 @@ pthread_t m0init_thread;
 struct collection_item *conf = NULL;
 
 struct m0_fid ifid;
-struct m0_clovis_idx idx;
 
 char *clovis_local_addr;
 char *clovis_ha_addr;
@@ -217,9 +216,6 @@ int init_clovis(void)
 		log_err("Failed to read ifid value from conf\n");
 		goto err_exit;
 	}
-
-	m0_clovis_idx_init(&idx, &clovis_container.co_realm,
-			   (struct m0_uint128 *)&ifid);
 
 	rc = m0_ufid_init(clovis_instance, &ufid_generator);
 	if (rc != 0) {
