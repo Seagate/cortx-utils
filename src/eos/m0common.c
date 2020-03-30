@@ -16,6 +16,7 @@
 
 #include "m0common.h"
 #include <common/log.h>
+#include <debug.h> /* dassert */
 
 /* To be passed as argument */
 struct m0_clovis_realm     clovis_uber_realm;
@@ -90,9 +91,9 @@ int m0init(struct collection_item *cfg_items)
 	return 0;
 }
 
-static void m0fini_resources(void)
+static void m0fini_internal(void)
 {
-	assert(my_init_done);
+	dassert(my_init_done);
 	if (clovis_instance) {
 		/* Finalize Clovis instance */
 		m0_clovis_fini(clovis_instance, true);
@@ -103,7 +104,7 @@ static void m0fini_resources(void)
 void m0fini(void)
 {
 	if (my_init_done == true){
-		m0fini_resources();
+		m0fini_internal();
 		my_init_done = false;
 	}
 	if (pthread_self() != m0init_thread) {
