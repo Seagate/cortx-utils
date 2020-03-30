@@ -122,7 +122,7 @@ out:
 int m0idx_delete(const struct m0_uint128 *fid)
 {
         int                     rc;
-        struct m0_clovis_op     *op;
+        struct m0_clovis_op     *op = NULL;
         struct m0_clovis_idx    idx;
 
         memset(&idx, 0, sizeof(struct m0_clovis_idx));
