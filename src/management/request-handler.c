@@ -104,6 +104,7 @@ int request_accept_data(struct request *request)
 {
 	int rc = 0;
 	char *req_data = NULL;
+	int req_data_length = 0;
 	evbuf_t *req_buf = NULL;
 	struct json_object *json_req_obj = NULL;
 
@@ -113,10 +114,28 @@ int request_accept_data(struct request *request)
 	 */
 	req_buf = request->in_buffer;
 
-	req_data = (char*)evbuffer_pullup(req_buf, evbuffer_get_length(req_buf));
+	req_data_length = evbuffer_get_length(req_buf);
+	req_data = malloc(sizeof(char) * req_data_length);
+	if (req_data == NULL) {
+		rc = ENOMEM;
+		goto out;
+	}
+
+	evbuffer_copyout(req_buf, req_data, req_data_length);
+
 	json_req_obj = json_tokener_parse(req_data);
+	if (json_req_obj == NULL) {
+		rc = EINVAL;
+		log_err("Invalid input json data format : %*.s",
+			req_data_len,
+			req_data);
+		goto error;
+	}
+
 	request->in_json_req_obj = json_req_obj;
 
+error:
+	free(req_data);
 	return rc;
 }
 

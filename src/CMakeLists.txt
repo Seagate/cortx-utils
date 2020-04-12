@@ -91,7 +91,7 @@ target_link_libraries(eos-utils
 	crypto
 	event_openssl
 	evhtp
-	json
+	json-c
 )
 
 # CPack / rpmbuild specific stuff
