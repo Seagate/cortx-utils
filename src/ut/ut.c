@@ -11,7 +11,6 @@
  */
 /******************************************************************************/
 
-#include <errno.h>
 #include "ut.h"
 
 static int file_desc, saved_stdout, saved_stderr;
@@ -30,7 +29,7 @@ int ut_init(char * log_path)
 	saved_stdout = dup(STDOUT_FILENO);
 	saved_stderr = dup(STDERR_FILENO);
 
-        dup2(file_desc, STDOUT_FILENO);
+	dup2(file_desc, STDOUT_FILENO);
 	dup2(file_desc, STDERR_FILENO);
 
 	time_t start_time;
@@ -56,16 +55,24 @@ void ut_fini(void)
 	close(file_desc);
 }
 
-int ut_run(struct test_case test_list[], int test_count)
+void ut_summary(int test_count, int test_failed)
+{
+	printf("Total tests  = %d\n", test_count);
+	printf("Tests passed = %d\n", test_count-test_failed);
+	printf("Tests failed = %d\n", test_failed);
+}
+
+int ut_run(struct test_case test_list[], int test_count, int (* setup)(), int (* teardown)())
 {
 	struct CMUnitTest  tests[MAX_TEST] = {{NULL}};
 
 	int i;
 	for(i = 0; i<test_count; i ++) {
-		struct CMUnitTest temp = cmocka_unit_test(test_list[i].test_func);
+		struct CMUnitTest temp = cmocka_unit_test_setup_teardown(test_list[i].test_func,
+			test_list[i].setup_func, test_list[i].teardown_func);
 		tests[i] = temp;
 		tests[i].name = test_list[i].test_name;
 	}
 
-	return cmocka_run_group_tests(tests, NULL, NULL);
+	return  cmocka_run_group_tests(tests, setup, teardown);
 }
