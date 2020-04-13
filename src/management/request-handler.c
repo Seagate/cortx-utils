@@ -118,7 +118,7 @@ int request_accept_data(struct request *request)
 	req_data = malloc(sizeof(char) * req_data_length);
 	if (req_data == NULL) {
 		rc = ENOMEM;
-		goto out;
+		goto error;
 	}
 
 	evbuffer_copyout(req_buf, req_data, req_data_length);
@@ -127,7 +127,7 @@ int request_accept_data(struct request *request)
 	if (json_req_obj == NULL) {
 		rc = EINVAL;
 		log_err("Invalid input json data format : %*.s",
-			req_data_len,
+			req_data_length,
 			req_data);
 		goto error;
 	}
