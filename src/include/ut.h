@@ -5,6 +5,7 @@
 #include <unistd.h> /* STDOUT_FILENO */
 #include <time.h> /* time_t */
 #include <errno.h> /* errno */
+#include <stdbool.h> /* bool */
 #include "common/log.h"
 #define MAX_TEST 100
 #define MAX_TEST_NAME 100
@@ -14,7 +15,7 @@
 #define ut_assert_true(a) assert_true(a)
 #define ut_assert_false(a) assert_false(a)
 #define ut_assert_null(a) assert_null(a)
-#define ut_assert_not_null(a) assert_not_null(a)
+#define ut_assert_not_null(a) assert_non_null(a)
 #define ut_assert_int_equal(a, b) assert_int_equal(a, b)
 #define ut_assert_int_not_equal(a, b) assert_int_not_equal(a, b)
 #define ut_assert_string_equal(a, b) assert_string_equal(a, b)

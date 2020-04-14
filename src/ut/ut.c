@@ -13,10 +13,50 @@
 
 #include "ut.h"
 
+/* This macro enables self tests in eos-utils ut library.
+ * The self test ensures that the API is stable enough to be
+ * consumed by the users.
+ * Disable the self test to speed up execution of each individual ut binary.
+ */
+#ifndef ENABLE_UT_SELF_TEST
+#define ENABLE_UT_SELF_TEST 1
+#endif
+
 static int file_desc, saved_stdout, saved_stderr;
+
+static inline void ut_self_test(void)
+{
+	const bool always_true = true;
+	const bool always_false = false;
+	const void *always_nonull = (void*) ut_self_test;
+	const int i1 = 1;
+	const int i2 = 2;
+	const char *str1 = "1";
+	const char *str2 = "2";
+
+	ut_assert_true(always_true);
+	ut_assert_false(always_false);
+
+	ut_assert_null(NULL);
+	ut_assert_not_null(always_nonull);
+
+	ut_assert_int_equal(i1, i1);
+	ut_assert_int_equal(i1, 1);
+	ut_assert_int_not_equal(i1, i2);
+	ut_assert_int_not_equal(i1, 2);
+
+	ut_assert_string_equal(str1, str1);
+	ut_assert_string_equal(str1, "1");
+	ut_assert_string_not_equal(str1, str2);
+	ut_assert_string_not_equal(str1, "2");
+}
 
 int ut_init(char * log_path)
 {
+	#if ENABLE_UT_SELF_TEST
+		ut_self_test();
+	#endif
+
 	int rc = 0;
 
 	file_desc = open(log_path, O_WRONLY | O_APPEND | O_CREAT, 0644);
