@@ -8,20 +8,69 @@
  * Portions are also trade secret. Any use, duplication, derivation, distribution
  * or disclosure of this code, for any reason, not expressly authorized is
  * prohibited. All other rights are expressly reserved by Seagate Technology, LLC.
- * 
+ *
  * Author: Yogesh Lahane <yogesh.lahane@seagate.com>
  *
  */
 
 #include "management.h"
-#include "debug.h" /* dassert() */	
+#include "debug.h" /* dassert() */
 #include "common/log.h" /* log_* */
 
-int http_log_headers(evhtp_header_t *header, void *arg) {
+static int http_log_headers(evhtp_header_t *header, void *arg) {
 	log_debug("http header(key = '%s', val = '%s')\n",
 		  header->key,
 		  header->val);
 	return 0;
+}
+
+static evhtp_res http_on_client_conn_err_callback(evhtp_request_t *evhtp_req,
+					     evhtp_error_flags errtype,
+					     void *arg)
+{
+	int rc = EVHTP_RES_OK;
+	struct request *request = NULL;
+
+	log_debug("Client disconnected.");
+
+	if (evhtp_req) {
+		if (request) {
+			request->is_client_disconnected = 1;
+		}
+
+		if (evhtp_req->conn) {
+			evhtp_unset_all_hooks(&evhtp_req->conn->hooks);
+		}
+
+		evhtp_unset_all_hooks(&evhtp_req->hooks);
+	}
+	return rc;
+}
+
+static evhtp_res http_on_client_request_fini(evhtp_request_t *evhtp_req,
+					     void *arg)
+{
+	int rc = EVHTP_RES_OK;
+	struct request *request = NULL;
+
+	log_debug("Finalize client request.");
+
+	/**
+	 * Around this event libevhtp will free request, so we
+	 * protect server code from accessing freed request
+	 */
+	if (evhtp_req) {
+		request = (struct request*)evhtp_req->cbarg;
+		if (request) {
+			request->is_client_disconnected = 1;
+		}
+
+		evhtp_unset_all_hooks(&evhtp_req->hooks);
+
+		/* Free request object. */
+		request_fini(request);
+	}
+	return rc;
 }
 
 evhtp_res http_dispatch_request(evhtp_request_t *evhtp_req,
@@ -37,15 +86,15 @@ evhtp_res http_dispatch_request(evhtp_request_t *evhtp_req,
 	log_debug("Received new request.\n");
 
 	server = (struct server*)arg;
-	
+
 	/**
- 	 * 1. Parse request. 
+ 	 * 1. Parse request.
 	 * 2. Find controller.
 	 * 3. Find controller api.
 	 * 4. Execute api.
 	 */
 
-	/* Log headers. */ 	
+	/* Log headers. */
 	evhtp_headers_for_each(hdrs,
 			       http_log_headers,
 			       evhtp_req->buffer_out);
@@ -55,9 +104,8 @@ evhtp_res http_dispatch_request(evhtp_request_t *evhtp_req,
 	if (rc != 0) {
 		/**
 		 * Internal Error - Request alloc.
-		 * Send Internal error response.
 		 */
-		goto error;
+		log_fatal("Request allocation failed.");
 	}
 
 	log_debug("Request Info:\n"
@@ -76,12 +124,19 @@ evhtp_res http_dispatch_request(evhtp_request_t *evhtp_req,
 	if (controller == NULL) {
 		/**
 		 * No controller found.
-		 * Send error response.
+		 * Do cleanup and Send error response.
 		 */
+		log_err("Controller not found : %s.!", request->api_uri);
+
+		request->http->request_pause(evhtp_req);
+		evhtp_unset_all_hooks(&evhtp_req->conn->hooks);
+
+		rc = ENOTSUP;
+		request->err_code = rc;
 		goto error;
 	}
 
-	request->controller = controller;	
+	request->controller = controller;
 
 	/* 3. Find controller api. */
 	api = request_get_api(request);
@@ -90,6 +145,14 @@ evhtp_res http_dispatch_request(evhtp_request_t *evhtp_req,
 		 * No api method found for the controller.
 		 * Send error reponce.
 		 */
+		log_err("Controller API not supported : %s.!",
+			request->api_method);
+
+		request->http->request_pause(evhtp_req);
+		evhtp_unset_all_hooks(&evhtp_req->conn->hooks);
+
+		rc = ENOTSUP;
+		request->err_code = rc;
 		goto error;
 	}
 
@@ -98,20 +161,42 @@ evhtp_res http_dispatch_request(evhtp_request_t *evhtp_req,
 	log_debug("\tController name : %s\n"
 		  "\tApi name : %s\n", controller->name, api->name);
 
-	/* 4. Execute request */
-	request_execute(api);
-
 	/**
 	 * Store request in evhtp_request callback for further processing.
 	 * It will be mainly consumed in the http_process_request_data.
 	 */
 	evhtp_req->cbarg = request;
 
-	rc = EVHTP_RES_OK;
+	/* Check if server is shutting down ot not. */
+	if (server->is_shutting_down) {
+		request->http->request_pause(evhtp_req);
+		evhtp_unset_all_hooks(&evhtp_req->conn->hooks);
 
-error:
+		log_err("Controller API not supported : %s.!",
+			request->api_method);
+		rc = ECONNABORTED;
+		request->err_code = rc;
+		goto error;
+	}
+
+	evhtp_request_set_hook(evhtp_req, evhtp_hook_on_error,
+		       (evhtp_hook)http_on_client_conn_err_callback, NULL);
+
+	evhtp_request_set_hook(evhtp_req, evhtp_hook_on_request_fini,
+		       (evhtp_hook)http_on_client_request_fini, NULL);
+
+	/* 4. Execute request */
+	request_execute(api);
+
 	log_debug("Dispatched new request.\n");
 
+	rc = EVHTP_RES_OK;
+	return rc;
+
+error:
+	/* Send error response */
+	request_send_response(request, errno_to_http_code(rc));
+	rc = EVHTP_RES_OK;
 	return rc;
 }
 
@@ -120,7 +205,6 @@ evhtp_res http_process_request_data(evhtp_request_t *evhtp_req,
 				    void *arg)
 {
 	int rc = EVHTP_RES_OK;
-	evbuf_t *req_data = NULL;
 	size_t req_data_len = 0;
 	struct request *request = NULL;
 	struct http *http = NULL;
@@ -131,32 +215,52 @@ evhtp_res http_process_request_data(evhtp_request_t *evhtp_req,
 		  (char *)evbuffer_pullup(buf, evbuffer_get_length(buf)));
 
 	request = (struct request*)evhtp_req->cbarg;
-	http = request->http; 
 
-	req_data = evbuffer_new();
-	evbuffer_add_buffer(req_data, buf);
+	if (request->ignore_incoming_data || request->in_remaining_len == 0) {
+		/* Ingoring incoming request data. */
+		goto error;
+	}
 
-	req_data_len = http->evbuffer_get_length(req_data);
+	if (request->read_cb == NULL) {
+		/**
+		 * Got the data but read callback is not installed.
+		 * It's and internal error.
+		 */
+		request->err_code = -1;
+		request_send_response(request,
+				      errno_to_http_code(request->err_code));
+		goto error;
+	}
+
+	http = request->http;
+
+	request->in_buffer = evbuffer_new();
+	evbuffer_add_buffer(request->in_buffer, buf);
+
+	req_data_len = http->evbuffer_get_length(request->in_buffer);
 	request->in_read_len = req_data_len;
-	
+
 	request->in_remaining_len -= req_data_len;
 	if (request->in_remaining_len != 0) {
 		/**
 		 * We don't support chunked data.
 		 * Send error responce.
 		 */
+		request->err_code = EINVAL;
+		request_send_response(request,
+				      errno_to_http_code(request->err_code));
 		goto error;
 	}
 
-	request->in_buffer = req_data;
-
-	/* Notify controller api for the incoming data. */ 
+	/* Notify controller api for the incoming data. */
 	request->read_cb(request->api);
-
 	log_debug("Dispatched request data.\n");
-
 error:
-	evbuffer_free(req_data);
+	if (request->in_buffer) {
+		evbuffer_free(request->in_buffer);
+		request->in_buffer = NULL;
+	}
+
 	return rc;
 }
 
@@ -191,7 +295,7 @@ int http_evhtp_init(evbase_t *ev_base,
 		   evhtp_t **new_ev_htp)
 {
 	int rc = 0;
-	evhtp_t *ev_htp = NULL;	
+	evhtp_t *ev_htp = NULL;
 
 	log_info("Creating evhtp instance.\n");
 
@@ -226,14 +330,22 @@ int http_evhtp_init(evbase_t *ev_base,
 
 	/* Assign InOut param value. */
 	*new_ev_htp = ev_htp;
+	ev_htp = NULL;
 
 error:
+	if (ev_htp) {
+		evhtp_free(ev_htp);
+	}
 	return rc;
 }
 
 void http_evhtp_fini(evhtp_t *ev_htp)
 {
-	evhtp_free(ev_htp);
+	if (ev_htp) {
+		evhtp_unbind_socket(ev_htp);
+		evhtp_free(ev_htp);
+		ev_htp = NULL;
+	}
 }
 
 void http_request_pause(evhtp_request_t *request)
@@ -343,8 +455,11 @@ int http_init(evhtp_request_t *evhtp_req, struct http **new_http)
 
 	/* Assign InOut param value. */
 	*new_http = http;
-
+	http = NULL;
 error:
+	if (http) {
+		free(http);
+	}
 	return rc;
 }
 

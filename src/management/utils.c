@@ -39,6 +39,9 @@ int errno_to_http_code(int err_code)
 	case EFBIG:
 		http_code = EVHTP_RES_ENTOOLARGE;
 		break;
+	case ECONNABORTED:
+		http_code = EVHTP_RES_SERVUNAVAIL;
+		break;
 	default:
 		http_code = EVHTP_RES_SERVERR;
 	}

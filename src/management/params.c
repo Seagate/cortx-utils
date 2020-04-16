@@ -52,7 +52,10 @@ struct params* params_parse(int argc, char *argv[])
 	struct params *params = NULL;
 
 	params = malloc(sizeof(struct params));
-	dassert(params != NULL);
+	if (params == NULL) {
+		log_err("Failed to allocate params.");
+		goto error;
+	}
 
 	/* Init. */
 	*params = default_params;
@@ -90,6 +93,11 @@ struct params* params_parse(int argc, char *argv[])
 		params->bind_ipv6 = 1;
 	}
 
-error:
 	return params;
+error:
+	if (params) {
+		free(params);
+		params = NULL;
+	}
+	return NULL;
 }

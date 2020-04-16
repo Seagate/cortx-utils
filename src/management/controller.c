@@ -8,13 +8,13 @@
  * Portions are also trade secret. Any use, duplication, derivation, distribution
  * or disclosure of this code, for any reason, not expressly authorized is
  * prohibited. All other rights are expressly reserved by Seagate Technology, LLC.
- * 
+ *
  * Author: Yogesh Lahane <yogesh.lahane@seagate.com>
  *
  */
 
 #include "management.h"
-#include "debug.h" /* dassert() */	
+#include "debug.h" /* dassert() */
 #include "common/log.h" /* log_* */
 
 struct controller* controller_find_by_name(struct server *server, char *name)
@@ -44,7 +44,7 @@ struct controller* controller_find_by_api_uri(struct server *server,
 	struct controller *controller = NULL;
 
 	log_debug("Finding controller by api_uri : %s.\n", api_uri);
- 
+
 	LIST_FOREACH(iterator, &server->controller_list, entries) {
 		if (!strncmp(iterator->api_uri,
 			     api_uri,
@@ -68,7 +68,7 @@ void controller_register(struct server *server, struct controller *controller)
 
 	/* Add to the head. */
 	LIST_INSERT_HEAD(&(server->controller_list), controller, entries);
-	
+
 	log_debug("Registered controller : %s.\n", controller->name);
 }
 
@@ -77,6 +77,6 @@ void controller_unregister(struct controller *controller)
 	log_debug("Unregistering controller : %s.\n", controller->name);
 
 	LIST_REMOVE(controller, entries);
-	
+
 	log_debug("Unregistered controller : %s.\n", controller->name);
 }

@@ -8,14 +8,15 @@
  * Portions are also trade secret. Any use, duplication, derivation, distribution
  * or disclosure of this code, for any reason, not expressly authorized is
  * prohibited. All other rights are expressly reserved by Seagate Technology, LLC.
- * 
+ *
  * Author: Yogesh Lahane <yogesh.lahane@seagate.com>
  *
  */
 
 #include <sys/queue.h> /* LIST_* */
+#include <sys/time.h> /* struct timeval */
 #include "management.h"
-#include "debug.h" /* dassert() */	
+#include "debug.h" /* dassert() */
 #include "common/log.h" /* log_* */
 
 /**
@@ -25,10 +26,12 @@ int server_init(struct server *server, struct params *params)
 {
 	int rc = 0;
 	int old_cancel_state;
-	evhtp_t *ev_htp = NULL;	
+	evhtp_t *ev_htp_ipv4 = NULL;
+	evhtp_t *ev_htp_ipv6 = NULL;
+	struct event_base *ev_base = NULL;
 
 	/* Set control server params. */
-	server->params = params; 
+	server->params = params;
 
 	/* Set thread info. */
 	server->thread_id = pthread_self();
@@ -38,47 +41,90 @@ int server_init(struct server *server, struct params *params)
 	LIST_INIT(&(server->controller_list));
 
 	/* Set control server event base. */
-	server->ev_base = event_base_new();
-	dassert(server->ev_base != NULL);
+	ev_base = event_base_new();
+	if (ev_base == NULL) {
+		log_err("Failed to get event base.");
+		goto error;
+	}
 
 	/* Create and init ev_htp instance. */
 	if (server->params->bind_ipv4) {
-		rc = http_evhtp_init(server->ev_base,
+		rc = http_evhtp_init(ev_base,
 				     server,
-				     &ev_htp);
+				     &ev_htp_ipv4);
 		if (rc != 0) {
 			log_err("Internal error: http_evhtp_init failed.\n");
 			goto error;
 		}
-		server->ev_htp_ipv4 = ev_htp;
 	}
 
 	if (server->params->bind_ipv6) {
-		rc = http_evhtp_init(server->ev_base,
+		rc = http_evhtp_init(ev_base,
 				     server,
-				     &ev_htp);
+				     &ev_htp_ipv6);
 		if (rc != 0) {
 			log_err("Internal error: http_evhtp_init failed.\n");
 			goto error;
 		}
-		server->ev_htp_ipv6 = ev_htp;
 	}
 
-	/* Server Init. */ 
+	/* Server Init. */
 	LIST_INIT(&(server->request_list));
-	server->is_cancelled = 0;
+	server->is_shutting_down = 0;
 	server->is_launch_err = 0;
 
+	server->ev_base = ev_base;
+	ev_base = NULL;
+
+	server->ev_htp_ipv4 = ev_htp_ipv4;
+	ev_htp_ipv4 = NULL;
+
+	server->ev_htp_ipv6 = ev_htp_ipv6;
+	ev_htp_ipv6 = NULL;
+
 error:
+	if (ev_htp_ipv4) {
+		evhtp_unbind_socket(ev_htp_ipv4);
+		evhtp_free(ev_htp_ipv4);
+	}
+
+	if (ev_htp_ipv6) {
+		evhtp_unbind_socket(ev_htp_ipv4);
+		evhtp_free(ev_htp_ipv6);
+	}
+
+	if (ev_base) {
+		event_base_free(ev_base);
+	}
+
 	return rc;
 }
 
 int server_cleanup(struct server *server)
 {
 	int rc = 0;
-	/* @TODO: Cleanup. */
-	free(server);
+	if (server == NULL) {
+		goto out;
+	}
 
+	if (server->params) {
+		free(server->params);
+	}
+
+	if (server->ev_htp_ipv4) {
+		http_evhtp_fini(server->ev_htp_ipv4);
+	}
+
+	if (server->ev_htp_ipv6) {
+		http_evhtp_fini(server->ev_htp_ipv6);
+	}
+
+	if (server->ev_base) {
+		event_base_free(server->ev_base);
+	}
+
+	free(server);
+out:
 	return rc;
 }
 
@@ -86,22 +132,24 @@ int server_start(struct server *server)
 {
 	int rc = 0;
 	int addr_len = 0;
+	int prefix_len = 0;
 	char *addr = NULL;
 	char *addr_ptr = NULL;
 	const char *ipv4_prefix = "ipv4:";
 	const char *ipv6_prefix = "ipv6:";
 
 	if (server->params->bind_ipv4) {
+		prefix_len = strlen(ipv4_prefix);
 		addr_len = strlen(server->params->addr_ipv4);
 
-		addr = malloc((addr_len + 5 + 1) * sizeof(char));
+		addr = malloc((addr_len + prefix_len + 1) * sizeof(char));
 		dassert(addr != NULL);
 
-		addr_ptr = strncpy(addr, ipv4_prefix, 5);
-		addr_ptr = strncpy(addr_ptr + 5,
-				   server->params->addr_ipv4,
-				   addr_len);
-		addr_ptr[addr_len+1] = '\0';
+		strncpy(addr, ipv4_prefix, prefix_len);
+		strncpy(addr + prefix_len,
+			server->params->addr_ipv4,
+			addr_len);
+		addr[prefix_len + addr_len] = '\0';
 
 		log_info("Starting Control Server on host = %s and port = %d!\n",
 			 server->params->addr_ipv4,
@@ -119,15 +167,17 @@ int server_start(struct server *server)
 	}
 
 	if (server->params->bind_ipv6) {
+		prefix_len = strlen(ipv4_prefix);
 		addr_len = strlen(server->params->addr_ipv6);
 
-		addr = malloc((addr_len + 5) * sizeof(char));
+		addr = malloc((addr_len + prefix_len + 1) * sizeof(char));
 		dassert(addr != NULL);
 
-		addr_ptr = strncpy(addr, ipv6_prefix, 5);
-		addr_ptr = strncpy(addr_ptr + 5,
-				   server->params->addr_ipv6,
-				   addr_len);
+		strncpy(addr, ipv6_prefix, prefix_len);
+		strncpy(addr_ptr + prefix_len,
+			server->params->addr_ipv6,
+			addr_len);
+		addr[prefix_len + addr_len] = '\0';
 
 		log_info("Starting Control Server on host = %s and port = %d!\n",
 			 server->params->addr_ipv6,
@@ -163,8 +213,29 @@ error:
 int server_stop(struct server *server)
 {
 	int rc = 0;
+	struct timeval loopexit_timeout = {.tv_sec = 0, .tv_usec = 0};
 
-	/* @TODO */
+	if (!server) {
+		goto out;
+	}
 
+	/* Stop accepting anymore request. */
+	server->is_shutting_down = 1;
+
+	loopexit_timeout.tv_sec = 3;	/* Configurable paramater. */
+	loopexit_timeout.tv_usec = 0;
+
+ 	/**
+	 * event_base_loopexit() will let event loop serve all events as usual
+	 * till loopexit_timeout. After the timeout, all active events will be
+	 * served and then the event loop breaks.
+	 */
+	rc = event_base_loopexit(server->ev_base, &loopexit_timeout);
+	if (rc == 0) {
+		log_debug("event_base_loopexit returns SUCCESS.");
+	} else {
+		log_err("event_base_loopexit returns FAILURE.");
+	}
+out:
 	return rc;
 }

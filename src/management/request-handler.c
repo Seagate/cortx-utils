@@ -8,14 +8,14 @@
  * Portions are also trade secret. Any use, duplication, derivation, distribution
  * or disclosure of this code, for any reason, not expressly authorized is
  * prohibited. All other rights are expressly reserved by Seagate Technology, LLC.
- * 
+ *
  * Author: Yogesh Lahane <yogesh.lahane@seagate.com>
  *
  */
 
 #include <json/json.h> /* for json_object */
 #include "management.h"
-#include "debug.h" /* dassert() */	
+#include "debug.h" /* dassert() */
 #include "common/log.h" /* log_* */
 
 int request_consume_header(evhtp_kv_t* kvobj, void* arg) {
@@ -29,7 +29,7 @@ struct controller* request_get_controller(struct request *request)
 	struct server *server = NULL;
 	struct controller *controller = NULL;
 
-	server = request->server;	
+	server = request->server;
 	api_uri = request->api_uri;
 	controller = controller_find_by_api_uri(server, api_uri);
 
@@ -51,7 +51,6 @@ struct controller_api* request_get_api(struct request *request)
 				  controller,
 				  request,
 				  &api);
-
 	if (rc != 0) {
 		log_err("Failed to get new controller instance.\n");
 		api = NULL;
@@ -82,7 +81,7 @@ int request_validate_headers(struct request *request)
 	if (content_length == NULL) {
 		/**
 		 * Invalid fs request.
-		 * Send error responce.
+		 * Send error response.
 		 */
 		rc = EINVAL;
 		goto error;
@@ -107,6 +106,7 @@ int request_accept_data(struct request *request)
 	int req_data_length = 0;
 	evbuf_t *req_buf = NULL;
 	struct json_object *json_req_obj = NULL;
+	struct json_tokener *json_tokener = NULL;
 
 	/**
 	 * 1. Pull the read data from the request in_buffer.
@@ -121,39 +121,106 @@ int request_accept_data(struct request *request)
 		goto error;
 	}
 
-	evbuffer_copyout(req_buf, req_data, req_data_length);
+	evbuffer_copyout(req_buf, (void*)req_data, req_data_length);
 
-	json_req_obj = json_tokener_parse(req_data);
+	json_tokener = json_tokener_new();
+	if (json_tokener == NULL) {
+		rc = ENOMEM;
+		goto error;
+	}
+
+	json_req_obj = json_tokener_parse_ex(json_tokener,
+					     req_data,
+					     req_data_length);
 	if (json_req_obj == NULL) {
 		rc = EINVAL;
 		log_err("Invalid input json data format : %*.s",
-			req_data_length,
-			req_data);
+				req_data_length,
+				req_data);
 		goto error;
 	}
 
 	request->in_json_req_obj = json_req_obj;
 
 error:
-	free(req_data);
+	if (req_data)
+		free(req_data);
+	if (json_tokener)
+		json_tokener_free(json_tokener);
 	return rc;
 }
 
-void request_send_responce(struct request *request,
+void request_send_response(struct request *request,
 			   int code)
 {
+	char str_resp_size[16];
+	const char *str_resp = NULL;
 	struct http *http = NULL;
-	evbuf_t *body = NULL;
+	struct json_object *json_resp_obj = NULL;
 
 	http = request->http;
-	body = request->out_buffer;
-	if (body != NULL) {
-		evbuffer_add_buffer(http->evhtp_req->buffer_out, body);
+
+	if (request->err_code != 0) {
+		/* Create json object */
+		request->out_json_req_obj = json_object_new_object();
+
+		json_resp_obj = json_object_new_int(request->err_code);
+		json_object_object_add(request->out_json_req_obj,
+				       "rc",
+				       json_resp_obj);
+		json_resp_obj = NULL;
+	}
+
+	json_resp_obj = request->out_json_req_obj;
+
+	if (json_resp_obj != NULL) {
+		str_resp = json_object_to_json_string(json_resp_obj);
+		request->out_content_len = strlen(str_resp);
+		sprintf(str_resp_size, "%d", request->out_content_len);
+
+		/* Send error response message. */
+                request_set_out_header(request,
+                                       "Content-Type",
+                                       "application/json");
+
+                request_set_out_header(request,
+				       "Accept",
+				       "application/json");
+
+		request_set_out_header(request,
+				       "Content-Length",
+				       str_resp_size);
+
+		request->out_buffer = evbuffer_new();
+		evbuffer_add(request->out_buffer,
+			     str_resp,
+			     request->out_content_len);
+
+		evbuffer_add_buffer(http->evhtp_req->buffer_out,
+				    request->out_buffer);
+
+		/**
+		 * Free out_json_req_obj out, It will no longer be  used.
+		 */
+		json_object_put(request->out_json_req_obj);
+		request->out_json_req_obj = NULL;
+
+		evbuffer_free(request->out_buffer);
+		request->out_buffer = NULL;
+
 	} else {
 		request_set_out_header(request, "Content-Length", 0);
 	}
 
+	/* Send hhtp reply. */
 	http->send_reply(http->evhtp_req, code);
+
+	/**
+	 * request->in_json_req_obj will not be used any longer,
+	 * you can safely free them here.
+	 */
+	json_object_put(request->in_json_req_obj);
+	request->in_json_req_obj = NULL;
 }
 
 void request_set_out_header(struct request *request,
@@ -167,10 +234,12 @@ void request_set_out_header(struct request *request,
 	header = http->header_new(key, value, 1, 1);
 	http->headers_add_header(http->evhtp_req->headers_out, header);
 }
- 
+
 void request_execute(struct controller_api *api)
 {
-	api->action_table[api->action_next++](api, NULL);
+	if (!api->request->is_client_disconnected) {
+		api->action_table[api->action_next++](api, NULL);
+	}
 }
 
 void request_next_action(struct controller_api *api)
@@ -183,13 +252,12 @@ int request_init(struct server *server,
 		struct request **new_request)
 {
 	int rc = 0;
-	char* decoded_uri = NULL;
 	struct http *http = NULL;
 	struct request *request = NULL;
 
-	request = malloc(sizeof(struct request));
+	request = calloc(1, sizeof(struct request));
 	if (request == NULL) {
-		rc = ENOMEM; 
+		rc = ENOMEM;
 		log_err("Request alloc failed : No memory.");
 		goto error;
 	}
@@ -201,7 +269,6 @@ int request_init(struct server *server,
 	request->evhtp_req = evhtp_req;
 	rc = http_init(evhtp_req, &http);
 	if (rc != 0) {
-		free(request);
 		log_err("http_init failed. rc = %d.\n", rc);
 		goto error;
 	}
@@ -230,45 +297,33 @@ int request_init(struct server *server,
 		request->api_method = STR_HTTP_METHOD_UNKNOWN;
 	}
 
-	request->err_code = 0;
-
-	/* Default request->api_* */
-	request->api_uri = NULL;
-	request->api_path = NULL;
-	request->api_file = NULL;
-	request->api_query = NULL;
-
 	if (evhtp_req->uri != NULL) {
 		if (evhtp_req->uri->path != NULL) {
-			decoded_uri =
+			request->api_uri =
 			evhttp_uridecode(evhtp_req->uri->path->full,
 					 1,
 					 NULL);
-			request->api_uri = decoded_uri;
 
 			if (evhtp_req->uri->path->path != NULL) {
-				decoded_uri =
+				request->api_path =
 				evhttp_uridecode(evhtp_req->uri->path->path,
 						 1,
 						 NULL);
-				request->api_path = decoded_uri;
 			}
 
 			if (evhtp_req->uri->path->file != NULL) {
-				decoded_uri =
+				request->api_file =
 				evhttp_uridecode(evhtp_req->uri->path->file,
 						 1,
 						 NULL);
-				request->api_file = decoded_uri;
 			}
 		}
-		
+
 		if (evhtp_req->uri->query_raw != NULL) {
-			decoded_uri =
+			request->api_query =
 			evhttp_uridecode((const char*)evhtp_req->uri->query_raw,
 					 1,
 					 NULL);
-			request->api_query = decoded_uri;
 		}
 	}
 
@@ -282,14 +337,69 @@ int request_init(struct server *server,
 
 	/* Assign InOut param value. */
 	*new_request = request;
-
+	request = NULL;
 error:
+	if (request) {
+		if (request->http) {
+			free(request->http);
+		}
+
+		if (request->api_uri) {
+			free(request->api_uri);
+			request->api_uri = NULL;
+		}
+
+		if (request->api_path) {
+			free(request->api_path);
+			request->api_path = NULL;
+		}
+
+		if (request->api_file) {
+			free(request->api_file);
+			request->api_file = NULL;
+		}
+
+		if (request->api_query) {
+			free(request->api_uri);
+			request->api_query = NULL;
+		}
+	}
 	return rc;
 }
 
 void request_fini(struct request *request)
 {
-	/**@TODO:
-	 * Implement request fini method.
-	 */
-} 
+	if (request) {
+		if (request->api_uri) {
+			free(request->api_uri);
+			request->api_uri = NULL;
+		}
+
+		if (request->api_path) {
+			free(request->api_path);
+			request->api_path = NULL;
+		}
+
+		if (request->api_file) {
+			free(request->api_file);
+			request->api_file = NULL;
+		}
+
+		if (request->api_query) {
+			free(request->api_uri);
+			request->api_query = NULL;
+		}
+
+		/* http */
+		http_fini(request->http);
+
+		/* Cleanup controller api. */
+		request_free_api(request);
+
+		/* Cleanup evhtp object */
+		//evhtp_request_free(request->evhtp_req);
+
+		/* Delete request object. */
+		free(request);
+	}
+}

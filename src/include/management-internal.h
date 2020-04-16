@@ -9,7 +9,7 @@
  * Portions are also trade secret. Any use, duplication, derivation, distribution
  * or disclosure of this code, for any reason, not expressly authorized is
  * prohibited. All other rights are expressly reserved by Seagate Technology, LLC.
- * 
+ *
  * Author: Yogesh Lahane <yogesh.lahane@seagate.com>
  *
  */
@@ -116,7 +116,7 @@ struct request {
 	enum http_method	 http_method;
 	char			*api_file;
 	char			*api_uri;
-	char			*api_path;	
+	char			*api_path;
 	char			*api_method;
 	char			*api_query;
 
@@ -144,6 +144,7 @@ struct request {
 
 	/* Request Operations handlers and call backs. */
 	request_read_cb_func	 read_cb;
+	int			 ignore_incoming_data;
 
 	/* General Info. */
 	int			 is_client_disconnected;
@@ -167,7 +168,7 @@ int request_validate_headers(struct request *request);
 int request_accept_data(struct request *request);
 void request_execute(struct controller_api *api);
 void request_next_action(struct controller_api *api);
-void request_send_responce(struct request *request, int code);
+void request_send_response(struct request *request, int code);
 void request_set_out_header(struct request *request,
 			    const char *key,
 			    const char *value);
