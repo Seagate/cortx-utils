@@ -15,6 +15,7 @@
 
 #include <sys/queue.h> /* LIST_* */
 #include <sys/time.h> /* struct timeval */
+#include <event2/thread.h> /* evthread_* */
 #include "management.h"
 #include "debug.h" /* dassert() */
 #include "common/log.h" /* log_* */
@@ -40,10 +41,19 @@ int server_init(struct server *server, struct params *params)
 	/* Init controller_list HEAD. */
 	LIST_INIT(&(server->controller_list));
 
+	// Call this function before creating event base
+	evthread_use_pthreads();
+
 	/* Set control server event base. */
 	ev_base = event_base_new();
 	if (ev_base == NULL) {
 		log_err("Failed to get event base.");
+		goto error;
+	}
+
+	rc = evthread_make_base_notifiable(ev_base);
+	if (rc != 0) {
+		log_err("Couldn't make base notifiable!");
 		goto error;
 	}
 
