@@ -144,7 +144,7 @@ struct request {
 
 	/* Request Operations handlers and call backs. */
 	request_read_cb_func	 read_cb;
-	int			 ignore_incoming_data;
+	bool			 ignore_incoming_data;
 
 	/* General Info. */
 	int			 is_client_disconnected;

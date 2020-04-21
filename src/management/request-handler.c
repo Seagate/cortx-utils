@@ -207,12 +207,11 @@ void request_send_response(struct request *request,
 
 		evbuffer_free(request->out_buffer);
 		request->out_buffer = NULL;
-
 	} else {
 		request_set_out_header(request, "Content-Length", 0);
 	}
 
-	/* Send hhtp reply. */
+	/* Send http reply. */
 	http->send_reply(http->evhtp_req, code);
 
 	/**
@@ -395,9 +394,6 @@ void request_fini(struct request *request)
 
 		/* Cleanup controller api. */
 		request_free_api(request);
-
-		/* Cleanup evhtp object */
-		//evhtp_request_free(request->evhtp_req);
 
 		/* Delete request object. */
 		free(request);
