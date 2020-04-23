@@ -10,10 +10,11 @@ backends: ['/opt/statsd-utils/statsd-elasticsearch-backend-0.4.2/lib/elasticsear
      indexPrefix:   "statsd",
      indexTimestamp: "day",     //for index statsd-2015.01.01
      countType:     "counter",
-     timerType:     "timer",
+     //timerType:     "timer",
      timerDataType: "timer_data",
-     gaugeDataType: "gauge",
-     formatter:     "default_format"
+     //gaugeDataType: "gauge",
+     formatter:     "default_format",
+     replication:   2
 }
 }
 

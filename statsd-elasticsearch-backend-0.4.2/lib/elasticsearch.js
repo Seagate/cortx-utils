@@ -15,7 +15,8 @@
  *   port:            port of Elastic Search Server
  *   path:            http path of Elastic Search Server (default: '/')
  *   indexPrefix:     Prefix of the dynamic index to be created (default: 'statsd')
- *   indexTimestamp:  Timestamping format of the index, either "year", "month", "day", or "hour"
+ *   indexTimestamp:  Timestamping format of the index, either "year", "month",
+ *                    "day", or "hour"
  *   indexType:       The dociment type of the saved stat (default: 'stat')
  */
 
@@ -36,256 +37,44 @@ var elasticCountType;
 var elasticTimerType;
 var elasticUsername;
 var elasticPassword;
+var prev_counter_index;
+var prev_timer_index;
+var prev_timerdata_index;
+var prev_gauge_index;
 
 var elasticStats = {};
 
 
-var es_bulk_insert = function elasticsearch_bulk_insert(listCounters, listTimers, listTimerData, listGaugeData) {
+var es_bulk_insert = function elasticsearch_bulk_insert(listCounters, listTimers, 
+  listTimerData, listGaugeData) {
+  var renderKV = function(k, v) {
+  if (typeof v == 'number') {
+      return '"'+k+'":'+v;
+    }
+    return '"'+k+'":"'+v+'"';        
+  };
+  statsdCounterIndex = elasticIndex;
+  statsdTimerIndex = elasticIndex;
+  statsdTimerDataIndex = elasticIndex;
+  statsdGaugeDataIndex = elasticIndex;
+  ({ statsdCounterIndex, statsdTimerIndex, statsdTimerDataIndex, statsdGaugeDataIndex } 
+    = getStatsIndexes(statsdCounterIndex, statsdTimerIndex, 
+      statsdTimerDataIndex, statsdGaugeDataIndex));
 
-      var renderKV = function(k, v) {
-        if (typeof v == 'number') {
-          return '"'+k+'":'+v;
-        }
-        return '"'+k+'":"'+v+'"';
-        /*
-        if (k === '@timestamp') {
-          var s = new Date(v).toISOString();
-          return '"'+k+'":"'+s+'"';
-        } else if (k === 'val') {
-          return '"'+k+'":'+v;
-        } else {
-          return '"'+k+'":"'+v+'"';
-        }
-        */
-      };
-
-      var indexDate = new Date();
-
-      //var statsdIndex = elasticIndex + '-' + indexDate.getUTCFullYear()
-      var statsdCounterIndex = elasticIndex + '_counter-' + indexDate.getUTCFullYear()
-      var statsdTimerIndex = elasticIndex + '_timer-' + indexDate.getUTCFullYear()
-      var statsdTimerDataIndex = elasticIndex + '_timerdata-' + indexDate.getUTCFullYear()
-      var statsdGaugeDataIndex = elasticIndex + '_gauge-' + indexDate.getUTCFullYear()
-
-      if (elasticIndexTimestamp == 'month' || elasticIndexTimestamp == 'day' || elasticIndexTimestamp == 'hour'){
-        var indexMo = indexDate.getUTCMonth() +1;
-        if (indexMo < 10) {
-            indexMo = '0'+indexMo;
-        }
-        //statsdIndex += '.' + indexMo;
-        statsdCounterIndex += '.' + indexMo;
-        statsdTimerIndex += '.' + indexMo;
-        statsdTimerDataIndex += '.' + indexMo;
-        statsdGaugeDataIndex += '.' + indexMo;
-      }
-
-      if (elasticIndexTimestamp == 'day' || elasticIndexTimestamp == 'hour'){
-        var indexDt = indexDate.getUTCDate();
-        if (indexDt < 10) {
-            indexDt = '0'+indexDt;
-        }
-        //statsdIndex += '.' +  indexDt;
-        statsdCounterIndex += '.' + indexDt;
-        statsdTimerIndex += '.' + indexDt;
-        statsdTimerDataIndex += '.' + indexDt;
-        statsdGaugeDataIndex += '.' + indexDt;
-      }
-
-      if (elasticIndexTimestamp == 'hour'){
-        var indexDt = indexDate.getUTCHours();
-        if (indexDt < 10) {
-            indexDt = '0'+indexDt;
-        }
-        //statsdIndex += '.' +  indexDt;
-        statsdCounterIndex += '.' + indexDt;
-        statsdTimerIndex += '.' + indexDt;
-        statsdTimerDataIndex += '.' + indexDt;
-        statsdGaugeDataIndex += '.' + indexDt;
-      }
-
-      var counterPayload = '';
-      for (key in listCounters) {
-        counterPayload += '{"index":{"_index":"'+statsdCounterIndex+'","_type":"telementry"}}'+"\n";
-        counterPayload += '{';
-        innerPayload = '';
-          for (statKey in listCounters[key]){
-            if (innerPayload) innerPayload += ',';
-            innerPayload += renderKV(statKey, listCounters[key][statKey]);
-            //innerPayload += '"'+statKey+'":"'+listCounters[key][statKey]+'"';
-          }
-          counterPayload += innerPayload +'}'+"\n";
-      }
-      var counterOptionsPost = {
-        host: elasticHost,
-        port: elasticPort,
-        path: elasticPath + statsdCounterIndex + '/' + '/_bulk',
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': counterPayload.length
-        }
-      };
-
-      if(elasticUsername && elasticPassword) {
-          timerOptionsPost.auth = elasticUsername + ':' + elasticPassword;
-      }
-
-      var counterReq = http.request(counterOptionsPost, function(res) {
-          res.on('data', function(d) {
-            if (Math.floor(res.statusCode / 100) == 5){
-              var errdata = "HTTP " + res.statusCode + ": " + d;
-              lg.log('error', errdata);
-            }
-          });
-      }).on('error', function(err) {
-          lg.log('error', 'Error with HTTP request, no stats flushed.');
-      });
-
-      if (debug) {
-        lg.log('ES payload:');
-        lg.log(counterPayload);
-      }
-      counterReq.write(counterPayload);
-      counterReq.end();
-
-      var timerPayload = '';
-      for (key in listTimers) {
-        timerPayload += '{"index":{"_index":"'+statsdTimerIndex+'","_type":"telementry"}}'+"\n";
-        timerPayload += '{';
-        innerPayload = '';
-          for (statKey in listTimers[key]){
-            if (innerPayload) innerPayload += ',';
-            innerPayload += renderKV(statKey, listTimers[key][statKey]);
-            //innerPayload += '"'+statKey+'":"'+listTimers[key][statKey]+'"';
-          }
-          timerPayload += innerPayload +'}'+"\n";
-      }
-      var timerOptionsPost = {
-        host: elasticHost,
-        port: elasticPort,
-        path: elasticPath + statsdTimerIndex + '/' + '/_bulk',
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': timerPayload.length
-        }
-      };
-
-      if(elasticUsername && elasticPassword) {
-          timerOptionsPost.auth = elasticUsername + ':' + elasticPassword;
-      }
-
-      var timerReq = http.request(timerOptionsPost, function(res) {
-          res.on('data', function(d) {
-            if (Math.floor(res.statusCode / 100) == 5){
-              var errdata = "HTTP " + res.statusCode + ": " + d;
-              lg.log('error', errdata);
-            }
-          });
-      }).on('error', function(err) {
-          lg.log('error', 'Error with HTTP request, no stats flushed.');
-      });
-
-      if (debug) {
-        lg.log('ES payload:');
-        lg.log(timerPayload);
-      }
-      timerReq.write(timerPayload);
-      timerReq.end();
-
-      var timerDataPayload = '';
-      for (key in listTimerData) {
-        timerDataPayload += '{"index":{"_index":"'+statsdTimerDataIndex+'","_type":"telementry"}}'+"\n";
-        timerDataPayload += '{';
-        innerPayload = '';
-          for (statKey in listTimerData[key]){
-            if (innerPayload) innerPayload += ',';
-            innerPayload += renderKV(statKey, listTimerData[key][statKey]);
-            //innerPayload += '"'+statKey+'":"'+listTimerData[key][statKey]+'"';
-          }
-          timerDataPayload += innerPayload +'}'+"\n";
-      }
-      var timerDataOptionsPost = {
-        host: elasticHost,
-        port: elasticPort,
-        path: elasticPath + statsdTimerDataIndex + '/' + '/_bulk',
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': timerDataPayload.length
-        }
-      };
-
-      if(elasticUsername && elasticPassword) {
-        timerDataOptionsPost.auth = elasticUsername + ':' + elasticPassword;
-      }
-
-      var timerDataReq = http.request(timerDataOptionsPost, function(res) {
-          res.on('data', function(d) {
-            if (Math.floor(res.statusCode / 100) == 5){
-              var errdata = "HTTP " + res.statusCode + ": " + d;
-              lg.log('error', errdata);
-            }
-          });
-      }).on('error', function(err) {
-          lg.log('error', 'Error with HTTP request, no stats flushed.');
-      });
-
-      if (debug) {
-        lg.log('ES payload:');
-        lg.log(timerDataPayload);
-      }
-      timerDataReq.write(timerDataPayload);
-      timerDataReq.end();
-
-      var gaugePayload = '';
-      for (key in listGaugeData) {
-        gaugePayload += '{"index":{"_index":"'+statsdGaugeDataIndex+'","_type":"telementry"}}'+"\n";
-        gaugePayload += '{';
-        innerPayload = '';
-          for (statKey in listGaugeData[key]){
-            if (innerPayload) innerPayload += ',';
-            innerPayload += renderKV(statKey, listGaugeData[key][statKey]);
-            //innerPayload += '"'+statKey+'":"'+listGaugeData[key][statKey]+'"';
-          }
-          gaugePayload += innerPayload +'}'+"\n";
-      }
-      var gaugeOptionsPost = {
-        host: elasticHost,
-        port: elasticPort,
-        path: elasticPath + statsdGaugeDataIndex + '/' + '/_bulk',
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': gaugePayload.length
-        }
-      };
-
-      if(elasticUsername && elasticPassword) {
-        gaugeOptionsPost.auth = elasticUsername + ':' + elasticPassword;
-      }
-
-      var gaugeReq = http.request(gaugeOptionsPost, function(res) {
-          res.on('data', function(d) {
-            if (Math.floor(res.statusCode / 100) == 5){
-              var errdata = "HTTP " + res.statusCode + ": " + d;
-              lg.log('error', errdata);
-            }
-          });
-      }).on('error', function(err) {
-          lg.log('error', 'Error with HTTP request, no stats flushed.');
-      });
-
-      if (debug) {
-        lg.log('ES payload:');
-        lg.log(gaugePayload);
-      }
-      gaugeReq.write(gaugePayload);
-      gaugeReq.end();
+  // Counter 
+  setData(listCounters, statsdCounterIndex, renderKV, prev_counter_index);
+  
+  // Timer
+  //setData(listTimers, statsdTimerIndex, renderKV, prev_timer_index);
+  
+  // Timer data
+  setData(listTimerData, statsdTimerDataIndex, renderKV, prev_timerdata_index);
+  
+  // Gauge
+  //setData(listGaugeData, statsdGaugeDataIndex, renderKV, prev_gauge_index);      
 }
 
 var flush_stats = function elastic_flush(ts, metrics) {
-  var statString = '';
   var numStats = 0;
   var key;
   var array_counts     = new Array();
@@ -296,12 +85,7 @@ var flush_stats = function elastic_flush(ts, metrics) {
   ts = ts*1000;
 
   ts = new Date(ts).toISOString()
-
-/*
-  var gauges = metrics.gauges;
-  var pctThreshold = metrics.pctThreshold;
-*/
-
+  
   for (key in metrics.counters) {
     numStats += fm.counters(key, metrics.counters[key], ts, array_counts, statsdHost);
   }
@@ -357,6 +141,7 @@ exports.init = function elasticsearch_init(startup_time, config, events, logger)
   elasticFormatter      = configEs.formatter      || 'default_format';
   elasticUsername       = configEs.username       || undefined;
   elasticPassword       = configEs.password       || undefined;
+  replication           = configEs.replication    || 1;
 
   fm   = require('./' + elasticFormatter + '.js')
   if (debug) {
@@ -371,10 +156,127 @@ exports.init = function elasticsearch_init(startup_time, config, events, logger)
   elasticStats.last_flush = startup_time;
   elasticStats.last_exception = startup_time;
 
-
   events.on('flush', flush_stats);
   events.on('status', elastic_backend_status);
 
   return true;
 };
 
+function setData(listData, statsdIndex, renderKV, prev_index) {
+  var payload = '';
+  for (key in listData) {
+    payload += '{"index":{"_index":"' + statsdIndex + '","_type":"telementry"}}' + "\n";
+    payload += '{';
+    innerPayload = '';
+    for (statKey in listData[key]) {
+      if (innerPayload)
+        innerPayload += ',';
+      innerPayload += renderKV(statKey, listData[key][statKey]);      
+    }
+    payload += innerPayload + '}' + "\n";
+  }
+
+  if (replication == 2) {
+    if (prev_index != statsdIndex) {
+      try {
+        var reqOpts = {
+          host: elasticHost,
+          port: elasticPort,
+          path: elasticPath + statsdIndex,
+          method: 'PUT'
+        }
+        req = http.request(reqOpts, function (res) { });
+        req.end();
+        
+        settings_payload = '{ \"index\" : { \"auto_expand_replicas\": \"1-all\" }}'
+        settingsOptions = {
+          host: elasticHost,
+          port: elasticPort,
+          path: elasticPath + statsdIndex + "/_settings",
+          method: "PUT",
+          headers: {'Content-Type': 'application/json'}
+        };
+        settings_req = http.request(settingsOptions, function(res) { });
+        settings_req.write(settings_payload);
+        settings_req.end();
+
+        prev_index = statsdIndex
+      } catch (err) {
+        lg.log("error", err)
+      }
+    }
+  }
+  
+  var optionsPost = {
+    host: elasticHost,
+    port: elasticPort,
+    path: elasticPath + statsdIndex + '/' + '/_bulk',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': payload.length
+    }
+  };
+  if (elasticUsername && elasticPassword) {
+    optionsPost.auth = elasticUsername + ':' + elasticPassword;
+  }
+  var dataReq = http.request(optionsPost, function (res) {
+    res.on('data', function (d) {
+      if (Math.floor(res.statusCode / 100) == 5) {
+        var errdata = "HTTP " + res.statusCode + ": " + d;
+        lg.log('error', errdata);
+      }
+    });
+  }).on('error', function (err) {
+    lg.log('error', 'Error with HTTP request, no stats flushed.');
+  });
+  if (debug) {
+    lg.log('ES payload:');
+    lg.log(payload);
+  }
+  dataReq.write(payload);
+  dataReq.end();
+}
+
+function getStatsIndexes(statsdCounterIndex, statsdTimerIndex, 
+  statsdTimerDataIndex, statsdGaugeDataIndex) {
+  var indexDate = new Date();
+
+  statsdCounterIndex += '_counter-' + indexDate.getUTCFullYear()
+  statsdTimerIndex += '_timer-' + indexDate.getUTCFullYear()
+  statsdTimerDataIndex += '_timerdata-' + indexDate.getUTCFullYear()
+  statsdGaugeDataIndex += '_gauge-' + indexDate.getUTCFullYear() 
+  if (elasticIndexTimestamp == 'month' || elasticIndexTimestamp == 'day' 
+    || elasticIndexTimestamp == 'hour') {
+    var indexMo = indexDate.getUTCMonth() + 1;
+    if (indexMo < 10) {
+      indexMo = '0' + indexMo;
+    }
+    statsdCounterIndex += '.' + indexMo;
+    statsdTimerIndex += '.' + indexMo;
+    statsdTimerDataIndex += '.' + indexMo;
+    statsdGaugeDataIndex += '.' + indexMo;
+  }
+  if (elasticIndexTimestamp == 'day' || elasticIndexTimestamp == 'hour') {
+    var indexDt = indexDate.getUTCDate();
+    if (indexDt < 10) {
+      indexDt = '0' + indexDt;
+    }
+    statsdCounterIndex += '.' + indexDt;
+    statsdTimerIndex += '.' + indexDt;
+    statsdTimerDataIndex += '.' + indexDt;
+    statsdGaugeDataIndex += '.' + indexDt;
+  }
+  if (elasticIndexTimestamp == 'hour') {
+    var indexDt = indexDate.getUTCHours();
+    if (indexDt < 10) {
+      indexDt = '0' + indexDt;
+    }
+    statsdCounterIndex += '.' + indexDt;
+    statsdTimerIndex += '.' + indexDt;
+    statsdTimerDataIndex += '.' + indexDt;
+    statsdGaugeDataIndex += '.' + indexDt;
+  }
+  return { statsdCounterIndex, statsdTimerIndex, statsdTimerDataIndex, statsdGaugeDataIndex };
+  
+}
