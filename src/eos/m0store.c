@@ -14,7 +14,11 @@
 */
 
 #include "m0common.h"
-#include "common/log.h"
+#include "common/log.h" /* log_* */
+#include "common/helpers.h" /* RC_* */
+#include "debug.h" /* dassert */
+#include "object.h" /* obj_id_t */
+
 
 static void open_entity(struct m0_clovis_entity *entity)
 {
@@ -906,3 +910,62 @@ ssize_t m0store_get_bsize(struct m0_uint128 id)
 			m0_clovis_layout_id(clovis_instance));
 }
 
+/*****************************************************************************/
+int m0store_obj_open(const obj_id_t *id, struct m0_clovis_obj *pobj)
+{
+	int rc;
+	struct m0_clovis_op *op = NULL;
+	struct m0_uint128 fid;
+
+	dassert(id);
+	dassert(pobj);
+
+	fid = M0_UINT128(id->f_hi, id->f_lo);
+
+	M0_SET0(pobj);
+
+	m0_clovis_obj_init(pobj, &clovis_uber_realm, &fid,
+			   m0_clovis_layout_id(clovis_instance));
+
+	rc = m0_clovis_entity_open(&pobj->ob_entity, &op);
+	if (rc) {
+		RC_WRAP_SET(rc);
+		goto out;
+	}
+
+	m0_clovis_op_launch(&op, 1);
+	rc = m0_clovis_op_wait(op, M0_BITS(M0_CLOVIS_OS_FAILED,
+			  M0_CLOVIS_OS_STABLE),
+			  M0_TIME_NEVER);
+	if (rc) {
+		RC_WRAP_SET(rc);
+		goto out;
+	}
+
+	rc = m0_clovis_rc(op);
+	if (rc) {
+		RC_WRAP_SET(rc);
+		goto out;
+	}
+
+out:
+	if (op) {
+		m0_clovis_op_fini(op);
+		m0_clovis_op_free(op);
+	}
+
+	log_debug("open (%p, " U128X_F "," OBJ_ID_F "), rc=%d",
+		  pobj, U128_P(&pobj->ob_entity.en_id), OBJ_ID_P(id), rc);
+	return rc;
+}
+
+void m0store_obj_close(struct m0_clovis_obj *obj)
+{
+	dassert(obj);
+
+	log_debug("close (%p, " U128X_F ")", obj,
+		  U128_P(&obj->ob_entity.en_id));
+	m0_clovis_entity_fini(&obj->ob_entity);
+}
+
+/*****************************************************************************/
