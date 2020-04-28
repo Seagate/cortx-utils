@@ -144,11 +144,11 @@ struct request {
 
 	/* Request Operations handlers and call backs. */
 	request_read_cb_func	 read_cb;
-	bool			 ignore_incoming_data;
 
 	/* General Info. */
 	int			 is_client_disconnected;
-	enum request_state	 state;	/* Request state. */
+	enum request_state	 state;	/* Request state-
+					 * RUNNING, STOPPED, ERROR. */
 };
 
 /**

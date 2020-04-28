@@ -208,32 +208,28 @@ evhtp_res http_process_request_data(evhtp_request_t *evhtp_req,
 	size_t req_data_len = 0;
 	struct request *request = NULL;
 	struct http *http = NULL;
+	
+	request = (struct request*)evhtp_req->cbarg;
 
+	if (request->state == ERROR || request->in_remaining_len == 0) {
+		/* Skip processing the this event as we got error in
+		 * processing of this request in previous events.
+		 */
+		goto error;
+	}
+	
 	/* Log request data. */
 	log_debug("Received Data: %.*s",
 		  (int)evbuffer_get_length(buf),
 		  (char *)evbuffer_pullup(buf, evbuffer_get_length(buf)));
 
-	request = (struct request*)evhtp_req->cbarg;
-
-	if (request->ignore_incoming_data || request->in_remaining_len == 0) {
-		/* Ingoring incoming request data. */
-		goto error;
-	}
-
-	if (request->read_cb == NULL) {
-		/**
-		 * Got the data but read callback is not installed.
-		 * It's and internal error.
-		 */
-		request->err_code = -1;
-		request_send_response(request,
-				      errno_to_http_code(request->err_code));
-		goto error;
-	}
+	/**
+	 * Got the data but read callback is not installed.
+	 * It's an internal error.
+	 */
+	dassert(request->read_cb != NULL);
 
 	http = request->http;
-
 	request->in_buffer = evbuffer_new();
 	evbuffer_add_buffer(request->in_buffer, buf);
 

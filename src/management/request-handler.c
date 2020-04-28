@@ -161,6 +161,14 @@ void request_send_response(struct request *request,
 	http = request->http;
 
 	if (request->err_code != 0) {
+		/**
+		 * Set request state to error.
+		 * This will avoid further processing of events on the request.
+		 * Also each call-back handler of the evhtp_req should check
+		 * the state of the request before processing any events.
+		 */
+		request->state = ERROR;
+
 		/* Create json object */
 		request->out_json_req_obj = json_object_new_object();
 
@@ -169,6 +177,7 @@ void request_send_response(struct request *request,
 				       "rc",
 				       json_resp_obj);
 		json_resp_obj = NULL;
+
 	}
 
 	json_resp_obj = request->out_json_req_obj;
