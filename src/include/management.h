@@ -98,22 +98,56 @@
  *
  * How does it work?
  *
- * The management service uses `libevhtp` to get and put HTTP requests.
- * The libevhtp internally uses `libevent` for eventing mechanism.
- * The libevhtp generates various kinds of events on each HTTP request to which
- * we can registers hooks/call-back to get notified when corresponding event
- * occurs. The hook list looks like below..
+ * The management service uses `libevhtp` to get and put HTTP requests which
+ * internally uses `libevent` for eventing mechanism. (See below section :
+ * How libevhtp works?). The libevhtp generates various kinds of events on
+ * each HTTP request to which we can registers hooks/call-backs to get notified
+ * when corresponding event occurs.
+ * Firstly, we create instance of evhtp object and bind it to the server IP
+ * address and wait for the new connections. Before going to wait for the events
+ * we install post_accept call back using evhtp_set_post_accept_cb method.
+ * In the post_accept_cb, We then can assign various request callbacks for the
+ * incoming requests. The hooks(callbacs) looks like below..
  * evhtp_hook_on_header, evhtp_hook_on_headers, evhtp_hook_on_path,
  * evhtp_hook_on_read, evhtp_hook_on_request_fini etc...
  *
  * For each new connection, we register evhtp_hook_on_headers and
  * evhtp_hook_on_read hooks. The corresponding rquest handlers processes
- * the some part of the request. For Each request process the normal sequence
- * of steps followed are - validation, processing, payload handling(if any),
+ * the some part of the request. For Each request processing follows a standard
+ * sequence of steps followed are - validation, processing, payload handling(if any),
  * response construction and sending. If we get the error in any steps of
  * request processing, we immediatly generates error message and send it back
  * to the client. The remaing steps are skipped if there is error in the
  * previous request processing steps.
+ *
+ * We registers various controllers(FS, ENPOINT etc..) to the management service.
+ * The controllers basically supports of HTTP methods like - GET, PUT and
+ * DELETE etc. These controller api has a logic to handle and process the
+ * corresponding HTTP request for the controller. When a new requst comes on the
+ * connection we find the controller of the request using requst URI.
+ * For example, request for the FS controller will will like
+ * GET http://localhost/fs
+ * HOST: localhost
+ * The method of HTTP request forms the controller api(here GET). Each controller
+ * api has actions method to be called on when that particular events comes.
+ *
+ * How libevhtp works?
+ *
+ * #### Bootstrapping
+ * 1.	Create a parent evhtp_t structure.
+ * 2.	Assign callbacks to the parent for specific URIs or posix-regex based URI's
+ * 3.	Optionally assign per-connection hooks (see hooks) to the callbacks.
+ * 4.	Optionally assign pre-accept and post-accept callbacks for incoming connections.
+ * 5.	Optionally enable built-in threadpool for connection handling (lock-free, and non-blocking).
+ * 6.	Optionally morph your server to HTTPS.
+ * 7.	Start the evhtp listener.
+ * #### Request handling.
+ * 1.	Optionally deal with pre-accept and post-accept callbacks if they exist,
+ * 	allowing for a connection to be rejected if the function deems it as unacceptable.
+ * 2.	Optionally assign per-request hooks (see hooks) for a request
+ * 	(the most optimal place for setting these hooks is on a post-accept callback).
+ * 3.	Deal with either per-connection or per-request hook callbacks if they exist.
+ * 4.	Once the request has been fully processed, inform evhtp to send a reply.
  *
  */
 
