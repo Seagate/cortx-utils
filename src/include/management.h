@@ -113,19 +113,19 @@
  *
  * For each new connection, we register evhtp_hook_on_headers and
  * evhtp_hook_on_read hooks. The corresponding rquest handlers processes
- * the some part of the request. For Each request processing follows a standard
- * sequence of steps followed are - validation, processing, payload handling(if any),
+ * the some part of the request. Each request goes through a standard
+ * sequence of steps like - validation, processing, payload handling(if any),
  * response construction and sending. If we get the error in any steps of
  * request processing, we immediatly generates error message and send it back
  * to the client. The remaing steps are skipped if there is error in the
  * previous request processing steps.
  *
- * We registers various controllers(FS, ENPOINT etc..) to the management service.
- * The controllers basically supports of HTTP methods like - GET, PUT and
- * DELETE etc. These controller api has a logic to handle and process the
- * corresponding HTTP request for the controller. When a new requst comes on the
- * connection we find the controller of the request using requst URI.
- * For example, request for the FS controller will will like
+ * Initially, We register various controllers(FS, ENPOINT etc..) to the
+ * management service. The controllers basically supports of HTTP methods like-
+ * GET, PUT and DELETE etc. These controller api's has a logic to handle and
+ * process the corresponding HTTP request for the controller.
+ * When a new requst comes on the connection we find the controller of the
+ * request using requst URI. For example, request on the FS controller looks like:
  * GET http://localhost/fs
  * HOST: localhost
  * The method of HTTP request forms the controller api(here GET). Each controller
@@ -149,7 +149,7 @@
  *                         /|\                   /|\                                                            |
  *             (can't to parse headers)   (can't get payload)                              		        |
  *                          |                     |                                                             |
- * WaitingForHeaders --(OnHeaders)--> WaitingForPayload --(OnPayload)-[Check request state]--(ERROR)-->-Continue)
+ * WaitingForHeaders --(OnHeaders)--> WaitingForPayload --(OnPayload)-[Check request state]--(ERROR)------->(Continue)
  * /\			   |						|					|
  * |			   |						|(RUNNING)				|
  * |		 	   |						|					|
