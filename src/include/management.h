@@ -131,6 +131,35 @@
  * The method of HTTP request forms the controller api(here GET). Each controller
  * api has actions method to be called on when that particular events comes.
  *
+ * To Summarize The Request State Machine:
+ *
+ * OnHeaders, OnPayload - external events from libevht.
+ * OnHeaders allows us to route (dispatch) the request to the right handler.
+ * OnPayload allows us to read out the associated data.
+ * OnPayload is an optional event if action does not require payload.
+ * When headers or payload cannot be parsed or contain invalid values
+ * the server sends out an error.
+ * No specific state for errors: in case of errors the request state returns
+ * back to the waiting state immediately after sending out a reply that
+ * contains the error description.
+ *
+ * The Request State Daigram:
+ *
+ *                          +---------------------+------------------>(Send error reply)------------------------+
+ *                         /|\                   /|\                                                            |
+ *             (can't to parse headers)   (can't get payload)                              		        |
+ *                          |                     |                                                             |
+ * WaitingForHeaders --(OnHeaders)--> WaitingForPayload --(OnPayload)-[Check request state]--(ERROR)-->-Continue)
+ * /\			   |						|					|
+ * |			   |						|(RUNNING)				|
+ * |		 	   |						|					|
+ * |                       |                                            |                   			|
+ * |                       |                                            |                    			|
+ * |                       +(if no payload expected)------------>(Execute action)           			|
+ * |                                                              (Send reply)               			|
+ * |                                                                   \|/                  		       \|/
+ * +--------------------------------------------------------------------+---------------------------------------+
+ *
  * How libevhtp works?
  *
  * #### Bootstrapping
