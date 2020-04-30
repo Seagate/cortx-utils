@@ -11,6 +11,7 @@
  */
 /******************************************************************************/
 
+#include <debug.h>
 #include "ut.h"
 
 /* This macro enables self tests in eos-utils ut library.
@@ -22,6 +23,7 @@
 #define ENABLE_UT_SELF_TEST 1
 #endif
 
+static struct collection_item *cfg_items = NULL;
 static int file_desc, saved_stdout, saved_stderr;
 
 static inline void ut_self_test(void)
@@ -92,6 +94,10 @@ void ut_fini(void)
 	dup2(saved_stdout, STDOUT_FILENO);
 	dup2(saved_stderr, STDERR_FILENO);
 
+	if (cfg_items) {
+		free_ini_config(cfg_items);
+	}
+
 	close(file_desc);
 }
 
@@ -115,4 +121,45 @@ int ut_run(struct test_case test_list[], int test_count, int (* setup)(), int (*
 	}
 
 	return  cmocka_run_group_tests(tests, setup, teardown);
+}
+
+int ut_load_config(char *conf_file)
+{
+	int rc = 0;
+	struct collection_item *errors = NULL;
+
+	rc = config_from_file("libkvsns", conf_file, &cfg_items,
+			      INI_STOP_ON_ERROR, &errors);
+	if (rc != 0) {
+		free_ini_config_errors(errors);
+	}
+
+	return rc;
+}
+
+char *ut_get_config(char *section, char *key, char *default_val)
+{
+	int rc = 0;
+	char *tmp_val = strdup(default_val),
+	     *value   = tmp_val;
+	struct collection_item *item = NULL;
+
+	dassert(cfg_items);
+
+	rc = get_config_item(section, key, cfg_items, &item);
+	if (rc != 0) {
+		goto out;
+	}
+
+	value = get_string_config_value(item, NULL);
+	if (value == NULL) {
+		value = tmp_val;
+	}
+
+out:
+	if (item) {
+		free_ini_config_metadata(item);
+	}
+
+	return value;
 }

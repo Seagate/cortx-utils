@@ -6,6 +6,9 @@
 #include <time.h> /* time_t */
 #include <errno.h> /* errno */
 #include <stdbool.h> /* bool */
+#include <ini_config.h> /* config_from_file */
+#include <string.h> /* strcmp */
+#include <stdlib.h> /* free */
 #include "common/log.h"
 #define MAX_TEST 100
 #define MAX_TEST_NAME 100
@@ -56,3 +59,20 @@ int ut_run(struct test_case[], int test_count, int (* setup)(), int (* teardown)
  * @param[in] test_failed - Number of tests failed
  */
 void ut_summary(int test_count, int test_failed);
+
+/**
+ * Load UT config file.
+ * @param[in] conf_file - UT conf file to be parsed.
+ * @param[out] rc - 0 on sucess otherwise non-zero
+ */
+int ut_load_config(char *conf_file);
+
+/**
+ * Gets config from UT config file.
+ * @param[in] section - Name of section in config to be parsed.
+ * @param[in] key - name of attribute whose value is returned
+ * @param[in] default_val -Default value of atribute.
+ * @param[out] - Value of given attribute is returned. Return def_value
+ * 		 in case of any failure
+ */ 
+char *ut_get_config(char *section, char *key, char * default_val);
