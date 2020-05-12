@@ -9,7 +9,7 @@ set(EOS_UTILS_EXTRA_VERSION ${RELEASE_VER})
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -g")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${CMAKE_SOURCE_DIR}/include")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -DDEBUG")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror")
 
 set(EOS_UTILS_BASE_VERSION ${BASE_VERSION})
 
@@ -21,21 +21,30 @@ option(FAULT_INJECT "Enable Fault Injection." ON)
 
 if (FAULT_INJECT)
         set(BCOND_FAULT_INJECT "%bcond_without")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DFAULT_INJECT")
 else (FAULT_INJECT)
         set(BCOND_FAULT_INJECT "%bcond_with")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 endif (FAULT_INJECT)
+
+message( STATUS "Fault Injection : ${FAULT_INJECT}")
+
+# Option (To enable/disable ENABLE_DASSERT mode.)
+option(ENABLE_DASSERT "Enable ENABLE_DASSERT mode." ON)
+
+if (ENABLE_DASSERT)
+        set(BCOND_ENABLE_DASSERT "%bcond_without")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DENABLE_DASSERT")
+else (ENABLE_DASSERT)
+        set(BCOND_ENABLE_DASSERT "%bcond_with")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+endif (ENABLE_DASSERT)
+
+message( STATUS "ENABLE_DASSERT : ${ENABLE_DASSERT}")
 
 include(CheckIncludeFiles)
 include(CheckLibraryExists)
 
-message( STATUS "Fault Injection : ${FAULT_INJECT}")
-
-if (FAULT_INJECT)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DFAULT_INJECT")
-else (FAULT_INJECT)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
-endif(FAULT_INJECT)
-	
 # Build ancillary libs
 add_subdirectory(fault)
 set(UTILS_FAULT utils-fault)

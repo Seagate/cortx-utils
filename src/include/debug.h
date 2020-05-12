@@ -17,11 +17,11 @@
 
 #include <assert.h>
 
-#ifdef DEBUG
+#ifdef ENABLE_DASSERT
 #define dassert assert
 #else
 #define dassert(...)
-#endif /* DEBUG */
+#endif /* ENABLE_DASSERT */
 
 #endif /* _DEBUG_H */
 

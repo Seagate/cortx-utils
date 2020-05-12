@@ -27,6 +27,9 @@ Provides: %{name} = %{version}-%{release}
 @BCOND_FAULT_INJECT@ fault_inject
 %global fault_inject %{on_off_switch fault_inject}
 
+@BCOND_ENABLE_DASSERT@ enable_dassert
+%global enable_dassert %{on_off_switch enable_dassert}
+
 %description
 The libutils is the container to hold all the general purpose libraries.
 Libraries like - fault, log etc...
@@ -46,7 +49,9 @@ The libutils is the container to hold all the general purpose libraries.
 %setup -q -n %{sourcename}
 
 %build
-cmake . -DFAULT_INJECT=%{fault_inject} -DCONFIGURE=OFF \
+cmake . -DFAULT_INJECT=%{fault_inject} \
+	-DENABLE_DASSERT=%{enable_dassert} \
+	-DCONFIGURE=OFF
 
 make %{?_smp_mflags} || make %{?_smp_mflags} || make
 

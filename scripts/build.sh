@@ -53,7 +53,7 @@ eos_utils_print_env() {
         EOS_UTILS_BUILD_VERSION
         EOS_UTILS_BUILD
         EOS_UTILS_SRC
-	INJECT_FAULT
+	FAULT_INJECT
     )
 
     for i in ${myenv[@]}; do
@@ -73,6 +73,7 @@ eos_utils_configure() {
 
     local cmd="cmake \
 -DFAULT_INJECT=${FAULT_INJECT} \
+-DENABLE_DASSERT=${ENABLE_DASSERT} \
 -DCONFIGURE=ON \
 -DBASE_VERSION:STRING=${EOS_UTILS_VERSION} \
 -DRELEASE_VER:STRING=${EOS_UTILS_BUILD_VERSION} \
