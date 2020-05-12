@@ -241,9 +241,17 @@ again:
 	return (block_count*block_size);
 }
 
-static int m0store_read_aligned(struct m0_uint128 id,
-			     char *buff, off_t off,
-			     int block_count, int block_size)
+/*
+ * TODO: Following code either needs to be cleaned up by clubbing up input
+ *       params, returned code from clovis APIs needs to be handled properly
+ *       This API can be generalised to be re used for read and write operation
+ *       or can be re written which should ensure mentioned points can get
+ *       addressed
+*/
+static int m0store_prepare_for_read(struct m0_uint128 id,
+				    char *buff, off_t off,
+				    int block_count, int block_size,
+				    int *error)
 {
 	int		     i;
 	int		     rc;
@@ -284,9 +292,9 @@ static int m0store_read_aligned(struct m0_uint128 id,
 	open_entity(&obj.ob_entity);
 
 	/* Create the read request */
-	m0_clovis_obj_op(&obj, M0_CLOVIS_OC_READ,
-			 &ioctx.ext, &ioctx.data, &ioctx.attr,
-			 0, &ops[0]);
+	rc = m0_clovis_obj_op(&obj, M0_CLOVIS_OC_READ,
+			      &ioctx.ext, &ioctx.data, &ioctx.attr,
+			      0, &ops[0]);
 	assert(rc == 0);
 	assert(ops[0] != NULL);
 	assert(ops[0]->op_sm.sm_rc == 0);
@@ -301,6 +309,9 @@ static int m0store_read_aligned(struct m0_uint128 id,
 	assert(rc == 0);
 	assert(ops[0]->op_sm.sm_state == M0_CLOVIS_OS_STABLE);
 	assert(ops[0]->op_sm.sm_rc == 0);
+
+	rc = m0_clovis_rc(ops[0]);
+	*error = rc;
 
 	for (i = 0; i < block_count; i++)
 		memcpy((char *)(buff + block_size*i),
@@ -323,6 +334,42 @@ static int m0store_read_aligned(struct m0_uint128 id,
 	 * As far as I have understood, MERO does the IO in full
 	 * or does nothing at all, so returned size is aligned sized */
 	return (block_count*block_size);
+}
+
+static int m0store_read_aligned(struct m0_uint128 id,
+				 char *buff, off_t off,
+				 int block_count, int block_size)
+{
+	int read_bytes;
+	int error = 0;
+
+	read_bytes = m0store_prepare_for_read(id, buff, off,
+					      block_count, block_size,
+					      &error);
+
+	if ((error == -ENOENT) && (block_count > 1)) {
+		/*
+		 * Mero is not able to handle the case where some part of object
+		 * have not been written or created. For that it returns -ENOENT
+		 * and zeroed out the data for all the read block even though
+		 * some of them are available and we should get valid data for
+		 * them atleast. For such case, this is the workaround where
+		 * if we are reading more than one block size we will read
+		 * all the block one by one so that for originally available
+		 * block we will get proper data.
+		*/
+
+		int i;
+		for (i = 0; i < block_count; i++) {
+			m0store_prepare_for_read(id,
+						 buff + (i*block_size),
+						 off + (i*block_size),
+						 1,
+						 block_size,
+						 &error);
+		}
+	}
+	return read_bytes;
 }
 
 /*
