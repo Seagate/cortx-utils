@@ -30,6 +30,8 @@
 #include "clovis/clovis_internal.h"
 #include "clovis/clovis_idx.h"
 
+#include "object.h" /* obj_id_t */
+
 #ifdef DEBUG
 #define M0_DASSERT(cond) assert(cond)
 #else
@@ -147,6 +149,43 @@ int m0kvs_list_get(void *ctx, struct m0kvs_list *key,
                    struct m0kvs_list *val);
 int m0kvs_list_add(struct m0kvs_list *kvs_buf, void *buf, size_t buf_len,
                    int index);
+
+/*****************************************************************************/
+/** Open a Clovis object.
+ * This function writes a new in-memory object into the provided "pobj"
+ * storage, and it does not do any checks regarding the following topics:
+ *	- (1) Existence of the object. Behavior of the function is the same as
+ *	  behavior of the underlying storage. If it returns -ENOENT in some
+ *	  cases then this function will also return -ENOENT in these cases.
+ *	- (2) Overwriting of already open object. If "pobj" points to an object
+ *	  that has already been open then the function will simply overwrite
+ *	  this data.
+ *	- Uniqueness of "pobj" contents. Two open objects may point to the
+ *	  same storage object in the same way as two different FDs may
+ *	  point to the same file.
+ * Also, the function does not allocate storage for pobj (3) - it is up to
+ * the caller to decide where it should be allocated.
+ * These 4 points have been introduced deliberately here. The reason here
+ * is that the upper layers (for example, DSAL) will be able to provide
+ * "common" code for all its backends including this one.
+ * This management (memory, existence, reopen) was not included in
+ * the function in order to avoid code duplication.
+ * @param[in] id FID of the object to be open.
+ * @param[inout] pobj Pointer to pre-allocated storage for in-memory
+ *		 representation of the object with the given FID.
+ * @return 0 or -errno in case of failure.
+ */
+int m0store_obj_open(const obj_id_t *id, struct m0_clovis_obj *pobj);
+
+/** Close a Clovis object.
+ * This function closes an open Clovis object. It does not provide
+ * any guarantees regarding the double-free problem. It is up
+ * to the caller to guarantee the proper sequence of open/close calls.
+ * An attempt to close an already closed object is UB.
+ * It may either cause an m0_panic, SIGSEGV or it may do nothing.
+ * @param[inout] obj Clovis object that has been opened.
+ */
+void m0store_obj_close(struct m0_clovis_obj *obj);
 
 /*****************************************************************************/
 
