@@ -17,25 +17,38 @@
 #include <sys/time.h> /* struct timeval */
 #include <event2/thread.h> /* evthread_* */
 #include "management.h"
+#include "internal/management-internal.h"
 #include "debug.h" /* dassert() */
 #include "common/log.h" /* log_* */
 
 /**
  * Server methods.
  */
-int server_init(struct server *server, struct params *params)
+int server_init(int argc, char *argv[], struct server **ret_server)
 {
 	int rc = 0;
+	struct server *server = NULL;
 	int old_cancel_state;
 	evhtp_t *ev_htp_ipv4 = NULL;
 	evhtp_t *ev_htp_ipv6 = NULL;
 	struct event_base *ev_base = NULL;
 
+	 /* Get control sever instance. */
+        server = malloc(sizeof(struct server));
+        if (server == NULL) {
+                rc = ENOMEM;
+                log_err("Server instance malloc failed.");
+                goto error;
+        }
+
 	/* Set control server params. */
-	server->params = params;
+	rc = params_init(argc, argv, &server->params);
+	if (rc || server->params->print_usage){
+		log_err("Params init failed, rc = %d.", rc);
+ 		goto error;
+	}
 
 	/* Set thread info. */
-	server->thread_id = pthread_self();
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &old_cancel_state);
 
 	/* Init controller_list HEAD. */
@@ -92,6 +105,10 @@ int server_init(struct server *server, struct params *params)
 	server->ev_htp_ipv6 = ev_htp_ipv6;
 	ev_htp_ipv6 = NULL;
 
+	/* Set Out param. */
+	*ret_server = server;
+	server = NULL;
+
 error:
 	if (ev_htp_ipv4) {
 		evhtp_unbind_socket(ev_htp_ipv4);
@@ -107,10 +124,14 @@ error:
 		event_base_free(ev_base);
 	}
 
+	if (server) {
+		free(server);
+	}
+
 	return rc;
 }
 
-int server_cleanup(struct server *server)
+int server_fini(struct server *server)
 {
 	int rc = 0;
 	if (server == NULL) {
@@ -118,7 +139,7 @@ int server_cleanup(struct server *server)
 	}
 
 	if (server->params) {
-		free(server->params);
+		params_fini(server->params);
 	}
 
 	if (server->ev_htp_ipv4) {

@@ -19,7 +19,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <fault.h>
-#include <fault-points.h>
+#include <internal/fault-points.h>
 
 /**
  * fault_init:

@@ -19,7 +19,7 @@
 #include <unistd.h>
 #include <assert.h>
 #include <fault.h>
-#include <fault-points.h>
+#include <internal/fault-points.h>
 
 /**
  * ##############################################################

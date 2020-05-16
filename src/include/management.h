@@ -183,9 +183,8 @@
 #ifndef _MANAGEMENT_H_
 #define _MANAGEMENT_H_
 
+#include <inttypes.h>
 #include <sys/queue.h> /* LIST_HEAD, LIST_INIT */
-#include <pthread.h> /* pthread_t */
-#include <stdbool.h> /* bool */
 
 struct server;
 struct params;
@@ -194,57 +193,39 @@ struct controller;
 struct controller_api;
 struct http;
 
-#include "management-internal.h" /* struct controller_api, struct request etc.. */
-
 /**
  * ######################################################################
  * #		Control-Server: CONTROL Data Type and APIs.		#
  * ######################################################################
  */
-struct server {
-	/* Control server fields. */
-	struct params			*params;	/* User params. */
-	LIST_HEAD(controller_list,
-		  controller)		 controller_list;
-	LIST_HEAD(request_list, request) request_list;
-
-	/* Event fields. */
-	evbase_t			*ev_base;	/* Event base */
-
-	/* HTTP fileds. */
-	evhtp_t				*ev_htp_ipv4;	/* HTTP instance. */
-	evhtp_t				*ev_htp_ipv6;	/* HTTP instance. */
-
-	/* Thread Info */
-	pthread_t			 thread_id;	/* Thread id. */
-	bool				 is_shutting_down; /* Is shutting down? */
-	bool				 is_launch_err;	/* Error in thread start */
-};
-
 /**
  * Control sever APIs.
  */
-int server_init(struct server *server, struct params *params);
+int server_main(int argc, char *argv[]);
+int server_init(int argc, char *argv[], struct server **server);
+int server_fini(struct server *server);
 int server_start(struct server *server);
 int server_stop(struct server *server);
-int server_cleanup(struct server *server);
+
+//@TODO: Move these api's to efs management.h
 int management_start(int argc, char *argv[]);
 int management_stop(void);
 int management_init(void);
 int management_fini(void);
 
 /**
- * Control server thread APIs.
- */
-int server_thread_init();
-void* server_thread_start(void *args); 
-int server_thread_cleanup(void);
-
-/**
  * ######################################################################
  * #		Control-Server: CONTROLLER Data Type and APIs.		#
  * ######################################################################
  */
+/**
+ * Controller api_new function pointer data types.
+ */
+typedef int (*controller_api_init_func)(char *api_name,
+					struct controller *controller,
+					struct request *request,
+					struct controller_api **api);
+typedef void (*controller_api_fini_func)(struct controller_api *fs_api);
 
 /**
  * Controller - Data Type.
@@ -268,35 +249,57 @@ struct controller {
  */
 void controller_register(struct server *server, struct controller *controller);
 void controller_unregister(struct controller *controller);
+struct controller* controller_find_by_api_uri(struct server *server,
+					       char *api_uri);
+struct controller* controller_find_by_name(struct server *server, char *name);
 
 /**
  * ######################################################################
- * #		Control-Server: OPTIONS Data Type and APIs.		#
+ * #		Control-Server: CONTROLLER-API Data Type and APIs.	#
  * ######################################################################
  */
-
+typedef int (*controller_api_action_func)(struct controller_api *api,
+					  void *args);
 /**
- * Options - Data Type.
+ * Controller-api - Data Type.
  */
-struct params {
-	/* Address Options. */
-	int		 reuse_port;	/* Reuse port. */
-	uint16_t	 port;	/* Port number */
-	const char	*addr_ipv4;	/* Addr ipv4. */
-	const char	*addr_ipv6;	/* Addr ipv6. */
-	int		 bind_ipv4;	/* Bind to ipv4 addr. */
-	int		 bind_ipv6;	/* Bind to ipv6 addr. */
+struct controller_api {
+	struct controller		*controller;	/* controller. */
+	struct request			*request;	/* request. */
+	char				*name;		/* api name. */
+	int		 	  	 type;		/* api type. */
+	int 				 action_next;	/* Next api action */
+	controller_api_action_func	*action_table; /* api action table. */
+	void				*priv;		/* api private. */
+};
 
-	/* Local Options */
-	int		 print_usage;	/* Print usage */
-
+struct controller_api_table {
+	char	*name;		/* api name. */
+	char	*method;	/* api method. */
+	int	 id;		/* api id. */
 };
 
 /**
- * Options instance methods.
+ * ######################################################################
+ * #		Control-Server: REQUEST data type and APIs.		#
+ * ######################################################################
  */
-struct params* params_parse(int argc, char* argv[]);
-void params_free(struct params *params);
+typedef int (*request_read_cb_func)(struct controller_api *api);
+struct controller* request_get_controller(struct request *request);
+int request_validate_headers(struct request *request);
+int request_accept_data(struct request *request);
+void request_next_action(struct controller_api *api);
+void request_send_response(struct request *request, int code);
+int request_content_length(struct request *request);
+void request_set_readcb(struct request *request, request_read_cb_func cb);
+struct json_object* request_get_data(struct request *request);
+void request_set_data(struct request *request, struct json_object *json_obj);
+char* request_api_file(struct request *request);
+int request_get_errcode(struct request *request);
+void request_set_errcode(struct request *request, int err_code);
+void request_set_out_header(struct request *request,
+			    const char *key,
+			    const char *value);
 
 /**
  * Utility functions.

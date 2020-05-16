@@ -14,6 +14,7 @@
  */
 
 #include "management.h"
+#include "internal/management-internal.h"
 #include "debug.h" /* dassert() */
 #include "common/log.h" /* log_* */
 

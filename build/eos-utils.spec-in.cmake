@@ -5,7 +5,7 @@ Name: eos-utils
 Version: @EOS_UTILS_BASE_VERSION@
 Release: %{dev_version}%{?dist}
 Summary: General Purpose Utilities
-License: LGPLv3
+License: Seagate
 #Url:
 Group: Development/Libraries
 Source: %{sourcename}.tar.gz
@@ -13,9 +13,10 @@ BuildRequires: cmake gcc
 #BuildRequires: @RPM_DEVEL_REQUIRES@
 Provides: %{name} = %{version}-%{release}
 
-# EOS utils library path
-%define _eos_utils_dir		/opt/seagate/eos/utils
-%define _eos_utils_include_dir	/opt/seagate/eos/utils/include
+# EOS UTILS library paths
+%define _utils_dir		@INSTALL_DIR_ROOT@/@PROJECT_NAME_BASE@/utils
+%define _utils_lib_dir		%{_utils_dir}/lib
+%define _utils_include_dir	%{_includedir}/@PROJECT_NAME_BASE@-utils
 
 # Conditionally enable/disable eos-utils options.
 %define on_off_switch() %%{?with_%1:ON}%%{!?with_%1:OFF}
@@ -41,7 +42,6 @@ Requires: %{name} = %{version}-%{release} pkgconfig
 #Requires: @RPM_DEVEL_REQUIRES@
 Provides: %{name}-devel = %{version}-%{release}
 
-
 %description devel
 The libutils is the container to hold all the general purpose libraries.
 
@@ -59,16 +59,18 @@ make %{?_smp_mflags} || make %{?_smp_mflags} || make
 
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{_libdir}
-mkdir -p %{buildroot}%{_eos_utils_dir}
-mkdir -p %{buildroot}%{_eos_utils_include_dir}/eos
-mkdir -p %{buildroot}%{_eos_utils_include_dir}/common
+mkdir -p %{buildroot}%{_utils_dir}
+mkdir -p %{buildroot}%{_utils_lib_dir}
+mkdir -p %{buildroot}%{_utils_include_dir}/
+mkdir -p %{buildroot}%{_utils_include_dir}/eos
+mkdir -p %{buildroot}%{_utils_include_dir}/common
 mkdir -p %{buildroot}%{_libdir}/pkgconfig
-install -m 644 include/*.h  %{buildroot}%{_eos_utils_include_dir}
-install -m 644 include/eos/*.h  %{buildroot}%{_eos_utils_include_dir}/eos
-install -m 644 include/common/*.h  %{buildroot}%{_eos_utils_include_dir}/common
-install -m 744 libeos-utils.so %{buildroot}%{_eos_utils_dir}
+install -m 644 include/*.h  %{buildroot}%{_utils_include_dir}
+install -m 644 include/eos/*.h  %{buildroot}%{_utils_include_dir}/eos
+install -m 644 include/common/*.h  %{buildroot}%{_utils_include_dir}/common
+install -m 755 libeos-utils.so %{buildroot}%{_utils_lib_dir}
 install -m 644 build/eos-utils.pc  %{buildroot}%{_libdir}/pkgconfig
-ln -s %{_eos_utils_dir}/libeos-utils.so %{buildroot}%{_libdir}/libeos-utils.so
+ln -s %{_utils_lib_dir}/libeos-utils.so %{buildroot}%{_libdir}/libeos-utils.so
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -76,13 +78,13 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root)
 %{_libdir}/libeos-utils.so*
-%{_eos_utils_dir}/libeos-utils.so*
+%{_utils_lib_dir}/libeos-utils.so*
 
 %files devel
 %defattr(-,root,root)
 %{_libdir}/pkgconfig/eos-utils.pc
-%{_eos_utils_include_dir}/*.h
-%{_eos_utils_include_dir}/eos/*.h
-%{_eos_utils_include_dir}/common/*.h
+%{_utils_include_dir}/*.h
+%{_utils_include_dir}/eos/*.h
+%{_utils_include_dir}/common/*.h
 
 %changelog

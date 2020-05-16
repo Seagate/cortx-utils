@@ -7,6 +7,12 @@ set -e
 ###############################################################################
 # Arguments
 
+# Project Name.
+PROJECT_NAME_BASE=${PROJECT_NAME_BASE:-"cortx"}
+
+# Install Dir.
+INSTALL_DIR_ROOT=${INSTALL_DIR_ROOT:-"/opt/seagate"}
+
 # EOS-UTILS source repo root.
 EOS_UTILS_SOURCE_ROOT=${EOS_UTILS_SOURCE_ROOT:-$PWD}
 
@@ -77,6 +83,8 @@ eos_utils_configure() {
 -DCONFIGURE=ON \
 -DBASE_VERSION:STRING=${EOS_UTILS_VERSION} \
 -DRELEASE_VER:STRING=${EOS_UTILS_BUILD_VERSION} \
+-DPROJECT_NAME_BASE:STRING=${PROJECT_NAME_BASE} \
+-DINSTALL_DIR_ROOT:STRING=${INSTALL_DIR_ROOT}
 $EOS_UTILS_SRC"
     echo -e "Config:\n $cmd" > $EOS_UTILS_BUILD/.config
     echo -e "Env:\n $(eos_utils_print_env)" >> $EOS_UTILS_BUILD/.config

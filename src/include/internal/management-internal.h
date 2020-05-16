@@ -17,51 +17,64 @@
 #ifndef _MANAGEMENT_INTERNAL_H_
 #define _MANAGEMENT_INTERNAL_H_
 
+#include <inttypes.h>
+#include <stdbool.h> /* bool */
+#include <sys/queue.h> /* LIST_HEAD, LIST_INIT */
+#include <json/json.h> /* for json_object */
 #include <event.h> /* evbuf_t */
 #include <event2/http.h> /* evhttp_uridecode */
 #include <evhtp.h> /* evhtp_t, evhtp_request_t, evhtp_header_t */
 
 /**
- * Controller api_new function pointer data types.
+ * ######################################################################
+ * #		Control-Server: CONTROL Data Type and APIs.		#
+ * ######################################################################
  */
-typedef int (*controller_api_init_func)
-	     (char *api_name,
-	     struct controller *controller,
-	     struct request *request,
-	     struct controller_api **api);
-typedef void (*controller_api_fini_func)(struct controller_api *fs_api);
-/**
- * Controller - APIs.
- */
-struct controller* controller_find_by_api_uri(struct server *server,
-					       char *api_uri);
-struct controller* controller_find_by_name(struct server *server, char *name);
+struct server {
+	/* Control server fields. */
+	struct params			*params;	/* User params. */
+	LIST_HEAD(controller_list,
+		  controller)		 controller_list;
+	LIST_HEAD(request_list, request) request_list;
+
+	/* Event fields. */
+	evbase_t			*ev_base;	/* Event base */
+
+	/* HTTP fileds. */
+	evhtp_t				*ev_htp_ipv4;	/* HTTP instance. */
+	evhtp_t				*ev_htp_ipv6;	/* HTTP instance. */
+
+	bool				 is_shutting_down; /* Is shutting down? */
+	bool				 is_launch_err;	/* Error in thread start */
+};
 
 /**
  * ######################################################################
- * #		Control-Server: CONTROLLER-API Data Type and APIs.	#
+ * #		Control-Server: OPTIONS Data Type and APIs.		#
  * ######################################################################
  */
-typedef int (*controller_api_action_func)(struct controller_api *api,
-					  void *args);
 /**
- * Controller-api - Data Type.
+ * Options - Data Type.
  */
-struct controller_api {
-	struct controller		*controller;	/* controller. */
-	struct request			*request;	/* request. */
-	char				*name;		/* api name. */
-	int		 	  	 type;		/* api type. */
-	int 				 action_next;	/* Next api action */
-	controller_api_action_func	*action_table; /* api action table. */
-	void				*priv;		/* api private. */
+struct params {
+	/* Address Options. */
+	int		 reuse_port;	/* Reuse port. */
+	uint16_t	 port;	/* Port number */
+	const char	*addr_ipv4;	/* Addr ipv4. */
+	const char	*addr_ipv6;	/* Addr ipv6. */
+	int		 bind_ipv4;	/* Bind to ipv4 addr. */
+	int		 bind_ipv6;	/* Bind to ipv6 addr. */
+
+	/* Local Options */
+	int		 print_usage;	/* Print usage */
+
 };
 
-struct controller_api_table {
-	char	*name;		/* api name. */
-	char	*method;	/* api method. */
-	int	 id;		/* api id. */
-};
+/**
+ * Options instance methods.
+ */
+int params_init(int argc, char* argv[], struct params **params);
+int params_fini(struct params *params);
 
 /**
  * ######################################################################
@@ -96,13 +109,6 @@ enum http_protocol {
 	HTTP_PROTO_11 = EVHTP_PROTO_11,
 	HTTP_PROTO_UNKNOWN = EVHTP_PROTO_INVALID,
 };
-
-struct header {
-	char *key;
-	char *val;
-};
-
-typedef int (*request_read_cb_func)(struct controller_api *api);
 
 struct request {
 	evhtp_request_t		*evhtp_req;	/* evhtp request holder. */
@@ -147,31 +153,17 @@ struct request {
 
 	/* General Info. */
 	int			 is_client_disconnected;
-	enum request_state	 state;	/* Request state-
-					 * RUNNING, STOPPED, ERROR. */
+	enum request_state	 state;	/* Request state. */
 };
-
 /**
- * Request instance APIs.
+ * Request APIs.
  */
 int request_init(struct server *server,
 		 evhtp_request_t *evhtp_req,
 		 struct request **request);
 void request_fini(struct request *req);
-
-/**
- * Request APIs.
- */
-struct controller* request_get_controller(struct request *request);
 struct controller_api* request_get_api(struct request *request);
-int request_validate_headers(struct request *request);
-int request_accept_data(struct request *request);
 void request_execute(struct controller_api *api);
-void request_next_action(struct controller_api *api);
-void request_send_response(struct request *request, int code);
-void request_set_out_header(struct request *request,
-			    const char *key,
-			    const char *value);
 
 /**
  * HTTP APIs.

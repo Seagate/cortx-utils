@@ -15,6 +15,7 @@
 
 #include <json/json.h> /* for json_object */
 #include "management.h"
+#include "internal/management-internal.h"
 #include "debug.h" /* dassert() */
 #include "common/log.h" /* log_* */
 
@@ -253,6 +254,41 @@ void request_execute(struct controller_api *api)
 void request_next_action(struct controller_api *api)
 {
 	request_execute(api);
+}
+
+int request_get_errcode(struct request *request)
+{
+	return request->err_code;
+}
+
+void request_set_errcode(struct request *request, int err)
+{
+	request->err_code = err;
+}
+
+int request_content_length(struct request *request)
+{
+	return request->in_content_len;
+}
+
+void request_set_readcb(struct request *request, request_read_cb_func cb)
+{
+	request->read_cb = cb;
+}
+
+struct json_object* request_get_data(struct request *request)
+{
+	return request->in_json_req_obj;
+}
+
+void request_set_data(struct request *request, struct json_object *json_obj)
+{
+	request->out_json_req_obj = json_obj;
+}
+
+char* request_api_file(struct request *request)
+{
+	return request->api_file;
 }
 
 int request_init(struct server *server,
