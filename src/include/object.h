@@ -25,7 +25,7 @@ typedef struct obj_id {
 } obj_id_t;
 
 
-#define OBJ_ID_F "<" PRIu64 ":" PRIu64 ">"
+#define OBJ_ID_F "<%" PRIx64 ":%" PRIx64 ">"
 #define OBJ_ID_P(_objid) (_objid)->f_hi, (_objid)->f_lo
 
 #endif

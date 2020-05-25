@@ -18,6 +18,8 @@
 
 #include <stdio.h>
 
+#define ATTR_FORMAT(_fmt, _va) __attribute__((format(printf, _fmt, _va)))
+
 /* @todo : Improve this simplistic implementation of logging. */
 #define LOG(level, fmt, ...) \
     log_write(level, "%s: " fmt "\n", __func__, ##__VA_ARGS__)
@@ -62,7 +64,7 @@ int log_init(const char *log_path, log_level_t default_level);
  * @param[in] arguments
  * @return error code. 0 in success. Non-zero on failure
  */
-int log_write(log_level_t level, const char *fmt, ...);
+int log_write(log_level_t level, const char *fmt, ...) ATTR_FORMAT(2, 3);
 
 /**
  * Finishes initialized log subsystem
