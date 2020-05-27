@@ -20,18 +20,39 @@
 #include "object.h" /* obj_id_t */
 
 
-static void open_entity(struct m0_clovis_entity *entity)
+/* Open a clovis entity.
+ * @param[in] - A pointer to clovis entity to be opened
+ * @return    - 0 on success and on failure returns the same
+ *              error code given by underlyig storage API
+*/
+static int open_entity(struct m0_clovis_entity *entity)
 {
+	int rc = 0;
 	struct m0_clovis_op *ops[1] = {NULL};
 
-	m0_clovis_entity_open(entity, &ops[0]);
+	dassert(entity);
+
+	RC_WRAP_LABEL(rc, out, m0_clovis_entity_open, entity, &ops[0]);
+	dassert(ops[0] != NULL);
+
 	m0_clovis_op_launch(ops, 1);
-	m0_clovis_op_wait(ops[0], M0_BITS(M0_CLOVIS_OS_FAILED,
-			  M0_CLOVIS_OS_STABLE),
-			  M0_TIME_NEVER);
-	m0_clovis_op_fini(ops[0]);
-	m0_clovis_op_free(ops[0]);
-	ops[0] = NULL;
+
+	RC_WRAP_LABEL(rc, out, m0_clovis_op_wait, ops[0],
+		      M0_BITS(M0_CLOVIS_OS_FAILED, M0_CLOVIS_OS_STABLE),
+		      M0_TIME_NEVER);
+
+	RC_WRAP_LABEL(rc, out, m0_clovis_rc, ops[0]);
+
+out:
+	if (rc) {
+		RC_WRAP_SET(rc);
+	}
+
+	if (ops[0]) {
+		m0_clovis_op_fini(ops[0]);
+		m0_clovis_op_free(ops[0]);
+	}
+	return rc;
 }
 
 static void m0_indexvec_fill_extents(struct m0_indexvec *extents,
@@ -84,9 +105,14 @@ out_err:
 	return rc;
 }
 
+/* Create a clovis object
+ * @param[in] - FID for the objct to be created
+ * @return    - 0 on success and on failure returns the same
+ *              error code given by underlyig storage API
+*/
 int m0store_create_object(struct m0_uint128 id)
 {
-	int		  rc;
+	int    rc;
 	struct m0_clovis_obj obj;
 	struct m0_clovis_op *ops[1] = {NULL};
 
@@ -98,24 +124,38 @@ int m0store_create_object(struct m0_uint128 id)
 	m0_clovis_obj_init(&obj, &clovis_uber_realm, &id,
 			   m0_clovis_layout_id(clovis_instance));
 
-	m0_clovis_entity_create(NULL, &obj.ob_entity, &ops[0]);
+	RC_WRAP_LABEL(rc, out, m0_clovis_entity_create, NULL, &obj.ob_entity,
+		      &ops[0]);
+	dassert(ops[0] != NULL);
 
 	m0_clovis_op_launch(ops, ARRAY_SIZE(ops));
 
-	rc = m0_clovis_op_wait(
-		ops[0], M0_BITS(M0_CLOVIS_OS_FAILED, M0_CLOVIS_OS_STABLE),
-		M0_TIME_NEVER);
+	RC_WRAP_LABEL(rc, cleanup, m0_clovis_op_wait, ops[0],
+		      M0_BITS(M0_CLOVIS_OS_FAILED, M0_CLOVIS_OS_STABLE),
+		      M0_TIME_NEVER);
 
-	m0_clovis_op_fini(ops[0]);
-	m0_clovis_op_free(ops[0]);
-	m0_clovis_entity_fini(&obj.ob_entity);
+	RC_WRAP_LABEL(rc, cleanup, m0_clovis_rc, ops[0]);
 
+cleanup:
+	if (ops[0]) {
+		m0_clovis_op_fini(ops[0]);
+		m0_clovis_op_free(ops[0]);
+		m0_clovis_entity_fini(&obj.ob_entity);
+	}
+
+out:
+	log_debug("fid = "U128X_F" rc=%d", U128_P(&id), rc);
 	return rc;
 }
 
+/* Delete a clovis object
+ * @param[in] - FID of the objct to be deleted
+ * @return    - 0 on success and on failure returns the same
+ *              error code given by underlyig storage API
+*/
 int m0store_delete_object(struct m0_uint128 id)
 {
-	int		  rc;
+	int    rc;
 	struct m0_clovis_obj obj;
 	struct m0_clovis_op *ops[1] = {NULL};
 
@@ -127,20 +167,28 @@ int m0store_delete_object(struct m0_uint128 id)
 	m0_clovis_obj_init(&obj, &clovis_uber_realm, &id,
 			   m0_clovis_layout_id(clovis_instance));
 
-	open_entity(&obj.ob_entity);
+	RC_WRAP_LABEL(rc, out, open_entity, &obj.ob_entity);
 
-	m0_clovis_entity_delete(&obj.ob_entity, &ops[0]);
+	RC_WRAP_LABEL(rc, out, m0_clovis_entity_delete, &obj.ob_entity,
+		      &ops[0]);
+	dassert(ops[0] != NULL);
 
 	m0_clovis_op_launch(ops, ARRAY_SIZE(ops));
 
-	rc = m0_clovis_op_wait(
-		ops[0], M0_BITS(M0_CLOVIS_OS_FAILED, M0_CLOVIS_OS_STABLE),
-		M0_TIME_NEVER);
+	RC_WRAP_LABEL(rc, out, m0_clovis_op_wait, ops[0],
+		      M0_BITS(M0_CLOVIS_OS_FAILED, M0_CLOVIS_OS_STABLE),
+		      M0_TIME_NEVER);
 
-	m0_clovis_op_fini(ops[0]);
-	m0_clovis_op_free(ops[0]);
-	m0_clovis_entity_fini(&obj.ob_entity);
+	RC_WRAP_LABEL(rc, out, m0_clovis_rc, ops[0]);
 
+out:
+	if (ops[0]) {
+		m0_clovis_op_fini(ops[0]);
+		m0_clovis_op_free(ops[0]);
+		m0_clovis_entity_fini(&obj.ob_entity);
+	}
+
+	log_debug("fid = "U128X_F" rc=%d", U128_P(&id), rc);
 	return rc;
 }
 
