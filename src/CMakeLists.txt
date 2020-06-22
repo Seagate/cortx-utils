@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 2.6.3)
 cmake_policy(SET CMP0017 NEW)
 
-PROJECT(eos-utils C)
+set(PROJECT_NAME_BASE ${PROJECT_NAME_BASE})
+set(UTILS_LIB ${PROJECT_NAME_BASE}-utils)
+
+PROJECT(${UTILS_LIB} C)
 set(EOS_UTILS_MAJOR_VERSION 1)
 set(EOS_UTILS_MINOR_VERSION 0)
 set(EOS_UTILS_PATCH_LEVEL 1)
@@ -12,7 +15,6 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -fPIC -g")
 
 set(EOS_UTILS_BASE_VERSION ${BASE_VERSION})
 set(EOS_NSAL_BASE_VERSION ${BASE_VERSION})
-set(PROJECT_NAME_BASE ${PROJECT_NAME_BASE})
 
 message( STATUS "cmake version ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}" )
 message( STATUS "eos-utils version ${EOS_UTILS_BASE_VERSION}")
@@ -84,7 +86,7 @@ endif((NOT HAVE_CMOCKA))
 set(CMAKE_EV_LIB /usr/local/lib)
 link_directories(${CMAKE_EV_LIB})
 
-add_library(eos-utils SHARED
+add_library(${UTILS_LIB} SHARED
 		$<TARGET_OBJECTS:${UTILS_FAULT}>
 		$<TARGET_OBJECTS:${UTILS_LOG}>
 		$<TARGET_OBJECTS:${UTILS_EOS}>
@@ -94,7 +96,7 @@ add_library(eos-utils SHARED
 	)
 
 
-target_link_libraries(eos-utils
+target_link_libraries(${UTILS_LIB}
 	cmocka
 	event
 	ssl
@@ -105,9 +107,9 @@ target_link_libraries(eos-utils
 )
 
 # CPack / rpmbuild specific stuff
-set(CPACK_PACKAGE_FILE_NAME "eos-utils-Source" )
-set(CPACK_PACKAGE_VENDOR "EOS-UTILS")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "EOS-UTILS - General purpose utilities.")
+set(CPACK_PACKAGE_FILE_NAME "${UTILS_LIB}-Source" )
+set(CPACK_PACKAGE_VENDOR "${PROJECT_NAME_BASE}-UTILS")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_NAME_BASE}-UTILS - General purpose utilities.")
 SET(CPACK_PACKAGE_VERSION_MAJOR ${EOS_UTILS_MAJOR_VERSION})
 SET(CPACK_PACKAGE_VERSION_MINOR ${EOS_UTILS_MINOR_VERSION})
 SET(CPACK_PACKAGE_VERSION_PATCH ${EOS_UTILS_PATCH_LEVEL})
@@ -127,14 +129,14 @@ add_custom_target(dist COMMAND ${CMAKE_MAKE_PROGRAM} package_source)
 if (CONFIGURE)
 # Create the .pc file
 	configure_file(
-			"${PROJECT_SOURCE_DIR}/../build/eos-utils.pc-in.cmake"
-			"${PROJECT_SOURCE_DIR}/build/eos-utils.pc"
+			"${PROJECT_SOURCE_DIR}/../build/${UTILS_LIB}.pc-in.cmake"
+			"${PROJECT_SOURCE_DIR}/build/${UTILS_LIB}.pc"
 		      )
 
 # Now create a useable specfile
 	configure_file(
-			"${PROJECT_SOURCE_DIR}/../build/eos-utils.spec-in.cmake"
-			"${PROJECT_SOURCE_DIR}/build/eos-utils.spec"
+			"${PROJECT_SOURCE_DIR}/../build/${UTILS_LIB}.spec-in.cmake"
+			"${PROJECT_SOURCE_DIR}/build/${UTILS_LIB}.spec"
 		      )
 endif(CONFIGURE)
 

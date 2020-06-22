@@ -134,9 +134,9 @@ eos_utils_rpm_install() {
     local dist=$(rpm --eval '%{dist}')
     local suffix="${EOS_UTILS_VERSION}-${EOS_UTILS_BUILD_VERSION}${dist}.x86_64.rpm"
     local mypkg=(
-        eos-utils
-        eos-utils-debuginfo
-        eos-utils-devel
+        ${PROJECT_NAME_BASE}-utils
+        ${PROJECT_NAME_BASE}-utils-debuginfo
+        ${PROJECT_NAME_BASE}-utils-devel
     )
     local myrpms=()
 
@@ -163,7 +163,7 @@ eos_utils_rpm_install() {
 }
 
 eos_utils_rpm_uninstall() {
-    sudo yum remove -y 'eos-utils*'
+    sudo yum remove -y "${PROJECT_NAME_BASE}-utils*"
 }
 
 eos_utils_reinstall() {

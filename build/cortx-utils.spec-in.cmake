@@ -1,10 +1,11 @@
 %define sourcename @CPACK_SOURCE_PACKAGE_FILE_NAME@
 %global dev_version %{lua: extraver = string.gsub('@EOS_UTILS_EXTRA_VERSION@', '%-', '.'); print(extraver) }
 
-Name: eos-utils
+Name: @PROJECT_NAME@
 Version: @EOS_UTILS_BASE_VERSION@
 Release: %{dev_version}%{?dist}
 Summary: General Purpose Utilities
+URL: GHS://@PROJECT_NAME@
 License: Seagate
 #Url:
 Group: Development/Libraries
@@ -14,6 +15,7 @@ BuildRequires: cmake gcc
 Provides: %{name} = %{version}-%{release}
 
 # EOS UTILS library paths
+%define _utils_lib		@PROJECT_NAME@
 %define _utils_dir		@INSTALL_DIR_ROOT@/@PROJECT_NAME_BASE@/utils
 %define _utils_lib_dir		%{_utils_dir}/lib
 %define _utils_include_dir	%{_includedir}/@PROJECT_NAME_BASE@-utils
@@ -32,18 +34,18 @@ Provides: %{name} = %{version}-%{release}
 %global enable_dassert %{on_off_switch enable_dassert}
 
 %description
-The libutils is the container to hold all the general purpose libraries.
+The @PROJECT_NAME@ is the container to hold all the general purpose libraries.
 Libraries like - fault, log etc...
 
 %package devel
-Summary: Development file for the libutils
+Summary: Development file for the @PROJECT_NAME@
 Group: Development/Libraries
 Requires: %{name} = %{version}-%{release} pkgconfig
 #Requires: @RPM_DEVEL_REQUIRES@
 Provides: %{name}-devel = %{version}-%{release}
 
 %description devel
-The libutils is the container to hold all the general purpose libraries.
+The @PROJECT_NAME@ is the container to hold all the general purpose libraries.
 
 %prep
 %setup -q -n %{sourcename}
@@ -51,6 +53,7 @@ The libutils is the container to hold all the general purpose libraries.
 %build
 cmake . -DFAULT_INJECT=%{fault_inject} \
 	-DENABLE_DASSERT=%{enable_dassert} \
+	-DPROJECT_NAME_BASE=@PROJECT_NAME_BASE@ \
 	-DCONFIGURE=OFF
 
 make %{?_smp_mflags} || make %{?_smp_mflags} || make
@@ -68,23 +71,25 @@ mkdir -p %{buildroot}%{_libdir}/pkgconfig
 install -m 644 include/*.h  %{buildroot}%{_utils_include_dir}
 install -m 644 include/eos/*.h  %{buildroot}%{_utils_include_dir}/eos
 install -m 644 include/common/*.h  %{buildroot}%{_utils_include_dir}/common
-install -m 755 libeos-utils.so %{buildroot}%{_utils_lib_dir}
-install -m 644 build/eos-utils.pc  %{buildroot}%{_libdir}/pkgconfig
-ln -s %{_utils_lib_dir}/libeos-utils.so %{buildroot}%{_libdir}/libeos-utils.so
+install -m 755 lib%{_utils_lib}.so %{buildroot}%{_utils_lib_dir}
+install -m 644 build/%{_utils_lib}.pc  %{buildroot}%{_libdir}/pkgconfig
+ln -s %{_utils_lib_dir}/lib%{_utils_lib}.so %{buildroot}%{_libdir}/lib%{_utils_lib}.so
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root)
-%{_libdir}/libeos-utils.so*
-%{_utils_lib_dir}/libeos-utils.so*
+%{_libdir}/lib%{_utils_lib}.so*
+%{_utils_lib_dir}/lib%{_utils_lib}.so*
 
 %files devel
 %defattr(-,root,root)
-%{_libdir}/pkgconfig/eos-utils.pc
+%{_libdir}/pkgconfig/%{_utils_lib}.pc
 %{_utils_include_dir}/*.h
 %{_utils_include_dir}/eos/*.h
 %{_utils_include_dir}/common/*.h
 
 %changelog
+* Tue Jun 16 2020 Seagate 1.0.1
+- RPM Naming Convention.
