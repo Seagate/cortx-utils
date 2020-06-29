@@ -1,0 +1,13 @@
+%echo Generating a basic OpenPGP key
+Key-Type: RSA
+Key-Length: 4096
+Preferences: h10
+Subkey-Type: ELG-E
+Subkey-Length: 4096
+Name-Real: Seagate
+Name-Comment: Seagate Technology LLC
+Name-Email: eosjenkins@seagate.com
+Expire-Date: 0
+Passphrase: passphrase
+%commit
+%echo done

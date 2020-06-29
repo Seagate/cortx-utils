@@ -1,0 +1,7 @@
+[csm-uploads]
+name=CSM uploads
+baseurl=http://ssc-nfs-server1.colo.seagate.com/releases/eos/uploads/rhel/rhel-7.7.1908/csm_uploads/
+gpgcheck=0
+enabled=1
+# highest priority
+priority=1

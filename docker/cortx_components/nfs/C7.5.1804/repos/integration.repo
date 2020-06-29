@@ -1,0 +1,5 @@
+[integration]
+gpgcheck=0
+enabled=1
+baseurl=http://ci-storage.mero.colo.seagate.com/releases/eos/components/dev/integration/last_successful/
+name=integration

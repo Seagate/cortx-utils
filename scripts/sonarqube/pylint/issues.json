@@ -1,0 +1,20 @@
+{ 
+    "issues": [
+        {
+        	"engineId": "Track lack of copyright and license headers",
+        	"ruleId": "py:copyrightHeader",
+        	"severity": "BLOCKER",
+        	"type": "CODE_SMELL",
+        	"primaryLocation": {
+        		"message": "Add or update the copyright header of this file",
+        		"filePath": "./auth/server/src/main/java/com/seagates3/exception/FaultPointException.java",
+        		"textRange": {
+        			"startLine": 1,
+        			"endLine": 2,
+        			"startColumn": 1,
+        			"endColumn": 2
+        		}
+        	}
+        }
+    ]
+}

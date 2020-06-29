@@ -1,0 +1,6 @@
+[petersen-stack]
+name = Copr repo for stack owned by petersen
+baseurl = https://copr-be.cloud.fedoraproject.org/results/petersen/stack/epel-7-$basearch/
+gpgcheck = 1
+gpgkey = https://copr-be.cloud.fedoraproject.org/results/petersen/stack/pubkey.gpg
+enabled = 1

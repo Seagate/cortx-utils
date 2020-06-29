@@ -1,0 +1,34 @@
+version: "3"
+
+services:
+  sonarqube:
+    build: .
+    image: seagate_sonarqube:1.0
+    expose:
+      - 9000
+    restart: always
+    ports:
+      - "9000:9000"
+    networks:
+      - sonarnet
+    environment:
+      - sonar.jdbc.username=sonar
+      - sonar.jdbc.password=sonar
+      - sonar.jdbc.url=jdbc:postgresql://db:5432/sonar
+    volumes:
+      - /mnt/prod-sonarqube/sonarqube_data/conf:/opt/sonarqube/conf
+      - /mnt/prod-sonarqube/sonarqube_data/data:/opt/sonarqube/data
+
+  db:
+    image: postgres
+    networks:
+      - sonarnet
+    environment:
+      - POSTGRES_USER=sonar
+      - POSTGRES_PASSWORD=sonar
+    volumes:
+      - /mnt/prod-sonarqube/postgresql_data/postgresql:/var/lib/postgresql
+      - /mnt/prod-sonarqube/postgresql_data/postgresql_data:/var/lib/postgresql/data
+
+networks:
+  sonarnet:

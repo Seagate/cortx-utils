@@ -1,0 +1,11 @@
+{
+        "jql": "project = EOS AND issuetype  in (Bug, Task) AND component = component_name  AND resolutiondate >= -12h",
+        "fields": [
+                "id",
+                "key",
+                "summary",
+                "assignee",
+                "status",
+                "description"
+        ]
+}
