@@ -1,0 +1,8 @@
+{
+    "action" : "order",
+    "resource" :
+      {
+        "href" : "",
+        "other attribute" : ""
+      }
+}
