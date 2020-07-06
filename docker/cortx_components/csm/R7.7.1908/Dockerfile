@@ -1,6 +1,6 @@
-FROM ssc-vm-0007.colo.seagate.com:5000/rhel_eos:7.7.1908
+FROM ssc-vm-0279.colo.seagate.com:5000/rhel_eos:7.7.1908
 
-COPY csm-uploads.repo  /etc/yum.repos.d/
+COPY eos_7.7.1908.repo csm-uploads.repo  /etc/yum.repos.d/
 
 # upgrade all
 RUN yum --assumeyes upgrade
