@@ -1,8 +1,8 @@
 #/bin/bash
 BUILD_LOCATION=$1
-echo -e "Generating MANIFEST.MF file"
+echo -e "Generating RELEASE.INFO file"
 pushd $BUILD_LOCATION
-cat <<EOF > MANIFEST.MF
+cat <<EOF > RELEASE.INFO
 ---
 NAME: "EES"
 VERSION: "1.0.0"
