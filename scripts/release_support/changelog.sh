@@ -38,8 +38,8 @@ export TZ=$time_zone;ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ 
 
 pushd $clone_dir/clone
 
-wget -q $BUILD_LOCATION/$START_BUILD/dev/MANIFEST.MF -O start_build_manifest.txt
-wget -q $BUILD_LOCATION/$TARGET_BUILD/dev/MANIFEST.MF -O target_build_manifest.txt
+wget -q $BUILD_LOCATION/$START_BUILD/dev/RELEASE.INFO -O start_build_manifest.txt
+wget -q $BUILD_LOCATION/$TARGET_BUILD/dev/RELEASE.INFO -O target_build_manifest.txt
 
 for component in "${!COMPONENT_LIST[@]}"
 do

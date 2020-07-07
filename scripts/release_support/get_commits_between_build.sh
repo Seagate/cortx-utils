@@ -35,8 +35,8 @@ export TZ=$time_zone;ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ 
 
 pushd $clone_dir/clone
 
-wget -q http://ci-storage.mero.colo.seagate.com/releases/eos/integration/centos-7.7.1908/$START_BUILD/MANIFEST.MF -O start_build_manifest.txt
-wget -q http://ci-storage.mero.colo.seagate.com/releases/eos/integration/centos-7.7.1908/$TARGET_BUILD/MANIFEST.MF -O target_build_manifest.txt
+wget -q http://ci-storage.mero.colo.seagate.com/releases/eos/integration/centos-7.7.1908/$START_BUILD/RELEASE.INFO -O start_build_manifest.txt
+wget -q http://ci-storage.mero.colo.seagate.com/releases/eos/integration/centos-7.7.1908/$TARGET_BUILD/RELEASE.INFO -O target_build_manifest.txt
 
 for component in "${!COMPONENT_LIST[@]}"
 do

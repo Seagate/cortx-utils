@@ -24,9 +24,9 @@ Release Build location:
 
 http://ci-storage.mero.colo.seagate.com/releases/eos/integration/centos-7.7.1908/$BUILD_NUMBER/
 
-Manifest file location:
+Release Info file location:
 
-http://ci-storage.mero.colo.seagate.com/releases/eos/integration/centos-7.7.1908/$BUILD_NUMBER/MANIFEST.MF
+http://ci-storage.mero.colo.seagate.com/releases/eos/integration/centos-7.7.1908/$BUILD_NUMBER/RELEASE.INFO
 
 Installation
 -----------------
