@@ -20,12 +20,15 @@ fi
 if [ -z $START_BUILD ]; then echo "No START_BUILD provided.."; exit 1 ; fi
 if [ -z $TARGET_BUILD ]; then echo "No TARGET_BUILD provided.."; exit 1; fi
 
-declare -A COMPONENT_LIST=( [eos-s3server]="https://$GIT_CRED@github.com/Seagate/cortx-s3server.git"
-[eos-core]="https://$GIT_CRED@github.com/Seagate/cortx-motr.git"
-[eos-hare]="http://gitlab.mero.colo.seagate.com/mero/hare.git"
-[eos-prvsnr]="https://$GIT_CRED@github.com/Seagate/cortx-prvsnr.git"
-[eos-sspl]="https://$GIT_CRED@github.com/Seagate/cortx-sspl.git"
-[eos-csm_agent]="https://$GIT_CRED@github.com/Seagate/cortx-csm.git"
+declare -A COMPONENT_LIST=( 
+[cortx-s3server]="https://$GIT_CRED@github.com/Seagate/cortx-s3server.git"
+[cortx-motr]="https://$GIT_CRED@github.com/Seagate/cortx-motr.git"
+[cortx-hare]="http://gitlab.mero.colo.seagate.com/mero/hare.git"
+[cortx-ha]="http://gitlab.mero.colo.seagate.com/eos/cortx-ha.git"
+[cortx-prvsnr]="https://$GIT_CRED@github.com/Seagate/cortx-prvsnr.git"
+[cortx-sspl]="https://$GIT_CRED@github.com/Seagate/cortx-sspl.git"
+[cortx-csm_agent]="https://$GIT_CRED@github.com/Seagate/cortx-csm.git"
+[cortx-fs]="https://$GIT_CRED@github.com/Seagate/cortx-posix.git"
 )
 
 clone_dir="/root/git_build_checkin_stats"
@@ -53,15 +56,15 @@ do
           exit 1
           fi	
 
-                if [ $component == eos-hare ] || [ $component == eos-sspl ]; then
-                                        start_hash=$(grep $component start_build_manifest.txt | head -1 | awk -F['_'] '{print $2}' | cut -d. -f1 |  sed 's/git//g'); echo $start_hash
-                                        target_hash=$(grep $component target_build_manifest.txt | head -1 | awk -F['_'] '{print $2}' | cut -d. -f1 |  sed 's/git//g'); echo $target_hash
-                                elif [ $component == eos-csm_agent ]; then
-                                        start_hash=$(grep $component start_build_manifest.txt | head -1 | awk -F['_'] '{print $3}' |  cut -d. -f1); echo $start_hash
-                                        target_hash=$(grep $component target_build_manifest.txt | head -1 | awk -F['_'] '{print $3}' |  cut -d. -f1); echo $target_hash
-                                else
-                                        start_hash=$(grep $component start_build_manifest.txt | head -1 | awk -F['_'] '{print $2}' | sed 's/git//g'); echo $start_hash
-                                        target_hash=$(grep $component target_build_manifest.txt | head -1 | awk -F['_'] '{print $2}' | sed 's/git//g'); echo $target_hash
+                if [ $component == cortx-hare ] || [ $component == cortx-sspl ] || [ $component == cortx-ha ] || [ $component == cortx-fs ]; then
+                        start_hash=$(grep $component start_build_manifest.txt | head -1 | awk -F['_'] '{print $2}' | cut -d. -f1 |  sed 's/git//g'); echo $start_hash
+                        target_hash=$(grep $component target_build_manifest.txt | head -1 | awk -F['_'] '{print $2}' | cut -d. -f1 |  sed 's/git//g'); echo $target_hash
+                elif [ $component == cortx-csm_agent ]; then
+                        start_hash=$(grep $component start_build_manifest.txt | head -1 | awk -F['_'] '{print $3}' |  cut -d. -f1); echo $start_hash
+                        target_hash=$(grep $component target_build_manifest.txt | head -1 | awk -F['_'] '{print $3}' |  cut -d. -f1); echo $target_hash
+                else
+                        start_hash=$(grep $component start_build_manifest.txt | head -1 | awk -F['_'] '{print $2}' | sed 's/git//g'); echo $start_hash
+                        target_hash=$(grep $component target_build_manifest.txt | head -1 | awk -F['_'] '{print $2}' | sed 's/git//g'); echo $target_hash
                 fi
 
                  pushd $dir
