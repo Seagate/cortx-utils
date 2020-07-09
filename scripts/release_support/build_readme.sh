@@ -22,11 +22,11 @@ Artifacts
 ------------
 Release Build location:
 
-http://ci-storage.mero.colo.seagate.com/releases/eos/integration/centos-7.7.1908/$BUILD_NUMBER/
+http://ci-storage.mero.colo.seagate.com/releases/eos/github/master/rhel-7.7.1908/$ENV/$BUILD_NUMBER/
 
 Release Info file location:
 
-http://ci-storage.mero.colo.seagate.com/releases/eos/integration/centos-7.7.1908/$BUILD_NUMBER/RELEASE.INFO
+http://ci-storage.mero.colo.seagate.com/releases/eos/github/master/rhel-7.7.1908/$ENV/$BUILD_NUMBER/RELEASE.INFO
 
 Installation
 -----------------
