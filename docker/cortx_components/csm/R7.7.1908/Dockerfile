@@ -3,7 +3,9 @@ FROM ssc-vm-0279.colo.seagate.com:5000/rhel_eos:7.7.1908
 COPY *.repo  /etc/yum.repos.d/
 
 # upgrade all
-RUN yum --assumeyes upgrade
+RUN yum --assumeyes upgrade && \
+yum clean all \
+&& rm -rf /var/cache/yum
 
 #Fix for cortx-prvsnr installation
 RUN yum downgrade systemd-219-67.el7_7.2.x86_64 systemd-libs-219-67.el7_7.2.x86_64 -y
