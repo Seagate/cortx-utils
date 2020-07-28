@@ -36,7 +36,7 @@ RPM_INSTALL_PATH_EXPECTED=(
 
 REPORT_HTML="<!DOCTYPE html><html><body> <h1 align='center'> <b>RPM Validation </b></h1> <h3><i> Validation Criteria: </i></h3>
 <b>Ref :</b> <a
-href='https://seagatetechnology.sharepoint.com/:p:/s/gteamdrv1/tdrive1224/ET1-F452t0pIjo9iY_zceDABNSQVrodOyiaAwQxFQ25RWA?e=ixC5Ij'><i> EOS Specifications for EESv1</i> </a> <table id='t01' style='border: 1px solid black;border-collapse: collapse;width:
+href='https://seagatetechnology.sharepoint.com/:p:/s/gteamdrv1/tdrive1224/ET1-F452t0pIjo9iY_zceDABNSQVrodOyiaAwQxFQ25RWA?e=ixC5Ij'><i> Cortx Specifications for LDR-1</i> </a> <table id='t01' style='border: 1px solid black;border-collapse: collapse;width:
 100%;background-color: #f2f2d1;'> <tr> <td style='border: 1px solid black;border-collapse: collapse;padding: 5px;text-align: left;'>RPM
 Location</td><td style='border: 1px solid black;border-collapse: collapse;padding: 5px;text-align:
 left;'><a href='BUILD_URL'>BUILD_URL</a></td></tr><tr> <td style='border: 1px solid black;border-collapse: collapse;padding: 5px;text-align: left;'>RPM Naming
