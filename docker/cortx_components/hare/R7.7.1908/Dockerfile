@@ -1,8 +1,9 @@
-FROM ssc-vm-0007.colo.seagate.com:5000/rhel_mero:7.7.1908
+FROM ssc-vm-0279.colo.seagate.com:5000/mero:7.7.1908
 
 ENV HARE_VENV_DIR=$HOME/.hare-venv
 
-RUN yum install -y python36 python36-devel python36-pip python36-PyYAML
+RUN yum install -y python36{,-devel,-pip,-PyYAML} && yum clean all \
+    && rm -rf /var/cache/yum
 RUN mkdir $HARE_VENV_DIR \
     && python3 -m venv $HARE_VENV_DIR
 

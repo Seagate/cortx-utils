@@ -1,6 +1,0 @@
-[mero_C7.7.1908]
-gpgcheck=0
-enabled=1
-baseurl=http://ci-storage.mero.colo.seagate.com/releases/eos/components/dev/centos-7.7.1908/mero/last_successful/
-name=mero_C7.7.1908
-
