@@ -33,10 +33,11 @@ RPM_INSTALL_PATH_EXPECTED=(
                     "cortx-sspl:bin,lib,conf,log"                                           # SSPL
                 )
 
+VALIDATION_ENVIRONMENT="OS : $( grep -w "NAME=" /etc/os-release | cut -d= -f2 | sed 's/"//g') , Kernel : $(uname -r)"
 
-REPORT_HTML="<!DOCTYPE html><html><body> <h1 align='center'> <b>RPM Validation </b></h1> <h3><i> Validation Criteria: </i></h3>
+REPORT_HTML="<!DOCTYPE html><html><body> <h1 align='center'> <b>RPM Validation </b></h1> <h3>Validation Criteria:</h3>
 <b>Ref :</b> <a
-href='https://seagatetechnology.sharepoint.com/:p:/s/gteamdrv1/tdrive1224/ET1-F452t0pIjo9iY_zceDABNSQVrodOyiaAwQxFQ25RWA?e=ixC5Ij'><i> Cortx Specifications for LDR-1</i> </a> <table id='t01' style='border: 1px solid black;border-collapse: collapse;width:
+href='https://seagatetechnology.sharepoint.com/:p:/r/sites/gteamdrv1/tdrive1224/Shared%20Documents/Architecture/EOS%20Specifications%20-%20EESV1.pptx?d=w8e177e3db776484a8e8f6263fcdc7830&csf=1&web=1&e=4z8Rnn&nav=eyJzSWQiOjI2NSwiY0lkIjowfQ'><i> Cortx Specifications for LDR-1</i> </a> <table id='t01' style='border: 1px solid black;border-collapse: collapse;width:
 100%;background-color: #f2f2d1;'> <tr> <td style='border: 1px solid black;border-collapse: collapse;padding: 5px;text-align: left;'>RPM
 Location</td><td style='border: 1px solid black;border-collapse: collapse;padding: 5px;text-align:
 left;'><a href='BUILD_URL'>BUILD_URL</a></td></tr><tr> <td style='border: 1px solid black;border-collapse: collapse;padding: 5px;text-align: left;'>RPM Naming
@@ -45,12 +46,12 @@ left;'>$RPM_NAMING_PATTERN</td></tr><tr> <td style='border: 1px solid black;bord
 Naming Conventions</td><td style='border: 1px solid black;border-collapse: collapse;padding: 5px;text-align:
 left;'>$RPM_INSTALL_ROOT_PATH/[comp]/bin/ <br>$RPM_INSTALL_ROOT_PATH/[comp]/conf/ <br>$RPM_INSTALL_ROOT_PATH/[comp]/lib/ <br>$RPM_LOG_ROOT_PATH/[comp]/..
 <br></td></tr><tr> <td style='border: 1px solid black;border-collapse: collapse;padding: 5px;text-align: left;'>RPM License</td><td
-style='border: 1px solid black;border-collapse: collapse;padding: 5px;text-align: left;'>$RPM_LICENSE_EXPECTED</td></tr></table> <br></br>
-<h3><i> Validation Result: </i></h3> <table class='blueTable' style='font-family: Verdana, Geneva, sans-serif;border: 1px
+style='border: 1px solid black;border-collapse: collapse;padding: 5px;text-align: left;'>$RPM_LICENSE_EXPECTED</td></tr></table><br/><h3>Validation Environment : </h3><pre>       $VALIDATION_ENVIRONMENT</pre></p><br/>
+<h3>Validation Result:</h3><table class='blueTable' style='font-family: Verdana, Geneva, sans-serif;border: 1px
 solid #1C6EA4;background-color: #EEEEEE;width: 100%;text-align: left;border-collapse: collapse;table-layout: fixed ;'>
 <thead style='background: linear-gradient(to bottom, #5592bb 0%, #327cad 66%, #1C6EA4 100%);border-bottom: 2px solid
-#444444;'> <tr> <th>Component</th> <th>RPM Name</th> <th>RPM Naming Check</th> <th>RPM License Check</th> <th>RPM Instalation
-Directory Check</th> </tr></thead> <tbody>VALIDATION_RESULT</tbody> </table></body></html>"
+#444444;'> <tr> <th>Component</th> <th>Name</th> <th>Naming Check</th> <th>License Check</th> <th>Instalation
+Directory Check</th><th>Dependency Check</th></tr></thead> <tbody>VALIDATION_RESULT</tbody> </table></body></html>"
 
 HTML_TD_STYLE="style='border: 1px solid #AAAAAA;padding: 3px 2px;font-size: 13px;'"
 
@@ -94,7 +95,6 @@ _categarize_component_rpms(){
     done  
 }
 
-
 _validate_rpm_install_path(){
 
     rpm_install_path_data="$1"
@@ -136,12 +136,43 @@ _validate_rpm_install_path(){
     echo "$result"
 }
 
+_prepare(){
+
+    rpm --import "$BUILD_URL/RPM-GPG-KEY-Seagate"
+    yum-config-manager --add-repo "$BUILD_URL"
+
+cat > /etc/yum.repos.d/cortx-build.repo <<- EOF
+[cortx-build-repo]
+name=Cortx Release Build Repo
+baseurl=$BUILD_URL
+enabled=1
+gpgcheck=1
+gpgkey=$BUILD_URL/RPM-GPG-KEY-Seagate
+priority=1
+EOF
+
+cat > /etc/yum.repos.d/salt.repo <<- EOF
+[saltstack-repo]
+name=SaltStack repo for RHEL/CentOS $releasever
+baseurl=https://archive.repo.saltstack.com/py3/redhat/7.0/x86_64/archive/2019.2.1/
+enabled=1
+gpgcheck=1
+gpgkey=https://archive.repo.saltstack.com/py3/redhat/7.0/x86_64/archive/2019.2.1/SALTSTACK-GPG-KEY.pub
+priority=1
+EOF
+
+}
+
+_clean(){
+    rm -rf /etc/yum.repos.d/salt.repo
+    rm -rf /etc/yum.repos.d/cortx-build.repo
+    rm -rf /etc/yum.repos.d/luster.repo
+}
+
 _generate_rpm_validation_report(){
 
     local validation_rpms=("${!1}")
     validation_result_html=""
-
-    rpm --import "$BUILD_URL/RPM-GPG-KEY-Seagate"
 
     for component_rpm_group in ${validation_rpms[@]}
     do
@@ -186,7 +217,13 @@ _generate_rpm_validation_report(){
                 install_path_check="<td $HTML_TD_STYLE><span style='color:green; text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black; font-size: 30px;'>&#10003;</span></td>"
             fi
 
-            rpm_check_result_html+="<tr><td $HTML_TD_STYLE><b>$rpm_name</td>$name_check $license_check $install_path_check </tr>"        
+            dependency_check=$({ yum install "$BUILD_URL/$rpm" --assumeno; } 2>&1 >/dev/null)
+            if [ ! -z "$dependency_check" ]; then
+                dependency_check="<td><details><summary>Error Log</summary><p>$dependency_check</p></details></td>"
+            else
+                dependency_check="<td $HTML_TD_STYLE><span style='color:green; text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black; font-size: 30px;'>&#10003;</span></td>"
+            fi
+            rpm_check_result_html+="<tr><td $HTML_TD_STYLE><b>$rpm_name</td>$name_check $license_check $install_path_check $dependency_check</tr>"        
        
         done
 
@@ -199,6 +236,10 @@ _generate_rpm_validation_report(){
     echo "${REPORT_HTML/VALIDATION_RESULT/$validation_result_html}" > rpm_validation.html
 }
 
+_prepare
+
 _categarize_component_rpms COMPONENT_RPM_PATTERN_ARRAY[@]
 
 _generate_rpm_validation_report components_rpm_array[@]
+
+_clean
