@@ -11,7 +11,7 @@
  * Seagate Technology, LLC.
 
  Contains all eos objects needed by m0kvs.c & m0store.c &
- implementation of init/fini APIs. 
+ implementation of init/fini APIs.
 */
 
 #include "m0common.h"
@@ -100,11 +100,11 @@ static void m0fini_internal(void)
 		m0_clovis_fini(clovis_instance, true);
 		clovis_instance = NULL;
 	}
-}	
+}
 
 void m0fini(void)
 {
-	if (my_init_done == true){
+	if (my_init_done == true) {
 		m0fini_internal();
 		my_init_done = false;
 	}
@@ -185,7 +185,7 @@ int init_clovis(void)
 	/* Create Clovis instance */
 	rc = m0_clovis_init(&clovis_instance, &clovis_conf, true);
 	if (rc != 0) {
-		log_err("Failed to initilise Clovis\n");
+		log_err("Failed to initilize Clovis\n");
 		goto err_exit;
 	}
 
