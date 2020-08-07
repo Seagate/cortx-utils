@@ -19,6 +19,7 @@
  */
 
 #include "m0common.h"
+#include "addb2/global.h" /* global_leave */
 #include "common/log.h"
 #include <debug.h>
 
@@ -45,6 +46,29 @@ void m0kvs_do_init(void)
 
 	clovis_init_done = true;
 	m0init_thread = pthread_self();
+
+	/* TODO:
+	 * This is a workaround for the situation where
+	 * m0init is called from a thread thr1 that is blocked on
+	 * another thread thr2 which is the thread where m0fini is called.
+	 * This situation causes a panic in M0 code because ADDB is not aware
+	 * of such sophisticated condition.
+	 * thr1:
+	 *	m0init()
+	 *	spawn thr2
+	 *	block on thr2
+	 * thr2:
+	 *	do_smth()
+	 *	m0fini()
+	 *
+	 * The thread_leave() call tells ADDB to "forget" about thr1,
+	 * so that thr2 can successfully conclude m0fini without panics.
+	 *
+	 * This call removes the ability to gather ADDB traces from this
+	 * thread. The caller is responsible to restoring the ADDB
+	 * context after m0init is done.
+	 */
+	m0_addb2_global_thread_leave();
 }
 
 

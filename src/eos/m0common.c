@@ -70,6 +70,54 @@ const char * m0_get_gfid()
 	return ifid_str;
 }
 
+static pthread_key_t autoshun_key;
+static pthread_once_t autoshun_key_init_once = PTHREAD_ONCE_INIT;
+
+static void autoshun_key_cb(void *val)
+{
+	(void) val;
+	if (m0_thread_tls()) {
+		m0_thread_shun();
+	}
+}
+
+static void autoshun_key_init(void)
+{
+	int rc;
+
+	rc = -pthread_key_create(&autoshun_key, autoshun_key_cb);
+
+	/* Assumption:
+	 *	This function is always successful.
+	 */
+	assert(rc == 0);
+}
+
+static void autoshun_key_fini(void)
+{
+	pthread_key_delete(autoshun_key);
+	memset(&autoshun_key, 0, sizeof(autoshun_key));
+	autoshun_key_init_once = PTHREAD_ONCE_INIT;
+}
+
+void autoshun_key_register_thread(void)
+{
+	int rc;
+
+	/* we do not care about the value stored there, we just
+	 * need to make sure glibc put it in the array.
+	 */
+	const int dummy_value = 1;
+
+	rc = pthread_setspecific(autoshun_key,
+				 (const void *) (intptr_t) dummy_value);
+
+	/* Assumption:
+	 *	This function is always successful.
+	 */
+	assert(rc == 0);
+}
+
 int m0init(struct collection_item *cfg_items)
 {
 	if (cfg_items == NULL)
@@ -78,6 +126,12 @@ int m0init(struct collection_item *cfg_items)
 	if (conf == NULL)
 		conf = cfg_items;
 
+	/* Important note:
+	 * The autoshun key should be registered before
+	 * initializing M0. The autoshun-key hack relies on
+	 * the internal representation of POSIX TLS in the glibc.
+	 */
+	(void) pthread_once(&autoshun_key_init_once, autoshun_key_init);
 	(void) pthread_once(&clovis_init_once, m0kvs_do_init);
 
 	pthread_mutex_lock(&m0init_lock);
@@ -87,7 +141,7 @@ int m0init(struct collection_item *cfg_items)
 		       (int)syscall(SYS_gettid));
 
 		memset(&m0thread, 0, sizeof(struct m0_thread));
-
+		autoshun_key_register_thread();
 		m0_thread_adopt(&m0thread, clovis_instance->m0c_motr);
 	} else
 		log_info("----------> tid=%d I am the init thread\n",
@@ -100,33 +154,14 @@ int m0init(struct collection_item *cfg_items)
 	return 0;
 }
 
-static void m0fini_internal(void)
-{
-	dassert(my_init_done);
-	if (clovis_instance) {
-		/* Finalize Clovis instance */
-		/* TODO:
-		 * This call may lead to a panic in M0 code
-		 * if some of the adopted threads have not been
-		 * shun()-ed properly.
-		 * EOS-11407 is supposed to resolve this
-		 * by enabling the autoshun feature
-		 * which allows us to shun() threads even if
-		 * we do not control their lifecycle.
-		 */
-		m0_clovis_fini(clovis_instance, true);
-		clovis_instance = NULL;
-	}
-}
-
 void m0fini(void)
 {
-	if (my_init_done == true) {
-		m0fini_internal();
-		my_init_done = false;
-	}
-	if (pthread_self() != m0init_thread) {
-		m0_thread_shun();
+	/* We can finalize M0 only from a thread that has been adopted. */
+	dassert(my_init_done);
+	if (clovis_instance) {
+		m0_clovis_fini(clovis_instance, true);
+		clovis_instance = NULL;
+		autoshun_key_fini();
 	}
 }
 
