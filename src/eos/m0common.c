@@ -80,7 +80,7 @@ int m0init(struct collection_item *cfg_items)
 
 		memset(&m0thread, 0, sizeof(struct m0_thread));
 
-		m0_thread_adopt(&m0thread, clovis_instance->m0c_mero);
+		m0_thread_adopt(&m0thread, clovis_instance->m0c_motr);
 	} else
 		log_info("----------> tid=%d I am the init thread\n",
 		       (int)syscall(SYS_gettid));

@@ -36,7 +36,7 @@
 #include "clovis/clovis_idx.h"
 #include "lib/thread.h"
 #include <eos/helpers.h>
-#include <mero/helpers/helpers.h>
+#include <motr/helpers/helpers.h>
 
 struct clovis_io_ctx {
 	struct m0_indexvec ext;
