@@ -45,8 +45,15 @@ endif (ENABLE_DASSERT)
 
 message( STATUS "ENABLE_DASSERT : ${ENABLE_DASSERT}")
 
+# TODO: Add a configure-time option
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DENABLE_TSDB_ADDB")
+
 include(CheckIncludeFiles)
 include(CheckLibraryExists)
+
+# Add TSDB sources
+add_subdirectory(tsdb)
+set(UTILS_TSDB utils-tsdb)
 
 # Build ancillary libs
 add_subdirectory(fault)
@@ -87,6 +94,7 @@ set(CMAKE_EV_LIB /usr/local/lib)
 link_directories(${CMAKE_EV_LIB})
 
 add_library(${UTILS_LIB} SHARED
+		$<TARGET_OBJECTS:${UTILS_TSDB}>
 		$<TARGET_OBJECTS:${UTILS_FAULT}>
 		$<TARGET_OBJECTS:${UTILS_LOG}>
 		$<TARGET_OBJECTS:${UTILS_EOS}>
