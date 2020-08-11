@@ -22,11 +22,11 @@ Artifacts
 ------------
 Release Build location:
 
-http://ci-storage.mero.colo.seagate.com/releases/eos/github/master/rhel-7.7.1908/$ENV/$BUILD_NUMBER/
+http://cortx-storage.colo.seagate.com/releases/eos/github/release/rhel-7.7.1908/$ENV/$BUILD_NUMBER/
 
 Release Info file location:
 
-http://ci-storage.mero.colo.seagate.com/releases/eos/github/master/rhel-7.7.1908/$ENV/$BUILD_NUMBER/RELEASE.INFO
+http://cortx-storage.colo.seagate.com/releases/eos/github/release/rhel-7.7.1908/$ENV/$BUILD_NUMBER/RELEASE.INFO
 
 Installation
 -----------------

@@ -1,5 +1,5 @@
 [mero]
 gpgcheck=0
 enabled=1
-baseurl=http://ci-storage.mero.colo.seagate.com/releases/eos/components/dev/mero/last_successful/
+baseurl=http://cortx-storage.colo.seagate.com/releases/eos/components/dev/mero/last_successful/
 name=mero

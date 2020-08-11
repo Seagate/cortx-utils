@@ -1,6 +1,6 @@
 [mero_C7.6.1810]
 gpgcheck=0
 enabled=1
-baseurl=http://ci-storage.mero.colo.seagate.com/releases/eos/components/dev/centos-7.6.1810/mero/last_successful/
+baseurl=http://cortx-storage.colo.seagate.com/releases/eos/components/github/release/rhel-7.7.1908/dev/mero/last_successful/
 name=mero_C7.6.1810
 

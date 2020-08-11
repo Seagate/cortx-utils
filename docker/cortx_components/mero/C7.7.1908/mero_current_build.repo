@@ -1,5 +1,5 @@
 [mero_current_build]
 gpgcheck=0
 enabled=1
-baseurl=http://ci-storage.mero.colo.seagate.com/releases/eos/components/dev/centos-7.7.1908/mero/current_build/
+baseurl=http://cortx-storage.colo.seagate.com/releases/eos/components/github/release/rhel-7.7.1908/dev/mero/current_build/
 name=mero_current_build

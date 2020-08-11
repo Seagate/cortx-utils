@@ -1,6 +1,6 @@
 [eos-C7.6.1810]
 gpgcheck=0
 enabled=1
-baseurl=http://ci-storage.mero.colo.seagate.com/releases/eos/integration/centos-7.6.1810/last_successful/
+baseurl=http://cortx-storage.colo.seagate.com/releases/eos/github/release/rhel-7.7.1908/last_successful/
 name=eos-C7.6.1810
 

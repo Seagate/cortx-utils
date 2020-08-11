@@ -1,6 +1,6 @@
 [python3-uploads]
 gpgcheck=0
 enabled=1
-baseurl=http://ci-storage.mero.colo.seagate.com/releases/eos/python3-uploads/
+baseurl=http://cortx-storage.colo.seagate.com/releases/eos/python3-uploads/
 name=python3-uploads
 

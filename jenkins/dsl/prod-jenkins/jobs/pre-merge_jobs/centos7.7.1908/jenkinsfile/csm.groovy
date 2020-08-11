@@ -125,7 +125,7 @@ pipeline {
 				script {
                 	def releaseBuild = build job: 'Pre-merge Release', propagate: false, parameters: [string(name: 'release_component', value: "${component}")]
 				 	env.release_build = releaseBuild.number
-                    env.release_build_location="http://ci-storage.mero.colo.seagate.com/releases/eos/$pipeline_group/$os_version/"+releaseBuild.number+"_${component}"
+                    env.release_build_location="http://cortx-storage.colo.seagate.com/releases/eos/$pipeline_group/$os_version/"+releaseBuild.number+"_${component}"
 				}
             }
         }   

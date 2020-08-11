@@ -121,7 +121,7 @@ pipeline {
             script {
                 	
                 currentBuild.upstreamBuilds?.each { b -> env.upstream_project = "${b.getProjectName()}";env.upstream_build = "${b.getId()}" }
-                env.release_build_location = "http://ci-storage.mero.colo.seagate.com/releases/eos/$branch/$os_version/${env.BUILD_NUMBER}"
+                env.release_build_location = "http://cortx-storage.colo.seagate.com/releases/eos/$branch/$os_version/${env.BUILD_NUMBER}"
                 env.release_build = "${env.BUILD_NUMBER}"
                 env.build_stage = "${build_stage}"
 

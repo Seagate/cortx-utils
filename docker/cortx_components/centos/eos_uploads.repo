@@ -1,5 +1,5 @@
 [eos-uploads]
 gpgcheck=0
 enabled=1
-baseurl=http://ci-storage.mero.colo.seagate.com/releases/eos/uploads/
+baseurl=http://cortx-storage.colo.seagate.com/releases/eos/uploads/centos/centos-7.7.1908/
 name=eos-uploads

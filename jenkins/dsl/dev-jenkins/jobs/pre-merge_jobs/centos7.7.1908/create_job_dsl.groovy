@@ -17,7 +17,7 @@ def job_map = [
   "SSPL"              : "sspl.groovy",
   "Cortx-HA"          : "ha.groovy",
   "Pre-merge Release" : "release.groovy",
-  "Pre-merge Release to ssc-nfs-server1" : "release-new-nfs.groovy",
+  "Pre-merge Release to cortx-storage" : "release-new-nfs.groovy",
 ]
 
 // 1 - Create Folder

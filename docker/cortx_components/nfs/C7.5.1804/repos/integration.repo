@@ -1,5 +1,5 @@
 [integration]
 gpgcheck=0
 enabled=1
-baseurl=http://ci-storage.mero.colo.seagate.com/releases/eos/components/dev/integration/last_successful/
+baseurl=http://cortx-storage.colo.seagate.com/releases/eos/github/release/rhel-7.7.1908/last_successful/
 name=integration

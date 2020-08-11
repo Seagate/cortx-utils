@@ -1,6 +1,0 @@
-[nfs_uploads]
-gpgcheck=0
-enabled=1
-baseurl=http://ci-storage.mero.colo.seagate.com/releases/eos/nfs_uploads/
-name=nfs_uploads
-

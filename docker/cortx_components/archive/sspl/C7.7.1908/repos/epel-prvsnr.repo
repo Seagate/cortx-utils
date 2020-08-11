@@ -1,6 +1,6 @@
 [epel-prvsnr]
 gpgcheck=0
 enabled=1
-baseurl=http://ci-storage.mero.colo.seagate.com/prvsnr/vendor/centos/epel/
+baseurl=http://cortx-storage.colo.seagate.com/prvsnr/vendor/centos/epel/
 name=epel-prvsnr
 

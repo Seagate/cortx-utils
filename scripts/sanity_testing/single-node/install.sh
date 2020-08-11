@@ -33,7 +33,7 @@ setup_provnr(){
         TARGET_BUILD="integration/centos-7.7.1908/${BUILD}"
     fi
 
-    DEFAULT_REPO="http://ci-storage.mero.colo.seagate.com/releases/eos" 
+    DEFAULT_REPO="http://cortx-storage.colo.seagate.com/releases/eos" 
     REPO="${DEFAULT_REPO}/${TARGET_BUILD}"
     RELEASE_NOTES_URL="${REPO}/RELEASE_NOTES.txt"
     HOST=`hostname`

@@ -104,7 +104,7 @@ pipeline {
 				script {
                 	def releaseBuild = build job: 'GitHub Release', propagate: false
 				 	env.release_build = releaseBuild.number
-                    env.release_build_location="http://ci-storage.mero.colo.seagate.com/releases/eos/$branch/$os_version/"+releaseBuild.number
+                    env.release_build_location="http://cortx-storage.colo.seagate.com/releases/eos/$branch/$os_version/"+releaseBuild.number
 				}
             }
         } 

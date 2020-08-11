@@ -212,7 +212,7 @@ pipeline {
             script {
                 	
                 currentBuild.upstreamBuilds?.each { b -> env.upstream_project = "${b.getProjectName()}";env.upstream_build = "${b.getId()}" }
-                env.release_build_location = "http://ssc-nfs-server1.colo.seagate.com/releases/eos/$pipeline_group/$os_version/$release_name"
+                env.release_build_location = "http://cortx-storage.colo.seagate.com/releases/eos/$pipeline_group/$os_version/$release_name"
                 env.release_build = "${env.release_name}"
                 env.build_stage = "${build_stage}"
 

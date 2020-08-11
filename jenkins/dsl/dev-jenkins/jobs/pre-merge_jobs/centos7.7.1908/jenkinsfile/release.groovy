@@ -210,7 +210,7 @@ pipeline {
                 catchError(buildResult: 'SUCCESS') {
                     script { build_stage=env.STAGE_NAME }
                     script {
-                        build job: 'Pre-merge Release to ssc-nfs-server1', wait: false, parameters: [string(name: 'release_component', value: "${release_component}"), string(name: 'build_number', value: "${BUILD_NUMBER}")]
+                        build job: 'Pre-merge Release to cortx-storage', wait: false, parameters: [string(name: 'release_component', value: "${release_component}"), string(name: 'build_number', value: "${BUILD_NUMBER}")]
                     }
                 }
             }
@@ -222,7 +222,7 @@ pipeline {
             script {
                 	
                 currentBuild.upstreamBuilds?.each { b -> env.upstream_project = "${b.getProjectName()}";env.upstream_build = "${b.getId()}" }
-                env.release_build_location = "http://ci-storage.mero.colo.seagate.com/releases/eos/$pipeline_group/$os_version/$release_name"
+                env.release_build_location = "http://cortx-storage.colo.seagate.com/releases/eos/$pipeline_group/$os_version/$release_name"
                 env.release_build = "${env.release_name}"
                 env.build_stage = "${build_stage}"
 

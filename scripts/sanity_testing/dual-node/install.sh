@@ -46,7 +46,7 @@ _setup_provnr(){
     fi
 
     # 2. Install Reference
-    DEFAULT_REPO="http://ci-storage.mero.colo.seagate.com/releases/eos" 
+    DEFAULT_REPO="http://cortx-storage.colo.seagate.com/releases/eos" 
     REPO="${DEFAULT_REPO}/${TARGET_BUILD}"
 
     echo "================================================================================"

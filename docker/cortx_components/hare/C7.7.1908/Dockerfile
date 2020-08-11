@@ -1,5 +1,5 @@
 ARG  CENTOS_RELEASE
-FROM 10.230.162.34:5000/mero:${CENTOS_RELEASE}
+FROM ssc-vm-0279.colo.seagate.com:5000/mero:${CENTOS_RELEASE}
 
 ENV HARE_VENV_DIR=$HOME/.hare-venv
 

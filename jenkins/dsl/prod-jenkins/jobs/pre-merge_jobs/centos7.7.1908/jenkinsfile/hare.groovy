@@ -53,7 +53,7 @@ pipeline {
 						script {
 							sh label: '', script: '''
 								sed '/baseurl/d' /etc/yum.repos.d/mero_current_build.repo
-								echo "baseurl=http://ci-storage.mero.colo.seagate.com/releases/eos/components/dev/centos-7.7.1908/mero/last_successful/"  >> /etc/yum.repos.d/mero_current_build.repo
+								echo "baseurl=http://cortx-storage.colo.seagate.com/releases/eos/components/dev/centos-7.7.1908/mero/last_successful/"  >> /etc/yum.repos.d/mero_current_build.repo
 								rm -f /etc/yum.repos.d/eos_7.7.1908.repo
 								yum clean all;rm -rf /var/cache/yum
 							'''
@@ -67,7 +67,7 @@ pipeline {
 						script {
 							sh label: '', script: '''
 								sed '/baseurl/d' /etc/yum.repos.d/mero_current_build.repo
-								echo "baseurl=http://ci-storage.mero.colo.seagate.com/releases/eos/components/pre-merge/centos-7.7.1908/dev/mero/current_build/"  >> /etc/yum.repos.d/mero_current_build.repo
+								echo "baseurl=http://cortx-storage.colo.seagate.com/releases/eos/components/pre-merge/centos-7.7.1908/dev/mero/current_build/"  >> /etc/yum.repos.d/mero_current_build.repo
 								rm -f /etc/yum.repos.d/eos_7.7.1908.repo
 								yum clean all;rm -rf /var/cache/yum
 							'''
@@ -159,7 +159,7 @@ pipeline {
 				script {
                 	def releaseBuild = build job: 'Pre-merge Release', propagate: false, parameters: [string(name: 'release_component', value: "${component}")]
 				 	env.release_build = releaseBuild.number
-                    env.release_build_location="http://ci-storage.mero.colo.seagate.com/releases/eos/$pipeline_group/$os_version/"+releaseBuild.number+"_${component}"
+                    env.release_build_location="http://cortx-storage.colo.seagate.com/releases/eos/$pipeline_group/$os_version/"+releaseBuild.number+"_${component}"
 				}
             }
         } 	

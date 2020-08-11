@@ -1,7 +1,7 @@
 # Builder image
 
 ARG  CENTOS_RELEASE
-FROM ssc-vm-0007.colo.seagate.com:5000/centos_eos:${CENTOS_RELEASE} as lustre-rpm-builder
+FROM ssc-vm-0279.colo.seagate.com:5000/centos_eos:${CENTOS_RELEASE} as lustre-rpm-builder
 
 ARG LUSTRE_VERSION
 
@@ -20,7 +20,7 @@ RUN QA_RPATHS=255 rpmbuild -bb --without servers --without lustre-tests \
 # Final image
 
 ARG  CENTOS_RELEASE
-FROM ssc-vm-0007.colo.seagate.com:5000/centos_eos:${CENTOS_RELEASE}
+FROM ssc-vm-0279.colo.seagate.com:5000/centos_eos:${CENTOS_RELEASE}
 
 ARG LUSTRE_VERSION
 
