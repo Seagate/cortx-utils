@@ -185,7 +185,9 @@ out:
 
 void m0idx_close(struct m0_clovis_idx *index)
 {
-        m0_clovis_idx_fini(index);
+	if (!my_init_done)
+		m0kvs_reinit();
+	m0_clovis_idx_fini(index);
 	m0kvs_free(index);
 }
 
