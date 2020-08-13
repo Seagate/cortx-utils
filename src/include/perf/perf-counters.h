@@ -1,4 +1,4 @@
-/**
+/*
  * Filename:	perf-counters.h
  * Description:	This module defines performance counters and helpers.
  *
@@ -14,8 +14,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * For any questions about this software or licensing,
- * please email opensource@seagate.com or cortx-questions@seagate.com.*
+ * please email opensource@seagate.com or cortx-questions@seagate.com. 
  */
+
 #ifndef PERF_COUNTERS_H_
 #define PERF_COUNTERS_H_
 /******************************************************************************/

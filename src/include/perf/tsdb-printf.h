@@ -1,4 +1,4 @@
-/**
+/*
  * Filename:	tsdb-printf.h
  * Description:	This module defines a dummy printf-based TSDB engine.
  *
@@ -14,11 +14,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * For any questions about this software or licensing,
- * please email opensource@seagate.com or cortx-questions@seagate.com.*
+ * please email opensource@seagate.com or cortx-questions@seagate.com. 
  */
+
 /* This module can be used only for debugging of public TSDB API. It has
  * zero meaning for real-life scenarios.
  */
+
 #ifndef TSDB_PRINTF_H_
 #define TSDB_PRINTF_H_
 /******************************************************************************/

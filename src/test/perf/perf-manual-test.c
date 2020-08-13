@@ -1,4 +1,4 @@
-/**
+/*
  * Filename:    perf-manual-test.c
  * Description: This file implements several test cases for manual testing of
  *		performance-related interfaces.
@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * For any questions about this software or licensing,
- * please email opensource@seagate.com or cortx-questions@seagate.com.*
+ * please email opensource@seagate.com or cortx-questions@seagate.com. 
  */
 
 /* Print tsdb output into stdout instead of using ADDB. */
