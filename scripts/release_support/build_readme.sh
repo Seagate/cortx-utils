@@ -15,7 +15,7 @@ CONTENTS OF THIS FILE
 Introduction
 ------------
 
-EES Details to be added here.
+Cortx Details to be added here.
 
 
 Artifacts
@@ -33,14 +33,14 @@ Installation
 
 Provisioner Guide
 
-http://gitlab.mero.colo.seagate.com/eos/provisioner/ees-prvsnr/wikis/Setup-Guides/QuickStart-Guide
-
+https://github.com/Seagate/cortx-prvsnr/wiki/QuickStart-Guide 
 
 Known Issues
 ------------
 
 Known issues are tracked at
 
-http://gitlab.mero.colo.seagate.com/eos/provisioner/ees-prvsnr/wikis/Known-issues-for-deploy-eos
+https://github.com/Seagate/cortx-prvsnr/wiki/Deploy-Stack#known-deployment-issues
+
 EOF
 
