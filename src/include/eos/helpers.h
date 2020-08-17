@@ -1,6 +1,6 @@
 /*
  * Filename:         helpers.h
- * Description:      Contains declarations of eos functionality needed
+ * Description:      Contains declarations of cortx functionality needed
  *                   by nsal, efs, dsal
  *
  * Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
