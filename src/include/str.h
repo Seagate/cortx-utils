@@ -17,8 +17,8 @@
  * please email opensource@seagate.com or cortx-questions@seagate.com. 
  */
 
-#ifndef _EOS_STR_H_
-#define _EOS_STR_H_
+#ifndef _CORTX_STR_H_
+#define _CORTX_STR_H_
 
 #include <stdint.h>
 #include <debug.h>
@@ -72,4 +72,4 @@ typedef struct str256 str256_t;
 /* str256_isalphanum: Validate if ns_name is alpha numeric */
 int str256_isalphanum(const str256_t *name);
 
-#endif /* _EOS_STR_H_ */
+#endif /* _CORTX_STR_H_ */

@@ -20,7 +20,7 @@
 #include <debug.h>
 #include "ut.h"
 
-/* This macro enables self tests in eos-utils ut library.
+/* This macro enables self tests in cortx-utils ut library.
  * The self test ensures that the API is stable enough to be
  * consumed by the users.
  * Disable the self test to speed up execution of each individual ut binary.
