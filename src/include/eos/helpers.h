@@ -243,7 +243,7 @@ static inline void m0_fid_copy(struct m0_uint128 *src, struct m0_uint128 *dest)
 	dest->u_lo = src->u_lo;
 }
 
-/** Creates a new index (a container for KVS records) in the underlying storage (Mero)
+/** Creates a new index (a container for KVS records) in the underlying storage (Motr)
  * and returns a handle to be used in KVS operations within this index.
  * Note: The caller should release the resources associated with the handle
  * by calling m0idx_close.

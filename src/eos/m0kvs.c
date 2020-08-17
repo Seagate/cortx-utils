@@ -1,6 +1,6 @@
 /*
  * Filename:         m0kvs.c
- * Description:      Contains mero related kv operations
+ * Description:      Contains motr related kv operations
  *                   which use clovis index.
  *
  * Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates

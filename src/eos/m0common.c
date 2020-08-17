@@ -1,6 +1,6 @@
 /*
  * Filename:         m0common.c
- * Description:      Contains setup variables and functions of mero
+ * Description:      Contains setup variables and functions of motr
  *
  * Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
  * This program is free software: you can redistribute it and/or modify
