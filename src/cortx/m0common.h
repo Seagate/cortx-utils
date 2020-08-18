@@ -40,7 +40,7 @@
 #include "clovis/clovis_internal.h"
 #include "clovis/clovis_idx.h"
 #include "lib/thread.h"
-#include <eos/helpers.h>
+#include <cortx/helpers.h>
 #include <motr/helpers/helpers.h>
 
 struct clovis_io_ctx {

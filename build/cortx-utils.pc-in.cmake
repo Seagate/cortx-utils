@@ -4,7 +4,7 @@ libdir=/usr/lib64
 includedir=/usr/include
 
 Name: @PROJECT_NAME@
-Description: General Purpose EOS Utilities.
+Description: General Purpose CORTX Utilities.
 #Requires:
 Version: @LIBUTILS_BASE_VERSION@
 Cflags: -I/usr/include/@PROJECT_NAME@/include

@@ -1,8 +1,8 @@
 %define sourcename @CPACK_SOURCE_PACKAGE_FILE_NAME@
-%global dev_version %{lua: extraver = string.gsub('@EOS_UTILS_EXTRA_VERSION@', '%-', '.'); print(extraver) }
+%global dev_version %{lua: extraver = string.gsub('@CORTX_UTILS_EXTRA_VERSION@', '%-', '.'); print(extraver) }
 
 Name: @PROJECT_NAME@
-Version: @EOS_UTILS_BASE_VERSION@
+Version: @CORTX_UTILS_BASE_VERSION@
 Release: %{dev_version}%{?dist}
 Summary: General Purpose Utilities
 URL: GHS://@PROJECT_NAME@
@@ -14,13 +14,13 @@ BuildRequires: cmake gcc
 #BuildRequires: @RPM_DEVEL_REQUIRES@
 Provides: %{name} = %{version}-%{release}
 
-# EOS UTILS library paths
+# CORTX UTILS library paths
 %define _utils_lib		@PROJECT_NAME@
 %define _utils_dir		@INSTALL_DIR_ROOT@/@PROJECT_NAME_BASE@/utils
 %define _utils_lib_dir		%{_utils_dir}/lib
 %define _utils_include_dir	%{_includedir}/@PROJECT_NAME_BASE@-utils
 
-# Conditionally enable/disable eos-utils options.
+# Conditionally enable/disable cortx-utils options.
 %define on_off_switch() %%{?with_%1:ON}%%{!?with_%1:OFF}
 
 # A few explanation about %bcond_with and %bcond_without
@@ -65,11 +65,11 @@ mkdir -p %{buildroot}%{_libdir}
 mkdir -p %{buildroot}%{_utils_dir}
 mkdir -p %{buildroot}%{_utils_lib_dir}
 mkdir -p %{buildroot}%{_utils_include_dir}/
-mkdir -p %{buildroot}%{_utils_include_dir}/eos
+mkdir -p %{buildroot}%{_utils_include_dir}/cortx
 mkdir -p %{buildroot}%{_utils_include_dir}/common
 mkdir -p %{buildroot}%{_libdir}/pkgconfig
 install -m 644 include/*.h  %{buildroot}%{_utils_include_dir}
-install -m 644 include/eos/*.h  %{buildroot}%{_utils_include_dir}/eos
+install -m 644 include/cortx/*.h  %{buildroot}%{_utils_include_dir}/cortx
 install -m 644 include/common/*.h  %{buildroot}%{_utils_include_dir}/common
 install -m 755 lib%{_utils_lib}.so %{buildroot}%{_utils_lib_dir}
 install -m 644 build/%{_utils_lib}.pc  %{buildroot}%{_libdir}/pkgconfig
@@ -87,7 +87,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)
 %{_libdir}/pkgconfig/%{_utils_lib}.pc
 %{_utils_include_dir}/*.h
-%{_utils_include_dir}/eos/*.h
+%{_utils_include_dir}/cortx/*.h
 %{_utils_include_dir}/common/*.h
 
 %changelog

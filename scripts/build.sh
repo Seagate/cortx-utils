@@ -1,6 +1,6 @@
 #!/bin/bash
 ###############################################################################
-# Build script for EOS_UTILS component.
+# Build script for CORTX_UTILS component.
 ###############################################################################
 set -e
 
@@ -13,24 +13,24 @@ PROJECT_NAME_BASE=${PROJECT_NAME_BASE:-"cortx"}
 # Install Dir.
 INSTALL_DIR_ROOT=${INSTALL_DIR_ROOT:-"/opt/seagate"}
 
-# EOS-UTILS source repo root.
-EOS_UTILS_SOURCE_ROOT=${EOS_UTILS_SOURCE_ROOT:-$PWD}
+# CORTX-UTILS source repo root.
+CORTX_UTILS_SOURCE_ROOT=${CORTX_UTILS_SOURCE_ROOT:-$PWD}
 
 # Root folder for out-of-tree builds, i.e. location for the build folder.
-# For superproject builds: it is derived from EOS_UTILS_BUILD_ROOT (utils/build-eos_utils).
-# For local builds: it is based on $PWD (./build-eos_utils).
-EOS_UTILS_CMAKE_BUILD_ROOT=${EOS_FS_BUILD_ROOT:-$EOS_UTILS_SOURCE_ROOT}
+# For superproject builds: it is derived from CORTX_UTILS_BUILD_ROOT (utils/build-cortx_utils).
+# For local builds: it is based on $PWD (./build-cortx_utils).
+CORTX_UTILS_CMAKE_BUILD_ROOT=${EFS_BUILD_ROOT:-$CORTX_UTILS_SOURCE_ROOT}
 
-# Select EOS_UTILS Source Version.
-# Superproject: derived from eos-utils version.
+# Select CORTX_UTILS Source Version.
+# Superproject: derived from cortx-utils version.
 # Local: taken fron VERSION file.
-EOS_UTILS_VERSION=${EOS_UTILS_VERSION:-"$(cat $EOS_UTILS_SOURCE_ROOT/VERSION)"}
+CORTX_UTILS_VERSION=${CORTX_UTILS_VERSION:-"$(cat $CORTX_UTILS_SOURCE_ROOT/VERSION)"}
 
 
-# Select EOS-UTILS Build Version.
-# Superproject: derived from eos-utils version.
+# Select CORTX-UTILS Build Version.
+# Superproject: derived from cortx-utils version.
 # Local: taken from git rev.
-EOS_UTILS_BUILD_VERSION=${EOS_FS_BUILD_VERSION:-"$(git rev-parse --short HEAD)"}
+CORTX_UTILS_BUILD_VERSION=${EFS_BUILD_VERSION:-"$(git rev-parse --short HEAD)"}
 
 ###############################################################################
 # Local variables
@@ -47,18 +47,18 @@ case $FAULT_INJECTION in
         exit 1;;
 esac
 
-EOS_UTILS_BUILD=$EOS_UTILS_CMAKE_BUILD_ROOT/build-eos-utils
-EOS_UTILS_SRC=$EOS_UTILS_SOURCE_ROOT/src
+CORTX_UTILS_BUILD=$CORTX_UTILS_CMAKE_BUILD_ROOT/build-cortx-utils
+CORTX_UTILS_SRC=$CORTX_UTILS_SOURCE_ROOT/src
 
 ###############################################################################
-eos_utils_print_env() {
+cortx_utils_print_env() {
     myenv=(
-        EOS_UTILS_SOURCE_ROOT
-        EOS_UTILS_CMAKE_BUILD_ROOT
-        EOS_UTILS_VERSION
-        EOS_UTILS_BUILD_VERSION
-        EOS_UTILS_BUILD
-        EOS_UTILS_SRC
+        CORTX_UTILS_SOURCE_ROOT
+        CORTX_UTILS_CMAKE_BUILD_ROOT
+        CORTX_UTILS_VERSION
+        CORTX_UTILS_BUILD_VERSION
+        CORTX_UTILS_BUILD
+        CORTX_UTILS_SRC
 	FAULT_INJECT
     )
 
@@ -68,71 +68,71 @@ eos_utils_print_env() {
 }
 
 ###############################################################################
-eos_utils_configure() {
-    if [ -f $EOS_UTILS_BUILD/.config ]; then
+cortx_utils_configure() {
+    if [ -f $CORTX_UTILS_BUILD/.config ]; then
         echo "Build folder exists. Please remove it."
         exit 1;
     fi
 
-    mkdir $EOS_UTILS_BUILD
-    cd $EOS_UTILS_BUILD
+    mkdir $CORTX_UTILS_BUILD
+    cd $CORTX_UTILS_BUILD
 
     local cmd="cmake \
 -DFAULT_INJECT=${FAULT_INJECT} \
 -DENABLE_DASSERT=${ENABLE_DASSERT} \
 -DCONFIGURE=ON \
--DBASE_VERSION:STRING=${EOS_UTILS_VERSION} \
--DRELEASE_VER:STRING=${EOS_UTILS_BUILD_VERSION} \
+-DBASE_VERSION:STRING=${CORTX_UTILS_VERSION} \
+-DRELEASE_VER:STRING=${CORTX_UTILS_BUILD_VERSION} \
 -DPROJECT_NAME_BASE:STRING=${PROJECT_NAME_BASE} \
 -DINSTALL_DIR_ROOT:STRING=${INSTALL_DIR_ROOT}
-$EOS_UTILS_SRC"
-    echo -e "Config:\n $cmd" > $EOS_UTILS_BUILD/.config
-    echo -e "Env:\n $(eos_utils_print_env)" >> $EOS_UTILS_BUILD/.config
+$CORTX_UTILS_SRC"
+    echo -e "Config:\n $cmd" > $CORTX_UTILS_BUILD/.config
+    echo -e "Env:\n $(cortx_utils_print_env)" >> $CORTX_UTILS_BUILD/.config
     $cmd
     cd -
 }
 
 ###############################################################################
-eos_utils_make() {
-    if [ ! -d $EOS_UTILS_BUILD ]; then
+cortx_utils_make() {
+    if [ ! -d $CORTX_UTILS_BUILD ]; then
         echo "Build folder does not exist. Please run 'config'"
         exit 1;
     fi
 
-    cd $EOS_UTILS_BUILD
+    cd $CORTX_UTILS_BUILD
     make "$@"
     cd -
 }
 
 ###############################################################################
-eos_utils_purge() {
-    if [ ! -d "$EOS_UTILS_BUILD" ]; then
+cortx_utils_purge() {
+    if [ ! -d "$CORTX_UTILS_BUILD" ]; then
         echo "Nothing to remove"
         return 0;
     fi
 
-    rm -fR "$EOS_UTILS_BUILD"
+    rm -fR "$CORTX_UTILS_BUILD"
 }
 
 ###############################################################################
-eos_utils_jenkins_build() {
-    eos_utils_print_env && \
-        eos_utils_purge && \
-        eos_utils_configure && \
-        eos_utils_make all links rpms && \
-        eos_utils_make clean
-        eos_utils_purge
+cortx_utils_jenkins_build() {
+    cortx_utils_print_env && \
+        cortx_utils_purge && \
+        cortx_utils_configure && \
+        cortx_utils_make all links rpms && \
+        cortx_utils_make clean
+        cortx_utils_purge
 }
 
 ###############################################################################
-eos_utils_rpm_gen() {
-    eos_utils_make  rpms
+cortx_utils_rpm_gen() {
+    cortx_utils_make  rpms
 }
 
-eos_utils_rpm_install() {
+cortx_utils_rpm_install() {
     local rpms_dir=$HOME/rpmbuild/RPMS/x86_64
     local dist=$(rpm --eval '%{dist}')
-    local suffix="${EOS_UTILS_VERSION}-${EOS_UTILS_BUILD_VERSION}${dist}.x86_64.rpm"
+    local suffix="${CORTX_UTILS_VERSION}-${CORTX_UTILS_BUILD_VERSION}${dist}.x86_64.rpm"
     local mypkg=(
         ${PROJECT_NAME_BASE}-utils
         ${PROJECT_NAME_BASE}-utils-debuginfo
@@ -162,21 +162,21 @@ eos_utils_rpm_install() {
     return $rc
 }
 
-eos_utils_rpm_uninstall() {
+cortx_utils_rpm_uninstall() {
     sudo yum remove -y "${PROJECT_NAME_BASE}-utils*"
 }
 
-eos_utils_reinstall() {
-    eos_utils_rpm_gen &&
-        eos_utils_rpm_uninstall &&
-        eos_utils_rpm_install &&
+cortx_utils_reinstall() {
+    cortx_utils_rpm_gen &&
+        cortx_utils_rpm_uninstall &&
+        cortx_utils_rpm_install &&
     echo "OK"
 }
 
 ###############################################################################
-eos_utils_usage() {
+cortx_utils_usage() {
     echo -e "
-EOS-UTILS Build script.
+CORTX-UTILS Build script.
 Usage:
     env <build environment> $0 <action>
 
@@ -196,7 +196,7 @@ Where action is one of the following:
         rpm-install - Install RPMs build by rpm-gen.
         rpm-uninstall - Uninstall pkgs.
 
-        test    - Run all EOS-UTILS functional tests from the build folder.
+        test    - Run all CORTX-UTILS functional tests from the build folder.
 
 An example of a typical workflow:
     $0 config -- Generates out-of-tree cmake build folder.
@@ -208,28 +208,28 @@ An example of a typical workflow:
 ###############################################################################
 case $1 in
     env)
-        eos_utils_print_env;;
+        cortx_utils_print_env;;
     jenkins)
-        eos_utils_jenkins_build;;
+        cortx_utils_jenkins_build;;
     config)
-        eos_utils_configure;;
+        cortx_utils_configure;;
     reconf)
-        eos_utils_purge && eos_utils_configure;;
+        cortx_utils_purge && cortx_utils_configure;;
     purge)
-        eos_utils_purge;;
+        cortx_utils_purge;;
     make)
         shift
-        eos_utils_make "$@" ;;
+        cortx_utils_make "$@" ;;
     rpm-gen)
-        eos_utils_rpm_gen;;
+        cortx_utils_rpm_gen;;
     rpm-install)
-        eos_utils_rpm_install;;
+        cortx_utils_rpm_install;;
     rpm-uninstall)
-        eos_utils_rpm_uninstall;;
+        cortx_utils_rpm_uninstall;;
     reinstall)
-        eos_utils_reinstall;;
+        cortx_utils_reinstall;;
     *)
-        eos_utils_usage;;
+        cortx_utils_usage;;
 esac
 
 ###############################################################################

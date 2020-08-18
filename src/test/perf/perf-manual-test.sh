@@ -1,7 +1,7 @@
 #!/bin/bash
 
 script_dir="$(readlink -f $(dirname $0))"
-test_binary="/tmp/eos-fs/build-eos-utils/test/perf/perf-manual-test"
+test_binary="/tmp/efs/build-cortx-utils/test/perf/perf-manual-test"
 # reference output file
 ref_output_file="$script_dir/perf-manual-test.output.txt"
 
