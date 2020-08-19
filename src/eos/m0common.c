@@ -18,7 +18,7 @@
  */
 
 /*
- * Contains all eos objects needed by m0kvs.c & m0store.c &
+ * Contains all cortx objects needed by m0kvs.c & m0store.c &
  * implementation of init/fini APIs.
  */
  
