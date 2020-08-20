@@ -68,10 +68,10 @@ add_subdirectory(common)
 set(UTILS_COMMON utils-common)
 
 # Build cortx_helpers dir
-#if (USE_MERO_STORE OR USE_KVS_MERO)
+#if (USE_MOTR_STORE OR USE_KVS_MOTR)
 add_subdirectory(cortx)
 set(UTILS_CORTX utils-cortx)
-#endif (USE_MERO_STORE OR USE_KVS_MERO)
+#endif (USE_MOTR_STORE OR USE_KVS_MOTR)
 
 # Build management dir
 add_subdirectory(management)

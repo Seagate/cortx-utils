@@ -89,7 +89,7 @@ extern struct m0_clovis_realm     clovis_uber_realm;
 extern struct m0_ufid_generator ufid_generator;
 
 #define WRAP_CONFIG(__name, __cfg, __item) ({\
-	int __rc = get_config_item("mero", __name, __cfg, &__item);\
+	int __rc = get_config_item("motr", __name, __cfg, &__item);\
 	if (__rc != 0)\
 		return -__rc;\
 	if (__item == NULL)\

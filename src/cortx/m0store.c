@@ -1,6 +1,6 @@
 /*
  * Filename:         m0store.c
- * Description:      Contains mero related IO operations
+ * Description:      Contains motr related IO operations
  *                   which use clovis objects.
  *
  * Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
@@ -289,7 +289,7 @@ again:
 	/*
 	 *    /!\    /!\    /!\    /!\
 	 *
-	 * As far as I have understood, MERO does the IO in full
+	 * As far as I have understood, MOTR does the IO in full
 	 * or does nothing at all, so returned size is aligned sized */
 	return (block_count*block_size);
 }
@@ -384,7 +384,7 @@ static int m0store_prepare_for_read(struct m0_uint128 id,
 	/*
 	 *    /!\    /!\    /!\    /!\
 	 *
-	 * As far as I have understood, MERO does the IO in full
+	 * As far as I have understood, MOTR does the IO in full
 	 * or does nothing at all, so returned size is aligned sized */
 	return (block_count*block_size);
 }
@@ -402,7 +402,7 @@ static int m0store_read_aligned(struct m0_uint128 id,
 
 	if ((error == -ENOENT) && (block_count > 1)) {
 		/*
-		 * Mero is not able to handle the case where some part of object
+		 * Motr is not able to handle the case where some part of object
 		 * have not been written or created. For that it returns -ENOENT
 		 * and zeroed out the data for all the read block even though
 		 * some of them are available and we should get valid data for
@@ -849,7 +849,7 @@ out:
 }
 
 /* NSAL_TUNEABLE:
- * Size of data block that can be definitely UNMAP-ed by Mero
+ * Size of data block that can be definitely UNMAP-ed by Motr
  * without generating errors at RPC layer or getting stuck somewhere
  * in the state machine.
  */
@@ -858,7 +858,7 @@ static const uint64_t m0_kvsns_trunc_data_per_request = 20 * (1 << 20);
 
 /** Submits UNMAP requests to Clvois and waits until the data blocks
  * are actually unmapped.
- * NOTE: Mero is not able to handle large extents in the truncate operations,
+ * NOTE: Motr is not able to handle large extents in the truncate operations,
  * so that we are sending only small portions of extents per request.
  */
 static int m0store_unmap_aligned(struct m0_uint128 fid,

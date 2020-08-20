@@ -68,7 +68,7 @@ int log_init(const char *log_path, log_level_t default_level)
 	return rc;
 }
 
-/* @todo: Mero logging based or circular logging based system */
+/* @todo: Motr logging based or circular logging based system */
 int log_write(log_level_t level, const char *fmt, ...)
 {
 	int rc = 0, len;

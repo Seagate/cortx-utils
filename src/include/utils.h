@@ -17,8 +17,8 @@
  * please email opensource@seagate.com or cortx-questions@seagate.com. 
  */
 
-#ifndef _EOS_UTILS_H_
-#define _EOS_UTILS_H_
+#ifndef _CORTX_UTILS_H_
+#define _CORTX_UTILS_H_
 
 #include <stdint.h>
 #include <linux/limits.h>
@@ -54,5 +54,5 @@ int utils_init(struct collection_item *cfg_items);
  */
 int utils_fini(void);
 
-#endif /* _EOS_UTILS_H_ */
+#endif /* _CORTX_UTILS_H_ */
 
