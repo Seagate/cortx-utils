@@ -854,7 +854,7 @@ out:
  * in the state machine.
  */
 /* Default value: 5120 4K pages or 20 1MB pages or 20MB of data */
-static const uint64_t m0_kvsns_trunc_data_per_request = 20 * (1 << 20);
+static const uint64_t m0_cortxfs_trunc_data_per_request = 20 * (1 << 20);
 
 /** Submits UNMAP requests to Clvois and waits until the data blocks
  * are actually unmapped.
@@ -885,7 +885,7 @@ static int m0store_unmap_aligned(struct m0_uint128 fid,
 		goto out;
 	}
 
-	ndata_per_req = lower(m0_kvsns_trunc_data_per_request, bsize);
+	ndata_per_req = lower(m0_cortxfs_trunc_data_per_request, bsize);
 	nblk_per_req = ndata_per_req / bsize;
 	nrequests = nblocks / nblk_per_req;
 	tail_size = (nblocks * bsize) - (nrequests * ndata_per_req);

@@ -134,7 +134,7 @@ int ut_load_config(char *conf_file)
 	int rc = 0;
 	struct collection_item *errors = NULL;
 
-	rc = config_from_file("libkvsns", conf_file, &cfg_items,
+	rc = config_from_file("libcortxfs", conf_file, &cfg_items,
 			      INI_STOP_ON_ERROR, &errors);
 	if (rc != 0) {
 		free_ini_config_errors(errors);
