@@ -33,3 +33,22 @@ Different use cases associated with the GitHub actions are mentioned below.
 
 - The below mentioned workflow can be used to run python script on push or pull-request events and scheduled time.
 
+ ::
+ 
+  name: Example Workflow
+  on: # Mention name of the GitHub event that triggers the workflow or schedule Workflow run
+  push: # Trigger the workflow on push
+  pull_request: # Trigger the workflow on pull request
+  schedule: # # Trigger the workflow on scheduled time
+    - cron: '0 0 * * *'  # every day at midnight
+  jobs:
+   execute-script: # Job-name
+    runs-on: ubuntu-latest # Runs job in specified environment
+    steps:
+    - uses: actions/checkout@v2 # Checkout/Clone repository
+    - uses: actions/setup-python@v2 # Action to setup defined python version
+      with:
+  python-version: '3.x' # Version range or exact version of a Python version to use, using SemVer's version range syntax
+        architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
+    - run: python my_script.py
+
