@@ -2,7 +2,7 @@
 GitHub Actions Workflow
 =======================
 
-GitHub Actions enable you to create custom software development life cycle (SDLC) workflows directly in your repository. GitHub Actions helps you to automate your software development workflows in the same place you store code, and collaborate on pull requests and issues. Workflows are custom automated processes that you can set up in your repository to build, test, package, release, or deploy any code.
+GitHub Actions enable you to create custom Software Development Life Cycle (SDLC) workflows directly in your repository. GitHub Actions helps you to automate your software development workflows in the same place you store code, and collaborate on pull requests and issues. Workflows are custom automated processes that you can set up in your repository to build, test, package, release, or deploy any code.
 
 ************************
 Creating a GitHub Action
@@ -32,3 +32,5 @@ Use Cases
 Different use cases associated with the GitHub actions are mentioned below.
 
 - The below mentioned workflow can be used to run python script on push or pull-request events and scheduled time.
+
+ .. image:: images/
