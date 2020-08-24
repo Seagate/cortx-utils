@@ -53,7 +53,7 @@ Different use cases associated with the GitHub actions are mentioned below.
     - run: python my_script.py
     
     
- - In Cortx, a worflow to generate docker images is displayed below. It is named as **base-docker-image**.
+- In Cortx, a worflow to generate docker images is displayed below. It is named as **base-docker-image**.
  
   ::
   
