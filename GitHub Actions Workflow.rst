@@ -51,4 +51,33 @@ Different use cases associated with the GitHub actions are mentioned below.
   python-version: '3.x' # Version range or exact version of a Python version to use, using SemVer's version range syntax
         architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
     - run: python my_script.py
+    
+    
+ - In Cortx, a worflow to generate docker images is displayed below. It is named as **base-docker-image**.
+ 
+  ::
+  
+      
+  - uses: actions/checkout@v2
+   - name: Set ENV
+     run: |
+       echo ::set-env name=INPUT_REPOSITORY::$( echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]')
+       echo ::set-env name=IMAGE_NAME::cortx_centos
+       echo ::set-env name=TAG::7.7.1908
+   - name: Build and push Docker images
+     uses: docker/build-push-action@v1.1.0
+     env:
+         DEFAULT_PASSWORD: ${{ secrets.DEFAULT_PASSWORD }}
+         REPO_NAME: ${{ github.event.repository.name }}
+     with:
+       # Path to the Dockerfile (Default is '{path}/Dockerfile')
+       dockerfile: docker/cortx_components/centos/Dockerfile 
+       # Build Arguments for docker image build. 
+       build_args: 'CENTOS_RELEASE=7.7.1908,USER_PASS=root:"$DEFAULT_PASSWORD"'
+       path: docker/cortx_components/centos/
+       username: ${{ github.actor }}
+       password: ${{ secrets.GITHUB_TOKEN }}
+       registry: docker.pkg.github.com
+       repository: ${{ env.INPUT_REPOSITORY }}/${{ env.IMAGE_NAME }}
+       tags: ${{ env.TAG }}
 
