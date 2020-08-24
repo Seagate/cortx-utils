@@ -85,38 +85,38 @@ Different use cases associated with the GitHub actions are mentioned below.
    ::
    
     jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+     # This workflow contains a single job called "build"
+     build:
+      # The type of runner that the job will run on
+      runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
+      # Steps represent a sequence of tasks that will be executed as part of the job
+      steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
     
-    - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        # Repository name with owner. For example, actions/checkout
-        repository: Seagate/cortx-prvsnr
-        token: ${{ secrets.TOKEN }}
-        path: provisioner
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          # Repository name with owner. For example, actions/checkout
+          repository: Seagate/cortx-prvsnr
+          token: ${{ secrets.TOKEN }}
+          path: provisioner
 
-    # Runs a set of commands using the runners shell
-    - name: Build Provisioner packages
-      run: |
-        echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
-        docker pull docker.pkg.github.com/seagate/cortx-re/cortx_centos:7.7.1908
-        docker run -i -v $PWD:/build docker.pkg.github.com/seagate/cortx-re/cortx_centos:7.7.1908 'sh /build/build_scripts/build_provisoiner.sh'
+      # Runs a set of commands using the runners shell
+      - name: Build Provisioner packages
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+          docker pull docker.pkg.github.com/seagate/cortx-re/cortx_centos:7.7.1908
+          docker run -i -v $PWD:/build docker.pkg.github.com/seagate/cortx-re/cortx_centos:7.7.1908 'sh /build/build_scripts/build_provisoiner.sh'
        
-    - name: Upload files to a GitHub release
-      uses: svenstaro/upload-release-action@2.0.0
-      with:
-        repo_token: ${{ secrets.TOKEN }}
-        release_name: provisioner
-        file: provisioner/release/*.rpm
-        tag: 1.0.0
-        file_glob: true
-        body: "Provisioner Release"
+     - name: Upload files to a GitHub release
+       uses: svenstaro/upload-release-action@2.0.0
+       with:
+         repo_token: ${{ secrets.TOKEN }}
+         release_name: provisioner
+         file: provisioner/release/*.rpm
+         tag: 1.0.0
+         file_glob: true
+         body: "Provisioner Release"
 
