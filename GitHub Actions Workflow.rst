@@ -57,8 +57,8 @@ Different use cases associated with the GitHub actions are mentioned below.
  
   ::
         
-   - uses: actions/checkout@v2
-   - name: Set ENV
+   uses: actions/checkout@v2
+   name: Set ENV
      run: |
        echo ::set-env name=INPUT_REPOSITORY::$( echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]')
        echo ::set-env name=IMAGE_NAME::cortx_centos
