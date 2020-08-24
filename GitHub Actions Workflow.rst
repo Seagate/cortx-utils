@@ -80,7 +80,7 @@ Different use cases associated with the GitHub actions are mentioned below.
        repository: ${{ env.INPUT_REPOSITORY }}/${{ env.IMAGE_NAME }}
        tags: ${{ env.TAG }}
        
- - In Cortx, a workflow to generate component rpm is mentioned below. In this case, it is for Provisioner.
+- In Cortx, a workflow to generate component rpm is mentioned below. In this case, it is for Provisioner.
   
    ::
    
