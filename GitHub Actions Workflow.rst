@@ -56,9 +56,8 @@ Different use cases associated with the GitHub actions are mentioned below.
 - In Cortx, a worflow to generate docker images is displayed below. It is named as **base-docker-image**.
  
   ::
-  
-      
-  - uses: actions/checkout@v2
+        
+   - uses: actions/checkout@v2
    - name: Set ENV
      run: |
        echo ::set-env name=INPUT_REPOSITORY::$( echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]')
