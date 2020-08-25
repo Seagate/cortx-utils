@@ -19,7 +19,7 @@ CORTX_UTILS_SOURCE_ROOT=${CORTX_UTILS_SOURCE_ROOT:-$PWD}
 # Root folder for out-of-tree builds, i.e. location for the build folder.
 # For superproject builds: it is derived from CORTX_UTILS_BUILD_ROOT (utils/build-cortx_utils).
 # For local builds: it is based on $PWD (./build-cortx_utils).
-CORTX_UTILS_CMAKE_BUILD_ROOT=${EFS_BUILD_ROOT:-$CORTX_UTILS_SOURCE_ROOT}
+CORTX_UTILS_CMAKE_BUILD_ROOT=${CORTXFS_BUILD_ROOT:-$CORTX_UTILS_SOURCE_ROOT}
 
 # Select CORTX_UTILS Source Version.
 # Superproject: derived from cortx-utils version.
@@ -30,7 +30,7 @@ CORTX_UTILS_VERSION=${CORTX_UTILS_VERSION:-"$(cat $CORTX_UTILS_SOURCE_ROOT/VERSI
 # Select CORTX-UTILS Build Version.
 # Superproject: derived from cortx-utils version.
 # Local: taken from git rev.
-CORTX_UTILS_BUILD_VERSION=${EFS_BUILD_VERSION:-"$(git rev-parse --short HEAD)"}
+CORTX_UTILS_BUILD_VERSION=${CORTXFS_BUILD_VERSION:-"$(git rev-parse --short HEAD)"}
 
 ###############################################################################
 # Local variables

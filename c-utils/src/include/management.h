@@ -212,7 +212,7 @@ int server_fini(struct server *server);
 int server_start(struct server *server);
 int server_stop(struct server *server);
 
-//@TODO: Move these api's to efs management.h
+//@TODO: Move these api's to cortxfs management.h
 int management_start(int argc, char *argv[]);
 int management_stop(void);
 int management_init(void);

@@ -75,8 +75,8 @@ enum perfc_subtags {
 
 /* TODO: move it into submodules */
 
-enum perfc_efs {
-	PERFC_EFS_MKDIR,
+enum perfc_cfs {
+	PERFC_CFS_MKDIR,
 };
 
 enum perfc_nsal {

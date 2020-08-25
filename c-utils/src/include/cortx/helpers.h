@@ -1,7 +1,7 @@
 /*
  * Filename:         helpers.h
  * Description:      Contains declarations of cortx functionality needed
- *                   by nsal, efs, dsal
+ *                   by nsal, cortxfs, dsal
  *
  * Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
  * This program is free software: you can redistribute it and/or modify
