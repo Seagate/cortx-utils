@@ -83,16 +83,20 @@ int request_validate_headers(struct request *request)
 	http = request->http;
 	content_length = http->header_find(http->evhtp_req->headers_in,
 					   "Content-Length");
-	if (content_length == NULL) {
-		/**
-		 * Invalid fs request.
-		 * Send error response.
-		 */
-		rc = EINVAL;
-		goto error;
+	/*
+	EOS-12305 : Initially we had a NULL check for content_length and
+	returned Error Code 22 in case it was NULL. Content Length is the 
+	length of the body (in bytes). For a REST Request the body usually
+	contains the parameters of the request. A Request may or may not
+	need parameters, so checking for NULL and failing is not recommended.
+	*/
+	if(content_length == NULL) {
+		request->in_content_len = 0;
+	}
+	else{
+		request->in_content_len = atoi(content_length);        
 	}
 
-	request->in_content_len = atoi(content_length);
 	request->in_remaining_len = request->in_content_len;
 
 	/**
@@ -100,7 +104,7 @@ int request_validate_headers(struct request *request)
 	 * Add more common fs validations
 	 * ...
 	 */
-error:
+
 	return rc;
 }
 
