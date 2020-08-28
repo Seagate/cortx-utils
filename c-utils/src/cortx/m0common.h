@@ -36,14 +36,14 @@
 #include <pthread.h>
 #include <dirent.h>
 
-#include "clovis/clovis.h"
-#include "clovis/clovis_internal.h"
-#include "clovis/clovis_idx.h"
+#include "motr/client.h"
+#include "motr/client_internal.h"
+#include "motr/idx.h"
 #include "lib/thread.h"
 #include <cortx/helpers.h>
 #include <motr/helpers/helpers.h>
 
-struct clovis_io_ctx {
+struct motr_io_ctx {
 	struct m0_indexvec ext;
 	struct m0_bufvec   data;
 	struct m0_bufvec   attr;
@@ -54,10 +54,10 @@ enum {
 };
 
 /* To be passed as argument */
-extern struct m0_clovis_realm     clovis_uber_realm;
+extern struct m0_realm     motr_uber_realm;
 
-extern pthread_once_t clovis_init_once;
-extern bool clovis_init_done;
+extern pthread_once_t motr_init_once;
+extern bool motr_init_done;
 extern __thread struct m0_thread m0thread;
 extern __thread bool my_init_done;
 
@@ -65,26 +65,26 @@ extern pthread_t m0init_thread;
 extern struct collection_item *conf;
 
 extern struct m0_fid ifid;
-extern struct m0_clovis_idx idx;
+extern struct m0_idx idx;
 
-extern char *clovis_local_addr;
-extern char *clovis_ha_addr;
-extern char *clovis_prof;
-extern char *clovis_proc_fid;
-extern char *clovis_index_dir;
+extern char *motr_local_addr;
+extern char *motr_ha_addr;
+extern char *motr_prof;
+extern char *motr_proc_fid;
+extern char *motr_index_dir;
 extern char *ifid_str;
 
-/* Clovis Instance */
-extern struct m0_clovis	  *clovis_instance;
+/* Motr Instance */
+extern struct m0_client	  *motr_instance;
 
-/* Clovis container */
-extern struct m0_clovis_container clovis_container;
+/* Motr container */
+extern struct m0_container motr_container;
 
-/* Clovis Configuration */
-extern struct m0_clovis_config	clovis_conf;
+/* Motr Configuration */
+extern struct m0_config	motr_conf;
 extern struct m0_idx_dix_config	dix_conf;
 
-extern struct m0_clovis_realm     clovis_uber_realm;
+extern struct m0_realm     motr_uber_realm;
 
 extern struct m0_ufid_generator ufid_generator;
 
@@ -96,8 +96,8 @@ extern struct m0_ufid_generator ufid_generator;
 		return -EINVAL; })
 
 void m0kvs_do_init(void);
-int get_clovis_conf(struct collection_item *cfg);
+int get_motr_conf(struct collection_item *cfg);
 void log_config(void);
-int init_clovis(void);
+int init_motr(void);
 
 #endif

@@ -1,7 +1,7 @@
 /*
  * Filename:         m0kvs.c
  * Description:      Contains motr related kv operations
- *                   which use clovis index.
+ *                   which use motr index.
  *
  * Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
  * This program is free software: you can redistribute it and/or modify
@@ -32,7 +32,7 @@ void m0kvs_do_init(void)
 {
 	int rc;
 
-	rc = get_clovis_conf(conf);
+	rc = get_motr_conf(conf);
 
 	if (rc != 0) {
 		log_err("Invalid config file\n");
@@ -41,10 +41,10 @@ void m0kvs_do_init(void)
 
 	log_config();
 
-	rc = init_clovis();
+	rc = init_motr();
 	assert(rc == 0);
 
-	clovis_init_done = true;
+	motr_init_done = true;
 	m0init_thread = pthread_self();
 
 	/* TODO:
@@ -72,25 +72,25 @@ void m0kvs_do_init(void)
 }
 
 
-static int m0_op_kvs(enum m0_clovis_idx_opcode opcode,
+static int m0_op_kvs(enum m0_idx_opcode opcode,
 		     struct m0_bufvec *key,
 		     struct m0_bufvec *val)
 {
-	struct m0_clovis_op	 *op = NULL;
+	struct m0_op	 *op = NULL;
 	int rcs[1];
 	int rc;
 
 	if (!my_init_done)
 		m0kvs_reinit();
 
-	rc = m0_clovis_idx_op(&idx, opcode, key, val,
-			      rcs, M0_OIF_OVERWRITE, &op);
+	rc = m0_idx_op(&idx, opcode, key, val,
+		       rcs, M0_OIF_OVERWRITE, &op);
 	if (rc)
 		return rc;
 
-	m0_clovis_op_launch(&op, 1);
-	rc = m0_clovis_op_wait(op, M0_BITS(M0_CLOVIS_OS_STABLE),
-			       M0_TIME_NEVER);
+	m0_op_launch(&op, 1);
+	rc = m0_op_wait(op, M0_BITS(M0_OS_STABLE),
+			M0_TIME_NEVER);
 	if (rc)
 		goto out;
 
@@ -98,45 +98,45 @@ static int m0_op_kvs(enum m0_clovis_idx_opcode opcode,
 	rc = rcs[0];
 
 out:
-	m0_clovis_op_fini(op);
+	m0_op_fini(op);
 	/* it seems like 0_free(&op) is not needed */
 	return rc;
 }
 
-int m0idx_create(const struct m0_uint128 *fid, struct m0_clovis_idx **index)
+int m0idx_create(const struct m0_uint128 *fid, struct m0_idx **index)
 {
         int                     rc;
-	struct m0_clovis_op    *op = NULL;
-	struct m0_clovis_idx   *idx = NULL;
+	struct m0_op    *op = NULL;
+	struct m0_idx   *idx = NULL;
 
 	*index = NULL;
 
-	idx = m0kvs_alloc(sizeof(struct m0_clovis_idx));
+	idx = m0kvs_alloc(sizeof(struct m0_idx));
 	if (idx == NULL) {
 		rc = -ENOMEM;
 		goto out;
 	}
 
 	/* Set an index creation operation. */
-	m0_clovis_idx_init(idx,
-			&clovis_container.co_realm, (struct m0_uint128 *)fid);
+	m0_idx_init(idx,
+		    &motr_container.co_realm, (struct m0_uint128 *)fid);
 
-        rc = m0_clovis_entity_create(NULL, &(idx->in_entity), &op);
+        rc = m0_entity_create(NULL, &(idx->in_entity), &op);
 	if (rc == 0) {
  		/* Launch and wait for op to complete */
-        	m0_clovis_op_launch(&op, 1);
-        	rc = m0_clovis_op_wait(op,
-        		M0_BITS(M0_CLOVIS_OS_FAILED,
-                	M0_CLOVIS_OS_STABLE),
-                	M0_TIME_NEVER);
+        	m0_op_launch(&op, 1);
+        	rc = m0_op_wait(op,
+        			M0_BITS(M0_OS_FAILED,
+                		M0_OS_STABLE),
+                		M0_TIME_NEVER);
 		if (rc == 0) {
 			rc = op->op_rc;
 		}
 	}
 
         /* fini and release */
-        m0_clovis_op_fini(op);
-        m0_clovis_op_free(op);
+        m0_op_fini(op);
+        m0_op_free(op);
 
 	if (rc) {
 		m0kvs_free(idx);
@@ -151,60 +151,60 @@ out:
 int m0idx_delete(const struct m0_uint128 *fid)
 {
         int                     rc;
-        struct m0_clovis_op     *op = NULL;
-        struct m0_clovis_idx    idx;
+        struct m0_op     *op = NULL;
+        struct m0_idx    idx;
 
-        memset(&idx, 0, sizeof(struct m0_clovis_idx));
+        memset(&idx, 0, sizeof(struct m0_idx));
 
         /* Set an index creation operation. */
-        m0_clovis_idx_init(&idx,
-                &clovis_container.co_realm, (struct m0_uint128 *)fid);
+        m0_idx_init(&idx,
+                    &motr_container.co_realm, (struct m0_uint128 *)fid);
 
-	rc = m0_clovis_entity_open(&idx.in_entity, &op);
+	rc = m0_entity_open(&idx.in_entity, &op);
 	if (rc != 0) {
 		goto out;
 	}
 
-        rc = m0_clovis_entity_delete(&(idx.in_entity), &op);
+        rc = m0_entity_delete(&(idx.in_entity), &op);
 	if (rc == 0) {
         	/* Launch and wait for op to complete */
-        	m0_clovis_op_launch(&op, 1);
-        	rc = m0_clovis_op_wait(op,
-        		M0_BITS(M0_CLOVIS_OS_FAILED,
-                	M0_CLOVIS_OS_STABLE),
-                	M0_TIME_NEVER);
+        	m0_op_launch(&op, 1);
+        	rc = m0_op_wait(op,
+        			M0_BITS(M0_OS_FAILED,
+                		M0_OS_STABLE),
+                		M0_TIME_NEVER);
 		if (rc == 0) {
         		rc = op->op_rc;
 		}
 	}
 
         /* fini and release */
-        m0_clovis_op_fini(op);
-        m0_clovis_op_free(op);
+        m0_op_fini(op);
+        m0_op_free(op);
 
 out:
-        m0_clovis_entity_fini(&(idx.in_entity));
+        m0_entity_fini(&(idx.in_entity));
         return rc;
 }
 
-int m0idx_open(const struct m0_uint128 *fid, struct m0_clovis_idx **index)
+int m0idx_open(const struct m0_uint128 *fid, struct m0_idx **index)
 {
 	int 			rc = 0;
-	struct m0_clovis_idx  	*idx = NULL;
+	struct m0_idx  	*idx = NULL;
 
 	*index = NULL;
 
 	if (!my_init_done)
 		m0kvs_reinit();
 
-	idx = m0kvs_alloc(sizeof(struct m0_clovis_idx));
+	idx = m0kvs_alloc(sizeof(struct m0_idx));
         if (idx == NULL) {
                 rc = -ENOMEM;
 		goto out;
         }
 
-        m0_clovis_idx_init(idx, &clovis_container.co_realm,
-                           (struct m0_uint128 *)fid);
+        m0_idx_init(idx, &motr_container.co_realm,
+                    (struct m0_uint128 *)fid);
 
 	*index = idx;
 
@@ -212,38 +212,38 @@ out:
 	return rc;
 }
 
-void m0idx_close(struct m0_clovis_idx *index)
+void m0idx_close(struct m0_idx *index)
 {
 	if (!my_init_done)
 		m0kvs_reinit();
-	m0_clovis_idx_fini(index);
+	m0_idx_fini(index);
 	m0kvs_free(index);
 }
 
 static int m0_op2_kvs(void *ctx,
-		      enum m0_clovis_idx_opcode opcode,
+		      enum m0_idx_opcode opcode,
 		      struct m0_bufvec *key,
 		      struct m0_bufvec *val)
 {
-	struct m0_clovis_op	 *op = NULL;
+	struct m0_op	 *op = NULL;
 	int rcs[1];
 	int rc;
 
-	struct m0_clovis_idx     *index = NULL;
+	struct m0_idx     *index = NULL;
 
 	if (!my_init_done)
 		m0kvs_reinit();
 
 	index = ctx;
 
-	rc = m0_clovis_idx_op(index, opcode, key, val,
-			      rcs, M0_OIF_OVERWRITE, &op);
+	rc = m0_idx_op(index, opcode, key, val,
+		       rcs, M0_OIF_OVERWRITE, &op);
 	if (rc)
 		return rc;
 
-	m0_clovis_op_launch(&op, 1);
-	rc = m0_clovis_op_wait(op, M0_BITS(M0_CLOVIS_OS_STABLE),
-			       M0_TIME_NEVER);
+	m0_op_launch(&op, 1);
+	rc = m0_op_wait(op, M0_BITS(M0_OS_STABLE),
+			M0_TIME_NEVER);
 	if (rc)
 		goto out;
 
@@ -251,7 +251,7 @@ static int m0_op2_kvs(void *ctx,
 	rc = rcs[0];
 
 out:
-	m0_clovis_op_fini(op);
+	m0_op_fini(op);
 	/* it seems like 0_free(&op) is not needed */
 	return rc;
 }
@@ -272,7 +272,7 @@ int m0kvs_get(void *ctx, void *k, size_t klen,
 	key = M0_BUFVEC_INIT_BUF(&k, &k_len);
 	val = M0_BUFVEC_INIT_BUF(v, vlen);
 
-	rc = m0_op2_kvs(ctx, M0_CLOVIS_IC_GET, &key, &val);
+	rc = m0_op2_kvs(ctx, M0_IC_GET, &key, &val);
 	if (rc != 0)
 		goto out;
 
@@ -296,7 +296,7 @@ int m0kvs4_get(void *k, size_t klen,
 	key = M0_BUFVEC_INIT_BUF(&k, &k_len);
 	val = M0_BUFVEC_INIT_BUF(v, vlen);
 
-	rc = m0_op_kvs(M0_CLOVIS_IC_GET, &key, &val);
+	rc = m0_op_kvs(M0_IC_GET, &key, &val);
 	if (rc != 0)
 		goto out;
 
@@ -317,7 +317,7 @@ int m0kvs4_set(void *k, const size_t klen,
 	key = M0_BUFVEC_INIT_BUF(&k, &k_len);
 	val = M0_BUFVEC_INIT_BUF(&v, &v_len);
 
-	rc = m0_op_kvs(M0_CLOVIS_IC_PUT, &key, &val);
+	rc = m0_op_kvs(M0_IC_PUT, &key, &val);
 	return rc;
 }
 
@@ -334,7 +334,7 @@ int m0kvs_set(void *ctx, void *k, const size_t klen,
 	key = M0_BUFVEC_INIT_BUF(&k, &k_len);
 	val = M0_BUFVEC_INIT_BUF(&v, &v_len);
 
-	rc = m0_op2_kvs(ctx, M0_CLOVIS_IC_PUT, &key, &val);
+	rc = m0_op2_kvs(ctx, M0_IC_PUT, &key, &val);
 	return rc;
 }
 
@@ -348,7 +348,7 @@ int m0kvs_del(void *ctx, void *k, const size_t klen)
 
 	key = M0_BUFVEC_INIT_BUF(&k, &k_len);
 
-	rc = m0_op2_kvs(ctx, M0_CLOVIS_IC_DEL, &key, NULL);
+	rc = m0_op2_kvs(ctx, M0_IC_DEL, &key, NULL);
 	return rc;
 }
 
@@ -375,7 +375,7 @@ int m0kvs_list_set(void *ctx, struct m0kvs_list *key,
 {
 	int rc;
 
-	rc = m0_op2_kvs(ctx, M0_CLOVIS_IC_PUT, &key->buf, &val->buf);
+	rc = m0_op2_kvs(ctx, M0_IC_PUT, &key->buf, &val->buf);
 	return rc;
 }
 
@@ -384,7 +384,7 @@ int m0kvs_list_get(void *ctx, struct m0kvs_list *key,
 {
 	int rc;
 
-	rc = m0_op2_kvs(ctx, M0_CLOVIS_IC_GET, &key->buf, &val->buf);
+	rc = m0_op2_kvs(ctx, M0_IC_GET, &key->buf, &val->buf);
 	return rc;
 }
 
@@ -393,8 +393,8 @@ int m0kvs_pattern(void *ctx, char *k, char *pattern,
 {
 	struct m0_bufvec          keys;
 	struct m0_bufvec          vals;
-	struct m0_clovis_op       *op = NULL;
-	struct m0_clovis_idx      *index = ctx;
+	struct m0_op       *op = NULL;
+	struct m0_idx      *index = ctx;
 	int i = 0;
 	int rc;
 	int rcs[1];
@@ -427,16 +427,16 @@ int m0kvs_pattern(void *ctx, char *k, char *pattern,
 		keys.ov_vec.v_count[0] = strnlen(myk, KLEN)+1;
 		strcpy(keys.ov_buf[0], myk);
 
-		rc = m0_clovis_idx_op(index, M0_CLOVIS_IC_NEXT, &keys, &vals,
-		                      rcs, flags, &op);
+		rc = m0_idx_op(index, M0_IC_NEXT, &keys, &vals,
+		               rcs, flags, &op);
 		if (rc != 0) {
 			m0_bufvec_free(&keys);
 			m0_bufvec_free(&vals);
 			return rc;
 		}
-		m0_clovis_op_launch(&op, 1);
-		rc = m0_clovis_op_wait(op, M0_BITS(M0_CLOVIS_OS_STABLE),
-				       M0_TIME_NEVER);
+		m0_op_launch(&op, 1);
+		rc = m0_op_wait(op, M0_BITS(M0_OS_STABLE),
+				M0_TIME_NEVER);
 		/* @todo : Why is op null after this call ??? */
 
 		if (rc != 0) {
@@ -497,8 +497,8 @@ int m0kvs_key_prefix_exists(void *ctx,
 {
 	struct m0_bufvec keys;
 	struct m0_bufvec vals;
-	struct m0_clovis_op *op = NULL;
-	struct m0_clovis_idx *index = ctx;
+	struct m0_op *op = NULL;
+	struct m0_idx *index = ctx;
 	int rc;
 	int rcs[1];
 
@@ -515,8 +515,8 @@ int m0kvs_key_prefix_exists(void *ctx,
 	memset(keys.ov_buf[0], 0, keys.ov_vec.v_count[0]);
 	memcpy(keys.ov_buf[0], kprefix, klen);
 
-	rc = m0_clovis_idx_op(index, M0_CLOVIS_IC_NEXT, &keys, &vals,
-			      rcs, 0, &op);
+	rc = m0_idx_op(index, M0_IC_NEXT, &keys, &vals,
+		       rcs, 0, &op);
 
 	if (rc != 0) {
 		goto out_free_vals;
@@ -526,9 +526,9 @@ int m0kvs_key_prefix_exists(void *ctx,
 		goto out_free_vals;
 	}
 
-	m0_clovis_op_launch(&op, 1);
-	rc = m0_clovis_op_wait(op, M0_BITS(M0_CLOVIS_OS_STABLE),
-			       M0_TIME_NEVER);
+	m0_op_launch(&op, 1);
+	rc = m0_op_wait(op, M0_BITS(M0_OS_STABLE),
+			M0_TIME_NEVER);
 	if (rc != 0) {
 		goto out_free_op;
 	}
@@ -550,8 +550,8 @@ int m0kvs_key_prefix_exists(void *ctx,
 
 out_free_op:
 	if (op) {
-		m0_clovis_op_fini(op);
-		m0_clovis_op_free(op);
+		m0_op_fini(op);
+		m0_op_free(op);
 	}
 out_free_vals:
 	m0_bufvec_free(&vals);
@@ -601,8 +601,8 @@ void m0kvs_key_iter_fini(struct m0kvs_key_iter *priv)
 	m0_bufvec_free(&priv->val);
 
 	if (priv->op) {
-		m0_clovis_op_fini(priv->op);
-		m0_clovis_op_free(priv->op);
+		m0_op_fini(priv->op);
+		m0_op_free(priv->op);
 	}
 out:
 	return;
@@ -613,8 +613,8 @@ int m0kvs_key_iter_find(const void* prefix, size_t prefix_len,
 {
 	struct m0_bufvec *key = &priv->key;
 	struct m0_bufvec *val = &priv->val;
-	struct m0_clovis_op **op = &priv->op;
-	struct m0_clovis_idx *index = priv->index;
+	struct m0_op **op = &priv->op;
+	struct m0_idx *index = priv->index;
 	int rc;
 
 	if (prefix_len == 0)
@@ -632,16 +632,16 @@ int m0kvs_key_iter_find(const void* prefix, size_t prefix_len,
 
 	memcpy(priv->key.ov_buf[0], prefix, prefix_len);
 
-	rc = m0_clovis_idx_op(index, M0_CLOVIS_IC_NEXT, &priv->key, &priv->val,
-	                      priv->rcs, 0, op);
+	rc = m0_idx_op(index, M0_IC_NEXT, &priv->key, &priv->val,
+	               priv->rcs, 0, op);
 
 	if (rc != 0) {
 		goto out_free_val;
 	}
 
-	m0_clovis_op_launch(op, 1);
-	rc = m0_clovis_op_wait(*op, M0_BITS(M0_CLOVIS_OS_STABLE),
-	                       M0_TIME_NEVER);
+	m0_op_launch(op, 1);
+	rc = m0_op_wait(*op, M0_BITS(M0_OS_STABLE),
+	                M0_TIME_NEVER);
 
 	if (rc != 0) {
 		goto out_free_op;
@@ -660,8 +660,8 @@ int m0kvs_key_iter_find(const void* prefix, size_t prefix_len,
 
 out_free_op:
 	if (op && *op) {
-		m0_clovis_op_fini(*op);
-		m0_clovis_op_free(*op);
+		m0_op_fini(*op);
+		m0_op_free(*op);
 	}
 
 out_free_val:
@@ -680,24 +680,24 @@ out:
 
 int m0kvs_key_iter_next(struct m0kvs_key_iter *priv)
 {
-	struct m0_clovis_idx *index = priv->index;
+	struct m0_idx *index = priv->index;
 	int rc = 0;
 
 	dassert(priv->initialized);
 
-	/* Clovis API: "'vals' vector ... should contain NULLs" */
+	/* Motr API: "'vals' vector ... should contain NULLs" */
 	m0kvs_bufvec_free_data(&priv->val);
 
-	rc = m0_clovis_idx_op(index, M0_CLOVIS_IC_NEXT,
-	                      &priv->key, &priv->val, priv->rcs,
-	                      M0_OIF_EXCLUDE_START_KEY, &priv->op);
+	rc = m0_idx_op(index, M0_IC_NEXT,
+	               &priv->key, &priv->val, priv->rcs,
+	               M0_OIF_EXCLUDE_START_KEY, &priv->op);
 	if (rc != 0) {
 		goto out;
 	}
 
-	m0_clovis_op_launch(&priv->op, 1);
-	rc = m0_clovis_op_wait(priv->op, M0_BITS(M0_CLOVIS_OS_STABLE),
-			       M0_TIME_NEVER);
+	m0_op_launch(&priv->op, 1);
+	rc = m0_op_wait(priv->op, M0_BITS(M0_OS_STABLE),
+			M0_TIME_NEVER);
 
 	if (rc != 0) {
 		goto out;

@@ -1,7 +1,7 @@
 /*
  * Filename:         m0store.c
  * Description:      Contains motr related IO operations
- *                   which use clovis objects.
+ *                   which use motr objects.
  *
  * Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
  * This program is free software: you can redistribute it and/or modify
@@ -25,28 +25,28 @@
 #include "object.h" /* obj_id_t */
 
 
-/* Open a clovis entity.
- * @param[in] - A pointer to clovis entity to be opened
+/* Open a motr entity.
+ * @param[in] - A pointer to motr entity to be opened
  * @return    - 0 on success and on failure returns the same
  *              error code given by underlyig storage API
 */
-static int open_entity(struct m0_clovis_entity *entity)
+static int open_entity(struct m0_entity *entity)
 {
 	int rc = 0;
-	struct m0_clovis_op *ops[1] = {NULL};
+	struct m0_op *ops[1] = {NULL};
 
 	dassert(entity);
 
-	RC_WRAP_LABEL(rc, out, m0_clovis_entity_open, entity, &ops[0]);
+	RC_WRAP_LABEL(rc, out, m0_entity_open, entity, &ops[0]);
 	dassert(ops[0] != NULL);
 
-	m0_clovis_op_launch(ops, 1);
+	m0_op_launch(ops, 1);
 
-	RC_WRAP_LABEL(rc, out, m0_clovis_op_wait, ops[0],
-		      M0_BITS(M0_CLOVIS_OS_FAILED, M0_CLOVIS_OS_STABLE),
+	RC_WRAP_LABEL(rc, out, m0_op_wait, ops[0],
+		      M0_BITS(M0_OS_FAILED, M0_OS_STABLE),
 		      M0_TIME_NEVER);
 
-	RC_WRAP_LABEL(rc, out, m0_clovis_rc, ops[0]);
+	RC_WRAP_LABEL(rc, out, m0_rc, ops[0]);
 
 out:
 	if (rc) {
@@ -54,8 +54,8 @@ out:
 	}
 
 	if (ops[0]) {
-		m0_clovis_op_fini(ops[0]);
-		m0_clovis_op_free(ops[0]);
+		m0_op_fini(ops[0]);
+		m0_op_free(ops[0]);
 	}
 	return rc;
 }
@@ -74,7 +74,7 @@ static void m0_indexvec_fill_extents(struct m0_indexvec *extents,
 	}
 }
 
-static int m0store_io_init(struct clovis_io_ctx *ioctx, off_t off,
+static int m0store_io_init(struct motr_io_ctx *ioctx, off_t off,
 			   int block_count, int block_size)
 {
 	int	     rc;
@@ -110,7 +110,7 @@ out_err:
 	return rc;
 }
 
-/* Create a clovis object
+/* Create a motr object
  * @param[in] - FID for the objct to be created
  * @return    - 0 on success and on failure returns the same
  *              error code given by underlyig storage API
@@ -118,34 +118,34 @@ out_err:
 int m0store_create_object(struct m0_uint128 id)
 {
 	int    rc;
-	struct m0_clovis_obj obj;
-	struct m0_clovis_op *ops[1] = {NULL};
+	struct m0_obj obj;
+	struct m0_op *ops[1] = {NULL};
 
 	if (!my_init_done)
 		m0kvs_reinit();
 
-	memset(&obj, 0, sizeof(struct m0_clovis_obj));
+	memset(&obj, 0, sizeof(struct m0_obj));
 
-	m0_clovis_obj_init(&obj, &clovis_uber_realm, &id,
-			   m0_clovis_layout_id(clovis_instance));
+	m0_obj_init(&obj, &motr_uber_realm, &id,
+		    m0_client_layout_id(motr_instance));
 
-	RC_WRAP_LABEL(rc, out, m0_clovis_entity_create, NULL, &obj.ob_entity,
+	RC_WRAP_LABEL(rc, out, m0_entity_create, NULL, &obj.ob_entity,
 		      &ops[0]);
 	dassert(ops[0] != NULL);
 
-	m0_clovis_op_launch(ops, ARRAY_SIZE(ops));
+	m0_op_launch(ops, ARRAY_SIZE(ops));
 
-	RC_WRAP_LABEL(rc, cleanup, m0_clovis_op_wait, ops[0],
-		      M0_BITS(M0_CLOVIS_OS_FAILED, M0_CLOVIS_OS_STABLE),
+	RC_WRAP_LABEL(rc, cleanup, m0_op_wait, ops[0],
+		      M0_BITS(M0_OS_FAILED, M0_OS_STABLE),
 		      M0_TIME_NEVER);
 
-	RC_WRAP_LABEL(rc, cleanup, m0_clovis_rc, ops[0]);
+	RC_WRAP_LABEL(rc, cleanup, m0_rc, ops[0]);
 
 cleanup:
 	if (ops[0]) {
-		m0_clovis_op_fini(ops[0]);
-		m0_clovis_op_free(ops[0]);
-		m0_clovis_entity_fini(&obj.ob_entity);
+		m0_op_fini(ops[0]);
+		m0_op_free(ops[0]);
+		m0_entity_fini(&obj.ob_entity);
 	}
 
 out:
@@ -153,7 +153,7 @@ out:
 	return rc;
 }
 
-/* Delete a clovis object
+/* Delete a motr object
  * @param[in] - FID of the objct to be deleted
  * @return    - 0 on success and on failure returns the same
  *              error code given by underlyig storage API
@@ -161,36 +161,36 @@ out:
 int m0store_delete_object(struct m0_uint128 id)
 {
 	int    rc;
-	struct m0_clovis_obj obj;
-	struct m0_clovis_op *ops[1] = {NULL};
+	struct m0_obj obj;
+	struct m0_op *ops[1] = {NULL};
 
 	if (!my_init_done)
 		m0kvs_reinit();
 
-	memset(&obj, 0, sizeof(struct m0_clovis_obj));
+	memset(&obj, 0, sizeof(struct m0_obj));
 
-	m0_clovis_obj_init(&obj, &clovis_uber_realm, &id,
-			   m0_clovis_layout_id(clovis_instance));
+	m0_obj_init(&obj, &motr_uber_realm, &id,
+		    m0_client_layout_id(motr_instance));
 
 	RC_WRAP_LABEL(rc, out, open_entity, &obj.ob_entity);
 
-	RC_WRAP_LABEL(rc, out, m0_clovis_entity_delete, &obj.ob_entity,
+	RC_WRAP_LABEL(rc, out, m0_entity_delete, &obj.ob_entity,
 		      &ops[0]);
 	dassert(ops[0] != NULL);
 
-	m0_clovis_op_launch(ops, ARRAY_SIZE(ops));
+	m0_op_launch(ops, ARRAY_SIZE(ops));
 
-	RC_WRAP_LABEL(rc, out, m0_clovis_op_wait, ops[0],
-		      M0_BITS(M0_CLOVIS_OS_FAILED, M0_CLOVIS_OS_STABLE),
+	RC_WRAP_LABEL(rc, out, m0_op_wait, ops[0],
+		      M0_BITS(M0_OS_FAILED, M0_OS_STABLE),
 		      M0_TIME_NEVER);
 
-	RC_WRAP_LABEL(rc, out, m0_clovis_rc, ops[0]);
+	RC_WRAP_LABEL(rc, out, m0_rc, ops[0]);
 
 out:
 	if (ops[0]) {
-		m0_clovis_op_fini(ops[0]);
-		m0_clovis_op_free(ops[0]);
-		m0_clovis_entity_fini(&obj.ob_entity);
+		m0_op_fini(ops[0]);
+		m0_op_free(ops[0]);
+		m0_entity_fini(&obj.ob_entity);
 	}
 
 	log_debug("fid = "U128X_F" rc=%d", U128_P(&id), rc);
@@ -232,9 +232,9 @@ static int m0store_write_aligned(struct m0_uint128 id, char *buff, off_t off,
 	int		  op_rc;
 	int		  i;
 	int		  nr_tries = 10;
-	struct m0_clovis_obj obj;
-	struct m0_clovis_op *ops[1] = {NULL};
-	struct clovis_io_ctx    ioctx;
+	struct m0_obj obj;
+	struct m0_op *ops[1] = {NULL};
+	struct motr_io_ctx    ioctx;
 
 	if (!my_init_done)
 		m0kvs_reinit();
@@ -248,31 +248,31 @@ again:
 		       block_size);
 
 	/* Set the  bject entity we want to write */
-	memset(&obj, 0, sizeof(struct m0_clovis_obj));
+	memset(&obj, 0, sizeof(struct m0_obj));
 
-	m0_clovis_obj_init(&obj, &clovis_uber_realm, &id,
-			   m0_clovis_layout_id(clovis_instance));
+	m0_obj_init(&obj, &motr_uber_realm, &id,
+		    m0_client_layout_id(motr_instance));
 
 	open_entity(&obj.ob_entity);
 
 	/* Create the write request */
-	m0_clovis_obj_op(&obj, M0_CLOVIS_OC_WRITE,
-			 &ioctx.ext, &ioctx.data, &ioctx.attr, 0, &ops[0]);
+	m0_obj_op(&obj, M0_OC_WRITE,
+		  &ioctx.ext, &ioctx.data, &ioctx.attr, 0, &ops[0]);
 
 	/* Launch the write request*/
-	m0_clovis_op_launch(ops, 1);
+	m0_op_launch(ops, 1);
 
 	/* wait */
-	rc = m0_clovis_op_wait(ops[0],
-			       M0_BITS(M0_CLOVIS_OS_FAILED,
-			       M0_CLOVIS_OS_STABLE),
-			       M0_TIME_NEVER);
+	rc = m0_op_wait(ops[0],
+			M0_BITS(M0_OS_FAILED,
+			M0_OS_STABLE),
+			M0_TIME_NEVER);
 	op_rc = ops[0]->op_sm.sm_rc;
 
 	/* fini and release */
-	m0_clovis_op_fini(ops[0]);
-	m0_clovis_op_free(ops[0]);
-	m0_clovis_entity_fini(&obj.ob_entity);
+	m0_op_fini(ops[0]);
+	m0_op_free(ops[0]);
+	m0_entity_fini(&obj.ob_entity);
 
 	if (op_rc == -EINVAL && nr_tries != 0) {
 		nr_tries--;
@@ -296,7 +296,7 @@ again:
 
 /*
  * TODO: Following code either needs to be cleaned up by clubbing up input
- *       params, returned code from clovis APIs needs to be handled properly
+ *       params, returned code from motr APIs needs to be handled properly
  *       This API can be generalised to be re used for read and write operation
  *       or can be re written which should ensure mentioned points can get
  *       addressed
@@ -308,10 +308,10 @@ static int m0store_prepare_for_read(struct m0_uint128 id,
 {
 	int		     i;
 	int		     rc;
-	struct m0_clovis_op    *ops[1] = {NULL};
-	struct m0_clovis_obj    obj;
+	struct m0_op    *ops[1] = {NULL};
+	struct m0_obj    obj;
 	uint64_t		last_index;
-	struct clovis_io_ctx ioctx;
+	struct motr_io_ctx ioctx;
 
 	if (!my_init_done)
 		m0kvs_reinit();
@@ -337,33 +337,33 @@ static int m0store_prepare_for_read(struct m0_uint128 id,
 	}
 
 	/* Read the requisite number of blocks from the entity */
-	memset(&obj, 0, sizeof(struct m0_clovis_obj));
+	memset(&obj, 0, sizeof(struct m0_obj));
 
-	m0_clovis_obj_init(&obj, &clovis_uber_realm, &id,
-			   m0_clovis_layout_id(clovis_instance));
+	m0_obj_init(&obj, &motr_uber_realm, &id,
+		    m0_client_layout_id(motr_instance));
 
 	open_entity(&obj.ob_entity);
 
 	/* Create the read request */
-	rc = m0_clovis_obj_op(&obj, M0_CLOVIS_OC_READ,
-			      &ioctx.ext, &ioctx.data, &ioctx.attr,
+	rc = m0_obj_op(&obj, M0_OC_READ,
+		       &ioctx.ext, &ioctx.data, &ioctx.attr,
 			      0, &ops[0]);
 	assert(rc == 0);
 	assert(ops[0] != NULL);
 	assert(ops[0]->op_sm.sm_rc == 0);
 
-	m0_clovis_op_launch(ops, 1);
+	m0_op_launch(ops, 1);
 
 	/* wait */
-	rc = m0_clovis_op_wait(ops[0],
-			       M0_BITS(M0_CLOVIS_OS_FAILED,
-			       M0_CLOVIS_OS_STABLE),
-			       M0_TIME_NEVER);
+	rc = m0_op_wait(ops[0],
+			M0_BITS(M0_OS_FAILED,
+			M0_OS_STABLE),
+			M0_TIME_NEVER);
 	assert(rc == 0);
-	assert(ops[0]->op_sm.sm_state == M0_CLOVIS_OS_STABLE);
+	assert(ops[0]->op_sm.sm_state == M0_OS_STABLE);
 	assert(ops[0]->op_sm.sm_rc == 0);
 
-	rc = m0_clovis_rc(ops[0]);
+	rc = m0_rc(ops[0]);
 	*error = rc;
 
 	for (i = 0; i < block_count; i++)
@@ -373,9 +373,9 @@ static int m0store_prepare_for_read(struct m0_uint128 id,
 
 
 	/* fini and release */
-	m0_clovis_op_fini(ops[0]);
-	m0_clovis_op_free(ops[0]);
-	m0_clovis_entity_fini(&obj.ob_entity);
+	m0_op_fini(ops[0]);
+	m0_op_free(ops[0]);
+	m0_entity_fini(&obj.ob_entity);
 
 	m0_indexvec_free(&ioctx.ext);
 	m0_bufvec_free(&ioctx.data);
@@ -776,39 +776,39 @@ static int m0_file_unmap_extents(const struct m0_uint128 *fid,
 {
 	int rc;
 	int op_rc;
-	struct m0_clovis_obj obj;
-	struct m0_clovis_op *ops[1] = {NULL};
+	struct m0_obj obj;
+	struct m0_op *ops[1] = {NULL};
 
 	if (!my_init_done)
 		m0kvs_reinit();
 
 	M0_SET0(&obj);
-	m0_clovis_obj_init(&obj, &clovis_uber_realm, fid,
-			   m0_clovis_layout_id(clovis_instance));
+	m0_obj_init(&obj, &motr_uber_realm, fid,
+		    m0_client_layout_id(motr_instance));
 
 	/* Put entity in open state */
 	open_entity(&obj.ob_entity);
-	assert(obj.ob_entity.en_sm.sm_state == M0_CLOVIS_ES_OPEN);
+	assert(obj.ob_entity.en_sm.sm_state == M0_ES_OPEN);
 
 	/* Create an UMMAP request */
-	m0_clovis_obj_op(&obj, M0_CLOVIS_OC_FREE,
-			 extents, NULL, NULL, 0, &ops[0]);
+	m0_obj_op(&obj, M0_OC_FREE,
+		  extents, NULL, NULL, 0, &ops[0]);
 
 	/* Launch the request*/
-	m0_clovis_op_launch(ops, 1);
+	m0_op_launch(ops, 1);
 
 	/* Wait for completion */
-	rc = m0_clovis_op_wait(ops[0],
-			       M0_BITS(M0_CLOVIS_OS_FAILED,
-			       M0_CLOVIS_OS_STABLE),
-			       M0_TIME_NEVER);
+	rc = m0_op_wait(ops[0],
+			M0_BITS(M0_OS_FAILED,
+			M0_OS_STABLE),
+			M0_TIME_NEVER);
 	op_rc = ops[0]->op_sm.sm_rc;
 
 	/* Finalize operation */
-	m0_clovis_op_fini(ops[0]);
-	m0_clovis_op_free(ops[0]);
+	m0_op_fini(ops[0]);
+	m0_op_free(ops[0]);
 	/* Close entity */
-	m0_clovis_entity_fini(&obj.ob_entity);
+	m0_entity_fini(&obj.ob_entity);
 
 	if (rc != 0) {
 		log_err("Failed to wait for operation "
@@ -946,7 +946,7 @@ out:
 int m0_file_unmap(struct m0_uint128 fid, size_t count, off_t offset)
 {
 	int rc;
-	int bsize; /* Clovis block size */
+	int bsize; /* Motr block size */
 	size_t nblocks; /* n blocks to be deallocated */
 	size_t aligned_off; /* Rounded up offset */
 
@@ -1006,15 +1006,16 @@ out:
 
 ssize_t m0store_get_bsize(struct m0_uint128 id)
 {
-	return m0_clovis_obj_layout_id_to_unit_size(
-			m0_clovis_layout_id(clovis_instance));
+	return m0_obj_layout_id_to_unit_size(
+					     m0_client_layout_id(
+					     motr_instance));
 }
 
 /*****************************************************************************/
-int m0store_obj_open(const obj_id_t *id, struct m0_clovis_obj *pobj)
+int m0store_obj_open(const obj_id_t *id, struct m0_obj *pobj)
 {
 	int rc;
-	struct m0_clovis_op *op = NULL;
+	struct m0_op *op = NULL;
 	struct m0_uint128 fid;
 
 	dassert(id);
@@ -1024,25 +1025,25 @@ int m0store_obj_open(const obj_id_t *id, struct m0_clovis_obj *pobj)
 
 	M0_SET0(pobj);
 
-	m0_clovis_obj_init(pobj, &clovis_uber_realm, &fid,
-			   m0_clovis_layout_id(clovis_instance));
+	m0_obj_init(pobj, &motr_uber_realm, &fid,
+		    m0_client_layout_id(motr_instance));
 
-	rc = m0_clovis_entity_open(&pobj->ob_entity, &op);
+	rc = m0_entity_open(&pobj->ob_entity, &op);
 	if (rc) {
 		RC_WRAP_SET(rc);
 		goto out;
 	}
 
-	m0_clovis_op_launch(&op, 1);
-	rc = m0_clovis_op_wait(op, M0_BITS(M0_CLOVIS_OS_FAILED,
-			  M0_CLOVIS_OS_STABLE),
-			  M0_TIME_NEVER);
+	m0_op_launch(&op, 1);
+	rc = m0_op_wait(op, M0_BITS(M0_OS_FAILED,
+			M0_OS_STABLE),
+			M0_TIME_NEVER);
 	if (rc) {
 		RC_WRAP_SET(rc);
 		goto out;
 	}
 
-	rc = m0_clovis_rc(op);
+	rc = m0_rc(op);
 	if (rc) {
 		RC_WRAP_SET(rc);
 		goto out;
@@ -1050,8 +1051,8 @@ int m0store_obj_open(const obj_id_t *id, struct m0_clovis_obj *pobj)
 
 out:
 	if (op) {
-		m0_clovis_op_fini(op);
-		m0_clovis_op_free(op);
+		m0_op_fini(op);
+		m0_op_free(op);
 	}
 
 	log_debug("open (%p, " U128X_F "," OBJ_ID_F "), rc=%d",
@@ -1059,13 +1060,13 @@ out:
 	return rc;
 }
 
-void m0store_obj_close(struct m0_clovis_obj *obj)
+void m0store_obj_close(struct m0_obj *obj)
 {
 	dassert(obj);
 
 	log_debug("close (%p, " U128X_F ")", obj,
 		  U128_P(&obj->ob_entity.en_id));
-	m0_clovis_entity_fini(&obj->ob_entity);
+	m0_entity_fini(&obj->ob_entity);
 }
 
 /*****************************************************************************/

@@ -27,10 +27,10 @@
 #include <debug.h> /* dassert */
 
 /* To be passed as argument */
-struct m0_clovis_realm     clovis_uber_realm;
+struct m0_realm     motr_uber_realm;
 
-pthread_once_t clovis_init_once = PTHREAD_ONCE_INIT;
-bool clovis_init_done = false;
+pthread_once_t motr_init_once = PTHREAD_ONCE_INIT;
+bool motr_init_done = false;
 __thread struct m0_thread m0thread;
 __thread bool my_init_done = false;
 
@@ -38,27 +38,27 @@ pthread_t m0init_thread;
 struct collection_item *conf = NULL;
 
 struct m0_fid ifid;
-struct m0_clovis_idx idx;
+struct m0_idx idx;
 
-char *clovis_local_addr;
-char *clovis_ha_addr;
-char *clovis_prof;
-char *clovis_proc_fid;
+char *motr_local_addr;
+char *motr_ha_addr;
+char *motr_prof;
+char *motr_proc_fid;
 /* @todo: Fix hardcoded path */
-char *clovis_index_dir = "/tmp/";
+char *motr_index_dir = "/tmp/";
 char *ifid_str;
 
-/* Clovis Instance */
-struct m0_clovis	  *clovis_instance = NULL;
+/* Motr Instance */
+struct m0_client	  *motr_instance = NULL;
 
-/* Clovis container */
-struct m0_clovis_container clovis_container;
+/* Motr container */
+struct m0_container motr_container;
 
-/* Clovis Configuration */
-struct m0_clovis_config	clovis_conf;
+/* Motr Configuration */
+struct m0_config	motr_conf;
 struct m0_idx_dix_config	dix_conf;
 
-struct m0_clovis_realm     clovis_uber_realm;
+struct m0_realm     motr_uber_realm;
 
 struct m0_ufid_generator ufid_generator;
 
@@ -132,17 +132,17 @@ int m0init(struct collection_item *cfg_items)
 	 * the internal representation of POSIX TLS in the glibc.
 	 */
 	(void) pthread_once(&autoshun_key_init_once, autoshun_key_init);
-	(void) pthread_once(&clovis_init_once, m0kvs_do_init);
+	(void) pthread_once(&motr_init_once, m0kvs_do_init);
 
 	pthread_mutex_lock(&m0init_lock);
 
-	if (clovis_init_done && (pthread_self() != m0init_thread)) {
+	if (motr_init_done && (pthread_self() != m0init_thread)) {
 		log_info("==========> tid=%d I am not the init thread\n",
 		       (int)syscall(SYS_gettid));
 
 		memset(&m0thread, 0, sizeof(struct m0_thread));
 		autoshun_key_register_thread();
-		m0_thread_adopt(&m0thread, clovis_instance->m0c_motr);
+		m0_thread_adopt(&m0thread, motr_instance->m0c_motr);
 	} else
 		log_info("----------> tid=%d I am the init thread\n",
 		       (int)syscall(SYS_gettid));
@@ -158,14 +158,14 @@ void m0fini(void)
 {
 	/* We can finalize M0 only from a thread that has been adopted. */
 	dassert(my_init_done);
-	if (clovis_instance) {
-		m0_clovis_fini(clovis_instance, true);
-		clovis_instance = NULL;
+	if (motr_instance) {
+		m0_client_fini(motr_instance, true);
+		motr_instance = NULL;
 		autoshun_key_fini();
 	}
 }
 
-int get_clovis_conf(struct collection_item *cfg)
+int get_motr_conf(struct collection_item *cfg)
 {
 	struct collection_item *item;
 
@@ -174,23 +174,23 @@ int get_clovis_conf(struct collection_item *cfg)
 
 	item = NULL;
 	WRAP_CONFIG("local_addr", cfg, item);
-	clovis_local_addr = get_string_config_value(item, NULL);
+	motr_local_addr = get_string_config_value(item, NULL);
 
 	item = NULL;
 	WRAP_CONFIG("ha_addr", cfg, item);
-	clovis_ha_addr = get_string_config_value(item, NULL);
+	motr_ha_addr = get_string_config_value(item, NULL);
 
 	item = NULL;
 	WRAP_CONFIG("profile", cfg, item);
-	clovis_prof = get_string_config_value(item, NULL);
+	motr_prof = get_string_config_value(item, NULL);
 
 	item = NULL;
 	WRAP_CONFIG("proc_fid", cfg, item);
-	clovis_proc_fid = get_string_config_value(item, NULL);
+	motr_proc_fid = get_string_config_value(item, NULL);
 
 	item = NULL;
 	WRAP_CONFIG("index_dir", cfg, item);
-	clovis_index_dir = get_string_config_value(item, NULL);
+	motr_index_dir = get_string_config_value(item, NULL);
 
 	item = NULL;
 	WRAP_CONFIG("kvs_fid", cfg, item);
@@ -201,61 +201,61 @@ int get_clovis_conf(struct collection_item *cfg)
 
 void log_config(void)
 {
-	log_info("local_addr = %s\n", clovis_local_addr);
-	log_info("ha_addr    = %s\n", clovis_ha_addr);
-	log_info("profile    = %s\n", clovis_prof);
-	log_info("proc_fid   = %s\n", clovis_proc_fid);
-	log_info("index_dir  = %s\n", clovis_index_dir);
+	log_info("local_addr = %s\n", motr_local_addr);
+	log_info("ha_addr    = %s\n", motr_ha_addr);
+	log_info("profile    = %s\n", motr_prof);
+	log_info("proc_fid   = %s\n", motr_proc_fid);
+	log_info("index_dir  = %s\n", motr_index_dir);
 	log_info("kvs_fid    = %s\n", ifid_str);
 	log_info("---------------------------\n");
 }
 
-int init_clovis(void)
+int init_motr(void)
 {
 	int rc;
 	char  tmpfid[MAXNAMLEN];
 
-	assert(clovis_local_addr && clovis_ha_addr && clovis_prof &&
-	       clovis_proc_fid);
+	assert(motr_local_addr && motr_ha_addr && motr_prof &&
+	       motr_proc_fid);
 
-	/* Initialize Clovis configuration */
-	clovis_conf.cc_is_oostore	= true;
-	clovis_conf.cc_is_read_verify	= false;
-	clovis_conf.cc_local_addr	= clovis_local_addr;
-	clovis_conf.cc_ha_addr		= clovis_ha_addr;
-	clovis_conf.cc_profile		= clovis_prof;
-	clovis_conf.cc_process_fid       = clovis_proc_fid;
-	clovis_conf.cc_tm_recv_queue_min_len    = M0_NET_TM_RECV_QUEUE_DEF_LEN;
-	clovis_conf.cc_max_rpc_msg_size	 = M0_RPC_DEF_MAX_RPC_MSG_SIZE;
-	clovis_conf.cc_layout_id	= 0;
+	/* Initialize Motr configuration */
+	motr_conf.mc_is_oostore	= true;
+	motr_conf.mc_is_read_verify	= false;
+	motr_conf.mc_local_addr	= motr_local_addr;
+	motr_conf.mc_ha_addr		= motr_ha_addr;
+	motr_conf.mc_profile		= motr_prof;
+	motr_conf.mc_process_fid       = motr_proc_fid;
+	motr_conf.mc_tm_recv_queue_min_len    = M0_NET_TM_RECV_QUEUE_DEF_LEN;
+	motr_conf.mc_max_rpc_msg_size	 = M0_RPC_DEF_MAX_RPC_MSG_SIZE;
+	motr_conf.mc_layout_id	= 0;
 
 	/* Index service parameters */
-	clovis_conf.cc_idx_service_id	= M0_CLOVIS_IDX_DIX;
+	motr_conf.mc_idx_service_id	= M0_IDX_DIX;
 	dix_conf.kc_create_meta		= false;
-	clovis_conf.cc_idx_service_conf	= &dix_conf;
+	motr_conf.mc_idx_service_conf	= &dix_conf;
 
-	/* Create Clovis instance */
-	rc = m0_clovis_init(&clovis_instance, &clovis_conf, true);
+	/* Create Motr instance */
+	rc = m0_client_init(&motr_instance, &motr_conf, true);
 	if (rc != 0) {
-		log_err("Failed to initilize Clovis\n");
+		log_err("Failed to initilize Motr\n");
 		goto err_exit;
 	}
 
 	/* Container is where Entities (object) resides.
-	 * Currently, this feature is not implemented in Clovis.
+	 * Currently, this feature is not implemented in Motr.
 	 * We have only single realm: UBER REALM. In future with multiple realms
 	 * multiple applications can run in different containers. */
-	m0_clovis_container_init(&clovis_container,
-				 NULL, &M0_CLOVIS_UBER_REALM,
-				 clovis_instance);
+	m0_container_init(&motr_container,
+			  NULL, &M0_UBER_REALM,
+			  motr_instance);
 
-	rc = clovis_container.co_realm.re_entity.en_sm.sm_rc;
+	rc = motr_container.co_realm.re_entity.en_sm.sm_rc;
 	if (rc != 0) {
 		log_err("Failed to open uber realm\n");
 		goto err_exit;
 	}
 
-	clovis_uber_realm = clovis_container.co_realm;
+	motr_uber_realm = motr_container.co_realm;
 
 	/* Get fid from config parameter */
 	memset(&ifid, 0, sizeof(struct m0_fid));
@@ -271,10 +271,10 @@ int init_clovis(void)
 		goto err_exit;
 	}
 
-	m0_clovis_idx_init(&idx, &clovis_container.co_realm,
-			   (struct m0_uint128 *)&ifid);
+	m0_idx_init(&idx, &motr_container.co_realm,
+		    (struct m0_uint128 *)&ifid);
 
-	rc = m0_ufid_init(clovis_instance, &ufid_generator);
+	rc = m0_ufid_init(motr_instance, &ufid_generator);
 	if (rc != 0) {
 		log_err("Failed to initialise fid generator: %d\n", rc);
 		goto err_exit;
