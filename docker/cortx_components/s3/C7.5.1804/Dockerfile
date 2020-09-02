@@ -17,7 +17,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 #
 
-FROM registry.gitlab.mero.colo.seagate.com/mero/s3server:eos
+FROM ssc-vm-0279.colo.seagate.com:5000/centos_motr:7.5.1804
 ARG USER_PASS
 
 COPY ./repos/*.repo /etc/yum.repos.d/

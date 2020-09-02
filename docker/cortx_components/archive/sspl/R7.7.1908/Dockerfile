@@ -19,7 +19,7 @@
 
 #ARG  REDHAT_RELEASE
 
-FROM 10.230.162.34:5000/rhel_eos:7.7.1908
+FROM ssc-vm-0279.colo.seagate.com:5000/rhel_cortx:7.7.1908
 
 COPY ./repos/*.repo /etc/yum.repos.d/
 

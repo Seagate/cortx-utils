@@ -29,7 +29,7 @@ ARG USER_PASS
 
 # Remove all public repos.
 RUN rm -rf /etc/yum.repos.d/*.repo
-COPY C${CENTOS_RELEASE}.repo eos_${CENTOS_RELEASE}.repo python3_uploads.repo eos_uploads.repo /etc/yum.repos.d/
+COPY C${CENTOS_RELEASE}.repo cortx_${CENTOS_RELEASE}.repo python3_uploads.repo cortx_uploads.repo /etc/yum.repos.d/
 
 # upgrade all
 RUN yum --assumeyes upgrade

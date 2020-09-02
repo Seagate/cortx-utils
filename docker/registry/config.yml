@@ -30,7 +30,6 @@ event_database_location: data/registry_events.db
 # event_database_driver: mysql
 # event_database_location: user:password@tcp(localhost:3306)/docker_events
 
-# You can disable event deletion on some hosts when you are running docker-registry on master-master or
 # cluster setup to avoid deadlocks or replication break.
 event_deletion_enabled: True
 

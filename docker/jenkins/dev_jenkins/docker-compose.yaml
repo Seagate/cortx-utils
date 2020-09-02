@@ -20,7 +20,7 @@
 version: "3"
 
 services:
-  eosjenkins-dev:
+  cortx-jenkins-dev:
     image: jenkins/jenkins:lts
     restart: always
     ports:

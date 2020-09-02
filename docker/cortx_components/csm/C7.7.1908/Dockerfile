@@ -17,7 +17,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 #
 
-FROM ssc-vm-0279.colo.seagate.com:5000/centos_eos:7.7.1908
+FROM ssc-vm-0279.colo.seagate.com:5000/cortx:C7.7.1908
 
 RUN rm -rf /etc/yum.repos.d/CentOS-*.repo
 

@@ -17,8 +17,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 #
 
-ARG  CENTOS_RELEASE
-FROM ssc-vm-0279.colo.seagate.com:5000/mero:${CENTOS_RELEASE}
+FROM ssc-vm-0279.colo.seagate.com:5000/motr:C7.7.1908
 
 ENV HARE_VENV_DIR=$HOME/.hare-venv
 
@@ -29,7 +28,7 @@ RUN mkdir $HARE_VENV_DIR \
 # PyYAML - for cfgen
 # flake8 - for hax
 # mypy   - for hax
-# ply    - for Mero
+# ply    - for motr
 # wheel  - for hax
 RUN source $HARE_VENV_DIR/bin/activate \
     && pip3 install PyYAML flake8 mypy ply wheel

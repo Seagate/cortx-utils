@@ -1,6 +1,0 @@
-[eos-C7.7.1908]
-gpgcheck=0
-enabled=1
-baseurl=http://cortx-storage.colo.seagate.com/releases/eos/github/release/rhel-7.7.1908/last_successful/
-name=eos-C7.7.1908
-

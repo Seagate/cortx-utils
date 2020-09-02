@@ -46,8 +46,7 @@ The official docker images for sonarqube contain the SonarQube installation fold
 
 ## Current setup
 
-***Sonarqube Server Host*** : `eos-demo-0183.mero.colo.seagate.com`  
-***Docker mount path*** : `/home/eosjenkins/docker-mounts/dev/eos-demo-0183/`  
+***Sonarqube Server*** : `http://ssc-vm-0020.colo.seagate.com:9000/projects`  
 ***Volumes Used*** : 
 - sonarqube_conf:
 - sonarqube_data:

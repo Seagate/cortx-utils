@@ -24,7 +24,7 @@ ARG USER_PASS
 
 LABEL maintainer="Cortx Release Engineering"
 
-COPY eos_uploads.repo /etc/yum.repos.d/
+COPY cortx_uploads.repo /etc/yum.repos.d/
 
 #Enable optional rpms
 

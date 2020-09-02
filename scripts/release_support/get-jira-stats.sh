@@ -21,7 +21,7 @@
 REPORT_DIR="/root/jira/"
 REPORT_FILE="jira-stats.txt"
 OUTPUT_JSON="$REPORT_DIR/output.json"
-COMPONENT_LIST=(Provisioner CSM hare Mero S3Server RAS)
+COMPONENT_LIST=(Provisioner CSM hare Motr S3Server RAS)
 #COMPONENT_LIST=(Provisioner hare)
 
 rm -rf $REPORT_DIR

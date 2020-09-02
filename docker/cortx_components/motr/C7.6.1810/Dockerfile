@@ -17,10 +17,11 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 #
 
+#
 # Builder image
+#
 
-ARG  CENTOS_RELEASE
-FROM ssc-vm-0279.colo.seagate.com:5000/centos_eos:${CENTOS_RELEASE} as lustre-rpm-builder
+FROM ssc-vm-0279.colo.seagate.com:5000/centos_cortx:7.6.1810 as lustre-rpm-builder
 
 ARG LUSTRE_VERSION
 
@@ -36,10 +37,10 @@ RUN QA_RPATHS=255 rpmbuild -bb --without servers --without lustre-tests \
         --define "kver `ls -1r /lib/modules | head -n1`" \
         /root//rpmbuild/SPECS/lustre.spec
 
+#
 # Final image
-
-ARG  CENTOS_RELEASE
-FROM ssc-vm-0279.colo.seagate.com:5000/centos_eos:${CENTOS_RELEASE}
+#
+FROM ssc-vm-0279.colo.seagate.com:5000/centos_cortx:7.6.1810
 
 ARG LUSTRE_VERSION
 
@@ -55,9 +56,10 @@ RUN yum --assumeyes install \
 
 COPY *.repo /etc/yum.repos.d/
 
-COPY mero.spec .
-RUN sed -i 's/@.*@/111/g' mero.spec
+COPY cortx-motr.spec .
+RUN sed -i 's/@.*@/111/g' cortx-motr.spec
 RUN kernel_src=$(ls -1rd /lib/modules/*/build | head -n1) \
-    yum-builddep -y mero.spec
+    yum-builddep -y cortx-motr.spec
 
-RUN rm -f mero.spec
+RUN rm -f cortx-motr.spec
+

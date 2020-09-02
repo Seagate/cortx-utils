@@ -19,7 +19,7 @@
 
 ARG  CENTOS_RELEASE
 
-FROM 10.230.162.34:5000/centos_eos:${CENTOS_RELEASE}
+FROM ssc-vm-0279.colo.seagate.com:5000/cortx:C${CENTOS_RELEASE}
 
 COPY ./repos/*.repo /etc/yum.repos.d/
 

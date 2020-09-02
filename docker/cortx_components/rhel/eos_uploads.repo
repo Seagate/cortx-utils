@@ -1,5 +1,0 @@
-[eos-uploads]
-gpgcheck=0
-enabled=1
-baseurl=http://cortx-storage.colo.seagate.com/releases/eos/uploads/rhel/rhel-7.7.1908/
-name=eos-uploads

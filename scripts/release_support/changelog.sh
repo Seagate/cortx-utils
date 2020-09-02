@@ -41,7 +41,7 @@ if [ -z $TARGET_BUILD ]; then echo "No TARGET_BUILD provided.."; exit 1; fi
 declare -A COMPONENT_LIST=( 
 [cortx-s3server]="https://$GIT_CRED@github.com/Seagate/cortx-s3server.git"
 [cortx-motr]="https://$GIT_CRED@github.com/Seagate/cortx-motr.git"
-[cortx-hare]="http://gitlab.mero.colo.seagate.com/mero/hare.git"
+[cortx-hare]="https://$GIT_CRED@github.com/Seagate/cortx-hare.git"
 [cortx-ha]="https://$GIT_CRED@github.com/Seagate/cortx-ha.git"
 [cortx-prvsnr]="https://$GIT_CRED@github.com/Seagate/cortx-prvsnr.git"
 [cortx-sspl]="https://$GIT_CRED@github.com/Seagate/cortx-sspl.git"

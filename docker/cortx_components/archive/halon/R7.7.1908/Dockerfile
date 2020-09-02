@@ -18,7 +18,7 @@
 #
 
 #ARG  REDHAT_RELEASE
-FROM 10.230.162.34:5000/rhel_mero:7.7.1908
+FROM sc-vm-0279.colo.seagate.com:5000/rhel_motr:7.7.1908
 
 ADD halon-dist.tar.gz .
 

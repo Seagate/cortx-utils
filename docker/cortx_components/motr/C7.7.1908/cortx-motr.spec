@@ -45,17 +45,24 @@
 %define  configure_opts  %{configure_release_opts} %{?configure_cassandra_opts}
 %endif
 
-Name:           @PACKAGE@
-Version:        @PACKAGE_VERSION@
-Release:        %{build_num}_@GIT_REV_ID_RPM@_%{kernel_ver}%{?dist}
-Summary:        Mero filesystem and development libraries
+Name:           111
+Version:        111
+Release:        %{build_num}_111_%{kernel_ver}%{?dist}
+Summary:        CORTX Motr
 Group:          System Environment/Base
-License:        Xyratex
+License:        Seagate
 Source:         %{name}-%{version}.tar.gz
 BuildArch:      x86_64
 ExcludeArch:    i686
 Provides:       %{name}-libs = %{version}-%{release}
 Provides:       %{name}-modules = %{version}-%{release}
+# backward compatibility with legacy product name:
+Obsoletes:      mero
+Obsoletes:      eos-core
+Provides:       mero = %{version}-%{release}
+Provides:       mero(x86-64) = %{version}-%{release}
+Provides:       mero-libs = %{version}-%{release}
+Provides:       mero-modules = %{version}-%{release}
 
 BuildRequires:  automake
 BuildRequires:  autoconf
@@ -82,6 +89,7 @@ BuildRequires:  binutils-devel
 BuildRequires:  python36-ply
 BuildRequires:  perl-autodie
 BuildRequires:  systemd-devel
+BuildRequires:  python-devel
 %if %{with cassandra}
 BuildRequires:  libcassandra
 BuildRequires:  libuv
@@ -91,6 +99,7 @@ Requires:       kernel = %{kernel_ver_requires}
 Requires:       %{lustre}
 Requires:       libaio
 Requires:       libyaml
+Requires:       gdb
 Requires:       genders
 Requires:       sysvinit-tools
 Requires:       attr
@@ -111,12 +120,16 @@ Requires(pre):  shadow-utils
 Requires(post): findutils
 
 %description
-Mero filesystem runtime environment and servers.
+CORTX Motr runtime
 
 %package devel
-Summary: Mero include headers
+Summary: CORTX Motr include headers
 Group: Development/Kernel
 Provides: %{name}-devel = %{version}-%{release}
+# backward compatibility with legacy product name:
+Obsoletes: mero-devel
+Obsoletes: eos-core-devel
+Provides: mero-devel = %{version}-%{release}
 Requires: binutils-devel
 Requires: libyaml-devel
 Requires: libaio-devel
@@ -129,17 +142,16 @@ Requires: %{lustre_devel}
 
 
 %description devel
-This package contains the headers required to build external
-applications that use Mero libraries.
+Header files that are required to link with CORTX Motr libraries.
 
 %if %{with ut}
 %package tests-ut
-Summary: Mero unit tests
+Summary: CORTX Motr unit tests
 Group: Development/Kernel
 Conflicts: %{name}
 
 %description tests-ut
-This package contains Mero unit tests (for kernel and user space).
+CORTX Motr unit tests (for kernel and user space).
 %endif # with ut
 
 %prep
@@ -155,8 +167,8 @@ rm -rf %{buildroot}
 
 make DESTDIR=%{buildroot} install-tests
 
-find %{buildroot} -name m0mero.ko -o -name m0ut.ko -o -name m0loop-ut.ko \
-    -o -name m0gf.ko | sed -e 's#^%{buildroot}##' > tests-ut.files
+find %{buildroot} -name m0tr.ko -o -name m0ut.ko -o -name m0loop-ut.ko \
+    -o -name galois.ko | sed -e 's#^%{buildroot}##' > tests-ut.files
 
 find %{buildroot} \
         -name m0ut \
@@ -166,8 +178,8 @@ find %{buildroot} \
         -o -name m0gentestds \
         -o -name 'm0kut*' \
         -o -name 'libtestlib*.so*' \
-        -o -name 'libmero*.so*' \
-        -o -name 'libgf_complete*.so*' |
+        -o -name 'libmotr*.so*' \
+        -o -name 'libgalois*.so*' |
     sed -e 's#^%{buildroot}##' >> tests-ut.files
 
 sort -o tests-ut.files tests-ut.files
@@ -181,11 +193,11 @@ make DESTDIR=%{buildroot} install
 find %{buildroot} -name 'm0ff2c' -o \
                   -name 'm0gccxml2xcode*' |
     sed -e 's#^%{buildroot}##' -e 's/\.1$/.1.gz/' > devel.files
-find %{buildroot} -name 'libmero-xcode-ff2c*.so*' | sed -e 's#^%{buildroot}##' >> devel.files
+find %{buildroot} -name 'libmotr-xcode-ff2c*.so*' | sed -e 's#^%{buildroot}##' >> devel.files
 find %{buildroot} -name '*.la' | sed -e 's#^%{buildroot}##' >> devel.files
 find %{buildroot}%{_includedir} | sed -e 's#^%{buildroot}##' >> devel.files
-find %{buildroot}%{_libdir} -name mero.pc | sed -e 's#^%{buildroot}##' >> devel.files
-mkdir -p %{buildroot}%{_localstatedir}/mero
+find %{buildroot}%{_libdir} -name motr.pc | sed -e 's#^%{buildroot}##' >> devel.files
+mkdir -p %{buildroot}%{_localstatedir}/motr
 
 %endif # with ut
 
@@ -201,17 +213,18 @@ fi
 %{_bindir}/*
 %{_sbindir}/*
 %{_libdir}/*
-%{_libexecdir}/mero/*
-%{_exec_prefix}/lib/*
+%{_libexecdir}/%{name}/*
+%{_exec_prefix}/lib/debug/*
+%{_exec_prefix}/lib/systemd/*
+%{_exec_prefix}/lib/udev/*
 %{_datadir}/*
 %{_mandir}/*
-%attr(0770, mero, mero) %{_localstatedir}/mero
-#%attr(0775, mero, mero) %{_sysconfdir}/mero
-#%config %attr(0664, mero, mero) %{_sysconfdir}/mero/*
-%config %attr(0664, mero, mero) %{_sysconfdir}/sysconfig/*
+%attr(0770, motr, motr) %{_localstatedir}/motr
+%config %attr(0664, motr, motr) %{_sysconfdir}/sysconfig/*
 %{_sysconfdir}/systemd/system/*
-%{_sysconfdir}/security/limits.d/90-mero.conf
-/lib/modules/*/kernel/fs/mero/*
+%{_sysconfdir}/security/limits.d/90-motr.conf
+/opt/seagate/cortx/motr/*
+/lib/modules/*/kernel/fs/motr/*
 %exclude %{_bindir}/m0gentestds
 %exclude %{_bindir}/m0gccxml2xcode
 %exclude %{_bindir}/m0kut*
@@ -220,16 +233,16 @@ fi
 %exclude %{_bindir}/m0ff2c
 %exclude %{_sbindir}/m0run
 %exclude %{_libdir}/*.la
-%exclude %{_libdir}/libmero-ut*
+%exclude %{_libdir}/libmotr-ut*
 %exclude %{_libdir}/libtestlib*
-%exclude %{_libdir}/libmero-xcode-ff2c*
+%exclude %{_libdir}/libmotr-xcode-ff2c*
 %exclude %{_libdir}/pkgconfig/
 %exclude %{_mandir}/**/m0gccxml2xcode*
-%exclude /lib/modules/*/kernel/fs/mero/clovis*
-%exclude /lib/modules/*/kernel/fs/mero/m0lnet*
-%exclude /lib/modules/*/kernel/fs/mero/m0net*
-%exclude /lib/modules/*/kernel/fs/mero/m0rpc*
-%exclude /lib/modules/*/kernel/fs/mero/m0ut*
+%exclude /lib/modules/*/kernel/fs/motr/clovis*
+%exclude /lib/modules/*/kernel/fs/motr/m0lnet*
+%exclude /lib/modules/*/kernel/fs/motr/m0net*
+%exclude /lib/modules/*/kernel/fs/motr/m0rpc*
+%exclude /lib/modules/*/kernel/fs/motr/m0ut*
 %endif # with ut
 
 %if %{with ut}
@@ -243,9 +256,9 @@ fi
 
 # Guidelings for user/group creation in Fedora:
 #   https://fedoraproject.org/wiki/Packaging:UsersAndGroups?rd=Packaging/UsersAndGroups
-getent group  mero >/dev/null || groupadd --system mero
-getent passwd mero >/dev/null || useradd --system --shell /sbin/nologin \
-    --no-user-group --gid mero --home-dir / --comment 'Mero daemon' mero
+getent group  motr >/dev/null || groupadd --system motr
+getent passwd motr >/dev/null || useradd --system --shell /sbin/nologin \
+    --no-user-group --gid motr --home-dir / --comment 'Motr daemon' motr
 
 # The '-e' argument enables runtime macro expansion for this particular script.
 # Also note that macros have to be escaped using %% and not %, otherwise it
@@ -256,14 +269,14 @@ getent passwd mero >/dev/null || useradd --system --shell /sbin/nologin \
 systemctl daemon-reload
 
 if [ x%%{?no_trace_logs} != x ] ; then
-    /bin/sed -i -r -e "s/(MERO_TRACED_KMOD=)yes/\1no/" /etc/sysconfig/mero
-    /bin/sed -i -r -e "s/(MERO_TRACED_M0D=)yes/\1no/" /etc/sysconfig/mero
+    /bin/sed -i -r -e "s/(MERO_TRACED_KMOD=)yes/\1no/" /etc/sysconfig/motr
+    /bin/sed -i -r -e "s/(MERO_TRACED_M0D=)yes/\1no/" /etc/sysconfig/motr
 fi
 
 # when doing an upgrade
 if [ $1 -eq 2 ] ; then
-   echo "Upgrading %{_localstatedir}/mero group and permissions"
-   find %{_localstatedir}/mero ! -group mero -exec chown :mero '{}' \; -exec chmod g+w,o-rwx '{}' \;
+   echo "Upgrading %{_localstatedir}/motr group and permissions"
+   find %{_localstatedir}/motr ! -group motr -exec chown :motr '{}' \; -exec chmod g+w,o-rwx '{}' \;
 fi
 
 %postun

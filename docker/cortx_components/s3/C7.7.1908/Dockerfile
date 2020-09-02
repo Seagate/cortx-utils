@@ -17,17 +17,16 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 #
 
-ARG  CENTOS_RELEASE=7.6.1810
-FROM ssc-vm-0279.colo.seagate.com:5000/mero:${CENTOS_RELEASE}
+FROM ssc-vm-0279.colo.seagate.com:5000/motr:C7.7.1908
 
 COPY *.repo /etc/yum.repos.d/
 COPY s3rpm.spec .
 
 RUN yum install -y yum-priorities
 
-RUN yum install -y http://cortx-storage.colo.seagate.com/releases/master/mero_stub/mero-0.0.0-stub.x86_64.rpm \
-                   http://cortx-storage.colo.seagate.com/releases/master/mero_stub/mero-devel-0.0.0-stub.x86_64.rpm \
+RUN yum install -y http://cortx-storage.colo.seagate.com/releases/cortx/components/github/motr-base/cortx-motr-1.0.0-0_git588b298_3.10.0_1062.el7.x86_64.rpm \
+                   http://cortx-storage.colo.seagate.com/releases/cortx/components/github/motr-base/cortx-motr-devel-1.0.0-0_git588b298_3.10.0_1062.el7.x86_64.rpm \
     && yum install -y git-clang-format \
     && yum-builddep -y s3rpm.spec \
     && rm -f s3rpm.spec \
-    && yum remove -y mero mero-devel
+    && yum remove -y motr motr-devel

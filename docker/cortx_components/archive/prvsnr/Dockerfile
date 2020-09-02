@@ -17,7 +17,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 #
 
-FROM registry.gitlab.mero.colo.seagate.com/centos:eos
+FROM ssc-vm-0279.colo.seagate.com:5000/prvsnr:7.7.1908
 ARG USER_PASS
 
 COPY ./repos/*.repo /etc/yum.repos.d/

@@ -1,5 +1,0 @@
-[mero]
-gpgcheck=0
-enabled=1
-baseurl=http://cortx-storage.colo.seagate.com/releases/eos/components/github/release/rhel-7.7.1908/dev/mero/last_successful/
-name=mero

@@ -17,9 +17,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 #
 
-ARG  CENTOS_RELEASE
-
-FROM 10.230.162.34:5000/centos_eos:${CENTOS_RELEASE}
+FROM sc-vm-0279.colo.seagate.com:5000/centos_cortx:7.7.1908
 
 COPY ./repos/*.repo /etc/yum.repos.d/
 

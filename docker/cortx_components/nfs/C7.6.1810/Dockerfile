@@ -17,18 +17,16 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 #
 
-ARG  CENTOS_RELEASE
-
-FROM 10.230.162.34:5000/mero:${CENTOS_RELEASE}
+FROM ssc-vm-0279.colo.seagate.com:5000/centos_motr:7.6.1810
 
 COPY *.repo /etc/yum.repos.d/
 
 RUN yum install -y \ 
 	jemalloc \
 	jemalloc-devel \
-	mero \
-	mero-debuginfo \
-	mero-devel \
+	motr \
+	motr-debuginfo \
+	motr-devel \
 	libntirpc \
 	nfs-ganesha-vfs \
 	libini_config-devel \
