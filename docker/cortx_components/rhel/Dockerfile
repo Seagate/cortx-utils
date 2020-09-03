@@ -33,7 +33,7 @@ RUN  yum-config-manager --enable rhel-7-server-optional-rpms \
         rm -rf /var/cache/yum
 
 # install common tools
-RUN yum -y upgrade &&  yum -y install python3{,-{devel,pip,setuptools}} \
+RUN yum -y upgrade --exclude=redhat-release-server &&  yum -y install python3{,-{devel,pip,setuptools}} \
 rpm-build \
 openssl-devel \
 libffi-devel createrepo file git \
