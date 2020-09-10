@@ -235,6 +235,8 @@ static int m0store_write_aligned(struct m0_uint128 id, char *buff, off_t off,
 	struct m0_obj obj;
 	struct m0_op *ops[1] = {NULL};
 	struct motr_io_ctx    ioctx;
+	const uint64_t empty_mask = 0;
+	const uint64_t empty_flag = 0;
 
 	if (!my_init_done)
 		m0kvs_reinit();
@@ -257,7 +259,8 @@ again:
 
 	/* Create the write request */
 	m0_obj_op(&obj, M0_OC_WRITE,
-		  &ioctx.ext, &ioctx.data, &ioctx.attr, 0, &ops[0]);
+		  &ioctx.ext, &ioctx.data, &ioctx.attr,
+	          empty_mask, empty_flag, &ops[0]);
 
 	/* Launch the write request*/
 	m0_op_launch(ops, 1);
@@ -312,6 +315,8 @@ static int m0store_prepare_for_read(struct m0_uint128 id,
 	struct m0_obj    obj;
 	uint64_t		last_index;
 	struct motr_io_ctx ioctx;
+	const uint64_t empty_mask = 0;
+	const uint64_t empty_flag = 0;
 
 	if (!my_init_done)
 		m0kvs_reinit();
@@ -347,7 +352,7 @@ static int m0store_prepare_for_read(struct m0_uint128 id,
 	/* Create the read request */
 	rc = m0_obj_op(&obj, M0_OC_READ,
 		       &ioctx.ext, &ioctx.data, &ioctx.attr,
-			      0, &ops[0]);
+		       empty_mask, empty_flag, &ops[0]);
 	assert(rc == 0);
 	assert(ops[0] != NULL);
 	assert(ops[0]->op_sm.sm_rc == 0);
@@ -778,6 +783,8 @@ static int m0_file_unmap_extents(const struct m0_uint128 *fid,
 	int op_rc;
 	struct m0_obj obj;
 	struct m0_op *ops[1] = {NULL};
+	const uint64_t empty_mask = 0;
+	const uint64_t empty_flag = 0;
 
 	if (!my_init_done)
 		m0kvs_reinit();
@@ -792,7 +799,7 @@ static int m0_file_unmap_extents(const struct m0_uint128 *fid,
 
 	/* Create an UMMAP request */
 	m0_obj_op(&obj, M0_OC_FREE,
-		  extents, NULL, NULL, 0, &ops[0]);
+		  extents, NULL, NULL, empty_mask, empty_flag, &ops[0]);
 
 	/* Launch the request*/
 	m0_op_launch(ops, 1);
