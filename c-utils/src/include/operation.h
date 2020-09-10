@@ -321,6 +321,45 @@ static inline struct opcall *opstack_caller(struct opstack *opstack)
 		  __map_tag, __key, __VA_ARGS__);			\
 } while (0);
 
+
+/**
+ * Perform an action within an operation.
+ * An operation is identified by tuple T1:
+ * 	{TSDB_MK_AID(mod_id, fn_id), call_id}
+ * An action in an operation is identified by tuple T2:
+ * 	{T1, TSDB_MK_AID(mod_id, _act_tag)}
+ * This macro should be put at the location where we want to start
+ * tracking an action, i.e. start action, end action etc.
+ * Example:
+ * @{code}
+ *	struct opstack;
+ *	opstack_begin(&opstack, &g_my_mod, MY_TAG, some_arg);
+ *	other_args = arg_to_other_arg(some_arg);
+ *	arg_to_other_arg():
+ *	rc = do_smth(&opstack, other_args);
+ *		Inside do_smth() {
+ *			opstack_action(action_begin)
+ *			do_smth_action()
+ *			opstack_action(action_end)
+ *		}
+ *	opstack_end(&opstack, rc);
+ *	return rc;
+ * @{endcode}
+ *
+ * @param _op the current opstack object.
+ * @param _action id of function/operation.
+ * @param __VA_ARGS__ Any uint64_t values.
+ */
+#define opstack_action(_op, _act_tag, ...) do {			\
+	PERFC_ACTION_OP_MAP(						\
+		opstack_curr(_op)->mod->mod_id,				\
+		opstack_curr(_op)->fn_id,				\
+		opstack_curr(_op)->call_id,				\
+		_act_tag,						\
+		__VA_ARGS__						\
+	);								\
+} while(0)
+
 /******************************************************************************/
 /* Public interface: hardcoded list of modules. */
 
@@ -340,7 +379,7 @@ enum tsdb_modules {
 	TSDB_MOD_DSAL,
 	TSDB_MOD_NSAL,
 	TSDB_MOD_FS,
-	TSDB_MOD_FSUSER,
+	TSDB_MOD_FSUSER,  /** For FSAL_CORTXFS */
 	TSDB_MOD_UT,
 	TSDB_MOD_LAST = TSDB_MOD_UT,
 

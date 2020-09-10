@@ -30,6 +30,7 @@ enum perfc_subtags {
 	PERFC_EE_OP_PUSH = 0x1,
 	PERFC_EE_OP_POP = 0x2,
 	PERFC_MAP = 0xF,
+	PERFC_ACTION  = 0xA,
 };
 
 /** Creates a unique id for a function (or any other "action"). */
@@ -50,10 +51,8 @@ enum perfc_subtags {
  *	__call - Call ID (generated).
  *	__VA_ARGS_ - Optional arguments.
  */
-#define PERFC_OP_EE(__mod, __fn, __call, __ee_type, ...)			\
-	TSDB_ADD(TSDB_MK_AID(__mod, __fn), __ee_type , __call,	\
-		 __VA_ARGS__)
-
+#define PERFC_OP_EE(__mod, __fn, __call, __ee_type, ...)	\
+	TSDB_ADD(TSDB_MK_AID(__mod, __fn), __call, __ee_type, __VA_ARGS__)
 
 /* Format of mappings :
  * | <AID> | MAP | <Call ID> | <MAP-ID> | <EXTERNAL-ID> |
@@ -69,14 +68,30 @@ enum perfc_subtags {
  */
 
 #define PERFC_MAP(__mod_id, __fn, __call, __map_id, __ext_id, ...) \
-	TSDB_ADD(TSDB_MK_AID(__mod_id, __fn), PERFC_MAP,  __call, \
+	TSDB_ADD(TSDB_MK_AID(__mod_id, __fn), __call, PERFC_MAP, \
 		 __map_id, __ext_id, __VA_ARGS__)
 
+/* Format of action id and map w/ op :
+ * | <OP Tuple> | <Action tuple> |
+ * where
+ * 	OP Tuple:
+ * 		TSDB_MK_AID(__mod_id, __fn) + Call ID
+ * 		Call ID - id the particular call to AID
+ * 	Action tuple:
+ * 		TSDB_MK_AID(__mod_id, __act_tag)
+ */
+
+#define PERFC_ACTION_OP_MAP(__mod_id, __fn, __call, __act_tag, ...) \
+	TSDB_ADD(TSDB_MK_AID(__mod_id, __fn), __call, \
+	TSDB_MK_AID(__mod_id, __act_tag), PERFC_ACTION, __VA_ARGS__)
 
 /* TODO: move it into submodules */
 
 enum perfc_cfs {
-	PERFC_CFS_MKDIR,
+	PERFC_CFS_MKDIR_BEGIN,
+	PERFC_CFS_MKDIR_END,
+	PERFC_CFS_WRITE_BEGIN,
+	PERFC_CFS_WRITE_END,
 };
 
 enum perfc_nsal {
