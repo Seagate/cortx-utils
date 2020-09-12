@@ -23,7 +23,7 @@ echo -e "Generating RELEASE.INFO file"
 pushd $BUILD_LOCATION
 cat <<EOF > RELEASE.INFO
 ---
-NAME: "Cortx"
+NAME: "CORTX"
 VERSION: "1.0.0"
 BUILD: $(echo $BUILD_NUMBER | sed -e 's/^/\"/g' -e 's/$/\"/g')
 OS: $(cat /etc/redhat-release | sed -e 's/ $//g' -e 's/^/\"/g' -e 's/$/\"/g')
