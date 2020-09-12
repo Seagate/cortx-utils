@@ -1,11 +1,30 @@
-%if 0%{?disable_eoscore_dependencies:1}
-%bcond_with eos_core
+#
+# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# For any questions about this software or licensing,
+# please email opensource@seagate.com or cortx-questions@seagate.com.
+#
+
+%if 0%{?disable_cortxmotr_dependencies:1}
+%bcond_with cortx_motr
 %else
-%bcond_without eos_core
+%bcond_without cortx_motr
 %endif
 
 # cortx-motr version
-%define h_eoscore_version %(rpm -q --queryformat '%{VERSION}-%{RELEASE}' cortx-motr)
+%define h_cortxmotr_version %(rpm -q --queryformat '%{VERSION}-%{RELEASE}' cortx-motr)
 
 # build number
 %define build_num  %( test -n "$build_number" && echo "$build_number" || echo 1 )
@@ -34,14 +53,14 @@ Summary:    CORTX s3server
 
 Group:      Development/Tools
 License:    Seagate
-URL:        http://gerrit.mero.colo.seagate.com:8080/s3server
+URL:        https://github.com/Seagate/cortx-s3server
 Source:     %{name}-%{version}-%{_s3_git_ver}.tar.gz
 
 BuildRequires: automake
 BuildRequires: bazel
 BuildRequires: cmake >= 2.8.12
 BuildRequires: libtool
-%if %{with eos_core}
+%if %{with cortx_motr}
 BuildRequires: cortx-motr cortx-motr-devel
 %endif
 BuildRequires: openssl openssl-devel
@@ -72,8 +91,8 @@ BuildRequires: python-keyring python-futures
 %endif
 # TODO for rhel 8
 
-%if %{with eos_core}
-Requires: cortx-motr = %{h_eoscore_version}
+%if %{with cortx_motr}
+Requires: cortx-motr = %{h_cortxmotr_version}
 %endif
 Requires: libxml2
 Requires: libyaml
@@ -104,12 +123,22 @@ S3 server provides S3 REST API interface support for Motr object storage.
 %setup -n %{name}-%{version}-%{_s3_git_ver}
 
 %build
+%if %{with cortx_motr}
 ./rebuildall.sh --no-check-code --no-install
+%else
+./rebuildall.sh --no-check-code --no-install --no-motr-rpm --use-build-cache
+%endif
+
 mkdir -p %{_builddir}/%{name}-%{version}-%{_s3_git_ver}/s3backgrounddelete/build/lib/s3backgrounddelete
 # Build the background delete python module.
 cd s3backgrounddelete/s3backgrounddelete
 python%{py_ver} -m compileall -b *.py
 cp  *.pyc %{_builddir}/%{name}-%{version}-%{_s3_git_ver}/s3backgrounddelete/build/lib/s3backgrounddelete
+# Build the s3datarecovery tool.
+mkdir -p %{_builddir}/%{name}-%{version}-%{_s3_git_ver}/s3recovery/build/lib/s3recovery
+cd %{_builddir}/%{name}-%{version}-%{_s3_git_ver}/s3recovery/s3recovery
+python%{py_ver} -m compileall -b *.py
+cp  *.pyc %{_builddir}/%{name}-%{version}-%{_s3_git_ver}/s3recovery/build/lib/s3recovery 
 echo "build complete"
 
 %install
@@ -117,6 +146,8 @@ rm -rf %{buildroot}
 ./installhelper.sh %{buildroot} --release
 # Install the background delete python module.
 cd %{_builddir}/%{name}-%{version}-%{_s3_git_ver}/s3backgrounddelete
+python%{py_ver} setup.py install --single-version-externally-managed -O1 --root=$RPM_BUILD_ROOT
+cd %{_builddir}/%{name}-%{version}-%{_s3_git_ver}/s3recovery
 python%{py_ver} setup.py install --single-version-externally-managed -O1 --root=$RPM_BUILD_ROOT
 
 %clean
@@ -137,7 +168,7 @@ rm -rf %{buildroot}
 %config(noreplace) /opt/seagate/cortx/s3/conf/s3config.yaml
 %config(noreplace) /opt/seagate/cortx/s3/conf/s3server_audit_log.properties
 %config(noreplace) /opt/seagate/cortx/s3/conf/s3_obj_layout_mapping.yaml
-%config(noreplace) /opt/seagate/cortx/s3/conf/s3stats-whitelist.yaml
+%config(noreplace) /opt/seagate/cortx/s3/conf/s3stats-allowlist.yaml
 %config(noreplace) /opt/seagate/cortx/auth/resources/defaultAclTemplate.xml
 %config(noreplace) /opt/seagate/cortx/auth/resources/AmazonS3.xsd
 %config(noreplace) /opt/seagate/cortx/s3/s3backgrounddelete/config.yaml
@@ -182,7 +213,7 @@ rm -rf %{buildroot}
 /opt/seagate/cortx/s3/docs/openldap_backup_readme
 /opt/seagate/cortx/s3/docs/s3_log_rotation_guide.txt
 /opt/seagate/cortx/s3/addb-plugin/libs3addbplugin.so
-/opt/seagate/cortx/s3/bin/cloviskvscli
+/opt/seagate/cortx/s3/bin/motrkvscli
 /opt/seagate/cortx/s3/bin/s3server
 /opt/seagate/cortx/s3/libevent/libevent-2.1.so.6
 /opt/seagate/cortx/s3/libevent/libevent-2.1.so.6.0.4
@@ -227,6 +258,8 @@ rm -rf %{buildroot}
 /opt/seagate/cortx/s3/install/ldap/syncprov.ldif
 /opt/seagate/cortx/s3/install/ldap/replicate.ldif
 /opt/seagate/cortx/s3/install/ldap/check_ldap_replication.sh
+/opt/seagate/cortx/s3/install/ldap/test_data.ldif
+/opt/seagate/cortx/s3/install/ldap/run_check_ldap_replication_in_loop.sh
 /opt/seagate/cortx/s3/install/ldap/create_replication_account.ldif
 /opt/seagate/cortx/s3/install/ldap/replication/syncprov_mod.ldif
 /opt/seagate/cortx/s3/install/ldap/replication/olcserverid.ldif
@@ -234,12 +267,16 @@ rm -rf %{buildroot}
 /opt/seagate/cortx/s3/install/ldap/replication/data.ldif
 /opt/seagate/cortx/s3/install/ldap/replication/config.ldif
 /opt/seagate/cortx/s3/install/ldap/replication/syncprov_config.ldif
+/opt/seagate/cortx/s3/install/ldap/replication/deltaReplication.ldif
 /opt/seagate/cortx/s3/install/ldap/slapdlog.ldif
 /opt/seagate/cortx/s3/install/ldap/s3slapdindex.ldif
 /opt/seagate/cortx/s3/install/ldap/rsyslog.d/slapdlog.conf
 /opt/seagate/cortx/s3/install/ldap/background_delete_account.ldif
 /opt/seagate/cortx/s3/install/ldap/create_background_delete_account.sh
 /opt/seagate/cortx/s3/install/ldap/delete_background_delete_account.sh
+/opt/seagate/cortx/s3/install/ldap/s3_recovery_account.ldif
+/opt/seagate/cortx/s3/install/ldap/create_s3_recovery_account.sh
+/opt/seagate/cortx/s3/install/ldap/delete_s3_recovery_account.sh
 /opt/seagate/cortx/s3/install/ldap/cfg_ldap.ldif
 /opt/seagate/cortx/s3/install/ldap/cn={1}s3user.ldif
 /opt/seagate/cortx/s3/install/ldap/iam-admin-access.ldif
@@ -258,21 +295,29 @@ rm -rf %{buildroot}
 /opt/seagate/cortx/s3/reset/reset_s3.sh
 /opt/seagate/cortx/s3/conf/setup.yaml
 /opt/seagate/cortx/s3/s3datarecovery/s3_data_recovery.sh
+/opt/seagate/cortx/datarecovery/orchastrator.sh
 %attr(755, root, root) /opt/seagate/cortx/s3/bin/s3_setup
 %attr(755, root, root) /opt/seagate/cortx/s3/s3backgrounddelete/s3backgroundconsumer
 %attr(755, root, root) /opt/seagate/cortx/s3/s3backgrounddelete/s3backgroundproducer
+%attr(755, root, root) /opt/seagate/cortx/s3/s3datarecovery/s3recovery
 /etc/rsyslog.d/rsyslog-tcp-audit.conf
 /etc/rsyslog.d/elasticsearch.conf
-/etc/keepalived/keepalived.conf.master
+/etc/keepalived/keepalived.conf.main
 /etc/logrotate.d/s3auditlog
 %{_bindir}/s3backgroundconsumer
 %{_bindir}/s3backgroundproducer
+%{_bindir}/s3recovery
 %{py36_sitelib}/s3backgrounddelete/config/*.yaml
 %{py36_sitelib}/s3backgrounddelete/*.pyc
 %{py36_sitelib}/s3backgrounddelete-%{version}-py?.?.egg-info
+%{py36_sitelib}/s3recovery/*.pyc
+%{py36_sitelib}/s3recovery-%{version}-py?.?.egg-info
 %exclude %{py36_sitelib}/s3backgrounddelete/__pycache__/*
+%exclude %{py36_sitelib}/s3recovery/__pycache__/*
 %exclude %{py36_sitelib}/s3backgrounddelete/*.py
+%exclude %{py36_sitelib}/s3recovery/*.py
 %exclude %{py36_sitelib}/s3backgrounddelete/s3backgroundconsumer
+%exclude %{py36_sitelib}/s3recovery/s3recovery
 %exclude %{py36_sitelib}/s3backgrounddelete/s3backgroundproducer
 %exclude /opt/seagate/cortx/s3/reset/precheck.pyc
 %exclude /opt/seagate/cortx/s3/reset/precheck.pyo

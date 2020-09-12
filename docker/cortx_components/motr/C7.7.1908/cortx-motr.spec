@@ -25,9 +25,9 @@
 %define lustre         lustre-client
 %define lustre_devel   lustre-client-devel
 
-# workaround issue with mero-debuginfo package, which injects incorrect
-# dependencies on itself into mero package when internal deps generator is used;
-# that prevents a correct installation of any of the built mero packages without
+# workaround issue with motr-debuginfo package, which injects incorrect
+# dependencies on itself into motr package when internal deps generator is used;
+# that prevents a correct installation of any of the built motr packages without
 # using '--no-deps' option
 %global _use_internal_dependency_generator 0
 %define _use_internal_dependency_generator 0
@@ -45,9 +45,9 @@
 %define  configure_opts  %{configure_release_opts} %{?configure_cassandra_opts}
 %endif
 
-Name:           111
-Version:        111
-Release:        %{build_num}_111_%{kernel_ver}%{?dist}
+Name:           @PACKAGE@
+Version:        @PACKAGE_VERSION@
+Release:        %{build_num}_@GIT_REV_ID_RPM@_%{kernel_ver}%{?dist}
 Summary:        CORTX Motr
 Group:          System Environment/Base
 License:        Seagate
@@ -59,10 +59,10 @@ Provides:       %{name}-modules = %{version}-%{release}
 # backward compatibility with legacy product name:
 Obsoletes:      mero
 Obsoletes:      eos-core
-Provides:       mero = %{version}-%{release}
-Provides:       mero(x86-64) = %{version}-%{release}
-Provides:       mero-libs = %{version}-%{release}
-Provides:       mero-modules = %{version}-%{release}
+Provides:       motr = %{version}-%{release}
+Provides:       motr(x86-64) = %{version}-%{release}
+Provides:       motr-libs = %{version}-%{release}
+Provides:       motr-modules = %{version}-%{release}
 
 BuildRequires:  automake
 BuildRequires:  autoconf
@@ -129,7 +129,7 @@ Provides: %{name}-devel = %{version}-%{release}
 # backward compatibility with legacy product name:
 Obsoletes: mero-devel
 Obsoletes: eos-core-devel
-Provides: mero-devel = %{version}-%{release}
+Provides: motr-devel = %{version}-%{release}
 Requires: binutils-devel
 Requires: libyaml-devel
 Requires: libaio-devel
@@ -167,8 +167,8 @@ rm -rf %{buildroot}
 
 make DESTDIR=%{buildroot} install-tests
 
-find %{buildroot} -name m0tr.ko -o -name m0ut.ko -o -name m0loop-ut.ko \
-    -o -name galois.ko | sed -e 's#^%{buildroot}##' > tests-ut.files
+find %{buildroot} -name m0tr.ko -o -name m0ut.ko -o -name galois.ko \
+	     | sed -e 's#^%{buildroot}##' > tests-ut.files
 
 find %{buildroot} \
         -name m0ut \
@@ -238,7 +238,6 @@ fi
 %exclude %{_libdir}/libmotr-xcode-ff2c*
 %exclude %{_libdir}/pkgconfig/
 %exclude %{_mandir}/**/m0gccxml2xcode*
-%exclude /lib/modules/*/kernel/fs/motr/clovis*
 %exclude /lib/modules/*/kernel/fs/motr/m0lnet*
 %exclude /lib/modules/*/kernel/fs/motr/m0net*
 %exclude /lib/modules/*/kernel/fs/motr/m0rpc*
@@ -269,8 +268,8 @@ getent passwd motr >/dev/null || useradd --system --shell /sbin/nologin \
 systemctl daemon-reload
 
 if [ x%%{?no_trace_logs} != x ] ; then
-    /bin/sed -i -r -e "s/(MERO_TRACED_KMOD=)yes/\1no/" /etc/sysconfig/motr
-    /bin/sed -i -r -e "s/(MERO_TRACED_M0D=)yes/\1no/" /etc/sysconfig/motr
+    /bin/sed -i -r -e "s/(MOTR_TRACED_KMOD=)yes/\1no/" /etc/sysconfig/motr
+    /bin/sed -i -r -e "s/(MOTR_TRACED_M0D=)yes/\1no/" /etc/sysconfig/motr
 fi
 
 # when doing an upgrade
