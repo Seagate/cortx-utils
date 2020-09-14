@@ -45,7 +45,8 @@ declare -A COMPONENT_LIST=(
 [cortx-ha]="https://$GIT_CRED@github.com/Seagate/cortx-ha.git"
 [cortx-prvsnr]="https://$GIT_CRED@github.com/Seagate/cortx-prvsnr.git"
 [cortx-sspl]="https://$GIT_CRED@github.com/Seagate/cortx-sspl.git"
-[cortx-csm_agent]="https://$GIT_CRED@github.com/Seagate/cortx-csm.git"
+[cortx-csm_agent]="https://$GIT_CRED@github.com/Seagate/cortx-manager.git"
+[cortx-csm-web]="https://$GIT_CRED@github.com/Seagate/cortx-management-portal.git"
 [cortx-fs]="https://$GIT_CRED@github.com/Seagate/cortx-posix.git"
 )
 
@@ -77,7 +78,7 @@ do
                 if [ $component == cortx-hare ] || [ $component == cortx-sspl ] || [ $component == cortx-ha ] || [ $component == cortx-fs ]; then
                         start_hash=$(grep $component start_build_manifest.txt | head -1 | awk -F['_'] '{print $2}' | cut -d. -f1 |  sed 's/git//g'); echo $start_hash
                         target_hash=$(grep $component target_build_manifest.txt | head -1 | awk -F['_'] '{print $2}' | cut -d. -f1 |  sed 's/git//g'); echo $target_hash
-                elif [ $component == cortx-csm_agent ]; then
+                elif [ "$component" == "cortx-csm_agent" ] || [ "$component" == "cortx-csm-web" ]; then
                         start_hash=$(grep $component start_build_manifest.txt | head -1 | awk -F['_'] '{print $3}' |  cut -d. -f1); echo $start_hash
                         target_hash=$(grep $component target_build_manifest.txt | head -1 | awk -F['_'] '{print $3}' |  cut -d. -f1); echo $target_hash
                 else
