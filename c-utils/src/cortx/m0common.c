@@ -128,7 +128,7 @@ int m0init(struct collection_item *cfg_items)
 
 	/* Important note:
 	 * The autoshun key should be registered before
-	 * initializing M0. The autoshun-key hack relies on
+	 * initializing M0. The autoshun-key (a temporary workaround) relies on
 	 * the internal representation of POSIX TLS in the glibc.
 	 */
 	(void) pthread_once(&autoshun_key_init_once, autoshun_key_init);
