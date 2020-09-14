@@ -1,0 +1,91 @@
+pipeline {
+	agent {
+		node {
+			label 'docker-rhel7.7.1908-csm-cortx-node'
+		}
+	}
+	
+	parameters {  
+        string(name: 'CSM_AGENT_URL', defaultValue: 'https://github.com/Seagate/cortx-management.git', description: 'Branch for Provisioner.')
+		string(name: 'CSM_AGENT_BRANCH', defaultValue: 'main', description: 'Branch for Provisioner.')
+	}	
+
+	environment {      
+        env="dev"
+		component="csm-agent"
+        branch="main"
+        os_version="rhel-7.7.1908"
+        release_dir="/mnt/bigstorage/releases/eos"
+        build_upload_dir="$release_dir/components/github/opensource/$branch/$os_version/$env/$component/"
+    }
+
+	options {
+		timeout(time: 60, unit: 'MINUTES')
+		timestamps ()
+        ansiColor('xterm')
+        disableConcurrentBuilds()
+	}
+	
+	stages {
+
+		stage('Checkout') {
+			steps {
+				script { build_stage=env.STAGE_NAME }
+
+				checkout([$class: 'GitSCM', branches: [[name: '${CSM_AGENT_BRANCH}']], doGenerateSubmoduleConfigurations: false,  extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: true, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: '${CSM_AGENT_URL}']]])
+			}
+		}
+		
+		stage('Install Dependencies') {
+			steps {
+				script { build_stage=env.STAGE_NAME }
+				sh label: '', script: '''
+					yum install -y eos-py-utils cortx-prvsnr
+					pip3.6 install  pyinstaller==3.5
+				'''
+			}
+		}	
+		
+		stage('Build') {
+			steps {
+				script { build_stage=env.STAGE_NAME }
+				sh label: 'Build', script: '''
+					BUILD=$(git rev-parse --short HEAD)
+					VERSION=$(cat $WORKSPACE/VERSION)
+					./cicd/build.sh -v $VERSION -b $BUILD_NUMBER -t -i
+				'''	
+			}
+		}
+		
+		stage ('Upload') {
+			steps {
+				script { build_stage=env.STAGE_NAME }
+				sh label: 'Copy RPMS', script: '''
+					mkdir -p $build_upload_dir/$BUILD_NUMBER
+					cp ./dist/rpmbuild/RPMS/x86_64/*.rpm $build_upload_dir/$BUILD_NUMBER
+				'''
+				sh label: 'Repo Creation', script: '''pushd $build_upload_dir/$BUILD_NUMBER
+					rpm -qi createrepo || yum install -y createrepo
+					createrepo .
+					popd
+				'''
+				sh label: 'Tag last_successful', script: '''pushd $build_upload_dir/
+					test -d $build_upload_dir/last_successful && rm -f last_successful
+					ln -s $build_upload_dir/$BUILD_NUMBER last_successful
+					popd
+				'''
+			}
+		}
+
+		stage ('Tag last_successful') {
+			steps {
+				script { build_stage=env.STAGE_NAME }
+				sh label: 'Tag last_successful', script: '''pushd $build_upload_dir/
+					test -d $build_upload_dir/last_successful && rm -f last_successful
+					ln -s $build_upload_dir/$BUILD_NUMBER last_successful
+					popd
+				'''
+			}
+		}
+	}
+}
