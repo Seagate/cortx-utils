@@ -88,10 +88,21 @@ enum perfc_subtags {
 /* TODO: move it into submodules */
 
 enum perfc_cfs {
+	PERFC_CFS_START, /** valid counters must be greater than this value */
 	PERFC_CFS_MKDIR_BEGIN,
 	PERFC_CFS_MKDIR_END,
 	PERFC_CFS_WRITE_BEGIN,
 	PERFC_CFS_WRITE_END,
+	PERFC_CFS_READ_BEGIN,
+	PERFC_CFS_READ_END,
+	PERFC_CFS_OPEN_BEGIN,
+	PERFC_CFS_OPEN_END,
+	PERFC_CFS_LOOKUP_BEGIN,
+	PERFC_CFS_LOOKUP_END,
+	PERFC_CFS_READDIR_BEGIN,
+	PERFC_CFS_READDIR_END,
+	/** TODO: Add future counters here */
+	PERFC_CFS_END /** valid counters must be less than this value  */
 };
 
 enum perfc_nsal {
