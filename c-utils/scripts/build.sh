@@ -28,9 +28,8 @@ CORTX_UTILS_VERSION=${CORTX_UTILS_VERSION:-"$(cat $CORTX_UTILS_SOURCE_ROOT/VERSI
 
 
 # Select CORTX-UTILS Build Version.
-# Superproject: derived from cortx-utils version.
-# Local: taken from git rev.
-CORTX_UTILS_BUILD_VERSION=${CORTXFS_BUILD_VERSION:-"$(git rev-parse --short HEAD)"}
+# Taken from git rev of cortx-utils repo.
+CORTX_UTILS_BUILD_VERSION=$(git -C $CORTX_UTILS_SOURCE_ROOT rev-parse --short HEAD)
 
 ###############################################################################
 # Local variables
