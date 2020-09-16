@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * For any questions about this software or licensing,
- * please email opensource@seagate.com or cortx-questions@seagate.com. 
+ * please email opensource@seagate.com or cortx-questions@seagate.com.
  */
 
 #ifndef _HELPERS_H
@@ -203,39 +203,6 @@ enum io_type {
 #define CONF_STR_LEN 100
 
 ssize_t m0store_get_bsize(struct m0_uint128 id);
-
-ssize_t m0store_do_io(struct m0_uint128 id, enum io_type iotype, off_t x,
-		      size_t len, size_t bs, char *buff);
-
-/* Deallocates space allocated for `fid` in the range specified by
- * `count` and `offset` -- the first deallocated byte is fid[offset]
- * and the last deallocated byte is fid[offset + count - 1].
- * If the range is not properly aligned with the block size of the
- * underlying storage then either block space is filled with zeros (1) or
- * block is deleted (2), or both (1+2).
- *
- *  1.     | block1 | block2 | <- no deallocations
- *	      |00000| <- added zeros instead of data
- *
- *  2.     | block1 | block2 | < block2 is deallocated
- *                  |   |
- *
- *  1+2.   | block1 | block2 | <- block2 is deallocated
- *            |00000    | <- AND zeros instead of data for block1
- */
-int m0_file_unmap(struct m0_uint128 fid, size_t count, off_t offset);
-
-static inline ssize_t m0store_pwrite(struct m0_uint128 id, off_t x,
-				     size_t len, size_t bs, char *buff)
-{
-	return m0store_do_io(id, IO_WRITE, x, len, bs, buff);
-}
-
-static inline ssize_t m0store_pread(struct m0_uint128 id, off_t x,
-				    size_t len, size_t bs, char *buff)
-{
-	return m0store_do_io(id, IO_READ, x, len, bs, buff);
-}
 
 static inline void m0_fid_copy(struct m0_uint128 *src, struct m0_uint128 *dest)
 {
