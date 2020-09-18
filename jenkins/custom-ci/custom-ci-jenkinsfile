@@ -9,7 +9,7 @@ pipeline {
 	environment {
 		branch="main"
 		os_version="rhel-7.7.1908"
-		release_dir="/mnt/bigstorage/releases/eos"
+		release_dir="/mnt/bigstorage/releases/cortx"
         integration_dir="$release_dir/github/integration-custom-ci/release/$os_version"
         components_dir="$release_dir/components/github/custom-ci/release/$os_version"
         release_tag="custom-build-$BUILD_ID"
@@ -47,7 +47,7 @@ pipeline {
 		
 		choice(
             name: 'OTHER_COMPONENT_BRANCH', 
-            choices: ['dev', 'release', 'Cortx-v1.0.0_Beta'],
+            choices: ['dev', 'release', 'Cortx-v1.0.0_Beta', 'cortx-1.0'],
             description: 'Branch name to pick-up other components rpms'
         )  
 
@@ -158,19 +158,21 @@ pipeline {
                 script { build_stage=env.STAGE_NAME }
                 sh label: 'Copy RPMS', script:'''
 				  if [ "$OTHER_COMPONENT_BRANCH" == "release"  ]; then
-					RPM_COPY_PATH="/mnt/bigstorage/releases/eos/components/github/release/$os_version/dev/"
+					RPM_COPY_PATH="/mnt/bigstorage/releases/cortx/components/github/release/$os_version/dev/"
 				  elif [ "$OTHER_COMPONENT_BRANCH" == "dev"  ]; then
-						RPM_COPY_PATH="/mnt/bigstorage/releases/eos/components/github/release/$os_version/dev/"
+						RPM_COPY_PATH="/mnt/bigstorage/releases/cortx/components/github/release/$os_version/dev/"
 				  elif [ "$OTHER_COMPONENT_BRANCH" == "Cortx-v1.0.0_Beta"  ]; then
-						RPM_COPY_PATH="/mnt/bigstorage/releases/eos/components/github/Cortx-v1.0.0_Beta/$os_version/dev/"
+						RPM_COPY_PATH="/mnt/bigstorage/releases/cortx/components/github/Cortx-v1.0.0_Beta/$os_version/dev/"
+				  elif [ "$OTHER_COMPONENT_BRANCH" == "cortx-1.0"  ]; then
+						RPM_COPY_PATH="/mnt/bigstorage/releases/cortx/components/github/cortx-1.0/$os_version/dev/"		
 				  else
-						RPM_COPY_PATH="/mnt/bigstorage/releases/eos/components/github/custom-ci/release/$os_version/dev"
+						RPM_COPY_PATH="/mnt/bigstorage/releases/cortx/components/github/custom-ci/release/$os_version/dev"
 				  fi
 					
-					if [ "$CSM_BRANCH" == "dev" ] || [ "$CSM_BRANCH" == "release" ]; then
-					CUSTOM_COMPONENT_NAME="motr|s3server|hare|cortx-ha|provisioner|csm-agent|csm-web|sspl"
-					else
+					if [ "$CSM_BRANCH" == ""Cortx-v1.0.0_Beta"" ]; then
 					CUSTOM_COMPONENT_NAME="motr|s3server|hare|cortx-ha|provisioner|csm|sspl"
+					else
+					CUSTOM_COMPONENT_NAME="motr|s3server|hare|cortx-ha|provisioner|csm-agent|csm-web|sspl"
 					fi
 					
                     for env in "dev" ;

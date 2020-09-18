@@ -8,7 +8,7 @@ pipeline {
 	
 	environment {
 		os_version="rhel-7.7.1908"
-		release_dir="/mnt/bigstorage/releases/eos"
+		release_dir="/mnt/bigstorage/releases/cortx"
         integration_dir="$release_dir/github/opensource/$branch/$os_version"
         components_dir="$release_dir/components/github/opensource/$branch/$os_version"
         release_tag="cortx-1.0-$BUILD_ID"
@@ -73,7 +73,7 @@ pipeline {
 						build job: 'management-web', wait: true,
 								parameters: [
 								string(name: 'CSM_WEB_URL', value: "https://github.com/Seagate/cortx-management-web"),
-								string(name: 'CSM_WEB_BRANCH', value: "release")
+								string(name: 'CSM_WEB_BRANCH', value: "${BRANCH}")
 								]	
 					}
 				}
@@ -85,7 +85,7 @@ pipeline {
 						build job: 'management', wait: true,
 								parameters: [
 								string(name: 'CSM_AGENT_URL', value: "https://github.com/Seagate/cortx-management/"),
-								string(name: 'CSM_AGENT_BRANCH', value: "release")
+								string(name: 'CSM_AGENT_BRANCH', value: "${BRANCH}")
 								]
 					}
 				}
@@ -107,7 +107,7 @@ pipeline {
 						build job: 'nfs', wait: true,
 						parameters: [
 									string(name: 'NFS_URL', value: "https://github.com/Seagate/cortx-posix"),
-									string(name: 'NFS_BRANCH', value: "dev")
+									string(name: 'NFS_BRANCH', value: "${BRANCH}")
 								]
 					}
 				}
