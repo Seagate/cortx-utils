@@ -1,0 +1,150 @@
+# 
+# HA Specification v1.0 
+# This is a template for defining HA behaviour for a component in JSON format.
+#
+# Note: 
+# 1. This contains comments, hence can not be validated with JSON validator.
+#    There are few ways to deal with this
+#    (a) Remove comments before preparing for HA spec
+#    (b) Remove comments before passing through JSON validator
+#        $ sed '/#.*$/d' /my/spec/file
+#    (c) Pass this through HA compiler with '-v' which removes comments and validates
+#        $ hac -v /my/spec/file
+#
+# 2. Names, e.g. "Component" and "Resource" names are case sensitive. 
+#
+{
+    # Component:
+    # This is equivalent to CORTX components, e.g. csm, sspl, etc.
+    "<component>": {
+
+        # Resource:
+        # Component resources e.g. CsmAgent, CsmWeb are described here
+        "<resource>": {
+
+            # Parameters: (optional)
+            # List of resource parameters/values, if required.
+            # Example: "ip":"<ip address>" (in case of vip resource)
+            "parameters": {
+                "<key1>": "<value1>",
+                "<key2>": "<value2>"
+            },
+
+            # Group:
+            # Resource Group, e.g. "management", "io", "common", etc
+            "group": "<name>",
+
+            # Provider:
+            # Resource provider which controls/monitors the resource
+            "provider": {
+
+                # Provider Name:
+                # Name of the provider which controls/monitors resource
+                # Examples:
+                # - "systemd:csm_agent" (csm agent is systemd service)
+                # - "ocf:sspl:sspl" (sspl is resource agent)
+                "name": "<resource provider name>",
+
+                # Service Name:
+                # Name of the service/process e.g. "csm_agent"
+                # related to the resource
+                "service": "<service name>",
+
+                # Monitor Interval:
+                # Service control intervals for monitor.
+                # Example:
+                # "interval": "10s"
+                "interval": "<monitor interval>",
+
+                # Timeouts:
+                # Service timeouts for start, monitor, stop, resp.
+                # Beyond these timeouts, resource will go to fail state
+                # Example:
+                # "timeouts": [ "20s", "20s", "20s" ]
+                "timeouts": [ "<start>s", "<monitor>s", "<stop>s" ]
+            },
+
+            # Dependencies:
+            # Resource constraints, i.e. dependency, colocation, etc
+            "dependencies": {
+
+                # Predecessors:
+                # List of related resources on which this resource depends on.
+                # Rules:
+                # 1. Dependent resources will start before this resource
+                # 2. If dependent resource fails, then this resource fails
+                # 3. Avoid cyclic dependency
+                # 4. Avoid dependency to a non-existent resource
+                # Example:
+                # "predecessors": ["elasticsearch", "kibana"]
+                "predecessors" : [ "<resource>", "<resource>" ],
+
+                # Colocation:
+                # List of resources which are dependent and on same node.
+                # all resource in colocation runs on the same node.
+                # "colocation": ["elasticsearch", "kibana"]
+                "colocation" : [ "<resource>", "<resource>" ],
+
+                # Relation:
+                # List of resource which are related to this resource but not
+                # dependent on it. It has Soft dependency where given resource
+                # will not fail if relation resource is failed.
+                "relation" : [ "statsd" ]
+            },
+
+            # HA Related Attributes:
+            # List of attributes describing HA behavior
+            "ha": {
+
+                # Mode:
+                # HA failover mode. It can be one of the following:
+                # "active_passive", "active_active", "primary_secondary"
+                "mode": "<HA mode>",
+
+                # Clone Information:
+                # Required only for Active-Active and Primary-Secondary
+                "clones" : {
+
+                    # Active Count:
+                    # Only if resource is active_active and primary_secondary
+                    # Max no. of process/primary instance running on node/cluster
+                    # - max-clone-on-node: how many instances can be run on same node
+                    # - total-clone: how many total instances can be run on the cluster
+                    "active": ["<max-clone-on-node>", "<total-clone>"],
+
+                    # Primary Count
+                    # - max-primary-on-node: how many primary can be run on same node
+                    # - total-primary: how many total primary can be run on the cluster
+                    "primary": ["<max-primary-on-node>", "<total-primary>"],
+
+                    # Parameters:
+                    # Parameters to be used for clone instances, if any
+                    "parameters": {
+                        "<key1>": "<value1>",
+                        "<key2>": "<value2>"
+                    }
+                },
+
+                # Location:
+                # Location Affinity description, which includes list of nodes
+                # Location constraint defines on which server a resource should be loaded.
+                # It can also use it to define locations where the resource may never be loaded.
+                # with priority (higher has more affinity)
+                "location": {
+
+                    # It is score for node it can be any number like 1000 or INFINITY
+                    # It is useful if resource want one node with high priority
+                    # If both node want same priority then use INFINITY
+                    # INFINITY: service must start
+                    # -INFINITY: service must not start
+                    # Inbetween value: May or may not start
+                    # Example:
+                    # "node1": "5000",
+                    # "node2": "100"
+                    "$node1": "<priority1>",
+                    "$node2": "<priority2>"
+                }
+            }
+        }
+    }
+}

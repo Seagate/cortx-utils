@@ -1,0 +1,78 @@
+{
+    "lnet": {
+        "lnet": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:lnet",
+                "service": "lnet",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : [],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_active",
+                "clones" : {
+                    "active": [ 1, 2]
+                },
+                "location": {
+                    "${HA_nodes_cortxnode1}": "INFINITY",
+                    "${HA_nodes_cortxnode2}": "INFINITY"
+                }
+            }
+        },
+        "lnet-c1": {
+            "group": "io",
+            "parameters": {
+                "iface": "${HA_io_lnet1_iface}",
+                "nettype": "${HA_io_lnet1_nettype}"
+            },
+            "provider": {
+                "name": "ocf:seagate:lnet",
+                "service": "lnet",
+                "interval": "30s",
+                "timeouts": [ "30s", "30s", "30s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["ip-c1", "ip-c2"],
+                "colocation" : ["ip-c1"],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "INFINITY",
+                    "${HA_nodes_cortxnode2}": "1000"
+                }
+            }
+        },
+        "lnet-c2": {
+            "group": "io",
+            "parameters": {
+                "iface": "${HA_io_lnet2_iface}",
+                "nettype": "${HA_io_lnet2_nettype}"
+            },
+            "provider": {
+                "name": "ocf:seagate:lnet",
+                "service": "lnet",
+                "interval": "30s",
+                "timeouts": [ "30s", "30s", "30s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["ip-c1", "ip-c2"],
+                "colocation" : ["ip-c2"],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "1000",
+                    "${HA_nodes_cortxnode2}": "INFINITY"
+                }
+            }
+        }
+    }
+}

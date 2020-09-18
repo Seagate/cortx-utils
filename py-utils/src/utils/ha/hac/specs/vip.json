@@ -1,0 +1,84 @@
+{
+    "vip": {
+        "kibana-vip": {
+            "group": "common",
+            "parameters": {
+                "ip": "${HA_management_vip_ip}",
+                "nic": "${HA_management_vip_nic}",
+                "cidr_netmask": "${HA_management_vip_netmask}"
+            },
+            "provider": {
+                "name": "ocf:heartbeat:IPaddr2",
+                "service": "vip",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["csm-web"],
+                "colocation" : ["csm-web"],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "INFINITY",
+                    "${HA_nodes_cortxnode2}": "INFINITY"
+                }
+            }
+        },
+        "ip-c1": {
+            "group": "common",
+            "parameters": {
+                "ip": "${HA_io_vip1_ip}",
+                "nic": "${HA_io_vip1_nic}",
+                "cidr_netmask": "${HA_io_vip1_netmask}",
+                "iflabel": "${HA_io_vip1_iflabel}"
+            },
+            "provider": {
+                "name": "ocf:heartbeat:IPaddr2",
+                "service": "vip",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["lnet"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "INFINITY",
+                    "${HA_nodes_cortxnode2}": "1000"
+                }
+            }
+        },
+        "ip-c2": {
+            "group": "common",
+            "parameters": {
+                "ip": "${HA_io_vip2_ip}",
+                "nic": "${HA_io_vip2_nic}",
+                "cidr_netmask": "${HA_io_vip2_netmask}",
+                "iflabel": "${HA_io_vip2_iflabel}"
+            },
+            "provider": {
+                "name": "ocf:heartbeat:IPaddr2",
+                "service": "vip",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["lnet"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "1000",
+                    "${HA_nodes_cortxnode2}": "INFINITY"
+                }
+            }
+        }
+    }
+}

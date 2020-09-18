@@ -1,0 +1,76 @@
+{
+    "s3": {
+        "s3auth": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:s3authserver",
+                "service": "s3authserver",
+                "interval": "30s",
+                "timeouts": [ "30s", "30s", "30s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["ldap"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_active",
+                "clones" : {
+                    "active": [ 1, 2]
+                },
+                "location": {
+                    "${HA_nodes_cortxnode1}": "INFINITY",
+                    "${HA_nodes_cortxnode2}": "INFINITY"
+                }
+            }
+        },
+        "s3backcons": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:s3backgroundconsumer",
+                "service": "s3backgroundconsumer",
+                "interval": "30s",
+                "timeouts": [ "30s", "30s", "30s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["rabbitmq"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_active",
+                "clones" : {
+                    "active": [ 1, 2]
+                },
+                "location": {
+                    "${HA_nodes_cortxnode1}": "INFINITY",
+                    "${HA_nodes_cortxnode2}": "INFINITY"
+                }
+            }
+        },
+        "s3backprod": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:s3backgroundproducer",
+                "service": "s3backgroundproducer",
+                "interval": "30s",
+                "timeouts": [ "30s", "30s", "30s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["rabbitmq"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_active",
+                "clones" : {
+                    "active": [ 1, 2]
+                },
+                "location": {
+                    "${HA_nodes_cortxnode1}": "INFINITY",
+                    "${HA_nodes_cortxnode2}": "INFINITY"
+                }
+            }
+        }
+    }
+}

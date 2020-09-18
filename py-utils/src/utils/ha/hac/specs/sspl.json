@@ -1,0 +1,29 @@
+{
+    "sspl": {
+        "sspl": {
+            "group": "management",
+            "provider": {
+                "name": "ocf:seagate:sspl_stateful_resource_agent",
+                "service": "sspl",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["consul-c1", "rabbitmq"],
+                "colocation" : ["consul-c1"],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "primary_secondary",
+                "clones" : {
+                    "active": [ 1, 2 ],
+                    "primary": [ 1, 1 ]
+                },
+                "location": {
+                    "${HA_nodes_cortxnode1}": "INFINITY",
+                    "${HA_nodes_cortxnode2}": "INFINITY"
+                }
+            }
+        }
+    }
+}

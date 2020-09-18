@@ -1,0 +1,28 @@
+{
+    "ldap": {
+        "ldap": {
+            "group": "common",
+            "provider": {
+                "name": "systemd:slapd",
+                "service": "sladap",
+                "interval": "30s",
+                "timeouts": [ "30s", "30s", "30s" ]
+            },
+            "dependencies": {
+                "predecessors" : [],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_active",
+                "clones" : {
+                    "active": [ 1, 2]
+                },
+                "location": {
+                    "${HA_nodes_cortxnode1}": "INFINITY",
+                    "${HA_nodes_cortxnode2}": "INFINITY"
+                }
+            }
+        }
+    }
+}

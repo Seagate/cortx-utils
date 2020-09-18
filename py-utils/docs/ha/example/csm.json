@@ -1,0 +1,46 @@
+{
+    "csm": {
+        "CsmAgent": {
+            "group": "management",
+            "provider": {
+                "name": "systemd:csm_agent",
+                "service": "csm_agent",
+                "interval": "10s",
+                "timeouts": [ "20s", "20s", "20s" ]
+            },
+            "dependencies": {
+                "predecessors" : [ "Elasticsearch", "Kibana" ],
+                "colocation" : [ "Elasticsearch", "Kibana" ],
+                "relation" : [ "Statsd" ]
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "node1": "INFINITY",
+                    "node2": "INFINITY"
+                }
+            }
+        },
+        "CsmWeb": {
+            "group": "management",
+            "provider": {
+                "name": "systemd:csm_web",
+                "service": "csm_web",
+                "interval": "10s",
+                "timeouts": [ "20s", "20s", "20s" ]
+            },
+            "dependencies": {
+                "predecessors" : [ "CsmAgent" ],
+                "colocation" : [ "CsmAgent" ],
+                "relation" : [ ]
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "node1": "INFINITY",
+                    "node2": "INFINITY"
+                }
+            }
+        }
+    }
+}

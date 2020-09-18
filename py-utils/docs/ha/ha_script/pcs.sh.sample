@@ -1,0 +1,73 @@
+#!/bin/bash
+
+# CORTX-Py-Utils: CORTX Python common library.
+# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published
+# by the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+# For any questions about this software or licensing,
+# please email opensource@seagate.com or cortx-questions@seagate.com.
+
+pcs cluster cib cortxcluster_cfg
+
+# Create Resource
+pcs -f cortxcluster_cfg resource create Kibana systemd:kabana  meta failure-timeout=10s op monitor timeout=10s interval=10s op start timeout=10s op stop timeout=10s
+
+pcs -f cortxcluster_cfg resource create Elasticsearch systemd:elasticsearch  meta failure-timeout=10s op monitor timeout=10s interval=10s op start timeout=10s op stop timeout=10s
+pcs -f cortxcluster_cfg resource clone Elasticsearch clone-max=2 clone-node-max=1 
+
+pcs -f cortxcluster_cfg resource create RabbitMQ systemd:rabbitmq-server  meta failure-timeout=10s op monitor timeout=10s interval=10s op start timeout=10s op stop timeout=10s
+pcs -f cortxcluster_cfg resource clone RabbitMQ clone-max=2 clone-node-max=1 
+
+pcs -f cortxcluster_cfg resource create Sspl systemd:sspl  meta failure-timeout=10s op monitor timeout=10s interval=10s op start timeout=10s op stop timeout=10s
+pcs -f cortxcluster_cfg resource clone Sspl clone-max=2 clone-node-max=1 primary-max=1 primary-node-max=1 
+
+pcs -f cortxcluster_cfg resource create Statsd systemd:stats  meta failure-timeout=10s op monitor timeout=10s interval=10s op start timeout=10s op stop timeout=10s
+pcs -f cortxcluster_cfg resource clone Statsd clone-max=2 clone-node-max=1 
+
+pcs -f cortxcluster_cfg resource create CsmVip ocf:heartbeat:IPaddr2 ip=29.22.2.34  meta failure-timeout=10s op monitor timeout=10s interval=10s op start timeout=10s op stop timeout=10s
+
+pcs -f cortxcluster_cfg resource create CsmAgent systemd:csm_agent  meta failure-timeout=10s op monitor timeout=20s interval=10s op start timeout=20s op stop timeout=20s
+
+pcs -f cortxcluster_cfg resource create CsmWeb systemd:csm_web  meta failure-timeout=10s op monitor timeout=20s interval=10s op start timeout=20s op stop timeout=20s
+
+
+
+#Location
+pcs -f cortxcluster_cfg constraint location Kibana prefers node1=INFINITY
+pcs -f cortxcluster_cfg constraint location Elasticsearch-clone prefers node1=INFINITY
+pcs -f cortxcluster_cfg constraint location RabbitMQ-clone prefers node1=INFINITY
+pcs -f cortxcluster_cfg constraint location Sspl-clone prefers node1=INFINITY
+pcs -f cortxcluster_cfg constraint location Statsd-clone prefers node1=INFINITY
+pcs -f cortxcluster_cfg constraint location CsmVip prefers node1=INFINITY
+pcs -f cortxcluster_cfg constraint location CsmAgent prefers node1=INFINITY
+pcs -f cortxcluster_cfg constraint location CsmAgent prefers node2=INFINITY
+pcs -f cortxcluster_cfg constraint location CsmWeb prefers node1=INFINITY
+pcs -f cortxcluster_cfg constraint location CsmWeb prefers node2=INFINITY
+
+
+#Order
+pcs -f cortxcluster_cfg constraint order Kibana then CsmAgent
+pcs -f cortxcluster_cfg constraint order CsmWeb then CsmVip
+pcs -f cortxcluster_cfg constraint order CsmAgent then CsmWeb
+pcs -f cortxcluster_cfg constraint order Elasticsearch-clone then Kibana
+pcs -f cortxcluster_cfg constraint order RabbitMQ-clone then Sspl-clone
+
+
+#Colocation
+pcs -f cortxcluster_cfg constraint colocation set Kibana CsmAgent
+pcs -f cortxcluster_cfg constraint colocation set CsmWeb CsmVip
+pcs -f cortxcluster_cfg constraint colocation set CsmAgent CsmWeb
+pcs -f cortxcluster_cfg constraint colocation set Elasticsearch-clone Kibana
+pcs -f cortxcluster_cfg constraint colocation set RabbitMQ-clone Sspl-clone
+
+pcs cluster verify -V cortxcluster_cfg
+
+pcs cluster cib-push cortxcluster_cfg

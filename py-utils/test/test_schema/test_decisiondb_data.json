@@ -1,0 +1,65 @@
+{
+  "store_event": {
+    "input": {
+      "entity": "Enclosure",
+      "entity_id": "0",
+      "component": "controller",
+      "component_id": "1",
+      "alert_time": "2020-04-19 23:40:11.978972",
+      "action": "Failed"
+    },
+    "output": null
+  },
+  "get_event": {
+    "input": {
+      "entity": "Enclosure",
+      "entity_id": "0",
+      "component": "controller",
+      "component_id": "1",
+      "alert_time": "2020-04-19 23:40:11.978972"
+    },
+    "output": [
+      {
+        "action": "Failed",
+        "decision_id": "Enclosure/0/controller/1/2020-04-19 23:40:11.978972"
+      }
+    ]
+  },
+  "get_event_time": {
+    "input": {
+      "entity": "Enclosure",
+      "entity_id": "0",
+      "component": "controller",
+      "component_id": "1"
+    },
+    "output": [
+      {
+        "action": "Failed",
+        "decision_id": "Enclosure/0/controller/1/2020-04-19 23:40:11.978972"
+      }
+    ]
+  },
+  "delete_event": {
+    "input": {
+      "entity": "Enclosure",
+      "entity_id": "0",
+      "component": "controller",
+      "component_id": "1"
+    },
+    "output": []
+  },
+  "get_entity_health": {
+    "input": {
+      "entity": "Enclosure",
+      "entity_id": "0",
+      "component": "controller",
+      "component_id": "1"
+    },
+    "output": [
+      {
+        "action": "Failed",
+        "decision_id": "Enclosure/0/controller/1/2020-04-19 23:40:11.978972"
+      }
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+{
+    "elasticsearch": {
+        "Elasticsearch": {
+            "group": "common",
+            "provider": {
+                "name": "systemd:elasticsearch",
+                "service": "elasticsearch",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : [],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_active",
+                "clones" : {
+                    "active": [ 1, 2]
+                },
+                "location": {
+                    "node1": "INFINITY",
+                    "node1": "INFINITY"
+                }
+            }
+        }
+    }
+}
