@@ -1,0 +1,46 @@
+{
+    "hare": {
+        "hax-c1": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:hare-hax-c1",
+                "service": "hare-hax-c1",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["motr-kernel", "consul-c1"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "INFINITY",
+                    "${HA_nodes_cortxnode2}": "1000"
+                }
+            }
+        },
+        "hax-c2": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:hare-hax-c2",
+                "service": "hare-hax-c2",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["motr-kernel", "consul-c2"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "1000",
+                    "${HA_nodes_cortxnode2}": "INFINITY"
+                }
+            }
+        }
+    }
+}

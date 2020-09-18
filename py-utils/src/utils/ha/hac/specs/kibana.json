@@ -1,0 +1,25 @@
+{
+    "kibana": {
+        "kibana": {
+            "group": "common",
+            "provider": {
+                "name": "systemd:kibana",
+                "service": "kibana",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["els-search"],
+                "colocation" : ["els-search"],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "INFINITY",
+                    "${HA_nodes_cortxnode2}": "INFINITY"
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,45 @@
+{
+  "store_event": {
+    "input": {
+      "feature_name": "WELCOME_PAGE",
+      "component_name": "CSM"
+    },
+    "output": null
+  },
+  "get_event": {
+    "input": {
+      "feature_name": "welcome_page",
+      "component_name": "CSM"
+    },
+    "output": {
+      "feature_id": "CSM/UNSUPPORTED_FEATURE/WELCOME_PAGE",
+      "feature_name": "WELCOME_PAGE",
+      "component_name": "CSM"
+    }
+  },
+  "support_event": {
+    "input": {
+      "feature_name": "licence_agreement",
+      "component_name": "csm"
+    },
+    "output": true
+  },
+  "not_support_event": {
+    "input": {
+      "feature_name": "welcome_page",
+      "component_name": "csm"
+    },
+    "output": false
+  },
+  "multiple_store_events": {
+    "input": {
+      "features": [
+        "WELCOME_PAGE",
+        "HELATH",
+        "ALERTS"
+      ],
+      "component_name": "CSM"
+    },
+     "output": null
+  }
+}

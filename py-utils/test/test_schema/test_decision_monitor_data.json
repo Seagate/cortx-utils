@@ -1,0 +1,35 @@
+{
+  "input": [
+    {
+      "entity": "Enclosure",
+      "entity_id": "0",
+      "component": "controller",
+      "component_id": "A",
+      "alert_time": "",
+      "action": "failed"
+    },
+    {
+      "entity": "Enclosure",
+      "entity_id": "0",
+      "component": "controller",
+      "component_id": "A",
+      "alert_time": "",
+      "action": "resolved"
+    }
+  ],
+  "test_file": {
+    "resources": {
+      "ControllerA": {
+        "entity": "Enclosure",
+        "entity_id": "0",
+        "component": "controller",
+        "component_id": "A"
+      }
+    },
+    "resource_groups": {
+      "io_c1": [
+        "ControllerA"
+      ]
+    }
+  }
+}

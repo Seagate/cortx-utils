@@ -1,0 +1,53 @@
+{
+    "enclosure":[
+                    {
+                        "alert_type": "fault",
+                        "severity": "critical",
+                        "action": "Failed"
+                    },
+                    {
+                        "alert_type": "fault_resolved",
+                        "severity": "informational",
+                        "action": "Recovered"
+                    }
+                ],
+
+    "enclosure:fru:controller":[
+                                {
+                                    "alert_type": "fault",
+                                    "severity": "critical",
+                                    "action": "Failed"
+                                },
+                                {
+                                    "alert_type": "fault_resolved",
+                                    "severity": "informational",
+                                    "action": "Recovered"
+                                },
+                                {
+                                    "alert_type": "missing",
+                                    "severity": "critical",
+                                    "action": "Failed"
+                                },
+                                {
+                                    "alert_type": "insertion",
+                                    "severity": "informational",
+                                    "action": "Recovered"
+                                }
+                           ],
+    "node:interface:nw": [
+                                {
+                                    "alert_type": "fault",
+                                    "severity": "warning",
+                                    "action": "no-op"
+                                }
+                         ],
+
+    "node:os:cpu": [
+                                {
+                                    "alert_type": "fault",
+                                    "severity": "warning",
+                                    "action": "no-op"
+                                }
+                   ]
+}
+

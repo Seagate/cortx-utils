@@ -1,0 +1,33 @@
+{
+  "title": "SSPL Sensor Response",
+  "description": "Seagate Storage Platform Library - Sensor Response",
+  "username": "sspl-ll",
+  "signature": "b'None'",
+  "time": "1585910459",
+  "expires": 3600,
+  "message": {
+    "sspl_ll_msg_header": {
+      "schema_version": "1.0.0",
+      "sspl_version": "1.0.0",
+      "msg_version": "1.0.0"
+    },
+    "sensor_response_type": {
+      "host_id": "localhost.localdomain",
+      "alert_type": "fault",
+      "alert_id": "1585910458d074bb9fa54a437195a100942ff181f6",
+      "severity": "critical",
+      "info": {
+        "site_id": 1,
+        "rack_id": 1,
+        "node_id": 1,
+        "cluster_id": 1,
+        "resource_id": "0",
+        "resource_type": "enclosure",
+        "event_time": "1585910458"
+      },
+      "specific_info": {
+        "event": "Storage Enclosure unreachable,Possible causes : Enclosure / Storage Controller /Management Controller rebooting,Network port blocked by firewall,Network outage or Power outage."
+      }
+    }
+  }
+}

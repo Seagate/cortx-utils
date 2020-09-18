@@ -1,0 +1,466 @@
+{
+    "s3server": {
+        "s3server-c1-1": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:${HA_io_s3_s3server1c1}",
+                "service": "s3server",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["s3auth", "motr-ios-c1"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "INFINITY",
+                    "${HA_nodes_cortxnode2}": "-INFINITY"
+                }
+            }
+        },
+        "s3server-c1-2": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:${HA_io_s3_s3server1c2}",
+                "service": "s3server",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["s3auth", "motr-ios-c1"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "INFINITY",
+                    "${HA_nodes_cortxnode2}": "-INFINITY"
+                }
+            }
+        },
+        "s3server-c1-3": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:${HA_io_s3_s3server1c3}",
+                "service": "s3server",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["s3auth", "motr-ios-c1"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "INFINITY",
+                    "${HA_nodes_cortxnode2}": "-INFINITY"
+                }
+            }
+        },
+        "s3server-c1-4": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:${HA_io_s3_s3server1c4}",
+                "service": "s3server",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["s3auth", "motr-ios-c1"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "INFINITY",
+                    "${HA_nodes_cortxnode2}": "-INFINITY"
+                }
+            }
+        },
+        "s3server-c1-5": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:${HA_io_s3_s3server1c5}",
+                "service": "s3server",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["s3auth", "motr-ios-c1"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "INFINITY",
+                    "${HA_nodes_cortxnode2}": "-INFINITY"
+                }
+            }
+        },
+        "s3server-c1-6": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:${HA_io_s3_s3server1c6}",
+                "service": "s3server",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["s3auth", "motr-ios-c1"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "INFINITY",
+                    "${HA_nodes_cortxnode2}": "-INFINITY"
+                }
+            }
+        },
+        "s3server-c1-7": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:${HA_io_s3_s3server1c7}",
+                "service": "s3server",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["s3auth", "motr-ios-c1"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "INFINITY",
+                    "${HA_nodes_cortxnode2}": "-INFINITY"
+                }
+            }
+        },
+        "s3server-c1-8": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:${HA_io_s3_s3server1c8}",
+                "service": "s3server",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["s3auth", "motr-ios-c1"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "INFINITY",
+                    "${HA_nodes_cortxnode2}": "-INFINITY"
+                }
+            }
+        },
+        "s3server-c1-9": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:${HA_io_s3_s3server1c9}",
+                "service": "s3server",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["s3auth", "motr-ios-c1"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "INFINITY",
+                    "${HA_nodes_cortxnode2}": "-INFINITY"
+                }
+            }
+        },
+        "s3server-c1-10": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:${HA_io_s3_s3server1c10}",
+                "service": "s3server",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["s3auth", "motr-ios-c1"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "INFINITY",
+                    "${HA_nodes_cortxnode2}": "-INFINITY"
+                }
+            }
+        },
+        "s3server-c1-11": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:${HA_io_s3_s3server1c11}",
+                "service": "s3server",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["s3auth", "motr-ios-c1"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "INFINITY",
+                    "${HA_nodes_cortxnode2}": "-INFINITY"
+                }
+            }
+        },
+        "s3server-c2-1": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:${HA_io_s3_s3server2c1}",
+                "service": "s3server",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["s3auth", "motr-ios-c2"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "-INFINITY",
+                    "${HA_nodes_cortxnode2}": "INFINITY"
+                }
+            }
+        },
+        "s3server-c2-2": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:${HA_io_s3_s3server2c2}",
+                "service": "s3server",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["s3auth", "motr-ios-c2"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "-INFINITY",
+                    "${HA_nodes_cortxnode2}": "INFINITY"
+                }
+            }
+        },
+        "s3server-c2-3": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:${HA_io_s3_s3server2c3}",
+                "service": "s3server",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["s3auth", "motr-ios-c2"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "-INFINITY",
+                    "${HA_nodes_cortxnode2}": "INFINITY"
+                }
+            }
+        },
+        "s3server-c2-4": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:${HA_io_s3_s3server2c4}",
+                "service": "s3server",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["s3auth", "motr-ios-c2"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "-INFINITY",
+                    "${HA_nodes_cortxnode2}": "INFINITY"
+                }
+            }
+        },
+        "s3server-c2-5": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:${HA_io_s3_s3server2c5}",
+                "service": "s3server",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["s3auth", "motr-ios-c2"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "-INFINITY",
+                    "${HA_nodes_cortxnode2}": "INFINITY"
+                }
+            }
+        },
+        "s3server-c2-6": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:${HA_io_s3_s3server2c6}",
+                "service": "s3server",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["s3auth", "motr-ios-c2"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "-INFINITY",
+                    "${HA_nodes_cortxnode2}": "INFINITY"
+                }
+            }
+        },
+        "s3server-c2-7": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:${HA_io_s3_s3server2c7}",
+                "service": "s3server",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["s3auth", "motr-ios-c2"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "-INFINITY",
+                    "${HA_nodes_cortxnode2}": "INFINITY"
+                }
+            }
+        },
+        "s3server-c2-8": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:${HA_io_s3_s3server2c8}",
+                "service": "s3server",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["s3auth", "motr-ios-c2"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "-INFINITY",
+                    "${HA_nodes_cortxnode2}": "INFINITY"
+                }
+            }
+        },
+        "s3server-c2-9": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:${HA_io_s3_s3server2c9}",
+                "service": "s3server",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["s3auth", "motr-ios-c2"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "-INFINITY",
+                    "${HA_nodes_cortxnode2}": "INFINITY"
+                }
+            }
+        },
+        "s3server-c2-10": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:${HA_io_s3_s3server2c10}",
+                "service": "s3server",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["s3auth", "motr-ios-c2"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "-INFINITY",
+                    "${HA_nodes_cortxnode2}": "INFINITY"
+                }
+            }
+        },
+        "s3server-c2-11": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:${HA_io_s3_s3server2c11}",
+                "service": "s3server",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["s3auth", "motr-ios-c2"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "-INFINITY",
+                    "${HA_nodes_cortxnode2}": "INFINITY"
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,112 @@
+{
+    "motr": {
+        "motr-kernel": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:motr-kernel",
+                "service": "motr-kernel",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["lnet-c1", "lnet-c2"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_active",
+                "clones" : {
+                    "active": [ 1, 2]
+                },
+                "location": {
+                    "${HA_nodes_cortxnode1}": "INFINITY",
+                    "${HA_nodes_cortxnode2}": "INFINITY"
+                }
+            }
+        },
+        "motr-confd-c1": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:m0d@${HA_io_motr_motrconfc1}",
+                "service": "m0d@${HA_io_motr_motrconfc1}",
+                "interval": "30s",
+                "timeouts": [ "600s", "600s", "600s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["lnet-c1", "lnet-c2"],
+                "colocation" : ["lnet-c1"],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "INFINITY",
+                    "${HA_nodes_cortxnode2}": "1000"
+                }
+            }
+        },
+        "motr-confd-c2": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:m0d@${HA_io_motr_motrconfc2}",
+                "service": "m0d",
+                "interval": "30s",
+                "timeouts": [ "600s", "600s", "600s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["lnet-c1", "lnet-c2"],
+                "colocation" : ["lnet-c2"],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "1000",
+                    "${HA_nodes_cortxnode2}": "INFINITY"
+                }
+            }
+        },
+        "motr-ios-c1": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:m0d@${HA_io_motr_motriosc1}",
+                "service": "motr_ios_c1",
+                "interval": "600s",
+                "timeouts": [ "600s", "600s", "600s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["motr-confd-c1", "motr-confd-c2"],
+                "colocation" : ["motr-confd-c1"],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "INFINITY",
+                    "${HA_nodes_cortxnode2}": "1000"
+                }
+            }
+        },
+        "motr-ios-c2": {
+            "group": "io",
+            "provider": {
+                "name": "systemd:m0d@${HA_io_motr_motriosc2}",
+                "service": "motr_ios_c2",
+                "interval": "600s",
+                "timeouts": [ "600s", "600s", "600s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["motr-confd-c1", "motr-confd-c2"],
+                "colocation" : ["motr-confd-c2"],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "1000",
+                    "${HA_nodes_cortxnode2}": "INFINITY"
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,28 @@
+{
+    "vip": {
+        "CsmVip": {
+            "group": "common",
+            "parameters": {
+                "ip": "29.22.2.34"
+            },
+            "provider": {
+                "name": "ocf:heartbeat:IPaddr2",
+                "service": "vip",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["CsmWeb"],
+                "colocation" : ["CsmWeb"],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "node1": "INFINITY",
+                    "node1": "INFINITY"
+                }
+            }
+        }
+    }
+}

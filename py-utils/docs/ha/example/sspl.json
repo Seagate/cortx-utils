@@ -1,0 +1,30 @@
+{
+    "sspl": {
+        "Sspl": {
+            "group": "management",
+            "provider": {
+                "name": "systemd:sspl",
+                "service": "sspl",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["RabbitMQ"],
+                "colocation" : ["RabbitMQ"],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "primary_secondary",
+                "clones" : {
+                    "active": [ 1, 2 ],
+                    "primary": [ 1, 1 ]
+                },
+                "location": {
+                    "node1": "INFINITY",
+                    "node1": "INFINITY"
+                }
+            }
+        }
+    }
+}
+

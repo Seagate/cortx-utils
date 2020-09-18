@@ -1,0 +1,46 @@
+{
+    "consul": {
+        "consul-c1": {
+            "group": "common",
+            "provider": {
+                "name": "systemd:hare-consul-agent-c1",
+                "service": "hare-consul-agent-c1",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["ip-c1"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "INFINITY",
+                    "${HA_nodes_cortxnode2}": "1000"
+                }
+            }
+        },
+        "consul-c2": {
+            "group": "common",
+            "provider": {
+                "name": "systemd:hare-consul-agent-c2",
+                "service": "hare-consul-agent-c2",
+                "interval": "10s",
+                "timeouts": [ "10s", "10s", "10s" ]
+            },
+            "dependencies": {
+                "predecessors" : ["ip-c2"],
+                "colocation" : [],
+                "relation" : []
+            },
+            "ha": {
+                "mode": "active_passive",
+                "location": {
+                    "${HA_nodes_cortxnode1}": "1000",
+                    "${HA_nodes_cortxnode2}": "INFINITY"
+                }
+            }
+        }
+    }
+}
