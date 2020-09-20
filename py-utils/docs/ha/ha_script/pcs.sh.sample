@@ -27,7 +27,7 @@ pcs -f cortxcluster_cfg resource create RabbitMQ systemd:rabbitmq-server  meta f
 pcs -f cortxcluster_cfg resource clone RabbitMQ clone-max=2 clone-node-max=1 
 
 pcs -f cortxcluster_cfg resource create Sspl systemd:sspl  meta failure-timeout=10s op monitor timeout=10s interval=10s op start timeout=10s op stop timeout=10s
-pcs -f cortxcluster_cfg resource clone Sspl clone-max=2 clone-node-max=1 primary-max=1 primary-node-max=1 
+pcs -f cortxcluster_cfg resource clone Sspl clone-max=2 clone-node-max=1 master-max=1 master-node-max=1 
 
 pcs -f cortxcluster_cfg resource create Statsd systemd:stats  meta failure-timeout=10s op monitor timeout=10s interval=10s op start timeout=10s op stop timeout=10s
 pcs -f cortxcluster_cfg resource clone Statsd clone-max=2 clone-node-max=1 
