@@ -33,7 +33,7 @@ Different use cases associated with the GitHub actions are mentioned below.
 
 - The below mentioned workflow can be used to run python script on push or pull-request events and scheduled time.
 
- ::
+::
  
   name: Example Workflow
   on: # Mention name of the GitHub event that triggers the workflow or schedule Workflow run
