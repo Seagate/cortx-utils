@@ -19,4 +19,4 @@
  
 #include "perf/tsdb.h"
 
-uint64_t perfc_id_gen = 0;
+uint64_t perfc_id_gen = 1;

@@ -336,7 +336,7 @@ static inline struct opcall *opstack_caller(struct opstack *opstack)
  */
 enum tsdb_modules {
 	/* A list of well-known modules */
-	TSDB_MOD_FSUSER,
+	TSDB_MOD_FSUSER = 1,
 	TSDB_MOD_UT,
 	TSDB_MOD_LAST = TSDB_MOD_UT,
 
