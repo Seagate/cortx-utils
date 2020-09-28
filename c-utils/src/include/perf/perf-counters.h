@@ -21,6 +21,9 @@
 #define PERF_COUNTERS_H_
 /******************************************************************************/
 #include "perf/tsdb.h" /* ACTION_ID_BASE */
+#include "operation.h"
+#include <pthread.h>
+#include "debug.h"
 
 /******************************************************************************/
 /** Subtags for entry/exit points and mappings. */
@@ -109,6 +112,128 @@ enum perfc_m0_adapter {
 	PERFC_M0A_MAP_NEXT,
 	PERFC_M0A_MAP_DEL,
 };
+
+#define PERFC_INVALID_ID 0
+extern uint64_t perfc_id_gen;
+
+static inline uint64_t perf_id_gen(void)
+{
+	return __sync_add_and_fetch(&perfc_id_gen, 1);
+}
+
+enum perfc_function_tags {
+	PFT_START,
+
+	PFT_FSAL_WRITE,
+	PFT_FSAL_READ,
+	PFT_CFS_WRITE,
+	PFT_CFS_READ,
+
+	PFT_END
+};
+
+enum perfc_entry_type {
+	PET_START,
+
+	PET_STATE,
+	PET_ATTR,
+	PET_MAP,
+
+	PET_END
+};
+
+enum perfc_entity_states {
+	PES_START,
+
+	PES_GEN_INIT,
+	PES_GEN_FINI,
+
+	PES_END
+};
+
+enum perfc_entity_attrs {
+	PEA_START,
+
+	PEA_W_OFFSET,
+	PEA_W_SIZE,
+	PEA_W_RES_MAJ,
+	PEA_W_RES_MIN,
+
+	PEA_R_OFFSET,
+	PEA_R_IOVC,
+	PEA_R_IOVL,
+	PEA_R_RES_MAJ,
+	PEA_R_RES_MIN,
+
+	PEA_END
+};
+
+enum perfc_entity_maps {
+	PEM_START,
+
+	PEM_NFS_TO_CFS,
+	PEM_NFS_TO_DSAL,
+	PEM_NFS_TO_NSAL,
+	PEM_NFS_TO_MOTR,
+
+	PEM_CFS_TO_NFS,
+	PEM_CFS_TO_DSAL,
+	PEM_CFS_TO_NSAL,
+	PEM_CFS_TO_MOTR,
+
+	PEM_DSAL_TO_NFS,
+	PEM_DSAL_TO_CFS,
+	PEM_DSAL_TO_MOTR,
+
+	PEM_NSAL_TO_NFS,
+	PEM_NSAL_TO_CFS,
+	PEM_NSAL_TO_MOTR,
+
+	PEM_END
+};
+
+/* Format of State perf. counters:
+ * | tsdb_modules | function tag | PET_STATE | opid | perfc_entity_states
+ * | [Rest] |
+ * where Arguments:
+ *	- TSDB Module ID
+ *	- an enum value from perfc_function_tags
+ *	- PET_STATE tag as this traces a state
+ *	- op id - caller generated tag for operation id
+ *	- perfc_entity_states - caller generated enum value from
+ *	  perfc_entity_states to tag the state
+ *	- __VA_ARGS_ - operation-specific arguments.
+ */
+#define PERFC_STATE_V2(__mod, __fn_tag, opid, state, ...)			\
+	TSDB_ADD(TSDB_MK_AID(__mod, 0xAB), __fn_tag, PET_STATE, opid, state, __VA_ARGS__)
+
+/* Format of Attribute perf. counters:
+ * | tsdb_modules | function tag | PET_ATTR | opid | attr type | attrid
+ * | [Rest] |
+ * where Arguments:
+ *	- TSDB Module ID
+ *	- an enum value from perfc_function_tags
+ *	- PET_ATTR tag as this traces an attribute of a op
+ *	- op id - caller generated tag for operation id
+ *	- perfc_entity_attrs - caller generated enum value from
+ *	  perfc_entity_attrs to tag the attribute
+ *	- __VA_ARGS_ - attribute-specific arguments.
+ */
+#define PERFC_ATTR_V2(__mod, __fn_tag, opid, attrid, ...)		\
+	TSDB_ADD(TSDB_MK_AID(__mod, 0xCD), __fn_tag, PET_ATTR, opid, attrid, __VA_ARGS__)
+
+/* Format of Map perf. counters:
+ * | tsdb_modules | function tag | src opid | dst opid | [Rest] |
+ * where Arguments:
+ *	- TSDB Module ID
+ *	- an enum value from perfc_function_tags
+ *	- PET_MAP tag as this traces a map of two ops
+ *	- opid - caller generated tag for operation id
+ *	- related_opid - caller generated tag for related operation id
+ *	- __VA_ARGS_ - attribute-specific arguments.
+ */
+#define PERFC_MAP_V2(__mod, __fn_tag, opid, related_opid, ...)			\
+	TSDB_ADD(TSDB_MK_AID(__mod, 0xEF), __fn_tag, PET_MAP, opid, related_opid, __VA_ARGS__)
 
 
 

@@ -25,6 +25,7 @@
 #include "m0common.h"
 #include <common/log.h>
 #include <debug.h> /* dassert */
+#include "perf/tsdb.h" /* is_engine_on */
 
 /* To be passed as argument */
 struct m0_realm     motr_uber_realm;
@@ -233,6 +234,7 @@ int init_motr(void)
 	motr_conf.mc_idx_service_id	= M0_IDX_DIX;
 	dix_conf.kc_create_meta		= false;
 	motr_conf.mc_idx_service_conf	= &dix_conf;
+	motr_conf.mc_is_addb_init	= tsdb_is_engine_on();
 
 	/* Create Motr instance */
 	rc = m0_client_init(&motr_instance, &motr_conf, true);
