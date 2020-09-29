@@ -115,19 +115,35 @@ enum perfc_m0_adapter {
 
 #define PERFC_INVALID_ID 0
 extern uint64_t perfc_id_gen;
+extern pthread_key_t perfc_tls_key;
 
-static inline uint64_t perf_id_gen(void)
-{
-	return __sync_add_and_fetch(&perfc_id_gen, 1);
-}
+struct perfc_tls_ctx {
+	uint8_t mod;
+	uint64_t opid;
+	uint16_t fn_tag;
+	uint16_t map_tag;
+};
+
+#define MAX_PERFC_STACK_DEPTH 16
+struct perfc_callstack {
+	uint8_t mod;
+	int8_t top;
+	struct perfc_tls_ctx pstack[MAX_PERFC_STACK_DEPTH];
+};
 
 enum perfc_function_tags {
 	PFT_START,
 
-	PFT_FSAL_WRITE,
 	PFT_FSAL_READ,
-	PFT_CFS_WRITE,
+	PFT_KVS_ALLOC,
+	PFT_KVS_GET,
 	PFT_CFS_READ,
+	PFT_CFS_GETATTR,
+	PFT_CFS_ACCESS,
+	PFT_DSTORE_GET,
+	PFT_DSTORE_PREAD,
+	PFT_FSAL_WRITE,
+	PFT_CFS_WRITE,
 
 	PFT_END
 };
@@ -165,11 +181,36 @@ enum perfc_entity_attrs {
 	PEA_R_RES_MAJ,
 	PEA_R_RES_MIN,
 
+	PEA_R_C_COUNT,
+	PEA_R_C_OFFSET,
+	PEA_R_C_RES_RC,
+
+	PEA_GETATTR_RES_RC,
+
+	PEA_ACCESS_FLAGS,
+	PEA_ACCESS_RES_RC,
+
+	PEA_KVS_ALLOC_SIZE,
+	PEA_KVS_ALLOC_RES_RC,
+
+	PEA_DSTORE_GET_RES_RC,
+
+	PEA_DSTORE_PREAD_OFFSET,
+	PEA_DSTORE_PREAD_COUNT,
+	PEA_DSTORE_PREAD_BS,
+	PEA_DSTORE_PREAD_RES_RC,
+
+	PEA_KVS_GET_KLEN,
+	PEA_KVS_GET_VLEN,
+	PEA_KVS_GET_RES_RC,
+
 	PEA_END
 };
 
 enum perfc_entity_maps {
 	PEM_START,
+
+	PEM_UNUSED,
 
 	PEM_NFS_TO_CFS,
 	PEM_NFS_TO_DSAL,
@@ -189,6 +230,9 @@ enum perfc_entity_maps {
 	PEM_NSAL_TO_CFS,
 	PEM_NSAL_TO_MOTR,
 
+	PEM_KVS_TO_NFS,
+	PEM_DSTORE_TO_NFS,
+
 	PEM_END
 };
 
@@ -204,8 +248,12 @@ enum perfc_entity_maps {
  *	  perfc_entity_states to tag the state
  *	- __VA_ARGS_ - operation-specific arguments.
  */
-#define PERFC_STATE_V2(__mod, __fn_tag, opid, state, ...)			\
-	TSDB_ADD(TSDB_MK_AID(__mod, 0xAB), __fn_tag, PET_STATE, opid, state, __VA_ARGS__)
+#define PERFC_STATE_V2(__mod, __fn_tag, opid, state, ...) do {		\
+	dassert(__fn_tag > PFT_START && __fn_tag < PFT_END);		\
+	dassert(state > PES_START && state < PES_END);			\
+	TSDB_ADD(TSDB_MK_AID(__mod, 0xAB), __fn_tag, PET_STATE, opid,	\
+		 state, __VA_ARGS__);					\
+} while (0)
 
 /* Format of Attribute perf. counters:
  * | tsdb_modules | function tag | PET_ATTR | opid | attr type | attrid
@@ -219,62 +267,63 @@ enum perfc_entity_maps {
  *	  perfc_entity_attrs to tag the attribute
  *	- __VA_ARGS_ - attribute-specific arguments.
  */
-#define PERFC_ATTR_V2(__mod, __fn_tag, opid, attrid, ...)		\
-	TSDB_ADD(TSDB_MK_AID(__mod, 0xCD), __fn_tag, PET_ATTR, opid, attrid, __VA_ARGS__)
+#define PERFC_ATTR_V2(__mod, __fn_tag, opid, attrid, ...) do {		\
+	dassert(__fn_tag > PFT_START && __fn_tag < PFT_END);		\
+	dassert(attrid > PEA_START && attrid < PEA_END);		\
+	TSDB_ADD(TSDB_MK_AID(__mod, 0xCD), __fn_tag, PET_ATTR, opid,	\
+		 attrid, __VA_ARGS__);					\
+} while (0)
 
 /* Format of Map perf. counters:
- * | tsdb_modules | function tag | src opid | dst opid | [Rest] |
+ * | tsdb_modules | function tag | map tag | src opid | dst opid | [Rest] |
  * where Arguments:
  *	- TSDB Module ID
  *	- an enum value from perfc_function_tags
  *	- PET_MAP tag as this traces a map of two ops
+ *	- Caller passed map tag from enum perfc_entity_maps
  *	- opid - caller generated tag for operation id
  *	- related_opid - caller generated tag for related operation id
  *	- __VA_ARGS_ - attribute-specific arguments.
  */
-#define PERFC_MAP_V2(__mod, __fn_tag, opid, related_opid, ...)			\
-	TSDB_ADD(TSDB_MK_AID(__mod, 0xEF), __fn_tag, PET_MAP, opid, related_opid, __VA_ARGS__)
-
-extern pthread_key_t perfc_tls_key;
-
-struct perfc_tls_ctx {
-	uint8_t mod;
-	uint64_t opid;
-	uint16_t fn_tag;
-};
-
-#define MAX_PERFC_STACK_DEPTH 16
-struct perfc_callstack {
-	uint8_t mod;
-	int8_t top;
-	struct perfc_tls_ctx pstack[MAX_PERFC_STACK_DEPTH];
-};
-
-#define perfc_tls_push(_opid, _fn_tag) do {				\
-	struct perfc_tls_ctx ptctx;					\
-	struct perfc_callstack *perfstack = pthread_getspecific(perfc_tls_key);\
-	dassert(perfstack != NULL);					\
-	ptctx.mod = perfstack->mod;					\
-	ptctx.opid = _opid;						\
-	ptctx.fn_tag = _fn_tag;						\
-	dassert(perfstack->top < MAX_PERFC_STACK_DEPTH - 1);		\
-	perfstack->pstack[++perfstack->top] = ptctx;			\
+#define PERFC_MAP_V2(__mod, __fn_tag, map_tag, opid, related_opid, ...) do {\
+	dassert(__fn_tag > PFT_START && __fn_tag < PFT_END);		\
+	dassert(map_tag > PEM_START && map_tag < PEM_END);		\
+	TSDB_ADD(TSDB_MK_AID(__mod, 0xEF), __fn_tag, PET_MAP, map_tag,	\
+		 opid, related_opid, __VA_ARGS__);			\
 } while (0)
 
-#define perfc_tls_pop(_opid, _fn_tag) do {				\
-	struct perfc_tls_ctx ptctx;					\
-	struct perfc_callstack *perfstack = pthread_getspecific(perfc_tls_key);\
-	dassert(perfstack != NULL);					\
-	if (perfstack->top != -1) {					\
-	    _opid = perfstack->pstack[perfstack->top].opid;		\
-	    _fn_tag = perfstack->pstack[perfstack->top--].fn_tag;	\
-	} else {							\
-		_opid = PERFC_INVALID_ID;				\
+#ifdef ENABLE_TSDB_ADDB
+
+static inline uint64_t perf_id_gen(void)
+{
+	return __sync_add_and_fetch(&perfc_id_gen, 1);
+}
+
+#define perfc_tls_push(_ptc) do {					\
+	struct perfc_callstack *perfstack =				\
+		pthread_getspecific(perfc_tls_key);			\
+	if (perfstack) {						\
+		_ptc.mod = perfstack->mod;				\
+		dassert(perfstack->top < MAX_PERFC_STACK_DEPTH - 1);	\
+		perfstack->pstack[++perfstack->top] = _ptc;		\
+	}								\
+} while (0)
+
+#define perfc_tls_pop(_ptc) do {					\
+	struct perfc_callstack *perfstack =				\
+		pthread_getspecific(perfc_tls_key);			\
+	if (perfstack) {						\
+		if (perfstack->top != -1) {				\
+			_ptc = perfstack->pstack[perfstack->top--];	\
+		} else {						\
+			_ptc.opid = PERFC_INVALID_ID;			\
+		}							\
 	}								\
 } while (0)
 
 #define perfc_tls_ini(_mod, _opid, _fn_tag) do {			\
 	int rc;								\
+	struct perfc_tls_ctx ptc;					\
 	struct perfc_callstack *perfstack =				\
 				alloca(sizeof (struct perfc_callstack));\
 	dassert(perfstack != NULL);					\
@@ -282,7 +331,11 @@ struct perfc_callstack {
 	perfstack->top = -1;						\
 	rc = pthread_setspecific(perfc_tls_key, perfstack);		\
 	dassert(rc != NULL);						\
-	perfc_tls_push(_opid, _fn_tag);					\
+	ptc.mod = _mod;							\
+	ptc.opid = _opid;						\
+	ptc.fn_tag = _fn_tag;						\
+	ptc.map_tag = PEM_UNUSED;					\
+	perfc_tls_push(ptc);						\
 } while (0)
 
 #define perfc_tls_fini() do {						\
@@ -326,26 +379,103 @@ static inline struct perfc_tls_ctx perfc_tls_get_top(void)
 #define perfc_trace_state(state, ...) do {				\
 	struct perfc_tls_ctx ptctx = perfc_tls_get_top();		\
 	if (ptctx.opid != PERFC_INVALID_ID) {				\
-	    PERFC_STATE_V2(ptctx.mod, ptctx.fn_tag,			\
-			   ptctx.opid, state, __VA_ARGS__);		\
+		PERFC_STATE_V2(ptctx.mod, ptctx.fn_tag,			\
+			       ptctx.opid, state, __VA_ARGS__);		\
 	}								\
 } while (0)
 
 #define perfc_trace_attr(attrid, ...) do {				\
 	struct perfc_tls_ctx ptctx = perfc_tls_get_top();		\
 	if (ptctx.opid != PERFC_INVALID_ID) {				\
-	    PERFC_ATTR_V2(ptctx.mod, ptctx.fn_tag,			\
-			  ptctx.opid, attrid, __VA_ARGS__);		\
+		PERFC_ATTR_V2(ptctx.mod, ptctx.fn_tag,			\
+			      ptctx.opid, attrid, __VA_ARGS__);		\
 	}								\
 } while (0)
 
-#define perfc_trace_map(related_opid, ...) do {				\
-	struct perfc_tls_ctx ptctx = perfc_tls_get_top();		\
+#define perfc_trace_map(fn_tag, map_tag, _opid, ...) do {		\
+	struct perfc_tls_ctx ptctx = perfc_tls_get_origin();		\
+	dassert(ptctx.opid != PERFC_INVALID_ID);			\
 	if (ptctx.opid != PERFC_INVALID_ID) {				\
-	    PERFC_ATTR_V2(ptctx.mod, ptctx.fn_tag,			\
-			  ptctx.opid, related_opid, __VA_ARGS__);	\
+		PERFC_MAP_V2(ptctx.mod, fn_tag, map_tag, _opid,		\
+			     ptctx.opid, __VA_ARGS__);			\
 	}								\
 } while (0)
+
+#define perfc_trace_ini(ptc) do {					\
+	struct perfc_callstack *pstack = pthread_getspecific(perfc_tls_key);\
+	if (pstack) {							\
+		dassert(ptc.opid != PERFC_INVALID_ID);			\
+		ptc.mod = pstack->mod;					\
+		perfc_tls_push(ptc);					\
+		perfc_trace_state(PES_GEN_INIT);			\
+		perfc_trace_map(ptc.fn_tag, ptc.map_tag, ptc.opid);	\
+	}								\
+} while (0)
+
+#define PERFC_TLS_POP_VERIFY 1U
+#define PERFC_TLS_POP_DONT_VERIFY 2U
+
+#define perfc_trace_fini(_ptc, verify) do {				\
+	struct perfc_tls_ctx ptc;					\
+	perfc_trace_state(PES_GEN_FINI);				\
+	perfc_tls_pop(ptc);						\
+	if (verify == PERFC_TLS_POP_VERIFY) {				\
+		dassert(memcmp(&ptc, &_ptc, sizeof(ptc)) == 0);		\
+	}								\
+} while (0)
+
+#define perfc_trace_inii(_fn_tag, _map_tag) 				\
+	struct perfc_tls_ctx ptc;					\
+	ptc.opid = perf_id_gen();					\
+	dassert(ptc.opid != PERFC_INVALID_ID);				\
+	ptc.fn_tag = _fn_tag;						\
+	ptc.map_tag = _map_tag;						\
+	perfc_trace_ini(ptc);						\
+
+#define perfc_trace_finii(verify) perfc_trace_fini(ptc, verify)
+
+#else
+
+static inline uint64_t perf_id_gen(void)
+{
+	return PERFC_INVALID_ID;
+}
+
+#define perfc_tls_push(...)
+
+#define perfc_tls_pop(...)
+
+#define perfc_tls_ini(...)
+
+#define perfc_tls_fini(...)
+
+static inline struct perfc_tls_ctx perfc_tls_get_origin(void)
+{
+	struct perfc_tls_ctx ptctx = {.opid = PERFC_INVALID_ID};
+	return ptctx;
+}
+
+static inline struct perfc_tls_ctx perfc_tls_get_top(void)
+{
+	struct perfc_tls_ctx ptctx = {.opid = PERFC_INVALID_ID};
+	return ptctx;
+}
+
+#define perfc_trace_state(...)
+
+#define perfc_trace_attr(...)
+
+#define perfc_trace_map(...)
+
+#define perfc_trace_ini(...)
+
+#define perfc_trace_fini(...)
+
+#define perfc_trace_inii(...)
+
+#define perfc_trace_finii(...)
+
+#endif /*  ENABLE_TSDB_ADDB */
 
 /******************************************************************************/
 #endif /* PERF_COUNTERS_H_ */
