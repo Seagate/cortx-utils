@@ -26,7 +26,7 @@
 
 /* @todo : Improve this simplistic implementation of logging. */
 #define LOG(level, fmt, ...) \
-    log_write(level, "%s: " fmt "\n", __func__, ##__VA_ARGS__)
+    log_write(level, "%s: %d" fmt "\n", __func__, __LINE__, ##__VA_ARGS__)
 
 typedef enum {
     LEVEL_FATAL,
