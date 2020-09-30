@@ -20,7 +20,6 @@ PRIMARY_KEY_FIELD = "_id"
 
 
 class PrimaryKey:
-
     def __init__(self, model_id=None):
         self._id = model_id or PRIMARY_KEY_FIELD
 
@@ -38,7 +37,6 @@ class PrimaryKey:
 
 
 class PrimaryKeyValue:
-
     def __init__(self, model_id=None):
         self._id = model_id or PRIMARY_KEY_FIELD
 
@@ -59,10 +57,8 @@ class PrimaryKeyValue:
 
 
 class BaseModel(Model):
-    """
-    Base model
-    """
 
+    """Base model."""
     _id = None  # This field used as Primary key of the Model
     primary_key = PrimaryKey()
     primary_key_val = PrimaryKeyValue()

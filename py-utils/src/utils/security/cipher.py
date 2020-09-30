@@ -17,8 +17,8 @@ import os
 import subprocess
 
 from base64 import urlsafe_b64encode
-from cryptography.fernet import Fernet
-from cryptography.fernet import InvalidSignature, InvalidToken
+
+from cryptography.fernet import Fernet, InvalidSignature, InvalidToken
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -27,6 +27,7 @@ cortxsec_cmd = '/opt/seagate/cortx/extension/cortxsec'
 
 
 class Cipher:
+
     """
     Wrapper around actual actual AES implementation (Fernet)
 
@@ -36,22 +37,16 @@ class Cipher:
 
     @staticmethod
     def encrypt(key: bytes, data: bytes) -> bytes:
-        """
-        Performs a symmetric encryption of the provided data with the provided key
-        """
-
+        """Performs a symmetric encryption of the provided data with the provided key."""
         return Fernet(key).encrypt(data)
 
     @staticmethod
     def decrypt(key: bytes, data: bytes) -> bytes:
-        """
-        Performs a symmetric decryption of the provided data with the provided key
-        """
-
+        """Performs a symmetric decryption of the provided data with the provided key."""
         try:
             decrypted = Fernet(key).decrypt(data)
         except (InvalidSignature, InvalidToken):
-            raise CipherInvalidToken(f'Decryption failed')
+            raise CipherInvalidToken('Decryption failed')
         return decrypted
 
     @staticmethod
@@ -80,7 +75,5 @@ class Cipher:
 
 
 class CipherInvalidToken(Exception):
-    """
-    Wrapper around actual implementation's decryption exceptions
-    """
-    pass
+
+    """Wrapper around actual implementation's decryption exceptions."""

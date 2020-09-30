@@ -15,15 +15,13 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import os
-from cortx.utils.data.access import Query
-from cortx.utils.data.access.filters import Compare, And
-from cortx.utils.data.db.db_provider import DataBaseProvider, GeneralConfig
 from cortx.utils import const
-from cortx.utils.log import Log
-from cortx.utils.schema import database
-from cortx.utils.schema.payload import Json
+from cortx.utils.data.access import Query
+from cortx.utils.data.access.filters import And, Compare
+from cortx.utils.data.db.db_provider import DataBaseProvider, GeneralConfig
 from cortx.utils.product_features.model import UnsupportedFeaturesModel
+from cortx.utils.schema import database
+
 
 class UnsupportedFeaturesDB:
     def __init__(self) -> None:
@@ -34,10 +32,11 @@ class UnsupportedFeaturesDB:
     async def store_unsupported_feature(self, component_name, feature_name):
         """
         Store un-supported features in db.
+
         :param component_name: Name of Component :type :String.
         :param feature_name: Name of Feature :type: String.
-        :return:
         """
+
         # Generate Key
         feature_id = UnsupportedFeaturesModel.create_feature_id(component_name,
                                                                 const.UNSUPPORTED_FEATURE,
@@ -49,16 +48,17 @@ class UnsupportedFeaturesDB:
         # Save Data.
         await self.storage(UnsupportedFeaturesModel).store(feature)
 
-    async def get_unsupported_features(self, component_name = "",
-        feature_name = ""):
+    async def get_unsupported_features(self, component_name="", feature_name=""):
         """
         Get Unsupported Features in Following Formats:
             1) No Component Name : Return All Features List.
             2) No Feature Name : Return All the Features Related to Components Provided.
+
         :param component_name: Name of Component :type: String
         :param feature_name: Name of Feature :type: String
         :return: List of Features Found.
         """
+
         query = Query()
         # Generate Key
         if component_name:
@@ -77,10 +77,12 @@ class UnsupportedFeaturesDB:
     async def is_feature_supported(self, component_name, feature_name):
         """
         Check whether the feature supported or not.
+
         :param component_name: Name of Component :type: String
         :param feature_name: Name of Feature :type: String
         :return: Supported -> True/Not-Supported -> False
         """
+
         feature_id = UnsupportedFeaturesModel.create_feature_id(
             *(component_name, const.UNSUPPORTED_FEATURE, feature_name))
         # Create Query
@@ -94,10 +96,11 @@ class UnsupportedFeaturesDB:
     async def store_unsupported_features(self, component_name, features):
         """
         Store Multiple un-supported features for a single component in db.
-        :param component_name: Name of Component :type :String.
-        :param features: List of Features :type: List.
-        :return:
+
+        :param component_name: Name of Component :type: String
+        :param features: List of Features :type: List
         """
+
         if not isinstance(features, list):
             raise TypeError("Unsupported Type for features.")
 

@@ -15,58 +15,55 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from datetime import datetime, timedelta
-import requests
-import io
-import argparse
-import traceback
-import sys
-import os
-import pathlib
+import errno
 import json
-from logging.handlers import SysLogHandler
 import logging
+import os
+import traceback
+from datetime import datetime, timedelta
 
-class esCleanup(object):
+import requests
 
+
+class esCleanup:
     def __init__(self, service_name, path):
         self._path = path
         self.logger = self.get_logger(service_name, path)
 
     def remove_old_data_from_indexes(self, days, host, indexes, field):
-        self.logger.debug(f'Will keep data from indexes for [{days}] days')
-        date_N_days_ago = datetime.now() - timedelta(days=days)
-        date_dago = str(datetime.strftime(date_N_days_ago, '%Y.%m.%d'))
-        self.logger.debug(f'Will remove all data from indexes earlier than [{date_dago}]')
+        self.logger.debug('Will keep data from indexes for [%s] days', days)
+        date_n_days_ago = datetime.now() - timedelta(days=days)
+        date_dago = str(datetime.strftime(date_n_days_ago, '%Y.%m.%d'))
+        self.logger.debug('Will remove all data from indexes earlier than [%s]', date_dago)
         headers = {'Content-type': 'application/json'}
-        d = {  "query": {  "range" : {
-               f"{field}": {
-                 "lt" :  f"now-{days}d"
-            }
-        } } }
+        d = {"query": {"range": {f"{field}": {"lt": f"now-{days}d"}}}}
         for index in indexes:
             try:
-                response = requests.post(f'http://{host}/{index}/_delete_by_query', 
-                                                              data = json.dumps(d), headers = headers) 
-            except Exception as e:
-                self.logger.error(f'ERROR: cannot delete data for {index}', traceback.format_exc())
+                response = requests.post(
+                    f'http://{host}/{index}/_delete_by_query', data=json.dumps(d), headers=headers)
+            except Exception:
+                msg = f'ERROR: cannot delete data for {index}: {traceback.format_exc()}'
+                self.logger.error(msg)
             if response.status_code == 200:
                 res = json.loads(response.text)
-                self.logger.info(f'deleted {res.get("total",0)} old record from {index} resp: {response.text}')
-        return
+                msg = f'deleted {res.get("total",0)} old record from {index} resp: {response.text}'
+                self.logger.info(msg)
 
-    def get_logger(self, filename, path):
-        """ check/create directory for common logs"""
+    @staticmethod
+    def get_logger(filename, path):
+        """check/create directory for common logs."""
         try:
-            if not os.path.exists(path): os.makedirs(path)
-        except OSError as err:
-            if err.errno != errno.EEXIST: raise
+            if not os.path.exists(path):
+                os.makedirs(path)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
         # added hardcoded logger "util_log" to avoid duplicate log
         # in csm_cleanup.log
         logger = logging.getLogger("util_log")
         logger.setLevel(logging.INFO)
-        format = '%(name)s %(levelname)s %(message)s'
-        formatter = logging.Formatter(format)
+        format_var = '%(name)s %(levelname)s %(message)s'
+        formatter = logging.Formatter(format_var)
         fh = logging.FileHandler(os.path.join(path, f"{filename}.log"))
         fh.setFormatter(formatter)
         logger.addHandler(fh)
@@ -76,8 +73,8 @@ class esCleanup(object):
     def remove_by_index(self, host, index):
         response = requests.delete(f'http://{host}/{index}')
         if response.status_code == 200:
-            self.logger.debug(f'index {index} removed successfully')
+            self.logger.debug('index %s removed successfully', index)
         else:
-            self.logger.error(f'error removing index {index} :{response.status_code}')
+            msg = f'error removing index {index} :{response.status_code}'
+            self.logger.error(msg)
         return response.status_code
-

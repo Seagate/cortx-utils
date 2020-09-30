@@ -17,19 +17,17 @@
 
 import asyncio
 from datetime import datetime, timezone
-from schematics.types import (IntType, StringType, BooleanType, DateTimeType)
 
-from cortx.utils.data.db.db_provider import DataBaseProvider, GeneralConfig
-from cortx.utils.data.access.filters import Compare, And, Or
+from schematics.types import BooleanType, DateTimeType, IntType, StringType
+
 from cortx.utils.data.access import BaseModel, Query
+from cortx.utils.data.access.filters import And, Compare, Or
+from cortx.utils.data.db.db_provider import DataBaseProvider, GeneralConfig
 
 
 class AlertModel(BaseModel):
 
-    """
-    Alert model example
-    """
-
+    """Alert model example."""
     _id = "alert_uuid"  # reference to another Alert model field to consider it as primary key
     alert_uuid = StringType()
     status = StringType()
@@ -52,11 +50,11 @@ class AlertModel(BaseModel):
         obj = super().to_primitive()
 
         if self.updated_time:
-            obj["updated_time"] =\
-                    int(self.updated_time.replace(tzinfo=timezone.utc).timestamp())
+            obj["updated_time"] = int(self.updated_time.replace(  # pylint: disable=no-member
+                tzinfo=timezone.utc).timestamp())
         if self.created_time:
-            obj["created_time"] =\
-                    int(self.created_time.replace(tzinfo=timezone.utc).timestamp())
+            obj["created_time"] = int(self.created_time.replace(  # pylint: disable=no-member
+                tzinfo=timezone.utc).timestamp())
         return obj
 
     def __hash__(self):
@@ -122,7 +120,7 @@ ALERT4 = {'alert_uuid': 4,
           'enclosure_id': 1,
           'module_name': "SSPL",
           'description': "Some Description",
-          'health': "Greate",
+          'health': "Great",
           'health_recommendation': "Replace Unity",
           'location': "Russia",
           'resolved': False,
@@ -148,17 +146,15 @@ async def example():
                     "password": ""
                 }
             },
-            "consul_db":
-                {
-                    "import_path": "ConsulDB",
-                    "config":
-                        {
-                            "host": "127.0.0.1",
-                            "port": 8500,  # HTTP API Port
-                            "login": "",
-                            "password": ""
-                        }
+            "consul_db": {
+                "import_path": "ConsulDB",
+                "config": {
+                    "host": "127.0.0.1",
+                    "port": 8500,  # HTTP API Port
+                    "login": "",
+                    "password": ""
                 }
+            }
         },
         "models": [
             {
@@ -190,14 +186,14 @@ async def example():
 
     limit = 1
     offset = 0
-    for i in range(4):
+    for _ in range(4):
         res = await db(AlertModel).get(Query().offset(offset).limit(limit))
         for model in res:
             print(f"Get by offset = {offset}, limit = {limit} : {model.to_primitive()}")
             offset += 1
 
     res = await db(AlertModel)._get_all_raw()
-    print([model for model in res])
+    print(list(res))
 
     _id = 2
     res = await db(AlertModel).get_by_id(_id)

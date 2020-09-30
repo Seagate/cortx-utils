@@ -15,8 +15,10 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from schematics.types import StringType, IntType
+from schematics.types import IntType, StringType
+
 from cortx.utils.ha.dm.models.base import HAModel
+
 
 class NodeStatusModel(HAModel):
     _id = "node_id"
@@ -29,13 +31,14 @@ class NodeStatusModel(HAModel):
     def create_model_obj(node_id, **status_payload):
         """
         Create Model Object for Node Status Model
+
         :param node_id: Node Id :type: Str
         :param status_payload: Payload or remaining keys for Model :type: Dict
-        :return: Model Object :type NodeStatusModel
+        :return: Model Object :type: NodeStatusModel
         """
+
         node_status = NodeStatusModel()
         node_status.node_id = node_id
         node_status.io_failure_count = status_payload.get('io_failure_count', 0)
-        node_status.management_failure_count = status_payload.get(
-            'management_failure_count', 0)
+        node_status.management_failure_count = status_payload.get('management_failure_count', 0)
         return node_status

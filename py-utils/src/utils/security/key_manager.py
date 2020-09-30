@@ -20,9 +20,8 @@ from typing import Optional, Type
 
 
 class KeyMaterialStore:
-    """
-    Context manager for safe access to key material store.
-    """
+
+    """Context manager for safe access to key material store."""
     _old_umask: int
     _store_path: Path
 
@@ -38,20 +37,16 @@ class KeyMaterialStore:
         umask(0o177)
         return self
 
-    def __exit__(
-        self,
-        exception_type: Optional[Type[BaseException]],
-        exception_value: Optional[BaseException],
-        traceback: Optional[TracebackType],
-    ) -> None:
+    def __exit__(self, exception_type: Optional[Type[BaseException]],
+                 exception_value: Optional[BaseException],
+                 traceback: Optional[TracebackType], ) -> None:
         umask(self._old_umask)
 
     def path(self) -> Path:
         """
-        Returns the path to the key material store.
-
         :return: Path to the key material store
         """
+
         return self._store_path
 
     def resolve_path(self, relative_path: str, lax: bool = False) -> Path:
@@ -62,6 +57,7 @@ class KeyMaterialStore:
         :param lax: Check for lax permissions if `False`
         :return: Resolved path
         """
+
         path = PosixPath(self._store_path) / relative_path
         path.resolve(strict=True)
         if not lax and stat(path).st_mode & 0o177:

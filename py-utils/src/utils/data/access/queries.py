@@ -15,48 +15,49 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import datetime
 from enum import Enum
 from typing import Optional
+
 from schematics.types import BaseType
+
 from cortx.utils.data.access.filters import IFilter
+
 
 class SortOrder(Enum):
     ASC = "asc"
     DESC = "desc"
+
 
 class SortBy:
     def __init__(self, field, order: SortOrder):
         self.field = field
         self.order = order
 
+
 class QueryLimits:
     def __init__(self, limit: Optional[int], offset: Optional[int]):
         self.limit = limit
         self.offset = offset
+
 
 class DateTimeRange:
     def __init__(self, start, end):
         self.start = start
         self.end = end
 
+
 class OrderBy:
 
-    """Class to represent order by parameters for DB"""
-
+    """Class to represent order by parameters for DB."""
     def __init__(self, field, order: SortOrder = SortOrder.ASC):
         self.field = field
         self.order = order
 
 
 class Query:
-
-    """Storage Query API"""
-
+    """Storage Query API."""
     class Data:
-
-        """Data storage class for Query parameters"""
-
+        """Data storage class for Query parameters."""
         # TODO: it can be a schematics model
         def __init__(self, order_by: OrderBy = None, filter_by: IFilter = None, limit: int = None,
                      offset: int = None):
@@ -76,10 +77,10 @@ class Query:
         """
         Set Query order_by parameter
 
-        :param BaseType by_field: particular field to perform ordering
-        :param int by_order: direction of ordering
-
+        :param by_field: particular field to perform ordering
+        :param by_order: direction of ordering
         """
+
         self.data.order_by = OrderBy(by_field, by_order)
         return self
 
@@ -87,9 +88,9 @@ class Query:
         """
         Set Query filter parameter
 
-        :param IFilter by_filter: filter parameter for Query
-        :return:
+        :param by_filter: filter parameter for Query
         """
+
         self.data.filter_by = by_filter
         return self
 
@@ -97,10 +98,9 @@ class Query:
         """
         Set Query limit parameter
 
-        :param int limit: limit for Query operation
-        :return:
-
+        :param limit: limit for Query operation
         """
+
         self.data.limit = limit
         return self
 
@@ -108,9 +108,9 @@ class Query:
         """
         Set Query offset parameter
 
-        :param int offset: offset for Query
-        :return:
+        :param offset: offset for Query
         """
+
         self.data.offset = offset
         return self
 
@@ -119,12 +119,10 @@ class Query:
 
 class ExtQuery(Query):
 
-    """Storage Extended Query API used by Storage aggregation functions"""
-
+    """Storage Extended Query API used by Storage aggregation functions."""
     class Data:
 
-        """Data storage class for Query parameters"""
-
+        """Data storage class for Query parameters."""
         # TODO: it can be a schematics model
         def __init__(self, order_by: OrderBy = None, group_by: BaseType = None,
                      filter_by: IFilter = None, limit: int = None, offset: int = None):
@@ -142,8 +140,8 @@ class ExtQuery(Query):
         """
         Set Query group_by parameter
 
-        :param BaseType by_field: field for grouping
-
+        :param by_field: field for grouping
         """
+
         self.data.group_by = by_field
         return self

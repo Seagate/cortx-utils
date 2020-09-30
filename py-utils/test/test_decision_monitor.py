@@ -28,12 +28,14 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 file_path = os.path.join(dir_path, 'test_schema', 'test_decision_monitor_data.json')
 TEST_DATA = Json(file_path).load()
 
+
 def _generate_data():
     d = DecisionDB()
     for index, each_input in enumerate(TEST_DATA.get("input", [])):
         each_input["alert_time"] = str(
             datetime.datetime.now() + datetime.timedelta(hours=index))
         d.store_event(**each_input)
+
 
 class TestDecisionMonitor(unittest.TestCase):
     _dm = DecisionMonitor()
@@ -50,6 +52,7 @@ class TestDecisionMonitor(unittest.TestCase):
         data = self._loop.run_until_complete(
             self._dm.acknowledge_resource_group("io_c1"))
         self.assertIsNone(data)
+
 
 if __name__ == '__main__':
     unittest.main()

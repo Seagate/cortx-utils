@@ -15,26 +15,26 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import asyncio
 import os
 import unittest
-from unittest.mock import MagicMock
-import asyncio
+from unittest.mock import MagicMock  # pylint: disable=unused-import
 
 from cortx.utils.ha.dm.decision_maker import DecisionMaker
-from cortx.utils.schema.payload import Json, JsonMessage
+from cortx.utils.schema.payload import Json
 from cortx.utils.ha.dm.repository.decisiondb import DecisionDB
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 file_path = os.path.join(dir_path, 'test_alert.json')
 rules_schema_path = os.path.join(dir_path, 'rules_engine_schema.json')
 
-class TestDecisionMaker(unittest.TestCase):
-    """Module to test DecisionMaker class"""
 
+class TestDecisionMaker(unittest.TestCase):
+
+    """Module to test DecisionMaker class."""
     res_to_entity_mapping = {
         "enclosure": ("enclosure", "connectivity"),
-        "enclosure:fru:controller": ("enclosure", "controller")
-        }
+        "enclosure:fru:controller": ("enclosure", "controller")}
 
     mock_decisiondb = DecisionDB()
     _dec_maker = DecisionMaker(decisiondb=mock_decisiondb)
@@ -43,8 +43,7 @@ class TestDecisionMaker(unittest.TestCase):
     _loop = asyncio.get_event_loop()
 
     def test_handle_alert(self):
-        """tests handle_alert functio of DecisionMaker class"""
-
+        """tests handle_alert function of DecisionMaker class."""
         assert self.json_alert_data is not None
         self.assertTrue(isinstance(self.json_alert_data, dict))
         self._loop.run_until_complete(self._dec_maker.handle_alert(self.json_alert_data))
@@ -56,25 +55,18 @@ class TestDecisionMaker(unittest.TestCase):
         severity = self.json_alert_data["message"]["sensor_response_type"]["severity"]
         tuple_val = self.res_to_entity_mapping[res_type]
         entity, component = tuple_val[0], tuple_val[1]
-        if entity == "enclosure":
-            entity_id = '0'
-        else:
-            entity_id = host_id
-        if res_type == "enclosure":
-            component_id = host_id
-        else:
-            component_id = res_id
-
+        entity_id = '0' if entity == "enclosure" else host_id
+        component_id = host_id if res_type == "enclosure" else res_id
         action = ''
         res_type_data = self.rules_data[res_type]
         if res_type_data is not None:
             for item in res_type_data:
-                if alert_type == item["alert_type"] and \
-                    severity == item["severity"]:
+                if alert_type == item["alert_type"] and severity == item["severity"]:
                     action = item["action"]
 
-        self.mock_decisiondb.store_event.assert_called_with(entity, entity_id, \
-            component, component_id, event_time, action)
+        self.mock_decisiondb.store_event.assert_called_with(  # pylint: disable=no-member
+            entity, entity_id, component, component_id, event_time, action)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -16,20 +16,18 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 from asyncio import coroutine
-from pydoc import locate
 from enum import Enum
+from pydoc import locate
 from typing import Type
 
 from schematics import Model
-from schematics.types import DictType, StringType, ListType, ModelType, IntType
-
-from cortx.utils.data.access import BaseModel
-from cortx.utils.errors import MalformedConfigurationError, DataAccessInternalError, DataAccessError
-from cortx.utils.data.access import AbstractDataBaseProvider
+from schematics.types import DictType, IntType, ListType, ModelType, StringType
 
 import cortx.utils.data.db as db_module
+from cortx.utils.data.access import AbstractDataBaseProvider, BaseModel
+from cortx.utils.errors import (DataAccessError, DataAccessInternalError,
+                                MalformedConfigurationError)
 from cortx.utils.synchronization import ThreadSafeEvent
-
 
 DEFAULT_HOST = "127.0.0.1"
 
@@ -41,10 +39,8 @@ class ServiceStatus(Enum):
 
 
 class DBSettings(Model):
-    """
-    Settings for database server
-    """
 
+    """Settings for database server."""
     host = StringType(required=True, default=DEFAULT_HOST)
     port = IntType(required=True, default=None)
     login = StringType()
@@ -53,26 +49,21 @@ class DBSettings(Model):
 
 
 class DBConfig(Model):
-    """
-    Database driver configuration description
-    """
 
+    """Database driver configuration description."""
     import_path = StringType(required=True)
     config = ModelType(DBSettings)  # db-specific configuration
 
 
 class ModelSettings(Model):
-    """
-    Configuration for base model like collection as example
-    """
+
+    """Configuration for base model like collection as example."""
     collection = StringType(required=True)
 
 
 class DBModelConfig(Model):
-    """
-    Description of how a specific model is expected to be stored
-    """
 
+    """Description of how a specific model is expected to be stored."""
     import_path = StringType(required=True)
     database = StringType(required=True)
     # this configuration is specific for each supported by model db driver
@@ -80,18 +71,17 @@ class DBModelConfig(Model):
 
 
 class GeneralConfig(Model):
-    """
-    Layout of full database configuration
-    """
 
+    """Layout of full database configuration."""
     databases = DictType(ModelType(DBConfig), str)
     models = ListType(ModelType(DBModelConfig))
 
 
 class ProxyStorageCallDecorator:
-    """Class to decorate proxy call"""
 
-    def __init__(self, async_storage, model: Type[BaseModel], attr_name: str, event: ThreadSafeEvent):
+    """Class to decorate proxy call."""
+    def __init__(
+            self, async_storage, model: Type[BaseModel], attr_name: str, event: ThreadSafeEvent):
         self._async_storage = async_storage
         self._model = model
         self._attr_name = attr_name
@@ -118,28 +108,21 @@ class ProxyStorageCallDecorator:
                 # may be, first call the function and then check whether we need to await it
                 # DD: I think, we assume that all storage API are async
                 return await attr(*args, **kwargs)
-            else:
-                return attr
+            return attr
 
         self._proxy_call_coroutine = async_wrapper()
         return self._proxy_call_coroutine
 
     def __del__(self):
-        """
-        Close proxy call coroutine if it was never awaited
-
-        :return:
-        """
+        """Close proxy call coroutine if it was never awaited."""
         if self._proxy_call_coroutine is not None:
             self._proxy_call_coroutine.close()
 
 
 # TODO: class can't be inherited from IDataBase
 class AsyncDataBase:
-    """
-    Decorates all storage async calls and async db drivers and db storages initializations
-    """
 
+    """Decorates all storage async calls and async db drivers and db storages initializations."""
     def __init__(self, model: Type[BaseModel], model_config: DBModelConfig,
                  db_config: GeneralConfig):
         self._event = ThreadSafeEvent()
@@ -157,13 +140,12 @@ class AsyncDataBase:
     async def create_database(self) -> None:
         self._database_status = ServiceStatus.IN_PROGRESS
         try:
-            self._database = await self._database_module.create_database(self._db_config.config,
-                                                                         self._model_settings.collection,
-                                                                         self._model)
+            self._database = await self._database_module.create_database(
+                self._db_config.config, self._model_settings.collection, self._model)
         except DataAccessError:
             raise
         except Exception as e:
-            raise DataAccessError(f"Unexpected message happened: {e}")
+            raise DataAccessError(f"Unexpected exception happened: {e}")
         else:
             self._database_status = ServiceStatus.READY
         finally:
@@ -183,7 +165,7 @@ class AsyncDataBase:
 
 class DataBaseProvider(AbstractDataBaseProvider):
 
-    _cached_async_decorators = dict()  # Global for all DbStorageProvider instances
+    _cached_async_decorators = {}  # Global for all DbStorageProvider instances
 
     def __init__(self, config: GeneralConfig):
         self.general_config = config

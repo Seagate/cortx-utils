@@ -15,19 +15,19 @@
 
 import inspect
 
-OPERATION_SUCESSFUL = 0x0000
+OPERATION_SUCCESSFUL = 0x0000
 INTERNAL_ERROR = 0x1005
 
 
 class BaseError(Exception):
-    """ Parent class for the cli error classes """
 
-    _rc = OPERATION_SUCESSFUL
+    """Parent class for the cli error classes."""
+    _rc = OPERATION_SUCCESSFUL
     _desc = 'Operation Successful'
     _caller = ''
 
     def __init__(self, rc=0, desc=None, message_id=None, message_args=None):
-        super(BaseError, self).__init__()
+        super().__init__()
         self._caller = inspect.stack()[1][3]
         if rc is not None:
             self._rc = str(rc)
@@ -55,45 +55,43 @@ class BaseError(Exception):
 
 
 class InternalError(BaseError):
-    """
-    This error is raised by CLI for all unknown internal errors
-    """
 
+    """This error is raised by CLI for all unknown internal errors."""
     def __init__(self, desc=None, message_id=None, message_args=None):
-        super(InternalError, self).__init__(
-              INTERNAL_ERROR, 'Internal error: %s' % desc,
-              message_id, message_args)
+        super().__init__(
+            INTERNAL_ERROR, f'Internal error: {desc}', message_id, message_args)
 
 
 class DataAccessError(InternalError):
 
-    """Base Data Access Error"""
+    """Base Data Access Error."""
 
 
 class DataAccessExternalError(DataAccessError):
 
-    """Internal DB errors which happen outside of db framework"""
+    """Internal DB errors which happen outside of db framework."""
 
 
 class DataAccessInternalError(DataAccessError):
 
-    """Errors regarding db framework part of Data Access implementation"""
+    """Errors regarding db framework part of Data Access implementation."""
 
 
 class MalformedQueryError(DataAccessError):
 
-    """Malformed Query or Filter error"""
+    """Malformed Query or Filter error."""
 
 
 class MalformedConfigurationError(DataAccessError):
 
-    """Error in configuration of data bases or storages or db drivers"""
+    """Error in configuration of data bases or storages or db drivers."""
 
 
 class StorageNotFoundError(DataAccessError):
 
-    """Model object is not associated with any storage"""
+    """Model object is not associated with any storage."""
+
 
 class AmqpConnectionError(Exception):
 
-    """Amqp connection problems"""
+    """Amqp connection problems."""

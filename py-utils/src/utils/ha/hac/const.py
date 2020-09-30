@@ -26,4 +26,4 @@ IO_PATH = 'io'
 MGMT_PATH = 'mgmt'
 FAILED_STATUSES = ['failed']
 DECISION_MAPPING_FILE = 'decision_monitor_conf.json'
-HA_DATABADE_SCHEMA='database.json'
+HA_DATABASE_SCHEMA = 'database.json'

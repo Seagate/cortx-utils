@@ -33,9 +33,10 @@ DATABASE = {
                 "port": 9200,
                 "login": "",
                 "password": "",
-                "replication": 1}
-            },
+                "replication": 1
+            }
         },
+    },
     "models": [
         {
             "import_path": "cortx.utils.ha.dm.models.decisiondb.DecisionModel",

@@ -15,24 +15,28 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+from cortx.utils.log import Log
+from cortx.utils.message_bus.error import (ConnectionEstError,
+                                           InvalidConfigError)
+from cortx.utils.message_bus.tcp.kafka import const
+from cortx.utils.message_bus.tcp.kafka.kafka import (KafkaConsumerComm,
+                                                     KafkaProducerComm)
 from cortx.utils.schema.conf import Conf
 from cortx.utils.schema.payload import Json
-from cortx.utils.message_bus.tcp.kafka import const
-from cortx.utils.message_bus.error import InvalidConfigError, ConnectionEstError
-from cortx.utils.message_bus.tcp.kafka.kafka import KafkaProducerComm, KafkaConsumerComm
-from cortx.utils.log import Log
+
 
 class ConfInit:
     __instance = None
+
     def __init__(self):
-        if ConfInit.__instance == None:
+        if ConfInit.__instance is None:
             ConfInit.__instance = self
             Conf.init()
             Conf.load(const.CONFIG_INDEX, Json(const.MESSAGE_BUS_CONF))
 
+
 class MessageBusComm:
     def __init__(self, **kwargs):
-
         """
         Parameters required for initialization -
         1. comm_type: Type of communication (PRODUCER or CONSUMER)
@@ -43,8 +47,13 @@ class MessageBusComm:
         4. consumer_name: This field signifies the name of the consumer inside
            a consumer group. For comm_type as CONSUMER this field is required.
         """
-        #TODO: Add one more field for taking configuration path as a parameter.
 
+        # TODO: Add one more field for taking configuration path as a parameter.
+        self._hosts = None
+        self._client_id = None
+        self._group_id = None
+        self._consumer_name = None
+        self._retry_counter = None
         self._comm_obj = None
         self._message_bus_type = None
         self._comm_type = kwargs.get(const.COMM_TYPE, None)
@@ -52,9 +61,9 @@ class MessageBusComm:
 
     def _init_config(self, **kwargs):
         try:
-            #TODO: Write a script to fetch kafka bootstarp cluster and write in
-            #the config. Provide the script to Provisioner to copy it to desired
-            #location.
+            # TODO: Write a script to fetch kafka bootstarp cluster and write in
+            # the config. Provide the script to Provisioner to copy it to desired
+            # location.
             ConfInit()
             self._message_bus_type = Conf.get(const.CONFIG_INDEX, const.TYPE)
             if self._message_bus_type == const.KAFKA:
@@ -63,32 +72,30 @@ class MessageBusComm:
                 self._init_rmq_conf(**kwargs)
             else:
                 raise InvalidConfigError("Invalid config")
-        except Exception as ex:
-            Log.error(f"Invalid config error. {ex}")
-            raise InvalidConfigError(f"Invalid config. {ex}")
+        except Exception as e:
+            Log.error(f"Invalid config error. {e}")
+            raise InvalidConfigError(f"Invalid config. {e}")
 
     def _init_kafka_conf(self, **kwargs):
-        kafka_cluster = Conf.get(const.CONFIG_INDEX, \
-            f"{const.KAFKA}.{const.CLUSTER}")
+        kafka_cluster = Conf.get(const.CONFIG_INDEX, f"{const.KAFKA}.{const.CLUSTER}")
         bootstrap_servers = ""
         count = 1
         for values in kafka_cluster:
             if len(kafka_cluster) <= count:
-                bootstrap_servers = bootstrap_servers + f"{values[const.SERVER]}:{values[const.PORT]}"
+                bootstrap_servers += f"{values[const.SERVER]}:{values[const.PORT]}"
             else:
-                bootstrap_servers = bootstrap_servers + f"{values[const.SERVER]}:{values[const.PORT]}, "
-            count = count +1
+                bootstrap_servers += f"{values[const.SERVER]}:{values[const.PORT]}, "
+            count += 1
         self._hosts = bootstrap_servers
         self._client_id = kwargs.get(const.CLIENT_ID)
         self._group_id = kwargs.get(const.GROUP_ID)
         self._consumer_name = kwargs.get(const.CONSUMER_NAME)
-        self._retry_counter = Conf.get(const.CONFIG_INDEX, \
-            f"{const.KAFKA}.{const.RETRY_COUNTER}")
-        Log.info(f"Message bus config initialized. Hosts: {self._hosts}, "\
-            f"Client ID: {self._client_id}, Group ID: {self._group_id}")
+        self._retry_counter = Conf.get(const.CONFIG_INDEX, f"{const.KAFKA}.{const.RETRY_COUNTER}")
+        Log.info(f"Message bus config initialized. Hosts: {self._hosts}, "
+                 f"Client ID: {self._client_id}, Group ID: {self._group_id}")
 
     @classmethod
-    def _init_rmq_conf(self, **kwargs):
+    def _init_rmq_conf(cls, **kwargs):
         raise Exception('init_rmq_conf not implemented in MessageBusComm class')
 
     def init(self):
@@ -99,60 +106,61 @@ class MessageBusComm:
                 self._comm_obj = self._init_rmq_comm()
             self._comm_obj.init()
             Log.debug(f"Initialized the communication channel for {self._comm_type}")
-        except Exception as ex:
-            Log.error(f"Unable to connect to message bus. {ex}")
-            raise ConnectionEstError(f"Unable to connect to message bus. {ex}")
+        except Exception as e:
+            Log.error(f"Unable to connect to message bus. {e}")
+            raise ConnectionEstError(f"Unable to connect to message bus. {e}")
 
     def _init_kafka_comm(self):
         obj = None
         try:
             if self._comm_type == const.PRODUCER:
-                obj = KafkaProducerComm(hosts = self._hosts, client_id = self._client_id, \
-                    retry_counter = self._retry_counter)
+                obj = KafkaProducerComm(
+                    hosts=self._hosts, client_id=self._client_id, retry_counter=self._retry_counter)
             elif self._comm_type == const.CONSUMER:
-                obj = KafkaConsumerComm(hosts = self._hosts, group_id = self._group_id, \
-                    retry_counter = self._retry_counter, consumer_name = self._consumer_name)
+                obj = KafkaConsumerComm(
+                    hosts=self._hosts, group_id=self._group_id, retry_counter=self._retry_counter,
+                    consumer_name=self._consumer_name)
             return obj
-        except Exception as ex:
-            Log.error(f"Unable to initialize message bus. {ex}")
-            raise ex
+        except Exception as e:
+            Log.error(f"Unable to initialize message bus. {e}")
+            raise e
 
     def send(self, message: list, **kwargs):
         try:
             ret = self._comm_obj.send_message_list(message, **kwargs)
             Log.debug("Sent messages to message bus")
             return ret.msg()
-        except Exception as ex:
-            Log.error(f"Unable to send messages to message bus. {ex}")
-            raise ex
+        except Exception as e:
+            Log.error(f"Unable to send messages to message bus. {e}")
+            raise e
 
     def recv(self, **kwargs):
         try:
             msg = self._comm_obj.recv(**kwargs)
             Log.debug(f"Received message from message bus - {msg}")
             return msg
-        except Exception as ex:
-            Log.error(f"Unable to receive message from message bus. {ex}")
-            raise ex
+        except Exception as e:
+            Log.error(f"Unable to receive message from message bus. {e}")
+            raise e
 
     def commit(self):
         try:
             ret = self._comm_obj.acknowledge()
-            Log.debug("Commited to message bus")
+            Log.debug("Committed to message bus")
             return ret.msg()
-        except Exception as ex:
-            Log.error(f"Unable to commit to message bus. {ex}")
-            raise ex
+        except Exception as e:
+            Log.error(f"Unable to commit to message bus. {e}")
+            raise e
 
     def close(self):
         try:
             ret = self._comm_obj.disconnect()
             Log.debug("Closing the consumer channel")
             return ret.msg()
-        except Exception as ex:
-            Log.error(f"Unable to close the consumer channel. {ex}")
-            raise ex
+        except Exception as e:
+            Log.error(f"Unable to close the consumer channel. {e}")
+            raise e
 
     @classmethod
-    def _init_rmq_comm(self):
+    def _init_rmq_comm(cls):
         raise Exception('init_rmq_comm not implemented in MessageBusComm class')
