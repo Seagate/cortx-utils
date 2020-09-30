@@ -13,6 +13,9 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import os
+import subprocess
+
 from base64 import urlsafe_b64encode
 from cryptography.fernet import Fernet
 from cryptography.fernet import InvalidSignature, InvalidToken
@@ -51,6 +54,17 @@ class Cipher:
 
     @staticmethod
     def generate_key(str1: str, str2: str, *strs) -> bytes:
+        if os.path.exists('/opt/seagate/cortx/extension/cortxsec'):
+            getkey_cmd = f'/opt/seagate/cortx/extension/cortxsec getkey {str1} {str2}'
+            if strs:
+                getkey_cmd = getkey_cmd + ' ' + ' '.join(strs)
+            resp = subprocess.check_output(getkey_cmd.split())
+            return resp
+        else:
+            return Cipher.gen_key(str1, str2, *strs)
+
+    @staticmethod
+    def gen_key(str1: str, str2: str, *strs):
         kdf = PBKDF2HMAC(algorithm=hashes.SHA256(),
                          length=32,
                          salt=str1.encode('utf-8'),
