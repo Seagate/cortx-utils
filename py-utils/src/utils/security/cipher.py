@@ -23,6 +23,8 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
+cortxsec_cmd = '/opt/seagate/cortx/extension/cortxsec'
+
 
 class Cipher:
     """
@@ -54,11 +56,13 @@ class Cipher:
 
     @staticmethod
     def generate_key(str1: str, str2: str, *strs) -> bytes:
-        if os.path.exists('/opt/seagate/cortx/extension/cortxsec'):
-            getkey_cmd = f'/opt/seagate/cortx/extension/cortxsec getkey {str1} {str2}'
-            if strs:
-                getkey_cmd = getkey_cmd + ' ' + ' '.join(strs)
-            resp = subprocess.check_output(getkey_cmd.split())
+        if os.path.exists(cortxsec_cmd):
+            args = ' '.join(['getkey', str1, str2] + list(strs))
+            getkey_cmd = f'{cortxsec_cmd} {args}'
+            try:
+                resp = subprocess.check_output(getkey_cmd.split(), stderr=subprocess.STDOUT)
+            except subprocess.CalledProcessError as e:
+                resp = e.output
             return resp
         else:
             return Cipher.gen_key(str1, str2, *strs)
