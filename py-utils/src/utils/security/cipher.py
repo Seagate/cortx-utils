@@ -62,7 +62,7 @@ class Cipher:
             try:
                 resp = subprocess.check_output(getkey_cmd.split(), stderr=subprocess.STDOUT)
             except subprocess.CalledProcessError as e:
-                resp = e.output
+                raise Exception(f'Command "{getkey_cmd}" failed with the output: {e.output}') from e
             return resp
         else:
             return Cipher.gen_key(str1, str2, *strs)
