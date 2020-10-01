@@ -9,15 +9,6 @@ Release Engineering team is responsible for the followings
 -   Managing cortx-storage for artifact hosting.
 -   Automation to support cortx project.
 
-## Team
-
-| Person                 |  Role         |  Contact                                      |
-|------------------------|---------------|-----------------------------------------------|
-| Priyank Dalal          | Manager       | <mailto:priyank.p.dalal@seagate.com>          |
-| Shailesh Vaidya        | Team Lead     | <mailto:shailesh.vaidya@seagate.com>          |
-| Swati Magar            | RE Engineer   | <mailto:swati.magar@seagate.com>              |
-| Gowthaman Chinnathambi | RE Engineer   | <mailto:gowthaman.chinnathambi@seagate.com>   |
-
 ## Repo Structure
 
 An overview of folder structure in cortx-rerepo
