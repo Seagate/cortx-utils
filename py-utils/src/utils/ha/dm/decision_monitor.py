@@ -100,7 +100,6 @@ class DecisionMonitor:
             # Check's the status for each resource.
             status = self.get_resource_status(resource)
             if status in [Action.FAILED]:
-                Log.info(f"Fault alert received for {resource}, Failover action is needed")
                 # Return Failed if any one is Failed Status in RG.
                 return status
             group_status.append(status)
@@ -119,7 +118,6 @@ class DecisionMonitor:
         resource_key = self._resource_file.get("resources", {}).get(resource, {})
         try:
             if force or not self.get_resource_status(resource) == Action.FAILED:
-                Log.info(f"Fault alert resolved for {resource}")
                 self._loop.run_until_complete(
                     self._consul_call.delete(**resource_key))
         except Exception as e:
