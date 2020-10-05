@@ -1,6 +1,6 @@
-# CORTX-Utils
-
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/f2e9061b01884d0f920adfecf6117024)](https://app.codacy.com/gh/Seagate/cortx-utils?utm_source=github.com&utm_medium=referral&utm_content=Seagate/cortx-utils&utm_campaign=Badge_Grade)
+
+# CORTX-Utils
 
 The cortx-utils repository contains utility tools and code for various CORTX submodules. For example, S3 and NFS submodules use code from the cortx-utils repos.
 
