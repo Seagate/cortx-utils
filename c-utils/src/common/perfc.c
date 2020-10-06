@@ -20,3 +20,5 @@
 #include "perf/perf-counters.h"
 
 uint64_t perfc_id_gen = PERFC_INVALID_ID;
+
+pthread_key_t perfc_tls_key;

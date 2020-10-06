@@ -24,8 +24,8 @@ CORTX_UTILS_CMAKE_BUILD_ROOT=${CORTXFS_BUILD_ROOT:-$CORTX_UTILS_SOURCE_ROOT}
 # Select CORTX_UTILS Source Version.
 # Superproject: derived from cortx-utils version.
 # Local: taken fron VERSION file.
-CORTX_UTILS_VERSION=${CORTX_UTILS_VERSION:-"$(cat $CORTX_UTILS_SOURCE_ROOT/VERSION)"}
-
+UTILS_VERSION=$(cat "$CORTX_UTILS_SOURCE_ROOT/VERSION")
+CORTX_UTILS_VERSION=${CORTX_UTILS_VERSION:-"$UTILS_VERSION"}
 
 # Select CORTX-UTILS Build Version.
 # Taken from git rev of UTILS repo
@@ -69,13 +69,13 @@ cortx_utils_print_env() {
 
 ###############################################################################
 cortx_utils_configure() {
-    if [ -f $CORTX_UTILS_BUILD/.config ]; then
+    if [ -f "$CORTX_UTILS_BUILD/.config" ]; then
         echo "Build folder exists. Please remove it."
         exit 1;
     fi
 
-    mkdir $CORTX_UTILS_BUILD
-    cd $CORTX_UTILS_BUILD
+    mkdir "$CORTX_UTILS_BUILD"
+    cd "$CORTX_UTILS_BUILD"
 
     local cmd="cmake \
 -DFAULT_INJECT=${FAULT_INJECT} \
@@ -84,22 +84,22 @@ cortx_utils_configure() {
 -DBASE_VERSION:STRING=${CORTX_UTILS_VERSION} \
 -DRELEASE_VER:STRING=${CORTX_UTILS_BUILD_VERSION} \
 -DPROJECT_NAME_BASE:STRING=${PROJECT_NAME_BASE} \
--DINSTALL_DIR_ROOT:STRING=${INSTALL_DIR_ROOT}
-$CORTX_UTILS_SRC"
-    echo -e "Config:\n $cmd" > $CORTX_UTILS_BUILD/.config
-    echo -e "Env:\n $(cortx_utils_print_env)" >> $CORTX_UTILS_BUILD/.config
-    $cmd
+-DINSTALL_DIR_ROOT:STRING=${INSTALL_DIR_ROOT}"
+
+    echo -e "Config:\n $cmd" > "$CORTX_UTILS_BUILD/.config"
+    echo -e "Env:\n $(cortx_utils_print_env)" >> "$CORTX_UTILS_BUILD/.config"
+    $cmd "$CORTX_UTILS_SRC"
     cd -
 }
 
 ###############################################################################
 cortx_utils_make() {
-    if [ ! -d $CORTX_UTILS_BUILD ]; then
+    if [ ! -d "$CORTX_UTILS_BUILD" ]; then
         echo "Build folder does not exist. Please run 'config'"
         exit 1;
     fi
 
-    cd $CORTX_UTILS_BUILD
+    cd "$CORTX_UTILS_BUILD"
     make "$@"
     cd -
 }
