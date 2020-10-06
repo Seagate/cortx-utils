@@ -55,6 +55,10 @@ include(CheckLibraryExists)
 add_subdirectory(tsdb)
 set(UTILS_TSDB utils-tsdb)
 
+# Add ADDB Plugin sources
+add_subdirectory(addb)
+set(UTILS_ADDB_PLUGIN utils-addb-plugin)
+
 # Build ancillary libs
 add_subdirectory(fault)
 set(UTILS_FAULT utils-fault)
@@ -101,6 +105,7 @@ add_library(${UTILS_LIB} SHARED
 		$<TARGET_OBJECTS:${UTILS_COMMON}>
 		$<TARGET_OBJECTS:${UTILS_UT}>
 		$<TARGET_OBJECTS:${UTILS_MANAGEMENT}>
+		$<TARGET_OBJECTS:${UTILS_ADDB_PLUGIN}>
 	)
 
 
