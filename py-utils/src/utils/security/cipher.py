@@ -13,12 +13,17 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import os
+import subprocess
+
 from base64 import urlsafe_b64encode
 from cryptography.fernet import Fernet
 from cryptography.fernet import InvalidSignature, InvalidToken
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+
+cortxsec_cmd = '/opt/seagate/cortx/extension/cortxsec'
 
 
 class Cipher:
@@ -51,6 +56,19 @@ class Cipher:
 
     @staticmethod
     def generate_key(str1: str, str2: str, *strs) -> bytes:
+        if os.path.exists(cortxsec_cmd):
+            args = ' '.join(['getkey', str1, str2] + list(strs))
+            getkey_cmd = f'{cortxsec_cmd} {args}'
+            try:
+                resp = subprocess.check_output(getkey_cmd.split(), stderr=subprocess.STDOUT)
+            except subprocess.CalledProcessError as e:
+                raise Exception(f'Command "{getkey_cmd}" failed with the output: {e.output}') from e
+            return resp
+        else:
+            return Cipher.gen_key(str1, str2, *strs)
+
+    @staticmethod
+    def gen_key(str1: str, str2: str, *strs):
         kdf = PBKDF2HMAC(algorithm=hashes.SHA256(),
                          length=32,
                          salt=str1.encode('utf-8'),
