@@ -10,7 +10,7 @@ set(CORTX_UTILS_MINOR_VERSION 0)
 set(CORTX_UTILS_PATCH_LEVEL 1)
 set(CORTX_UTILS_EXTRA_VERSION ${RELEASE_VER})
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${CMAKE_SOURCE_DIR}/include")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I\"${CMAKE_SOURCE_DIR}/include\"")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -fPIC -g")
 
 set(CORTX_UTILS_BASE_VERSION ${BASE_VERSION})
@@ -54,6 +54,10 @@ include(CheckLibraryExists)
 # Add TSDB sources
 add_subdirectory(tsdb)
 set(UTILS_TSDB utils-tsdb)
+
+# Add ADDB Plugin sources
+add_subdirectory(addb)
+set(UTILS_ADDB_PLUGIN utils-addb-plugin)
 
 # Build ancillary libs
 add_subdirectory(fault)
@@ -101,6 +105,7 @@ add_library(${UTILS_LIB} SHARED
 		$<TARGET_OBJECTS:${UTILS_COMMON}>
 		$<TARGET_OBJECTS:${UTILS_UT}>
 		$<TARGET_OBJECTS:${UTILS_MANAGEMENT}>
+		$<TARGET_OBJECTS:${UTILS_ADDB_PLUGIN}>
 	)
 
 

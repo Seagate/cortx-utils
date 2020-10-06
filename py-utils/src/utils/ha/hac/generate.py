@@ -148,10 +148,11 @@ class PCSGenerator(Generator):
         self._active_active = Template("echo $$pcs_status | grep -q $resource || "+
             "pcs -f $cluster_cfg resource clone $resource "+
             "clone-max=$clone_max clone-node-max=$clone_node_max $param")
+        # Created ticket for pcs https://bugs.clusterlabs.org/show_bug.cgi?id=5437
         self._primary_secondary = Template("echo $$pcs_status | grep -q $resource || "+
-            "pcs -f $cluster_cfg resource primary $primary "+
+            "pcs -f $cluster_cfg resource master $primary "+
             "$resource clone-max=$clone_max clone-node-max=$clone_node_max "+
-            "primary-max=$primary_max primary-node-max=$primary_node_max $param")
+            "master-max=$primary_max master-node-max=$primary_node_max $param")
         self._location = Template("echo $$pcs_location | grep -q $resource || "+
             "pcs -f $cluster_cfg constraint location $resource prefers $node=$score")
         self._order = Template("echo $$pcs_status | grep -q 'start $res1 then start $res2' || "+
