@@ -25,6 +25,8 @@
 #include "operation.h"
 #include <assert.h>
 
+uint64_t perfc_id_gen = PERFC_INVALID_ID;
+
 static
 void tsdb_run_manual_test(void)
 {
@@ -212,11 +214,48 @@ void opcall_run_manual_test(void)
 	}
 }
 
+static
+void perfc_run_manual_test(void)
+{
+	uint64_t opid = perf_id_gen();
+
+	enum perfc_function_tags {
+		PFT_START,
+		PFT_UT_A,
+		PFT_UT_B,
+		PFT_END
+	};
+
+	enum perfc_entity_attrs {
+		PEA_START,
+		PEA_UT_A_ARG_1,
+		PEA_UT_B_ARG_2,
+		PEA_END
+	};
+
+	enum perfc_entity_maps {
+		PEM_START,
+		PEM_UT_A_TO_B,
+		PEM_UT_B_TO_A,
+		PEM_END
+	};
+
+	(void) tsdb_init(true, true);
+	tsdb_set_rt_state(true);
+	PERFC_STATE_V2(TSDB_MOD_UT, PFT_UT_A, opid, PES_GEN_INIT);
+	PERFC_ATTR_V2(TSDB_MOD_UT, PFT_UT_A, opid, PEA_UT_A_ARG_1, 0xAB);
+	PERFC_MAP_V2(TSDB_MOD_UT, PFT_UT_A, opid+1, opid, 0xAB);
+	tsdb_fini();
+}
+
+
 int main(void)
 {
 	printf("TSDB manual tests:\n");
 	tsdb_run_manual_test();
 	printf("OPCALL manual tests :\n");
 	opcall_run_manual_test();
+	printf("Performance counters V2 tests :\n");
+	perfc_run_manual_test();
 	return 0;
 }

@@ -22,6 +22,7 @@
 #include "addb2/global.h" /* global_leave */
 #include "common/log.h"
 #include <debug.h>
+#include "perf/tsdb.h"
 
 int m0kvs_reinit(void)
 {
@@ -40,6 +41,9 @@ void m0kvs_do_init(void)
 	}
 
 	log_config();
+
+	/*  TODO: Create a config file parameter. */
+	tsdb_init(true, true);
 
 	rc = init_motr();
 	assert(rc == 0);
