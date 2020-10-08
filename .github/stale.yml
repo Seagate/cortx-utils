@@ -7,12 +7,9 @@ exemptLabels:
   - improvement
   - "github actions"
 # Label to use when marking an issue as stale
-staleLabel: auto-stale
+staleLabel: needs-attention
 # Comment to post when marking an issue as stale. Set to `false` to disable
 markComment: >
-  This issue/pull request has been automatically marked as stale because it has not had
-  recent activity. Tagging @shailesh-vaidya
-# Comment to post when closing a stale issue. Set to `false` to disable
-# closeComment: >
-#  This issue/pull request has been automatically marked as closed because it has not had
-#  recent activity.
+    This issue/pull request has been marked as `needs attention` as it has been left pending without new activity for 4 days.
+    Tagging @shailesh-vaidya for appropriate assignment.
+    Sorry for the delay & Thank you for contributing to CORTX. We will get back to you as soon as possible.
