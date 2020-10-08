@@ -168,6 +168,11 @@ void request_send_response(struct request *request,
 	struct json_object *json_resp_obj = NULL;
 
 	http = request->http;
+         
+	/* Set CORS Header  */
+	request_set_out_header(request,
+			       "Access-Control-Allow-Origin",
+			       "*");
 
 	if (request->err_code != 0) {
 		/**
