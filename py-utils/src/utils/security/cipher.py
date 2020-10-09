@@ -25,6 +25,12 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 cortxsec_cmd = '/opt/seagate/cortx/extension/cortxsec'
 
+# getkey allow list. Format: User:[List of processes]
+GETKEY_ALLOWED_CALLERS = {
+    'root': ['python3', 'salt', 'salt-call', 'salt-minion', 'resource_health_view', 'sspl_tests'],
+    'sspl-ll': ['sspl_ll_d'],
+    'csm': ['csm_setup', 'csm_agent'],
+}
 
 class Cipher:
     """
@@ -55,7 +61,8 @@ class Cipher:
         return decrypted
 
     @staticmethod
-    def generate_key(str1: str, str2: str, *strs) -> bytes:
+    def get_key(str1: str, str2: str, *strs) -> bytes:
+        """ Obtain Key either externally or using default method """
         if os.path.exists(cortxsec_cmd):
             args = ' '.join(['getkey', str1, str2] + list(strs))
             getkey_cmd = f'{cortxsec_cmd} {args}'
@@ -66,9 +73,31 @@ class Cipher:
             return resp
         else:
             return Cipher.gen_key(str1, str2, *strs)
+    @staticmethod
+    def _is_caller_valid():
+        me = psutil.Process()
+        parent = psutil.Process(me.ppid())
+        # parent process is pyinstaller's executable.
+        # So using grand parent which is the actual calling process.
+        caller_process = psutil.Process(parent.ppid())
+        process_name = caller_process.name()
+        user_name = caller_process.username()
+        # if user and process name matches, authorize records
+        if user_name in GETKEY_ALLOWED_CALLERS.keys() and \
+                process_name in GETKEY_ALLOWED_CALLERS[user_name]:
+            return True
+        return False
+
+    @staticmethod
+    def generate_key(str1: str, str2: str, *strs) -> bytes:
+        """ Generate key for allowed callers """
+        if Cipher._is_caller_valid():
+            return Cipher.gen_key(str1, str2, *strs)
+        raise GetKeyError(f'error: unauthorized call to generate_key')
 
     @staticmethod
     def gen_key(str1: str, str2: str, *strs):
+        """ Generate key based on the inputs """
         kdf = PBKDF2HMAC(algorithm=hashes.SHA256(),
                          length=32,
                          salt=str1.encode('utf-8'),
@@ -82,5 +111,11 @@ class Cipher:
 class CipherInvalidToken(Exception):
     """
     Wrapper around actual implementation's decryption exceptions
+    """
+    pass
+
+class GetKeyError(Exception):
+    """
+    Wrapper around actual implementation's getkey exceptions
     """
     pass
