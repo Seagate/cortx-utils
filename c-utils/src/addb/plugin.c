@@ -129,6 +129,7 @@ static const struct function_tag_items {
   [PFT_DSTORE_PREAD] = { .str = "dstore_pread" },
   [PFT_FSAL_WRITE] = { .str = "fsal_write" },
   [PFT_CFS_WRITE] = { .str = "cfs_write" },
+  [PFT_DSTORE_PWRITE] = { .str = "dstore_pwrite" },
 };
 _Static_assert(ARRAY_SIZE(g_function_tag_items_map) == PFT_END, "Invalid function tag");
 
