@@ -101,7 +101,7 @@ static const struct entity_attrs_items {
   [PEA_DSTORE_GET_RES_RC] = { .str = "dstore_get_result" },
   [PEA_DSTORE_PREAD_OFFSET] = { .str = "dstore_pread_offset" },
   [PEA_DSTORE_PREAD_COUNT] = { .str = "dstore_pread_count" },
-  [PEA_DSTORE_PREAD_BS] = { .str = "dstore_pread_bs" },
+  [PEA_DSTORE_BS] = { .str = "dstore_bs" },
   [PEA_DSTORE_PREAD_RES_RC] = { .str = "dstore_pread_result" },
   [PEA_KVS_GET_KLEN] = { .str = "kvs_get_key_length" },
   [PEA_KVS_GET_VLEN] = { .str = "kvs_get_value_length" },
