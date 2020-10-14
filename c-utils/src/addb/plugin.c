@@ -106,7 +106,7 @@ static const struct entity_attrs_items {
   [PEA_DSTORE_GET_RES_RC] = { .str = "dstore_get_result" },
   [PEA_DSTORE_PREAD_OFFSET] = { .str = "dstore_pread_offset" },
   [PEA_DSTORE_PREAD_COUNT] = { .str = "dstore_pread_count" },
-  [PEA_DSTORE_PREAD_BS] = { .str = "dstore_pread_bs" },
+  [PEA_DSTORE_BS] = { .str = "dstore_bs" },
   [PEA_DSTORE_PREAD_RES_RC] = { .str = "dstore_pread_result" },
   [PEA_KVS_KLEN] = { .str = "kvs_key_length" },
   [PEA_KVS_VLEN] = { .str = "kvs_value_length" },
@@ -144,6 +144,7 @@ static const struct function_tag_items {
 
   [PFT_DSTORE_GET] = { .str = "dstore_get" },
   [PFT_DSTORE_PREAD] = { .str = "dstore_pread" },
+  [PFT_DSTORE_PWRITE] = { .str = "dstore_pwrite" },
 };
 _Static_assert(ARRAY_SIZE(g_function_tag_items_map) == PFT_END, "Invalid function tag");
 
