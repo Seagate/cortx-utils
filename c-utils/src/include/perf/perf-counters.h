@@ -222,9 +222,9 @@ enum perfc_entity_attrs {
 
 	PEA_DSTORE_BS,
 
-	PEA_KVS_GET_KLEN,
-	PEA_KVS_GET_VLEN,
-	PEA_KVS_GET_RES_RC,
+	PEA_KVS_KLEN,
+	PEA_KVS_VLEN,
+	PEA_KVS_RES_RC,
 
 	PEA_END
 };
