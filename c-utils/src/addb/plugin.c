@@ -107,6 +107,12 @@ static const struct entity_attrs_items {
   [PEA_ACCESS_FLAGS] = { .str = "access_flag" },
   [PEA_ACCESS_RES_RC] = { .str = "access_result" },
 
+  [PEA_KVS_ALLOC_SIZE] = { .str = "kvs_alloc_size" },
+  [PEA_KVS_ALLOC_RES_RC] = { .str = "kvs_alloc_result" },
+  [PEA_KVS_KLEN] = { .str = "kvs_key_length" },
+  [PEA_KVS_VLEN] = { .str = "kvs_value_length" },
+  [PEA_KVS_RES_RC] = { .str = "kvs_result" },
+
   [PEA_DSTORE_GET_RES_RC] = { .str = "dstore_get_result" },
   [PEA_DSTORE_PREAD_OFFSET] = { .str = "dstore_pread_offset" },
   [PEA_DSTORE_PREAD_COUNT] = { .str = "dstore_pread_count" },
@@ -116,14 +122,8 @@ static const struct entity_attrs_items {
   [PEA_DSTORE_PWRITE_RES_RC] = { .str = "dstore_pwrite_result" },
   [PEA_DSTORE_BS] = { .str = "dstore_bs" },
 
-  [PEA_KVS_KLEN] = { .str = "kvs_key_length" },
-  [PEA_KVS_VLEN] = { .str = "kvs_value_length" },
-  [PEA_KVS_RES_RC] = { .str = "kvs_result" },
-  [PEA_KVS_ALLOC_SIZE] = { .str = "kvs_alloc_size" },
-  [PEA_KVS_ALLOC_RES_RC] = { .str = "kvs_alloc_result" },
-
-  [PEA_OTHER_FUNC_CALL] = { .str = "calling_other_function" },
-  [PEA_OTHER_FUNC_END] = { .str = "returned_from_other_function" },
+  [PEA_TIME_ATTR_START_OTHER_FUNC] = { .str = "attr_time_start_other_func" },
+  [PEA_TIME_ATTR_END_OTHER_FUNC] = { .str = "attr_time_end_other_func" },
 };
 _Static_assert(ARRAY_SIZE(g_entity_attrs_items_map) == PEA_END, "Invalid entity attribute");
 
