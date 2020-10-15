@@ -107,24 +107,23 @@ static const struct entity_attrs_items {
   [PEA_ACCESS_FLAGS] = { .str = "access_flag" },
   [PEA_ACCESS_RES_RC] = { .str = "access_result" },
 
-  [PEA_KVS_ALLOC_SIZE] = { .str = "kvs_alloc_size" },
-  [PEA_KVS_ALLOC_RES_RC] = { .str = "kvs_alloc_result" },
-
   [PEA_DSTORE_GET_RES_RC] = { .str = "dstore_get_result" },
-
   [PEA_DSTORE_PREAD_OFFSET] = { .str = "dstore_pread_offset" },
   [PEA_DSTORE_PREAD_COUNT] = { .str = "dstore_pread_count" },
   [PEA_DSTORE_PREAD_RES_RC] = { .str = "dstore_pread_result" },
-
   [PEA_DSTORE_PWRITE_OFFSET] = { .str = "dstore_pwrite_offset" },
   [PEA_DSTORE_PWRITE_COUNT] = { .str = "dstore_pwrite_count" },
   [PEA_DSTORE_PWRITE_RES_RC] = { .str = "dstore_pwrite_result" },
-
   [PEA_DSTORE_BS] = { .str = "dstore_bs" },
 
   [PEA_KVS_KLEN] = { .str = "kvs_key_length" },
   [PEA_KVS_VLEN] = { .str = "kvs_value_length" },
   [PEA_KVS_RES_RC] = { .str = "kvs_result" },
+  [PEA_KVS_ALLOC_SIZE] = { .str = "kvs_alloc_size" },
+  [PEA_KVS_ALLOC_RES_RC] = { .str = "kvs_alloc_result" },
+
+  [PEA_OTHER_FUNC_CALL] = { .str = "calling_other_function" },
+  [PEA_OTHER_FUNC_END] = { .str = "returned_from_other_function" },
 };
 _Static_assert(ARRAY_SIZE(g_entity_attrs_items_map) == PEA_END, "Invalid entity attribute");
 
@@ -142,6 +141,10 @@ static const struct function_tag_items {
   [PFT_FSAL_WRITE] = { .str = "fsal_write" },
   [PFT_FSAL_GETATTRS] = { .str = "fsal_getattrs" },
   [PFT_FSAL_SETATTRS] = { .str = "fsal_setattrs" },
+  [PFT_FSAL_MKDIR] = { .str = "fsal_mkdir" },
+  [PFT_FSAL_READDIR] = { .str = "fsal_readdir" },
+  [PFT_FSAL_RMDIR] = { .str = "fsal_rmdir" },
+  [PFT_FSAL_LOOKUP] = { .str = "fsal_lookup" },
 
   [PFT_KVS_INIT] = { .str = "kvs_init" },
   [PFT_KVS_FINI] = { .str = "kvs_finish" },
@@ -149,12 +152,17 @@ static const struct function_tag_items {
   [PFT_KVS_FREE] = { .str = "kvs_free" },
   [PFT_KVS_GET] = { .str = "kvs_get" },
   [PFT_KVS_SET] = { .str = "kvs_set" },
+  [PFT_KVTREE_ITER_CH] = { .str = "kvtree_iterate_child" },
 
   [PFT_CFS_READ] = { .str = "cfs_read" },
   [PFT_CFS_WRITE] = { .str = "cfs_write" },
   [PFT_CFS_GETATTR] = { .str = "cfs_get_attribute" },
   [PFT_CFS_SETATTR] = { .str = "cfs_set_attribute" },
   [PFT_CFS_ACCESS] = { .str = "cfs_access" },
+  [PFT_CFS_MKDIR] = { .str = "cfs_mkdir" },
+  [PFT_CFS_RMDIR] = { .str = "cfs_rmdir" },
+  [PFT_CFS_READDIR] = { .str = "cfs_readdir" },
+  [PFT_CFS_LOOKUP] = { .str = "cfs_lookup" },
 
   [PFT_DSTORE_GET] = { .str = "dstore_get" },
   [PFT_DSTORE_PREAD] = { .str = "dstore_pread" },

@@ -23,6 +23,7 @@
 #include "perf/tsdb.h" /* ACTION_ID_BASE */
 #include "operation.h"
 #include <pthread.h>
+#include <string.h>
 #include "debug.h"
 
 /******************************************************************************/
@@ -138,6 +139,10 @@ enum perfc_function_tags {
 	PFT_FSAL_WRITE,
 	PFT_FSAL_GETATTRS,
 	PFT_FSAL_SETATTRS,
+	PFT_FSAL_MKDIR,
+	PFT_FSAL_RMDIR,
+	PFT_FSAL_READDIR,
+	PFT_FSAL_LOOKUP,
 
 	PFT_KVS_INIT,
 	PFT_KVS_FINI,
@@ -145,12 +150,17 @@ enum perfc_function_tags {
 	PFT_KVS_FREE,
 	PFT_KVS_GET,
 	PFT_KVS_SET,
+	PFT_KVTREE_ITER_CH,
 
 	PFT_CFS_READ,
 	PFT_CFS_WRITE,
 	PFT_CFS_GETATTR,
 	PFT_CFS_SETATTR,
 	PFT_CFS_ACCESS,
+	PFT_CFS_MKDIR,
+	PFT_CFS_RMDIR,
+	PFT_CFS_READDIR,
+	PFT_CFS_LOOKUP,
 
 	PFT_DSTORE_GET,
 	PFT_DSTORE_PREAD,
@@ -225,6 +235,9 @@ enum perfc_entity_attrs {
 	PEA_KVS_KLEN,
 	PEA_KVS_VLEN,
 	PEA_KVS_RES_RC,
+
+	PEA_OTHER_FUNC_CALL,
+	PEA_OTHER_FUNC_END,
 
 	PEA_END
 };
