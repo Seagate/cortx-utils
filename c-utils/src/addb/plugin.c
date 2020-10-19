@@ -85,27 +85,46 @@ static const struct entity_attrs_items {
   [PEA_W_SIZE] = { .str = "write_size" },
   [PEA_W_RES_MAJ] = { .str = "write_result_major_code" },
   [PEA_W_RES_MIN] = { .str = "write_result_minor_code" },
+
   [PEA_R_OFFSET] = { .str = "read_offset" },
   [PEA_R_IOVC] = { .str = "read_vector_count" },
   [PEA_R_IOVL] = { .str = "read_vector_length" },
   [PEA_R_RES_MAJ] = { .str = "read_result_major_code" },
   [PEA_R_RES_MIN] = { .str = "read_result_minor_code" },
+
   [PEA_R_C_COUNT] = { .str = "read_cfs_count" },
   [PEA_R_C_OFFSET] = { .str = "read_cfs_offset" },
   [PEA_R_C_RES_RC] = { .str = "read_cfs_result" },
+
+  [PEA_GETATTR_RES_MAJ] = { .str = "get_attribute_result_major_code" },
+  [PEA_GETATTR_RES_MIN] = { .str = "get_attribute_result_minor_code" },
   [PEA_GETATTR_RES_RC] = { .str = "get_attribute_result" },
+
+  [PEA_SETATTR_RES_MAJ] = { .str = "set_attribute_result_major_code" },
+  [PEA_SETATTR_RES_MIN] = { .str = "set_attribute_result_minor_code" },
+  [PEA_SETATTR_RES_RC] = { .str = "set_attribute_result" },
+
   [PEA_ACCESS_FLAGS] = { .str = "access_flag" },
   [PEA_ACCESS_RES_RC] = { .str = "access_result" },
+
   [PEA_KVS_ALLOC_SIZE] = { .str = "kvs_alloc_size" },
   [PEA_KVS_ALLOC_RES_RC] = { .str = "kvs_alloc_result" },
+
   [PEA_DSTORE_GET_RES_RC] = { .str = "dstore_get_result" },
+
   [PEA_DSTORE_PREAD_OFFSET] = { .str = "dstore_pread_offset" },
   [PEA_DSTORE_PREAD_COUNT] = { .str = "dstore_pread_count" },
-  [PEA_DSTORE_PREAD_BS] = { .str = "dstore_pread_bs" },
   [PEA_DSTORE_PREAD_RES_RC] = { .str = "dstore_pread_result" },
-  [PEA_KVS_GET_KLEN] = { .str = "kvs_get_key_length" },
-  [PEA_KVS_GET_VLEN] = { .str = "kvs_get_value_length" },
-  [PEA_KVS_GET_RES_RC] = { .str = "kvs_get_result" },
+
+  [PEA_DSTORE_PWRITE_OFFSET] = { .str = "dstore_pwrite_offset" },
+  [PEA_DSTORE_PWRITE_COUNT] = { .str = "dstore_pwrite_count" },
+  [PEA_DSTORE_PWRITE_RES_RC] = { .str = "dstore_pwrite_result" },
+
+  [PEA_DSTORE_BS] = { .str = "dstore_bs" },
+
+  [PEA_KVS_KLEN] = { .str = "kvs_key_length" },
+  [PEA_KVS_VLEN] = { .str = "kvs_value_length" },
+  [PEA_KVS_RES_RC] = { .str = "kvs_result" },
 };
 _Static_assert(ARRAY_SIZE(g_entity_attrs_items_map) == PEA_END, "Invalid entity attribute");
 
@@ -120,15 +139,26 @@ static const struct function_tag_items {
   const char* str;
 } g_function_tag_items_map[] = {
   [PFT_FSAL_READ] = { .str = "fsal_read" },
+  [PFT_FSAL_WRITE] = { .str = "fsal_write" },
+  [PFT_FSAL_GETATTRS] = { .str = "fsal_getattrs" },
+  [PFT_FSAL_SETATTRS] = { .str = "fsal_setattrs" },
+
+  [PFT_KVS_INIT] = { .str = "kvs_init" },
+  [PFT_KVS_FINI] = { .str = "kvs_finish" },
   [PFT_KVS_ALLOC] = { .str = "kvs_alloc" },
+  [PFT_KVS_FREE] = { .str = "kvs_free" },
   [PFT_KVS_GET] = { .str = "kvs_get" },
+  [PFT_KVS_SET] = { .str = "kvs_set" },
+
   [PFT_CFS_READ] = { .str = "cfs_read" },
+  [PFT_CFS_WRITE] = { .str = "cfs_write" },
   [PFT_CFS_GETATTR] = { .str = "cfs_get_attribute" },
+  [PFT_CFS_SETATTR] = { .str = "cfs_set_attribute" },
   [PFT_CFS_ACCESS] = { .str = "cfs_access" },
+
   [PFT_DSTORE_GET] = { .str = "dstore_get" },
   [PFT_DSTORE_PREAD] = { .str = "dstore_pread" },
-  [PFT_FSAL_WRITE] = { .str = "fsal_write" },
-  [PFT_CFS_WRITE] = { .str = "cfs_write" },
+  [PFT_DSTORE_PWRITE] = { .str = "dstore_pwrite" },
 };
 _Static_assert(ARRAY_SIZE(g_function_tag_items_map) == PFT_END, "Invalid function tag");
 
