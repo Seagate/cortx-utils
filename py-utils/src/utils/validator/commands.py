@@ -1,7 +1,8 @@
 #!/bin/env python3
 
-# CORTX-Py-Utils: CORTX Python common library.
+# CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -93,3 +94,31 @@ class ConsulVCommand(VCommand):
         """ Process consul command """
 
         self._consul.validate()
+
+
+class ControllerVCommand(VCommand):
+    
+    """ Controller related commands """
+    _name = "controller"
+
+    def __init__(self, args):
+
+        super(ControllerVCommand, self).__init__(args)
+
+        sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+        from v_controller import ControllerV
+
+        self._controller = ControllerV()
+
+    @staticmethod
+    def add_args(parser):
+        """ Add Controller Command args for parsing. """
+
+        parser1 = parser.add_parser(ControllerVCommand._name, help='Controller Validations')
+        parser1.add_argument('args', nargs='*', default=[], help='type')
+        parser1.set_defaults(command=ControllerVCommand)
+
+    def process(self):
+        """ Process controller command """
+
+        self._controller.validate()
