@@ -437,7 +437,7 @@ enum perfc_entity_maps {
 } while (0)
 
 /* Format of Map perf. counters:
- * | tsdb_modules | function tag | map tag | src opid | dst opid | [Rest] |
+ * | tsdb_modules | function tag | map tag | src opid | dst opid | caller_opid, [Rest] |
  * where Arguments:
  *	- TSDB Module ID
  *	- an enum value from perfc_function_tags
@@ -445,13 +445,14 @@ enum perfc_entity_maps {
  *	- Caller passed map tag from enum perfc_entity_maps
  *	- opid - caller generated tag for operation id
  *	- related_opid - caller generated tag for related operation id
+ *	- caller_opid - caller generated tag for previous caller's operation id
  *	- __VA_ARGS_ - attribute-specific arguments.
  */
-#define PERFC_MAP_V2(__mod, __fn_tag, map_tag, opid, related_opid, ...) do {\
+#define PERFC_MAP_V2(__mod, __fn_tag, map_tag, opid, related_opid, caller_opid,...) do {\
 	dassert(__fn_tag > PFT_START && __fn_tag < PFT_END);		\
 	dassert(map_tag > PEM_START && map_tag < PEM_END);		\
 	TSDB_ADD(TSDB_MK_AID(__mod, 0xEF), __fn_tag, PET_MAP, map_tag,	\
-		 opid, related_opid, __VA_ARGS__);			\
+		 opid, related_opid, caller_opid, __VA_ARGS__);			\
 } while (0)
 
 #ifdef ENABLE_TSDB_ADDB
@@ -527,15 +528,27 @@ static inline struct perfc_tls_ctx perfc_tls_get_top(void)
 	struct perfc_tls_ctx ptctx = {.opid = PERFC_INVALID_ID};
 	struct perfc_callstack *perfstack = pthread_getspecific(perfc_tls_key);
 
-	if (perfstack == NULL) {
-	    return ptctx;
-	}
-
-	if (perfstack->top == -1) {
+	if ((perfstack == NULL) || (perfstack->top == -1)) {
 	    return ptctx;
 	}
 
 	return perfstack->pstack[perfstack->top];
+}
+
+static inline struct perfc_tls_ctx perfc_tls_get_prev(void)
+{
+	struct perfc_tls_ctx ptctx = {.opid = PERFC_INVALID_ID};
+	struct perfc_callstack *perfstack = pthread_getspecific(perfc_tls_key);
+
+	if ((perfstack == NULL) || (perfstack->top == -1)) {
+	    return ptctx;
+	}
+
+	if (perfstack->top == 0) {
+	    return perfstack->pstack[perfstack->top];
+	}
+
+	return perfstack->pstack[perfstack->top-1];
 }
 
 #define perfc_trace_state(state, ...) do {				\
@@ -556,10 +569,12 @@ static inline struct perfc_tls_ctx perfc_tls_get_top(void)
 
 #define perfc_trace_map(fn_tag, map_tag, _opid, ...) do {		\
 	struct perfc_tls_ctx ptctx = perfc_tls_get_origin();		\
+	struct perfc_tls_ctx ptcctx = perfc_tls_get_prev();		\
 	dassert(ptctx.opid != PERFC_INVALID_ID);			\
+	dassert(ptcctx.opid != PERFC_INVALID_ID);			\
 	if (ptctx.opid != PERFC_INVALID_ID) {				\
 		PERFC_MAP_V2(ptctx.mod, fn_tag, map_tag, _opid,		\
-			     ptctx.opid, __VA_ARGS__);			\
+			     ptctx.opid, ptcctx.opid, __VA_ARGS__);	\
 	}								\
 } while (0)
 
