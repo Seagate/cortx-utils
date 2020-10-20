@@ -26,6 +26,7 @@
 #include <common/log.h>
 #include <debug.h> /* dassert */
 #include "perf/tsdb.h" /* is_engine_on */
+#include "operation.h"
 
 /* To be passed as argument */
 struct m0_realm     motr_uber_realm;
@@ -121,8 +122,11 @@ void autoshun_key_register_thread(void)
 
 int m0init(struct collection_item *cfg_items)
 {
-	if (cfg_items == NULL)
+	perfc_trace_inii(PFT_M0_INIT, PEM_NFS_TO_MOTR);
+	if (cfg_items == NULL) {
+		perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 		return -EINVAL;
+	}
 
 	if (conf == NULL)
 		conf = cfg_items;
@@ -151,12 +155,14 @@ int m0init(struct collection_item *cfg_items)
 	pthread_mutex_unlock(&m0init_lock);
 
 	my_init_done = true;
-
+	perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 	return 0;
 }
 
 void m0fini(void)
 {
+	perfc_trace_inii(PFT_M0_FINISH, PEM_NFS_TO_MOTR);
+
 	/* We can finalize M0 only from a thread that has been adopted. */
 	dassert(my_init_done);
 	if (motr_instance) {
@@ -164,6 +170,7 @@ void m0fini(void)
 		motr_instance = NULL;
 		autoshun_key_fini();
 	}
+	perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 }
 
 int get_motr_conf(struct collection_item *cfg)
@@ -216,6 +223,8 @@ int init_motr(void)
 	int rc;
 	char  tmpfid[MAXNAMLEN];
 
+	perfc_trace_inii(PFT_INIT_MOTR, PEM_NFS_TO_MOTR);
+
 	assert(motr_local_addr && motr_ha_addr && motr_prof &&
 	       motr_proc_fid);
 
@@ -237,7 +246,9 @@ int init_motr(void)
 	motr_conf.mc_is_addb_init	= tsdb_is_engine_on();
 
 	/* Create Motr instance */
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_CLIENT_INIT);
 	rc = m0_client_init(&motr_instance, &motr_conf, true);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_CLIENT_INIT);
 	if (rc != 0) {
 		log_err("Failed to initilize Motr\n");
 		goto err_exit;
@@ -247,9 +258,11 @@ int init_motr(void)
 	 * Currently, this feature is not implemented in Motr.
 	 * We have only single realm: UBER REALM. In future with multiple realms
 	 * multiple applications can run in different containers. */
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_CONTAINER_INIT);
 	m0_container_init(&motr_container,
 			  NULL, &M0_UBER_REALM,
 			  motr_instance);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_CONTAINER_INIT);
 
 	rc = motr_container.co_realm.re_entity.en_sm.sm_rc;
 	if (rc != 0) {
@@ -261,29 +274,41 @@ int init_motr(void)
 
 	/* Get fid from config parameter */
 	memset(&ifid, 0, sizeof(struct m0_fid));
+
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_FID_SSCANF);
 	rc = m0_fid_sscanf(ifid_str, &ifid);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_FID_SSCANF);
 	if (rc != 0) {
 		log_err("Failed to read ifid value from conf\n");
 		goto err_exit;
 	}
 
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_FID_PRINT);
 	rc = m0_fid_print(tmpfid, MAXNAMLEN, &ifid);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_FID_PRINT);
 	if (rc < 0) {
 		log_err("Failed to read ifid value from conf\n");
 		goto err_exit;
 	}
 
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_IDX_INIT);
 	m0_idx_init(&idx, &motr_container.co_realm,
 		    (struct m0_uint128 *)&ifid);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_IDX_INIT);
 
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_UFID_INIT);
 	rc = m0_ufid_init(motr_instance, &ufid_generator);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_UFID_INIT);
 	if (rc != 0) {
 		log_err("Failed to initialise fid generator: %d\n", rc);
 		goto err_exit;
 	}
 
+	perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 	return 0;
 
 err_exit:
+	perfc_trace_attr(PEA_INIT_MOTR_RES_RC, rc);
+	perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 	return rc;
 }
