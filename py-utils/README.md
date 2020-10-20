@@ -25,7 +25,7 @@ python3 setup.py bdist_wheel
 ```
 setup.py is also able to build RPMs. Run
 ```bash
-python3 setup.py bdist_rpm
+python3.6 setup.py bdist_rpm --post-install utils-post-install --pre-uninstall utils-pre-uninstall
 ```
 ## Installation
 Use pip and the wheel file to install the package. E.g.
