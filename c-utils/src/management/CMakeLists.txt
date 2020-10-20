@@ -9,8 +9,17 @@ SET(framework_LIB_SRCS
 	server.c
 	controller.c
 	utils.c
+	md5hash.c
+)
+
+SET(hash_SRC
+	md5hash.c
 )
 
 add_library(management_framework OBJECT
 		${framework_LIB_SRCS}
+	)
+
+add_library(management_hash OBJECT
+		${hash_SRC}
 	)
