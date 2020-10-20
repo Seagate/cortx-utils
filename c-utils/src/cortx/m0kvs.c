@@ -23,10 +23,15 @@
 #include "common/log.h"
 #include <debug.h>
 #include "perf/tsdb.h"
+#include "operation.h"
 
 int m0kvs_reinit(void)
 {
-	return m0init(conf);
+	int rc;
+	perfc_trace_inii(PFT_M0KVS_REINIT, PEM_NFS_TO_MOTR);
+	rc = m0init(conf);
+	perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
+	return rc;
 }
 
 void m0kvs_do_init(void)
@@ -84,17 +89,32 @@ static int m0_op_kvs(enum m0_idx_opcode opcode,
 	int rcs[1];
 	int rc;
 
+	perfc_trace_inii(PFT_M0_OP_KVS, PEM_NFS_TO_MOTR);
 	if (!my_init_done)
 		m0kvs_reinit();
 
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_IDX_OP);
 	rc = m0_idx_op(&idx, opcode, key, val,
 		       rcs, M0_OIF_OVERWRITE, &op);
-	if (rc)
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_IDX_OP);
+	if (rc) {
+		perfc_trace_attr(PEA_M0KVS_RES_RC, rc);
+		perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 		return rc;
+	}
 
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_LAUNCH);
 	m0_op_launch(&op, 1);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_LAUNCH);
+
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_WAIT);
 	rc = m0_op_wait(op, M0_BITS(M0_OS_STABLE),
 			M0_TIME_NEVER);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_WAIT);
+
+	perfc_trace_attr(PEA_M0_OP_SM_ID, op->op_sm.sm_id);
+	perfc_trace_attr(PEA_M0_OP_SM_STATE, op->op_sm.sm_state);
+
 	if (rc)
 		goto out;
 
@@ -102,8 +122,13 @@ static int m0_op_kvs(enum m0_idx_opcode opcode,
 	rc = rcs[0];
 
 out:
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_FINISH);
 	m0_op_fini(op);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_FINISH);
+
 	/* it seems like 0_free(&op) is not needed */
+	perfc_trace_attr(PEA_M0KVS_RES_RC, rc);
+	perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 	return rc;
 }
 
@@ -115,6 +140,7 @@ int m0idx_create(const struct m0_uint128 *fid, struct m0_idx **index)
 
 	*index = NULL;
 
+	perfc_trace_inii(PFT_M0IDX_CREATE, PEM_NFS_TO_MOTR);
 	idx = m0kvs_alloc(sizeof(struct m0_idx));
 	if (idx == NULL) {
 		rc = -ENOMEM;
@@ -122,25 +148,42 @@ int m0idx_create(const struct m0_uint128 *fid, struct m0_idx **index)
 	}
 
 	/* Set an index creation operation. */
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_IDX_INIT);
 	m0_idx_init(idx,
 		    &motr_container.co_realm, (struct m0_uint128 *)fid);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_IDX_INIT);
 
-        rc = m0_entity_create(NULL, &(idx->in_entity), &op);
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_ENTITY_CREATE);
+	rc = m0_entity_create(NULL, &(idx->in_entity), &op);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_ENTITY_CREATE);
 	if (rc == 0) {
  		/* Launch and wait for op to complete */
-        	m0_op_launch(&op, 1);
-        	rc = m0_op_wait(op,
-        			M0_BITS(M0_OS_FAILED,
-                		M0_OS_STABLE),
-                		M0_TIME_NEVER);
+		perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_LAUNCH);
+		m0_op_launch(&op, 1);
+		perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_LAUNCH);
+
+		perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_WAIT);
+		rc = m0_op_wait(op,
+                        M0_BITS(M0_OS_FAILED,
+                        M0_OS_STABLE),
+                        M0_TIME_NEVER);
+		perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_WAIT);
+
+		perfc_trace_attr(PEA_M0_OP_SM_ID, op->op_sm.sm_id);
+		perfc_trace_attr(PEA_M0_OP_SM_STATE, op->op_sm.sm_state);
 		if (rc == 0) {
 			rc = op->op_rc;
 		}
 	}
 
-        /* fini and release */
-        m0_op_fini(op);
-        m0_op_free(op);
+	/* fini and release */
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_FINISH);
+	m0_op_fini(op);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_FINISH);
+
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_FREE);
+	m0_op_free(op);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_FREE);
 
 	if (rc) {
 		m0kvs_free(idx);
@@ -149,46 +192,70 @@ int m0idx_create(const struct m0_uint128 *fid, struct m0_idx **index)
 	}
 
 out:
-        return rc;
+	perfc_trace_attr(PEA_M0KVS_RES_RC, rc);
+	perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
+	return rc;
 }
 
 int m0idx_delete(const struct m0_uint128 *fid)
 {
-        int                     rc;
-        struct m0_op     *op = NULL;
-        struct m0_idx    idx;
+	int rc;
+	struct m0_op     *op = NULL;
+	struct m0_idx    idx;
 
-        memset(&idx, 0, sizeof(struct m0_idx));
+	perfc_trace_inii(PFT_M0IDX_DELETE, PEM_NFS_TO_MOTR);
+	memset(&idx, 0, sizeof(struct m0_idx));
 
-        /* Set an index creation operation. */
-        m0_idx_init(&idx,
-                    &motr_container.co_realm, (struct m0_uint128 *)fid);
+	/* Set an index creation operation. */
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_IDX_INIT);
+	m0_idx_init(&idx,
+                &motr_container.co_realm, (struct m0_uint128 *)fid);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_IDX_INIT);
 
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_ENTITY_OPEN);
 	rc = m0_entity_open(&idx.in_entity, &op);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_ENTITY_OPEN);
+
 	if (rc != 0) {
 		goto out;
 	}
 
-        rc = m0_entity_delete(&(idx.in_entity), &op);
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_ENTITY_DELETE);
+	rc = m0_entity_delete(&(idx.in_entity), &op);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_ENTITY_DELETE);
 	if (rc == 0) {
-        	/* Launch and wait for op to complete */
-        	m0_op_launch(&op, 1);
-        	rc = m0_op_wait(op,
-        			M0_BITS(M0_OS_FAILED,
-                		M0_OS_STABLE),
-                		M0_TIME_NEVER);
+		/* Launch and wait for op to complete */
+		perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_LAUNCH);
+		m0_op_launch(&op, 1);
+		perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_LAUNCH);
+
+		perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_WAIT);
+		rc = m0_op_wait(op,
+                        M0_BITS(M0_OS_FAILED,
+                        M0_OS_STABLE),
+                        M0_TIME_NEVER);
+		perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_WAIT);
+		perfc_trace_attr(PEA_M0_OP_SM_ID, op->op_sm.sm_id);
+		perfc_trace_attr(PEA_M0_OP_SM_STATE, op->op_sm.sm_state);
 		if (rc == 0) {
-        		rc = op->op_rc;
+			rc = op->op_rc;
 		}
 	}
 
-        /* fini and release */
-        m0_op_fini(op);
-        m0_op_free(op);
+	/* fini and release */
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_FINISH);
+	m0_op_fini(op);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_FINISH);
+
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_FREE);
+	m0_op_free(op);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_FREE);
 
 out:
-        m0_entity_fini(&(idx.in_entity));
-        return rc;
+	m0_entity_fini(&(idx.in_entity));
+	perfc_trace_attr(PEA_M0KVS_RES_RC, rc);
+	perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
+	return rc;
 }
 
 int m0idx_open(const struct m0_uint128 *fid, struct m0_idx **index)
@@ -196,32 +263,41 @@ int m0idx_open(const struct m0_uint128 *fid, struct m0_idx **index)
 	int 			rc = 0;
 	struct m0_idx  	*idx = NULL;
 
+	perfc_trace_inii(PFT_M0IDX_OPEN, PEM_NFS_TO_MOTR);
 	*index = NULL;
 
 	if (!my_init_done)
 		m0kvs_reinit();
 
 	idx = m0kvs_alloc(sizeof(struct m0_idx));
-        if (idx == NULL) {
-                rc = -ENOMEM;
+	if (idx == NULL) {
+		rc = -ENOMEM;
 		goto out;
-        }
+	}
 
-        m0_idx_init(idx, &motr_container.co_realm,
-                    (struct m0_uint128 *)fid);
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_IDX_INIT);
+	m0_idx_init(idx, &motr_container.co_realm,
+                (struct m0_uint128 *)fid);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_IDX_INIT);
 
 	*index = idx;
 
 out:
+	perfc_trace_attr(PEA_M0KVS_RES_RC, rc);
+	perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 	return rc;
 }
 
 void m0idx_close(struct m0_idx *index)
 {
+	perfc_trace_inii(PFT_M0IDX_CLOSE, PEM_NFS_TO_MOTR);
 	if (!my_init_done)
 		m0kvs_reinit();
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_IDX_FINISH);
 	m0_idx_fini(index);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_IDX_FINISH);
 	m0kvs_free(index);
+	perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 }
 
 static int m0_op2_kvs(void *ctx,
@@ -235,19 +311,36 @@ static int m0_op2_kvs(void *ctx,
 
 	struct m0_idx     *index = NULL;
 
+	perfc_trace_inii(PFT_M0_OP2_KVS, PEM_NFS_TO_MOTR);
+
 	if (!my_init_done)
 		m0kvs_reinit();
 
 	index = ctx;
 
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_IDX_OP);
 	rc = m0_idx_op(index, opcode, key, val,
 		       rcs, M0_OIF_OVERWRITE, &op);
-	if (rc)
-		return rc;
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_IDX_OP);
 
+	if (rc) {
+		perfc_trace_attr(PEA_M0KVS_RES_RC, rc);
+		perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
+		return rc;
+    }
+
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_LAUNCH);
 	m0_op_launch(&op, 1);
-	rc = m0_op_wait(op, M0_BITS(M0_OS_STABLE),
-			M0_TIME_NEVER);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_LAUNCH);
+
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_WAIT);
+	rc = m0_op_wait(op,
+                    M0_BITS(M0_OS_FAILED,
+                    M0_OS_STABLE),
+                    M0_TIME_NEVER);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_WAIT);
+	perfc_trace_attr(PEA_M0_OP_SM_ID, op->op_sm.sm_id);
+	perfc_trace_attr(PEA_M0_OP_SM_STATE, op->op_sm.sm_state);
 	if (rc)
 		goto out;
 
@@ -255,8 +348,12 @@ static int m0_op2_kvs(void *ctx,
 	rc = rcs[0];
 
 out:
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_FINISH);
 	m0_op_fini(op);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_FINISH);
 	/* it seems like 0_free(&op) is not needed */
+	perfc_trace_attr(PEA_M0KVS_RES_RC, rc);
+	perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 	return rc;
 }
 
@@ -266,6 +363,8 @@ int m0kvs_get(void *ctx, void *k, size_t klen,
 	m0_bcount_t k_len = klen;
 	struct m0_bufvec key, val;
 	int rc;
+
+	perfc_trace_inii(PFT_M0KVS_GET, PEM_NFS_TO_MOTR);
 
 	// @todo: Assert is called when NFS Ganesha is run.
 	// Once issue is debugged uncomment the M0_DASSERT call.
@@ -281,6 +380,8 @@ int m0kvs_get(void *ctx, void *k, size_t klen,
 		goto out;
 
 out:
+	perfc_trace_attr(PEA_M0KVS_RES_RC, rc);
+	perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 	return rc;
 }
 
@@ -290,6 +391,8 @@ int m0kvs4_get(void *k, size_t klen,
 	m0_bcount_t k_len = klen;
 	struct m0_bufvec key, val;
 	int rc;
+
+	perfc_trace_inii(PFT_M0KVS4_GET, PEM_NFS_TO_MOTR);
 
 	// @todo: Assert is called when NFS Ganesha is run.
 	// Once issue is debugged uncomment the M0_DASSERT call.
@@ -305,6 +408,8 @@ int m0kvs4_get(void *k, size_t klen,
 		goto out;
 
 out:
+	perfc_trace_attr(PEA_M0KVS_RES_RC, rc);
+	perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 	return rc;
 }
 
@@ -316,12 +421,17 @@ int m0kvs4_set(void *k, const size_t klen,
 	struct m0_bufvec key, val;
 	int rc;
 
+	perfc_trace_inii(PFT_M0KVS4_SET, PEM_NFS_TO_MOTR);
+
 	M0_DASSERT(my_init_done);
 
 	key = M0_BUFVEC_INIT_BUF(&k, &k_len);
 	val = M0_BUFVEC_INIT_BUF(&v, &v_len);
 
 	rc = m0_op_kvs(M0_IC_PUT, &key, &val);
+
+	perfc_trace_attr(PEA_M0KVS_RES_RC, rc);
+	perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 	return rc;
 }
 
@@ -333,12 +443,17 @@ int m0kvs_set(void *ctx, void *k, const size_t klen,
 	struct m0_bufvec key, val;
 	int rc;
 
+    perfc_trace_inii(PFT_M0KVS_SET, PEM_NFS_TO_MOTR);
+
 	M0_DASSERT(my_init_done);
 
 	key = M0_BUFVEC_INIT_BUF(&k, &k_len);
 	val = M0_BUFVEC_INIT_BUF(&v, &v_len);
 
 	rc = m0_op2_kvs(ctx, M0_IC_PUT, &key, &val);
+
+	perfc_trace_attr(PEA_M0KVS_RES_RC, rc);
+	perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 	return rc;
 }
 
@@ -348,11 +463,16 @@ int m0kvs_del(void *ctx, void *k, const size_t klen)
 	m0_bcount_t k_len = klen;
 	int rc;
 
+	perfc_trace_inii(PFT_M0KVS_DELETE, PEM_NFS_TO_MOTR);
+
 	M0_DASSERT(my_init_done);
 
 	key = M0_BUFVEC_INIT_BUF(&k, &k_len);
 
 	rc = m0_op2_kvs(ctx, M0_IC_DEL, &key, NULL);
+
+	perfc_trace_attr(PEA_M0KVS_RES_RC, rc);
+	perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 	return rc;
 }
 
@@ -360,7 +480,10 @@ int m0kvs_idx_gen_fid(struct m0_uint128 *index_fid)
 {
 	int rc = 0;
 
+	perfc_trace_inii(PFT_M0KVS_IDX_GEN_FID, PEM_NFS_TO_MOTR);
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_UFID_NEXT);
 	rc = m0_ufid_next(&ufid_generator, 1, index_fid);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_UFID_NEXT);
 	if (rc != 0) {
 		log_err("Failed to generate a ufid: %d\n", rc);
 		goto out;
@@ -371,6 +494,8 @@ int m0kvs_idx_gen_fid(struct m0_uint128 *index_fid)
 	index_fid->u_lo = tfid.f_key;;
 
 out:
+	perfc_trace_attr(PEA_M0KVS_RES_RC, rc);
+	perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 	return rc;
 }
 
@@ -379,7 +504,12 @@ int m0kvs_list_set(void *ctx, struct m0kvs_list *key,
 {
 	int rc;
 
+	perfc_trace_inii(PFT_M0KVS_LIST_SET, PEM_NFS_TO_MOTR);
+
 	rc = m0_op2_kvs(ctx, M0_IC_PUT, &key->buf, &val->buf);
+
+	perfc_trace_attr(PEA_M0KVS_RES_RC, rc);
+	perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 	return rc;
 }
 
@@ -388,7 +518,12 @@ int m0kvs_list_get(void *ctx, struct m0kvs_list *key,
 {
 	int rc;
 
+	perfc_trace_inii(PFT_M0KVS_LIST_GET, PEM_NFS_TO_MOTR);
+
 	rc = m0_op2_kvs(ctx, M0_IC_GET, &key->buf, &val->buf);
+
+	perfc_trace_attr(PEA_M0KVS_RES_RC, rc);
+	perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 	return rc;
 }
 
@@ -408,18 +543,25 @@ int m0kvs_pattern(void *ctx, char *k, char *pattern,
 	int size = 0;
 	int flags;
 
+	perfc_trace_inii(PFT_M0KVS_PATTERN, PEM_NFS_TO_MOTR);
+
 	strcpy(myk, k);
 	flags = 0; /* Only for 1st iteration */
 
 	do {
 		/* Iterate over all records in the index. */
 		rc = m0_bufvec_alloc(&keys, 1, KLEN);
-		if (rc != 0)
+		if (rc != 0) {
+			perfc_trace_attr(PEA_M0KVS_RES_RC, rc);
+			perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 			return rc;
+		}
 
 		rc = m0_bufvec_alloc(&vals, 1, VLEN);
 		if (rc != 0) {
 			m0_bufvec_free(&keys);
+			perfc_trace_attr(PEA_M0KVS_RES_RC, rc);
+			perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 			return rc;
 		}
 
@@ -431,21 +573,37 @@ int m0kvs_pattern(void *ctx, char *k, char *pattern,
 		keys.ov_vec.v_count[0] = strnlen(myk, KLEN)+1;
 		strcpy(keys.ov_buf[0], myk);
 
+		perfc_trace_attr(PEA_TIME_ATTR_START_M0_IDX_OP);
 		rc = m0_idx_op(index, M0_IC_NEXT, &keys, &vals,
 		               rcs, flags, &op);
+		perfc_trace_attr(PEA_TIME_ATTR_END_M0_IDX_OP);
+
 		if (rc != 0) {
 			m0_bufvec_free(&keys);
 			m0_bufvec_free(&vals);
+			perfc_trace_attr(PEA_M0KVS_RES_RC, rc);
+			perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 			return rc;
 		}
+		perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_LAUNCH);
 		m0_op_launch(&op, 1);
-		rc = m0_op_wait(op, M0_BITS(M0_OS_STABLE),
-				M0_TIME_NEVER);
+		perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_LAUNCH);
+
+		perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_WAIT);
+		rc = m0_op_wait(op,
+                        M0_BITS(M0_OS_FAILED,
+                        M0_OS_STABLE),
+                        M0_TIME_NEVER);
+		perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_WAIT);
+		perfc_trace_attr(PEA_M0_OP_SM_ID, op->op_sm.sm_id);
+		perfc_trace_attr(PEA_M0_OP_SM_STATE, op->op_sm.sm_state);
 		/* @todo : Why is op null after this call ??? */
 
 		if (rc != 0) {
 			m0_bufvec_free(&keys);
 			m0_bufvec_free(&vals);
+			perfc_trace_attr(PEA_M0KVS_RES_RC, rc);
+			perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 			return rc;
 		}
 
@@ -492,6 +650,7 @@ int m0kvs_pattern(void *ctx, char *k, char *pattern,
 		m0_bufvec_free(&vals);
 	} while (!stop);
 
+	perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 	return size;
 }
 
@@ -506,6 +665,8 @@ int m0kvs_key_prefix_exists(void *ctx,
 	int rc;
 	int rcs[1];
 
+	perfc_trace_inii(PFT_M0KVS_KEY_PREFIX_EXISTS, PEM_NFS_TO_MOTR);
+
 	rc = m0_bufvec_alloc(&keys, 1, klen);
 	if (rc != 0) {
 		goto out;
@@ -519,8 +680,10 @@ int m0kvs_key_prefix_exists(void *ctx,
 	memset(keys.ov_buf[0], 0, keys.ov_vec.v_count[0]);
 	memcpy(keys.ov_buf[0], kprefix, klen);
 
+    perfc_trace_attr(PEA_TIME_ATTR_START_M0_IDX_OP);
 	rc = m0_idx_op(index, M0_IC_NEXT, &keys, &vals,
 		       rcs, 0, &op);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_IDX_OP);
 
 	if (rc != 0) {
 		goto out_free_vals;
@@ -530,9 +693,18 @@ int m0kvs_key_prefix_exists(void *ctx,
 		goto out_free_vals;
 	}
 
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_LAUNCH);
 	m0_op_launch(&op, 1);
-	rc = m0_op_wait(op, M0_BITS(M0_OS_STABLE),
-			M0_TIME_NEVER);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_LAUNCH);
+
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_WAIT);
+	rc = m0_op_wait(op,
+                    M0_BITS(M0_OS_FAILED,
+                    M0_OS_STABLE),
+                    M0_TIME_NEVER);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_WAIT);
+	perfc_trace_attr(PEA_M0_OP_SM_ID, op->op_sm.sm_id);
+	perfc_trace_attr(PEA_M0_OP_SM_STATE, op->op_sm.sm_state);
 	if (rc != 0) {
 		goto out_free_op;
 	}
@@ -554,14 +726,21 @@ int m0kvs_key_prefix_exists(void *ctx,
 
 out_free_op:
 	if (op) {
+		perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_FINISH);
 		m0_op_fini(op);
+		perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_FINISH);
+
+		perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_FREE);
 		m0_op_free(op);
+		perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_FREE);
 	}
 out_free_vals:
 	m0_bufvec_free(&vals);
 out_free_keys:
 	m0_bufvec_free(&keys);
 out:
+	perfc_trace_attr(PEA_M0KVS_RES_RC, rc);
+	perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 	return rc;
 }
 
@@ -598,6 +777,8 @@ static void m0kvs_bufvec_free_data(struct m0_bufvec *bufvec)
 
 void m0kvs_key_iter_fini(struct m0kvs_key_iter *priv)
 {
+	perfc_trace_inii(PFT_M0KVS_KEY_ITER_FINISH, PEM_NFS_TO_MOTR);
+
 	if (!priv->initialized)
 		goto out;
 
@@ -605,10 +786,16 @@ void m0kvs_key_iter_fini(struct m0kvs_key_iter *priv)
 	m0_bufvec_free(&priv->val);
 
 	if (priv->op) {
+		perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_FINISH);
 		m0_op_fini(priv->op);
+		perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_FINISH);
+
+		perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_FREE);
 		m0_op_free(priv->op);
+		perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_FREE);
 	}
 out:
+	perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 	return;
 }
 
@@ -620,6 +807,8 @@ int m0kvs_key_iter_find(const void* prefix, size_t prefix_len,
 	struct m0_op **op = &priv->op;
 	struct m0_idx *index = priv->index;
 	int rc;
+
+	perfc_trace_inii(PFT_M0KVS_KEY_ITER_FIND, PEM_NFS_TO_MOTR);
 
 	if (prefix_len == 0)
 		rc = m0_bufvec_empty_alloc(key, 1);
@@ -636,17 +825,27 @@ int m0kvs_key_iter_find(const void* prefix, size_t prefix_len,
 
 	memcpy(priv->key.ov_buf[0], prefix, prefix_len);
 
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_IDX_OP);
 	rc = m0_idx_op(index, M0_IC_NEXT, &priv->key, &priv->val,
-	               priv->rcs, 0, op);
+                   priv->rcs, 0, op);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_IDX_OP);
 
 	if (rc != 0) {
 		goto out_free_val;
 	}
 
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_LAUNCH);
 	m0_op_launch(op, 1);
-	rc = m0_op_wait(*op, M0_BITS(M0_OS_STABLE),
-	                M0_TIME_NEVER);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_LAUNCH);
 
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_WAIT);
+	rc = m0_op_wait(*op,
+                    M0_BITS(M0_OS_FAILED,
+                    M0_OS_STABLE),
+                    M0_TIME_NEVER);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_WAIT);
+	perfc_trace_attr(PEA_M0_OP_SM_ID, (*op)->op_sm.sm_id);
+	perfc_trace_attr(PEA_M0_OP_SM_STATE, (*op)->op_sm.sm_state);
 	if (rc != 0) {
 		goto out_free_op;
 	}
@@ -664,8 +863,13 @@ int m0kvs_key_iter_find(const void* prefix, size_t prefix_len,
 
 out_free_op:
 	if (op && *op) {
+        perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_FINISH);
 		m0_op_fini(*op);
+		perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_FINISH);
+
+		perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_FREE);
 		m0_op_free(*op);
+		perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_FREE);
 	}
 
 out_free_val:
@@ -679,6 +883,8 @@ out:
 		memset(priv, 0, sizeof(*priv));
 	}
 
+	perfc_trace_attr(PEA_M0KVS_RES_RC, rc);
+	perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 	return rc;
 }
 
@@ -687,22 +893,35 @@ int m0kvs_key_iter_next(struct m0kvs_key_iter *priv)
 	struct m0_idx *index = priv->index;
 	int rc = 0;
 
+	perfc_trace_inii(PFT_M0KVS_KEY_ITER_NEXT, PEM_NFS_TO_MOTR);
+
 	dassert(priv->initialized);
 
 	/* Motr API: "'vals' vector ... should contain NULLs" */
 	m0kvs_bufvec_free_data(&priv->val);
 
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_IDX_OP);
 	rc = m0_idx_op(index, M0_IC_NEXT,
-	               &priv->key, &priv->val, priv->rcs,
-	               M0_OIF_EXCLUDE_START_KEY, &priv->op);
+				   &priv->key, &priv->val, priv->rcs,
+				   M0_OIF_EXCLUDE_START_KEY, &priv->op);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_IDX_OP);
+
 	if (rc != 0) {
 		goto out;
 	}
 
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_LAUNCH);
 	m0_op_launch(&priv->op, 1);
-	rc = m0_op_wait(priv->op, M0_BITS(M0_OS_STABLE),
-			M0_TIME_NEVER);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_LAUNCH);
 
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_WAIT);
+	rc = m0_op_wait(priv->op,
+                    M0_BITS(M0_OS_FAILED,
+                    M0_OS_STABLE),
+                    M0_TIME_NEVER);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_WAIT);
+	perfc_trace_attr(PEA_M0_OP_SM_ID, priv->op->op_sm.sm_id);
+	perfc_trace_attr(PEA_M0_OP_SM_STATE, priv->op->op_sm.sm_state);
 	if (rc != 0) {
 		goto out;
 	}
@@ -710,6 +929,8 @@ int m0kvs_key_iter_next(struct m0kvs_key_iter *priv)
 	rc = priv->rcs[0];
 
 out:
+	perfc_trace_attr(PEA_M0KVS_RES_RC, rc);
+	perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 	return rc;
 }
 
@@ -761,5 +982,5 @@ int m0kvs_list_add(struct m0kvs_list *kvs_list, void *buf, size_t len,
 	kvs_list->buf.ov_vec.v_count[pos] = len;
 	kvs_list->buf.ov_buf[pos] = buf;
 
-	return rc;
+    return rc;
 }

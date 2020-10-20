@@ -80,6 +80,7 @@ set(UTILS_CORTX utils-cortx)
 # Build management dir
 add_subdirectory(management)
 set(UTILS_MANAGEMENT management_framework)
+set(UTILS_HASH  management_hash)
 
 # Build test
 add_subdirectory(test)
