@@ -28,10 +28,13 @@ class ValidatorCommandFactory:
 
     @staticmethod
     def usage(prog):
-        sys.stderr.write("usage: %s [-h] [network <args>]\n" % prog)
+        print(prog)
+        sys.stderr.write("usage: %s [-h] [network <args>] [consul]\n" % prog)
 
     @staticmethod
     def get_command(description, argv):
+        """ Obtains the Command after parsing the command line. """
+
         parser = argparse.ArgumentParser(description)
 
         subparsers = parser.add_subparsers()

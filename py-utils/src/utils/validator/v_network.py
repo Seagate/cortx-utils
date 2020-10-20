@@ -30,7 +30,7 @@ class NetworkV:
         """ Process network valiations """
 
         if not isinstance(args, list) or len(args) < 2:
-            raise VError(errno.EINVAL, "Invalid parameters")
+            raise VError(errno.EINVAL, "Invalid parameters %s" %args)
 
         action = args[0]
 
@@ -39,16 +39,10 @@ class NetworkV:
             self.validate_iface(args[1])
 
     def validate_iface(self, iface):
-        # TODO write
+        # TODO: This is sample. Need to add actual network validation
         
         iface_list = os.listdir("/sys/class/net/")
         if iface in iface_list:
             return
 
         raise Exception(errno.ENOENT, "No such interface %s" %iface)
-
-
-# Test Network
-if __name__ == "__main__":
-    args = ['iface', 'eth0']
-    NetworkV().validate(args)

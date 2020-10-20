@@ -22,6 +22,7 @@ import errno
 from cortx.utils.validator.error import VError
 
 class VCommand:
+
     """ Base class for all the commands """
 
     def __init__(self, args):
@@ -37,6 +38,7 @@ class VCommand:
 
 
 class NetworkVCommand(VCommand):
+
     """ Network related commands """
     _name = "network"
 
@@ -54,6 +56,7 @@ class NetworkVCommand(VCommand):
     @staticmethod
     def add_args(parser):
         """ Add Network Command args for parsing """
+        
         parser1 = parser.add_parser(NetworkVCommand._name, help='Network Validations')
         parser1.add_argument('args', nargs='*', default=[], help='type')
         parser1.set_defaults(command=NetworkVCommand)
@@ -62,3 +65,31 @@ class NetworkVCommand(VCommand):
         """ Process network command """
 
         self._network.validate(self.args)
+
+
+class ConsulVCommand(VCommand):
+    
+    """ Consul related commands """
+    _name = "consul"
+
+    def __init__(self, args):
+
+        super(ConsulVCommand, self).__init__(args)
+
+        sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+        from v_consul import ConsulV
+
+        self._consul = ConsulV()
+
+    @staticmethod
+    def add_args(parser):
+        """ Add Consul Command args for parsing """
+
+        parser1 = parser.add_parser(ConsulVCommand._name, help='Consul Validations')
+        parser1.add_argument('args', nargs='*', default=[], help='type')
+        parser1.set_defaults(command=ConsulVCommand)
+
+    def process(self):
+        """ Process consul command """
+
+        self._consul.validate()

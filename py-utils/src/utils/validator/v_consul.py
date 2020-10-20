@@ -1,4 +1,4 @@
-#!/bin/python3 
+#!/bin/env python3
 
 # CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
@@ -15,21 +15,29 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-class VError(Exception):
+import os
+import errno
+import subprocess
 
-    """ Class representing a generic error with error code and output of a command """
+from cortx.utils.validator.error import VError
+from cortx.utils import const
 
-    def __init__(self, rc, desc):
-        self._rc = rc
-        self._desc = desc
+class ConsulV:
 
-        error = "%s: %s" % (self._rc, self._desc)
-        super(VError, self).__init__(error)
+    """ Consul related validations """
 
-    @property
-    def rc(self):
-        return self._rc
+    def validate(self):
+        """ Process consul valiations """
 
-    @property
-    def desc(self):
-        return self._desc
+        check_output_log = subprocess.check_output(const.CONSUL_STATUS_CHECK_CMD, shell=True)
+
+        for log_line in check_output_log.splitlines():
+            if const.CONSUL_STATUS_RUNNING in log_line.decode("utf-8"):
+                return 
+
+        raise Exception(errno.ENOENT, "Consul is not running")
+
+
+# Test Consul
+if __name__ == "__main__":
+    ConsulV().validate()
