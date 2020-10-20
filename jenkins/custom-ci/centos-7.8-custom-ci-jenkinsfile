@@ -15,6 +15,7 @@ pipeline {
 		release_tag="custom-build-$BUILD_ID"
 		passphrase = credentials('rpm-sign-passphrase')
 		thrid_party_dir="/mnt/bigstorage/releases/cortx/third-party-deps/centos/centos-7.8.2003"
+		python_deps="/mnt/bigstorage/releases/cortx/third-party-deps/python-packages"
 	}
 
 	options {
@@ -320,6 +321,7 @@ pipeline {
 					mkdir $release_tag && pushd $release_tag
 					ln -s $integration_dir/$release_tag/dev cortx_iso
 					ln -s $thrid_party_dir 3rd_party
+					ln -s $python_deps python_deps
 				popd
 				echo "Custom Release Build and ISO is available at,"
 				echo "http://cortx-storage.colo.seagate.com/releases/cortx/github/integration-custom-ci/release/$release_tag"

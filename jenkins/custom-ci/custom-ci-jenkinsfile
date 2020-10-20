@@ -14,7 +14,8 @@ pipeline {
         components_dir="$release_dir/components/github/custom-ci/release/$os_version"
         release_tag="custom-build-$BUILD_ID"
         passphrase = credentials('rpm-sign-passphrase')
-		    thrid_party_dir="/mnt/bigstorage/releases/cortx/third-party-deps/rhel/rhel-7.7.1908/"
+		thrid_party_dir="/mnt/bigstorage/releases/cortx/third-party-deps/rhel/rhel-7.7.1908/"
+		python_deps="/mnt/bigstorage/releases/cortx/third-party-deps/python-packages"
     }
 	
 	
@@ -335,6 +336,7 @@ pipeline {
 					mkdir $release_tag && pushd $release_tag
                             ln -s $integration_dir/$release_tag/dev cortx_iso
                             ln -s $thrid_party_dir 3rd_party
+							ln -s $python_deps python_deps
                         popd
                     popd
                     echo "Custom Release Build and ISO is available at,"
