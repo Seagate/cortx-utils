@@ -56,7 +56,7 @@ class NetworkVCommand(VCommand):
     @staticmethod
     def add_args(parser):
         """ Add Network Command args for parsing """
-        
+
         parser1 = parser.add_parser(NetworkVCommand._name, help='Network Validations')
         parser1.add_argument('args', nargs='*', default=[], help='type')
         parser1.set_defaults(command=NetworkVCommand)
@@ -83,7 +83,7 @@ class ConsulVCommand(VCommand):
 
     @staticmethod
     def add_args(parser):
-        """ Add Consul Command args for parsing """
+        """ Add Consul Command args for parsing. """
 
         parser1 = parser.add_parser(ConsulVCommand._name, help='Consul Validations')
         parser1.add_argument('args', nargs='*', default=[], help='type')
