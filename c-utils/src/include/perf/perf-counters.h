@@ -23,6 +23,7 @@
 #include "perf/tsdb.h" /* ACTION_ID_BASE */
 #include "operation.h"
 #include <pthread.h>
+#include <string.h>
 #include "debug.h"
 
 /******************************************************************************/
@@ -138,6 +139,10 @@ enum perfc_function_tags {
 	PFT_FSAL_WRITE,
 	PFT_FSAL_GETATTRS,
 	PFT_FSAL_SETATTRS,
+	PFT_FSAL_MKDIR,
+	PFT_FSAL_RMDIR,
+	PFT_FSAL_READDIR,
+	PFT_FSAL_LOOKUP,
 
 	PFT_KVS_INIT,
 	PFT_KVS_FINI,
@@ -145,16 +150,95 @@ enum perfc_function_tags {
 	PFT_KVS_FREE,
 	PFT_KVS_GET,
 	PFT_KVS_SET,
+	PFT_KVTREE_ITER_CH,
 
 	PFT_CFS_READ,
 	PFT_CFS_WRITE,
 	PFT_CFS_GETATTR,
 	PFT_CFS_SETATTR,
 	PFT_CFS_ACCESS,
+	PFT_CFS_MKDIR,
+	PFT_CFS_RMDIR,
+	PFT_CFS_READDIR,
+	PFT_CFS_LOOKUP,
 
 	PFT_DSTORE_GET,
 	PFT_DSTORE_PREAD,
 	PFT_DSTORE_PWRITE,
+
+	PFT_DS_INIT,
+	PFT_DS_FINISH,
+
+	PFT_DS_OBJ_GET_ID,
+	PFT_DS_OBJ_CREATE,
+	PFT_DS_OBJ_DELETE,
+	PFT_DS_OBJ_ALLOC,
+	PFT_DS_OBJ_FREE,
+	PFT_DS_OBJ_OPEN,
+	PFT_DS_OBJ_CLOSE,
+
+	PFT_DS_IO_INIT,
+	PFT_DS_IO_SUBMIT,
+	PFT_DS_IO_WAIT,
+	PFT_DS_IO_FINISH,
+
+	PFT_CORTX_KVS_INIT,
+	PFT_CORTX_KVS_FINISH,
+	PFT_CORTX_KVS_ALLOC,
+	PFT_CORTX_KVS_FREE,
+	PFT_CORTX_KVS_INDEX_CREATE,
+	PFT_CORTX_KVS_INDEX_DELETE,
+	PFT_CORTX_KVS_INDEX_OPEN,
+	PFT_CORTX_KVS_INDEX_CLOSE,
+	PFT_CORTX_KVS_GET_BIN,
+	PFT_CORTX_KVS4_GET_BIN,
+	PFT_CORTX_KVS_SET_BIN,
+	PFT_CORTX_KVS4_SET_BIN,
+	PFT_CORTX_KVS_DELETE_BIN,
+	PFT_CORTX_KVS_GEN_FID,
+	PFT_CORTX_KVS_PREFIX_ITER_FIND,
+	PFT_CORTX_KVS_PREFIX_ITER_NEXT,
+	PFT_CORTX_KVS_PREFIX_ITER_FINISH,
+	PFT_CORTX_KVS_ITER_GET_KV,
+	PFT_CORTX_KVS_GET_LIST_SIZE,
+
+	PFT_M0_INIT,
+	PFT_M0_FINISH,
+	PFT_M0STORE_CREATE_OBJECT,
+	PFT_M0STORE_DELETE_OBJECT,
+	PFT_M0STORE_OPEN_ENTITY,
+	PFT_M0STORE_OBJ_OPEN,
+	PFT_M0STORE_OBJ_CLOSE,
+	PFT_M0_UFID_GET,
+
+	PFT_INIT_MOTR,
+
+	PFT_M0KVS_REINIT,
+	PFT_M0_OP_KVS,
+	PFT_M0IDX_CREATE,
+	PFT_M0IDX_DELETE,
+	PFT_M0IDX_OPEN,
+	PFT_M0IDX_CLOSE,
+	PFT_M0_OP2_KVS,
+	PFT_M0KVS_GET,
+	PFT_M0KVS4_GET,
+	PFT_M0KVS4_SET,
+	PFT_M0KVS_SET,
+	PFT_M0KVS_DELETE,
+	PFT_M0KVS_IDX_GEN_FID,
+	PFT_M0KVS_LIST_SET,
+	PFT_M0KVS_LIST_GET,
+	PFT_M0KVS_PATTERN,
+	PFT_M0KVS_KEY_PREFIX_EXISTS,
+	PFT_M0KVS_KEY_ITER_FINISH,
+	PFT_M0KVS_KEY_ITER_FIND,
+	PFT_M0KVS_KEY_ITER_NEXT,
+	PFT_M0KVS_ALLOC,
+	PFT_M0KVS_FREE,
+
+	PFT_M0_KEY_ITER_FINISH,
+	PFT_M0_KEY_ITER_FIND,
+	PFT_M0_KEY_ITER_NEXT,
 
 	PFT_END
 };
@@ -209,22 +293,78 @@ enum perfc_entity_attrs {
 
 	PEA_KVS_ALLOC_SIZE,
 	PEA_KVS_ALLOC_RES_RC,
-
-	PEA_DSTORE_GET_RES_RC,
-
-	PEA_DSTORE_PREAD_OFFSET,
-	PEA_DSTORE_PREAD_COUNT,
-	PEA_DSTORE_PREAD_RES_RC,
-
-	PEA_DSTORE_PWRITE_OFFSET,
-	PEA_DSTORE_PWRITE_COUNT,
-	PEA_DSTORE_PWRITE_RES_RC,
-
-	PEA_DSTORE_BS,
-
 	PEA_KVS_KLEN,
 	PEA_KVS_VLEN,
 	PEA_KVS_RES_RC,
+
+	PEA_DSTORE_GET_RES_RC,
+	PEA_DSTORE_PREAD_OFFSET,
+	PEA_DSTORE_PREAD_COUNT,
+	PEA_DSTORE_PREAD_RES_RC,
+	PEA_DSTORE_PWRITE_OFFSET,
+	PEA_DSTORE_PWRITE_COUNT,
+	PEA_DSTORE_PWRITE_RES_RC,
+	PEA_DSTORE_BS,
+
+	PEA_TIME_ATTR_START_OTHER_FUNC,
+	PEA_TIME_ATTR_END_OTHER_FUNC,
+
+	PEA_TIME_ATTR_START_M0_OBJ_OP,
+	PEA_TIME_ATTR_END_M0_OBJ_OP,
+	PEA_TIME_ATTR_START_M0_OP_FINISH,
+	PEA_TIME_ATTR_END_M0_OP_FINISH,
+	PEA_TIME_ATTR_START_M0_OP_FREE,
+	PEA_TIME_ATTR_END_M0_OP_FREE,
+	PEA_M0_OP_SM_ID,
+	PEA_M0_OP_SM_STATE,
+	PEA_DSTORE_RES_RC,
+	PEA_NS_RES_RC,
+	PEA_KVS_LIST_SIZE,
+
+	PEA_TIME_ATTR_START_M0_OBJ_INIT,
+	PEA_TIME_ATTR_END_M0_OBJ_INIT,
+	PEA_TIME_ATTR_START_M0_OP_LAUNCH,
+	PEA_TIME_ATTR_END_M0_OP_LAUNCH,
+	PEA_TIME_ATTR_START_M0_OP_WAIT,
+	PEA_TIME_ATTR_END_M0_OP_WAIT,
+	PEA_TIME_ATTR_START_M0_RC,
+	PEA_TIME_ATTR_END_M0_RC,
+	PEA_TIME_ATTR_START_M0_ENTITY_CREATE,
+	PEA_TIME_ATTR_END_M0_ENTITY_CREATE,
+	PEA_TIME_ATTR_START_M0_ENTITY_DELETE,
+	PEA_TIME_ATTR_END_M0_ENTITY_DELETE,
+	PEA_TIME_ATTR_START_M0_ENTITY_OPEN,
+	PEA_TIME_ATTR_END_M0_ENTITY_OPEN,
+	PEA_TIME_ATTR_START_M0_FREE,
+	PEA_TIME_ATTR_END_M0_FREE,
+	PEA_TIME_ATTR_START_M0_ENTITY_FINISH,
+	PEA_TIME_ATTR_END_M0_ENTITY_FINISH,
+	PEA_TIME_ATTR_START_M0_UFID_NEXT,
+	PEA_TIME_ATTR_END_M0_UFID_NEXT,
+	PEA_TIME_ATTR_START_M0_ALLOC_PTR,
+	PEA_TIME_ATTR_END_M0_ALLOC_PTR,
+	PEA_M0STORE_RES_RC,
+
+	PEA_TIME_ATTR_START_M0_CLIENT_INIT,
+	PEA_TIME_ATTR_END_M0_CLIENT_INIT,
+	PEA_TIME_ATTR_START_M0_CONTAINER_INIT,
+	PEA_TIME_ATTR_END_M0_CONTAINER_INIT,
+	PEA_TIME_ATTR_START_M0_FID_SSCANF,
+	PEA_TIME_ATTR_END_M0_FID_SSCANF,
+	PEA_TIME_ATTR_START_M0_FID_PRINT,
+	PEA_TIME_ATTR_END_M0_FID_PRINT,
+	PEA_TIME_ATTR_START_M0_IDX_INIT,
+	PEA_TIME_ATTR_END_M0_IDX_INIT,
+	PEA_TIME_ATTR_START_M0_UFID_INIT,
+	PEA_TIME_ATTR_END_M0_UFID_INIT,
+	PEA_INIT_MOTR_RES_RC,
+
+	PEA_TIME_ATTR_START_M0_IDX_OP,
+	PEA_TIME_ATTR_END_M0_IDX_OP,
+	PEA_TIME_ATTR_START_M0_IDX_FINISH,
+	PEA_TIME_ATTR_END_M0_IDX_FINISH,
+
+	PEA_M0KVS_RES_RC,
 
 	PEA_END
 };
@@ -297,7 +437,7 @@ enum perfc_entity_maps {
 } while (0)
 
 /* Format of Map perf. counters:
- * | tsdb_modules | function tag | map tag | src opid | dst opid | [Rest] |
+ * | tsdb_modules | function tag | map tag | src opid | dst opid | caller_opid, [Rest] |
  * where Arguments:
  *	- TSDB Module ID
  *	- an enum value from perfc_function_tags
@@ -305,13 +445,14 @@ enum perfc_entity_maps {
  *	- Caller passed map tag from enum perfc_entity_maps
  *	- opid - caller generated tag for operation id
  *	- related_opid - caller generated tag for related operation id
+ *	- caller_opid - caller generated tag for previous caller's operation id
  *	- __VA_ARGS_ - attribute-specific arguments.
  */
-#define PERFC_MAP_V2(__mod, __fn_tag, map_tag, opid, related_opid, ...) do {\
+#define PERFC_MAP_V2(__mod, __fn_tag, map_tag, opid, related_opid, caller_opid,...) do {\
 	dassert(__fn_tag > PFT_START && __fn_tag < PFT_END);		\
 	dassert(map_tag > PEM_START && map_tag < PEM_END);		\
 	TSDB_ADD(TSDB_MK_AID(__mod, 0xEF), __fn_tag, PET_MAP, map_tag,	\
-		 opid, related_opid, __VA_ARGS__);			\
+		 opid, related_opid, caller_opid, __VA_ARGS__);			\
 } while (0)
 
 #ifdef ENABLE_TSDB_ADDB
@@ -387,15 +528,27 @@ static inline struct perfc_tls_ctx perfc_tls_get_top(void)
 	struct perfc_tls_ctx ptctx = {.opid = PERFC_INVALID_ID};
 	struct perfc_callstack *perfstack = pthread_getspecific(perfc_tls_key);
 
-	if (perfstack == NULL) {
-	    return ptctx;
-	}
-
-	if (perfstack->top == -1) {
+	if ((perfstack == NULL) || (perfstack->top == -1)) {
 	    return ptctx;
 	}
 
 	return perfstack->pstack[perfstack->top];
+}
+
+static inline struct perfc_tls_ctx perfc_tls_get_prev(void)
+{
+	struct perfc_tls_ctx ptctx = {.opid = PERFC_INVALID_ID};
+	struct perfc_callstack *perfstack = pthread_getspecific(perfc_tls_key);
+
+	if ((perfstack == NULL) || (perfstack->top == -1)) {
+	    return ptctx;
+	}
+
+	if (perfstack->top == 0) {
+	    return perfstack->pstack[perfstack->top];
+	}
+
+	return perfstack->pstack[perfstack->top-1];
 }
 
 #define perfc_trace_state(state, ...) do {				\
@@ -416,10 +569,12 @@ static inline struct perfc_tls_ctx perfc_tls_get_top(void)
 
 #define perfc_trace_map(fn_tag, map_tag, _opid, ...) do {		\
 	struct perfc_tls_ctx ptctx = perfc_tls_get_origin();		\
+	struct perfc_tls_ctx ptcctx = perfc_tls_get_prev();		\
 	dassert(ptctx.opid != PERFC_INVALID_ID);			\
+	dassert(ptcctx.opid != PERFC_INVALID_ID);			\
 	if (ptctx.opid != PERFC_INVALID_ID) {				\
 		PERFC_MAP_V2(ptctx.mod, fn_tag, map_tag, _opid,		\
-			     ptctx.opid, __VA_ARGS__);			\
+			     ptctx.opid, ptcctx.opid, __VA_ARGS__);	\
 	}								\
 } while (0)
 
