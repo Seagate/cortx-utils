@@ -15,29 +15,35 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import os
 import errno
 import subprocess
 
 from cortx.utils.validator.error import VError
 from cortx.utils import const
 
-class ConsulV:
 
+class ConsulV:
     """ Consul related validations """
 
-    def validate(self):
+    def validate(self, args):
         """ Process consul valiations """
 
-        check_output_log = subprocess.check_output(const.CONSUL_STATUS_CHECK_CMD, shell=True)
+        if not isinstance(args, list) or len(args) < 1:
+            raise VError(errno.EINVAL, "Invalid parameters %s" % args)
+
+        if args[0] == "service":
+            self.validate_service()
+
+        raise VError(errno.EINVAL, "Invalid parameter %s" % args)
+
+    def validate_service(self):
+        """ Check Consul service """
+
+        check_output_log = subprocess.check_output(
+            const.CONSUL_STATUS_CHECK_CMD, shell=True)
 
         for log_line in check_output_log.splitlines():
             if const.CONSUL_STATUS_RUNNING in log_line.decode("utf-8"):
-                return 
+                return
 
-        raise Exception(errno.ENOENT, "Consul is not running")
-
-
-# Test Consul
-if __name__ == "__main__":
-    ConsulV().validate()
+        raise VError(errno.ENOENT, "Consul is not running")

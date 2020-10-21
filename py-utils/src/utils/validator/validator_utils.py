@@ -48,12 +48,27 @@ class Pillar:
                 "error_msg": err,
                 "message": message}
 
+    @staticmethod
+    def get_hostnames():
+        res = Pillar.get_pillar("cluster:node_list")
+        if res['ret_code']:
+            return res
+        hostnames = []
+        for node in res['response']:
+            res = Pillar.get_pillar(f"cluster:{node}:hostname")
+            if res['ret_code']:
+                return res
+            hostnames.append(res['response'])
+        res['response'] = hostnames
+        return res
+
 
 class NetworkValidations:
 
     @staticmethod
     def check_ping(ip):
-        """Check if IP's are reachable"""
+        """ Check if IP's are reachable """
+
         cmd = f"ping -c 1 {ip}"
         cmd_proc = SimpleProcess(cmd)
         output, err, return_code = cmd_proc.run()

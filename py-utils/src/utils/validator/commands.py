@@ -22,8 +22,8 @@ import errno
 
 from cortx.utils.validator.error import VError
 
-class VCommand:
 
+class VCommand:
     """ Base class for all the commands """
 
     def __init__(self, args):
@@ -39,8 +39,8 @@ class VCommand:
 
 
 class NetworkVCommand(VCommand):
-
     """ Network related commands """
+
     _name = "network"
 
     def __init__(self, args):
@@ -58,7 +58,8 @@ class NetworkVCommand(VCommand):
     def add_args(parser):
         """ Add Network Command args for parsing """
 
-        parser1 = parser.add_parser(NetworkVCommand._name, help='Network Validations')
+        parser1 = parser.add_parser(
+            NetworkVCommand._name, help='Network Validations')
         parser1.add_argument('args', nargs='*', default=[], help='type')
         parser1.set_defaults(command=NetworkVCommand)
 
@@ -69,11 +70,13 @@ class NetworkVCommand(VCommand):
 
 
 class ConsulVCommand(VCommand):
-    
     """ Consul related commands """
+
     _name = "consul"
 
     def __init__(self, args):
+        if len(args) < 1:
+            raise Exception("insufficient parameters")
 
         super(ConsulVCommand, self).__init__(args)
 
@@ -86,19 +89,20 @@ class ConsulVCommand(VCommand):
     def add_args(parser):
         """ Add Consul Command args for parsing. """
 
-        parser1 = parser.add_parser(ConsulVCommand._name, help='Consul Validations')
+        parser1 = parser.add_parser(
+            ConsulVCommand._name, help='Consul Validations')
         parser1.add_argument('args', nargs='*', default=[], help='type')
         parser1.set_defaults(command=ConsulVCommand)
 
     def process(self):
         """ Process consul command """
 
-        self._consul.validate()
+        self._consul.validate(self.args)
 
 
 class ControllerVCommand(VCommand):
-    
     """ Controller related commands """
+    
     _name = "controller"
 
     def __init__(self, args):
@@ -114,7 +118,8 @@ class ControllerVCommand(VCommand):
     def add_args(parser):
         """ Add Controller Command args for parsing. """
 
-        parser1 = parser.add_parser(ControllerVCommand._name, help='Controller Validations')
+        parser1 = parser.add_parser(
+            ControllerVCommand._name, help='Controller Validations')
         parser1.add_argument('args', nargs='*', default=[], help='type')
         parser1.set_defaults(command=ControllerVCommand)
 

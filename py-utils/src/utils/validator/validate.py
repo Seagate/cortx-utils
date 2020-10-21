@@ -23,13 +23,14 @@ import traceback
 
 from cortx.utils.validator import commands
 
+
 class ValidatorCommandFactory:
     """ Factor for all kinds of validations """
 
     @staticmethod
     def usage(prog):
-        print(prog)
-        sys.stderr.write("usage: %s [-h] [network <args>] [consul]\n" % prog)
+        sys.stderr.write(
+            "usage: %s [-h] [network <args>] [consul <args>]\n" % prog)
 
     @staticmethod
     def get_command(description, argv):
@@ -54,8 +55,8 @@ def main(argv):
         command.process()
 
     except Exception as e:
-        sys.stderr.write("error: %s\n\n" %str(e))
-        sys.stderr.write("%s\n" %traceback.format_exc())
+        sys.stderr.write("error: %s\n\n" % str(e))
+        sys.stderr.write("%s\n" % traceback.format_exc())
         ValidatorCommandFactory.usage(argv[0])
         return errno.EINVAL
 

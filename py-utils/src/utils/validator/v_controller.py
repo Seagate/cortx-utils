@@ -30,10 +30,13 @@ class ControllerV:
 
         controllers = ['primary_mc', 'secondary_mc']
         for controller in controllers:
-            result = Pillar.get_pillar(f"storage_enclosure:controller:{controller}:ip")
+            result = Pillar.get_pillar(
+                f"storage_enclosure:controller:{controller}:ip")
             if result['ret_code']:
-                raise Exception(errno.ENOENT, f"{controller} is not set in pillars")
+                raise Exception(
+                    errno.ENOENT, f"{controller} is not set in pillars")
             result = NetworkValidations.check_ping(result['response'])
             if result['ret_code']:
-                raise Exception(errno.ECONNREFUSED, "Ping to Controller failed")
+                raise Exception(errno.ECONNREFUSED,
+                                "Ping to Controller failed")
         return

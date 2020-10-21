@@ -16,97 +16,86 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import os
 import errno
 
 from cortx.utils.validator.error import VError
-from cortx.utils.validator.validator_utils import Pillar, NetworkValidations
+from cortx.utils.process import SimpleProcess
+
 
 class NetworkV:
     """ Network related validations """
-    def __init__(self):
-        # TODO: Perform initialization for network level commands
-        pass
 
     def validate(self, args):
-        """ Process network valiations """
+        """ Process network validations """
 
         if not isinstance(args, list) or len(args) < 1:
-            raise VError(errno.EINVAL, "Invalid parameters %s" %args)
+            raise VError(errno.EINVAL, "Invalid parameters %s" % args)
 
         action = args[0]
 
-        # TODO Write actual code here
-        if action == "iface": 
-            self.validate_iface(args[1])
-        elif action == "management_vip":
-            self.verify_management_vip()
+        if action == "management_vip":
+            self.validate_management_vip(args[1])
         elif action == "cluster_ip":
-            self.verify_cluster_ip()
+            self.validate_cluster_ip(args[1])
         elif action == "public_data_ip":
-            self.verify_public_data_ip()
+            self.validate_public_data_ip(args[1:])
         elif action == "private_data_ip":
-            self.verify_private_data_ip()
+            self.validate_private_data_ip(args[1:])
 
-    def validate_iface(self, iface):
-        # TODO: This is sample. Need to add actual network validation
-        
-        iface_list = os.listdir("/sys/class/net/")
-        if iface in iface_list:
-            return
+        raise VError(errno.EINVAL, "Invalid parameter %s" % args)
 
-        raise Exception(errno.ENOENT, "No such interface %s" %iface)
-
-    def verify_management_vip(self):
+    def validate_management_vip(self, management_vip):
         """ Validations for Management VIP """
 
-        res = Pillar.get_pillar("cluster:mgmt_vip")
-        if res['ret_code']:
-            raise Exception(errno.ENOENT, "Management VIP is not set in pillars")
-        else:
-            res = NetworkValidations.check_ping(res['response'])
-            if res['ret_code']:
-                raise Exception(errno.ECONNREFUSED, "Ping to Management VIP failed")
+        unreachable_ips = self.validate_ip_connectivity([management_vip])
+        if len(unreachable_ips) != 0:
+            raise VError(errno.ECONNREFUSED,
+                         f"Pinging Management VIP {management_vip} failed")
+
         return
 
-    def verify_cluster_ip(self):
+    def validate_cluster_ip(self, cluster_ip):
         """ Validations for Cluster IP """
 
-        res = Pillar.get_pillar("cluster:cluster_ip")
-        if res['ret_code']:
-            raise Exception(errno.ENOENT, "Cluster IP is not set in pillars")
-        else:
-            res = NetworkValidations.check_ping(res['response'])
-            if res['ret_code']:
-                raise Exception(errno.ECONNREFUSED, "Ping to Cluster IP failed")
+        unreachable_ips = self.validate_ip_connectivity([cluster_ip])
+        if len(unreachable_ips) != 0:
+            raise VError(errno.ECONNREFUSED,
+                         f"Pinging Cluster IP {cluster_ip} failed")
+
         return
 
-    def verify_public_data_ip(self):
+    def validate_public_data_ip(self, public_data_ips):
         """ Validations for public data ip """
 
-        res = Pillar.get_pillar("cluster:node_list")
-        if not res['ret_code']:
-            nodes = res['response']
-            for node in nodes:
-                result = Pillar.get_pillar(f"cluster:{node}:network:data_nw:public_ip_addr")
-                if result['ret_code']:
-                    raise Exception(errno.ENOENT, f"Public data IP for {node} is not set in pillars")
-                result = NetworkValidations.check_ping(result['response'])
-                if result['ret_code']:
-                    raise Exception(errno.ECONNREFUSED, f"Ping to Public data IP for {node} failed")
+        unreachable_ips = self.validate_ip_connectivity(public_data_ips)
+        if len(unreachable_ips) != 0:
+            seperator = ", "
+            raise VError(
+                errno.ECONNREFUSED, f"Pinging following Public data Ips {seperator.join(unreachable_ips)} failed")
+
         return
 
-    def verify_private_data_ip(self):
+    def validate_private_data_ip(self, private_data_ips):
         """ Validations for private data ip """
 
-        res = Pillar.get_pillar("cluster:node_list")
-        if not res['ret_code']:
-            nodes = res['response']
-            for node in nodes:
-                result = Pillar.get_pillar(f"cluster:{node}:network:data_nw:pvt_ip_addr")
-                if result['ret_code']:
-                    raise Exception(errno.ENOENT, f"Private data IP for {node} is not set in pillars")
-                result = NetworkValidations.check_ping(result['response'])
-                if result['ret_code']:
-                    raise Exception(errno.ECONNREFUSED, f"Ping to Private data IP for {node} failed")
+        unreachable_ips = self.validate_ip_connectivity(private_data_ips)
+        if len(unreachable_ips) != 0:
+            seperator = ", "
+            raise VError(
+                errno.ECONNREFUSED, f"Pinging following Private data Ips {seperator.join(unreachable_ips)} failed")
+
         return
+
+    def validate_ip_connectivity(self, ips):
+        """ Check if IPs are reachable """
+
+        unreachable_ips = []
+        for ip in ips:
+            cmd = f"ping -c 1 {ip}"
+            cmd_proc = SimpleProcess(cmd)
+            run_result = cmd_proc.run()
+
+            if run_result[2]:
+                unreachable_ips.append(ip)
+
+        return unreachable_ips
