@@ -16,7 +16,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 class VError(Exception):
-    """ Class representing a generic error with error code and output of a command """
+    """Class representing a generic error with error code and output of a command."""
 
     def __init__(self, rc, desc):
         self._rc = rc

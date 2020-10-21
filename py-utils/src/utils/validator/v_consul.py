@@ -23,10 +23,10 @@ from cortx.utils import const
 
 
 class ConsulV:
-    """ Consul related validations """
+    """Consul related validations."""
 
     def validate(self, args):
-        """ Process consul valiations """
+        """Process consul valiations."""
 
         if not isinstance(args, list) or len(args) < 1:
             raise VError(errno.EINVAL, "Invalid parameters %s" % args)
@@ -37,7 +37,7 @@ class ConsulV:
         raise VError(errno.EINVAL, "Invalid parameter %s" % args)
 
     def validate_service(self):
-        """ Check Consul service """
+        """Validate Consul service."""
 
         check_output_log = subprocess.check_output(
             const.CONSUL_STATUS_CHECK_CMD, shell=True)

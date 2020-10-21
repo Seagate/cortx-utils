@@ -24,7 +24,7 @@ from cortx.utils.validator.error import VError
 
 
 class VCommand:
-    """ Base class for all the commands """
+    """Base class for all the commands."""
 
     def __init__(self, args):
         self._args = args
@@ -39,7 +39,7 @@ class VCommand:
 
 
 class NetworkVCommand(VCommand):
-    """ Network related commands """
+    """Network related commands."""
 
     _name = "network"
 
@@ -56,7 +56,7 @@ class NetworkVCommand(VCommand):
 
     @staticmethod
     def add_args(parser):
-        """ Add Network Command args for parsing """
+        """Add Network Command args for parsing."""
 
         parser1 = parser.add_parser(
             NetworkVCommand._name, help='Network Validations')
@@ -64,13 +64,13 @@ class NetworkVCommand(VCommand):
         parser1.set_defaults(command=NetworkVCommand)
 
     def process(self):
-        """ Process network command """
+        """Process network command."""
 
         self._network.validate(self.args)
 
 
 class ConsulVCommand(VCommand):
-    """ Consul related commands """
+    """Consul related commands."""
 
     _name = "consul"
 
@@ -87,7 +87,7 @@ class ConsulVCommand(VCommand):
 
     @staticmethod
     def add_args(parser):
-        """ Add Consul Command args for parsing. """
+        """Add Consul Command args for parsing."""
 
         parser1 = parser.add_parser(
             ConsulVCommand._name, help='Consul Validations')
@@ -95,35 +95,7 @@ class ConsulVCommand(VCommand):
         parser1.set_defaults(command=ConsulVCommand)
 
     def process(self):
-        """ Process consul command """
+        """Process consul command."""
 
         self._consul.validate(self.args)
 
-
-class ControllerVCommand(VCommand):
-    """ Controller related commands """
-    
-    _name = "controller"
-
-    def __init__(self, args):
-
-        super(ControllerVCommand, self).__init__(args)
-
-        sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-        from v_controller import ControllerV
-
-        self._controller = ControllerV()
-
-    @staticmethod
-    def add_args(parser):
-        """ Add Controller Command args for parsing. """
-
-        parser1 = parser.add_parser(
-            ControllerVCommand._name, help='Controller Validations')
-        parser1.add_argument('args', nargs='*', default=[], help='type')
-        parser1.set_defaults(command=ControllerVCommand)
-
-    def process(self):
-        """ Process controller command """
-
-        self._controller.validate()

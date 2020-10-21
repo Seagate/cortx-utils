@@ -20,13 +20,14 @@ import errno
 
 from cortx.utils.validator.error import VError
 from cortx.utils.process import SimpleProcess
+from cortx.utils.const import ITEMS_SEPARATOR
 
 
 class NetworkV:
-    """ Network related validations """
+    """Network related validations."""
 
     def validate(self, args):
-        """ Process network validations """
+        """Process network validations."""
 
         if not isinstance(args, list) or len(args) < 1:
             raise VError(errno.EINVAL, "Invalid parameters %s" % args)
@@ -37,15 +38,17 @@ class NetworkV:
             self.validate_management_vip(args[1])
         elif action == "cluster_ip":
             self.validate_cluster_ip(args[1])
-        elif action == "public_data_ip":
-            self.validate_public_data_ip(args[1:])
-        elif action == "private_data_ip":
-            self.validate_private_data_ip(args[1:])
+        elif action == "public_data_ips":
+            self.validate_public_data_ips(args[1:])
+        elif action == "private_data_ips":
+            self.validate_private_data_ips(args[1:])
+        elif action == "controllers":
+            self.validate_controllers(args[1:])            
 
         raise VError(errno.EINVAL, "Invalid parameter %s" % args)
 
     def validate_management_vip(self, management_vip):
-        """ Validations for Management VIP """
+        """Validate Management VIP."""
 
         unreachable_ips = self.validate_ip_connectivity([management_vip])
         if len(unreachable_ips) != 0:
@@ -55,7 +58,7 @@ class NetworkV:
         return
 
     def validate_cluster_ip(self, cluster_ip):
-        """ Validations for Cluster IP """
+        """ Validate Cluster IP."""
 
         unreachable_ips = self.validate_ip_connectivity([cluster_ip])
         if len(unreachable_ips) != 0:
@@ -64,30 +67,38 @@ class NetworkV:
 
         return
 
-    def validate_public_data_ip(self, public_data_ips):
-        """ Validations for public data ip """
+    def validate_public_data_ips(self, public_data_ips):
+        """Validate Public data IPs."""
 
         unreachable_ips = self.validate_ip_connectivity(public_data_ips)
         if len(unreachable_ips) != 0:
-            seperator = ", "
             raise VError(
-                errno.ECONNREFUSED, f"Pinging following Public data Ips {seperator.join(unreachable_ips)} failed")
+                errno.ECONNREFUSED, f"Pinging following Public data Ips {ITEMS_SEPARATOR.join(unreachable_ips)} failed")
 
         return
 
-    def validate_private_data_ip(self, private_data_ips):
-        """ Validations for private data ip """
+    def validate_private_data_ips(self, private_data_ips):
+        """Validate Private data IPs."""
 
         unreachable_ips = self.validate_ip_connectivity(private_data_ips)
         if len(unreachable_ips) != 0:
-            seperator = ", "
             raise VError(
-                errno.ECONNREFUSED, f"Pinging following Private data Ips {seperator.join(unreachable_ips)} failed")
+                errno.ECONNREFUSED, f"Pinging following Private data Ips {ITEMS_SEPARATOR.join(unreachable_ips)} failed")
+
+        return
+
+    def validate_controllers(self, controller_ips):
+        """Validate Controllers."""
+
+        unreachable_ips = self.validate_ip_connectivity(controller_ips)
+        if len(unreachable_ips) != 0:
+            raise VError(
+                errno.ECONNREFUSED, f"Pinging following Controllers {ITEMS_SEPARATOR.join(unreachable_ips)} failed")
 
         return
 
     def validate_ip_connectivity(self, ips):
-        """ Check if IPs are reachable """
+        """Check if IPs are reachable."""
 
         unreachable_ips = []
         for ip in ips:

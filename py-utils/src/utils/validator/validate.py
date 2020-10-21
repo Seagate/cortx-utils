@@ -25,16 +25,18 @@ from cortx.utils.validator import commands
 
 
 class ValidatorCommandFactory:
-    """ Factor for all kinds of validations """
+    """Factory for all kinds of validations."""
 
     @staticmethod
     def usage(prog):
+        """Print usage instructions."""
+        
         sys.stderr.write(
             "usage: %s [-h] [network <args>] [consul <args>]\n" % prog)
 
     @staticmethod
     def get_command(description, argv):
-        """ Obtains the Command after parsing the command line. """
+        """Return the Command after parsing the command line."""
 
         parser = argparse.ArgumentParser(description)
 
