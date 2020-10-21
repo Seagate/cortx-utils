@@ -344,7 +344,8 @@ static struct m0_addb2__id_intrp gs_curr_ids[] = {
             &decode_perfc_function_tags,
             &decode_perfc_entry_type,
             &hex, // operation id
-            &decode_perfc_entity_attrs
+            &decode_perfc_entity_attrs,
+            &hex // attribute val
         }
     },
     {
@@ -353,8 +354,10 @@ static struct m0_addb2__id_intrp gs_curr_ids[] = {
         {
             &decode_perfc_function_tags,
             &decode_perfc_entry_type,
+            &hex, // map name
             &hex, // operation id
-            &hex // mapping with opertation id
+            &hex, // mapping with origin operation id
+            &hex // mapping with caller operation id
         }
     },
 
