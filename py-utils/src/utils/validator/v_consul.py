@@ -32,11 +32,11 @@ class ConsulV:
             raise VError(errno.EINVAL, "Invalid parameters %s" % args)
 
         if args[0] == "service":
-            self.validate_service()
+            self.__validate_service()
 
         raise VError(errno.EINVAL, "Invalid parameter %s" % args)
 
-    def validate_service(self):
+    def __validate_service(self):
         """Validate Consul service."""
 
         check_output_log = subprocess.check_output(
