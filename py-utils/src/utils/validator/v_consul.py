@@ -24,6 +24,7 @@ from cortx.utils.validator.error import VError
 class ConsulV:
     """Consul related validations."""
 
+    @classmethod
     def validate(self, args):
         """Process consul valiations."""
 
@@ -34,10 +35,10 @@ class ConsulV:
             if len(args) < 2:
                 raise VError(errno.EINVAL, "Insufficient parameters.")
 
-            ConsulV.validate_consul_service_status(args[1], args[2])
+            self.validate_consul_service_status(args[1], args[2])
 
-    @staticmethod
-    def validate_consul_service_status(host, port):
+    @classmethod
+    def validate_consul_service_status(self, host, port):
         """Validate Consul service status."""
 
         url = f"http://{host}:{str(port)}/v1/status/leader"

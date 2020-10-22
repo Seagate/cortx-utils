@@ -26,6 +26,7 @@ from cortx.utils.const import ITEMS_SEPARATOR
 class NetworkV:
     """Network related validations."""
 
+    @classmethod
     def validate(self, args):
         """Process network validations."""
 
@@ -35,75 +36,75 @@ class NetworkV:
         action = args[0]
 
         if action == "management_vip":
-            NetworkV.validate_management_vip(args[1])
+            self.validate_management_vip(args[1])
         elif action == "cluster_ip":
-            NetworkV.validate_cluster_ip(args[1])
+            self.validate_cluster_ip(args[1])
         elif action == "public_data_ips":
-            NetworkV.validate_public_data_ips(args[1:])
+            self.validate_public_data_ips(args[1:])
         elif action == "private_data_ips":
-            NetworkV.validate_private_data_ips(args[1:])
+            self.validate_private_data_ips(args[1:])
         elif action == "controllers":
-            NetworkV.validate_controllers(args[1:])
+            self.validate_controllers(args[1:])
 
         raise VError(errno.EINVAL, "Invalid parameter %s" % args)
 
-    @staticmethod
-    def validate_management_vip(management_vip):
+    @classmethod
+    def validate_management_vip(self, management_vip):
         """Validate Management VIP."""
 
-        unreachable_ips = NetworkV.validate_ip_connectivity([management_vip])
+        unreachable_ips = self.validate_ip_connectivity([management_vip])
         if len(unreachable_ips) != 0:
             raise VError(errno.ECONNREFUSED,
                          f"Pinging Management VIP {management_vip} failed")
 
         return
 
-    @staticmethod
-    def validate_cluster_ip(cluster_ip):
+    @classmethod
+    def validate_cluster_ip(self, cluster_ip):
         """ Validate Cluster IP."""
 
-        unreachable_ips = NetworkV.validate_ip_connectivity([cluster_ip])
+        unreachable_ips = self.validate_ip_connectivity([cluster_ip])
         if len(unreachable_ips) != 0:
             raise VError(errno.ECONNREFUSED,
                          f"Pinging Cluster IP {cluster_ip} failed")
 
         return
 
-    @staticmethod
-    def validate_public_data_ips(public_data_ips):
+    @classmethod
+    def validate_public_data_ips(self, public_data_ips):
         """Validate Public data IPs."""
 
-        unreachable_ips = NetworkV.validate_ip_connectivity(public_data_ips)
+        unreachable_ips = self.validate_ip_connectivity(public_data_ips)
         if len(unreachable_ips) != 0:
             raise VError(
                 errno.ECONNREFUSED, f"Pinging following Public data Ips {ITEMS_SEPARATOR.join(unreachable_ips)} failed")
 
         return
 
-    @staticmethod
-    def validate_private_data_ips(private_data_ips):
+    @classmethod
+    def validate_private_data_ips(self, private_data_ips):
         """Validate Private data IPs."""
 
-        unreachable_ips = NetworkV.validate_ip_connectivity(private_data_ips)
+        unreachable_ips = self.validate_ip_connectivity(private_data_ips)
         if len(unreachable_ips) != 0:
             raise VError(
                 errno.ECONNREFUSED, f"Pinging following Private data Ips {ITEMS_SEPARATOR.join(unreachable_ips)} failed")
 
         return
 
-    @staticmethod
-    def validate_controllers(controller_ips):
+    @classmethod
+    def validate_controllers(self, controller_ips):
         """Validate Controllers."""
 
-        unreachable_ips = NetworkV.validate_ip_connectivity(controller_ips)
+        unreachable_ips = self.validate_ip_connectivity(controller_ips)
         if len(unreachable_ips) != 0:
             raise VError(
                 errno.ECONNREFUSED, f"Pinging following Controllers {ITEMS_SEPARATOR.join(unreachable_ips)} failed")
 
         return
 
-    @staticmethod
-    def validate_ip_connectivity(ips):
+    @classmethod
+    def validate_ip_connectivity(self, ips):
         """Check if IPs are reachable."""
 
         unreachable_ips = []
