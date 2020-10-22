@@ -53,6 +53,4 @@ MODULE_ID = "module_id"
 SPECIFIC_INFO_MODULE = "module"
 NIC_CABLE = "node:interface:nw:cable"
 UNSUPPORTED_FEATURE = "UNSUPPORTED_FEATURE"
-CONSUL_STATUS_CHECK_CMD = "ps -eaf | grep consul"
-CONSUL_STATUS_RUNNING = 'consul agent'
 ITEMS_SEPARATOR = ", "

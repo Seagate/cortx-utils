@@ -98,4 +98,3 @@ class ConsulVCommand(VCommand):
         """Process consul command."""
 
         self._consul.validate(self.args)
-

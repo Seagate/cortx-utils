@@ -19,19 +19,6 @@ import errno
 import requests
 
 from cortx.utils.validator.error import VError
-from cortx.utils import const
-
-
-def validate_consul_service_status(host, port):
-    """Validate Consul service status."""
-
-    url = f"http://{host}:{str(port)}/v1/status/leader"
-
-    try:
-        if requests.get(url).status_code != 200:
-            raise VError(errno.ECONNREFUSED, "Consul is not running")
-    except requests.exceptions.RequestException:
-        raise VError(errno.ECONNREFUSED, "Consul is not running")
 
 
 class ConsulV:
@@ -45,6 +32,18 @@ class ConsulV:
 
         if args[0] == "service":
             if len(args) < 2:
-                raise VError(errno.EINVAL, f"Insufficient parameters.")
+                raise VError(errno.EINVAL, "Insufficient parameters.")
 
-            validate_consul_service_status(args[1], args[2])
+            ConsulV.validate_consul_service_status(args[1], args[2])
+
+    @staticmethod
+    def validate_consul_service_status(host, port):
+        """Validate Consul service status."""
+
+        url = f"http://{host}:{str(port)}/v1/status/leader"
+
+        try:
+            if requests.get(url).status_code != 200:
+                raise VError(errno.ECONNREFUSED, "Consul is not running")
+        except requests.exceptions.RequestException:
+            raise VError(errno.ECONNREFUSED, "Consul is not running")
