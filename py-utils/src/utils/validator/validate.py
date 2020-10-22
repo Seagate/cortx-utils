@@ -30,7 +30,7 @@ class ValidatorCommandFactory:
     @staticmethod
     def usage(prog):
         """Print usage instructions."""
-        
+
         sys.stderr.write(
             "usage: %s [-h] [network <args>] [consul <args>]\n" % prog)
 

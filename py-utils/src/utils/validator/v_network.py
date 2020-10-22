@@ -23,6 +23,21 @@ from cortx.utils.process import SimpleProcess
 from cortx.utils.const import ITEMS_SEPARATOR
 
 
+def validate_ip_connectivity(ips):
+    """Check if IPs are reachable."""
+
+    unreachable_ips = []
+    for ip in ips:
+        cmd = f"ping -c 1 {ip}"
+        cmd_proc = SimpleProcess(cmd)
+        run_result = cmd_proc.run()
+
+        if run_result[2]:
+            unreachable_ips.append(ip)
+
+    return unreachable_ips
+
+
 class NetworkV:
     """Network related validations."""
 
@@ -43,14 +58,14 @@ class NetworkV:
         elif action == "private_data_ips":
             self.validate_private_data_ips(args[1:])
         elif action == "controllers":
-            self.validate_controllers(args[1:])            
+            self.validate_controllers(args[1:])
 
         raise VError(errno.EINVAL, "Invalid parameter %s" % args)
 
     def validate_management_vip(self, management_vip):
         """Validate Management VIP."""
 
-        unreachable_ips = self.validate_ip_connectivity([management_vip])
+        unreachable_ips = validate_ip_connectivity([management_vip])
         if len(unreachable_ips) != 0:
             raise VError(errno.ECONNREFUSED,
                          f"Pinging Management VIP {management_vip} failed")
@@ -60,7 +75,7 @@ class NetworkV:
     def validate_cluster_ip(self, cluster_ip):
         """ Validate Cluster IP."""
 
-        unreachable_ips = self.validate_ip_connectivity([cluster_ip])
+        unreachable_ips = validate_ip_connectivity([cluster_ip])
         if len(unreachable_ips) != 0:
             raise VError(errno.ECONNREFUSED,
                          f"Pinging Cluster IP {cluster_ip} failed")
@@ -70,7 +85,7 @@ class NetworkV:
     def validate_public_data_ips(self, public_data_ips):
         """Validate Public data IPs."""
 
-        unreachable_ips = self.validate_ip_connectivity(public_data_ips)
+        unreachable_ips = validate_ip_connectivity(public_data_ips)
         if len(unreachable_ips) != 0:
             raise VError(
                 errno.ECONNREFUSED, f"Pinging following Public data Ips {ITEMS_SEPARATOR.join(unreachable_ips)} failed")
@@ -80,7 +95,7 @@ class NetworkV:
     def validate_private_data_ips(self, private_data_ips):
         """Validate Private data IPs."""
 
-        unreachable_ips = self.validate_ip_connectivity(private_data_ips)
+        unreachable_ips = validate_ip_connectivity(private_data_ips)
         if len(unreachable_ips) != 0:
             raise VError(
                 errno.ECONNREFUSED, f"Pinging following Private data Ips {ITEMS_SEPARATOR.join(unreachable_ips)} failed")
@@ -90,23 +105,9 @@ class NetworkV:
     def validate_controllers(self, controller_ips):
         """Validate Controllers."""
 
-        unreachable_ips = self.validate_ip_connectivity(controller_ips)
+        unreachable_ips = validate_ip_connectivity(controller_ips)
         if len(unreachable_ips) != 0:
             raise VError(
                 errno.ECONNREFUSED, f"Pinging following Controllers {ITEMS_SEPARATOR.join(unreachable_ips)} failed")
 
         return
-
-    def validate_ip_connectivity(self, ips):
-        """Check if IPs are reachable."""
-
-        unreachable_ips = []
-        for ip in ips:
-            cmd = f"ping -c 1 {ip}"
-            cmd_proc = SimpleProcess(cmd)
-            run_result = cmd_proc.run()
-
-            if run_result[2]:
-                unreachable_ips.append(ip)
-
-        return unreachable_ips

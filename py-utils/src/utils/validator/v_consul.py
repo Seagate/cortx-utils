@@ -16,10 +16,22 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
-import subprocess
+import requests
 
 from cortx.utils.validator.error import VError
 from cortx.utils import const
+
+
+def validate_consul_service_status(host, port):
+    """Validate Consul service status."""
+
+    url = f"http://{host}:{str(port)}/v1/status/leader"
+
+    try:
+        if requests.get(url).status_code != 200:
+            raise VError(errno.ECONNREFUSED, "Consul is not running")
+    except requests.exceptions.RequestException:
+        raise VError(errno.ECONNREFUSED, "Consul is not running")
 
 
 class ConsulV:
@@ -32,18 +44,7 @@ class ConsulV:
             raise VError(errno.EINVAL, "Invalid parameters %s" % args)
 
         if args[0] == "service":
-            self.__validate_service()
+            if len(args) < 2:
+                raise VError(errno.EINVAL, f"Insufficient parameters.")
 
-        raise VError(errno.EINVAL, "Invalid parameter %s" % args)
-
-    def __validate_service(self):
-        """Validate Consul service."""
-
-        check_output_log = subprocess.check_output(
-            const.CONSUL_STATUS_CHECK_CMD, shell=True)
-
-        for log_line in check_output_log.splitlines():
-            if const.CONSUL_STATUS_RUNNING in log_line.decode("utf-8"):
-                return
-
-        raise VError(errno.ENOENT, "Consul is not running")
+            validate_consul_service_status(args[1], args[2])
