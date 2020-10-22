@@ -113,6 +113,8 @@ static const struct entity_attrs_items {
   [PEA_KVS_VLEN] = { .str = "kvs_value_length" },
   [PEA_KVS_RES_RC] = { .str = "kvs_result" },
 
+  [PEA_DSTORE_OLD_SIZE] = {.str = "dstore_old_size"},
+  [PEA_DSTORE_NEW_SIZE] = {.str = "dstore_new_size"},
   [PEA_DSTORE_GET_RES_RC] = { .str = "dstore_get_result" },
   [PEA_DSTORE_PREAD_OFFSET] = { .str = "dstore_pread_offset" },
   [PEA_DSTORE_PREAD_COUNT] = { .str = "dstore_pread_count" },
