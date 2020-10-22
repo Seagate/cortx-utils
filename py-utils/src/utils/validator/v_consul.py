@@ -26,19 +26,31 @@ class ConsulV:
 
     @classmethod
     def validate(self, args):
-        """Process consul valiations."""
+        """
+        Process consul validations.
+        Usage (arguments to be provided):
+        1. consul service localhost 8500
+        """
 
-        if not isinstance(args, list) or len(args) < 1:
+        if not isinstance(args, list):
             raise VError(errno.EINVAL, "Invalid parameters %s" % args)
 
-        if args[0] == "service":
-            if len(args) < 2:
-                raise VError(errno.EINVAL, "Insufficient parameters.")
+        args_length = len(args)
 
-            self.validate_consul_service_status(args[1], args[2])
+        if args_length == 0:
+            raise VError(errno.EINVAL, "Action parameter not provided")
+
+        if args[0] == "service":
+            if args_length < 3:
+                raise VError(
+                    errno.EINVAL, f"Insufficient parameters for action '{args[0]}' provided. Expected 2 but provided {args_length - 1}")
+
+            self.validate_service_status(args[1], args[2])
+        else:
+            raise VError(errno.EINVAL, "Action parameter %s not supported" % args[0])
 
     @classmethod
-    def validate_consul_service_status(self, host, port):
+    def validate_service_status(self, host, port):
         """Validate Consul service status."""
 
         url = f"http://{host}:{str(port)}/v1/status/leader"

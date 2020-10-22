@@ -44,9 +44,6 @@ class NetworkVCommand(VCommand):
     _name = "network"
 
     def __init__(self, args):
-        if len(args) < 2:
-            raise Exception("insufficient parameters")
-
         super(NetworkVCommand, self).__init__(args)
 
         sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -64,7 +61,7 @@ class NetworkVCommand(VCommand):
         parser1.set_defaults(command=NetworkVCommand)
 
     def process(self):
-        """Process network command."""
+        """Validate network connectivity ip1 ip2 ip3..."""
 
         self._network.validate(self.args)
 
@@ -75,9 +72,6 @@ class ConsulVCommand(VCommand):
     _name = "consul"
 
     def __init__(self, args):
-        if len(args) < 1:
-            raise Exception("insufficient parameters")
-
         super(ConsulVCommand, self).__init__(args)
 
         sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -95,6 +89,6 @@ class ConsulVCommand(VCommand):
         parser1.set_defaults(command=ConsulVCommand)
 
     def process(self):
-        """Process consul command."""
+        """Validate consul status."""
 
         self._consul.validate(self.args)
