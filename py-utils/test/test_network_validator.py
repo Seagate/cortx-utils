@@ -27,8 +27,11 @@ class TestNetworkValidator(unittest.TestCase):
 
     def test_network_connectivity(self):
         """Check IP connectivity failure."""
+
+        fake_ip1 = '11.230.249.110'
+        fake_ip2 = '12.230.249.110'
         self.assertRaises(VError, NetworkV().validate, [
-                          'connectivity', '11.230.249.110'])
+                          'connectivity', fake_ip1, fake_ip2])
 
 
 if __name__ == '__main__':

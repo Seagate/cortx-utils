@@ -37,19 +37,14 @@ class NetworkV:
         if not isinstance(args, list):
             raise VError(errno.EINVAL, "Invalid parameters %s" % args)
 
-        args_length = len(args)
-
-        if args_length == 0:
-            raise VError(errno.EINVAL, "Action parameter not provided")
+        if len(args) < 2:
+            raise VError(errno.EINVAL, "Insufficient parameters. %s" % args)
 
         if args[0] == "connectivity":
-            if len(args) < 2:
-                raise VError(
-                    errno.EINVAL, f"No parameters for action '{args[0]}' provided. Expected atleast one.")
-
             self.validate_ip_connectivity(args[1:])
         else:
-            raise VError(errno.EINVAL, "Action parameter %s not supported" % args[0])
+            raise VError(
+                errno.EINVAL, "Action parameter %s not supported" % args[0])
 
     @classmethod
     def validate_ip_connectivity(self, ips):

@@ -31,8 +31,11 @@ class ValidatorCommandFactory:
     def usage(prog):
         """Print usage instructions."""
 
-        sys.stderr.write(
-            "usage: %s [-h] [network <args>] [consul <args>]\n" % prog)
+        usage_string = (f"usage: {prog}\n"
+                        "\t[-h]\n"
+                        "\t[network connectivity <ip1> <ip2> <...>]\n"
+                        "\t[consul service <host> <port>]\n")
+        sys.stderr.write(usage_string)
 
     @staticmethod
     def get_command(description, argv):

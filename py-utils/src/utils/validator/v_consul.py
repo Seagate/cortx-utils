@@ -35,28 +35,25 @@ class ConsulV:
         if not isinstance(args, list):
             raise VError(errno.EINVAL, "Invalid parameters %s" % args)
 
-        args_length = len(args)
-
-        if args_length == 0:
-            raise VError(errno.EINVAL, "Action parameter not provided")
+        if len(args) < 3:
+            raise VError(errno.EINVAL, "Insufficient parameters. %s" % args)
 
         if args[0] == "service":
-            if args_length < 3:
-                raise VError(
-                    errno.EINVAL, f"Insufficient parameters for action '{args[0]}' provided. Expected 2 but provided {args_length - 1}")
-
             self.validate_service_status(args[1], args[2])
         else:
-            raise VError(errno.EINVAL, "Action parameter %s not supported" % args[0])
+            raise VError(
+                errno.EINVAL, "Action parameter %s not supported" % args[0])
 
     @classmethod
     def validate_service_status(self, host, port):
         """Validate Consul service status."""
 
-        url = f"http://{host}:{str(port)}/v1/status/leader"
+        url = f"http://{host}:{port}/v1/status/leader"
 
         try:
             if requests.get(url).status_code != 200:
-                raise VError(errno.ECONNREFUSED, "Consul is not running")
+                raise VError(errno.ECONNREFUSED,
+                             f"No Consul service running on {host}:{port}")
         except requests.exceptions.RequestException:
-            raise VError(errno.ECONNREFUSED, "Consul is not running")
+            raise VError(errno.ECONNREFUSED,
+                         f"No Consul service running on {host}:{port}")
