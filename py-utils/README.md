@@ -73,7 +73,7 @@ $ yum remove cortx-py-utils
 
 ## Update new dependency package
 
-- Add package in `requirement.txt`.
+- Add package in `requirements.txt`.
 
 <hr>
 
