@@ -22,7 +22,7 @@ A common utils framework which includes common modules across components
 <hr>
 
 ## Prerequisites for build
-```
+```bash
 $ sudo yum install python36
 $ sudo yum install python36-pip
 $ sudo yum install python36-devel
@@ -34,26 +34,26 @@ $ sudo yum install libffi-devel
 ## Build
 **Note:** Use one of following method to create build package
 
-- Create pip package
+  - Create pip package
     - It will create `cortx_py_utils-1.0.0-py3-none-any.whl`
 ```bash
 $ python3 setup.py bdist_wheel
 ```
 
-- Create RPM Package
+  - Create RPM Package
     - It will create `cortx-py-utils-1.0.0-1.noarch.rpm`
 ```bash
 $ python3.6 setup.py bdist_rpm --post-install utils-post-install --pre-uninstall utils-pre-uninstall
 ```
 
 ## Installation
-- Installation with pip package
+  - Installation with pip package
 ```bash
 $ cd dist;
 $ pip3 install cortx_py_utils-1.0.0-py3-none-any.whl
 ```
 
-- Installation with RPM package
+  - Installation with RPM package
 ```bash
 $ cd dist;
 $ yum install -y cortx-py-utils-1.0.0-1.noarch.rpm
@@ -66,14 +66,14 @@ $ yum install -y cortx-py-utils-1.0.0-1.noarch.rpm
 $ pip3 uninstall cortx-py-utils
 ```
 
-- RPM uninstall
+  - RPM uninstall
 ```
 $ yum remove cortx-py-utils
 ```
 
 ## Update new dependency package
 
-- Add package in `requirements.txt`.
+  - Add package in `requirements.txt`.
 
 <hr>
 
