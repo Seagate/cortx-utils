@@ -51,10 +51,10 @@ class ConsulV:
         url = f"http://{host}:{port}/v1/status/leader"
 
         try:
-            response_status_code = requests.get(url).status_code
-            if response_status_code != 200:
+            status_code = requests.get(url).status_code
+            if status_code != 200:
                 raise VError(errno.ECOMM,
-                             f"Error connecting to consul service on {host}:{port} with status code {response_status_code}.")
+                             f"Error {status_code} obtained while connecting to consul service on {host}:{port}.")
         except requests.exceptions.InvalidURL:
             raise VError(
                 errno.EINVAL, f"Either or all inputs host '{host}' and port '{port}' are invalid.")

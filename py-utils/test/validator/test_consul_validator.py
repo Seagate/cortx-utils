@@ -16,10 +16,13 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import unittest
-
-from cortx.utils.validator.v_consul import ConsulV
 from cortx.utils.validator.error import VError
+from cortx.utils.validator.v_consul import ConsulV
+import unittest
+import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 
 class TestConsulValidator(unittest.TestCase):
