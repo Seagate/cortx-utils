@@ -19,7 +19,7 @@ import asyncio
 from datetime import datetime, timezone
 from schematics.types import (IntType, StringType, BooleanType, DateTimeType)
 
-from cortx.utils.data.db.db_provider import DataBaseProvider, GeneralConfig
+from cortx.utils.data.db.db_provider import DataBaseProvider, DBDriverConfig, DBModelConfig
 from cortx.utils.data.access.filters import Compare, And, Or
 from cortx.utils.data.access import BaseModel, Query
 
@@ -137,7 +137,7 @@ ALERT4 = {'alert_uuid': 4,
 
 
 async def example():
-    conf = GeneralConfig({
+    drivers = DBDriverConfig({
         "databases": {
             "es_db": {
                 "import_path": "ElasticSearchDB",
@@ -148,18 +148,18 @@ async def example():
                     "password": ""
                 }
             },
-            "consul_db":
-                {
-                    "import_path": "ConsulDB",
-                    "config":
-                        {
-                            "host": "127.0.0.1",
-                            "port": 8500,  # HTTP API Port
-                            "login": "",
-                            "password": ""
-                        }
+            "consul_db": {
+                "import_path": "ConsulDB",
+                "config": {
+                    "host": "127.0.0.1",
+                    "port": 8500,  # HTTP API Port
+                    "login": "",
+                    "password": ""
                 }
-        },
+            }
+        }
+    })
+    models = DBModelConfig({
         "models": [
             {
                 "import_path": "cortx.utils.data.db.examples.consul_storage.AlertModel",
@@ -176,7 +176,7 @@ async def example():
         ]
     })
 
-    db = DataBaseProvider(conf)
+    db = DataBaseProvider(drivers, models)
 
     alert1 = AlertModel(ALERT1)
     alert2 = AlertModel(ALERT2)

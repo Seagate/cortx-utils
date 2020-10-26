@@ -52,13 +52,16 @@ class DBSettings(Model):
     replication = IntType(required=False, default=0)
 
 
-class DBConfig(Model):
+class DBDriverConfig(Model):
     """
     Database driver configuration description
     """
 
-    import_path = StringType(required=True)
-    config = ModelType(DBSettings)  # db-specific configuration
+    class Entry(Model):
+        import_path = StringType(required=True)
+        config = ModelType(DBSettings)  # db-specific configuration
+
+    databases = DictType(ModelType(Entry), str)
 
 
 class ModelSettings(Model):
@@ -73,19 +76,13 @@ class DBModelConfig(Model):
     Description of how a specific model is expected to be stored
     """
 
-    import_path = StringType(required=True)
-    database = StringType(required=True)
-    # this configuration is specific for each supported by model db driver
-    config = DictType(ModelType(ModelSettings), str)
+    class Entry(Model):
+        import_path = StringType(required=True)
+        database = StringType(required=True)
+        # this configuration is specific for each supported by model db driver
+        config = DictType(ModelType(ModelSettings), str)
 
-
-class GeneralConfig(Model):
-    """
-    Layout of full database configuration
-    """
-
-    databases = DictType(ModelType(DBConfig), str)
-    models = ListType(ModelType(DBModelConfig))
+    models = ListType(ModelType(Entry))
 
 
 class ProxyStorageCallDecorator:
@@ -140,14 +137,18 @@ class AsyncDataBase:
     Decorates all storage async calls and async db drivers and db storages initializations
     """
 
-    def __init__(self, model: Type[BaseModel], model_config: DBModelConfig,
-                 db_config: GeneralConfig):
+    def __init__(
+        self,
+        model: Type[BaseModel],
+        driver_config: DBDriverConfig,
+        model_config: DBModelConfig.Entry,
+    ):
         self._event = ThreadSafeEvent()
         self._model = model
         self._model_settings = model_config.config.get(model_config.database)
-        self._db_config = db_config.databases.get(model_config.database)
+        self._driver_config = driver_config.databases.get(model_config.database)
         self._database_status = ServiceStatus.NOT_CREATED
-        self._database_module = getattr(db_module, self._db_config.import_path)
+        self._database_module = getattr(db_module, self._driver_config.import_path)
         self._database = None
 
     def __getattr__(self, attr_name: str) -> coroutine:
@@ -157,9 +158,8 @@ class AsyncDataBase:
     async def create_database(self) -> None:
         self._database_status = ServiceStatus.IN_PROGRESS
         try:
-            self._database = await self._database_module.create_database(self._db_config.config,
-                                                                         self._model_settings.collection,
-                                                                         self._model)
+            self._database = await self._database_module.create_database(
+                self._driver_config.config, self._model_settings.collection, self._model)
         except DataAccessError:
             raise
         except Exception as e:
@@ -185,11 +185,11 @@ class DataBaseProvider(AbstractDataBaseProvider):
 
     _cached_async_decorators = dict()  # Global for all DbStorageProvider instances
 
-    def __init__(self, config: GeneralConfig):
-        self.general_config = config
+    def __init__(self, drivers: DBDriverConfig, models: DBModelConfig):
+        self.drivers = drivers
         self.model_settings = {}
 
-        for model in config.models:
+        for model in models:
             # TODO: improve model loading
             model_class = locate(model.import_path)
 
@@ -215,6 +215,6 @@ class DataBaseProvider(AbstractDataBaseProvider):
         if model in self._cached_async_decorators:
             return self._cached_async_decorators[model]
 
-        self._cached_async_decorators[model] = AsyncDataBase(model, self.model_settings[model],
-                                                             self.general_config)
+        self._cached_async_decorators[model] = AsyncDataBase(
+            model, self.drivers, self.model_settings[model])
         return self._cached_async_decorators[model]

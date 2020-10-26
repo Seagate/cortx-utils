@@ -21,7 +21,7 @@ from cortx.utils.schema.payload import Json
 from cortx.utils.ha.hac import const
 from cortx.utils.data.access import Query
 from cortx.utils.data.access.filters import Compare
-from cortx.utils.data.db.db_provider import DataBaseProvider, GeneralConfig
+from cortx.utils.data.db.db_provider import DataBaseProvider, DBDriverConfig, DBModelConfig
 from cortx.utils.ha.dm.models.decisiondb import DecisionModel
 from cortx.utils.log import Log
 from cortx.utils.schema import database
@@ -32,19 +32,25 @@ class DecisionDB:
     This is intended to be used during decision management
     """
 
-    def __init__(self) -> None:
+    def __init__(self, drivers: DBDriverConfig = None, models: DBModelConfig = None) -> None:
         """
         Init load consul db for storing key in db
         if cortx-ha database.json not available then it load
         database.py schama having localhost consul.
         """
         if os.path.exists(os.path.join(const.CONF_PATH, const.HA_DATABADE_SCHEMA)):
-            schema = Json(os.path.join(const.CONF_PATH,
-                                   const.HA_DATABADE_SCHEMA)).load()
-            conf = GeneralConfig(schema)
-        else:
-            conf = GeneralConfig(database.DATABASE)
-        self.storage = DataBaseProvider(conf)
+            schema = Json(os.path.join(const.CONF_PATH, const.HA_DATABADE_SCHEMA)).load()
+        if drivers is None:
+            if schema.get('databases') is not None:
+                drivers = { 'databases': schema['databases'] }
+            else:
+                drivers = database.DATABASE_DRIVERS
+        if models is None:
+            if schema.get('models') is not None:
+                models = { 'models': schema['models'] }
+            else:
+                models = database.DATABASE_MODELS
+        self.storage = DataBaseProvider(drivers, models)
 
     async def store_event(self, entity, entity_id, component, component_id,
                           alert_time, action):
