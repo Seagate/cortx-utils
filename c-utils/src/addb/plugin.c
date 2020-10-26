@@ -104,6 +104,20 @@ static const struct entity_attrs_items {
   [PEA_SETATTR_RES_MIN] = { .str = "set_attribute_result_minor_code" },
   [PEA_SETATTR_RES_RC] = { .str = "set_attribute_result" },
 
+  [PEA_OPEN_RES_MAJ] = { .str = "open_result_major_code" },
+  [PEA_OPEN_RES_MIN] = { .str = "open_result_minor_code" },
+  [PEA_OPEN_RES_RC] = { .str = "open_result" },
+
+  [PEA_STATUS_RES_RC] = { .str = "status_result" },
+
+  [PEA_CLOSE_RES_MAJ] = { .str = "close_result_major_code" },
+  [PEA_CLOSE_RES_MIN] = { .str = "close_result_minor_code" },
+  [PEA_CLOSE_RES_RC] = { .str = "close_result" },
+
+  [PEA_REOPEN_RES_MAJ] = { .str = "reopen_result_major_code" },
+  [PEA_REOPEN_RES_MIN] = { .str = "reopen_result_minor_code" },
+  [PEA_REOPEN_RES_RC] = { .str = "reopen_result" },
+
   [PEA_ACCESS_FLAGS] = { .str = "access_flag" },
   [PEA_ACCESS_RES_RC] = { .str = "access_result" },
 
@@ -184,6 +198,11 @@ static const struct entity_attrs_items {
   [PEA_TIME_ATTR_END_M0_IDX_FINISH] = { .str = "attr_time_end_m0_idx_finish" },
 
   [PEA_M0KVS_RES_RC] = { .str = "m0kvs_result_code" },
+
+  [PEA_CFS_CREATE_PARENT_INODE] = { .str = "cfs_create_parent_inode" },
+  [PEA_CFS_NEW_FILE_INODE] = { .str = "cfs_create_file_inode" },
+  [PEA_CFS_RES_RC] = { .str = "cfs_result_rc" },
+
 };
 _Static_assert(ARRAY_SIZE(g_entity_attrs_items_map) == PEA_END, "Invalid entity attribute");
 
@@ -205,6 +224,11 @@ static const struct function_tag_items {
   [PFT_FSAL_READDIR] = { .str = "fsal_readdir" },
   [PFT_FSAL_RMDIR] = { .str = "fsal_rmdir" },
   [PFT_FSAL_LOOKUP] = { .str = "fsal_lookup" },
+  [PFT_FSAL_OPEN] = { .str = "fsal_open" },
+  [PFT_FSAL_STATUS] = { .str = "fsal_status" },
+  [PFT_FSAL_CLOSE] = { .str = "fsal_close" },
+  [PFT_FSAL_REOPEN] = { .str = "fsal_reopen" },
+  [PFT_FSAL_COMMIT] = { .str = "fsal_commit" },
 
   [PFT_KVS_INIT] = { .str = "kvs_init" },
   [PFT_KVS_FINI] = { .str = "kvs_finish" },
@@ -223,6 +247,10 @@ static const struct function_tag_items {
   [PFT_CFS_RMDIR] = { .str = "cfs_rmdir" },
   [PFT_CFS_READDIR] = { .str = "cfs_readdir" },
   [PFT_CFS_LOOKUP] = { .str = "cfs_lookup" },
+  [PFT_CFS_FILE_OPEN] = { .str = "cfs_open" },
+  [PFT_CFS_FILE_CLOSE] = { .str = "cfs_close" },
+  [PFT_CFS_CREATE_EX] = { .str = "cfs_create_ex" },
+  [PFT_CFS_CREATE] = { .str = "cfs_create" },
 
   [PFT_DSTORE_GET] = { .str = "dstore_get" },
   [PFT_DSTORE_PREAD] = { .str = "dstore_pread" },
@@ -317,6 +345,12 @@ static const struct function_tag_items {
   [PFT_M0_KEY_ITER_FINISH] = { .str = "m0_key_iter_finish" },
   [PFT_M0_KEY_ITER_FIND] = { .str = "m0_key_iter_find" },
   [PFT_M0_KEY_ITER_NEXT] = { .str = "m0_key_iter_next" },
+
+  [PFT_OPEN2_BY_HANDLE] = { .str = "open2_by_handle" },
+  [PFT_FILE_STATE_OPEN] = { .str = "file_state_open" },
+  [PFT_SHARE_TRY_NEW_STATE] = { .str = "share_try_new_state" },
+  [PFT_OPEN2_BY_NAME] = { .str = "open2_by_name" },
+  [PFT_CREATE_UNCHECKED] = { .str = "create_uncheck" },
 
 };
 _Static_assert(ARRAY_SIZE(g_function_tag_items_map) == PFT_END, "Invalid function tag");
