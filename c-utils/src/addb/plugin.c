@@ -113,6 +113,8 @@ static const struct entity_attrs_items {
   [PEA_KVS_VLEN] = { .str = "kvs_value_length" },
   [PEA_KVS_RES_RC] = { .str = "kvs_result" },
 
+  [PEA_DSTORE_OLD_SIZE] = {.str = "dstore_old_size"},
+  [PEA_DSTORE_NEW_SIZE] = {.str = "dstore_new_size"},
   [PEA_DSTORE_GET_RES_RC] = { .str = "dstore_get_result" },
   [PEA_DSTORE_PREAD_OFFSET] = { .str = "dstore_pread_offset" },
   [PEA_DSTORE_PREAD_COUNT] = { .str = "dstore_pread_count" },
@@ -241,6 +243,22 @@ static const struct function_tag_items {
   [PFT_DS_IO_SUBMIT] = { .str = "ds_io_submit" },
   [PFT_DS_IO_WAIT] = { .str = "ds_io_wait" },
   [PFT_DS_IO_FINISH] = { .str = "ds_io_finish" },
+
+  [PFT_DSTORE_INIT] = { .str = "dstore_init"},
+  [PFT_DSTORE_FINI] = { .str = "dstore_fini"},
+  [PFT_DSTORE_OBJ_CREATE] = { .str = "dstore_obj_create"},
+  [PFT_DSTORE_OBJ_DELETE] = { .str = "dstore_obj_delete"},
+  [PFT_DSTORE_OBJ_SHRINK] = { .str = "dstore_obj_shrink"},
+  [PFT_DSTORE_OBJ_RESIZE] = { .str = "dstore_obj_resize"},
+  [PFT_DSTORE_GET_NEW_OBJID] = { .str = "dstore_get_new_objid"},
+  [PFT_DSTORE_OBJ_OPEN] = { .str = "dstore_obj_open"},
+  [PFT_DSTORE_OBJ_CLOSE] = { .str = "dstore_obj_close"},
+  [PFT_DSTORE_IO_OP_INIT_AND_SUBMIT] = 
+	{ .str = "dstore_io_op_init_and_submit"},
+  [PFT_DSTORE_IO_OP_WRITE] = { .str = "dstore_io_op_write"},
+  [PFT_DSTORE_IO_OP_READ] = { .str = "dstore_io_op_read"},
+  [PFT_DSTORE_IO_OP_WAIT] = { .str = "dstore_io_op_wait"},
+  [PFT_DSTORE_IO_OP_FINI] = { .str = "dstore_io_op_fini"},
 
   [PFT_CORTX_KVS_INIT] = { .str = "cortx_kvs_init" },
   [PFT_CORTX_KVS_FINISH] = { .str = "cortx_kvs_finish" },
