@@ -52,7 +52,8 @@ class NetworkV:
 
         unreachable_ips = []
         for ip in ips:
-            if ip.count(".") == 3 and all(self._is_valid_ipv4_part(ip_part) for ip_part in ip.split(".")):
+            if ip.count(".") == 3 and all(
+                self._is_valid_ipv4_part(ip_part) for ip_part in ip.split(".")):
                 cmd = f"ping -c 1 -W 1 {ip}"
                 cmd_proc = SimpleProcess(cmd)
                 run_result = cmd_proc.run()
@@ -64,7 +65,8 @@ class NetworkV:
 
         if len(unreachable_ips) != 0:
             raise VError(
-                errno.ECONNREFUSED, f"Pinging {ITEMS_SEPARATOR.join(unreachable_ips)} failed")
+                errno.ECONNREFUSED, f"Pinging \
+                {ITEMS_SEPARATOR.join(unreachable_ips)} failed")
 
     @classmethod
     def _is_valid_ipv4_part(self, ip_part):
