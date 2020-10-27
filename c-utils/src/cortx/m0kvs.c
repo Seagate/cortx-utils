@@ -335,8 +335,7 @@ static int m0_op2_kvs(void *ctx,
 
 	perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_WAIT);
 	rc = m0_op_wait(op,
-                    M0_BITS(M0_OS_FAILED,
-                    M0_OS_STABLE),
+                    M0_BITS(M0_OS_STABLE),
                     M0_TIME_NEVER);
 	perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_WAIT);
 	perfc_trace_attr(PEA_M0_OP_SM_ID, op->op_sm.sm_id);
@@ -591,8 +590,7 @@ int m0kvs_pattern(void *ctx, char *k, char *pattern,
 
 		perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_WAIT);
 		rc = m0_op_wait(op,
-                        M0_BITS(M0_OS_FAILED,
-                        M0_OS_STABLE),
+                        M0_BITS(M0_OS_STABLE),
                         M0_TIME_NEVER);
 		perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_WAIT);
 		perfc_trace_attr(PEA_M0_OP_SM_ID, op->op_sm.sm_id);
@@ -699,8 +697,7 @@ int m0kvs_key_prefix_exists(void *ctx,
 
 	perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_WAIT);
 	rc = m0_op_wait(op,
-                    M0_BITS(M0_OS_FAILED,
-                    M0_OS_STABLE),
+                    M0_BITS(M0_OS_STABLE),
                     M0_TIME_NEVER);
 	perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_WAIT);
 	perfc_trace_attr(PEA_M0_OP_SM_ID, op->op_sm.sm_id);
@@ -840,8 +837,7 @@ int m0kvs_key_iter_find(const void* prefix, size_t prefix_len,
 
 	perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_WAIT);
 	rc = m0_op_wait(*op,
-                    M0_BITS(M0_OS_FAILED,
-                    M0_OS_STABLE),
+                    M0_BITS(M0_OS_STABLE),
                     M0_TIME_NEVER);
 	perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_WAIT);
 	perfc_trace_attr(PEA_M0_OP_SM_ID, (*op)->op_sm.sm_id);
@@ -916,8 +912,7 @@ int m0kvs_key_iter_next(struct m0kvs_key_iter *priv)
 
 	perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_WAIT);
 	rc = m0_op_wait(priv->op,
-                    M0_BITS(M0_OS_FAILED,
-                    M0_OS_STABLE),
+                    M0_BITS(M0_OS_STABLE),
                     M0_TIME_NEVER);
 	perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_WAIT);
 	perfc_trace_attr(PEA_M0_OP_SM_ID, priv->op->op_sm.sm_id);
