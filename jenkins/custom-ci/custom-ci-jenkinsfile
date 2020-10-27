@@ -2,7 +2,7 @@ pipeline {
 	 	 
     agent {
 		node {
-			label 'docker-rpm-sign-node'
+			label 'docker-rpm-sign-node-rhel-cortex'
 		}
 	}
 	
@@ -12,14 +12,12 @@ pipeline {
 		release_dir="/mnt/bigstorage/releases/cortx"
         integration_dir="$release_dir/github/integration-custom-ci/release/$os_version"
         components_dir="$release_dir/components/github/custom-ci/release/$os_version"
-        release_tag="custom-build-$os_version-$BUILD_ID"
+        release_tag="custom-build-$BUILD_ID"
         passphrase = credentials('rpm-sign-passphrase')
 	    	thrid_party_dir="/mnt/bigstorage/releases/cortx/third-party-deps/rhel/rhel-7.7.1908/"
 		    python_deps="/mnt/bigstorage/releases/cortx/third-party-deps/python-packages"
     }
 	
-	
-
 	options {
 		timeout(time: 120, unit: 'MINUTES')
 		timestamps()
@@ -51,8 +49,7 @@ pipeline {
             name: 'OTHER_COMPONENT_BRANCH', 
             choices: ['main', 'stable', 'Cortx-v1.0.0_Beta', 'cortx-1.0'],
             description: 'Branch name to pick-up other components rpms'
-        )  
-
+        )
     }	
 		
 	stages {	
@@ -149,7 +146,7 @@ pipeline {
 			steps {
                 script { build_stage=env.STAGE_NAME }
                 sh label: 'Installed Dependecies', script: '''
-                    yum install -y expect rpm-sign rng-tools
+                    yum install -y expect rpm-sign rng-tools genisoimage
                     systemctl start rngd
                 '''	
 			}
@@ -179,8 +176,8 @@ pipeline {
 					
                     for env in "dev" ;
                     do
-						test -d $integration_dir/$release_tag/ && rm -rf $integration_dir/$release_tag
-						mkdir -p $integration_dir/$release_tag/$env
+						test -d $integration_dir/$release_tag/cortx_iso/ && rm -rf $integration_dir/$release_tag/cortx_iso/
+						mkdir -p $integration_dir/$release_tag/cortx_iso/
 						pushd $components_dir/$env
 							echo $CUSTOM_COMPONENT_NAME
 							echo $CUSTOM_COMPONENT_NAME | tr "|" "\n"
@@ -188,7 +185,7 @@ pipeline {
 								do
 								echo -e "Copying RPM's for $component"
 								if ls $component/last_successful/*.rpm 1> /dev/null 2>&1; then
-									cp $component/last_successful/*.rpm $integration_dir/$release_tag/$env
+									cp $component/last_successful/*.rpm $integration_dir/$release_tag/cortx_iso/
 								else
 									echo "Packages not available for $component. Exiting"
 								exit 1							   
@@ -202,7 +199,7 @@ pipeline {
 						do
 							echo -e "Copying RPM's for $component"
 							if ls $component/last_successful/*.rpm 1> /dev/null 2>&1; then
-								cp $component/last_successful/*.rpm $integration_dir/$release_tag/$env
+								cp $component/last_successful/*.rpm $integration_dir/$release_tag/cortx_iso/
 							else
 								echo "Packages not available for $component. Exiting"
 							exit 1	
@@ -222,7 +219,7 @@ pipeline {
                     set +x
                     echo "VALIDATING $env RPM'S................"
                     echo "-------------------------------------"
-                    pushd $integration_dir/$release_tag/$env
+                    pushd $integration_dir/$release_tag/cortx_iso/
 					if [ "${CSM_BRANCH}" == "Cortx-v1.0.0_Beta" ] || [ "${HARE_BRANCH}" == "Cortx-v1.0.0_Beta" ] || [ "${MOTR_BRANCH}" == "Cortx-v1.0.0_Beta" ] || [ "${PRVSNR_BRANCH}" == "Cortx-v1.0.0_Beta" ] || [ "${S3_BRANCH}" == "Cortx-v1.0.0_Beta" ] || [ "${SSPL_BRANCH}" == "Cortx-v1.0.0_Beta" ]; then
 						mero_rpm=$(ls -1 | grep "eos-core" | grep -E -v "eos-core-debuginfo|eos-core-devel|eos-core-tests")
 					else
@@ -275,9 +272,9 @@ pipeline {
                     set +x
 					pushd scripts/rpm-signing
                     chmod +x rpm-sign.sh
-                    cp RPM-GPG-KEY-Seagate $integration_dir/$release_tag/dev
+                    cp RPM-GPG-KEY-Seagate $integration_dir/$release_tag/cortx_iso/
                     
-                    for rpm in `ls -1 $integration_dir/$release_tag/dev/*.rpm`
+                    for rpm in `ls -1 $integration_dir/$release_tag/cortx_iso/*.rpm`
                     do
                     ./rpm-sign.sh ${passphrase} $rpm
                     done
@@ -293,12 +290,12 @@ pipeline {
 
                 sh label: 'Build MANIFEST', script: """
 					pushd scripts/release_support
-                    sh build_release_info.sh $integration_dir/$release_tag/dev
+                    sh build_release_info.sh $integration_dir/$release_tag/cortx_iso/
 					sh build_readme.sh $integration_dir/$release_tag
 					popd
 					
                     cp $integration_dir/$release_tag/README.txt .
-                    cp $integration_dir/$release_tag/dev/RELEASE.INFO .
+                    cp $integration_dir/$release_tag/cortx_iso/RELEASE.INFO .
                 """
 			}
 		}
@@ -308,7 +305,7 @@ pipeline {
 			steps {
                 script { build_stage=env.STAGE_NAME }
                 sh label: 'Repo Creation', script: '''
-                    pushd $integration_dir/$release_tag/dev
+                    pushd $integration_dir/$release_tag/cortx_iso/
                     rpm -qi createrepo || yum install -y createrepo
                     createrepo .
                     popd
@@ -319,9 +316,9 @@ pipeline {
 		stage ('Generate ISO Image') {
 		    steps {
 		        sh label: 'Generate ISO Image',script:'''
-		        rpm -q genisoimage || yum install genisoimage -y
-		        pushd $release_dir/github/integration-custom-ci/release/iso
-		        genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -publisher Seagate -o $release_tag.iso $integration_dir/$release_tag/dev
+		        yum install genisoimage -y
+		        mkdir $integration_dir/$release_tag/iso && pushd $integration_dir/$release_tag/iso
+		        genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -publisher Seagate -o $release_tag.iso $integration_dir/$release_tag/cortx_iso/
 				popd
 		        '''
 		    }
@@ -331,17 +328,13 @@ pipeline {
 			steps {
                 script { build_stage=env.STAGE_NAME }
                 sh label: 'Tag Release', script: '''
-                    pushd $release_dir/github/integration-custom-ci/release
-					test -d $release_dir/github/integration-custom-ci/$release_tag && rm -f $release_tag
-					mkdir $release_tag && pushd $release_tag
-                            ln -s $integration_dir/$release_tag/dev cortx_iso
-                            ln -s $thrid_party_dir 3rd_party
+                    pushd $release_dir/github/integration-custom-ci/release/$os_version/$release_tag
+							ln -s $thrid_party_dir 3rd_party
 							ln -s $python_deps python_deps
-                        popd
                     popd
                     echo "Custom Release Build and ISO is available at,"
-					echo "http://cortx-storage.colo.seagate.com/releases/cortx/github/integration-custom-ci/release/$release_tag"
-					echo "http://cortx-storage.colo.seagate.com/releases/cortx/github/integration-custom-ci/release/iso/$release_tag.iso"
+					echo "http://cortx-storage.colo.seagate.com/releases/cortx/github/integration-custom-ci/release/$os_version/$release_tag/"
+					echo "http://cortx-storage.colo.seagate.com/releases/cortx/github/integration-custom-ci/release/$os_version/$release_tag/iso/$release_tag.iso"
 					
                 '''
 			}
@@ -353,7 +346,7 @@ pipeline {
 		always {
             script {
 			
-                env.release_build_location = "http://cortx-storage.colo.seagate.com/releases/cortx/github/integration-custom-ci/release/${env.release_tag}"
+                env.release_build_location = "http://cortx-storage.colo.seagate.com/releases/cortx/github/integration-custom-ci/release/${env.os_version}/${env.release_tag}"
                 env.release_build = "${env.release_tag}"
 				def recipientProvidersClass = [[$class: 'RequesterRecipientProvider']]
                 
