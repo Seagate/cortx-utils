@@ -70,5 +70,5 @@ class NetworkV:
     def _is_valid_ipv4_part(self, ip_part):
         try:
             return str(int(ip_part)) == ip_part and 0 <= int(ip_part) <= 255
-        except:
+        except Exception:
             return False
