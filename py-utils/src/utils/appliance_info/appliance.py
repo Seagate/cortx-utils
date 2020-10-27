@@ -13,7 +13,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.schema.payload import Json
+from cortx.utils.schema.payload import CommonPayload
 from cortx.utils.log import Log
 
 class ApplianceInfo:
@@ -26,7 +26,7 @@ class ApplianceInfo:
         self._file_path = file_path
         self._appliance_obj = None
         self._data = None
-        self._appliance_obj = Json(self._file_path)
+        self._appliance_obj = CommonPayload(self._file_path)
 
     def load(self):
         """
