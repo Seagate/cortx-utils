@@ -15,6 +15,7 @@
 
 from cortx.utils.schema.payload import CommonPayload
 from cortx.utils.log import Log
+from cortx.utils import const
 
 class ApplianceInfo:
     """
@@ -22,11 +23,10 @@ class ApplianceInfo:
     """
     _type = dict
 
-    def __init__(self, file_path):
-        self._file_path = file_path
+    def __init__(self):
         self._appliance_obj = None
         self._data = None
-        self._appliance_obj = CommonPayload(self._file_path)
+        self._appliance_obj = CommonPayload(const.SERIAL_NO_FILE_PATH)
 
     def load(self):
         """
@@ -34,13 +34,13 @@ class ApplianceInfo:
         """
         self._data = self._appliance_obj.load()
 
-    def _get(self, key, data):
+    def _getval(self, key, data):
         """
         Recursively obtains the value for the given key
         """
         new_key = key.split('.', 1)
         if new_key[0] not in data.keys(): return None
-        return self._get(new_key[1], data[new_key[0]]) if len(new_key) > 1 else data[new_key[0]]
+        return self._getval(new_key[1], data[new_key[0]]) if len(new_key) > 1 else data[new_key[0]]
 
     def get(self, key=None):
         """
@@ -49,15 +49,15 @@ class ApplianceInfo:
         """
         ret = None
         try:
-            if key:
-                ret = self._get(key, self._data)
-            else:
+            if not key:
                 ret = self._data
+            else:
+                ret = self._getval(key, self._data)
         except Exception as ex:
             Log.error(f"Error in getting the appliance info. {ex}")
         return ret
 
-    def _set(self, key, val, data):
+    def _setval(self, key, val, data):
         """
         This method recursively searches for the key and sets the value specified.
         """
@@ -67,18 +67,18 @@ class ApplianceInfo:
             return
         if new_key[0] not in data.keys() or type(data[new_key[0]]) != self._type:
             data[new_key[0]] = {}
-        self._set(new_key[1], val, data[new_key[0]])
+        self._setval(new_key[1], val, data[new_key[0]])
 
-    def set(self, key, value):
+    def _set(self, key, value):
         """
         This method sets the in-memory value based on the key provided.
         """
         try:
-            self._set(key, value, self._data)
+            self._setval(key, value, self._data)
         except Exception as ex:
             Log.error(f"Error in setting the appliance info. {ex}")
 
-    def save(self, data):
+    def _save(self, data):
         """
         This method saves the in-memory aplliannce info to a physical JSON
         """

@@ -244,7 +244,9 @@ class CommonPayload:
         self._doc = self.get_doc_type()
 
     def get_doc_type(self):
-        '''Get mapped doc class object bases on file extension'''
+        """
+        Get mapped doc class object bases on file extension
+        """
         try:
             extension = os.path.splitext(self._source)[1][1:].strip().lower()
             """
