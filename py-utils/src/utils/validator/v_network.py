@@ -52,13 +52,23 @@ class NetworkV:
 
         unreachable_ips = []
         for ip in ips:
-            cmd = f"ping -c 1 {ip}"
-            cmd_proc = SimpleProcess(cmd)
-            run_result = cmd_proc.run()
+            if ip.count(".") == 3 and all(self._is_valid_ipv4_part(ip_part) for ip_part in ip.split(".")):
+                cmd = f"ping -c 1 -W 1 {ip}"
+                cmd_proc = SimpleProcess(cmd)
+                run_result = cmd_proc.run()
 
-            if run_result[2]:
-                unreachable_ips.append(ip)
+                if run_result[2]:
+                    unreachable_ips.append(ip)
+            else:
+                raise VError(errno.EINVAL, f"Invalid ip {ip}.")
 
         if len(unreachable_ips) != 0:
             raise VError(
                 errno.ECONNREFUSED, f"Pinging {ITEMS_SEPARATOR.join(unreachable_ips)} failed")
+
+    @classmethod
+    def _is_valid_ipv4_part(self, ip_part):
+        try:
+            return str(int(ip_part)) == ip_part and 0 <= int(ip_part) <= 255
+        except:
+            return False
