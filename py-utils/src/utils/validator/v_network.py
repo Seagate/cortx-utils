@@ -32,9 +32,7 @@ class NetworkV:
         1. network connectivity <ip1> <ip2> <ip3>
         """
 
-        if isinstance(args, tuple):
-            args = list(args)
-        elif not isinstance(args, list):
+        if not isinstance(args, list):
             raise VError(errno.EINVAL, "Invalid parameters %s" % args)
 
         if len(args) < 1:
@@ -55,10 +53,8 @@ class NetworkV:
                                           for ip_part in ip.split(".")):
 
                 cmd = f"ping -c 1 -W 1 {ip}"
-                print("cmd: %s" % cmd)
                 cmd_proc = SimpleProcess(cmd)
                 run_result = cmd_proc.run()
-                print(run_result[2])
 
                 if run_result[2]:
                     unreachable_ips.append(ip)

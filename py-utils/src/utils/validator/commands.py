@@ -28,7 +28,7 @@ class VCommand:
 
     def __init__(self, args):
         self._v_type = args.v_type
-        self._args = list(args.args)
+        self._args = args.args
 
     @property
     def args(self):
@@ -39,14 +39,19 @@ class VCommand:
         return self._v_type
 
     @staticmethod
-    def add_args(parser):
-        raise VError(errno.EINVAL, "invalid command")
+    def add_args(parser, cmd_class, cmd_name):
+        """Add Network Command args for parsing."""
+        parser1 = parser.add_parser(
+            cmd_class._name, help='%s Validations' % cmd_name)
+        parser1.add_argument('v_type', help='validation type')
+        parser1.add_argument('args', nargs='*', default=[], help='args')
+        parser1.set_defaults(command=cmd_class)
 
 
 class NetworkVCommand(VCommand):
     """Network related commands."""
 
-    _name = "network"
+    _name="network"
 
     def __init__(self, args):
         super(NetworkVCommand, self).__init__(args)
@@ -54,17 +59,7 @@ class NetworkVCommand(VCommand):
         sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
         from v_network import NetworkV
 
-        self._network = NetworkV()
-
-    @staticmethod
-    def add_args(parser):
-        """Add Network Command args for parsing."""
-
-        parser1 = parser.add_parser(
-            NetworkVCommand._name, help='Network Validations')
-        parser1.add_argument('v_type', help='validation type')
-        parser1.add_argument('args', nargs='*', default=[], help='args')
-        parser1.set_defaults(command=NetworkVCommand)
+        self._network=NetworkV()
 
     def process(self):
         """Validate network connectivity ip1 ip2 ip3..."""
@@ -75,7 +70,7 @@ class NetworkVCommand(VCommand):
 class ConsulVCommand(VCommand):
     """Consul related commands."""
 
-    _name = "consul"
+    _name="consul"
 
     def __init__(self, args):
         super(ConsulVCommand, self).__init__(args)
@@ -83,17 +78,7 @@ class ConsulVCommand(VCommand):
         sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
         from v_consul import ConsulV
 
-        self._consul = ConsulV()
-
-    @staticmethod
-    def add_args(parser):
-        """Add Consul Command args for parsing."""
-
-        parser1 = parser.add_parser(
-            ConsulVCommand._name, help='Consul Validations')
-        parser1.add_argument('v_type', help='validation type')
-        parser1.add_argument('args', nargs='*', default=[], help='args')
-        parser1.set_defaults(command=ConsulVCommand)
+        self._consul=ConsulV()
 
     def process(self):
         """Validate consul status."""

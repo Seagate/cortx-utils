@@ -31,9 +31,7 @@ class ConsulV:
         1. consul service localhost 8500
         """
 
-        if isinstance(args, tuple):
-            args = list(args)
-        elif not isinstance(args, list):
+        if not isinstance(args, list):
             raise VError(errno.EINVAL, "Invalid parameters %s" % args)
 
         if len(args) < 2:
