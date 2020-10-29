@@ -53,15 +53,15 @@ class ConsulV:
             if status_code != 200:
                 raise VError(
                     errno.ECOMM, (f"Error {status_code} obtained while "
-                                  f"connecting to consul service on {host}:{port}."))
+                    f"connecting to consul service on {host}:{port}."))
         except requests.exceptions.InvalidURL:
             raise VError(
                 errno.EINVAL, (f"Either or all inputs host '{host}' and port "
-                               f"'{port}' are invalid."))
+                f"'{port}' are invalid."))
         except requests.exceptions.ConnectionError:
             raise VError(errno.ECONNREFUSED,
                          f"No Consul service running on {host}:{port}")
         except requests.exceptions.RequestException as req_ex:
             raise VError(
                 errno.ECOMM, (f"Error connecting to consul service on "
-                              f"{host}:{port}. {req_ex}"))
+                f"{host}:{port}. {req_ex}"))
