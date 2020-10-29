@@ -40,7 +40,7 @@ class VCommand:
 
     @staticmethod
     def add_args(parser, cmd_class, cmd_name):
-        """Add Network Command args for parsing."""
+        """Add Command args for parsing."""
         parser1 = parser.add_parser(
             cmd_class._name, help='%s Validations' % cmd_name)
         parser1.add_argument('v_type', help='validation type')
