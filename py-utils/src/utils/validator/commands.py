@@ -42,7 +42,7 @@ class VCommand:
     def add_args(parser, cmd_class, cmd_name):
         """Add Command args for parsing."""
         parser1 = parser.add_parser(
-            cmd_class._name, help='%s Validations' % cmd_name)
+            cmd_class.name, help='%s Validations' % cmd_name)
         parser1.add_argument('v_type', help='validation type')
         parser1.add_argument('args', nargs='*', default=[], help='args')
         parser1.set_defaults(command=cmd_class)
@@ -51,7 +51,7 @@ class VCommand:
 class NetworkVCommand(VCommand):
     """Network related commands."""
 
-    _name="network"
+    name = "network"
 
     def __init__(self, args):
         super(NetworkVCommand, self).__init__(args)
@@ -59,7 +59,7 @@ class NetworkVCommand(VCommand):
         sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
         from v_network import NetworkV
 
-        self._network=NetworkV()
+        self._network = NetworkV()
 
     def process(self):
         """Validate network connectivity ip1 ip2 ip3..."""
@@ -70,7 +70,7 @@ class NetworkVCommand(VCommand):
 class ConsulVCommand(VCommand):
     """Consul related commands."""
 
-    _name="consul"
+    name = "consul"
 
     def __init__(self, args):
         super(ConsulVCommand, self).__init__(args)
@@ -78,7 +78,7 @@ class ConsulVCommand(VCommand):
         sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
         from v_consul import ConsulV
 
-        self._consul=ConsulV()
+        self._consul = ConsulV()
 
     def process(self):
         """Validate consul status."""
