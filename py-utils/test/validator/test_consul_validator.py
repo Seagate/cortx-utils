@@ -16,13 +16,14 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.validator.error import VError
-from cortx.utils.validator.v_consul import ConsulV
 import unittest
 import sys
 import os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
+
+from cortx.utils.validator.v_consul import ConsulV
+from cortx.utils.validator.error import VError
 
 
 class TestConsulValidator(unittest.TestCase):
@@ -30,8 +31,8 @@ class TestConsulValidator(unittest.TestCase):
 
     def test_service_status(self):
         """Check if consul service is down."""
-        self.assertRaises(VError, ConsulV().validate, [
-                          'service', 'localhost', '8500'])
+        self.assertRaises(VError, ConsulV().validate, 'service',
+                          ['localhost', '8500'])
 
 
 if __name__ == '__main__':

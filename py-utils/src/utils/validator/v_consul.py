@@ -24,27 +24,27 @@ from cortx.utils.validator.error import VError
 class ConsulV:
     """Consul related validations."""
 
-    @classmethod
-    def validate(self, args):
+    def validate(self, v_type, args):
         """
         Process consul validations.
         Usage (arguments to be provided):
         1. consul service localhost 8500
         """
 
-        if not isinstance(args, list):
+        if isinstance(args, tuple):
+            args = list(args)
+        elif not isinstance(args, list):
             raise VError(errno.EINVAL, "Invalid parameters %s" % args)
 
-        if len(args) < 3:
+        if len(args) < 2:
             raise VError(errno.EINVAL, "Insufficient parameters. %s" % args)
 
-        if args[0] == "service":
-            self.validate_service_status(args[1], args[2])
+        if v_type == "service":
+            self.validate_service_status(args[0], args[1])
         else:
             raise VError(
-                errno.EINVAL, "Action parameter %s not supported" % args[0])
+                errno.EINVAL, "Action parameter %s not supported" % v_type)
 
-    @classmethod
     def validate_service_status(self, host, port):
         """Validate Consul service status."""
 
@@ -55,7 +55,7 @@ class ConsulV:
             if status_code != 200:
                 raise VError(
                     errno.ECOMM, (f"Error {status_code} obtained while "
-                        f"connecting to consul service on {host}:{port}."))
+                                  f"connecting to consul service on {host}:{port}."))
         except requests.exceptions.InvalidURL:
             raise VError(
                 errno.EINVAL, (f"Either or all inputs host '{host}' and port "

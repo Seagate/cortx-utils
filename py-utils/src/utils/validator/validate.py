@@ -49,7 +49,7 @@ class ValidatorCommandFactory:
             if name != "VCommand" and "VCommand" in name:
                 cmd.add_args(subparsers)
         args = parser.parse_args(argv)
-        return args.command(args.args)
+        return args.command(args)
 
 
 def main(argv):

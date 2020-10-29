@@ -27,11 +27,16 @@ class VCommand:
     """Base class for all the commands."""
 
     def __init__(self, args):
-        self._args = args
+        self._v_type = args.v_type
+        self._args = list(args.args)
 
     @property
     def args(self):
         return self._args
+
+    @property
+    def v_type(self):
+        return self._v_type
 
     @staticmethod
     def add_args(parser):
@@ -57,13 +62,14 @@ class NetworkVCommand(VCommand):
 
         parser1 = parser.add_parser(
             NetworkVCommand._name, help='Network Validations')
-        parser1.add_argument('args', nargs='*', default=[], help='type')
+        parser1.add_argument('v_type', help='validation type')
+        parser1.add_argument('args', nargs='*', default=[], help='args')
         parser1.set_defaults(command=NetworkVCommand)
 
     def process(self):
         """Validate network connectivity ip1 ip2 ip3..."""
 
-        self._network.validate(self.args)
+        self._network.validate(self.v_type, self.args)
 
 
 class ConsulVCommand(VCommand):
@@ -85,10 +91,11 @@ class ConsulVCommand(VCommand):
 
         parser1 = parser.add_parser(
             ConsulVCommand._name, help='Consul Validations')
-        parser1.add_argument('args', nargs='*', default=[], help='type')
+        parser1.add_argument('v_type', help='validation type')
+        parser1.add_argument('args', nargs='*', default=[], help='args')
         parser1.set_defaults(command=ConsulVCommand)
 
     def process(self):
         """Validate consul status."""
 
-        self._consul.validate(self.args)
+        self._consul.validate(self.v_type, self.args)
