@@ -47,9 +47,9 @@ class ValidatorCommandFactory:
         cmds = inspect.getmembers(commands, inspect.isclass)
         for name, cmd in cmds:
             if name != "VCommand" and "VCommand" in name:
-                cmd.add_args(subparsers)
+                cmd.add_args(subparsers, cmd, name)
         args = parser.parse_args(argv)
-        return args.command(args.args)
+        return args.command(args)
 
 
 def main(argv):

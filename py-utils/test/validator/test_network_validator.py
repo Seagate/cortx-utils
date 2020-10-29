@@ -16,25 +16,31 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.validator.error import VError
-from cortx.utils.validator.v_network import NetworkV
 import unittest
 import sys
 import os
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
+utils_root = os.path.join(os.path.dirname(__file__), "..", "..")
+sys.path.append(utils_root)
+
+from cortx.utils.validator.v_network import NetworkV
+from cortx.utils.validator.error import VError
 
 
 class TestNetworkValidator(unittest.TestCase):
     """Test network related validations."""
 
-    def test_network_connectivity(self):
+    def test_connectivity_error(self):
         """Check IP connectivity failure."""
 
         fake_ip1 = '11.230.249.110'
         fake_ip2 = '12.230.249.110'
-        self.assertRaises(VError, NetworkV().validate, [
-                          'connectivity', fake_ip1, fake_ip2])
+        self.assertRaises(VError, NetworkV().validate, 'connectivity',
+                          [fake_ip1, fake_ip2])
+
+    def test_connectivity_ok(self):
+        ip1 = '8.8.8.8'
+        NetworkV().validate('connectivity', [ip1])
 
 
 if __name__ == '__main__':
