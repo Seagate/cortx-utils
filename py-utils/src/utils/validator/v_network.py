@@ -20,14 +20,12 @@ import errno
 
 from cortx.utils.validator.error import VError
 from cortx.utils.process import SimpleProcess
-from cortx.utils.const import ITEMS_SEPARATOR
 
 
 class NetworkV:
     """Network related validations."""
 
-    @classmethod
-    def validate(self, args):
+    def validate(self, v_type, args):
         """
         Process network validations.
         Usage (arguments to be provided):
@@ -37,23 +35,23 @@ class NetworkV:
         if not isinstance(args, list):
             raise VError(errno.EINVAL, "Invalid parameters %s" % args)
 
-        if len(args) < 2:
+        if len(args) < 1:
             raise VError(errno.EINVAL, "Insufficient parameters. %s" % args)
 
-        if args[0] == "connectivity":
-            self.validate_ip_connectivity(args[1:])
+        if v_type == "connectivity":
+            self.validate_ip_connectivity(args)
         else:
             raise VError(
-                errno.EINVAL, "Action parameter %s not supported" % args[0])
+                errno.EINVAL, "Action parameter %s not supported" % v_type)
 
-    @classmethod
     def validate_ip_connectivity(self, ips):
         """Check if IPs are reachable."""
 
         unreachable_ips = []
         for ip in ips:
-            if ip.count(".") == 3 and all(
-                self._is_valid_ipv4_part(ip_part) for ip_part in ip.split(".")):
+            if ip.count(".") == 3 and all(self._is_valid_ipv4_part(ip_part)
+                                          for ip_part in ip.split(".")):
+
                 cmd = f"ping -c 1 -W 1 {ip}"
                 cmd_proc = SimpleProcess(cmd)
                 run_result = cmd_proc.run()
@@ -65,10 +63,8 @@ class NetworkV:
 
         if len(unreachable_ips) != 0:
             raise VError(
-                errno.ECONNREFUSED, f"Pinging \
-                {ITEMS_SEPARATOR.join(unreachable_ips)} failed")
+                errno.ECONNREFUSED, "Ping failed for IP(s). %s" % unreachable_ips)
 
-    @classmethod
     def _is_valid_ipv4_part(self, ip_part):
         try:
             return str(int(ip_part)) == ip_part and 0 <= int(ip_part) <= 255
