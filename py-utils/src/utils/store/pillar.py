@@ -44,7 +44,7 @@ class PillarDB(KvDB):
         res = res['local']
 
         if not res:
-            raise KvError(errno.ENOENT, f"get: No pillar data for {key}. {err}")
+            raise KvError(errno.ENOENT, f"get: No pillar data for {key}.")
 
         return res
 
