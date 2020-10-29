@@ -67,10 +67,10 @@ class NetworkV:
 
         if len(unreachable_ips) != 0:
             raise VError(
-                errno.ECONNREFUSED, f"Ping failed for IP(s). %s" % unreachable_ips)
+                errno.ECONNREFUSED, "Ping failed for IP(s). %s" % unreachable_ips)
 
     def _is_valid_ipv4_part(self, ip_part):
         try:
             return str(int(ip_part)) == ip_part and 0 <= int(ip_part) <= 255
-        except:
+        except Exception:
             return False
