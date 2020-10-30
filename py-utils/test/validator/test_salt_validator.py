@@ -23,29 +23,17 @@ import os
 utils_root = os.path.join(os.path.dirname(__file__), "..", "..")
 sys.path.append(utils_root)
 
-from cortx.utils.validator.v_network import NetworkV
+from cortx.utils.validator.v_salt import SaltV
 from cortx.utils.validator.error import VError
 
 
-class TestNetworkValidator(unittest.TestCase):
-    """Test network related validations."""
+class TestSaltValidator(unittest.TestCase):
+    """Test salt related validations."""
 
-    def test_connectivity_error(self):
-        """Check IP connectivity failure."""
-
-        fake_ip1 = '11.230.249.110'
-        fake_ip2 = '12.230.249.110'
-        self.assertRaises(VError, NetworkV().validate, 'connectivity',
-                          [fake_ip1, fake_ip2])
-
-    def test_connectivity_ok(self):
-        ip1 = '8.8.8.8'
-        NetworkV().validate('connectivity', [ip1])
-
-    def test_nopasswordless_ssh(self):
+    def test_nosalt_connectivity(self):
         fake_hosts = ['srvnod-1', 'srvnod-2']
-        self.assertRaises(VError, NetworkV().validate, 'passwordless',
-                          ['root'].append(fake_hosts))
+        self.assertRaises(VError, SaltV().validate, 'connectivity',
+                          fake_hosts)
 
 
 if __name__ == '__main__':

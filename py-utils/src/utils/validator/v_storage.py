@@ -28,8 +28,8 @@ class StorageV:
         """
         Process storage validations.
         Usage (arguments to be provided):
-        1. storage luns_check nodes
-        2. storage lvms_check nodes
+        1. storage luns nodes
+        2. storage lvms nodes
         """
 
         if not isinstance(args, list):
@@ -38,9 +38,9 @@ class StorageV:
         if len(args) < 1:
             raise VError(errno.EINVAL, "Insufficient parameters. %s" % args)
 
-        if v_type == "luns_check":
+        if v_type == "luns":
             self.validate_luns_consistency(args)
-        elif v_type == "lvms_check":
+        elif v_type == "lvms":
             self.validate_lvm(args)
         else:
             raise VError(
