@@ -24,7 +24,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from cortx.utils.store.dstore import KvStore
 from cortx.utils.store.pillar import PillarDB
-from cortx.utils.store.error import KvError
 
 
 class TestStore(unittest.TestCase):
@@ -35,21 +34,30 @@ class TestStore(unittest.TestCase):
 
         kv = KvStore(PillarDB())
         ips = kv.get('cluster:mgmt_vip')
-        print(ips)
+
+        assert_msg = "Management VIPs not found"
+        self.assertIsNotNone(ips, assert_msg)
+        self.assertGreater(len(ips), 0, assert_msg)
 
     def test_pillerdb_get_cluster_ip(self):
         """Test Get Cluster IP from PillarDB."""
 
         kv = KvStore(PillarDB())
         ips = kv.get('cluster:cluster_ip')
-        print(ips)
+
+        assert_msg = "Cluster IPs not found"
+        self.assertIsNotNone(ips, assert_msg)
+        self.assertGreater(len(ips), 0, assert_msg)
 
     def test_pillerdb_get_nodes(self):
         """Test Get Node list from PillarDB."""
 
         kv = KvStore(PillarDB())
         ips = kv.get('cluster:node_list')
-        print(ips)
+
+        assert_msg = "Nodes not found"
+        self.assertIsNotNone(ips, assert_msg)
+        self.assertGreater(len(ips), 0, assert_msg)
 
 
 if __name__ == '__main__':
