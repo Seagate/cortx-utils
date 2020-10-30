@@ -23,7 +23,7 @@ from cortx.utils.process import SimpleProcess
 
 
 class PillarDB(KvDB):
-    """ Salt Pillar based KV Store """
+    """Salt Pillar based KV Store"""
 
     def __init__(self):
         super(PillarDB, self).__init__()
