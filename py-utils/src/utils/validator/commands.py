@@ -84,3 +84,22 @@ class ConsulVCommand(VCommand):
         """Validate consul status."""
 
         self._consul.validate(self.v_type, self.args)
+
+
+class StorageVCommand(VCommand):
+    """Storage related commands."""
+
+    name = "storage"
+
+    def __init__(self, args):
+        super(StorageVCommand, self).__init__(args)
+
+        sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+        from v_storage import StorageV
+
+        self._storage = StorageV()
+
+    def process(self):
+        """Validate storage status."""
+
+        self._storage.validate(self.v_type, self.args)

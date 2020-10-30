@@ -40,6 +40,10 @@ class NetworkV:
 
         if v_type == "connectivity":
             self.validate_ip_connectivity(args)
+        elif v_type == "salt_connectivity":
+            self.validate_salt_connectivity(args)
+        elif v_type == "passwordless":
+            self.validate_passwordless_ssh(args[0], args[1:])
         else:
             raise VError(
                 errno.EINVAL, "Action parameter %s not supported" % v_type)
@@ -64,6 +68,30 @@ class NetworkV:
         if len(unreachable_ips) != 0:
             raise VError(
                 errno.ECONNREFUSED, "Ping failed for IP(s). %s" % unreachable_ips)
+
+    def validate_salt_connectivity(self, nodes):
+        """Check salt connectivity."""
+
+        for node in nodes:
+            cmd = f"salt -t 5 {node} test.ping"
+            cmd_proc = SimpleProcess(cmd)
+            run_result = cmd_proc.run()
+
+            if run_result[1] or run_result[2]:
+                raise VError(errno.ECONNREFUSED,
+                             f"Salt minion {node} unreachable.")
+
+    def validate_passwordless_ssh(self, user, nodes):
+        """Check passwordless ssh."""
+
+        for node in nodes:
+            cmd = f"ssh {user}@{node} exit"
+            cmd_proc = SimpleProcess(cmd)
+            run_result = cmd_proc.run()
+
+            if run_result[1] or run_result[2]:
+                raise VError(errno.ECONNREFUSED,
+                             f"Passwordless ssh not configured for {node}.")
 
     def _is_valid_ipv4_part(self, ip_part):
         try:
