@@ -33,20 +33,22 @@ class PillarDB(KvDB):
 
         cmd = f"salt-call pillar.get {key} --out=json"
         cmd_proc = SimpleProcess(cmd)
-        cmd_run_response = cmd_proc.run()
+        out, err, rc = cmd_proc.run()
 
-        if cmd_run_response[2] != 0:
-            msg = "get: salt-call: command not found" if cmd_run_response[2] == 127 else \
-                "get-pillar: Failed to get pillar data"
-            raise KvError(cmd_run_response[2], msg)
+        if rc != 0:
+            msg = ("pillar.get: Failed to get data for %s."
+                    " 'salt' command not found. " %key) if rc == 127 \
+                    else "pillar.get: Failed to get data for %s. %s" %(key, err)
 
-        res = json.loads(cmd_run_response[0])
-        res = res['local']
+            raise KvError(rc, msg)
 
-        if not res:
+        try:
+            res = json.loads(out)
+            res = res['local']
+
+            return res
+        except json.decoder.JSONDecodeError:
             raise KvError(errno.ENOENT, f"get: No pillar data for {key}.")
-
-        return res
 
     def set(self, key, value):
         # TODO: Implement
