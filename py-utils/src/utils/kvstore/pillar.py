@@ -22,11 +22,11 @@ from cortx.utils.kvstore.error import KvError
 from cortx.utils.process import SimpleProcess
 
 
-class PillarDB(KvStorage):
-    """Salt Pillar based KV Store"""
+class PillarStorage(KvStorage):
+    """Salt Pillar based KV Storage"""
 
     def __init__(self):
-        super(PillarDB, self).__init__()
+        super(PillarStorage, self).__init__()
 
     def get(self, key):
         """Get pillar data for key."""
@@ -57,11 +57,7 @@ class PillarDB(KvStorage):
 
         return res
 
-    def create(self, key, value):
-        # TODO: Implement
-        pass
-
-    def update(self, key, value):
+    def set(self, key, value):
         # TODO: Implement
         pass
 

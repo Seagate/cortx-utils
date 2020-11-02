@@ -16,8 +16,8 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.kvstore.pillar import PillarDB
-from cortx.utils.kvstore.kvstore import KvManager
+from cortx.utils.kvstore.pillar import PillarStorage
+from cortx.utils.kvstore.kvstore import KvStore
 import unittest
 import sys
 import os
@@ -29,9 +29,9 @@ class TestStore(unittest.TestCase):
     """Test store related functionality."""
 
     def test_pillerdb_get_management_vip(self):
-        """Test Get Management VIP from PillarDB."""
+        """Test Get Management VIP from PillarStorage."""
 
-        kv = KvManager(PillarDB())
+        kv = KvStore(PillarStorage())
         mgmt_vip = kv.get('cluster:mgmt_vip')
 
         self.assertIsNotNone(mgmt_vip, "Management VIPs not found")
@@ -40,9 +40,9 @@ class TestStore(unittest.TestCase):
             "Invalid Management VIP")
 
     def test_pillerdb_get_cluster_ip(self):
-        """Test Get Cluster IP from PillarDB."""
+        """Test Get Cluster IP from PillarStorage."""
 
-        kv = KvManager(PillarDB())
+        kv = KvStore(PillarStorage())
         cluster_ip = kv.get('cluster:cluster_ip')
 
         self.assertIsNotNone(cluster_ip, "Cluster IP not found")
@@ -51,9 +51,9 @@ class TestStore(unittest.TestCase):
             "Invalid Cluster IP")
 
     def test_pillerdb_get_nodes(self):
-        """Test Get Node list from PillarDB."""
+        """Test Get Node list from PillarStorage."""
 
-        kv = KvManager(PillarDB())
+        kv = KvStore(PillarStorage())
         ips = kv.get('cluster:node_list')
 
         assert_msg = "Nodes not found"
@@ -63,8 +63,9 @@ class TestStore(unittest.TestCase):
     @staticmethod
     def _is_valid_ipv4(ip):
         isValid = False
-        if ip.count(".") == 3 and all(TestStore._is_valid_ipv4_part(ip_part)
-                                      for ip_part in ip.split(".")):
+        if ip.count(".") == 3 \
+            and all(TestStore._is_valid_ipv4_part(ip_part)
+            for ip_part in ip.split(".")):
             isValid = True
 
         return isValid

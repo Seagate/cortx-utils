@@ -16,38 +16,39 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 class KvStorage:
-    """ Abstract class for KV Storage """
+    """
+    This Abstract class will serve as base for key-value storage/db.
+    The classes will extend this and provide their implementation of
+    get, set and delete.
+    """
 
     def __init__(self):
-        pass
-
-    def create(self, key, value):
         pass
 
     def get(self, key):
         pass
 
-    def update(self, key, value):
+    def set(self, key, value):
         pass
 
     def delete(self, key):
         pass
 
 
-class KvManager:
-    """ KV Manager """
+class KvStore:
+    """
+    This class will take KvStorage implementation as input and be front facing
+    to the consumer. 
+    """
 
     def __init__(self, kvStorage):
         self._storage = kvStorage
 
-    def create(self, key, value):
-        return self._storage.create(key, value)
-
     def get(self, key):
         return self._storage.get(key)
 
-    def update(self, key, value):
-        return self._storage.update(key, value)
+    def set(self, key, value):
+        return self._storage.set(key, value)
 
     def delete(self, key):
         return self._storage.delete(key)
