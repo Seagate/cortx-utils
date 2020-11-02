@@ -44,8 +44,10 @@ class TestNetworkValidator(unittest.TestCase):
 
     def test_nopasswordless_ssh(self):
         fake_hosts = ['srvnod-1', 'srvnod-2']
+        args = ['root']
+        args.extend(fake_hosts)
         self.assertRaises(VError, NetworkV().validate, 'passwordless',
-                          ['root'].append(fake_hosts))
+                          args)
 
 
 if __name__ == '__main__':
