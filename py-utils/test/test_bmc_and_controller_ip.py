@@ -1,3 +1,21 @@
+#!/usr/bin/env python3
+
+# CORTX-Py-Utils: CORTX Python common library.
+# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published
+# by the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+# For any questions about this software or licensing,
+# please email opensource@seagate.com or cortx-questions@seagate.com.
+
+
 import unittest
 import subprocess as sp
 import salt.client
@@ -12,16 +30,13 @@ from cortx.utils.validator.v_network import NetworkV
 class TestBMCConnectivity(unittest.TestCase):
     """Test BMC IP is reachable and accessible"""
 
-    subcommand = "power status"
+    command = "sudo ipmitool power status"
     valid_msg = "Chassis Power is on"
-    bmc_data = dict()
 
     def setUp(self):
-        self.cluster_id = self.fetch_salt_data('grains.get', const.CLUSTER_ID)
-        self.node_list = self.fetch_salt_data('pillar.get', 'cluster')['node_list']
-        for node in self.node_list:
-            node_bmc = self.fetch_salt_data('pillar.get', 'cluster')[node]['bmc']
-            self.bmc_data.update({node: node_bmc})
+        command = "sudo salt-call grains.get id --output=newline_values_only"
+        node = self.execute_command(command)
+        self.node_bmc = self.fetch_salt_data('pillar.get', 'cluster')[node]['bmc']
 
     @staticmethod
     def fetch_salt_data(func, arg):
@@ -31,24 +46,25 @@ class TestBMCConnectivity(unittest.TestCase):
             raise VError(errno.EINVAL, "No result found for '%s'" % arg)
         return result
 
+    @staticmethod
+    def execute_command(command):
+        process = sp.Popen(command, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
+        response, error = process.communicate()
+        if error:
+            raise Exception(error)
+        response = response.decode().strip()
+        return response
+
     def test_bmc_accessibility(self):
         """Check BMC IP is reachable"""
-        for node in self.bmc_data.keys():
-            username = self.bmc_data[node]['user']
-            secret = self.bmc_data[node]['secret']
-            key = Cipher.generate_key(self.cluster_id, 'cluster')
-            password = Cipher.decrypt(key, secret.encode('ascii')).decode()
-            ip = self.bmc_data[node]['ip']
-            # check BMC ip is reachable
-            self.assertRaises(VError, NetworkV().validate, [
-                'connectivity', ip])
-            # check BMC ip is accessible
-            command = "sudo ipmitool -H " + ip + " -U " + username + \
-                            " -P " + password + " -I " + "lan " + self.subcommand
-            process = sp.Popen(command, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
-            response = process.stdout.read().decode()
-            assert self.valid_msg in response, \
-                f"BMC IP {ip} is reachable but, not accessible."
+        ip = self.node_bmc['ip']
+        # check BMC ip is reachable
+        self.assertRaises(VError, NetworkV().validate, [
+            'connectivity', ip])
+        # check BMC ip is accessible
+        response = self.execute_command(self.command)
+        assert self.valid_msg in response, \
+            f"BMC IP {ip} is reachable but, not accessible."
 
     def tearDown(self):
         """Cleanup"""
@@ -60,7 +76,7 @@ class TestStorageEnclosureAccessibility(unittest.TestCase):
 
     name = "TestStorageEnclosureAccessibility"
     command = "show versions"
-    valid_msg = "Command completed successfully"
+    expected_versions = ['GN265', 'GN265']
 
     def setUp(self):
         """Get primary and secondary MC of storage controller"""
@@ -102,7 +118,8 @@ class TestStorageEnclosureAccessibility(unittest.TestCase):
         self._establish_connection(self.primary_mc)
         stdin, stdout, stderr = self.connections[self.primary_mc].exec_command(self.command)
         response = stdout.read().decode()
-        assert self.valid_msg in response, \
+        version_found = any(ver for ver in self.expected_versions if ver in response)
+        assert version_found, \
             f"Storage enclosure primary IP {self.primary_mc} is reachable but, not accessible."
 
     def test_secondary_mc(self):
@@ -114,7 +131,8 @@ class TestStorageEnclosureAccessibility(unittest.TestCase):
         self._establish_connection(self.secondary_mc)
         stdin, stdout, stderr = self.connections[self.secondary_mc].exec_command(self.command)
         response = stdout.read().decode()
-        assert self.valid_msg in response, \
+        version_found = any(ver for ver in self.expected_versions if ver in response)
+        assert version_found, \
             f"Storage enclosure secondary IP {self.secondary_mc} is reachable but, not accessible."
 
     def tearDown(self):
