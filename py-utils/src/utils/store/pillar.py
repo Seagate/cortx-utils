@@ -42,13 +42,20 @@ class PillarDB(KvDB):
 
             raise KvError(rc, msg)
 
+        res = None
         try:
             res = json.loads(out)
             res = res['local']
 
-            return res
-        except json.decoder.JSONDecodeError:
-            raise KvError(errno.ENOENT, f"get: No pillar data for {key}.")
+        except Exception as ex:
+            raise KvError(
+                errno.ENOENT, 
+                "pillar.get: Failed to get data for %s. %s" %(key, ex))
+
+        if not res:
+            raise KvError(errno.ENOENT, f"get: No pillar data for key: {key}")
+
+        return res
 
     def set(self, key, value):
         # TODO: Implement

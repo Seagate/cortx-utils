@@ -16,14 +16,13 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+from cortx.utils.store.pillar import PillarDB
+from cortx.utils.store.dstore import KvStore
 import unittest
 import sys
 import os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
-
-from cortx.utils.store.dstore import KvStore
-from cortx.utils.store.pillar import PillarDB
 
 
 class TestStore(unittest.TestCase):
@@ -33,31 +32,49 @@ class TestStore(unittest.TestCase):
         """Test Get Management VIP from PillarDB."""
 
         kv = KvStore(PillarDB())
-        ips = kv.get('cluster:mgmt_vip')
+        mgmt_vip = kv.get('cluster:mgmt_vip')
 
-        assert_msg = "Management VIPs not found"
-        self.assertIsNotNone(ips, assert_msg)
-        self.assertGreater(len(ips), 0, assert_msg)
+        self.assertIsNotNone(mgmt_vip, "Management VIPs not found")
+        self.assertTrue(
+            TestStore._is_valid_ipv4(mgmt_vip),
+            "Invalid Management VIP")
 
     def test_pillerdb_get_cluster_ip(self):
         """Test Get Cluster IP from PillarDB."""
 
         kv = KvStore(PillarDB())
-        ips = kv.get('cluster:cluster_ip')
+        cluster_ip = kv.get('cluster:cluster_ip')
 
-        assert_msg = "Cluster IPs not found"
-        self.assertIsNotNone(ips, assert_msg)
-        self.assertGreater(len(ips), 0, assert_msg)
+        self.assertIsNotNone(cluster_ip, "Cluster IP not found")
+        self.assertTrue(
+            TestStore._is_valid_ipv4(cluster_ip),
+            "Invalid Cluster IP")
 
     def test_pillerdb_get_nodes(self):
         """Test Get Node list from PillarDB."""
 
         kv = KvStore(PillarDB())
         ips = kv.get('cluster:node_list')
-
+        
         assert_msg = "Nodes not found"
         self.assertIsNotNone(ips, assert_msg)
         self.assertGreater(len(ips), 0, assert_msg)
+
+    @staticmethod
+    def _is_valid_ipv4(ip):
+        isValid = False
+        if ip.count(".") == 3 and all(TestStore._is_valid_ipv4_part(ip_part)
+                                      for ip_part in ip.split(".")):
+            isValid = True
+
+        return isValid
+
+    @staticmethod
+    def _is_valid_ipv4_part(ip_part):
+        try:
+            return str(int(ip_part)) == ip_part and 0 <= int(ip_part) <= 255
+        except Exception:
+            return False
 
 
 if __name__ == '__main__':
