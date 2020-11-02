@@ -38,7 +38,7 @@ class KvStorage:
 class KvStore:
     """
     This class will take KvStorage implementation as input and be front facing
-    to the consumer. 
+    to the consumer.
     """
 
     def __init__(self, kvStorage):
