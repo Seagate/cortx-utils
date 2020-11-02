@@ -17,8 +17,8 @@
 
 import json
 import errno
-from cortx.utils.store.kvstore import KvStorage
-from cortx.utils.store.error import KvError
+from cortx.utils.kvstore.kvstore import KvStorage
+from cortx.utils.kvstore.error import KvError
 from cortx.utils.process import SimpleProcess
 
 

@@ -16,8 +16,8 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.store.pillar import PillarDB
-from cortx.utils.store.kvstore import KvManager
+from cortx.utils.kvstore.pillar import PillarDB
+from cortx.utils.kvstore.kvstore import KvManager
 import unittest
 import sys
 import os
