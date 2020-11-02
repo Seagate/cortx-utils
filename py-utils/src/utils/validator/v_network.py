@@ -72,7 +72,8 @@ class NetworkV:
         """Check passwordless ssh."""
 
         for node in nodes:
-            cmd = f"ssh {user}@{node} exit"
+            cmd = ("ssh -o PreferredAuthentications=publickey "
+                   f"-o StrictHostKeyChecking=no {user}@{node} /bin/true")
             cmd_proc = SimpleProcess(cmd)
             run_result = cmd_proc.run()
 

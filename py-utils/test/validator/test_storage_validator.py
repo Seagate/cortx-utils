@@ -33,13 +33,13 @@ class TestStorageValidator(unittest.TestCase):
     def test_luns_inconsistent(self):
         """Check LUN inconsistent."""
 
-        self.assertRaises(VError, StorageV().validate, 'luns_check',
+        self.assertRaises(VError, StorageV().validate, 'luns',
                           ["srvnode-1", "srvnode-2"])
 
     def test_lvm_error(self):
         """Check LVM not present."""
 
-        self.assertRaises(VError, StorageV().validate, 'lvms_check',
+        self.assertRaises(VError, StorageV().validate, 'lvms',
                           ["srvnode-1", "srvnode-2"])
 
 
