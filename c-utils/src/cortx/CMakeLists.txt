@@ -10,6 +10,23 @@ include_directories("/usr/include/motr")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CORTX_CFLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CORTX_CFLAGS}")
 
+set(DEFAULT_CORTXFSINC "")
+set(DEFAULT_LIBCORTXFS "")
+set(DEFAULT_CORTXUTILSINC "")
+set(DEFAULT_LIBCORTXUTILS "")
+
+set(CORTXFSINC ${DEFAULT_CORTXFSINC} CACHE PATH "Path to folder with nsal headers")
+set(LIBCORTXFS ${DEFAULT_LIBCORTXFS} CACHE PATH "Path to folder with libcortx-nsal.so")
+
+set(CORTXUTILSINC ${DEFAULT_CORTXUTILSINC} CACHE PATH "Path to folder with fault.h")
+set(LIBCORTXUTILS ${DEFAULT_LIBCORTXUTILS} CACHE PATH "Path to folder with libcortx-utils.so")
+
+include_directories(${CORTXFSINC})
+link_directories(${LIBCORTXFS})
+
+include_directories(${CORTXUTILSINC})
+link_directories(${LIBCORTXUTILS})
+
 SET(cortx_LIB_SRCS
    m0common.c
    m0kvs.c

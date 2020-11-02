@@ -22,8 +22,8 @@
 #include "addb2/global.h" /* global_leave */
 #include "common/log.h"
 #include <debug.h>
-#include "perf/tsdb.h"
 #include "operation.h"
+#include "../../../../cortxfs/src/include/addb/cfs_perfc.h"
 
 int m0kvs_reinit(void)
 {

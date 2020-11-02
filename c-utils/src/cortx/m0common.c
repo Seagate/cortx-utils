@@ -27,6 +27,11 @@
 #include <debug.h> /* dassert */
 #include "perf/tsdb.h" /* is_engine_on */
 #include "operation.h"
+#include "../../../../cortxfs/src/include/addb/cfs_perfc.h"
+/* The above should be 
+ * #include <addb/cfs_perfc.h>
+ * Need to make changes to CMakeLists.txt
+ */
 
 /* To be passed as argument */
 struct m0_realm     motr_uber_realm;

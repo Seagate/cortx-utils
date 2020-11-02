@@ -24,6 +24,7 @@
 #include "debug.h" /* dassert */
 #include "object.h" /* obj_id_t */
 #include "operation.h"
+#include "../../../../cortxfs/src/include/addb/cfs_perfc.h"
 
 /* Open a motr entity.
  * @param[in] - A pointer to motr entity to be opened
