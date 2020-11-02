@@ -302,17 +302,7 @@ pipeline {
 			}
 		}
 		
-		stage ('Generate ISO Image') {
-		    steps {
-		        sh label: 'Generate ISO Image',script:'''
-		        mkdir $integration_dir/$release_tag/iso && pushd $integration_dir/$release_tag/iso
-					genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -publisher Seagate -o $release_tag.iso $integration_dir/$release_tag/cortx_iso/
-				popd
-		        '''
-		    }
-		}
-		
-		stage ('Tag Release') {
+		stage ('Link 3rd_party and python_deps') {
 			steps {
                 script { build_stage=env.STAGE_NAME }
                 sh label: 'Tag Release', script: '''
@@ -320,12 +310,31 @@ pipeline {
 							ln -s $thrid_party_dir 3rd_party
 							ln -s $python_deps python_deps
                     popd
-                    echo "Custom Release Build and ISO is available at,"
-					echo "http://cortx-storage.colo.seagate.com/releases/cortx/github/integration-custom-ci/release/$os_version/$release_tag/"
-					echo "http://cortx-storage.colo.seagate.com/releases/cortx/github/integration-custom-ci/release/$os_version/$release_tag/iso/$release_tag.iso"
-					
                 '''
 			}
+		}
+
+		stage ('Generate ISO Image') {
+		    steps {
+				
+				sh label: 'Generate Single ISO Image',script:'''
+		        mkdir $integration_dir/$release_tag/iso && pushd $integration_dir/$release_tag/iso
+					genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -publisher Seagate -o $release_tag-single.iso $integration_dir/$release_tag/
+				popd
+				'''
+				sh label: 'Generate ISO Image',script:'''
+		         pushd $integration_dir/$release_tag/iso
+					genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -publisher Seagate -o $release_tag.iso $integration_dir/$release_tag/cortx_iso/
+				popd
+				'''			
+
+				sh label: 'Print Release Build and ISO location',script:'''
+				echo "Custom Release Build and ISO is available at,"
+					echo "http://cortx-storage.colo.seagate.com/releases/cortx/github/integration-custom-ci/release/$os_version/$release_tag/"
+					echo "http://cortx-storage.colo.seagate.com/releases/cortx/github/integration-custom-ci/release/$os_version/$release_tag/iso/$release_tag.iso"
+					echo "http://cortx-storage.colo.seagate.com/releases/cortx/github/integration-custom-ci/release/$os_version/$release_tag/iso/$release_tag-single.iso"
+		        '''
+		    }
 		}
 	}
 
