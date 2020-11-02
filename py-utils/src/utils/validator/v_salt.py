@@ -29,7 +29,7 @@ class SaltV:
         """
         Process salt validations.
         Usage (arguments to be provided):
-        1. salt connectivity <nodes>
+        1. salt minions <nodes>
         """
 
         if not isinstance(args, list):
@@ -38,14 +38,14 @@ class SaltV:
         if len(args) < 1:
             raise VError(errno.EINVAL, "Insufficient parameters. %s" % args)
 
-        if v_type == "connectivity":
-            self.validate_salt_connectivity(args)
+        if v_type == "minions":
+            self.validate_salt_minion_connectivity(args)
         else:
             raise VError(
                 errno.EINVAL, "Action parameter %s not supported" % v_type)
 
-    def validate_salt_connectivity(self, nodes):
-        """Check salt connectivity."""
+    def validate_salt_minion_connectivity(self, nodes):
+        """Check salt minion connectivity."""
 
         for node in nodes:
             cmd = f"salt -t 5 {node} test.ping"

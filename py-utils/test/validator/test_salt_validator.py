@@ -30,9 +30,9 @@ from cortx.utils.validator.error import VError
 class TestSaltValidator(unittest.TestCase):
     """Test salt related validations."""
 
-    def test_nosalt_connectivity(self):
+    def test_nosalt_minion_connectivity(self):
         fake_hosts = ['srvnod-1', 'srvnod-2']
-        self.assertRaises(VError, SaltV().validate, 'connectivity',
+        self.assertRaises(VError, SaltV().validate, 'minions',
                           fake_hosts)
 
 
