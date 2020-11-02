@@ -17,7 +17,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 from cortx.utils.store.pillar import PillarDB
-from cortx.utils.store.dstore import KvStore
+from cortx.utils.store.kvstore import KvManager
 import unittest
 import sys
 import os
@@ -31,7 +31,7 @@ class TestStore(unittest.TestCase):
     def test_pillerdb_get_management_vip(self):
         """Test Get Management VIP from PillarDB."""
 
-        kv = KvStore(PillarDB())
+        kv = KvManager(PillarDB())
         mgmt_vip = kv.get('cluster:mgmt_vip')
 
         self.assertIsNotNone(mgmt_vip, "Management VIPs not found")
@@ -42,7 +42,7 @@ class TestStore(unittest.TestCase):
     def test_pillerdb_get_cluster_ip(self):
         """Test Get Cluster IP from PillarDB."""
 
-        kv = KvStore(PillarDB())
+        kv = KvManager(PillarDB())
         cluster_ip = kv.get('cluster:cluster_ip')
 
         self.assertIsNotNone(cluster_ip, "Cluster IP not found")
@@ -53,9 +53,9 @@ class TestStore(unittest.TestCase):
     def test_pillerdb_get_nodes(self):
         """Test Get Node list from PillarDB."""
 
-        kv = KvStore(PillarDB())
+        kv = KvManager(PillarDB())
         ips = kv.get('cluster:node_list')
-        
+
         assert_msg = "Nodes not found"
         self.assertIsNotNone(ips, assert_msg)
         self.assertGreater(len(ips), 0, assert_msg)

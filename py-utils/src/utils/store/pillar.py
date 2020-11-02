@@ -17,12 +17,12 @@
 
 import json
 import errno
-from cortx.utils.store.dstore import KvDB
+from cortx.utils.store.kvstore import KvStorage
 from cortx.utils.store.error import KvError
 from cortx.utils.process import SimpleProcess
 
 
-class PillarDB(KvDB):
+class PillarDB(KvStorage):
     """Salt Pillar based KV Store"""
 
     def __init__(self):
@@ -37,8 +37,8 @@ class PillarDB(KvDB):
 
         if rc != 0:
             msg = ("pillar.get: Failed to get data for %s."
-                    " 'salt' command not found. " %key) if rc == 127 \
-                    else "pillar.get: Failed to get data for %s. %s" %(key, err)
+                   " 'salt' command not found. " % key) if rc == 127 \
+                else "pillar.get: Failed to get data for %s. %s" % (key, err)
 
             raise KvError(rc, msg)
 
@@ -49,14 +49,22 @@ class PillarDB(KvDB):
 
         except Exception as ex:
             raise KvError(
-                errno.ENOENT, 
-                "pillar.get: Failed to get data for %s. %s" %(key, ex))
+                errno.ENOENT,
+                "pillar.get: Failed to get data for %s. %s" % (key, ex))
 
         if not res:
             raise KvError(errno.ENOENT, f"get: No pillar data for key: {key}")
 
         return res
 
-    def set(self, key, value):
+    def create(self, key, value):
+        # TODO: Implement
+        pass
+
+    def update(self, key, value):
+        # TODO: Implement
+        pass
+
+    def delete(self, key):
         # TODO: Implement
         pass
