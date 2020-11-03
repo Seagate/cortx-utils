@@ -48,8 +48,9 @@ class SaltV:
         """Check salt minion connectivity."""
 
         if os.environ.get('USER') != 'root':
-            res = "Root user is required to run salt minions check."
-            raise VError(errno.EACCES, res, os.environ.get('USER'))
+            res = ("validate_salt_minion: "
+                   "This interface requires root privileges.")
+            raise VError(errno.EACCES, res)
 
         for node in nodes:
             cmd = f"salt -t 5 {node} test.ping"
@@ -57,6 +58,6 @@ class SaltV:
             run_result = cmd_proc.run()
 
             if run_result[1] or run_result[2]:
-                raise VError(errno.ECONNREFUSED,
-                             f"Salt minion {node} unreachable.",
-                             run_result[0], run_result[1])
+                res = (f"Salt minion {node} unreachable."
+                       f"CMD {cmd} failed. {run_result[0]}. {run_result[1]}")
+                raise VError(errno.ECONNREFUSED, res)
