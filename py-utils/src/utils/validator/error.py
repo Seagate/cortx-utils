@@ -15,14 +15,18 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+
 class VError(Exception):
     """Class representing a generic error with error code and output of a command."""
 
-    def __init__(self, rc, desc):
+    def __init__(self, rc, desc, output=None, err_msg=None):
         self._rc = rc
         self._desc = desc
+        self._output = output
+        self._err_msg = err_msg
 
-        error = "%s: %s" % (self._rc, self._desc)
+        error = "%s: %s\nOutput:%s\nErr_msg:%s" % (
+                self._rc, self._desc, self._output, self._err_msg)
         super(VError, self).__init__(error)
 
     @property
@@ -32,3 +36,11 @@ class VError(Exception):
     @property
     def desc(self):
         return self._desc
+
+    @property
+    def output(self):
+        return self._output
+
+    @property
+    def err_msg(self):
+        return self._err_msg

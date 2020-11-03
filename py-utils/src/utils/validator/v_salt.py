@@ -17,7 +17,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
-
+import os
 from cortx.utils.validator.error import VError
 from cortx.utils.process import SimpleProcess
 
@@ -47,6 +47,10 @@ class SaltV:
     def validate_salt_minion_connectivity(self, nodes):
         """Check salt minion connectivity."""
 
+        if os.environ.get('USER') != 'root':
+            res = "Root user is required to run salt minions check."
+            raise VError(errno.EACCES, res, os.environ.get('USER'))
+
         for node in nodes:
             cmd = f"salt -t 5 {node} test.ping"
             cmd_proc = SimpleProcess(cmd)
@@ -54,4 +58,5 @@ class SaltV:
 
             if run_result[1] or run_result[2]:
                 raise VError(errno.ECONNREFUSED,
-                             f"Salt minion {node} unreachable.")
+                             f"Salt minion {node} unreachable.",
+                             run_result[0], run_result[1])

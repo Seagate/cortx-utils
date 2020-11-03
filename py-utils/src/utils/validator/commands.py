@@ -16,11 +16,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import sys
-import os
 import errno
-
-from cortx.utils.validator.error import VError
 
 
 class VCommand:
@@ -56,7 +52,6 @@ class NetworkVCommand(VCommand):
     def __init__(self, args):
         super(NetworkVCommand, self).__init__(args)
 
-        sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
         from v_network import NetworkV
 
         self._network = NetworkV()
@@ -75,7 +70,6 @@ class ConsulVCommand(VCommand):
     def __init__(self, args):
         super(ConsulVCommand, self).__init__(args)
 
-        sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
         from v_consul import ConsulV
 
         self._consul = ConsulV()
@@ -94,7 +88,6 @@ class StorageVCommand(VCommand):
     def __init__(self, args):
         super(StorageVCommand, self).__init__(args)
 
-        sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
         from v_storage import StorageV
 
         self._storage = StorageV()
@@ -113,7 +106,6 @@ class SaltVCommand(VCommand):
     def __init__(self, args):
         super(SaltVCommand, self).__init__(args)
 
-        sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
         from v_salt import SaltV
 
         self._salt = SaltV()

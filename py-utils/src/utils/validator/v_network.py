@@ -74,7 +74,8 @@ class NetworkV:
 
             if run_result[1] or run_result[2]:
                 raise VError(errno.ECONNREFUSED,
-                             f"Passwordless ssh not configured for {node}.")
+                             f"Passwordless ssh not configured for {node}.",
+                             run_result[0], run_result[1])
 
     def _is_valid_ipv4_part(self, ip_part):
         try:

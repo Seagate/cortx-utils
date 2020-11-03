@@ -55,25 +55,40 @@ class StorageV:
             run_result = cmd_proc.run()
 
             if run_result[1] or run_result[2]:
-                raise VError(errno.EINVAL, f"Failed to get luns on {node}.")
+                raise VError(errno.EINVAL, f"Failed to get luns on {node}.",
+                             run_result[0], run_result[1])
 
             res = (run_result[0].decode('utf-8').strip())
-            print(res)
             if int(res) == 0 or (int(res) % 16):
-                raise VError(errno.EINVAL, f"Luns are not consistent {node}.")
+                res = (f"The query resulted in {int(res)} number of LUNs"
+                       " that are not as per desired configuration on node "
+                       f"{node} (which needs to be in multiples of 16 for a "
+                       "dual node cluster). To troubleshoot this issue execute "
+                       "command: 'lsblk -S | grep sas'")
+                raise VError(errno.EINVAL, res, run_result[0], run_result[1])
 
     def validate_lvm(self, nodes):
         """Validate lvms are present."""
 
         for node in nodes:
+
+            cmd = f"ssh {node} vgdisplay | grep vg_metadata_{node}"
+            cmd_proc = SimpleProcess(cmd)
+            run_result = cmd_proc.run()
+            if run_result[1] or run_result[2]:
+                raise VError(errno.EINVAL,
+                             f"Failed to get vg_metadata_{node} on {node}.",
+                             run_result[0], run_result[1])
+
             cmd = f"ssh {node} vgdisplay | grep vg_metadata | wc -l"
             cmd_proc = SimpleProcess(cmd)
             run_result = cmd_proc.run()
-
             if run_result[1] or run_result[2]:
-                raise VError(errno.EINVAL, f"Failed to get lvm {node}.")
+                raise VError(errno.EINVAL, f"Failed to get lvms on {node}.",
+                             run_result[0], run_result[1])
 
             res = (run_result[0].decode('utf-8').strip())
             if not res or (int(res) != len(nodes)):
                 raise VError(errno.EINVAL,
-                             f"No. of Lvms {res} are not correct for {node}.")
+                             f"No. of Lvms {res} are not correct for {node}.",
+                             run_result[0], run_result[1])
