@@ -21,7 +21,7 @@ import argparse
 import inspect
 import traceback
 
-from cortx.utils.validator import commands
+import cortx.utils.validator.commands as commands
 
 
 class ValidatorCommandFactory:
@@ -45,27 +45,39 @@ class ValidatorCommandFactory:
         """Return the Command after parsing the command line."""
 
         parser = argparse.ArgumentParser(description)
+        tail = []
+        if len(argv) > 2:
+            [_, _, *tail] = argv
 
         subparsers = parser.add_subparsers()
         cmds = inspect.getmembers(commands, inspect.isclass)
+        VCommand = commands.VCommand
         for name, cmd in cmds:
-            if name != "VCommand" and "VCommand" in name:
-                cmd.add_args(subparsers, cmd, name)
+            if cmd != VCommand and issubclass(cmd, VCommand):
+                instance = cmd(tail)
+                instance.add_args(subparsers)
         args = parser.parse_args(argv)
-        return args.command(args)
+        if not hasattr(args, 'command'):
+            return None
+        command = args.command
+        command.set_parsed_args(args)
+        return command
 
 
 def main(argv):
     try:
         description = "CORTX Validator command"
+        prog_name = argv[0]
         command = ValidatorCommandFactory.get_command(description, argv[1:])
-
-        command.process()
+        if not command:
+            ValidatorCommandFactory.usage(prog_name)
+        else:
+            command.process()
 
     except Exception as e:
         sys.stderr.write("error: %s\n\n" % str(e))
         sys.stderr.write("%s\n" % traceback.format_exc())
-        ValidatorCommandFactory.usage(argv[0])
+        ValidatorCommandFactory.usage(prog_name)
         return errno.EINVAL
 
 
