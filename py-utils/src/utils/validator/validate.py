@@ -34,7 +34,16 @@ class ValidatorCommandFactory:
         usage_string = (f"usage: {prog}\n"
                         "\t[-h]\n"
                         "\t[network connectivity <ip1> <ip2> <...>]\n"
-                        "\t[consul service <host> <port>]\n")
+                        "\t[consul service <host> <port>]\n"
+                        "\t[hardware rpm <rpm> <node-1> <...>]\n"
+                        "\t[hardware hca <node-1> <...>]\n"
+                        "\t[hardware hca_ports <node-1> <...>]\n"
+                        "\t[hardware lsb_hba <node-1> <...>]\n"
+                        "\t[hardware lsb_hba_ports <node-1> <...>]\n"
+                        "\t[storage lvm_size <node-1> <...>]\n"
+                        "\t[storage vol_accessible <node-1> <...>]\n"
+                        "\t[storage vol_mapped <node-1> <...>]\n")
+
         sys.stderr.write(usage_string)
 
     @staticmethod
