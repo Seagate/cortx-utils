@@ -50,38 +50,10 @@ class SimpleProcess(Process):
             self._output = self._cp.stdout
             self._err = self._cp.stderr
             self._returncode = self._cp.returncode
-            return self._output, self._err, self._returncode
         except Exception as err:
             self._err = "SubProcess Error: " + str(err)
             self._output = ""
             self._returncode = -1
-            return self._output, self._err, self._returncode
-
-    def check_output(self, **args):
-        ''' This will can run simple process '''
-        for key, value in args.items():
-            setattr(self, key, value)
-
-        try:
-            self._output = subprocess.check_output(self._cmd, stderr=subprocess.PIPE,
-                    shell=self.shell, cwd=self.cwd,
-                    timeout=self.timeout, env=self.env,
-                    universal_newlines=self.universal_newlines)
-
-            if not isinstance(self._output, str):
-                self._output = self._output.decode("utf-8")
-
-            self._err = ""
-            self._returncode = 0
-        except subprocess.CalledProcessError as exc:
-            self._err = "SubProcess Error: " + str(exc.stderr)
-            self._output = repr(exc)
-            self._returncode = exc.returncode
-        except Exception as err:
-            self._err = "SubProcess Error: " + str(err)
-            self._output = repr(err)
-            self._returncode = 1
-
         return self._output, self._err, self._returncode
 
 class PipedProcess(Process):

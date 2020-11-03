@@ -31,13 +31,16 @@ class PillarGet():
         cmd_proc = SimpleProcess(cmd)
         run_result = list(cmd_proc.run())
 
+        for i in range(2):
+            if not isinstance(run_result[i], str):
+                run_result[i] = run_result[i].decode("utf-8")
+
         if run_result[2] == 127:
             run_result[0] = "salt-call: command not found"
         elif run_result[2] == 0:
             res = json.loads(run_result[0])
             res = res['local']
             if not res:
-                run_result[0] = f"No pillar data for key: {key}"
                 run_result[1] = f"No pillar data for key: {key}"
                 run_result[2] = 1
             else:
@@ -45,20 +48,20 @@ class PillarGet():
         else:
             run_result[0] = "Failed to get pillar data"
 
-        return run_result
+        return cmd, run_result
 
 
     @staticmethod
     def get_hostnames():
         """Get hostnames from pillar data."""
-        res = PillarGet.get_pillar("cluster:node_list")
+        cmd, res = PillarGet.get_pillar("cluster:node_list")
         if res[2]:
-            return res
+            return cmd, res
         hostnames = []
         for node in res[0]:
-            res = PillarGet.get_pillar(f"cluster:{node}:hostname")
+            cmd, res = PillarGet.get_pillar(f"cluster:{node}:hostname")
             if res[2]:
-                return res
+                return cmd, res
             hostnames.append(res[0])
         res[0] = hostnames
-        return res
+        return None, res

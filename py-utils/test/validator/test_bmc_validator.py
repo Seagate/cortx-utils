@@ -31,24 +31,33 @@ class TestBmcValidator(unittest.TestCase):
 
     def test_accessibility_ok(self):
         """ Check BMC Accessibility """
-        BmcV().validate('accessible', [])
+        BmcV().validate('accessible', ['srvnode-1','srvnode-2'])
 
     def test_stonith_cfg_ok(self):
         """ Check Stonith configuration """
-        BmcV().validate('stonith_cfg', [])
+        BmcV().validate('stonith', ['srvnode-1','srvnode-2'])
 
     def test_incorrect_vtype(self):
         """ Check incorrect validation type """
         self.assertRaises(VError, BmcV().validate, 'dummy',[])
 
+    def test_accessibility_args_error(self):
+        """ Check arguments for 'accessible' validation type """
+        self.assertRaises(VError, BmcV().validate, 'accessible',[])
 
     def test_accessibility_error(self):
         """ Check arguments for 'accessible' validation type """
-        self.assertRaises(VError, BmcV().validate, 'accessible',['fake_data1', 'fake_data2'])
+        fake_hosts = ['srv-1', 'srv-2']
+        self.assertRaises(VError, BmcV().validate, 'accessible',fake_hosts)
+
+    def test_stonith_cfg_args_error(self):
+        """ Check arguments for 'accessible' validation type """
+        self.assertRaises(VError, BmcV().validate, 'stonith',[])
 
     def test_stonith_cfg_error(self):
-        """ Check arguments for 'stonith_cfg' validation type """
-        self.assertRaises(VError, BmcV().validate, 'stonith_cfg',['fake_data1', 'fake_data2'])
+        """ Check arguments for 'stonith' validation type """
+        fake_hosts = ['srv-1', 'srv-2']
+        self.assertRaises(VError, BmcV().validate, 'stonith',fake_hosts)
 
 if __name__ == '__main__':
     unittest.main()

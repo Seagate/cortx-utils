@@ -22,6 +22,7 @@ from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.v_network import NetworkV
 from cortx.utils.pillar_get import PillarGet
 from cortx.utils.decrypt_secret import decrypt_secret
+from cortx.utils.common import get_cmd_error_msg
 
 
 class BmcV:
@@ -31,41 +32,57 @@ class BmcV:
         self._network = NetworkV()
 
 
-    def __get_bmc_ip(self):
+    def __get_bmc_ip(self, node):
         """ Get BMC IP along with status of command
         """
 
-        cmd = "ipmitool lan print 1 | grep 'IP Address'"
+        cmd = f"ssh {node} ipmitool lan print 1 | grep 'IP Address'"
         cmd_proc = SimpleProcess(cmd)
-        result = cmd_proc.check_output(shell=True)
+        result = cmd_proc.run()
 
         if result[2]:
-            raise VError(result[2], result[1])
+            msg = get_cmd_error_msg("Failed to get BMC IP.", cmd, result)
+            raise VError(errno.EINVAL, msg)
+
+
+        if not isinstance(result[0], str):
+            result[0] = result[0].decode("utf-8")
 
         bmc_ip = result[0].split()[-1]
         return bmc_ip
 
 
-    def __get_bmc_power_status(self):
+    def __get_bmc_power_status(self, node):
         """ Get BMC power status
         """
 
-        cmd = "ipmitool chassis status | grep 'System Power'"
+        cmd = f"ssh {node} ipmitool chassis status | grep 'System Power'"
         cmd_proc = SimpleProcess(cmd)
-        result = cmd_proc.check_output(shell=True)
+        result = list(cmd_proc.run())
 
         if result[2]:
-            raise VError(result[2], result[1])
+            msg = get_cmd_error_msg("Failed to get BMC power status.", cmd, result)
+            raise VError(errno.EINVAL, msg)
+
+        if not isinstance(result[0], str):
+            result[0] = result[0].decode("utf-8")
 
         pw_status = result[0].split()[-1]
-        return pw_status
+        return pw_status, cmd, result
 
 
-    def ping_bmc(self):
+    def ping_bmc(self, node):
         """ Ping BMC IP
         """
-        ip = self.__get_bmc_ip()
-        self._network.validate_ip_connectivity([ip])
+        ip = self.__get_bmc_ip(node)
+
+        cmd = f"ssh {node} ping -c 1 -W 1 {ip}"
+        cmd_proc = SimpleProcess(cmd)
+        result = list(cmd_proc.run())
+
+        if result[2]:
+            msg = f"Ping failed for IP '{ip}'."
+            raise VError(errno.ECONNREFUSED, get_cmd_error_msg(msg, cmd, result))
 
 
     def validate(self, v_type, args):
@@ -79,56 +96,56 @@ class BmcV:
         if not isinstance(args, list):
             raise VError(errno.EINVAL, "Invalid parameters %s" % args)
 
-        if len(args) > 0:
-            raise VError(errno.EINVAL, "'%s' parameters not required" % args)
+        if len(args) < 1:
+            raise VError(errno.EINVAL, "Insufficient parameters")
 
         if v_type == "accessible":
-            self.validate_bmc_accessibility()
-        elif v_type == "stonith_cfg":
-            self.validate_bmc_stonith_config()
+            self.validate_bmc_accessibility(args)
+        elif v_type == "stonith":
+            self.validate_bmc_stonith_config(args)
         else:
             raise VError(
-                errno.EINVAL, "Action parameter %s not supported" % v_type)
+                errno.EINVAL, "Action parameter '%s' not supported" % v_type)
 
 
-    def validate_bmc_accessibility(self):
+    def validate_bmc_accessibility(self, nodes):
         """ Validate Consul service status.
         """
+        for node in nodes:
+            # Validate BMC power status
+            pw_status, cmd, result = self.__get_bmc_power_status(node)
+            if pw_status != 'on':
+                msg = f"BMC Power Status : {pw_status}"
+                raise VError(errno.EINVAL, get_cmd_error_msg(msg, cmd, result))
 
-        # Validate BMC power status
-        pw_status = self.__get_bmc_power_status()
-        if pw_status != 'on':
-            raise VError(errno.EINVAL, f"BMC Power Status : {pw_status}")
-
-        # Check if we can ping BMC
-        self.ping_bmc()
+            # Check if we can ping BMC
+            self.ping_bmc(node)
 
 
-    def validate_bmc_stonith_config(self):
+    def validate_bmc_stonith_config(self, nodes):
         """ Validations for BMC STONITH Configuration
         """
 
-        node_res = PillarGet.get_pillar("cluster:node_list")
-        if node_res[2]:
-            raise VError(errno.EINVAL, f"Failed to get nodes : {node_res}")
-
-        nodes = node_res[0]
         for node in nodes:
-            bmc_ip_get = PillarGet.get_pillar(f"cluster:{node}:bmc:ip")
+            cmd, bmc_ip_get = PillarGet.get_pillar(f"cluster:{node}:bmc:ip")
             if bmc_ip_get[2]:
-                raise VError(errno.EINVAL, f"Failed to get BMC IP : {bmc_ip_get}")
+                msg = get_cmd_error_msg("Failed to get BMC IP", cmd, bmc_ip_get)
+                raise VError(errno.EINVAL, msg)
 
-            user = PillarGet.get_pillar(f"cluster:{node}:bmc:user")
+            cmd, user = PillarGet.get_pillar(f"cluster:{node}:bmc:user")
             if user[2]:
-                raise VError(errno.EINVAL, f"Failed to get BMC user : {user}")
+                msg = get_cmd_error_msg("Failed to get BMC user", cmd, user)
+                raise VError(errno.EINVAL, msg)
 
-            secret = PillarGet.get_pillar(f"cluster:{node}:bmc:secret")
+            cmd, secret = PillarGet.get_pillar(f"cluster:{node}:bmc:secret")
             if secret[2]:
-                raise VError(errno.EINVAL, f"Failed to get BMC secret : {secret}")
+                msg = get_cmd_error_msg("Failed to get BMC secret", cmd, secret)
+                raise VError(errno.EINVAL, msg)
 
-            decrypt_passwd = decrypt_secret("cluster", secret[0])
+            cmd, decrypt_passwd = decrypt_secret("cluster", secret[0])
             if decrypt_passwd[2]:
-                raise VError(errno.EINVAL, f"Failed to decrypt BMC secret : {decrypt_passwd}")
+                msg = get_cmd_error_msg("Failed to decrypt BMC secret", cmd, decrypt_passwd)
+                raise VError(errno.EINVAL, msg)
 
             bmc_ip = bmc_ip_get[0]
             bmc_user = user[0]
@@ -136,7 +153,8 @@ class BmcV:
 
             cmd = f"fence_ipmilan -P -a {bmc_ip} -o status -l {bmc_user} -p {bmc_passwd}"
             cmd_proc = SimpleProcess(cmd)
-            run_result = list(cmd_proc.run())
+            cmd, run_result = list(cmd_proc.run())
 
             if run_result[2]:
-                raise VError(errno.EINVAL, f"ERROR: Please Check BMC STONITH Config : {run_result}")
+                msg = get_cmd_error_msg("Failed to check BMC STONITH Config", cmd, run_result)
+                raise VError(errno.EINVAL, msg)
