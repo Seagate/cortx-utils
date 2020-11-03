@@ -34,7 +34,8 @@ class ValidatorCommandFactory:
         usage_string = (f"usage: {prog}\n"
                         "\t[-h]\n"
                         "\t[network connectivity <ip1> <ip2> <...>]\n"
-                        "\t[consul service <host> <port>]\n")
+                        "\t[consul service <host> <port>]\n"
+                        "\t[server hostname <user> <hostnames>]\n")
         sys.stderr.write(usage_string)
 
     @staticmethod

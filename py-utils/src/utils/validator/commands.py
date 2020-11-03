@@ -84,3 +84,23 @@ class ConsulVCommand(VCommand):
         """Validate consul status."""
 
         self._consul.validate(self.v_type, self.args)
+
+
+class ServerVCommand(VCommand):
+    """Server related commands."""
+
+    name = "server"
+
+    def __init__(self, args):
+        super(ServerVCommand, self).__init__(args)
+
+        sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+        from v_server import ServerV
+
+        self._server = ServerV()
+
+    def process(self):
+        """Validate server status."""
+
+        self._server.validate(self.v_type, self.args)
+
