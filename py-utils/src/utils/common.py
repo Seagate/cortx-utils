@@ -17,32 +17,36 @@
 
 import re
 
-def get_cmd_error_msg(msg:str, cmd:str=None, result:list=[]):
+def get_cmd_error_msg(msg:str, cmd:str=None, result:list=None):
     msg = f"\n{80*'*'}\nMessage:\t{msg}\n"
 
     if cmd:
         msg += f"Command:\t\"{cmd}\"\n"
 
     if result:
-        for i in range(2):
-            if not isinstance(result[i], str):
-                result[i] = result[i].decode("utf-8")
+        if isinstance(result, list):
+            for i in range(2):
+                if not isinstance(result[i], str):
+                    result[i] = result[i].decode("utf-8")
 
-        msg += f"Return Code:\t'{result[2]}'\n"
-        if result[1]:
-            msg += "Error:"
+            msg += f"Return Code:\t'{result[2]}'\n"
+            if result[1]:
+                msg += "Error:"
 
-            err_msgs = re.split('\r|\n', result[1])
-            for err_msg in err_msgs:
-                if err_msg:
-                    msg += f"\t\t'{err_msg}'\n"
+                err_msgs = re.split('\r|\n', result[1])
+                for err_msg in err_msgs:
+                    if err_msg:
+                        msg += f"\t\t'{err_msg}'\n"
 
-        if result[0]:
-            msg += "Output:"
-            other_msgs = re.split('\r|\n', result[0])
-            for other_msg in other_msgs:
-                if other_msg:
-                    msg += f"\t\t'{other_msg}'\n"
+            if result[0]:
+                msg += "Output:"
+                other_msgs = re.split('\r|\n', result[0])
+                for other_msg in other_msgs:
+                    if other_msg:
+                        msg += f"\t\t'{other_msg}'\n"
+
+        else:
+            msg += f"Result:\t\"{result}\"\n"
 
     msg += f"{80*'*'}\n"
 
