@@ -30,13 +30,12 @@ from cortx.utils.validator.v_network import NetworkV
 class TestBMCConnectivity(unittest.TestCase):
     """Test BMC IP is reachable and accessible"""
 
-    command = "sudo ipmitool power status"
-    valid_msg = "Chassis Power is on"
-
     def setUp(self):
+        """Get bmc data"""
         command = "sudo salt-call grains.get id --output=newline_values_only"
         node = self.execute_command(command)
         self.node_bmc = self.fetch_salt_data('pillar.get', 'cluster')[node]['bmc']
+        self.cluster_id = self.fetch_salt_data('grains.get', const.CLUSTER_ID)
 
     @staticmethod
     def fetch_salt_data(func, arg):
@@ -48,6 +47,7 @@ class TestBMCConnectivity(unittest.TestCase):
 
     @staticmethod
     def execute_command(command):
+        response = None
         process = sp.Popen(command, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
         response, error = process.communicate()
         if error:
@@ -61,10 +61,25 @@ class TestBMCConnectivity(unittest.TestCase):
         # check BMC ip is reachable
         self.assertRaises(VError, NetworkV().validate, [
             'connectivity', ip])
-        # check BMC ip is accessible
-        response = self.execute_command(self.command)
-        assert self.valid_msg in response, \
-            f"BMC IP {ip} is reachable but, not accessible."
+        # check BMC ip is accessible (in band)
+        command = "sudo ipmitool channel info"
+        response = self.execute_command(command)
+        assert response, \
+            f"BMC is reachable through inband KCS channel."
+
+    def test_bmc_accessibility_over_lan(self):
+        """Check BMC IP is accessible over lan"""
+        ip = self.node_bmc['ip']
+        username = self.node_bmc['user']
+        secret = self.node_bmc['secret']
+        key = Cipher.generate_key(self.cluster_id, 'cluster')
+        password = Cipher.decrypt(key, secret.encode('ascii')).decode()
+        # check BMC ip is accessible over lan (out of band)
+        command = "sudo ipmitool -H " + ip + " -U " + username + \
+                        " -P " + password + " -I " + "lan channel info"
+        response = self.execute_command(command)
+        assert response, \
+            f"BMC is reachable over the lan."
 
     def tearDown(self):
         """Cleanup"""
@@ -76,7 +91,8 @@ class TestStorageEnclosureAccessibility(unittest.TestCase):
 
     name = "TestStorageEnclosureAccessibility"
     command = "show versions"
-    expected_versions = ['GN265', 'GN265']
+    mc_supported = ['GN265', 'GN280']
+    valid_msg = "Command completed successfully"
 
     def setUp(self):
         """Get primary and secondary MC of storage controller"""
@@ -102,8 +118,12 @@ class TestStorageEnclosureAccessibility(unittest.TestCase):
         password = Cipher.decrypt(key, secret.encode('ascii')).decode()
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(ip, port, username, password)
-        self.connections.update({ip: ssh})
+        try:
+            ssh.connect(ip, port, username, password)
+            self.connections.update({ip: ssh})
+        except:
+            return False
+        return True
 
     def test_web_service(self):
         # TODO: validate web service availability
@@ -115,25 +135,36 @@ class TestStorageEnclosureAccessibility(unittest.TestCase):
         self.assertRaises(VError, NetworkV().validate, [
             'connectivity', self.primary_mc])
         # check primary ip is accessible
-        self._establish_connection(self.primary_mc)
+        assert not self._establish_connection(self.primary_mc), \
+                    "Storage enclosure primary IP {self.primary_mc} is not accessible."
+        # check command execution on primary MC
         stdin, stdout, stderr = self.connections[self.primary_mc].exec_command(self.command)
         response = stdout.read().decode()
-        version_found = any(ver for ver in self.expected_versions if ver in response)
-        assert version_found, \
-            f"Storage enclosure primary IP {self.primary_mc} is reachable but, not accessible."
+        assert self.valid_msg in response, \
+            f"Failed to execute command on primary MC {self.primary_mc}"
+        # check supported bundle version of MC
+        is_supported = any(ver for ver in self.mc_supported if ver in response)
+        assert is_supported, \
+            f"Unsupported controller bundle version found on enclosure."
 
     def test_secondary_mc(self):
         """Check secondary MC is accessible"""
-        # check secondary ip is reachable
+         # check secondary ip is reachable
         self.assertRaises(VError, NetworkV().validate, [
             'connectivity', self.secondary_mc])
         # check secondary ip is accessible
-        self._establish_connection(self.secondary_mc)
+        assert not self._establish_connection(self.secondary_mc), \
+                    "Storage enclosure secondary IP {self.secondary_mc} is not accessible."
+        # check command execution on secondary MC
         stdin, stdout, stderr = self.connections[self.secondary_mc].exec_command(self.command)
         response = stdout.read().decode()
-        version_found = any(ver for ver in self.expected_versions if ver in response)
-        assert version_found, \
-            f"Storage enclosure secondary IP {self.secondary_mc} is reachable but, not accessible."
+        assert self.valid_msg in response, \
+            f"Failed to execute command on primary MC {self.secondary_mc}"
+        # check supported bundle version of MC
+        is_supported = any(ver for ver in self.mc_supported if ver in response)
+        assert is_supported, \
+            f"Unsupported controller bundle version found on enclosure."
+
 
     def tearDown(self):
         """Close ssh connection"""
