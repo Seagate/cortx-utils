@@ -16,12 +16,23 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import errno
+import argparse
+
+from .pacemaker import PacemakerHealth
+from typing import NamedTuple, Any
+
+
+class CommandArgs(NamedTuple):
+    args: Any
+    v_type: str
 
 
 class VCommand:
     """Base class for all the commands."""
 
+    # TODO [KN] Make constructor not dependent on parsing results
+    # This will allow to make add_args() non-static and thus will simplify the
+    # use in subclasses.
     def __init__(self, args):
         self._v_type = args.v_type
         self._args = args.args
@@ -34,9 +45,12 @@ class VCommand:
     def v_type(self):
         return self._v_type
 
-    @staticmethod
-    def add_args(parser, cmd_class, cmd_name):
+    @classmethod
+    def add_args(cls, parser):
         """Add Command args for parsing."""
+        cmd_class = cls
+        cmd_name = cls.name
+
         parser1 = parser.add_parser(
             cmd_class.name, help='%s Validations' % cmd_name)
         parser1.add_argument('v_type', help='validation type')
@@ -50,9 +64,9 @@ class NetworkVCommand(VCommand):
     name = "network"
 
     def __init__(self, args):
-        super(NetworkVCommand, self).__init__(args)
+        super().__init__(args)
 
-        from v_network import NetworkV
+        from .v_network import NetworkV
 
         self._network = NetworkV()
 
@@ -68,9 +82,9 @@ class ConsulVCommand(VCommand):
     name = "consul"
 
     def __init__(self, args):
-        super(ConsulVCommand, self).__init__(args)
+        super().__init__(args)
 
-        from v_consul import ConsulV
+        from .v_consul import ConsulV
 
         self._consul = ConsulV()
 
@@ -88,7 +102,7 @@ class StorageVCommand(VCommand):
     def __init__(self, args):
         super(StorageVCommand, self).__init__(args)
 
-        from v_storage import StorageV
+        from .v_storage import StorageV
 
         self._storage = StorageV()
 
@@ -106,7 +120,7 @@ class SaltVCommand(VCommand):
     def __init__(self, args):
         super(SaltVCommand, self).__init__(args)
 
-        from v_salt import SaltV
+        from .v_salt import SaltV
 
         self._salt = SaltV()
 
@@ -124,7 +138,7 @@ class BmcVCommand(VCommand):
     def __init__(self, args):
         super(BmcVCommand, self).__init__(args)
 
-        from v_bmc import BmcV
+        from .v_bmc import BmcV
 
         self._bmc = BmcV()
 
@@ -142,7 +156,7 @@ class ElasticsearchVCommand(VCommand):
     def __init__(self, args):
         super(ElasticsearchVCommand, self).__init__(args)
 
-        from v_elasticsearch import ElasticsearchV
+        from .v_elasticsearch import ElasticsearchV
 
         self._elasticsearch = ElasticsearchV()
 
@@ -150,3 +164,39 @@ class ElasticsearchVCommand(VCommand):
         """Validate elasticsearch status."""
 
         self._elasticsearch.validate(self.v_type, self.args)
+
+
+class PacemakerCommand(VCommand):
+    """Pacemaker-related checks."""
+    name = 'pacemaker'
+
+    def __init__(self, args):
+        fake_args = CommandArgs(args=args, v_type='')
+        super().__init__(fake_args)
+
+    @classmethod
+    def add_args(cls, parser):
+        """Add Command args for parsing."""
+        def validate_config(cmd: PacemakerCommand):
+            cmd._validate_config()
+
+        pcs_parser = parser.add_parser(cls.name, help='Pacemaker Validations')
+        subp = pcs_parser.add_subparsers()
+
+        conf_parser = subp.add_parser('configured',
+                                      help='Basic sanity check of Pacemaker')
+
+        conf_parser.add_argument('--stub',
+                                 dest='handler_fn',
+                                 default=validate_config,
+                                 help=argparse.SUPPRESS)
+
+        pcs_parser.set_defaults(command=cls)
+
+    def process(self):
+        handler = self._args.handler_fn
+        handler(self)
+
+    def _validate_config(self):
+        pcs = PacemakerHealth()
+        pcs.ensure_configured()

@@ -21,7 +21,7 @@ import argparse
 import inspect
 import traceback
 
-from cortx.utils.validator import commands
+import cortx.utils.validator.commands as commands
 
 
 class ValidatorCommandFactory:
@@ -48,9 +48,10 @@ class ValidatorCommandFactory:
 
         subparsers = parser.add_subparsers()
         cmds = inspect.getmembers(commands, inspect.isclass)
+        VCommand = commands.VCommand
         for name, cmd in cmds:
-            if name != "VCommand" and "VCommand" in name:
-                cmd.add_args(subparsers, cmd, name)
+            if cmd != VCommand and issubclass(cmd, VCommand):
+                cmd.add_args(subparsers)
         args = parser.parse_args(argv)
         return args.command(args)
 
