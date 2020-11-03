@@ -24,6 +24,7 @@
 #include "debug.h" /* dassert */
 #include "object.h" /* obj_id_t */
 #include "operation.h"
+#include <cfs_utils_perfc.h>
 
 /* Open a motr entity.
  * @param[in] - A pointer to motr entity to be opened
@@ -197,11 +198,11 @@ int m0_ufid_get(struct m0_uint128 *ufid)
 {
 	int		  rc;
 
-	perfc_trace_inii(PFT_M0_UFID_GET, PEM_DSAL_TO_MOTR);
+	perfc_trace_inii(PFT_M0_UFID_GET, PEM_M0_TO_MOTR);
 	perfc_trace_attr(PEA_TIME_ATTR_START_M0_UFID_NEXT);
 	rc = m0_ufid_next(&ufid_generator, 1, ufid);
 	perfc_trace_attr(PEA_TIME_ATTR_END_M0_UFID_NEXT);
-	perfc_trace_attr(PEA_DSTORE_RES_RC, rc);
+	perfc_trace_attr(PEA_M0STORE_RES_RC, rc);
 	if (rc != 0) {
 		log_err("Failed to generate a ufid: %d\n", rc);
 		return rc;

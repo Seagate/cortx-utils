@@ -27,6 +27,7 @@
 #include <debug.h> /* dassert */
 #include "perf/tsdb.h" /* is_engine_on */
 #include "operation.h"
+#include <cfs_utils_perfc.h>
 
 /* To be passed as argument */
 struct m0_realm     motr_uber_realm;
