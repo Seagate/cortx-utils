@@ -52,7 +52,7 @@ class NetworkVCommand(VCommand):
     def __init__(self, args):
         super(NetworkVCommand, self).__init__(args)
 
-        from v_network import NetworkV
+        from .v_network import NetworkV
 
         self._network = NetworkV()
 
@@ -70,7 +70,7 @@ class ConsulVCommand(VCommand):
     def __init__(self, args):
         super(ConsulVCommand, self).__init__(args)
 
-        from v_consul import ConsulV
+        from .v_consul import ConsulV
 
         self._consul = ConsulV()
 
@@ -88,7 +88,7 @@ class StorageVCommand(VCommand):
     def __init__(self, args):
         super(StorageVCommand, self).__init__(args)
 
-        from v_storage import StorageV
+        from .v_storage import StorageV
 
         self._storage = StorageV()
 
@@ -106,7 +106,7 @@ class SaltVCommand(VCommand):
     def __init__(self, args):
         super(SaltVCommand, self).__init__(args)
 
-        from v_salt import SaltV
+        from .v_salt import SaltV
 
         self._salt = SaltV()
 
@@ -114,3 +114,21 @@ class SaltVCommand(VCommand):
         """Validate salt minion connectivity <nodes>..."""
 
         self._salt.validate(self.v_type, self.args)
+
+
+class ElasticsearchVCommand(VCommand):
+    """Elasticsearch related commands."""
+
+    name = "elasticsearch"
+
+    def __init__(self, args):
+        super(ElasticsearchVCommand, self).__init__(args)
+
+        from .v_elasticsearch import ElasticsearchV
+
+        self._elasticsearch = ElasticsearchV()
+
+    def process(self):
+        """Validate elasticsearch status."""
+
+        self._elasticsearch.validate(self.v_type, self.args)
