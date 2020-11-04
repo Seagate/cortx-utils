@@ -17,23 +17,24 @@
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import List, Any
+from typing import Any, List
+
 from cortx.utils.errors import MalformedQueryError
 
 
 class IFilter(ABC):
-    """
-    Abstract class for IFilter
-    """
 
+    """Abstract class for IFilter."""
     @abstractmethod
     def accept_visitor(self, visitor) -> Any:
         pass
 
 
 class FilterOperationAnd(IFilter):
+
     """
     Class representing AND condition
+
     :param *args: List of nested filter conditions (each must be of type IFilterQuery)
     """
 
@@ -51,8 +52,10 @@ class FilterOperationAnd(IFilter):
 
 
 class FilterOperationOr(IFilter):
+
     """
     Class representing OR condition
+
     :param *args: List of nested filter conditions (each must be of type IFilterQuery)
     """
 
@@ -70,17 +73,15 @@ class FilterOperationOr(IFilter):
 
 
 class ComparisonOperation(Enum):
-    """
-    Enumeration that represents possible comparison operations
-    """
 
+    """Enumeration that represents possible comparison operations."""
     OPERATION_GT = '>'
     OPERATION_LT = '<'
     OPERATION_EQ = '='
     OPERATION_LEQ = '<='
     OPERATION_GEQ = '>='
     OPERATION_NE = "!="  # TODO: Add support to elasticsearch
-    OPERATION_LIKE = "like" # TODO: Add support to elasticsearch
+    OPERATION_LIKE = "like"  # TODO: Add support to elasticsearch
 
     @classmethod
     def from_standard_representation(cls, op: str):
@@ -96,15 +97,12 @@ class ComparisonOperation(Enum):
 
         if op in mapping:
             return mapping[op]
-        else:
-            raise MalformedQueryError("Invalid comparison operation: {}".format(op))
+        raise MalformedQueryError(f"Invalid comparison operation: {op}")
 
 
 class FilterOperationCompare(IFilter):
-    """
-    Class representing a comparison operation.
-    """
 
+    """Class representing a comparison operation."""
     def __init__(self, left_operand, operation: ComparisonOperation, right_operand):
         self.left_operand = left_operand
         self.operation = operation
@@ -124,10 +122,11 @@ class FilterOperationCompare(IFilter):
 
 
 class IFilterTreeVisitor(ABC):
+
     """
     Descendants of this class are supposed to be used for filter tree traversal.
     Application of "visitor" design pattern allows to:
-    1) Avoid switch'ing over possible filter types
+    1) Avoid switching over possible filter types
     2) Not to forget to add handers for new filter types as they are added to the system
     """
 
@@ -147,9 +146,11 @@ class IFilterTreeVisitor(ABC):
 def And(*args):
     """
     Adds a condition that demands that all the nested conditions are satisfied.
+
     :param *args: List of nested conditions (each must be an instance of IFilterQuery)
-    :returns: a FilterOperationAnd object
+    :return: a FilterOperationAnd object
     """
+
     if not args:
         raise MalformedQueryError("AND operation must take at least 1 argument")
 
@@ -162,9 +163,11 @@ def And(*args):
 def Or(*args):
     """
     Adds a condition that demands that at least one of the nested conditions is true.
+
     :param args: List of nested conditions (each must be an instance of IFilterQuery)
-    :returns: a FilterOperationOr object
+    :return: a FilterOperationOr object
     """
+
     if not args:
         raise MalformedQueryError("OR operation must take at least 1 argument")
 
@@ -177,10 +180,12 @@ def Or(*args):
 def Compare(left, operation: str, right):
     """
     Adds a condition that demands some order relation between two items.
+
     :param left: Left operand. Either a field or a value.
     :param operation: a string corresponding to the required operation, e.g. '=' or '>'
     :param right: Right operand. Either a field or a value.
-    :returns: a FilterOperationCompare object
+    :return: a FilterOperationCompare object
     """
+
     op = ComparisonOperation.from_standard_representation(operation)
     return FilterOperationCompare(left, op, right)

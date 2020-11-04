@@ -17,5 +17,6 @@
 
 from cortx.utils.data.access import BaseModel
 
+
 class HAModel(BaseModel):
     pass

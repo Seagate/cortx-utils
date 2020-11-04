@@ -15,15 +15,16 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import os
 import asyncio
+import os
 import unittest
-from cortx.utils.schema.payload import Json
+
 from cortx.utils.product_features.unsupported_features import UnsupportedFeaturesDB
+from cortx.utils.schema.payload import Json
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
 file_path = os.path.join(dir_path, 'test_schema', 'test_unsupported_features_data.json')
 TEST_DATA = Json(file_path).load()
-
 
 
 class TestUnsupportedFeaturesDB(unittest.TestCase):
@@ -60,6 +61,7 @@ class TestUnsupportedFeaturesDB(unittest.TestCase):
         data = self._loop.run_until_complete(
             self._dm.store_unsupported_features(**test_data.get('input')))
         self.assertEqual(data, test_data.get("output", ""))
+
 
 if __name__ == '__main__':
     unittest.main()

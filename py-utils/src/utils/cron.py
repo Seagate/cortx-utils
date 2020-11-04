@@ -16,15 +16,14 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import datetime
+
 from crontab import CronTab
 from cortx.utils.log import Log
 
 
 class CronJob:
-    """
-    Class to Schedule Cron Jobs
-    """
 
+    """Class to Schedule Cron Jobs."""
     def __init__(self, user):
         try:
             self._cron = CronTab(user=user)
@@ -32,22 +31,27 @@ class CronJob:
             Log.error(f"Cron User Error : {e}")
             self._cron = None
 
-    def create_run_time(self, days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0):
+    @staticmethod
+    def create_run_time(days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0, hours=0,
+                        weeks=0):
         """
         Create Running time for Cron Jobs
+
         :return: Extended time from Current Time.
         """
-        return datetime.datetime.now() + datetime.timedelta(days, seconds, microseconds, milliseconds, minutes, hours,
-                                                            weeks)
+
+        return datetime.datetime.now() + datetime.timedelta(
+            days, seconds, microseconds, milliseconds, minutes, hours, weeks)
 
     def create_new_job(self, command, comment, schedule_time):
         """
-        Creeate new Cron jobs
+        Create new Cron jobs
+
         :param command: Command to be Executed in Cron job.
         :param comment: Comment for Cron Job.
         :param schedule_time: time at which cron should be executed.
-        :return:
         """
+
         if not self._cron:
             Log.error("Cron Job Object is not Instantiated")
             return
@@ -59,9 +63,10 @@ class CronJob:
     def remove_job(self, comment):
         """
         Remove Running/Scheduled Cron Jobs.
+
         :param comment: Comment for Cron Job. :type: String
-        :return:
         """
+
         if not self._cron:
             Log.error("Cron Job Object is not Instantiated")
             return

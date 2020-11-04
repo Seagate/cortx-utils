@@ -16,53 +16,57 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
-from cortx.utils.schema.payload import *
+
+from cortx.utils.schema.payload import Payload
+
 
 class Conf:
-    ''' Represents conf file - singleton '''
+
+    """Represents conf file - singleton."""
     _payloads = {}
 
     @staticmethod
     def init():
-        ''' Initializes data from conf file '''
-        pass
+        """Initializes data from conf file."""
 
     @staticmethod
     def load(index, doc, force=False):
-        if not os.path.isfile('%s' %doc):
-            raise Exception(-1, 'File %s does not exist' %doc)
+        if not os.path.isfile(str(doc)):
+            raise Exception(-1, f'File {doc} does not exist')
         if index in Conf._payloads.keys():
-            if force == False:
-                raise Exception('index %s is already loaded')
+            if force is False:
+                raise Exception(f'index {index} is already loaded')
             Conf.save(index)
         Conf._payloads[index] = Payload(doc)
 
     @staticmethod
     def get(index, key, default_val=""):
-        ''' Obtain value for the given key '''
-        return Conf._payloads[index].get(key) if Conf._payloads[index].get(key) is not None else default_val
+        """Obtain value for the given key."""
+        return Conf._payloads[index].get(key) if Conf._payloads[index].get(key) is not None \
+            else default_val
 
     @staticmethod
     def set(index, key, val):
-        ''' Sets the value into the conf for the given key '''
+        """Sets the value into the conf for the given key."""
         Conf._payloads[index].set(key, val)
 
     @staticmethod
     def save(index=None):
-        indexes = [x for x in _payloads.keys()] if index is None else index
-        for index in indexes:
-            Conf._payloads[index].dump()
+        indexes = list(Conf._payloads.keys()) if index is None else index
+        for index_var in indexes:
+            Conf._payloads[index_var].dump()
 
 
 class ConfSection:
-    """Represents sub-section of config file"""
 
+    """Represents sub-section of config file."""
     def __init__(self, from_dict: dict):
         """
         Initialize ConfSection by dictionary object
 
-        :param dict from_dict: base dictionary to create object from its keys and values
+        :param from_dict: base dictionary to create object from its keys and values
         """
+
         for key, value in from_dict.items():
             if isinstance(value, dict):
                 setattr(self, key, ConfSection(value))
@@ -71,18 +75,14 @@ class ConfSection:
 
 
 class DebugConf:
+
     """
     Class which simplifies work with debug settings in debug mode:
-
-    make easy check whether debug-mode is enabled and requested option is set
-    to desired value
+    make easy check whether debug-mode is enabled and requested option is set to desired value
     """
 
     def __init__(self, debug_settings: ConfSection):
-        """
-        Initialize debug configuration instance by debug settings
-
-        """
+        """Initialize debug configuration instance by debug settings."""
         self._debug_settings = debug_settings
 
     def __getattr__(self, attr):
@@ -90,7 +90,5 @@ class DebugConf:
 
     @property
     def http_enabled(self):
-        """
-        Validates if debug mode is enabled and HTTP is chosen
-        """
+        """Validates if debug mode is enabled and HTTP is chosen."""
         return self._debug_settings.enabled and self._debug_settings.http_enabled

@@ -15,14 +15,18 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import os
 import asyncio
+import os
 import unittest
-from cortx.utils.schema.payload import Json
+
 from cortx.utils.ha.dm.repository.decisiondb import DecisionDB
+from cortx.utils.schema.payload import Json
+
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
 file_path = os.path.join(dir_path, 'test_schema', 'test_decisiondb_data.json')
 TEST_DATA = Json(file_path).load()
+
 
 class TestDecisionDB(unittest.TestCase):
     _dm = DecisionDB()
@@ -48,7 +52,7 @@ class TestDecisionDB(unittest.TestCase):
         for actual, expected in zip(data, test_data.get("output")):
             print(actual.to_primitive(), expected)
             actual_value = actual.to_primitive()
-            self.assertDictEqual(actual_value , expected)
+            self.assertDictEqual(actual_value, expected)
 
     def test_delete_event(self):
         test_data = TEST_DATA.get("delete_event", {})
@@ -63,7 +67,8 @@ class TestDecisionDB(unittest.TestCase):
         for actual, expected in zip(data, test_data.get("output")):
             print(actual.to_primitive(), expected)
             actual_value = actual.to_primitive()
-            self.assertDictEqual(actual_value , expected)
+            self.assertDictEqual(actual_value, expected)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -15,9 +15,10 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from schematics.types import StringType, DateTimeType
+from schematics.types import DateTimeType, StringType
 
 from cortx.utils.ha.dm.models.base import HAModel
+
 
 class DecisionModel(HAModel):
     _id = "decision_id"
@@ -30,18 +31,20 @@ class DecisionModel(HAModel):
     def create_decision_id(*decision_payload):
         """
         This method creates the key for Decision DB.
+
         :param decision_payload: Parameters for Decision Payload. :type: Tuple
-        :return:
         """
+
         return "/".join(decision_payload)
 
     @staticmethod
     def instantiate_decision(**decision_payload):
         """
         Generate the Decision DB model object.
+
         :param decision_payload: Data For Decision DB.
-        :return:
         """
+
         decision = DecisionModel()
         decision.decision_id = decision_payload.get("decision_id", "")
         decision.action = decision_payload.get("action", "")

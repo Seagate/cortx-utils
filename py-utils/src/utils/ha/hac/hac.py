@@ -15,12 +15,14 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import argparse
 import os
 import sys
 import traceback
-import argparse
 from datetime import datetime
+
 from cortx.utils.schema.conf import Conf
+
 
 def usage():
     return """
@@ -39,14 +41,14 @@ $ hac --generate compiled.json --output cortx_pcs.sh --target pcs
 
 """
 
-#TODO make resource name case insensitive
-#TODO hac –d cortx_ha.spec -t pcs
+# TODO: make resource name case insensitive
+# TODO: hac –d cortx_ha.spec -t pcs
 
 
 def main():
-    from cortx.utils.ha.hac.compile import Compiler
-    from cortx.utils.ha.hac import generate
-    from cortx.utils.ha.hac import const
+    from cortx.utils.ha.hac.compile import Compiler  # pylint: disable=import-outside-toplevel
+    from cortx.utils.ha.hac import generate  # pylint: disable=import-outside-toplevel
+    from cortx.utils.ha.hac import const  # pylint: disable=import-outside-toplevel
 
     provider = {
         "pcs": generate.PCSGeneratorResource,
@@ -55,24 +57,20 @@ def main():
 
     try:
         Conf.init()
-        argParser = argparse.ArgumentParser(
-            usage = "%(prog)s\n\n" +  usage(),
-            formatter_class = argparse.RawDescriptionHelpFormatter)
-        argParser.add_argument("-v", "--validate",
-                help="Check input files for syntax errors")
-        argParser.add_argument("-t", "--target", default="pcs",
-                help="HA target to use. Example: pcs")
-        argParser.add_argument("-c", "--compile",
-                help="Path of ha_spec files.")
-        argParser.add_argument("-o", "--output",
-                help="Final spec/rule file for generator/compiler")
-        argParser.add_argument("-g", "--generate",
-                help="Ganerate script/rule for targeted HA tool. Eg: pcs")
-        argParser.add_argument("-a", "--args_file",
-                help="Args file for generator for dynamic input values")
-        argParser.add_argument("-r", "--resources",
-                help="Enter resorce list")
-        args = argParser.parse_args()
+        arg_parser = argparse.ArgumentParser(usage="%(prog)s\n\n" + usage(),
+                                             formatter_class=argparse.RawDescriptionHelpFormatter)
+        arg_parser.add_argument("-v", "--validate", help="Check input files for syntax errors")
+        arg_parser.add_argument("-t", "--target", default="pcs",
+                                help="HA target to use. Example: pcs")
+        arg_parser.add_argument("-c", "--compile", help="Path of ha_spec files.")
+        arg_parser.add_argument("-o", "--output",
+                                help="Final spec/rule file for generator/compiler")
+        arg_parser.add_argument("-g", "--generate",
+                                help="Generate script/rule for targeted HA tool. Eg: pcs")
+        arg_parser.add_argument("-a", "--args_file",
+                                help="Args file for generator for dynamic input values")
+        arg_parser.add_argument("-r", "--resources", help="Enter resource list")
+        args = arg_parser.parse_args()
 
         if args.generate is None:
             c = Compiler(args.compile, args.output, args.validate)
@@ -89,12 +87,13 @@ def main():
                                         args.resources)
             com.create_script()
     except Exception as e:
-        #TODO: print traceback error properly
+        # TODO: print traceback error properly
         with open(const.HAC_LOG, "w") as log:
             current_time = str(datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
-            log.writelines(current_time + ":"+ str(traceback.format_exc()))
-        print('Error: ' + str(e), file=sys.stderr)
+            log.writelines(f"{current_time}:{traceback.format_exc()}")
+        print(f'Error: {e}', file=sys.stderr)
         sys.exit(1)
+
 
 if __name__ == '__main__':
     sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))

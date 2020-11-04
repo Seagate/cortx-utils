@@ -17,19 +17,17 @@
 
 import asyncio
 from datetime import datetime, timezone
-from schematics.types import (IntType, StringType, BooleanType, DateTimeType)
 
-from cortx.utils.data.db.db_provider import (DataBaseProvider, GeneralConfig)
-from cortx.utils.data.access.filters import Compare, And, Or
+from schematics.types import BooleanType, DateTimeType, IntType, StringType
+
 from cortx.utils.data.access import BaseModel, Query, SortOrder
+from cortx.utils.data.access.filters import And, Compare, Or
+from cortx.utils.data.db.db_provider import DataBaseProvider, GeneralConfig
 
 
 class AlertModel(BaseModel):
 
-    """
-    Alert model example
-    """
-
+    """Alert model example."""
     _id = "alert_uuid"  # reference to another Alert model field to consider it as primary key
     alert_uuid = StringType()
     status = StringType()
@@ -52,11 +50,11 @@ class AlertModel(BaseModel):
         obj = super().to_primitive()
 
         if self.updated_time:
-            obj["updated_time"] =\
-                    int(self.updated_time.replace(tzinfo=timezone.utc).timestamp())
+            obj["updated_time"] = int(self.updated_time.replace(  # pylint: disable=no-member
+                tzinfo=timezone.utc).timestamp())
         if self.created_time:
-            obj["created_time"] =\
-                    int(self.created_time.replace(tzinfo=timezone.utc).timestamp())
+            obj["created_time"] = int(self.created_time.replace(  # pylint: disable=no-member
+                tzinfo=timezone.utc).timestamp())
         return obj
 
     def __hash__(self):
@@ -122,7 +120,7 @@ ALERT4 = {'alert_uuid': 4,
           'enclosure_id': 1,
           'module_name': "SSPL",
           'description': "Some Description",
-          'health': "Greate",
+          'health': "Great",
           'health_recommendation': "Replace Unity",
           'location': "Russia",
           'resolved': False,
@@ -174,20 +172,18 @@ async def example():
     await db(AlertModel).store(alert3)
     await db(AlertModel).store(alert4)
 
-    res = await db(AlertModel).get(
-        Query().filter_by(Compare(AlertModel.severity, "=", "Neutral")).order_by(
-            AlertModel.severity,
-            SortOrder.ASC))
+    res = await db(AlertModel).get(Query().filter_by(
+        Compare(AlertModel.severity, "=", "Neutral")).order_by(AlertModel.severity, SortOrder.ASC))
 
     if res:
         for i, model in enumerate(res):
             print(f"Model {i}: {model.to_primitive()}")
 
-    filter = And(Compare(AlertModel.primary_key, "=", 1),
-                 And(Compare(AlertModel.status, "=", "Success"),
-                     Compare(AlertModel.primary_key, ">", 1)))
+    filter_var = And(Compare(AlertModel.primary_key, "=", 1),
+                     And(Compare(AlertModel.status, "=", "Success"),
+                         Compare(AlertModel.primary_key, ">", 1)))
 
-    query = Query().filter_by(filter).order_by(AlertModel.primary_key, SortOrder.DESC)
+    query = Query().filter_by(filter_var).order_by(AlertModel.primary_key, SortOrder.DESC)
     res = await db(AlertModel).get(query)
     print(f"Get by query: {[alert.to_primitive() for alert in res]}")
 
@@ -215,7 +211,8 @@ async def example():
     if res is not None:
         print(f"Get by id after update = {_id}: {res.to_primitive()}")
 
-    filter_obj = Or(Compare(AlertModel.primary_key, "=", 1), Compare(AlertModel.primary_key, "=", 2),
+    filter_obj = Or(Compare(AlertModel.primary_key, "=", 1),
+                    Compare(AlertModel.primary_key, "=", 2),
                     Compare(AlertModel.primary_key, "=", 4))
     res = await db(AlertModel).count(filter_obj)
     print(f"Count by filter: {res}")

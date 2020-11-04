@@ -14,8 +14,8 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
-import sys
 from typing import List
+
 from setuptools import setup
 
 SPEC_DIR = "src/utils/ha/hac/specs/"
@@ -26,7 +26,7 @@ for root, directories, filenames in os.walk(_ROOT):
         specs.append(SPEC_DIR + filename)
 
 with open('LICENSE', 'r') as lf:
-    license = lf.read()
+    license = lf.read()  # pylint: disable=redefined-builtin
 
 with open('README.md', 'r') as rf:
     long_description = rf.read()
@@ -56,22 +56,17 @@ setup(name='cortx-py-utils',
                 'cortx.utils.ha',
                 'cortx.utils.validator',
                 'cortx.utils.kvstore',
-                'cortx.utils.message_bus','cortx.utils.message_bus.tcp',
+                'cortx.utils.message_bus', 'cortx.utils.message_bus.tcp',
                 'cortx.utils.message_bus.tcp.kafka', 'cortx.utils.product_features',
                 'cortx.utils.security', 'cortx.utils.schema',
                 'cortx.utils.appliance_info'
                 ],
-      package_data={
-        'cortx': ['py.typed'],
-      },
-      entry_points={
-        'console_scripts': [
-            'hac = cortx.utils.ha.hac.hac:main'
-        ]
-      },
-      data_files = [ ('/var/lib/cortx/ha/specs', specs),
-                     ('/var/lib/cortx/ha', ['src/utils/ha/hac/args.yaml', 'src/utils/ha/hac/re_build.sh']),
-                     ('/opt/seagate/cortx/utils/conf', ['requirements.txt'])],
+      package_data={'cortx': ['py.typed'],},
+      entry_points={'console_scripts': ['hac = cortx.utils.ha.hac.hac:main']},
+      data_files=[
+          ('/var/lib/cortx/ha/specs', specs),
+          ('/var/lib/cortx/ha', ['src/utils/ha/hac/args.yaml', 'src/utils/ha/hac/re_build.sh']),
+          ('/opt/seagate/cortx/utils/conf', ['requirements.txt'])],
       long_description=long_description,
       zip_safe=False,
       python_requires='>=3.6.8',

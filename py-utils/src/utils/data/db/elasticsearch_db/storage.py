@@ -19,34 +19,34 @@ import asyncio
 import multiprocessing
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
-from typing import List, Type, Union, Any
 from string import Template
+from typing import Any, List, Type, Union
 
+from elasticsearch import ConflictError
+from elasticsearch import ConnectionError as ESConnectionError
+from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Q, Search, UpdateByQuery
 from elasticsearch_dsl.response import UpdateByQueryResponse
-from elasticsearch import Elasticsearch
-from elasticsearch import ConflictError, ConnectionError
-from schematics.types import (StringType, DecimalType, DateType, IntType, BaseType, BooleanType,
-                              DateTimeType, UTCDateTimeType, FloatType, LongType, NumberType,
-                              ListType)
 from schematics.exceptions import ConversionError
+from schematics.types import (BaseType, BooleanType, DateTimeType, DateType,
+                              DecimalType, FloatType, IntType, ListType,
+                              LongType, NumberType, StringType,
+                              UTCDateTimeType)
 
-from cortx.utils.errors import InternalError
-from cortx.utils.data.access import Query, SortOrder, IDataBase
-from cortx.utils.data.access import ExtQuery
+from cortx.utils.data.access import (BaseModel, ExtQuery, IDataBase, Query,
+                                     SortOrder)
+from cortx.utils.data.access.filters import (ComparisonOperation,
+                                             FilterOperationCompare, IFilter)
 from cortx.utils.data.db import GenericDataBase, GenericQueryConverter
-from cortx.utils.data.access import BaseModel
-from cortx.utils.errors import DataAccessExternalError, DataAccessInternalError
-from cortx.utils.data.access.filters import FilterOperationCompare
-from cortx.utils.data.access.filters import ComparisonOperation, IFilter
-
+from cortx.utils.errors import (DataAccessExternalError,
+                                DataAccessInternalError, InternalError)
 
 __all__ = ["ElasticSearchDB"]
 
 
 class ESWords:
-    """ElasticSearch service words"""
 
+    """ElasticSearch service words."""
     MAPPINGS = "mappings"
     PROPERTIES = "properties"
     DATA_TYPE = "type"
@@ -65,8 +65,8 @@ class ESWords:
 
 
 class ESDataType:
-    """Enumeration for ElasticSearch data types"""
 
+    """Enumeration for ElasticSearch data types."""
     TEXT = "text"
     KEYWORD = "keyword"
     INTEGER = "integer"
@@ -105,8 +105,9 @@ DATA_MAP = {
     FloatType: "float",  # TODO: it is possible to increase type to elasticsearch's double
     LongType: "long",
     NumberType: "short",  # TODO: Size of ES's type can be increased to 'integer'
-    ListType: "nested"   # TODO: This will serialize only one level of nested objects. Need to implement for multi-level
-    # DictType: "nested"
+    ListType: "nested"  # TODO: This will serialize only one level of nested objects.
+                        # TODO: Need to implement for multi-level
+                        # DictType: "nested"
 }
 
 
@@ -114,18 +115,18 @@ def field_to_str(field: Union[str, BaseType]) -> str:
     """
     Convert model field to its string representation
 
-    :param Union[str, BaseType] field:
     :return: model field string representation
     """
+
     if isinstance(field, str):
         return field
-    elif isinstance(field, BaseType):
+    if isinstance(field, BaseType):
         return field.name
-    else:
-        raise DataAccessInternalError("Failed to convert field to string representation")
+    raise DataAccessInternalError("Failed to convert field to string representation")
 
 
 class ElasticSearchQueryConverter(GenericQueryConverter):
+
     """
     Implementation of filter tree visitor that converts the tree into the Query
     object of ElasticSearch-dsl library.
@@ -187,19 +188,19 @@ class ElasticSearchQueryConverter(GenericQueryConverter):
             else:
                 right_operand = field.to_native(entry.get_right_operand())
         except ConversionError as e:
-            raise DataAccessInternalError(f"{e}")
+            raise DataAccessInternalError(str(e))
 
         return self.comparison_conversion[op](field_str, right_operand)
 
 
 class ElasticSearchDataMapper:
-    """ElasticSearch data mappings helper"""
 
+    """ElasticSearch data mappings helper."""
     def __init__(self, model: Type[BaseModel], mapping_type: str):
         """
-
-        :param Type[BaseModel] model: model for constructing data mapping for index in ElasticSearch
+        :param model: model for constructing data mapping for index in ElasticSearch
         """
+
         self._model = model
         self._mapping_type = mapping_type
 
@@ -219,16 +220,16 @@ class ElasticSearchDataMapper:
         """
         Add property to mappings
 
-        :param str name: property name
-        :param Type[BaseType] property_type: type of property for given property `name`
-        :return:
+        :param name: property name
+        :param property_type: type of property for given property `name`
         """
+
         properties = self._mapping[ESWords.MAPPINGS][self._mapping_type][ESWords.PROPERTIES]
 
         if name in properties:
             raise InternalError(f"Repeated property name in model: {name}")
 
-        properties[name] = dict()
+        properties[name] = {}
         properties[name][ESWords.DATA_TYPE] = DATA_MAP[property_type]
         # NOTE: to perform case insensitive search we need to use custom normalizer for keywords
         if properties[name][ESWords.DATA_TYPE] == ESDataType.KEYWORD:
@@ -240,6 +241,7 @@ class ElasticSearchDataMapper:
 
         :return: elasticsearch data mappings dict
         """
+
         for name, property_type in self._model.fields.items():
             self._add_property(name, type(property_type))
         self._mapping[ESWords.INDEX_SETTINGS] = INDEX_SETTINGS
@@ -251,8 +253,8 @@ class ElasticSearchDataMapper:
 
 
 class ElasticSearchQueryService:
-    """Query service-helper for Elasticsearch"""
 
+    """Query service-helper for Elasticsearch."""
     def __init__(self, index: str, es_client: Elasticsearch,
                  query_converter: ElasticSearchQueryConverter, mapping_type: str):
         self._index = index
@@ -264,14 +266,15 @@ class ElasticSearchQueryService:
         """
         Get Elasticsearch Search instance by given query object
 
-        :param Query query: query object to construct ES's Search object
+        :param query: query object to construct ES's Search object
         :return: Search object constructed by given `query` param
         """
+
         def convert(name):
             return ESWords.ASC if name == SortOrder.ASC else ESWords.DESC
 
-        extra_params = dict()
-        sort_by = dict()
+        extra_params = {}
+        sort_by = {}
         search = Search(index=self._index, doc_type=self._mapping_type, using=self._es_client)
 
         q = query.data
@@ -296,8 +299,8 @@ class ElasticSearchQueryService:
 
 
 class ElasticSearchDB(GenericDataBase):
-    """ElasticSearch Storage Interface Implementation"""
 
+    """ElasticSearch Storage Interface Implementation."""
     elastic_instance = None
     thread_pool = None
     loop = None
@@ -313,13 +316,13 @@ class ElasticSearchDB(GenericDataBase):
     def __init__(self, es_client: Elasticsearch, model: Type[BaseModel], collection: str,
                  thread_pool_exec: ThreadPoolExecutor, loop: asyncio.AbstractEventLoop = None):
         """
-
-        :param Elasticsearch es_client: elasticsearch client
-        :param Type[BaseModel] model: model (class object) to associate it with elasticsearch storage
-        :param str collection: string represented collection for `model`
-        :param ThreadPoolExecutor thread_pool_exec: thread pool executor
-        :param BaseEventLoop loop: asyncio event loop
+        :param es_client: elasticsearch client
+        :param model: model (class object) to associate it with elasticsearch storage
+        :param collection: string represented collection for `model`
+        :param thread_pool_exec: thread pool executor
+        :param loop: asyncio event loop
         """
+
         self._es_client = es_client
         self._tread_pool_exec = thread_pool_exec
         self._loop = loop or asyncio.get_event_loop()
@@ -346,11 +349,11 @@ class ElasticSearchDB(GenericDataBase):
         """
         Creates new instance of ElasticSearch DB and performs necessary initializations
 
-        :param DBSettings config: configuration for elasticsearch server
-        :param str collection: collection for storing model onto db
-        :param Type[BaseModel] model: model which instances will be stored in DB
-        :return:
+        :param config: configuration for elasticsearch server :type: DBSettings
+        :param collection: collection for storing model onto db :type: str
+        :param model: model which instances will be stored in DB
         """
+
         # NOTE: please, be sure that you avoid using this method twice (or more times) for the same
         # model
         if not all((cls.elastic_instance, cls.thread_pool, cls.loop)):
@@ -370,16 +373,16 @@ class ElasticSearchDB(GenericDataBase):
         except DataAccessExternalError:
             raise  # forward error to upper caller
         except Exception as e:
-            raise DataAccessExternalError("Some unknown exception occurred in "
-                                          f"ElasticSearch module: {e}")
+            raise DataAccessExternalError(
+                f"Some unknown exception occurred in ElasticSearch module: {e}")
 
         return es_db
 
     async def attach_to_index(self, replication: int) -> None:
         """
         Provides async method to connect storage to index bound to provided model and collection
-        :return:
         """
+
         def _get_alias(_index):
             return self._es_client.indices.get_alias(self._index, ignore_unavailable=True)
 
@@ -390,8 +393,9 @@ class ElasticSearchDB(GenericDataBase):
             return self._es_client.indices.get(self._index)
 
         try:
-            indices = await self._loop.run_in_executor(self._tread_pool_exec, _get_alias, self._index)
-        except ConnectionError as e:
+            indices = await self._loop.run_in_executor(
+                self._tread_pool_exec, _get_alias, self._index)
+        except ESConnectionError as e:
             raise DataAccessExternalError(f"Failed to establish connection to ElasticSearch: {e}")
 
         # self._obj_index = self._es_client.indices.get_alias("*")
@@ -409,26 +413,30 @@ class ElasticSearchDB(GenericDataBase):
 
         # NOTE: if ElasticSearch index was created outside from CSM Agent there
         #  is no guarantee that index name and mapping type coincide
-        self._mapping_type = next(iter(self._index_info[self._index][ESWords.MAPPINGS].keys()), None)
+        self._mapping_type = next(iter(self._index_info[self._index][ESWords.MAPPINGS].keys()),
+                                  None)
         if self._mapping_type is None:
-            raise DataAccessExternalError(f"There are no mapping type for ElasticSearch index {self._mapping_type}")
-        self._model_scheme = self._index_info[self._index][ESWords.MAPPINGS][self._mapping_type][ESWords.PROPERTIES]
+            raise DataAccessExternalError(
+                f"There are no mapping type for ElasticSearch index {self._mapping_type}")
+        self._model_scheme = self._index_info[self._index][ESWords.MAPPINGS][self._mapping_type][
+            ESWords.PROPERTIES]
         self._model_scheme = {k.lower(): v for k, v in self._model_scheme.items()}
 
     async def store(self, obj: BaseModel):
         """
         Store object into Storage
 
-        :param BaseModel obj: Arbitrary base object for storing into DB
-
+        :param obj: Arbitrary base object for storing into DB
         """
+
         def _store(_id, _doc: dict):
             """
             Store particular object into elasticsearch index
 
-            :param dict _doc: dict representation of the object
+            :param _doc: dict representation of the object
             :return: elastic search server response
             """
+
             # TODO: is it needed to use id?
             _result = self._es_client.index(index=self._index, doc_type=self._mapping_type,
                                             id=_id, body=_doc)
@@ -436,14 +444,15 @@ class ElasticSearchDB(GenericDataBase):
 
         await super().store(obj)  # Call generic code
 
-        doc = dict()
+        doc = {}
         for key in self._model_scheme:
             doc[key] = getattr(obj, key)
-            #  TODO: This will serialize only one level of nested objects. Need to implement for multi-level
+            # TODO: This will serialize only one level of nested objects.
+            # Need to implement for multi-level
             if type(doc[key]) is list:
                 list_nested = []
                 for item in doc[key]:
-                    nested_obj = dict()
+                    nested_obj = {}
                     for k, v in item.items():
                         nested_obj[k] = v
                     list_nested.append(nested_obj)
@@ -465,9 +474,9 @@ class ElasticSearchDB(GenericDataBase):
         """
         Get object from Storage by Query
 
-        :param query:
         :return: empty list or list with objects which satisfy the passed query condition
         """
+
         def _get(_query):
             search = self._query_service.search_by_query(_query)
             return search.execute()
@@ -479,28 +488,25 @@ class ElasticSearchDB(GenericDataBase):
         """
         Update object in Storage by Query
 
-        :param IFilter filter_obj: filter object which describes what objects need to update
-        :param dict to_update: dictionary with fields and values which should be updated
+        :param filter_obj: filter object which describes what objects need to update
+        :param to_update: dictionary with fields and values which should be updated
         :return: number of updated entries
         """
+
         def dict_to_source(__to_update: dict) -> str:
             """
             Convert __to_update dict into elasticsearch source representation
+
             :param __to_update: dictionary with fields and values which should be updated
             :return: elasticsearch inline representation
             """
 
             def _value_converter(_value: Any) -> Any:
-                """
-                Convert value if it is necessary
-                :param _value:
-                :return:
-                """
+                """Convert value if it is necessary."""
                 if isinstance(_value, bool):
                     return str(_value).lower()
-                elif isinstance(_value, datetime):
+                if isinstance(_value, datetime):
                     return _value.strftime(self._default_date_format)
-
                 return _value
 
             return " ".join(
@@ -511,9 +517,11 @@ class ElasticSearchDB(GenericDataBase):
         def _update(_ubq) -> UpdateByQueryResponse:
             """
             Perform Update by Query in separate thread
-            :param UpdateByQuery _ubq: UpdateByQuery instance
+
+            :param _ubq: UpdateByQuery instance :type: UpdateByQuery
             :return: Response object of ElasticSearch DSL module
             """
+
             return _ubq.execute()
 
         _to_update = to_update.copy()  # Copy because it will be change below
@@ -535,11 +543,7 @@ class ElasticSearchDB(GenericDataBase):
         return result.updated
 
     async def _refresh_index(self):
-        """
-        Refresh index
-
-        :return:
-        """
+        """Refresh index."""
         def _refresh():
             self._es_client.indices.refresh(index=self._index)
 
@@ -549,9 +553,10 @@ class ElasticSearchDB(GenericDataBase):
         """
         Delete objects in DB by Query
 
-        :param IFilter filter_obj: filter object to perform delete operation
+        :param filter_obj: filter object to perform delete operation
         :return: number of deleted entries
         """
+
         def _delete(_by_filter):
             search = Search(index=self._index, doc_type=self._mapping_type, using=self._es_client)
             search = search.query(_by_filter)
@@ -564,7 +569,7 @@ class ElasticSearchDB(GenericDataBase):
         try:
             result = await self._loop.run_in_executor(self._tread_pool_exec, _delete, filter_by)
         except ConflictError as e:
-            raise DataAccessExternalError(f"{e}")
+            raise DataAccessExternalError(str(e))
 
         return result[ESWords.DELETED]
 
@@ -572,7 +577,7 @@ class ElasticSearchDB(GenericDataBase):
         """
         Returns count of entities for given filter_obj
 
-        :param IFilter filter_obj: filter to perform count aggregation
+        :param filter_obj: filter to perform count aggregation
         :return: count of entries which satisfy the `filter_obj`
         """
 
@@ -593,7 +598,5 @@ class ElasticSearchDB(GenericDataBase):
         """
         Count Aggregation function
 
-        :param ExtQuery ext_query: Extended query which describes to perform count aggregation
-        :return:
+        :param ext_query: Extended query which describes to perform count aggregation
         """
-        pass

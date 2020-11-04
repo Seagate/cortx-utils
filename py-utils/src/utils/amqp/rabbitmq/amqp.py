@@ -15,22 +15,25 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import time
-import logging
-import pika
-import random
 import json
+import logging
+import random
+import time
 from functools import partial
-from pika.exceptions import AMQPConnectionError, AMQPError, ChannelClosedByBroker, \
-    ChannelWrongStateError
-from cortx.utils.comm import Channel, Comm
-from cortx.utils.amqp import const
-from cortx.utils.errors import AmqpConnectionError
 
+import pika
+from pika.exceptions import (AMQPConnectionError, AMQPError,
+                             ChannelClosedByBroker, ChannelWrongStateError)
+
+from cortx.utils.amqp import const
+from cortx.utils.comm import Channel, Comm
+from cortx.utils.errors import AmqpConnectionError
 
 Log = logging.getLogger(__name__)
 
+
 class RabbitMQAmqpChannel(Channel):
+
     """
     Represents Amqp channel to a node for communication
     Communication to node is taken care by this class using pika
@@ -38,16 +41,17 @@ class RabbitMQAmqpChannel(Channel):
 
     def __init__(self, **kwargs):
         """
-        @param kwargs: keyword arguments for RabbitMQ configs
+        :param kwargs: keyword arguments for RabbitMQ configs
         """
+
         Channel.__init__(self)
         self._connection = None
         self._channel = None
         self.exchange = kwargs.get(const.EXCH)
         self.exchange_queue = kwargs.get(const.EXCH_QUEUE)
         self.routing_key = kwargs.get(const.ROUTING_KEY)
-        self.connection_exceptions = (AMQPConnectionError,
-            ChannelClosedByBroker, ChannelWrongStateError, AttributeError)
+        self.connection_exceptions = (
+            AMQPConnectionError, ChannelClosedByBroker, ChannelWrongStateError, AttributeError)
         self.connection_error_msg = (
             'RabbitMQ channel closed with error {}. Retrying with another host...')
         self.hosts = kwargs.get(const.RMQ_HOSTS)
@@ -65,19 +69,19 @@ class RabbitMQAmqpChannel(Channel):
         Initialize the object from a configuration file.
         Establish connection with Rabbit-MQ server.
         """
+
         self._connection = None
         self._channel = None
         retry_count = 0
-        while not(self._connection and self._channel) and \
-            int(self.retry_counter) > retry_count:
+        while not(self._connection and self._channel) and int(self.retry_counter) > retry_count:
             self.connect()
             if not (self._connection and self._channel):
-                Log.warn(f"RMQ Connection Failed. Retry Attempt: {retry_count+1}"
-                    f" in {2**retry_count} seconds")
+                Log.warning("RMQ Connection Failed. Retry Attempt: %s in %s seconds",
+                            retry_count + 1, 2**retry_count)
                 time.sleep(2**retry_count)
                 retry_count += 1
             else:
-                Log.debug(f"RMQ connection is Initialized. Attempts:{retry_count+1}")
+                Log.debug("RMQ connection is Initialized. Attempts: %s", retry_count + 1)
         if(self._connection and self._channel):
             self._declare_exchange_and_queue()
         else:
@@ -86,47 +90,37 @@ class RabbitMQAmqpChannel(Channel):
     def _declare_exchange_and_queue(self):
         if(self._connection and self._channel):
             try:
-                self._channel.exchange_declare(exchange=self.exchange,
-                                           exchange_type=self.exchange_type,
-                                                   durable=self.durable)
-            except AMQPError as err:
-                Log.error('Exchange: [{%s}], type: [ {%s} ] cannot be declared.\
-                           Details: {%s}'%(self.exchange,
-                                              self.exchange_type,
-                                              str(err)))
+                self._channel.exchange_declare(
+                    exchange=self.exchange, exchange_type=self.exchange_type, durable=self.durable)
+            except AMQPError as e:
+                Log.error('Exchange: [%s], type: [%s] cannot be declared. Details: %s',
+                          self.exchange, self.exchange_type, e)
             try:
-                self._channel.queue_declare(queue=self.exchange_queue,
-                                            exclusive=self.exclusive,
-                                                    durable=self.durable)
-                self._channel.queue_bind(exchange=self.exchange,
-                                         queue=self.exchange_queue,
-                                         routing_key=self.routing_key)
-                Log.info(f'Initialized Exchange: {self.exchange}, '
-                        f'Queue: {self.exchange_queue}, routing_key: {self.routing_key}')
-            except AMQPError as err:
-                Log.error(f'Fails to initialize the AMQP queue.\
-                      Details: {err}')
-                Log.exception(err)
-                raise AMQPError(-1, f'{err}')
+                self._channel.queue_declare(
+                    queue=self.exchange_queue, exclusive=self.exclusive, durable=self.durable)
+                self._channel.queue_bind(
+                    exchange=self.exchange, queue=self.exchange_queue, routing_key=self.routing_key)
+                Log.info('Initialized Exchange: %s, Queue: %s, routing_key: %s',
+                         self.exchange, self.exchange_queue, self.routing_key)
+            except AMQPError as e:
+                Log.error('Fails to initialize the AMQP queue. Details: %s', e)
+                Log.exception(e)
+                raise AMQPError(-1, str(e))
 
     def connect(self):
-        """
-        Initiate the connection with RMQ and open the necessary communication channel.
-        """
+        """Initiate the connection with RMQ and open the necessary communication channel."""
         try:
             ampq_hosts = [f'amqp://{self.username}:{self.password}@{host}/{self.virtual_host}'
-                for host in self.hosts]
+                          for host in self.hosts]
             ampq_hosts = [pika.URLParameters(host) for host in ampq_hosts]
             random.shuffle(ampq_hosts)
             self._connection = pika.BlockingConnection(ampq_hosts)
             self._channel = self._connection.channel()
         except self.connection_exceptions as e:
-            Log.error(self.connection_error_msg.format(repr(e)))
+            Log.error(self.connection_error_msg, repr(e))
 
     def disconnect(self):
-        """
-        Disconnect the connection
-        """
+        """Disconnect the connection."""
         try:
             if self._connection:
                 consumer_tag = const.CONSUMER_TAG
@@ -138,7 +132,7 @@ class RabbitMQAmqpChannel(Channel):
                 self._connection = None
                 Log.debug("RabbitMQ connection closed.")
         except Exception as e:
-            Log.error(f"Error closing RabbitMQ connection. {e}")
+            Log.error("Error closing RabbitMQ connection. %s", e)
 
     def recv(self, message=None):
         raise Exception('recv not implemented for AMQP Channel')
@@ -152,16 +146,17 @@ class RabbitMQAmqpChannel(Channel):
     def send(self, message):
         """
         Publish the message to SSPL Rabbit-MQ queue.
-        @param message: message to be published to queue.
-        @type message: str
+
+        :param message: message to be published to queue. :type: str
         """
+
         try:
-            self._channel.basic_publish(exchange=self.exchange,
-                routing_key=self.routing_key, body=json.dumps(message))
-            Log.info(f"Message Publish to Xchange: {self.exchange},"\
-                f"Key: {self.routing_key}, Msg Details: {message}")
+            self._channel.basic_publish(
+                exchange=self.exchange, routing_key=self.routing_key, body=json.dumps(message))
+            Log.info("Message Publish to Xchange: %s, Key: %s, Msg Details: %s",
+                     self.exchange, self.routing_key, message)
         except self.connection_exceptions as e:
-            Log.error(self.connection_error_msg.format(repr(e)))
+            Log.error(self.connection_error_msg, repr(e))
             self.init()
             self.send(message)
 
@@ -175,7 +170,7 @@ class RabbitMQAmqpChannel(Channel):
         try:
             self._channel.basic_ack(delivery_tag=delivery_tag)
         except self.connection_exceptions as e:
-            Log.error(self.connection_error_msg.format(repr(e)))
+            Log.error(self.connection_error_msg, repr(e))
             self.init()
             self.acknowledge(delivery_tag)
 
@@ -199,16 +194,16 @@ class RabbitMQAmqpConsumer(Comm):
 
     def _alert_callback(self, ct, ch, method, properties, body):
         """
-        1. This is the callback method on which we will receive the
-           alerts from RMQ channel.
+        1. This is the callback method on which we will receive the alerts from RMQ channel.
         2. This method will call AlertPlugin class function and will
            send the alert JSON string as parameter.
-        Parameters -
-        1. ch - RMQ Channel
-        2. method - Contains the server-assigned delivery tag
-        3. properties - Contains basic properties like delivery_mode etc.
-        4. body - Actual alert JSON string
+
+        :param ch: RMQ Channel
+        :param method: Contains the server-assigned delivery tag
+        :param properties: Contains basic properties like delivery_mode etc.
+        :param body: Actual alert JSON string
         """
+
         self.delivery_tag = method.delivery_tag
         self.plugin_callback(body)
 
@@ -219,14 +214,14 @@ class RabbitMQAmqpConsumer(Comm):
         self.disconnect()
 
     def recv(self, callback_fn=None, message=None):
-        """
-        Start consuming the queue messages.
-        """
+        """Start consuming the queue messages."""
         try:
             consumer_tag = const.CONSUMER_TAG
             self.plugin_callback = callback_fn
-            self._inChannel.channel().basic_consume(self._inChannel.exchange_queue,
-                    partial(self._alert_callback, consumer_tag), consumer_tag=consumer_tag)
+            self._inChannel.channel().basic_consume(
+                self._inChannel.exchange_queue,
+                partial(self._alert_callback, consumer_tag),
+                consumer_tag=consumer_tag)
             self._inChannel.channel().start_consuming()
         except self._inChannel.connection_exceptions as e:
             # Currently there are 2 scenarios in which recv method will fail -
@@ -236,7 +231,7 @@ class RabbitMQAmqpConsumer(Comm):
             # But for the 2nd case since we are closing the app we should not
             # try to re-connect.
             if not self._is_disconnect:
-                Log.error(self._inChannel.connection_error_msg.format(repr(e)))
+                Log.error(self._inChannel.connection_error_msg, repr(e))
                 self.init()
                 self.recv(callback_fn)
 
@@ -250,6 +245,7 @@ class RabbitMQAmqpConsumer(Comm):
 
     def connect(self):
         raise Exception('connect not implemented for RabbitMQAmqpConsumer')
+
 
 class RabbitMQAmqpProducer(Comm):
     def __init__(self, **kwargs):

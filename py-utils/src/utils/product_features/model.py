@@ -15,8 +15,10 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+from schematics.types import StringType
+
 from cortx.utils.data.access.base_model import BaseModel
-from schematics.types import StringType, ListType
+
 
 class UnsupportedFeaturesModel(BaseModel):
     _id = "feature_id"
@@ -31,9 +33,10 @@ class UnsupportedFeaturesModel(BaseModel):
         This method creates the key for saving feature in DB.
         Format:
             /cortx/base/config/obj/<component_name>/UNSUPPORTED_FEATURE/<feature_name>
+
         :param key_data: Parameters for Feature Consul Key. :type: Tuple
-        :return:
         """
+
         key_data = [str(each_key).upper() for each_key in key_data]
         return "/".join(key_data)
 
@@ -41,11 +44,13 @@ class UnsupportedFeaturesModel(BaseModel):
     def instantiate_decision(feature_id, feature_name, component_name):
         """
         Generate the unsupported feature DB model object.
+
         :param feature_id: Created Key for Feature. :type: String.
         :param feature_name: Name of Feature Not Supported in the System. :type: String.
         :param component_name: Name of Component :type: String.
         :return: Model Object.
         """
+
         unsupported_feature = UnsupportedFeaturesModel()
         unsupported_feature.feature_id = feature_id
         unsupported_feature.feature_name = feature_name
