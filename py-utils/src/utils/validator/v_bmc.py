@@ -89,8 +89,8 @@ class BmcV:
         """
         Process BMC validations.
         Usage (arguments to be provided):
-        1. bmc accessible
-        2. bmc stonith
+        1. bmc accessible <node1> <node2> <...>
+        2. bmc stonith <node1> <node2> <...>
         """
 
         if not isinstance(args, list):
