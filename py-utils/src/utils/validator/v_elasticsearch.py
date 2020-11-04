@@ -16,7 +16,6 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
-import requests
 
 from cortx.utils.validator.service import HttpService
 from cortx.utils.validator.error import VError
