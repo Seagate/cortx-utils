@@ -17,7 +17,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
-
+import socket
 from cortx.utils.validator.error import VError
 from cortx.utils.process import SimpleProcess
 
@@ -29,8 +29,7 @@ class NetworkV:
         """
         Process network validations.
         Usage (arguments to be provided):
-        1. network ip_connectivity <ip1> <ip2> <ip3>
-        2. network host_connectivity <host1> <host2>
+        1. network connectivity <ip1> <ip2> <host>
         2. network passwordless <user> <node1> <node2>
         """
 
@@ -40,9 +39,7 @@ class NetworkV:
         if len(args) < 1:
             raise VError(errno.EINVAL, "Insufficient parameters. %s" % args)
 
-        if v_type == "ip_connectivity":
-            self.validate_ip_connectivity(args)
-        elif v_type == "host_connectivity":
+        if v_type == "connectivity":
             self.validate_host_connectivity(args)
         elif v_type == "passwordless":
             self.validate_passwordless_ssh(args[0], args[1:])
@@ -73,25 +70,11 @@ class NetworkV:
 
     def validate_host_connectivity(self, hosts):
         """Check if hosts are reachable."""
-
-        unreachable_hosts = []
         for host in hosts:
-            cmd = f"host -W 1 {host}"
-            cmd_proc = SimpleProcess(cmd)
-            run_result = cmd_proc.run()
-            if run_result[2]:
-                res = (f"DNS lookup failed for {host}."
-                       f"CMD {cmd} failed. {run_result[0]}. {run_result[1]}")
-                raise VError(errno.ECONNREFUSED, res)
-            cmd = f"ping -c 1 -W 1 {host}"
-            cmd_proc = SimpleProcess(cmd)
-            run_result = cmd_proc.run()
-            if run_result[2]:
-                unreachable_hosts.append(host)
-
-        if len(unreachable_hosts) != 0:
-            raise VError(errno.ECONNREFUSED,
-                         "Ping failed for host(s). %s" % unreachable_hosts)
+            ip = host
+            if not self._is_ip(ip):
+                ip = self._resolve_host(host)
+            self.validate_ip_connectivity([ip])
 
     def validate_passwordless_ssh(self, user, nodes):
         """Check passwordless ssh."""
@@ -107,8 +90,23 @@ class NetworkV:
                        f"CMD {cmd} failed. {run_result[0]}. {run_result[1]}")
                 raise VError(errno.ECONNREFUSED, res)
 
+    def _is_ip(self, ip):
+        if ip.count(".") == 3 and all(self._is_valid_ipv4_part(ip_part)
+           for ip_part in ip.split(".")):
+            is_ip = True
+        else:
+            is_ip = False
+        return is_ip
+
     def _is_valid_ipv4_part(self, ip_part):
         try:
             return str(int(ip_part)) == ip_part and 0 <= int(ip_part) <= 255
         except Exception:
             return False
+
+    def _resolve_host(self, host):
+        try:
+            return socket.gethostbyname(host)
+        except Exception as exc:
+            raise VError(errno.EINVAL,
+                         f"Failed to resolve host {host} Error {str(exc)}")

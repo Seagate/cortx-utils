@@ -35,23 +35,23 @@ class TestNetworkValidator(unittest.TestCase):
 
         fake_ip1 = '11.230.249.110'
         fake_ip2 = '12.230.249.110'
-        self.assertRaises(VError, NetworkV().validate, 'ip_connectivity',
+        self.assertRaises(VError, NetworkV().validate, 'connectivity',
                           [fake_ip1, fake_ip2])
 
     def test_connectivity_ok(self):
         ip1 = '8.8.8.8'
-        NetworkV().validate('ip_connectivity', [ip1])
+        NetworkV().validate('connectivity', [ip1])
 
     def test_host_connectivity_error(self):
         """Check host connectivity failure."""
 
         fake_host = 'www1.google.com'
-        self.assertRaises(VError, NetworkV().validate, 'host_connectivity',
+        self.assertRaises(VError, NetworkV().validate, 'connectivity',
                           [fake_host])
 
     def test_host_connectivity_ok(self):
         host = 'localhost'
-        NetworkV().validate('host_connectivity', [host])
+        NetworkV().validate('connectivity', [host])
 
     def test_nopasswordless_ssh(self):
         fake_hosts = ['srvnod-1', 'srvnod-2']
