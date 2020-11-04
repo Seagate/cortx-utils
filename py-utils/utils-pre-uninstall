@@ -1,0 +1,6 @@
+#!/bin/bash
+
+PIP=pip3.6 
+POST_INSTALL_REQUIREMENTS=/opt/seagate/cortx/utils/conf/requirements.txt
+
+sudo $PIP uninstall --yes -r $POST_INSTALL_REQUIREMENTS

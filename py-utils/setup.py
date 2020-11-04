@@ -15,6 +15,7 @@
 
 import os
 import sys
+from typing import List
 from setuptools import setup
 
 SPEC_DIR = "src/utils/ha/hac/specs/"
@@ -29,6 +30,12 @@ with open('LICENSE', 'r') as lf:
 
 with open('README.md', 'r') as rf:
     long_description = rf.read()
+
+def get_install_requirements() -> List:
+    install_requires = []
+    with open('requirements.txt') as r:
+        install_requires = [line.strip() for line in r]
+    return install_requires
 
 setup(name='cortx-py-utils',
       version='1.0.0',
@@ -47,9 +54,12 @@ setup(name='cortx-py-utils',
                 'cortx.utils.ha.dm', 'cortx.utils.ha.dm.models',
                 'cortx.utils.ha.dm.repository',
                 'cortx.utils.ha',
+                'cortx.utils.validator',
+                'cortx.utils.kvstore',
                 'cortx.utils.message_bus','cortx.utils.message_bus.tcp',
                 'cortx.utils.message_bus.tcp.kafka', 'cortx.utils.product_features',
                 'cortx.utils.security', 'cortx.utils.schema',
+                'cortx.utils.appliance_info'
                 ],
       package_data={
         'cortx': ['py.typed'],
@@ -60,12 +70,9 @@ setup(name='cortx-py-utils',
         ]
       },
       data_files = [ ('/var/lib/cortx/ha/specs', specs),
-                     ('/var/lib/cortx/ha', ['src/utils/ha/hac/args.yaml', 'src/utils/ha/hac/re_build.sh'])],
+                     ('/var/lib/cortx/ha', ['src/utils/ha/hac/args.yaml', 'src/utils/ha/hac/re_build.sh']),
+                     ('/opt/seagate/cortx/utils/conf', ['requirements.txt'])],
       long_description=long_description,
       zip_safe=False,
       python_requires='>=3.6.8',
-      install_requires=['cryptography==2.8', 'schematics==2.1.0', 'toml==0.10.0',
-                        'PyYAML==5.1.2', 'configparser==4.0.2', 'networkx==2.4',
-                        'matplotlib==3.1.3', 'argparse==1.4.0',
-                        'confluent-kafka==1.5.0', 'python-crontab==2.5.1','elasticsearch==6.8.1',
-                        'elasticsearch-dsl==6.4.0','python-consul==1.1.0', 'aiohttp==3.6.1'])
+      install_requires=get_install_requirements())
