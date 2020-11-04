@@ -41,8 +41,8 @@ class ValidatorCommandFactory:
                         "\t[hardware lsb_hba <node-1> <...>]\n"
                         "\t[hardware lsb_hba_ports <node-1> <...>]\n"
                         "\t[storage lvm_size <node-1> <...>]\n"
-                        "\t[storage vol_accessible <node-1> <...>]\n"
-                        "\t[storage vol_mapped <node-1> <...>]\n")
+                        "\t[storage luns_accessible <node-1> <...>]\n"
+                        "\t[storage volumes_mapped <node-1> <...>]\n")
 
         sys.stderr.write(usage_string)
 
