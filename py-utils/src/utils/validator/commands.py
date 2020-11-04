@@ -114,6 +114,8 @@ class SaltVCommand(VCommand):
         """Validate salt minion connectivity <nodes>..."""
 
         self._salt.validate(self.v_type, self.args)
+
+
 class BmcVCommand(VCommand):
     """BMC related commands."""
 

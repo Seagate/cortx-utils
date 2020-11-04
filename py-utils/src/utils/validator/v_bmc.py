@@ -120,7 +120,7 @@ class BmcV:
 
 
     def validate_bmc_accessibility(self, nodes):
-        """ Validate Consul service status.
+        """ Validate BMC accessibility
         """
         for node in nodes:
             # Validate BMC power status
