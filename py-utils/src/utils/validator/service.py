@@ -41,13 +41,13 @@ class HttpService(Service):
     to check if service is up and running.
     """
 
-    def __init__(self):
-        self.host = "localhost"
-        self.port = "80"
-        self.service_name = "http_service"
-        self.service_url = ""
-
+    def __init__(self, service_name, host, port, service_url=""):
         super(HttpService, self).__init__()
+
+        self.service_name = service_name
+        self.host = host
+        self.port = port
+        self.service_url = service_url
 
     def validate_service_status(self):
         """Validate service status."""

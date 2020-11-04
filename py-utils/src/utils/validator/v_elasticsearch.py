@@ -21,14 +21,8 @@ from cortx.utils.validator.service import HttpService
 from cortx.utils.validator.error import VError
 
 
-class ElasticsearchV(HttpService):
+class ElasticsearchV:
     """Elasticsearch related validations."""
-
-    def __init__(self):
-        super(ElasticsearchV, self).__init__()
-
-        self.service_name = "elasticsearch"
-        self.service_url = ""
 
     def validate(self, v_type, args):
         """
@@ -44,9 +38,7 @@ class ElasticsearchV(HttpService):
             raise VError(errno.EINVAL, f"Insufficient parameters. {args}")
 
         if v_type == "service":
-            self.host = args[0]
-            self.port = args[1]
-            self.validate_service_status()
+            HttpService("elasticsearch", args[0], args[1]).validate_service_status()
         else:
             raise VError(
                 errno.EINVAL, f"Action parameter {v_type} not supported")
