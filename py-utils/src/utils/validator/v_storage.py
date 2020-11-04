@@ -16,7 +16,6 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
-#import subprocess
 
 from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.error import VError
@@ -29,9 +28,11 @@ class StorageV:
         """
         Process storage validations.
         Usage (arguments to be provided):
-        1. storage vol_accessible nodes
-        2. storage vol_mapped nodes
-        3. storage lvm_size nodes
+        1. storage luns nodes
+        2. storage lvms nodes
+        3. storage luns_accessible nodes
+        4. storage volumes_mapped nodes
+        5. storage lvm_size nodes
         """
 
         if not isinstance(args, list):
@@ -40,31 +41,85 @@ class StorageV:
         if len(args) < 1:
             raise VError(errno.EINVAL, "Insufficient parameters. %s" % args)
 
-        if v_type == "vol_accessible":
+        if v_type == "luns":
+            self.validate_luns_consistency(args)
+        elif v_type == "lvms":
+            self.validate_lvm(args)
+        elif v_type == "luns_accessible":
             self.validate_volumes_accessible(args)
-        elif v_type == "vol_mapped":
+        elif v_type == "volumes_mapped":
             self.validate_volumes_mapped(args)
         elif v_type == "lvm_size":
             self.validate_lvm_equal_sized(args)
-
         else:
             raise VError(
                 errno.EINVAL, "Action parameter %s not supported" % v_type)
 
 
-    def validate_volumes_accessible(self, nodes):
-        """Validate accessible volumes."""
+    def validate_luns_consistency(self, nodes):
+        """Validate luns consistency."""
+
+        for node in nodes:
+            cmd = f"ssh {node} lsblk -S | grep sas | wc -l"
+            cmd_proc = SimpleProcess(cmd)
+            run_result = cmd_proc.run()
+
+            if run_result[1] or run_result[2]:
+                res = (f"Failed to get luns on {node}."
+                       f"CMD {cmd} failed. {run_result[0]}. {run_result[1]}")
+                raise VError(errno.EINVAL, res)
+
+            res = (run_result[0].decode('utf-8').strip())
+            if int(res) == 0 or (int(res) % 16):
+                res = (f"The query resulted in {int(res)} number of LUNs"
+                       " that are not as per desired configuration on node "
+                       f"{node} (which needs to be in multiples of 16 for a "
+                       "dual node cluster). To troubleshoot this"
+                       " issue execute command: 'lsblk -S | grep sas'")
+                raise VError(errno.EINVAL, res)
+
+
+    def validate_lvm(self, nodes):
+        """Validate lvms are present."""
+
+        for node in nodes:
+
+            cmd = f"ssh {node} vgdisplay | grep vg_metadata_{node}"
+            cmd_proc = SimpleProcess(cmd)
+            run_result = cmd_proc.run()
+            if run_result[1] or run_result[2]:
+                res = (f"Failed to get vg_metadata_{node} on {node}."
+                       f"CMD {cmd} failed. {run_result[0]}. {run_result[1]}")
+                raise VError(errno.EINVAL, res)
+
+            cmd = f"ssh {node} vgdisplay | grep vg_metadata | wc -l"
+            cmd_proc = SimpleProcess(cmd)
+            run_result = cmd_proc.run()
+            if run_result[1] or run_result[2]:
+                res = (f"Failed to get lvms on {node}."
+                       f"CMD {cmd} failed. {run_result[0]}. {run_result[1]}")
+                raise VError(errno.EINVAL, res)
+
+            res = (run_result[0].decode('utf-8').strip())
+            if not res or (int(res) != len(nodes)):
+                raise VError(errno.EINVAL,
+                             f"No. of Lvms {res} are not correct for {node}.")
+
+
+    def validate_luns_accessible(self, nodes):
+        """Validate accessible luns."""
 
         for node in nodes:
             cmd = f"ssh {node} lsblk -S && ls -1 /dev/disk/by-id/scsi-*"
             cmd_proc = SimpleProcess(cmd)
             run_result = cmd_proc.run()
 
-            if run_result[2]:
-                raise VError(errno.EINVAL, f"Volumes are not accessible at {node}.")
-
-            res = run_result[0].strip()
-            print (res)
+            if run_result[1] or run_result[2]:
+                res = ("LUNs from Direct Attached Storage (DAS) are "
+                       f"not accessible/available on server {node}. "
+                       f"Also, check if '{node}' is valid. "
+                       f"CMD {cmd} failed. {run_result[0]}. {run_result[1]}")
+                raise VError(errno.EINVAL, res)
 
 
     def validate_volumes_mapped(self, nodes):
@@ -75,19 +130,31 @@ class StorageV:
             cmd_2 = f"ssh {node} multipath -ll | grep prio=10 | wc -l"
             cmd_proc_1 = SimpleProcess(cmd_1)
             cmd_proc_2 = SimpleProcess(cmd_2)
-            run_result_1 = cmd_proc_1.check_output(shell=True)
-            run_result_2 = cmd_proc_2.check_output(shell=True)
-            
-            if run_result_1[2] or run_result_2[2]:
-                raise VError(errno.EINVAL, f"Failed to Get Volumes Mapped for {node}.")
+            run_result_1 = cmd_proc_1.run()
+            run_result_2 = cmd_proc_2.run()
 
-            res1 = run_result_1[0].strip()
-            res2 = run_result_2[0].strip()
+            if (run_result_1[1] or run_result_1[2] or
+                run_result_2[1] or run_result_2[2]):
+                res = ("Failed to detect volumes from Direct Attached Storage (DAS) "
+                       f"(available as LUNs) mapped for server {node}. "
+                       f"Also, check if '{node}' is valid. "
+                       "Commands 'multipath -ll | grep prio=50 | wc -l' "
+                       "and 'multipath -ll | grep prio=10 | wc -l' failed. "
+                       f"{run_result_1[0]}. {run_result_1[1]} "
+                       f"{run_result_2[0]}. {run_result_2[1]}")
+                raise VError(errno.EINVAL, res)
+
+            res1 = (run_result_1[0].decode('utf-8').strip())
+            res2 = (run_result_2[0].decode('utf-8').strip())
             print (res1, res2)
 
             if (int(res1) != 16) or (int(res2) != 16):
-                raise VError(errno.EINVAL,
-                             f"Volumes Are Not Properly Mapped in {node}.")
+                res = ("Volumes from Direct Attached Storage (DAS) are "
+                       f"not properly mapped in multipath service for {node}. "
+                       "It is expected to detect LUNs in multiples for 16. "
+                       "Troubleshoot the issue and execute the following "
+                       "command on each node: 'multipath -ll | grep prio=50 | wc -l'")
+                raise VError(errno.EINVAL, res)
 
 
     def validate_lvm_equal_sized(self, nodes):
@@ -95,16 +162,17 @@ class StorageV:
 
         for node in nodes:
             cmd = ("ssh %s lsscsi -s | grep -e disk | grep -e SEAGATE | awk '{print $7}'" % node)
-            #run_result = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
             cmd_proc = SimpleProcess(cmd)
-            run_result = cmd_proc.check_output(shell=True)
-            print ('LVM size', set(run_result[0].splitlines()))
+            run_result = cmd_proc.run()
+            print ('LVM size', set(run_result[0].decode('utf-8').splitlines()))
 
-            if run_result[2]:
-                raise VError(errno.EINVAL, f"Failed to get LVM details on {node}.")
+            if run_result[1] or run_result[2]:
+                res = (f"Failed to get lvms on {node}. "
+                       f"Also, check if '{node}' is valid. "
+                       f"CMD {cmd} failed. {run_result[0]}. {run_result[1]}")
+                raise VError(errno.EINVAL, res)
 
             res = len(set(run_result[0].splitlines()))
-            print (res)
 
             if int(res) != 1:
                 raise VError(errno.EINVAL, f"LVMs Are Not Equal-Sized on {node}.")

@@ -17,20 +17,19 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
-
+import os
 from cortx.utils.validator.error import VError
 from cortx.utils.process import SimpleProcess
 
 
-class NetworkV:
-    """Network related validations."""
+class SaltV:
+    """Salt related validations."""
 
     def validate(self, v_type, args):
         """
-        Process network validations.
+        Process salt validations.
         Usage (arguments to be provided):
-        1. network connectivity <ip1> <ip2> <ip3>
-        2. network passwordless <user> <node1> <node2>
+        1. salt minions <nodes>
         """
 
         if not isinstance(args, list):
@@ -39,51 +38,26 @@ class NetworkV:
         if len(args) < 1:
             raise VError(errno.EINVAL, "Insufficient parameters. %s" % args)
 
-        if v_type == "connectivity":
-            self.validate_ip_connectivity(args)
-        elif v_type == "passwordless":
-            self.validate_passwordless_ssh(args[0], args[1:])
+        if v_type == "minions":
+            self.validate_salt_minion_connectivity(args)
         else:
             raise VError(
                 errno.EINVAL, "Action parameter %s not supported" % v_type)
 
-    def validate_ip_connectivity(self, ips):
-        """Check if IPs are reachable."""
+    def validate_salt_minion_connectivity(self, nodes):
+        """Check salt minion connectivity."""
 
-        unreachable_ips = []
-        for ip in ips:
-            if ip.count(".") == 3 and all(self._is_valid_ipv4_part(ip_part)
-                                          for ip_part in ip.split(".")):
-
-                cmd = f"ping -c 1 -W 1 {ip}"
-                cmd_proc = SimpleProcess(cmd)
-                run_result = cmd_proc.run()
-
-                if run_result[2]:
-                    unreachable_ips.append(ip)
-            else:
-                raise VError(errno.EINVAL, f"Invalid ip {ip}.")
-
-        if len(unreachable_ips) != 0:
-            raise VError(
-                errno.ECONNREFUSED, "Ping failed for IP(s). %s" % unreachable_ips)
-
-    def validate_passwordless_ssh(self, user, nodes):
-        """Check passwordless ssh."""
+        if os.environ.get('USER') != 'root':
+            res = ("validate_salt_minion: "
+                   "This interface requires root privileges.")
+            raise VError(errno.EACCES, res)
 
         for node in nodes:
-            cmd = ("ssh -o PreferredAuthentications=publickey "
-                   f"-o StrictHostKeyChecking=no {user}@{node} /bin/true")
+            cmd = f"salt -t 5 {node} test.ping"
             cmd_proc = SimpleProcess(cmd)
             run_result = cmd_proc.run()
 
             if run_result[1] or run_result[2]:
-                res = (f"Passwordless ssh not configured for {node}."
+                res = (f"Salt minion {node} unreachable."
                        f"CMD {cmd} failed. {run_result[0]}. {run_result[1]}")
                 raise VError(errno.ECONNREFUSED, res)
-
-    def _is_valid_ipv4_part(self, ip_part):
-        try:
-            return str(int(ip_part)) == ip_part and 0 <= int(ip_part) <= 255
-        except Exception:
-            return False

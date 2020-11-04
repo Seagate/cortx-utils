@@ -1,7 +1,8 @@
-#!/bin/python3
+#!/usr/bin/env python3
 
-# CORTX-Py-Utils: CORTX Python common library.
+# CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -15,21 +16,25 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import unittest
+import sys
+import os
 
-class VError(Exception):
-    """Class representing a generic error with error code and output of a command."""
+utils_root = os.path.join(os.path.dirname(__file__), "..", "..")
+sys.path.append(utils_root)
 
-    def __init__(self, rc, desc):
-        self._rc = rc
-        self._desc = desc
+from cortx.utils.validator.v_salt import SaltV
+from cortx.utils.validator.error import VError
 
-        error = "%s: %s" % (self._rc, self._desc)
-        super(VError, self).__init__(error)
 
-    @property
-    def rc(self):
-        return self._rc
+class TestSaltValidator(unittest.TestCase):
+    """Test salt related validations."""
 
-    @property
-    def desc(self):
-        return self._desc
+    def test_nosalt_minion_connectivity(self):
+        fake_hosts = ['srvnod-1', 'srvnod-2']
+        self.assertRaises(VError, SaltV().validate, 'minions',
+                          fake_hosts)
+
+
+if __name__ == '__main__':
+    unittest.main()

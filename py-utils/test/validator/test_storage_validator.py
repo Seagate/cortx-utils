@@ -17,43 +17,37 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import unittest
-import sys
-import os
-
-utils_root = os.path.join(os.path.dirname(__file__), "..", "..")
-sys.path.append(utils_root)
 
 from cortx.utils.validator.v_storage import StorageV
 from cortx.utils.validator.error import VError
 
 
 class TestStorageValidator(unittest.TestCase):
-    """Test pre-factory Storage related validations."""
+    """Test Storage related validations."""
 
 
     def test_luns_present(self):
         """Check LUNs present - CHECK."""
 
-        StorageV().validate('vol_accessible', ['srvnode-1'])
+        StorageV().validate('luns_accessible', ['srvnode-1'])
 
     def test_luns_not_present(self):
         """Check LUNs present - ERROR."""
 
         dummy_hosts = ['srv-1', 'srv-2']
-        self.assertRaises(VError, StorageV().validate, 'vol_accessible', dummy_hosts)
+        self.assertRaises(VError, StorageV().validate, 'luns_accessible', dummy_hosts)
 
 
     def test_luns_ports_wrongly_mapped(self):
         """Check LUNs Ports - ERROR."""
 
-        #StorageV().validate('vol_mapped', ['srvnode-1'])
-        self.assertRaises(VError, StorageV().validate, 'vol_mapped', ['srvnode-1'])
+        self.assertRaises(VError, StorageV().validate, 'volumes_mapped', ['srvnode-1'])
 
     def test_luns_ports_error(self):
         """Check LUNs Ports - ERROR."""
 
         dummy_hosts = ['srv-1', 'srv-2']
-        self.assertRaises(VError, StorageV().validate, 'vol_mapped', dummy_hosts)
+        self.assertRaises(VError, StorageV().validate, 'volumes_mapped', dummy_hosts)
 
 
     def test_lvm_size_ok(self):
@@ -67,7 +61,18 @@ class TestStorageValidator(unittest.TestCase):
         dummy_hosts = ['srv-1', 'srv-2']
         self.assertRaises(VError, StorageV().validate, 'lvm_size', dummy_hosts)
 
+    def test_luns_inconsistent(self):
+        """Check LUN inconsistent."""
+
+        self.assertRaises(VError, StorageV().validate, 'luns',
+                          ["srvnode-1", "srvnode-2"])
+
+    def test_lvm_error(self):
+        """Check LVM not present."""
+
+        self.assertRaises(VError, StorageV().validate, 'lvms',
+                          ["srvnode-1", "srvnode-2"])
+
 
 if __name__ == '__main__':
     unittest.main()
-

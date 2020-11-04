@@ -20,8 +20,6 @@ import errno
 
 from cortx.utils.validator.error import VError
 from cortx.utils.process import SimpleProcess
-from cortx.utils.const import ITEMS_SEPARATOR
-
 
 class HardwareV:
     """Hardware related validations."""
@@ -33,26 +31,24 @@ class HardwareV:
         1. hardware rpm rpm_name nodes
         2. hardware hca nodes
         3. hardware hca_ports nodes
-        4. hardware hba nodes
-        5. hardware hba_ports nodes
-        
+        4. hardware lsb_hba nodes
+        5. hardware lsb_hba_ports nodes
+
         """
 
         if not isinstance(args, list):
             raise VError(errno.EINVAL, "Invalid parameters %s" % args)
 
         if v_type == "rpm":
-            print ("Input Args .. ", args)
             if len(args) < 2:
                 raise VError(errno.EINVAL, "Insufficient parameters. %s" % args)
             else:
                 self.validate_rpm(args[0], args[1:])
-        
+
         else:
-            print ("Input Args .. ", args)
             if len(args) < 1:
                 raise VError(errno.EINVAL, "Insufficient parameters. %s" % args)
-            
+
             if v_type == "hca":
                 self.validate_mlnx_hca_present(args)
             elif v_type == "hca_ports":
@@ -63,7 +59,7 @@ class HardwareV:
                 self.validate_lsb_hba_req_ports(args)
             else:
                 raise VError(
-                    errno.EINVAL, "Action parameter %s not supported" % args[0])
+                    errno.EINVAL, "Action parameter '%s' or %s not supported" % (v_type, args[0]))
 
 
     def validate_rpm(self, rpm, nodes):
@@ -73,10 +69,12 @@ class HardwareV:
             cmd = f"ssh {node} rpm -qa | grep {rpm}"
             cmd_proc = SimpleProcess(cmd)
             run_result = cmd_proc.run()
-            if run_result[2]:
-                raise VError(errno.EINVAL, f"{rpm} Not Installed on {node}.")
-            res = run_result[0].strip()
-            print (res)
+
+            if run_result[1] or run_result[2]:
+                res = (f"Given RPM '{rpm}' Is Not Installed on {node}. "
+                       f"Also, check if '{node}' is valid. "
+                       f"CMD {cmd} failed. {run_result[0]}. {run_result[1]}")
+                raise VError(errno.EINVAL, res)
 
 
     def validate_mlnx_hca_present(self, nodes):
@@ -86,11 +84,13 @@ class HardwareV:
             cmd = f"ssh {node} lspci -nn | grep 'Mellanox Technologies'"
             cmd_proc = SimpleProcess(cmd)
             run_result = cmd_proc.run()
-            if run_result[2]:
-                raise VError(errno.EINVAL, f"HCA Not Present on {node}.")
 
-            res = run_result[0].strip()
-            print (res)
+            if run_result[1] or run_result[2]:
+                res = ("Mellanox Host Channel Adapters card "
+                       f"possibly with Infiniband capability) is not detected on {node}. "
+                       f"Also, check if '{node}' is valid. "
+                       f"CMD '{cmd} failed. {run_result[0]}. {run_result[1]}")
+                raise VError(errno.EINVAL, res)
 
 
     def validate_mlnx_hca_req_ports(self, nodes):
@@ -99,29 +99,37 @@ class HardwareV:
         for node in nodes:
             cmd = f"ssh {node} lspci -nn | grep 'Mellanox Technologies' | wc -l"
             cmd_proc = SimpleProcess(cmd)
-            run_result = cmd_proc.check_output(shell=True)
-            
-            if run_result[2]:
-                raise VError(run_result[2], run_result[1])
+            run_result = cmd_proc.run()
 
-            res = run_result[0].strip()
-            print (res)
+            if run_result[1] or run_result[2]:
+                res = ("Mellanox Host Channel Adapters ports were not "
+                       "detected by command 'lspci -nn | grep 'Mellanox Technologies'. "
+                       f"Also, check if '{node}' is valid. ")
+                raise VError(errno.EINVAL, res)
+
+            res = run_result[0].decode('utf-8').strip()
             if int(res) == 0:
-                raise VError(errno.EINVAL, f"HCA Does Not Have Req Ports on {node}.")
+                res = ("Mellanox Host Channel Adapters ports were not "
+                       "detected by command 'lspci -nn | grep 'Mellanox Technologies'. "
+                       "For high-speed data network, it is expected to "
+                       "have at least one port present over some PCIe slot. ")
+                raise VError(errno.EINVAL, res)
 
 
     def validate_lsb_hba_present(self, nodes):
-        """Check if Mellanox HBA is present"""
+        """Check if HBA is present"""
 
         for node in nodes:
             cmd = f"ssh {node} lspci -nn | grep 'SCSI'"
             cmd_proc = SimpleProcess(cmd)
             run_result = cmd_proc.run()
-            if run_result[2]:
-                raise VError(errno.EINVAL, f"HBA Not Present on {node}.")
 
-            res = run_result[0].strip()
-            print (res)
+            if run_result[1] or run_result[2]:
+                res = ("Host Bus Adapters (HBA) for "
+                       f"SAS channels not detected on {node}. "
+                       f"Also, check if '{node}' is valid. "
+                       f"CMD {cmd} failed. {run_result[0]}. {run_result[1]}")
+                raise VError(errno.EINVAL, res)
 
 
     def validate_lsb_hba_req_ports(self, nodes):
@@ -130,12 +138,20 @@ class HardwareV:
         for node in nodes:
             cmd = f"ssh {node} ls /sys/class/scsi_host/ | wc -l"
             cmd_proc = SimpleProcess(cmd)
-            run_result = cmd_proc.check_output(shell=True)
-            
-            if run_result[2]:
-                raise VError(run_result[2], run_result[1])
+            run_result = cmd_proc.run()
 
-            res = run_result[0].strip()
-            print (res)
+            if run_result[1] or run_result[2]:
+                res = ("Host Bus Adapters (HBA) for "
+                       f"SAS channels not detected on {node}. "
+                       f"Also, check if '{node}' is valid. ")
+                raise VError(errno.EINVAL, res)
+
+            res = run_result[0].decode('utf-8').strip()
             if int(res) == 0:
-                raise VError(errno.EINVAL, f"HBA Does Not Have Req Ports on {node}.")
+                res = ("Host Bus Adapters (HBA) for "
+                       f"SAS channels not detected on {node}. "
+                       "For storage connectivity over SAS channels "
+                       "to JBOD/RBOD there is expectation for a PCIe HBA card "
+                       "to be present. Please check HW, if this system "
+                       "expects a connection to either JBOD or RBOD." )
+                raise VError(errno.EINVAL, res)

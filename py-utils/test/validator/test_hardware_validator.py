@@ -17,11 +17,6 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import unittest
-import sys
-import os
-
-utils_root = os.path.join(os.path.dirname(__file__), "..", "..")
-sys.path.append(utils_root)
 
 from cortx.utils.validator.v_hardware import HardwareV
 from cortx.utils.validator.error import VError
