@@ -72,7 +72,7 @@ class BmcV:
         return pw_status, cmd, result
 
 
-    def ping_bmc(self, node):
+    def __ping_bmc(self, node):
         """ Ping BMC IP
         """
         ip = self.__get_bmc_ip(node)
@@ -134,7 +134,7 @@ class BmcV:
                 raise VError(errno.EINVAL, msg)
 
             # Check if we can ping BMC
-            self.ping_bmc(node)
+            self.__ping_bmc(node)
 
 
     def validate_bmc_stonith_config(self, node, bmc_ip, bmc_user, bmc_passwd):
