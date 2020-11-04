@@ -29,7 +29,8 @@ class NetworkV:
         """
         Process network validations.
         Usage (arguments to be provided):
-        1. network connectivity <ip1> <ip2> <ip3>
+        1. network ip_connectivity <ip1> <ip2> <ip3>
+        2. network host_connectivity <host1> <host2>
         2. network passwordless <user> <node1> <node2>
         """
 
@@ -39,8 +40,10 @@ class NetworkV:
         if len(args) < 1:
             raise VError(errno.EINVAL, "Insufficient parameters. %s" % args)
 
-        if v_type == "connectivity":
+        if v_type == "ip_connectivity":
             self.validate_ip_connectivity(args)
+        elif v_type == "host_connectivity":
+            self.validate_host_connectivity(args)
         elif v_type == "passwordless":
             self.validate_passwordless_ssh(args[0], args[1:])
         else:
@@ -67,6 +70,28 @@ class NetworkV:
         if len(unreachable_ips) != 0:
             raise VError(
                 errno.ECONNREFUSED, "Ping failed for IP(s). %s" % unreachable_ips)
+
+    def validate_host_connectivity(self, hosts):
+        """Check if hosts are reachable."""
+
+        unreachable_hosts = []
+        for host in hosts:
+            cmd = f"host -W 1 {host}"
+            cmd_proc = SimpleProcess(cmd)
+            run_result = cmd_proc.run()
+            if run_result[2]:
+                res = (f"DNS lookup failed for {host}."
+                       f"CMD {cmd} failed. {run_result[0]}. {run_result[1]}")
+                raise VError(errno.ECONNREFUSED, res)
+            cmd = f"ping -c 1 -W 1 {host}"
+            cmd_proc = SimpleProcess(cmd)
+            run_result = cmd_proc.run()
+            if run_result[2]:
+                unreachable_hosts.append(host)
+
+        if len(unreachable_hosts) != 0:
+            raise VError(errno.ECONNREFUSED,
+                         "Ping failed for host(s). %s" % unreachable_hosts)
 
     def validate_passwordless_ssh(self, user, nodes):
         """Check passwordless ssh."""
