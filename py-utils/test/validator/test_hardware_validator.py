@@ -45,9 +45,8 @@ class TestHardwareValidator(unittest.TestCase):
         self.assertRaises(VError, HardwareV().validate, 'rpm', [rpm, dummy_hosts])
 
     def test_hca_present(self):
-        """Check HCA present - CHECK."""
+        """Check HCA Present - CHECK."""
  
-        #hosts = ['localhost']
         HardwareV().validate('hca', ['srvnode-1'])
  
     def test_hca_not_present(self):
