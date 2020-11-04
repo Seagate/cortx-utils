@@ -48,20 +48,25 @@ class NetworkV:
                 errno.EINVAL, "Action parameter %s not supported" % v_type)
 
     def validate_ip_connectivity(self, ips):
-        """Check if IP/Hosts are reachable."""
+        """Check if IPs are reachable."""
 
         unreachable_ips = []
         for ip in ips:
-            cmd = f"ping -c 1 -W 1 {ip}"
-            cmd_proc = SimpleProcess(cmd)
-            run_result = cmd_proc.run()
+            if ip.count(".") == 3 and all(self._is_valid_ipv4_part(ip_part)
+                                          for ip_part in ip.split(".")):
 
-            if run_result[2]:
-                unreachable_ips.append(ip)
+                cmd = f"ping -c 1 -W 1 {ip}"
+                cmd_proc = SimpleProcess(cmd)
+                run_result = cmd_proc.run()
+
+                if run_result[2]:
+                    unreachable_ips.append(ip)
+            else:
+                raise VError(errno.EINVAL, f"Invalid ip {ip}.")
 
         if len(unreachable_ips) != 0:
             raise VError(
-                errno.ECONNREFUSED, "Ping failed for IP/Host(s). %s" % unreachable_ips)
+                errno.ECONNREFUSED, "Ping failed for IP(s). %s" % unreachable_ips)
 
     def validate_passwordless_ssh(self, user, nodes):
         """Check passwordless ssh."""
