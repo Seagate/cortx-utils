@@ -33,31 +33,37 @@ class TestBmcValidator(unittest.TestCase):
         """ Check BMC Accessibility """
         BmcV().validate('accessible', ['srvnode-1','srvnode-2'])
 
-    def test_stonith_cfg_ok(self):
+    def test_accessibility_no_args_error(self):
+        """ Check 'accessible' validation type for no arguments """
+        self.assertRaises(VError, BmcV().validate, 'accessible',[])
+
+    def test_accessibility_error(self):
+        """ Check 'accessible' validation type for fake arguments """
+        fake_hosts = ['srv-1', 'srv-2']
+        self.assertRaises(VError, BmcV().validate, 'accessible',fake_hosts)
+
+    def test_stonith_ok(self):
         """ Check Stonith configuration """
-        BmcV().validate('stonith', ['srvnode-1','srvnode-2'])
+        cfg_args = ['srvnode-1', '192.168.12.123', 'admin', 'Admin!']
+        BmcV().validate('stonith', cfg_args)
+
+    def test_stonith_no_args_error(self):
+        """ Check 'stonith' validation type for no arguments """
+        self.assertRaises(VError, BmcV().validate, 'stonith',[])
+
+    def test_stonith_less_args_error(self):
+        """ Check 'stonith' validation type for less arguments """
+        cfg_args = ['srvnode-1', '192.168.12.123', 'admin']
+        self.assertRaises(VError, BmcV().validate, 'stonith',cfg_args)
+
+    def test_stonith_more_args_error(self):
+        """ Check 'stonith' validation type for more arguments """
+        cfg_args = ['srvnode-1', '192.168.12.123', 'admin', 'Admin!', 'DummyData']
+        self.assertRaises(VError, BmcV().validate, 'stonith',cfg_args)
 
     def test_incorrect_vtype(self):
         """ Check incorrect validation type """
         self.assertRaises(VError, BmcV().validate, 'dummy',[])
-
-    def test_accessibility_args_error(self):
-        """ Check arguments for 'accessible' validation type """
-        self.assertRaises(VError, BmcV().validate, 'accessible',[])
-
-    def test_accessibility_error(self):
-        """ Check arguments for 'accessible' validation type """
-        fake_hosts = ['srv-1', 'srv-2']
-        self.assertRaises(VError, BmcV().validate, 'accessible',fake_hosts)
-
-    def test_stonith_cfg_args_error(self):
-        """ Check arguments for 'accessible' validation type """
-        self.assertRaises(VError, BmcV().validate, 'stonith',[])
-
-    def test_stonith_cfg_error(self):
-        """ Check arguments for 'stonith' validation type """
-        fake_hosts = ['srv-1', 'srv-2']
-        self.assertRaises(VError, BmcV().validate, 'stonith',fake_hosts)
 
 if __name__ == '__main__':
     unittest.main()

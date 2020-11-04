@@ -122,7 +122,6 @@ class BmcVCommand(VCommand):
     def __init__(self, args):
         super(BmcVCommand, self).__init__(args)
 
-        sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
         from v_bmc import BmcV
 
         self._bmc = BmcV()

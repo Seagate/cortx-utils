@@ -36,7 +36,7 @@ class ValidatorCommandFactory:
                         "\t[network connectivity <ip1> <ip2> <...>]\n"
                         "\t[consul service <host> <port>]\n"
                         "\t[bmc accessible <node1> <node2> <...>]\n"
-                        "\t[bmc stonith <node1> <node2> <...>]\n")
+                        "\t[bmc stonith <node> <bmc_ip> <bmc_user> <bmc_passwd>]\n")
         sys.stderr.write(usage_string)
 
     @staticmethod
