@@ -16,8 +16,8 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
-import requests
 
+from cortx.utils.validator.service import HttpService
 from cortx.utils.validator.error import VError
 
 
@@ -38,30 +38,8 @@ class ConsulV:
             raise VError(errno.EINVAL, "Insufficient parameters. %s" % args)
 
         if v_type == "service":
-            self.validate_service_status(args[0], args[1])
+            HttpService("consul", args[0], args[1], "/v1/status/leader") \
+                .validate_service_status()
         else:
             raise VError(
                 errno.EINVAL, "Action parameter %s not supported" % v_type)
-
-    def validate_service_status(self, host, port):
-        """Validate Consul service status."""
-
-        url = f"http://{host}:{port}/v1/status/leader"
-
-        try:
-            status_code = requests.get(url).status_code
-            if status_code != 200:
-                raise VError(
-                    errno.ECOMM, (f"Error {status_code} obtained while "
-                    f"connecting to consul service on {host}:{port}."))
-        except requests.exceptions.InvalidURL:
-            raise VError(
-                errno.EINVAL, (f"Either or all inputs host '{host}' and port "
-                f"'{port}' are invalid."))
-        except requests.exceptions.ConnectionError:
-            raise VError(errno.ECONNREFUSED,
-                         f"No Consul service running on {host}:{port}")
-        except requests.exceptions.RequestException as req_ex:
-            raise VError(
-                errno.ECOMM, (f"Error connecting to consul service on "
-                f"{host}:{port}. {req_ex}"))
