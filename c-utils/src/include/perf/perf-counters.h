@@ -23,6 +23,7 @@
 #include "perf/tsdb.h" /* ACTION_ID_BASE */
 #include "operation.h"
 #include <pthread.h>
+#include <string.h>
 #include "debug.h"
 
 /******************************************************************************/
@@ -76,43 +77,6 @@ enum perfc_subtags {
 		 __map_id, __ext_id, __VA_ARGS__)
 
 
-/* TODO: move it into submodules */
-
-enum perfc_cfs {
-	PERFC_CFS_MKDIR,
-};
-
-enum perfc_nsal {
-	PERFC_NSAL_GET,
-	PERFC_NSAL_SET,
-	PERFC_NSAL_LISTCB,
-	PERFC_NSAL_DEL,
-};
-
-enum perfc_m0_adapter {
-	/* EE points */
-	PERFC_M0A_GET,
-	PERFC_M0A_PUT,
-	PERFC_M0A_NEXT,
-	PERFC_M0A_DEL,
-
-	PERFC_M0A_OBJ_CREATE,
-	PERFC_M0A_OBJ_DELETE,
-	PERFC_M0A_OBJ_OPEN,
-	PERFC_M0A_OBJ_CLOSE,
-
-	PERFC_M0A_IDX_CREATE,
-	PERFC_M0A_IDX_DELETE,
-	PERFC_M0A_IDX_OPEN,
-	PERFC_M0A_IDX_CLOSE,
-
-	/* Mappings */
-	PERFC_M0A_MAP_GET,
-	PERFC_M0A_MAP_PUT,
-	PERFC_M0A_MAP_NEXT,
-	PERFC_M0A_MAP_DEL,
-};
-
 #define PERFC_INVALID_ID 0
 extern uint64_t perfc_id_gen;
 extern pthread_key_t perfc_tls_key;
@@ -129,34 +93,6 @@ struct perfc_callstack {
 	uint8_t mod;
 	int8_t top;
 	struct perfc_tls_ctx pstack[MAX_PERFC_STACK_DEPTH];
-};
-
-enum perfc_function_tags {
-	PFT_START,
-
-	PFT_FSAL_READ,
-	PFT_FSAL_WRITE,
-	PFT_FSAL_GETATTRS,
-	PFT_FSAL_SETATTRS,
-
-	PFT_KVS_INIT,
-	PFT_KVS_FINI,
-	PFT_KVS_ALLOC,
-	PFT_KVS_FREE,
-	PFT_KVS_GET,
-	PFT_KVS_SET,
-
-	PFT_CFS_READ,
-	PFT_CFS_WRITE,
-	PFT_CFS_GETATTR,
-	PFT_CFS_SETATTR,
-	PFT_CFS_ACCESS,
-
-	PFT_DSTORE_GET,
-	PFT_DSTORE_PREAD,
-	PFT_DSTORE_PWRITE,
-
-	PFT_END
 };
 
 enum perfc_entry_type {
@@ -178,144 +114,140 @@ enum perfc_entity_states {
 	PES_END
 };
 
-enum perfc_entity_attrs {
-	PEA_START,
-
-	PEA_W_OFFSET,
-	PEA_W_SIZE,
-	PEA_W_RES_MAJ,
-	PEA_W_RES_MIN,
-
-	PEA_R_OFFSET,
-	PEA_R_IOVC,
-	PEA_R_IOVL,
-	PEA_R_RES_MAJ,
-	PEA_R_RES_MIN,
-
-	PEA_R_C_COUNT,
-	PEA_R_C_OFFSET,
-	PEA_R_C_RES_RC,
-
-	PEA_GETATTR_RES_MAJ,
-	PEA_GETATTR_RES_MIN,
-	PEA_GETATTR_RES_RC,
-
-	PEA_SETATTR_RES_MAJ,
-	PEA_SETATTR_RES_MIN,
-	PEA_SETATTR_RES_RC,
-
-	PEA_ACCESS_FLAGS,
-	PEA_ACCESS_RES_RC,
-
-	PEA_KVS_ALLOC_SIZE,
-	PEA_KVS_ALLOC_RES_RC,
-
-	PEA_DSTORE_GET_RES_RC,
-
-	PEA_DSTORE_PREAD_OFFSET,
-	PEA_DSTORE_PREAD_COUNT,
-	PEA_DSTORE_PREAD_BS,
-	PEA_DSTORE_PREAD_RES_RC,
-	PEA_DSTORE_PWRITE_OFFSET,
-	PEA_DSTORE_PWRITE_COUNT,
-	PEA_DSTORE_PWRITE_RES_RC,
-
-	PEA_KVS_GET_KLEN,
-	PEA_KVS_GET_VLEN,
-	PEA_KVS_GET_RES_RC,
-
-	PEA_DSTORE_BS,
-
-	PEA_KVS_KLEN,
-	PEA_KVS_VLEN,
-	PEA_KVS_RES_RC,
-
-	PEA_END
+enum perfc_function_tags_ranges {
+	PFTR_START,
+	PFTR_RANGE_1_START = 1U,	/* Reserved for cortxfs*/
+	PFTR_RANGE_1_END = 256U,
+	PFTR_RANGE_2_START = 257U,	/* Reserved for cortx-fs-ganesha*/
+	PFTR_RANGE_2_END = 512U,
+	PFTR_RANGE_3_START = 513U,	/* Reserved for dsal*/
+	PFTR_RANGE_3_END = 768U,
+	PFTR_RANGE_4_START = 769U,	/* Reserved for nsal*/
+	PFTR_RANGE_4_END = 1024U,
+	PFTR_RANGE_5_START = 1025U,	/* Reserved for utils*/
+	PFTR_RANGE_5_END = 1280U,
+	PFTR_RANGE_6_START = 1281U,	/* Reserved for future repos*/
+	PFTR_RANGE_6_END = 1537U,
+	PFTR_END
 };
 
-enum perfc_entity_maps {
-	PEM_START,
-
-	PEM_UNUSED,
-
-	PEM_NFS_TO_CFS,
-	PEM_NFS_TO_DSAL,
-	PEM_NFS_TO_NSAL,
-	PEM_NFS_TO_MOTR,
-
-	PEM_CFS_TO_NFS,
-	PEM_CFS_TO_DSAL,
-	PEM_CFS_TO_NSAL,
-	PEM_CFS_TO_MOTR,
-
-	PEM_DSAL_TO_NFS,
-	PEM_DSAL_TO_CFS,
-	PEM_DSAL_TO_MOTR,
-
-	PEM_NSAL_TO_NFS,
-	PEM_NSAL_TO_CFS,
-	PEM_NSAL_TO_MOTR,
-
-	PEM_KVS_TO_NFS,
-	PEM_DSTORE_TO_NFS,
-
-	PEM_END
+enum perfc_submodule_tags_ranges {
+	PSMTR_START,
+	PSMTR_A, // for cortxfs
+	PSMTR_B, // for cortx-fs-ganesha
+	PSMTR_C, // for dsal
+	PSMTR_D, // for nsal
+	PSMTR_E, // for utils
+	PSMTR_F, // for future repos
+	PSMTR_END
 };
+
+enum perfc_entity_attrs_ranges {
+	PEAR_START,
+	PEAR_RANGE_1_START = 1U,	/* Reserved for cortxfs*/
+	PEAR_RANGE_1_END = 256U,
+	PEAR_RANGE_2_START = 257U,	/* Reserved for cortx-fs-ganesha*/
+	PEAR_RANGE_2_END = 512U,
+	PEAR_RANGE_3_START = 513U,	/* Reserved for dsal*/
+	PEAR_RANGE_3_END = 768U,
+	PEAR_RANGE_4_START = 769U,	/* Reserved for nsal*/
+	PEAR_RANGE_4_END = 1024U,
+	PEAR_RANGE_5_START = 1025U,	/* Reserved for utils*/
+	PEAR_RANGE_5_END = 1280U,
+	PEAR_RANGE_6_START = 1281U,	/* Reserved for future repos*/
+	PEAR_RANGE_6_END = 1537U,
+	PEAR_END
+};
+
+enum perfc_entity_maps_ranges {
+	PEMR_UNUSED = -1,
+	PEMR_START = 0,
+	PEMR_RANGE_1_START = 1U,	/* Reserved for cortxfs*/
+	PEMR_RANGE_1_END = 256U,
+	PEMR_RANGE_2_START = 257U,	/* Reserved for cortx-fs-ganesha*/
+	PEMR_RANGE_2_END = 512U,
+	PEMR_RANGE_3_START = 513U,	/* Reserved for dsal*/
+	PEMR_RANGE_3_END = 768U,
+	PEMR_RANGE_4_START = 769U,	/* Reserved for nsal*/
+	PEMR_RANGE_4_END = 1024U,
+	PEMR_RANGE_5_START = 1025U,	/* Reserved for utils*/
+	PEMR_RANGE_5_END = 1280U,
+	PEMR_RANGE_6_START = 1281U,	/* Reserved for future repos*/
+	PEMR_RANGE_6_END = 1537U,
+	PEMR_END
+};
+
 
 /* Format of State perf. counters:
- * | tsdb_modules | function tag | PET_STATE | opid | perfc_entity_states
- * | [Rest] |
+ * | tsdb_modules | function tag | submod tag | PET_STATE | opid
+ * | perfc_entity_states | [Rest] |
  * where Arguments:
  *	- TSDB Module ID
  *	- an enum value from perfc_function_tags
+ *	- an enum value from perfc_submodule_tags
  *	- PET_STATE tag as this traces a state
  *	- op id - caller generated tag for operation id
  *	- perfc_entity_states - caller generated enum value from
  *	  perfc_entity_states to tag the state
  *	- __VA_ARGS_ - operation-specific arguments.
  */
-#define PERFC_STATE_V2(__mod, __fn_tag, opid, state, ...) do {		\
-	dassert(__fn_tag > PFT_START && __fn_tag < PFT_END);		\
+#define PERFC_STATE_V2(__mod, __fn_tag, __sm_tag, opid, state, ...) do {\
+	int tg = __fn_tag;						\
+	dassert(tg > PFTR_START && tg < PFTR_END);			\
+	tg = __sm_tag;							\
+	dassert(tg > PSMTR_START && tg < PSMTR_END);			\
 	dassert(state > PES_START && state < PES_END);			\
-	TSDB_ADD(TSDB_MK_AID(__mod, 0xAB), __fn_tag, PET_STATE, opid,	\
-		 state, __VA_ARGS__);					\
+	TSDB_ADD(TSDB_MK_AID(__mod, 0xAB), __fn_tag, __sm_tag,		\
+		 PET_STATE, opid, state, __VA_ARGS__);			\
 } while (0)
 
 /* Format of Attribute perf. counters:
- * | tsdb_modules | function tag | PET_ATTR | opid | attr type | attrid
- * | [Rest] |
+ * | tsdb_modules | function tag | submod tag |PET_ATTR | opid | attr type
+ * | attrid | [Rest] |
  * where Arguments:
  *	- TSDB Module ID
  *	- an enum value from perfc_function_tags
+ *	- an enum value from perfc_submodule_tags
  *	- PET_ATTR tag as this traces an attribute of a op
  *	- op id - caller generated tag for operation id
  *	- perfc_entity_attrs - caller generated enum value from
  *	  perfc_entity_attrs to tag the attribute
  *	- __VA_ARGS_ - attribute-specific arguments.
  */
-#define PERFC_ATTR_V2(__mod, __fn_tag, opid, attrid, ...) do {		\
-	dassert(__fn_tag > PFT_START && __fn_tag < PFT_END);		\
-	dassert(attrid > PEA_START && attrid < PEA_END);		\
-	TSDB_ADD(TSDB_MK_AID(__mod, 0xCD), __fn_tag, PET_ATTR, opid,	\
-		 attrid, __VA_ARGS__);					\
+#define PERFC_ATTR_V2(__mod, __fn_tag, __sm_tag, opid, attrid, ...) do {\
+	int tag = __fn_tag;						\
+	dassert(tag > PFTR_START && tag < PFTR_END);			\
+	tag = __sm_tag;							\
+	dassert(tag > PSMTR_START && tag < PSMTR_END);			\
+	tag = attrid;							\
+	dassert(tag > PEAR_START && tag < PEAR_END);			\
+	TSDB_ADD(TSDB_MK_AID(__mod, 0xCD), __fn_tag, __sm_tag,		\
+		 PET_ATTR, opid, attrid, __VA_ARGS__);			\
 } while (0)
 
 /* Format of Map perf. counters:
- * | tsdb_modules | function tag | map tag | src opid | dst opid | [Rest] |
+ * | tsdb_modules | function tag | submod tag | map tag | src opid | dst opid
+ * | caller_opid, [Rest] |
  * where Arguments:
  *	- TSDB Module ID
  *	- an enum value from perfc_function_tags
+ *	- an enum value from perfc_submodule_tags
  *	- PET_MAP tag as this traces a map of two ops
  *	- Caller passed map tag from enum perfc_entity_maps
  *	- opid - caller generated tag for operation id
  *	- related_opid - caller generated tag for related operation id
+ *	- caller_opid - caller generated tag for previous caller's operation id
  *	- __VA_ARGS_ - attribute-specific arguments.
  */
-#define PERFC_MAP_V2(__mod, __fn_tag, map_tag, opid, related_opid, ...) do {\
-	dassert(__fn_tag > PFT_START && __fn_tag < PFT_END);		\
-	dassert(map_tag > PEM_START && map_tag < PEM_END);		\
-	TSDB_ADD(TSDB_MK_AID(__mod, 0xEF), __fn_tag, PET_MAP, map_tag,	\
-		 opid, related_opid, __VA_ARGS__);			\
+#define PERFC_MAP_V2(__mod, __fn_tag, __sm_tag, map_tag, opid, related_opid, caller_opid,...) do {\
+	int tag = __fn_tag;						\
+	dassert(tag > PFTR_START && tag < PFTR_END);			\
+	tag = __sm_tag;							\
+	dassert(tag > PSMTR_START && tag < PSMTR_END);			\
+	tag = map_tag;							\
+	dassert(tag > PEMR_START && tag < PEMR_END);			\
+	TSDB_ADD(TSDB_MK_AID(__mod, 0xEF), __fn_tag, __sm_tag, PET_MAP, map_tag,\
+		 opid, related_opid, caller_opid, __VA_ARGS__);			\
 } while (0)
 
 #ifdef ENABLE_TSDB_ADDB
@@ -360,7 +292,7 @@ static inline uint64_t perf_id_gen(void)
 	ptc.mod = _mod;							\
 	ptc.opid = _opid;						\
 	ptc.fn_tag = _fn_tag;						\
-	ptc.map_tag = PEM_UNUSED;					\
+	ptc.map_tag = PEMR_UNUSED;					\
 	perfc_tls_push(ptc);						\
 } while (0)
 
@@ -391,21 +323,56 @@ static inline struct perfc_tls_ctx perfc_tls_get_top(void)
 	struct perfc_tls_ctx ptctx = {.opid = PERFC_INVALID_ID};
 	struct perfc_callstack *perfstack = pthread_getspecific(perfc_tls_key);
 
-	if (perfstack == NULL) {
-	    return ptctx;
-	}
-
-	if (perfstack->top == -1) {
+	if ((perfstack == NULL) || (perfstack->top == -1)) {
 	    return ptctx;
 	}
 
 	return perfstack->pstack[perfstack->top];
 }
 
+static inline struct perfc_tls_ctx perfc_tls_get_prev(void)
+{
+	struct perfc_tls_ctx ptctx = {.opid = PERFC_INVALID_ID};
+	struct perfc_callstack *perfstack = pthread_getspecific(perfc_tls_key);
+
+	if ((perfstack == NULL) || (perfstack->top == -1)) {
+	    return ptctx;
+	}
+
+	if (perfstack->top == 0) {
+	    return perfstack->pstack[perfstack->top];
+	}
+
+	return perfstack->pstack[perfstack->top-1];
+}
+
+#define perfc_sm_tag(_stg)						\
+	int smtag;							\
+	if (_stg > PFTR_RANGE_1_START &&				\
+	    _stg < PFTR_RANGE_1_END) {				\
+		smtag = PSMTR_A;					\
+	} else if (_stg > PFTR_RANGE_2_START &&			\
+		   _stg < PFTR_RANGE_2_END) {				\
+			smtag = PSMTR_B;				\
+	} else if (_stg > PFTR_RANGE_3_START &&			\
+		   _stg < PFTR_RANGE_3_END) {				\
+			smtag = PSMTR_C;				\
+	} else if (_stg > PFTR_RANGE_4_START &&			\
+		   _stg < PFTR_RANGE_4_END) {				\
+			smtag = PSMTR_D;				\
+	} else if (_stg > PFTR_RANGE_5_START &&			\
+		   _stg < PFTR_RANGE_5_END) {				\
+			smtag = PSMTR_E;				\
+	} else if (_stg > PFTR_RANGE_6_START &&			\
+		   _stg < PFTR_RANGE_6_END) {				\
+			smtag = PSMTR_F;				\
+	}								\
+
 #define perfc_trace_state(state, ...) do {				\
 	struct perfc_tls_ctx ptctx = perfc_tls_get_top();		\
 	if (ptctx.opid != PERFC_INVALID_ID) {				\
-		PERFC_STATE_V2(ptctx.mod, ptctx.fn_tag,			\
+		perfc_sm_tag(ptctx.fn_tag);				\
+		PERFC_STATE_V2(ptctx.mod, ptctx.fn_tag, smtag,		\
 			       ptctx.opid, state, __VA_ARGS__);		\
 	}								\
 } while (0)
@@ -413,17 +380,21 @@ static inline struct perfc_tls_ctx perfc_tls_get_top(void)
 #define perfc_trace_attr(attrid, ...) do {				\
 	struct perfc_tls_ctx ptctx = perfc_tls_get_top();		\
 	if (ptctx.opid != PERFC_INVALID_ID) {				\
-		PERFC_ATTR_V2(ptctx.mod, ptctx.fn_tag,			\
+		perfc_sm_tag(ptctx.fn_tag);				\
+		PERFC_ATTR_V2(ptctx.mod, ptctx.fn_tag, smtag,		\
 			      ptctx.opid, attrid, __VA_ARGS__);		\
 	}								\
 } while (0)
 
 #define perfc_trace_map(fn_tag, map_tag, _opid, ...) do {		\
 	struct perfc_tls_ctx ptctx = perfc_tls_get_origin();		\
+	struct perfc_tls_ctx ptcctx = perfc_tls_get_prev();		\
 	dassert(ptctx.opid != PERFC_INVALID_ID);			\
+	dassert(ptcctx.opid != PERFC_INVALID_ID);			\
 	if (ptctx.opid != PERFC_INVALID_ID) {				\
-		PERFC_MAP_V2(ptctx.mod, fn_tag, map_tag, _opid,		\
-			     ptctx.opid, __VA_ARGS__);			\
+		perfc_sm_tag(fn_tag);					\
+		PERFC_MAP_V2(ptctx.mod, fn_tag, smtag, map_tag, _opid,	\
+			     ptctx.opid, ptcctx.opid, __VA_ARGS__);	\
 	}								\
 } while (0)
 

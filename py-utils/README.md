@@ -18,25 +18,65 @@ please email opensource@seagate.com or cortx-questions@seagate.com.
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/78aafd1230d04cfb859c3fa5e4d9b030)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Seagate/cortx-py-utils&amp;utm_campaign=Badge_Grade)
 
 A common utils framework which includes common modules across components
+
+<hr>
+
+## Prerequisites for build
+```bash
+$ sudo yum install python36
+$ sudo yum install python36-pip
+$ sudo yum install python36-devel
+$ sudo yum install python36-setuptools
+$ sudo yum install openssl-devel
+$ sudo yum install libffi-devel
+```
+
 ## Build
-Use setup.py to update the cortx-py-utils distributive.
+**Note:** Use one of following method to create build package
+
+  - Create pip package
+    - It will create `cortx_py_utils-1.0.0-py3-none-any.whl`
 ```bash
-python3 setup.py bdist_wheel
+$ python3 setup.py bdist_wheel
 ```
-setup.py is also able to build RPMs. Run
+
+  - Create RPM Package
+    - It will create `cortx-py-utils-1.0.0-1.noarch.rpm`
 ```bash
-python3 setup.py bdist_rpm
+$ python3.6 setup.py bdist_rpm --post-install utils-post-install --pre-uninstall utils-pre-uninstall
 ```
+
 ## Installation
-Use pip and the wheel file to install the package. E.g.
+  - Installation with pip package
 ```bash
-cd dist
-pip3 install cortx_py_utils-1.0.0-py3-none-any.whl
+$ cd dist;
+$ pip3 install cortx_py_utils-1.0.0-py3-none-any.whl
 ```
-Use pip to uninstall the package
+
+  - Installation with RPM package
 ```bash
-pip3 uninstall cortx-py-utils
+$ cd dist;
+$ yum install -y cortx-py-utils-1.0.0-1.noarch.rpm
 ```
+
+## Uninstall
+
+- Pip package uninstall
+```bash
+$ pip3 uninstall cortx-py-utils
+```
+
+  - RPM uninstall
+```
+$ yum remove cortx-py-utils
+```
+
+## Update new dependency package
+
+  - Add package in `requirements.txt`.
+
+<hr>
+
 ## Usage
 After cortx package is installed, it can be used the common way as any other Python module, E.g.:
 ```python
@@ -64,4 +104,3 @@ try:
 except CipherInvalidToken:
     print('Key is wrong')
 ```
-

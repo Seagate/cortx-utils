@@ -242,9 +242,9 @@ void perfc_run_manual_test(void)
 
 	(void) tsdb_init(true, true);
 	tsdb_set_rt_state(true);
-	PERFC_STATE_V2(TSDB_MOD_UT, PFT_UT_A, opid, PES_GEN_INIT);
-	PERFC_ATTR_V2(TSDB_MOD_UT, PFT_UT_A, opid, PEA_UT_A_ARG_1, 0xAB);
-	PERFC_MAP_V2(TSDB_MOD_UT, PFT_UT_A, opid+1, opid, 0xAB);
+	PERFC_STATE_V2(TSDB_MOD_UT, PFT_UT_A, 0, opid, PES_GEN_INIT);
+	PERFC_ATTR_V2(TSDB_MOD_UT, PFT_UT_A, 0, opid, PEA_UT_A_ARG_1, 0xAB);
+	PERFC_MAP_V2(TSDB_MOD_UT, PFT_UT_A, 0, opid+1, opid, 0xAB, 0xDD);
 	tsdb_fini();
 }
 
