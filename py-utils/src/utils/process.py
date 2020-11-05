@@ -50,12 +50,11 @@ class SimpleProcess(Process):
             self._output = self._cp.stdout
             self._err = self._cp.stderr
             self._returncode = self._cp.returncode
-            return self._output, self._err, self._returncode
         except Exception as err:
             self._err = "SubProcess Error: " + str(err)
             self._output = ""
             self._returncode = -1
-            return self._output, self._err, self._returncode
+        return self._output, self._err, self._returncode
 
 class PipedProcess(Process):
     ''' Execute process with pipe and provide output '''
