@@ -17,7 +17,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
-
+import socket
 from cortx.utils.validator.error import VError
 from cortx.utils.process import SimpleProcess
 
@@ -29,7 +29,7 @@ class NetworkV:
         """
         Process network validations.
         Usage (arguments to be provided):
-        1. network connectivity <ip1> <ip2> <ip3>
+        1. network connectivity <ip1> <ip2> <host>
         2. network passwordless <user> <node1> <node2>
         """
 
@@ -40,7 +40,7 @@ class NetworkV:
             raise VError(errno.EINVAL, "Insufficient parameters. %s" % args)
 
         if v_type == "connectivity":
-            self.validate_ip_connectivity(args)
+            self.validate_host_connectivity(args)
         elif v_type == "passwordless":
             self.validate_passwordless_ssh(args[0], args[1:])
         else:
@@ -68,6 +68,14 @@ class NetworkV:
             raise VError(
                 errno.ECONNREFUSED, "Ping failed for IP(s). %s" % unreachable_ips)
 
+    def validate_host_connectivity(self, hosts):
+        """Check if hosts are reachable."""
+        for host in hosts:
+            ip = host
+            if not self._is_ip(ip):
+                ip = self._resolve_host(host)
+            self.validate_ip_connectivity([ip])
+
     def validate_passwordless_ssh(self, user, nodes):
         """Check passwordless ssh."""
 
@@ -82,8 +90,19 @@ class NetworkV:
                        f"CMD {cmd} failed. {run_result[0]}. {run_result[1]}")
                 raise VError(errno.ECONNREFUSED, res)
 
+    def _is_ip(self, ip):
+        return (ip.count(".") == 3 and all(self._is_valid_ipv4_part(ip_part)
+           for ip_part in ip.split(".")))
+
     def _is_valid_ipv4_part(self, ip_part):
         try:
             return str(int(ip_part)) == ip_part and 0 <= int(ip_part) <= 255
         except Exception:
             return False
+
+    def _resolve_host(self, host):
+        try:
+            return socket.gethostbyname(host)
+        except Exception as exc:
+            raise VError(errno.EINVAL,
+                         f"Failed to resolve host {host} Error {str(exc)}")

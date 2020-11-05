@@ -42,6 +42,17 @@ class TestNetworkValidator(unittest.TestCase):
         ip1 = '8.8.8.8'
         NetworkV().validate('connectivity', [ip1])
 
+    def test_host_connectivity_error(self):
+        """Check host connectivity failure."""
+
+        fake_host = 'www1.google.com'
+        self.assertRaises(VError, NetworkV().validate, 'connectivity',
+                          [fake_host])
+
+    def test_host_connectivity_ok(self):
+        host = 'localhost'
+        NetworkV().validate('connectivity', [host])
+
     def test_nopasswordless_ssh(self):
         fake_hosts = ['srvnod-1', 'srvnod-2']
         args = ['root']
