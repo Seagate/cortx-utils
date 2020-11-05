@@ -35,15 +35,17 @@ class ValidatorCommandFactory:
                         "\t[-h]\n"
                         "\t[network connectivity <ip1> <ip2> <...>]\n"
                         "\t[consul service <host> <port>]\n"
-                        "\t[hardware rpm <rpm> <node-1> <...>]\n"
-                        "\t[hardware hca <node-1> <...>]\n"
-                        "\t[hardware hca_ports <node-1> <...>]\n"
-                        "\t[hardware lsb_hba <node-1> <...>]\n"
-                        "\t[hardware lsb_hba_ports <node-1> <...>]\n"
-                        "\t[storage lvm_size <node-1> <...>]\n"
-                        "\t[storage luns_accessible <node-1> <...>]\n"
-                        "\t[storage volumes_mapped <node-1> <...>]\n")
-
+                        "\t[storage rpm <rpm> <node-1> <...>]\n"
+                        "\t[storage hca <node-1> <...>]\n"
+                        "\t[storage hca_ports <node-1> <...>]\n"
+                        "\t[storage lsb_hba <node-1> <...>]\n"
+                        "\t[storage lsb_hba_ports <node-1> <...>]\n"
+                        "\t[storage lvms <node-1> <...>]\n"
+                        "\t[storage luns <node-1> <...>]\n"
+                        "\t[storage volumes <node-1> <...>]\n"
+                        "\t[elasticsearch service <host> <port>]\n"
+                        "\t[bmc accessible <node1> <node2> <...>]\n"
+                        "\t[bmc stonith <node> <bmc_ip> <bmc_user> <bmc_passwd>]\n")
         sys.stderr.write(usage_string)
 
     @staticmethod

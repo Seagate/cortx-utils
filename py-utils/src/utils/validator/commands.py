@@ -80,24 +80,6 @@ class ConsulVCommand(VCommand):
         self._consul.validate(self.v_type, self.args)
 
 
-class HardwareVCommand(VCommand):
-    """Pre-Deployment Hardware related commands."""
-
-    name = "hardware"
-
-    def __init__(self, args):
-        super(HardwareVCommand, self).__init__(args)
-
-        from v_hardware import HardwareV
-
-        self._hardware = HardwareV()
-
-    def process(self):
-        """Validate Hardware status."""
-
-        self._hardware.validate(self.v_type, self.args)
-
-
 class StorageVCommand(VCommand):
     """Storage related commands."""
 
@@ -132,3 +114,39 @@ class SaltVCommand(VCommand):
         """Validate salt minion connectivity <nodes>..."""
 
         self._salt.validate(self.v_type, self.args)
+
+
+class BmcVCommand(VCommand):
+    """BMC related commands."""
+
+    name = "bmc"
+
+    def __init__(self, args):
+        super(BmcVCommand, self).__init__(args)
+
+        from v_bmc import BmcV
+
+        self._bmc = BmcV()
+
+    def process(self):
+        """Validate bmc status."""
+
+        self._bmc.validate(self.v_type, self.args)
+
+
+class ElasticsearchVCommand(VCommand):
+    """Elasticsearch related commands."""
+
+    name = "elasticsearch"
+
+    def __init__(self, args):
+        super(ElasticsearchVCommand, self).__init__(args)
+
+        from v_elasticsearch import ElasticsearchV
+
+        self._elasticsearch = ElasticsearchV()
+
+    def process(self):
+        """Validate elasticsearch status."""
+
+        self._elasticsearch.validate(self.v_type, self.args)

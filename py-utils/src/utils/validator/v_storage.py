@@ -28,32 +28,145 @@ class StorageV:
         """
         Process storage validations.
         Usage (arguments to be provided):
-        1. storage luns nodes
-        2. storage lvms nodes
-        3. storage luns_accessible nodes
-        4. storage volumes_mapped nodes
-        5. storage lvm_size nodes
+        1. storage rpm rpm_name nodes
+        2. storage hca nodes
+        3. storage hca_ports nodes
+        4. storage lsb_hba nodes
+        5. storage lsb_hba_ports nodes
+        6. storage luns nodes
+        7. storage lvms nodes
+        8. storage volumes nodes
         """
 
         if not isinstance(args, list):
             raise VError(errno.EINVAL, "Invalid parameters %s" % args)
 
-        if len(args) < 1:
-            raise VError(errno.EINVAL, "Insufficient parameters. %s" % args)
+        if v_type == "rpm":
+            if len(args) < 2:
+                raise VError(errno.EINVAL, "Insufficient parameters. %s" % args)
+            else:
+                self.validate_rpm(args[0], args[1:])
 
-        if v_type == "luns":
-            self.validate_luns_consistency(args)
-        elif v_type == "lvms":
-            self.validate_lvm(args)
-        elif v_type == "luns_accessible":
-            self.validate_volumes_accessible(args)
-        elif v_type == "volumes_mapped":
-            self.validate_volumes_mapped(args)
-        elif v_type == "lvm_size":
-            self.validate_lvm_equal_sized(args)
         else:
-            raise VError(
-                errno.EINVAL, "Action parameter %s not supported" % v_type)
+            if len(args) < 1:
+                raise VError(errno.EINVAL, "Insufficient parameters. %s" % args)
+
+            if v_type == "hca":
+                self.validate_mlnx_hca_present(args)
+            elif v_type == "hca_ports":
+                self.validate_mlnx_hca_req_ports(args)
+            elif v_type == "lsb_hba":
+                self.validate_lsb_hba_present(args)
+            elif v_type == "lsb_hba_ports":
+                self.validate_lsb_hba_req_ports(args)
+
+            elif v_type == "luns":
+                self.validate_luns_consistency(args)
+            elif v_type == "lvms":
+                self.validate_lvm(args)
+            elif v_type == "volumes":
+                self.validate_volumes_mapped(args)
+
+            else:
+                raise VError(
+                    errno.EINVAL, "Action parameter %s not supported" % v_type)
+
+
+    def validate_rpm(self, rpm, nodes):
+        """Check if given RPM (eg: Mellanox OFED) is Installed"""
+
+        for node in nodes:
+           cmd = f"ssh {node} rpm -qa | grep {rpm}"
+           cmd_proc = SimpleProcess(cmd)
+           run_result = cmd_proc.run()
+
+           if run_result[1] or run_result[2]:
+               res = (f"Given RPM '{rpm}' Is Not Installed on {node}. "
+                      f"Also, check if '{node}' is valid. "
+                      f"CMD {cmd} failed. {run_result[0]}. {run_result[1]}")
+               raise VError(errno.EINVAL, res)
+
+           #res = run_result[0].strip()
+
+
+    def validate_mlnx_hca_present(self, nodes):
+        """Check if Mellanox HCA is present"""
+
+        for node in nodes:
+            cmd = f"ssh {node} lspci -nn | grep 'Mellanox Technologies'"
+            cmd_proc = SimpleProcess(cmd)
+            run_result = cmd_proc.run()
+
+            if run_result[1] or run_result[2]:
+                res = ("Mellanox Host Channel Adapters card "
+                       f"possibly with Infiniband capability) is not detected on {node}. "
+                       f"Also, check if '{node}' is valid. "
+                       f"CMD '{cmd} failed. {run_result[0]}. {run_result[1]}")
+                raise VError(errno.EINVAL, res)
+
+
+    def validate_mlnx_hca_req_ports(self, nodes):
+        """Check if Mellanox HCA has Req Ports"""
+
+        for node in nodes:
+            cmd = f"ssh {node} lspci -nn | grep 'Mellanox Technologies' | wc -l"
+            cmd_proc = SimpleProcess(cmd)
+            run_result = cmd_proc.run()
+
+            if run_result[1] or run_result[2]:
+                res = ("Mellanox Host Channel Adapters ports were not "
+                       "detected by command 'lspci -nn | grep 'Mellanox Technologies'. "
+                       f"Also, check if '{node}' is valid. ")
+                raise VError(errno.EINVAL, res)
+
+            res = (run_result[0].decode('utf-8').strip())
+            if int(res) == 0:
+                res = ("Mellanox Host Channel Adapters ports were not "
+                       "detected by command 'lspci -nn | grep 'Mellanox Technologies'. "
+                       "For high-speed data network, it is expected to "
+                       "have at least one port present over some PCIe slot. ")
+                raise VError(errno.EINVAL, res)
+
+
+    def validate_lsb_hba_present(self, nodes):
+        """Check if HBA is present"""
+
+        for node in nodes:
+            cmd = f"ssh {node} lspci -nn | grep 'SCSI'"
+            cmd_proc = SimpleProcess(cmd)
+            run_result = cmd_proc.run()
+
+            if run_result[1] or run_result[2]:
+                res = ("Host Bus Adapters (HBA) for "
+                       f"SAS channels not detected on {node}. "
+                       f"Also, check if '{node}' is valid. "
+                       f"CMD {cmd} failed. {run_result[0]}. {run_result[1]}")
+                raise VError(errno.EINVAL, res)
+
+
+    def validate_lsb_hba_req_ports(self, nodes):
+        """Check if LSB HBA has Req Ports"""
+
+        for node in nodes:
+            cmd = f"ssh {node} ls /sys/class/scsi_host/ | wc -l"
+            cmd_proc = SimpleProcess(cmd)
+            run_result = cmd_proc.run()
+
+            if run_result[1] or run_result[2]:
+                res = ("Host Bus Adapters (HBA) for "
+                       f"SAS channels not detected on {node}. "
+                       f"Also, check if '{node}' is valid. ")
+                raise VError(errno.EINVAL, res)
+
+            res = run_result[0].decode('utf-8').strip()
+            if int(res) == 0:
+                res = ("Host Bus Adapters (HBA) for "
+                       f"SAS channels not detected on {node}. "
+                       "For storage connectivity over SAS channels "
+                       "to JBOD/RBOD there is expectation for a PCIe HBA card "
+                       "to be present. Please check HW, if this system "
+                       "expects a connection to either JBOD or RBOD." )
+                raise VError(errno.EINVAL, res)
 
 
     def validate_luns_consistency(self, nodes):
@@ -65,7 +178,8 @@ class StorageV:
             run_result = cmd_proc.run()
 
             if run_result[1] or run_result[2]:
-                res = (f"Failed to get luns on {node}."
+                res = (f"Failed to get luns on {node}. "
+                       f"Also, check if '{node}' is valid. "
                        f"CMD {cmd} failed. {run_result[0]}. {run_result[1]}")
                 raise VError(errno.EINVAL, res)
 
@@ -78,19 +192,37 @@ class StorageV:
                        " issue execute command: 'lsblk -S | grep sas'")
                 raise VError(errno.EINVAL, res)
 
+            cmd = ("ssh %s lsscsi -s | grep -e disk | grep -e SEAGATE | awk '{print $7}'" % node)
+            cmd_proc = SimpleProcess(cmd)
+            run_result = cmd_proc.run()
+            print (f"LUN size on {node}:", set(run_result[0].decode('utf-8').splitlines()))
+
+            if run_result[1] or run_result[2]:
+                res = (f"Failed to get lvms on {node}. "
+                       f"Also, check if '{node}' is valid. "
+                       f"CMD {cmd} failed. {run_result[0]}. {run_result[1]}")
+                raise VError(errno.EINVAL, res)
+
+            res = len(set(run_result[0].splitlines()))
+
+            if int(res) != 1:
+                raise VError(errno.EINVAL, f"LUNs Are Not Equal-Sized on {node}.")
+
 
     def validate_lvm(self, nodes):
-        """Validate lvms are present."""
+        """Validate lvms are present and size."""
 
         for node in nodes:
 
             cmd = f"ssh {node} vgdisplay | grep vg_metadata_{node}"
             cmd_proc = SimpleProcess(cmd)
             run_result = cmd_proc.run()
+
             if run_result[1] or run_result[2]:
                 res = (f"Failed to get vg_metadata_{node} on {node}."
                        f"CMD {cmd} failed. {run_result[0]}. {run_result[1]}")
                 raise VError(errno.EINVAL, res)
+
 
             cmd = f"ssh {node} vgdisplay | grep vg_metadata | wc -l"
             cmd_proc = SimpleProcess(cmd)
@@ -103,23 +235,7 @@ class StorageV:
             res = (run_result[0].decode('utf-8').strip())
             if not res or (int(res) != len(nodes)):
                 raise VError(errno.EINVAL,
-                             f"No. of Lvms {res} are not correct for {node}.")
-
-
-    def validate_luns_accessible(self, nodes):
-        """Validate accessible luns."""
-
-        for node in nodes:
-            cmd = f"ssh {node} lsblk -S && ls -1 /dev/disk/by-id/scsi-*"
-            cmd_proc = SimpleProcess(cmd)
-            run_result = cmd_proc.run()
-
-            if run_result[1] or run_result[2]:
-                res = ("LUNs from Direct Attached Storage (DAS) are "
-                       f"not accessible/available on server {node}. "
-                       f"Also, check if '{node}' is valid. "
-                       f"CMD {cmd} failed. {run_result[0]}. {run_result[1]}")
-                raise VError(errno.EINVAL, res)
+                             f"No. of Lvms {res} is not correct for {node}.")
 
 
     def validate_volumes_mapped(self, nodes):
@@ -155,24 +271,3 @@ class StorageV:
                        "Troubleshoot the issue and execute the following "
                        "command on each node: 'multipath -ll | grep prio=50 | wc -l'")
                 raise VError(errno.EINVAL, res)
-
-
-    def validate_lvm_equal_sized(self, nodes):
-        """Check if LVMs are equal-sized"""
-
-        for node in nodes:
-            cmd = ("ssh %s lsscsi -s | grep -e disk | grep -e SEAGATE | awk '{print $7}'" % node)
-            cmd_proc = SimpleProcess(cmd)
-            run_result = cmd_proc.run()
-            print ('LVM size', set(run_result[0].decode('utf-8').splitlines()))
-
-            if run_result[1] or run_result[2]:
-                res = (f"Failed to get lvms on {node}. "
-                       f"Also, check if '{node}' is valid. "
-                       f"CMD {cmd} failed. {run_result[0]}. {run_result[1]}")
-                raise VError(errno.EINVAL, res)
-
-            res = len(set(run_result[0].splitlines()))
-
-            if int(res) != 1:
-                raise VError(errno.EINVAL, f"LVMs Are Not Equal-Sized on {node}.")
