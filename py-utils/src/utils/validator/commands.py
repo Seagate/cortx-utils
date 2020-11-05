@@ -132,3 +132,21 @@ class BmcVCommand(VCommand):
         """Validate bmc status."""
 
         self._bmc.validate(self.v_type, self.args)
+
+
+class ElasticsearchVCommand(VCommand):
+    """Elasticsearch related commands."""
+
+    name = "elasticsearch"
+
+    def __init__(self, args):
+        super(ElasticsearchVCommand, self).__init__(args)
+
+        from v_elasticsearch import ElasticsearchV
+
+        self._elasticsearch = ElasticsearchV()
+
+    def process(self):
+        """Validate elasticsearch status."""
+
+        self._elasticsearch.validate(self.v_type, self.args)
