@@ -116,19 +116,19 @@ class SaltVCommand(VCommand):
         self._salt.validate(self.v_type, self.args)
 
 
-class ElasticsearchVCommand(VCommand):
-    """Elasticsearch related commands."""
+class BmcVCommand(VCommand):
+    """BMC related commands."""
 
-    name = "elasticsearch"
+    name = "bmc"
 
     def __init__(self, args):
-        super(ElasticsearchVCommand, self).__init__(args)
+        super(BmcVCommand, self).__init__(args)
 
-        from .v_elasticsearch import ElasticsearchV
+        from v_bmc import BmcV
 
-        self._elasticsearch = ElasticsearchV()
+        self._bmc = BmcV()
 
     def process(self):
-        """Validate elasticsearch status."""
+        """Validate bmc status."""
 
-        self._elasticsearch.validate(self.v_type, self.args)
+        self._bmc.validate(self.v_type, self.args)
