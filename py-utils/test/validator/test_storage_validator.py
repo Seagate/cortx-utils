@@ -25,87 +25,68 @@ from cortx.utils.validator.error import VError
 class TestStorageValidator(unittest.TestCase):
     """Test Storage related validations."""
 
-    def test_ofed_install_ok(self):
-        """Check OFED Installed - CHECK."""
+    def test_hba_present(self):
+        """Check HBA present """
 
-        rpm = "mlnx-ofed-all-4.7-3.2.9.0.rhel7.7.noarch"
-        StorageV().validate('rpm', [rpm, 'srvnode-1'])
+        StorageV().validate('hba', ["lsi", 'srvnode-1'])
 
-    def test_ofed_rpm_error(self):
-        """Check OFED Installed - ERROR."""
 
-        rpm = "dummy_rpm"
-        self.assertRaises(VError, StorageV().validate, 'rpm', [rpm, 'srvnode-1'])
+    def test_hba_present(self):
+        """Check HBA present """
 
-    def test_ofed_install_error(self):
-        """Check OFED Installed - ERROR."""
+        self.assertRaises(VError, StorageV().validate, 'hba',
+                         ["abcd", 'srvnode-1'])
 
-        rpm = "mlnx-ofed-all-4.7-3.2.9.0.rhel7.7.noarch"
-        dummy_hosts = ['srv-1', 'srv-2']
-        self.assertRaises(VError, StorageV().validate, 'rpm', [rpm, dummy_hosts])
 
-    def test_hca_present(self):
-        """Check HCA present - CHECK."""
-
-        #hosts = ['localhost']
-        StorageV().validate('hca', ['srvnode-1'])
-
-    def test_hca_not_present(self):
-        """Check HCA present - ERROR."""
+    def test_hba_not_present(self):
+        """Check HBA not present """
 
         dummy_hosts = ['srv-1', 'srv-2']
-        self.assertRaises(VError, StorageV().validate, 'hca', dummy_hosts)
+        self.assertRaises(VError, StorageV().validate, 'hba',
+                         ["lsi", dummy_hosts])
 
-    def test_hca_ports_ok(self):
-        """Check HCA Ports - CHECK."""
 
-        StorageV().validate('hca_ports', ['srvnode-1'])
+    def test_luns_accessible(self):
+        """Check LUNs Accessible """
 
-    def test_hca_ports_error(self):
-        """Check HCA Ports - ERROR."""
+        StorageV().validate('luns', ["accessible", 'srvnode-1'])
 
-        dummy_hosts = ['srv-1', 'srv-2']
-        self.assertRaises(VError, StorageV().validate, 'hca_ports', dummy_hosts)
 
-    def test_lsb_hba_present(self):
-        """Check LSB HBA present - CHECK."""
-
-        StorageV().validate('lsb_hba', ['srvnode-1'])
-
-    def test_lsb_hba_not_present(self):
-        """Check LSB HBA present - ERROR."""
+    def test_luns_accessible_error(self):
+        """Check LUNs accessible """
 
         dummy_hosts = ['srv-1', 'srv-2']
-        self.assertRaises(VError, StorageV().validate, 'lsb_hba', dummy_hosts)
+        self.assertRaises(VError, StorageV().validate, 'luns',
+                         ["accessible", dummy_hosts])
 
-    def test_lsb_hba_ports_ok(self):
-        """Check LSB HBA Ports - CHECK."""
 
-        StorageV().validate('lsb_hba_ports', ['srvnode-1'])
+    def test_luns_size(self):
+        """Check LUNs Size """
 
-    def test_lsb_hba_ports_error(self):
-        """Check LSB HBA Ports - ERROR."""
+        StorageV().validate('luns', ["size", 'srvnode-1'])
 
-        dummy_hosts = ['srv-1', 'srv-2']
-        self.assertRaises(VError, StorageV().validate, 'lsb_hba_ports', dummy_hosts)
 
-    def test_luns_ports_wrongly_mapped(self):
-        """Check LUNs Ports - ERROR."""
-
-        #StorageV().validate('vol_mapped', ['srvnode-1'])
-        self.assertRaises(VError, StorageV().validate, 'volumes', ['srvnode-1'])
-
-    def test_luns_ports_error(self):
-        """Check LUNs Ports - ERROR."""
+    def test_luns_size_error(self):
+        """Check LUNs Ports """
 
         dummy_hosts = ['srv-1', 'srv-2']
-        self.assertRaises(VError, StorageV().validate, 'volumes', dummy_hosts)
+        self.assertRaises(VError, StorageV().validate, 'luns',
+                         ["size", dummy_hosts])
 
-    def test_luns_inconsistent(self):
-        """Check LUN inconsistent."""
+
+    def test_luns_wrongly_mapped(self):
+        """Check LUNs mapping """
 
         self.assertRaises(VError, StorageV().validate, 'luns',
-                          ["srvnode-1", "srvnode-2"])
+                          ["mapped", 'srvnode-1'])
+
+
+    def test_luns_wrong_hosts(self):
+        """Check LUNs mapping """
+
+        self.assertRaises(VError, StorageV().validate, 'luns',
+                          ["mapped", 'srvnode-1'])
+
 
     def test_lvm_error(self):
         """Check LVM not present."""
