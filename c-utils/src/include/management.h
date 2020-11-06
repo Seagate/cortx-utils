@@ -190,6 +190,7 @@
 
 #include <inttypes.h>
 #include <sys/queue.h> /* LIST_HEAD, LIST_INIT */
+#include <str.h>
 
 struct server;
 struct params;
@@ -296,6 +297,11 @@ int request_accept_data(struct request *request);
 void request_next_action(struct controller_api *api);
 void request_send_response(struct request *request, int code);
 int request_content_length(struct request *request);
+const char* request_etag_value(struct request *request);
+void request_set_input_etag_value(struct request *request,
+				  const char *etagstr);
+void request_init_etag(struct request *request);
+void request_set_reponse_etag_value(struct request *request, str256_t etagstr);
 void request_set_readcb(struct request *request, request_read_cb_func cb);
 struct json_object* request_get_data(struct request *request);
 void request_set_data(struct request *request, struct json_object *json_obj);
