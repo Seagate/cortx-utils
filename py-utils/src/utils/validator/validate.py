@@ -37,7 +37,8 @@ class ValidatorCommandFactory:
                         "\t[consul service <host> <port>]\n"
                         "\t[elasticsearch service <host> <port>]\n"
                         "\t[bmc accessible <node1> <node2> <...>]\n"
-                        "\t[bmc stonith <node> <bmc_ip> <bmc_user> <bmc_passwd>]\n")
+                        "\t[bmc stonith <node> <bmc_ip> <bmc_user> <bmc_passwd>]\n"
+                        "\t[controller accessible <ip> <cntrlr_user> <cntrlr_passwd>]\n")
         sys.stderr.write(usage_string)
 
     @staticmethod

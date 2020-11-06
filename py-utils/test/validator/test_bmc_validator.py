@@ -30,7 +30,7 @@ class TestBmcValidator(unittest.TestCase):
     """Test BMC related validations."""
 
     def test_accessibility_ok(self):
-        """ Check BMC Accessibility """
+        """ Check BMC Accessibility over KCS channel"""
         BmcV().validate('accessible', ['srvnode-1','srvnode-2'])
 
     def test_accessibility_no_args_error(self):

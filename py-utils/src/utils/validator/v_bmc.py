@@ -71,6 +71,18 @@ class BmcV:
         pw_status = result[0].split()[-1]
         return pw_status, cmd, result
 
+    def __get_channel_information(self, node):
+        """ Get channel information
+        """
+        cmd = "ssh {node} ipmitool channel info"
+        cmd_proc = SimpleProcess(cmd)
+        stdout, stderr, rc = cmd_proc.run()
+        if rc != 0:
+            msg = f"Failed to get channel information. Command: '{cmd}', Return Code: '{rc}'."
+            msg += stderr.decode("utf-8").replace('\r','').replace('\n','')
+            raise VError(errno.EINVAL, msg)
+        ch_info = stdout.decode("utf-8").replace('\r','').replace('\n','')
+        return ch_info
 
     def __ping_bmc(self, node):
         """ Ping BMC IP
@@ -123,14 +135,11 @@ class BmcV:
         """ Validate BMC accessibility
         """
         for node in nodes:
-            # Validate BMC power status
-            pw_status, cmd, result = self.__get_bmc_power_status(node)
-            if pw_status != 'on':
-                msg = f"BMC Power Status : {pw_status}. Command: '{cmd}', Return Code: '{result[2]}'."
-                for i in range(2):
-                    if result[i]:
-                        res = result[i].replace('\r','').replace('\n','')
-                        msg += f' {res}.'
+            # Validate bmc accessibility over KCS channel
+            ch_info = self.__get_channel_information(node)
+            if 'KCS' not in ch_info:
+                msg = f"Unsupported BMC channel protocol type found."
+                msg += f" {ch_info}."
                 raise VError(errno.EINVAL, msg)
 
             # Check if we can ping BMC
