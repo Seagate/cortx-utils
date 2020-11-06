@@ -191,10 +191,6 @@ samba-common-libs-4.10.4-11.el7_8.x86_64
 samba-libs-4.10.4-11.el7_8.x86_64
 smartmontools-7.0-2.el7.x86_64
 sshpass-1.06-2.el7.x86_64
-systemd-219-73.el7_8.9.x86_64
-systemd-libs-219-73.el7_8.9.x86_64
-systemd-python-219-73.el7_8.9.x86_64
-systemd-sysv-219-73.el7_8.9.x86_64
 tcl-8.5.13-8.el7.x86_64
 tcsh-6.18.01-16.el7.x86_64
 tk-8.5.13-6.el7.x86_64
