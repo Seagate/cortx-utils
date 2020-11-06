@@ -18,10 +18,18 @@
 
 import errno
 
+from .error import VError
+from .v_bmc import BmcV
+from .v_consul import ConsulV
+from .v_elasticsearch import ElasticsearchV
+from .v_network import NetworkV
+from .v_pacemaker import PacemakerV
+from .v_salt import SaltV
+from .v_storage import StorageV
+
 
 class VCommand:
     """Base class for all the commands."""
-
     def __init__(self, args):
         self._v_type = args.v_type
         self._args = args.args
@@ -37,8 +45,8 @@ class VCommand:
     @staticmethod
     def add_args(parser, cmd_class, cmd_name):
         """Add Command args for parsing."""
-        parser1 = parser.add_parser(
-            cmd_class.name, help='%s Validations' % cmd_name)
+        parser1 = parser.add_parser(cmd_class.name,
+                                    help='%s Validations' % cmd_name)
         parser1.add_argument('v_type', help='validation type')
         parser1.add_argument('args', nargs='*', default=[], help='args')
         parser1.set_defaults(command=cmd_class)
@@ -51,9 +59,6 @@ class NetworkVCommand(VCommand):
 
     def __init__(self, args):
         super(NetworkVCommand, self).__init__(args)
-
-        from v_network import NetworkV
-
         self._network = NetworkV()
 
     def process(self):
@@ -69,9 +74,6 @@ class ConsulVCommand(VCommand):
 
     def __init__(self, args):
         super(ConsulVCommand, self).__init__(args)
-
-        from v_consul import ConsulV
-
         self._consul = ConsulV()
 
     def process(self):
@@ -87,9 +89,6 @@ class StorageVCommand(VCommand):
 
     def __init__(self, args):
         super(StorageVCommand, self).__init__(args)
-
-        from v_storage import StorageV
-
         self._storage = StorageV()
 
     def process(self):
@@ -106,8 +105,6 @@ class SaltVCommand(VCommand):
     def __init__(self, args):
         super(SaltVCommand, self).__init__(args)
 
-        from v_salt import SaltV
-
         self._salt = SaltV()
 
     def process(self):
@@ -123,9 +120,6 @@ class BmcVCommand(VCommand):
 
     def __init__(self, args):
         super(BmcVCommand, self).__init__(args)
-
-        from v_bmc import BmcV
-
         self._bmc = BmcV()
 
     def process(self):
@@ -142,11 +136,40 @@ class ElasticsearchVCommand(VCommand):
     def __init__(self, args):
         super(ElasticsearchVCommand, self).__init__(args)
 
-        from v_elasticsearch import ElasticsearchV
-
         self._elasticsearch = ElasticsearchV()
 
     def process(self):
         """Validate elasticsearch status."""
 
         self._elasticsearch.validate(self.v_type, self.args)
+
+
+class PacemakerCommand(VCommand):
+    """Pacemaker-related checks."""
+    name = 'pacemaker'
+
+    def __init__(self, args):
+        super().__init__(args)
+        self._validator = PacemakerV()
+
+    def process(self):
+        vtype = self._v_type
+        handlers = {
+            'corosync': self._validate_config,
+            'stonith': self._validate_stonith
+        }
+        if vtype not in handlers:
+            raise VError(
+                errno.EINVAL, f"Unknown v_type given: {vtype}. "
+                f"Supported values: {[i for i in handlers.keys()]}")
+
+        handlers[vtype]()
+
+    def _validate_config(self):
+        self._validator.validate_configured()
+
+    def _validate_stonith(self):
+        v = self._validator
+        v.validate_two_stonith_only()
+        v.validate_stonith_for_both_nodes_exist()
+        v.validate_all_stonith_running()
