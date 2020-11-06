@@ -31,7 +31,7 @@ class TestStorageValidator(unittest.TestCase):
         StorageV().validate('hba', ["lsi", 'srvnode-1'])
 
 
-    def test_hba_present(self):
+    def test_hba_provider(self):
         """Check HBA present """
 
         self.assertRaises(VError, StorageV().validate, 'hba',

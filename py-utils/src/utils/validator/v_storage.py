@@ -48,8 +48,8 @@ class StorageV:
             else:
                 if v_type == "luns":
                     luns_checks = ['accessible', 'mapped', 'size']
-                    if args[0] not in luns_checks: 
-                        raise VError(errno.EINVAL, 
+                    if args[0] not in luns_checks:
+                        raise VError(errno.EINVAL,
                               "Invalid check. Please choose one of %s" % luns_checks)
                     self.validate_luns(args[0], args[1:])
 
@@ -73,7 +73,7 @@ class StorageV:
                 cmd = f"ssh {node} lspci -nn | grep 'SCSI'"
                 cmd_proc = SimpleProcess(cmd)
                 run_result = cmd_proc.run()
-    
+
                 if run_result[1] or run_result[2]:
                     res = ("Host Bus Adapters (HBA) for "
                            f"SAS channels not detected on {node}. "
