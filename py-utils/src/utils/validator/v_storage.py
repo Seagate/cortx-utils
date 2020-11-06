@@ -39,30 +39,28 @@ class StorageV:
         if v_type == "lvms":
             if len(args) < 1:
                 raise VError(errno.EINVAL, "Insufficient parameters. %s" % args)
-            else:
-                self.validate_lvm(args)
+            self.validate_lvm(args)
 
         else:
             if len(args) < 2:
                 raise VError(errno.EINVAL, "Insufficient parameters. %s" % args)
+            if v_type == "luns":
+                luns_checks = ['accessible', 'mapped', 'size']
+                if args[0] not in luns_checks:
+                    raise VError(errno.EINVAL,
+                          "Invalid check. Please choose one of %s" % luns_checks)
+                self.validate_luns(args[0], args[1:])
+
+            elif v_type == "hba":
+                hba_checks = ['lsi']    # More providers can be added in future, if required.
+                if args[0].lower() not in hba_checks:
+                    raise VError(errno.EINVAL,
+                          "Invalid HBA Provider name. Please choose from  %s" % hba_checks)
+                self.validate_hba(args[0], args[1:])
+
             else:
-                if v_type == "luns":
-                    luns_checks = ['accessible', 'mapped', 'size']
-                    if args[0] not in luns_checks:
-                        raise VError(errno.EINVAL,
-                              "Invalid check. Please choose one of %s" % luns_checks)
-                    self.validate_luns(args[0], args[1:])
-
-                elif v_type == "hba":
-                    hba_checks = ['lsi']    # More providers can be added in future, if required.
-                    if args[0].lower() not in hba_checks:
-                        raise VError(errno.EINVAL,
-                              "Invalid HBA Provider name. Please choose from  %s" % hba_checks)
-                    self.validate_hba(args[0], args[1:])
-
-                else:
-                    raise VError(
-                        errno.EINVAL, "Action parameter %s not supported" % v_type)
+                raise VError(
+                    errno.EINVAL, "Action parameter %s not supported" % v_type)
 
     def validate_hba(self, provider, nodes):
         """Check HBA presence and ports"""
@@ -70,6 +68,8 @@ class StorageV:
         for node in nodes:
             if provider.lower() == "lsi":
                 cmd = f"ssh {node} lspci -nn | grep 'SCSI'"
+                # TO DO: check is paramiko is needed 
+                # for all pre-checks.
                 cmd_proc = SimpleProcess(cmd)
                 run_result = cmd_proc.run()
 
@@ -107,7 +107,6 @@ class StorageV:
 
         for node in nodes:
             if v_check == "accessible":
-
                 cmd = f"ssh {node} lsblk -S | grep sas | wc -l"
                 cmd_proc = SimpleProcess(cmd)
                 run_result = cmd_proc.run()
@@ -128,7 +127,6 @@ class StorageV:
                     raise VError(errno.EINVAL, res)
 
             elif v_check == "size":
-
                 cmd = ("ssh %s lsscsi -s | grep -e disk | grep -e SEAGATE | awk '{print $7}'" % node)
                 cmd_proc = SimpleProcess(cmd)
                 run_result = cmd_proc.run()
@@ -149,7 +147,6 @@ class StorageV:
                     raise VError(errno.EINVAL, res)
 
             elif v_check == "mapped":
-
                 cmd_1 = f"ssh {node} multipath -ll | grep prio=50 | wc -l"
                 cmd_2 = f"ssh {node} multipath -ll | grep prio=10 | wc -l"
                 cmd_proc_1 = SimpleProcess(cmd_1)
