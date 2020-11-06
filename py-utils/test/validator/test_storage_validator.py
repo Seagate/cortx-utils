@@ -30,49 +30,42 @@ class TestStorageValidator(unittest.TestCase):
 
         StorageV().validate('hba', ["lsi", 'srvnode-1'])
 
-
-    def test_hba_present(self):
+    def test_hba_provider(self):
         """Check HBA present """
 
         self.assertRaises(VError, StorageV().validate, 'hba',
-                         ["abcd", 'srvnode-1'])
-
+                          ["abcd", 'srvnode-1'])
 
     def test_hba_not_present(self):
         """Check HBA not present """
 
         dummy_hosts = ['srv-1', 'srv-2']
         self.assertRaises(VError, StorageV().validate, 'hba',
-                         ["lsi", dummy_hosts])
-
+                          ["lsi", dummy_hosts])
 
     def test_luns_accessible(self):
         """Check LUNs Accessible """
 
         StorageV().validate('luns', ["accessible", 'srvnode-1'])
 
-
     def test_luns_accessible_error(self):
         """Check LUNs accessible """
 
         dummy_hosts = ['srv-1', 'srv-2']
         self.assertRaises(VError, StorageV().validate, 'luns',
-                         ["accessible", dummy_hosts])
-
+                          ["accessible", dummy_hosts])
 
     def test_luns_size(self):
         """Check LUNs Size """
 
         StorageV().validate('luns', ["size", 'srvnode-1'])
 
-
     def test_luns_size_error(self):
         """Check LUNs Ports """
 
         dummy_hosts = ['srv-1', 'srv-2']
         self.assertRaises(VError, StorageV().validate, 'luns',
-                         ["size", dummy_hosts])
-
+                          ["size", dummy_hosts])
 
     def test_luns_wrongly_mapped(self):
         """Check LUNs mapping """
@@ -80,13 +73,11 @@ class TestStorageValidator(unittest.TestCase):
         self.assertRaises(VError, StorageV().validate, 'luns',
                           ["mapped", 'srvnode-1'])
 
-
     def test_luns_wrong_hosts(self):
         """Check LUNs mapping """
 
         self.assertRaises(VError, StorageV().validate, 'luns',
                           ["mapped", 'srvnode-1'])
-
 
     def test_lvm_error(self):
         """Check LVM not present."""
