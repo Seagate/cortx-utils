@@ -24,7 +24,7 @@ import unittest
 import salt.client
 
 from cortx.utils import const
-from cortx.validator.error import VError
+from cortx.utils.validator.error import VError
 from cortx.utils.security.cipher import Cipher
 from cortx.utils.validator.v_controller import ControllerV
 
@@ -87,8 +87,8 @@ class TestControllerV(unittest.TestCase):
         self.assertRaises(VError, self.cntrlr_validator.validate, 'accessible', invalid_data)
 
     def test_accessibility_conn_error(self):
-        """ Check 'accessible' validation type for unreachable ip"""
-        invalid_data = ["188.124.124.78", "tester007", "Tester!007"]
+        """ Check 'accessible' validation type for invalid ip"""
+        invalid_data = ["10.256.256.10", "tester007", "Tester!007"]
         self.assertRaises(VError, self.cntrlr_validator.validate, 'accessible', invalid_data)
 
     def test_unsupported_bundle(self):
@@ -96,7 +96,7 @@ class TestControllerV(unittest.TestCase):
         user, passwd = self.__fetch_username_password_from_salt()
         mc_expected = ["GN000", "280GN"]
         self.assertRaises(VError, self.cntrlr_validator.validate, "firmware",\
-            self.primary_mc, user, passwd, mc_expected)
+            [self.primary_mc, user, passwd, mc_expected])
 
     def test_web_service(self):
         # TODO: validate web service availability

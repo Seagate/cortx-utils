@@ -16,6 +16,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
+import traceback
 
 from cortx.utils import const
 from cortx.utils.comm import SSHSession
@@ -66,8 +67,13 @@ class ControllerV:
         """Check contoller console is accessible to node
         """
         # Check if ssh connection is successful
-        session = SSHSession(host=ip, username=username, password=password)
-        session.disconnect()
+        try:
+            session = SSHSession(host=ip, username=username, password=password)
+            session.disconnect()
+        except:
+            sshError = traceback.format_exc()
+            raise VError(
+                errno.EINVAL, f"Failed to create ssh connection to {ip}, '{sshError}'")
 
         # ping controller IP
         cmd = f"ping -c 1 -W 1 {ip}"
@@ -82,7 +88,12 @@ class ControllerV:
         """Check expected contoller bundle version found
             mc_expected: string or list of expected version(s)
         """
-        session = SSHSession(host=ip, username=username, password=password)
+        try:
+            session = SSHSession(host=ip, username=username, password=password)
+        except:
+            sshError = traceback.format_exc()
+            raise VError(
+                errno.EINVAL, f"Failed to create ssh connection to {ip}, '{sshError}'")
 
         # check firmware version command execution on MC
         stdin, stdout, stderr = session.exec_command(self.version_cmd)
@@ -95,7 +106,7 @@ class ControllerV:
         # check expected bundle version is found on MC
         _supported = False
         if mc_expected:
-            if type(mc_expected, list):
+            if isinstance(mc_expected, list):
                 _supported = any(ver for ver in mc_expected if ver in cmd_output)
             else:
                 _supported = True if mc_expected in cmd_output else False

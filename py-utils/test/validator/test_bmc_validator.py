@@ -58,21 +58,21 @@ class TestBmcValidator(unittest.TestCase):
             secret = self.bmc_data[node]['secret']
             key = Cipher.generate_key(self.cluster_id, 'cluster')
             bmc_passwd = Cipher.decrypt(key, secret.encode('ascii')).decode()
-            BmcV().validate('accessible', node, bmc_ip, bmc_user, bmc_passwd)
+            BmcV().validate('accessible', [node, bmc_ip, bmc_user, bmc_passwd])
 
     def test_accessibility_no_args_error(self):
         """ Check 'accessible' validation type for no arguments """
         self.assertRaises(VError, BmcV().validate, 'accessible', [])
 
-    def test_accessibility_error_on_invalid_node(self):
-        """ Check 'accessible' validation type for fake node argument """
-        node = 'srvn-1'
-        bmc_ip = self.bmc_data[node]['ip']
+    def test_accessibility_error_on_invalid_bmc_ip(self):
+        """ Check 'accessible' validation type for fake bmc_ip argument """
+        node = self.node_list[0]
+        bmc_ip = "10.256.256.10"
         user = self.bmc_data[node]['user']
         secret = self.bmc_data[node]['secret']
         key = Cipher.generate_key(self.cluster_id, 'cluster')
         passwd = Cipher.decrypt(key, secret.encode('ascii')).decode()
-        self.assertRaises(VError, BmcV().validate, 'accessible', node, bmc_ip, user, passwd)
+        self.assertRaises(VError, BmcV().validate, 'accessible', [node, bmc_ip, user, passwd])
 
     def test_accessibility_error_on_invalid_auth(self):
         """ Check 'accessible' validation type for fake password argument """
@@ -80,7 +80,7 @@ class TestBmcValidator(unittest.TestCase):
         bmc_ip = self.bmc_data[node]['ip']
         user = self.bmc_data[node]['user']
         passwd = 'srv-1PASS'
-        self.assertRaises(VError, BmcV().validate, 'accessible', node, bmc_ip, user, passwd)
+        self.assertRaises(VError, BmcV().validate, 'accessible', [node, bmc_ip, user, passwd])
 
     def test_stonith_ok(self):
         """ Check Stonith configuration """
