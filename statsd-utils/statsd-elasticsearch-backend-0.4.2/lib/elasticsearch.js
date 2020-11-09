@@ -4,7 +4,7 @@
  * To enable this backend, include 'elastic' in the backends
  * configuration array:
  *
- *   backends: ['./backends/elastic'] 
+ *   backends: ['./backends/elastic']
  *  (if the config file is in the statsd folder)
  *
  * A sample configuration can be found in exampleElasticConfig.js
@@ -20,20 +20,18 @@
  *   indexType:       The dociment type of the saved stat (default: 'stat')
  */
 
-var net = require('net'),
-   util = require('util'),
-   http = require('http');
+var http = require('http');
 // this will be instantiated to the logger
 var lg;
 var debug;
 var statsdHost;
-var flushInterval;
 var elasticHost;
 var elasticPort;
 var elasticPath;
 var elasticIndex;
 var elasticIndexTimestamp;
 var elasticCountType;
+var elasticTimerDataType;
 var elasticTimerType;
 var elasticUsername;
 var elasticPassword;
@@ -45,33 +43,41 @@ var prev_gauge_index;
 var elasticStats = {};
 
 
-var es_bulk_insert = function elasticsearch_bulk_insert(listCounters, listTimers, 
+var es_bulk_insert = function elasticsearch_bulk_insert(listCounters, listTimers,
   listTimerData, listGaugeData) {
   var renderKV = function(k, v) {
   if (typeof v == 'number') {
       return '"'+k+'":'+v;
     }
-    return '"'+k+'":"'+v+'"';        
+    return '"'+k+'":"'+v+'"';
   };
   statsdCounterIndex = elasticIndex;
   statsdTimerIndex = elasticIndex;
   statsdTimerDataIndex = elasticIndex;
   statsdGaugeDataIndex = elasticIndex;
-  ({ statsdCounterIndex, statsdTimerIndex, statsdTimerDataIndex, statsdGaugeDataIndex } 
-    = getStatsIndexes(statsdCounterIndex, statsdTimerIndex, 
+  ({ statsdCounterIndex, statsdTimerIndex, statsdTimerDataIndex, statsdGaugeDataIndex }
+    = getStatsIndexes(statsdCounterIndex, statsdTimerIndex,
       statsdTimerDataIndex, statsdGaugeDataIndex));
 
-  // Counter 
-  setData(listCounters, statsdCounterIndex, renderKV, prev_counter_index);
-  
+  // Counter
+  if (elasticCountType != 'disable') {
+    setData(listCounters, statsdCounterIndex, renderKV, prev_counter_index);
+  }
+
   // Timer
-  //setData(listTimers, statsdTimerIndex, renderKV, prev_timer_index);
-  
+  if (elasticTimerType != 'disable') {
+    setData(listTimers, statsdTimerIndex, renderKV, prev_timer_index);
+  }
+
   // Timer data
-  setData(listTimerData, statsdTimerDataIndex, renderKV, prev_timerdata_index);
-  
+  if (elasticTimerDataType != 'disable') {
+    setData(listTimerData, statsdTimerDataIndex, renderKV, prev_timerdata_index);
+  }
+
   // Gauge
-  //setData(listGaugeData, statsdGaugeDataIndex, renderKV, prev_gauge_index);      
+  if(elasticGaugeDataType != 'disable') {
+    setData(listGaugeData, statsdGaugeDataIndex, renderKV, prev_gauge_index);
+  }
 }
 
 var flush_stats = function elastic_flush(ts, metrics) {
@@ -85,7 +91,7 @@ var flush_stats = function elastic_flush(ts, metrics) {
   ts = ts*1000;
 
   ts = new Date(ts).toISOString()
-  
+
   for (key in metrics.counters) {
     numStats += fm.counters(key, metrics.counters[key], ts, array_counts, statsdHost);
   }
@@ -103,12 +109,18 @@ var flush_stats = function elastic_flush(ts, metrics) {
   for (key in metrics.gauges) {
     numStats += fm.gauges(key, metrics.gauges[key], ts, array_gauges, statsdHost);
   }
+
   if (debug) {
     lg.log('metrics:');
     lg.log( JSON.stringify(metrics) );
   }
 
-  es_bulk_insert(array_counts, array_timers, array_timer_data, array_gauges);
+  try {
+    es_bulk_insert(array_counts, array_timers, array_timer_data, array_gauges);
+  }
+  catch (e) {
+    lg.log("warning Connection to elasticsearch is failed.");
+  }
 
   if (debug) {
     lg.log("debug", "flushed " + numStats + " stats to ES");
@@ -123,21 +135,22 @@ var elastic_backend_status = function (writeCb) {
 
 exports.init = function elasticsearch_init(startup_time, config, events, logger) {
 
-  debug = config.debug;
   lg = logger;
 
   var configEs = config.elasticsearch || { };
 
+  debug                 = config.debug;
   statsdHost            = config.statsd_host      || 'localhost';
+  flushInterval         = config.flushInterval    || 10000;
   elasticHost           = configEs.host           || 'localhost';
   elasticPort           = configEs.port           || 9200;
   elasticPath           = configEs.path           || '/';
   elasticIndex          = configEs.indexPrefix    || 'statsd';
   elasticIndexTimestamp = configEs.indexTimestamp || 'day';
-  elasticCountType      = configEs.countType      || 'counter';
-  elasticTimerType      = configEs.timerType      || 'timer';
-  elasticTimerDataType  = configEs.timerDataType  || elasticTimerType + '_stats';
-  elasticGaugeDataType  = configEs.gaugeDataType  || 'gauge';
+  elasticCountType      = configEs.countType      || 'disable';
+  elasticTimerType      = configEs.timerType      || 'disable';
+  elasticTimerDataType  = configEs.timerDataType  || 'disable';
+  elasticGaugeDataType  = configEs.gaugeDataType  || 'disable';
   elasticFormatter      = configEs.formatter      || 'default_format';
   elasticUsername       = configEs.username       || undefined;
   elasticPassword       = configEs.password       || undefined;
@@ -151,7 +164,6 @@ exports.init = function elasticsearch_init(startup_time, config, events, logger)
   if (fm.init) {
     fm.init(configEs);
   }
-  flushInterval         = config.flushInterval;
 
   elasticStats.last_flush = startup_time;
   elasticStats.last_exception = startup_time;
@@ -171,7 +183,7 @@ function setData(listData, statsdIndex, renderKV, prev_index) {
     for (statKey in listData[key]) {
       if (innerPayload)
         innerPayload += ',';
-      innerPayload += renderKV(statKey, listData[key][statKey]);      
+      innerPayload += renderKV(statKey, listData[key][statKey]);
     }
     payload += innerPayload + '}' + "\n";
   }
@@ -185,9 +197,12 @@ function setData(listData, statsdIndex, renderKV, prev_index) {
           path: elasticPath + statsdIndex,
           method: 'PUT'
         }
-        req = http.request(reqOpts, function (res) { });
+        req = http.request(reqOpts, function (res) {
+        }).on('error', function (err) {
+          lg.log('error', 'Error with HTTP request, no stats flushed.');
+        });
         req.end();
-        
+
         settings_payload = '{ \"index\" : { \"auto_expand_replicas\": \"1-all\" }}'
         settingsOptions = {
           host: elasticHost,
@@ -196,7 +211,10 @@ function setData(listData, statsdIndex, renderKV, prev_index) {
           method: "PUT",
           headers: {'Content-Type': 'application/json'}
         };
-        settings_req = http.request(settingsOptions, function(res) { });
+        settings_req = http.request(settingsOptions, function(res) {
+        }).on('error', function (err) {
+          lg.log('error', 'Error with HTTP request, no stats flushed.');
+        });
         settings_req.write(settings_payload);
         settings_req.end();
 
@@ -206,7 +224,7 @@ function setData(listData, statsdIndex, renderKV, prev_index) {
       }
     }
   }
-  
+
   var optionsPost = {
     host: elasticHost,
     port: elasticPort,
@@ -238,15 +256,15 @@ function setData(listData, statsdIndex, renderKV, prev_index) {
   dataReq.end();
 }
 
-function getStatsIndexes(statsdCounterIndex, statsdTimerIndex, 
+function getStatsIndexes(statsdCounterIndex, statsdTimerIndex,
   statsdTimerDataIndex, statsdGaugeDataIndex) {
   var indexDate = new Date();
 
   statsdCounterIndex += '_counter-' + indexDate.getUTCFullYear()
   statsdTimerIndex += '_timer-' + indexDate.getUTCFullYear()
   statsdTimerDataIndex += '_timerdata-' + indexDate.getUTCFullYear()
-  statsdGaugeDataIndex += '_gauge-' + indexDate.getUTCFullYear() 
-  if (elasticIndexTimestamp == 'month' || elasticIndexTimestamp == 'day' 
+  statsdGaugeDataIndex += '_gauge-' + indexDate.getUTCFullYear()
+  if (elasticIndexTimestamp == 'month' || elasticIndexTimestamp == 'day'
     || elasticIndexTimestamp == 'hour') {
     var indexMo = indexDate.getUTCMonth() + 1;
     if (indexMo < 10) {
@@ -278,5 +296,4 @@ function getStatsIndexes(statsdCounterIndex, statsdTimerIndex,
     statsdGaugeDataIndex += '.' + indexDt;
   }
   return { statsdCounterIndex, statsdTimerIndex, statsdTimerDataIndex, statsdGaugeDataIndex };
-  
 }
