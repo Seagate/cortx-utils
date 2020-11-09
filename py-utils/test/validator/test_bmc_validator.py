@@ -84,8 +84,13 @@ class TestBmcValidator(unittest.TestCase):
 
     def test_stonith_ok(self):
         """ Check Stonith configuration """
-        cfg_args = ['srvnode-1', '192.168.12.123', 'admin', 'Admin!']
-        BmcV().validate('stonith', cfg_args)
+        for node in self.node_list:
+            bmc_ip = self.bmc_data[node]['ip']
+            bmc_user = self.bmc_data[node]['user']
+            secret = self.bmc_data[node]['secret']
+            key = Cipher.generate_key(self.cluster_id, 'cluster')
+            bmc_passwd = Cipher.decrypt(key, secret.encode('ascii')).decode()
+            BmcV().validate('stonith', [node, bmc_ip, bmc_user, bmc_passwd])
 
     def test_stonith_no_args_error(self):
         """ Check 'stonith' validation type for no arguments """
