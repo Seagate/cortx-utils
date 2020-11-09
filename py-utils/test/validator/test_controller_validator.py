@@ -95,7 +95,8 @@ class TestControllerV(unittest.TestCase):
         """ Check 'accessible' validation for an unsupported bundle version of controller"""
         user, passwd = self.__fetch_username_password_from_salt()
         mc_expected = ["GN000", "280GN"]
-        self.cntrlr_validator.validate("firmware", [self.primary_mc, user, passwd, mc_expected])
+        self.assertRaises(VError, self.cntrlr_validator.validate, "firmware",\
+            self.primary_mc, user, passwd, mc_expected)
 
     def test_web_service(self):
         # TODO: validate web service availability
