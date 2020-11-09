@@ -17,6 +17,8 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
+from .error import VError
+from .v_process import ProcessV
 
 
 class VCommand:
@@ -150,3 +152,36 @@ class ElasticsearchVCommand(VCommand):
         """Validate elasticsearch status."""
 
         self._elasticsearch.validate(self.v_type, self.args)
+
+
+# TODO remove this redundant V once
+# https://github.com/Seagate/cortx-utils/pull/87 is merged
+class ProcessVCommand(VCommand):
+    """Process-related commands."""
+
+    name = "process"
+
+    def __init__(self, args):
+        super().__init__(args)
+        self._validator = ProcessV()
+
+    def process(self):
+        """Validate elasticsearch status."""
+
+        if self.v_type == 'running':
+            self._validate_process_by_name(name=self.args[0])
+        else:
+            raise VError(errno.EINVAL,
+                         'Invalid v_type given. Supported v_types: [running]')
+
+    def _validate_process_by_name(self, name: str) -> None:
+        patterns = {
+            'consul': 'consul',
+            'elasticsearch': 'org.elasticsearch.bootstrap.Elasticsearch'
+        }
+        if name not in patterns:
+            raise VError(
+                errno.EINVAL, f'Unsupported process name given {name}. '
+                f'Expected values: {[i for i in patterns.keys()]}')
+
+        self._validator.validate_process_exists(patterns[name])
