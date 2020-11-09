@@ -232,7 +232,7 @@ class PacemakerV:
         srvnode-2 configured in the cluster.
         """
         def is_node(line: str) -> bool:
-            match = re.match(r'srvnode-[1,2]', line)
+            match = re.match(r'.*srvnode-[12].*', line)
             return match is not None
 
         output = self.executor.get_corosync_status()
