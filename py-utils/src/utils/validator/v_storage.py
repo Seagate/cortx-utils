@@ -68,8 +68,7 @@ class StorageV:
         for node in nodes:
             if provider.lower() == "lsi":
                 cmd = f"ssh {node} lspci -nn | grep 'SCSI'"
-                # TO DO: check is paramiko is needed 
-                # for all pre-checks.
+                # TO DO: Use paramiko for ssh.
                 cmd_proc = SimpleProcess(cmd)
                 run_result = cmd_proc.run()
 
