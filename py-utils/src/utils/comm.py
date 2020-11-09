@@ -15,6 +15,9 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import socket
+import paramiko
+import traceback
 from abc import ABCMeta, abstractmethod
 
 class Channel(metaclass=ABCMeta):
@@ -85,3 +88,53 @@ class Comm(metaclass=ABCMeta):
     @abstractmethod
     def acknowledge(self):
         raise Exception('acknowledge not implemented in Comm class')
+
+
+class SSHSession:
+
+    """Establish SSH connection on remote host"""
+
+    def __init__(self, host, username, password):
+        self.host = host
+        self.user = username
+        self.pwd = password
+        self.port = 22
+        self.timeout = 30
+        self.client = None
+        self.__connect()
+
+    def __connect(self):
+        """create ssh connection
+        """
+        self.client = paramiko.SSHClient()
+        self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        try:
+            self.client.connect(hostname=self.host,
+                                port=self.port,
+                                username=self.user,
+                                password=self.pwd,
+                                timeout=self.timeout)
+        #except paramiko.ssh_exception.AuthenticationException:
+        except paramiko.AuthenticationException:
+            raise Exception(f"Authentication failed, verify your credentials.")
+        except paramiko.SSHException:
+            sshError = traceback.format_exc()
+            raise Exception(f"Could not establish SSH connection. {sshError}")
+        except socket.timeout:
+            raise Exception(f"Timedout. Failed to connect {self.host} in {self.timeout} seconds")
+        except:
+            sshError = traceback.format_exc()
+            raise Exception(f"Exception in connecting to {self.host}\n. {sshError}")
+
+    def exec_command(self, command):
+        """Execute command on remote host
+        """
+        if self.client is None:
+            self.client == self.__connect()
+        stdin, stdout, stderr = self.client.exec_command(command)
+        return (stdin, stdout, stderr)
+
+    def disconnect(self):
+        """Close the created ssh connection
+        """
+        self.client.close()

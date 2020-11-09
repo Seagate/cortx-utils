@@ -24,6 +24,9 @@ from cortx.utils.process import SimpleProcess
 class BmcV:
     """BMC related validations."""
 
+    def __init__(self):
+        self.channel_cmd = "channel info"
+
     def __get_bmc_ip(self, node):
         """ Get BMC IP along with status of command
         """
@@ -46,7 +49,6 @@ class BmcV:
 
         bmc_ip = result[0].split()[-1]
         return bmc_ip
-
 
     def __get_bmc_power_status(self, node):
         """ Get BMC power status
@@ -71,19 +73,6 @@ class BmcV:
         pw_status = result[0].split()[-1]
         return pw_status, cmd, result
 
-    def __get_channel_information(self, node):
-        """ Get channel information
-        """
-        cmd = "ssh {node} ipmitool channel info"
-        cmd_proc = SimpleProcess(cmd)
-        stdout, stderr, rc = cmd_proc.run()
-        if rc != 0:
-            msg = f"Failed to get channel information. Command: '{cmd}', Return Code: '{rc}'."
-            msg += stderr.decode("utf-8").replace('\r','').replace('\n','')
-            raise VError(errno.EINVAL, msg)
-        ch_info = stdout.decode("utf-8").replace('\r','').replace('\n','')
-        return ch_info
-
     def __ping_bmc(self, node):
         """ Ping BMC IP
         """
@@ -103,48 +92,43 @@ class BmcV:
                     msg += f' {res}.'
             raise VError(errno.ECONNREFUSED, msg)
 
-
     def validate(self, v_type, args):
         """
         Process BMC validations.
         Usage (arguments to be provided):
-        1. bmc accessible <node1> <node2> <...>
+        1. bmc accessible <node> <bmc_ip> <bmc_user> <bmc_passwd>
         2. bmc stonith <node> <bmc_ip> <bmc_user> <bmc_passwd>
         """
-
         if not isinstance(args, list):
             raise VError(errno.EINVAL, f"Invalid parameters '{args}'")
 
+        if len(args) < 1:
+            raise VError(errno.EINVAL, "No parameters specified")
+
+        if len(args) < 4:
+            raise VError(errno.EINVAL,
+                    f"Insufficient parameters '{args}' for 'bmc validate'. Refer usage.")
+        elif len(args) > 4:
+            raise VError(errno.EINVAL,
+                    f"Too many parameters '{args}' for 'bmc validate'. Refer usage.")
+
         if v_type == "accessible":
-            if len(args) < 1:
-                raise VError(errno.EINVAL, "No parameters specified")
-            self.validate_bmc_accessibility(args)
+            self.validate_bmc_accessibility(args[0], args[1], args[2], args[3])
         elif v_type == "stonith":
-            if len(args) < 4:
-                raise VError(errno.EINVAL,
-                             f"Insufficient parameters '{args}' for 'bmc stonith'. Refer usage.")
-            elif len(args) > 4:
-                raise VError(errno.EINVAL,
-                             f"Too many parameters '{args}' for 'bmc stonith'. Refer usage.")
             self.validate_bmc_stonith_config(args[0], args[1], args[2], args[3])
         else:
             raise VError(errno.EINVAL,f"Action parameter '{v_type}' not supported")
 
-
-    def validate_bmc_accessibility(self, nodes):
+    def validate_bmc_accessibility(self, node, bmc_ip, bmc_user, bmc_passwd):
         """ Validate BMC accessibility
         """
-        for node in nodes:
-            # Validate bmc accessibility over KCS channel
-            ch_info = self.__get_channel_information(node)
-            if 'KCS' not in ch_info:
-                msg = f"Unsupported BMC channel protocol type found."
-                msg += f" {ch_info}."
-                raise VError(errno.EINVAL, msg)
-
-            # Check if we can ping BMC
-            self.__ping_bmc(node)
-
+        # Validate bmc accessibility on inband setup
+        self.validate_inband_bmc_channel(node)
+        # BMC IP based validations
+        # Validate bmc accessibility on outband setup
+        self.validate_bmc_channel_over_lan(bmc_ip, bmc_user, bmc_passwd)
+        # Check if we can ping BMC
+        self.__ping_bmc(node)
 
     def validate_bmc_stonith_config(self, node, bmc_ip, bmc_user, bmc_passwd):
         """ Validations for BMC STONITH Configuration
@@ -154,7 +138,8 @@ class BmcV:
         result = list(cmd_proc.run())
 
         if result[1] or result[2]:
-            msg = f"Failed to check BMC STONITH Config. Command: '{cmd}', Return Code: '{result[2]}'."
+            msg = f"Failed to check BMC STONITH Config. Command: '{cmd}',\
+                    Return Code: '{result[2]}'."
             for i in range(2):
                 if result[i]:
                     if not isinstance(result[i], str):
@@ -162,3 +147,30 @@ class BmcV:
                     res = result[i].replace('\r','').replace('\n','')
                     msg += f' {res}.'
             raise VError(errno.EINVAL, msg)
+
+    def validate_inband_bmc_channel(self, node):
+        """ Get BMC channel information (inband)
+        """
+        cmd = f"ssh {node} ipmitool {self.channel_cmd}"
+        cmd_proc = SimpleProcess(cmd)
+        stdout, stderr, rc = cmd_proc.run()
+        if rc != 0:
+            msg = f"Failed to get BMC channel info of '{node}''. Command: '{cmd}',\
+                    Return Code: '{rc}'."
+            msg += stderr.decode("utf-8").replace('\r','').replace('\n','')
+            raise VError(errno.EINVAL, msg)
+        return True
+
+    def validate_bmc_channel_over_lan(self, bmc_ip, bmc_user, bmc_passwd):
+        """ Get BMC channel information over lan (out-of-band)
+        """
+        # check BMC ip is accessible over lan (out of band)
+        cmd = f"ipmitool -H {bmc_ip} -U {bmc_user} -P {bmc_passwd} -I lan {self.channel_cmd}"
+        cmd_proc = SimpleProcess(cmd)
+        stdout, stderr, rc = cmd_proc.run()
+        if rc != 0:
+            msg = f"Failed to get BMC channel info of '{bmc_ip}' over lan. Command: '{cmd}',\
+                    Return Code: '{rc}'."
+            msg += stderr.decode("utf-8").replace('\r','').replace('\n','')
+            raise VError(errno.EINVAL, msg)
+        return True
