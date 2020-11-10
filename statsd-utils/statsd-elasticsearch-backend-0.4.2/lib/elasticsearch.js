@@ -199,7 +199,7 @@ function setData(listData, statsdIndex, renderKV, prev_index) {
         }
         req = http.request(reqOpts, function (res) {
         }).on('error', function (err) {
-          lg.log('error', 'Error with HTTP request, no stats flushed.');
+          lg.log('warning', 'Elasticsearch-Statsd connection failed, No stats flushed.');
         });
         req.end();
 
@@ -213,7 +213,7 @@ function setData(listData, statsdIndex, renderKV, prev_index) {
         };
         settings_req = http.request(settingsOptions, function(res) {
         }).on('error', function (err) {
-          lg.log('error', 'Error with HTTP request, no stats flushed.');
+          lg.log('warning', 'Elasticsearch-Statsd connection failed, No stats flushed.');
         });
         settings_req.write(settings_payload);
         settings_req.end();
@@ -246,7 +246,7 @@ function setData(listData, statsdIndex, renderKV, prev_index) {
       }
     });
   }).on('error', function (err) {
-    lg.log('error', 'Error with HTTP request, no stats flushed.');
+    lg.log('warning', 'Elasticsearch-Statsd connection failed, No stats flushed.');
   });
   if (debug) {
     lg.log('ES payload:');
