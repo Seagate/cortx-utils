@@ -78,15 +78,21 @@ class TestNetworkValidator(unittest.TestCase):
 
         NetworkV().validate('hca', ["mellanox", 'srvnode-1'])
 
+    def test_hca_type_error(self):
+        """Check HCA v_type - ERROR."""
+
+        self.assertRaises(VError, NetworkV().validate, 'abcd',
+                          ["mellanox", 'srvnode-1'])
+
     def test_hca_provider_error(self):
-        """Check HCA present - ERROR."""
+        """Check HCA provider - ERROR."""
 
         dummy_hosts = ['srv-1', 'srv-2']
         self.assertRaises(VError, NetworkV().validate, 'hca',
                           ["abcd", dummy_hosts])
 
     def test_hca_host_error(self):
-        """Check HCA present - ERROR."""
+        """Check HCA hosts - ERROR."""
 
         dummy_hosts = ['srv-1', 'srv-2']
         self.assertRaises(VError, NetworkV().validate, 'hca',

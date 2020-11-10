@@ -42,57 +42,28 @@ class NetworkV:
             if len(args) < 1:
                 raise VError(errno.EINVAL,
                              "Insufficient parameters. %s" % args)
-            else:
-                self.validate_host_connectivity(args)
+            self.validate_host_connectivity(args)
 
         else:
             if len(args) < 2:
                 raise VError(errno.EINVAL,
                              "Insufficient parameters. %s" % args)
 
-            else:
-                if v_type == "passwordless":
-                    self.validate_passwordless_ssh(args[0], args[1:])
-                elif v_type == "drivers":
-                    nodes = ['srvnode-1', 'srvnode-2']
-                    if args[0] in nodes:
-                        raise VError(errno.EINVAL,
-                                     "No Driver Name provided. "
-                                     "Please provide a valid "
-                                     "Network Driver name to Validate.")
-                    self.validate_network_drivers(args[0], args[1:])
-                elif v_type == "hca":
-                    # More providers can be added in future, if required.
-                    hca_checks = ['mellanox']
-                    if args[0].lower() not in hca_checks:
-                        raise VError(errno.EINVAL,
-                                     "Invalid HCA Provider name. "
-                                     "Please choose from  %s" % hca_checks)
-                    self.validate_hca(args[0], args[1:])
-                else:
+            if v_type == "passwordless":
+                self.validate_passwordless_ssh(args[0], args[1:])
+            elif v_type == "drivers":
+                self.validate_network_drivers(args[0], args[1:])
+            elif v_type == "hca":
+                # More providers can be added to the list in future, if required.
+                self.hca_checks = ['mellanox']
+                if args[0].lower() not in self.hca_checks:
                     raise VError(errno.EINVAL,
-                                 "Action parameter %s not supported" % v_type)
-
-    def validate_ip_connectivity(self, ips):
-        """Check if IPs are reachable."""
-
-        unreachable_ips = []
-        for ip in ips:
-            if ip.count(".") == 3 and all(self._is_valid_ipv4_part(ip_part)
-                                          for ip_part in ip.split(".")):
-
-                cmd = f"ping -c 1 -W 1 {ip}"
-                cmd_proc = SimpleProcess(cmd)
-                run_result = cmd_proc.run()
-
-                if run_result[2]:
-                    unreachable_ips.append(ip)
+                                 "Invalid HCA Provider name. "
+                                 "Please choose from  %s" % self.hca_checks)
+                self.validate_hca(args[0], args[1:])
             else:
-                raise VError(errno.EINVAL, f"Invalid ip {ip}.")
-
-        if len(unreachable_ips) != 0:
-            raise VError(
-                errno.ECONNREFUSED, "Ping failed for IP(s). %s" % unreachable_ips)
+                raise VError(errno.EINVAL,
+                             "Action parameter %s not supported" % v_type)
 
     def validate_host_connectivity(self, hosts):
         """Check if hosts are reachable."""
@@ -151,33 +122,33 @@ class NetworkV:
         """Check if HCA presence and ports"""
 
         for node in nodes:
-            if provider.lower() == "mellanox":
-                cmd = f"ssh {node} lspci -nn | grep 'Mellanox Technologies'"
+            if provider.lower() in self.hca_checks:
+                cmd = f"ssh {node} lspci -nn | grep '{provider.capitalize()}'"
                 cmd_proc = SimpleProcess(cmd)
                 run_result = cmd_proc.run()
 
                 if run_result[1] or run_result[2]:
-                    res = ("Mellanox Host Channel Adapters card "
+                    res = (f"{provider.capitalize()} Host Channel Adapters card "
                            f"(possibly with Infiniband capability) is not detected on {node}. "
                            f"Also, check if '{node}' is valid. "
                            f"CMD '{cmd} failed. {run_result[0]}. {run_result[1]}")
                     raise VError(errno.EINVAL, res)
 
-                ports_cmd = f"ssh {node} lspci -nn | grep 'Mellanox Technologies' | wc -l"
+                ports_cmd = f"{cmd} | wc -l"
                 ports_cmd_proc = SimpleProcess(ports_cmd)
                 ports_run_result = ports_cmd_proc.run()
 
                 if ports_run_result[1] or ports_run_result[2]:
-                    res = ("Mellanox Host Channel Adapters ports were not "
-                           "detected by command 'lspci -nn | grep 'Mellanox Technologies'. "
+                    res = (f"{provider.capitalize()} Host Channel Adapters ports were not "
+                           f"detected by command {cmd}. "
                            f"Also, check if '{node}' is valid. "
-                           f"CMD '{cmd} failed. {ports_run_result[0]}. {ports_run_result[1]}")
+                           f"CMD {cmd} failed. {ports_run_result[0]}. {ports_run_result[1]}")
                     raise VError(errno.EINVAL, res)
 
                 res = (ports_run_result[0].decode('utf-8').strip())
                 if int(res) == 0:
-                    res = ("Mellanox Host Channel Adapters ports were not "
-                           "detected by command 'lspci -nn | grep 'Mellanox Technologies'. "
+                    res = (f"{provider.capitalize()} Host Channel Adapters ports were not "
+                           f"detected by command {cmd}. "
                            "For high-speed data network, it is expected to "
                            "have at least one port present over some PCIe slot. ")
                     raise VError(errno.EINVAL, res)
