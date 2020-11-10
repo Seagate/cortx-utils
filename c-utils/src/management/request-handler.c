@@ -187,15 +187,21 @@ void request_send_response(struct request *request,
 		 */
 		request->state = ERROR;
 
-		/* Create json object */
-		request->out_json_req_obj = json_object_new_object();
+		/* @TODO This check is temporary for all the rest apis which are yet
+				to integrate with the error response framework. Hence, we are
+				setting the error message to ""
+		*/
+		if(request->err_resp == NULL) {
+			request_set_err_resp(request, "");
+		}
+		/* Convert the error response object to json object */
+		error_resp_tojson(request->err_resp, &request->out_json_req_obj);
 
-		json_resp_obj = json_object_new_int(request->err_code);
-		json_object_object_add(request->out_json_req_obj,
-				       "rc",
-				       json_resp_obj);
-		json_resp_obj = NULL;
-
+		/* We no longer need the error response object, hence freeing it */
+		if(request->err_resp) {
+			free(request->err_resp);
+			request->err_resp = NULL;
+		}
 	}
 
 	json_resp_obj = request->out_json_req_obj;
@@ -290,6 +296,11 @@ void request_set_errcode(struct request *request, int err)
 	request->err_code = err;
 }
 
+int request_set_err_resp(struct request *request, const char *err_msg)
+{
+	return error_resp_get(request->err_code, err_msg, &request->err_resp);
+}
+
 int request_content_length(struct request *request)
 {
 	return request->in_content_len;
@@ -355,6 +366,7 @@ int request_init(struct server *server,
 	/* Assign server back link. */
 	request->server = server;
 
+	request->err_resp = NULL;
 	/* Init http request. */
 	request->evhtp_req = evhtp_req;
 	rc = http_init(evhtp_req, &http);

@@ -308,6 +308,7 @@ void request_set_data(struct request *request, struct json_object *json_obj);
 char* request_api_file(struct request *request);
 int request_get_errcode(struct request *request);
 void request_set_errcode(struct request *request, int err_code);
+int request_set_err_resp(struct request *request, const char *err_msg);
 void request_set_out_header(struct request *request,
 			    const char *key,
 			    const char *value);

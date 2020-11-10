@@ -153,6 +153,7 @@ struct request {
 	struct json_object	*out_json_req_obj;
 	int			 err_code;
 	str256_t	 	out_etag_str;
+	struct error_resp	*err_resp;
 
 	/* Request Operations handlers and call backs. */
 	request_read_cb_func	 read_cb;
@@ -226,5 +227,27 @@ struct http {
 
 int http_init(evhtp_request_t *evhtp_req, struct http **http);
 void http_fini(struct http *http);
+
+/**
+ * Error Response APIs.
+ */
+
+struct error_resp {
+	int error_code;  /* Error code */
+	str256_t message; /* Error message description */
+};
+
+/* Allocates and initializes the error response object.
+ *
+ * @param[in] code - Error code to set
+ * @param[in] msg - Error message description to set.
+ * @param[out] resp - Allocated and initialized error response obj
+ *
+ * returns 0, if successful else returns error code
+ */
+int error_resp_get(int code, const char *msg, struct error_resp **resp);
+
+/* Converts the error response object to json object */
+void error_resp_tojson(struct error_resp *resp, struct json_object **out_json);
 
 #endif
