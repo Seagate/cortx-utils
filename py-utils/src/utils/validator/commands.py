@@ -17,6 +17,8 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
+from .error import VError
+from .v_ha import HaStatusV
 
 
 class VCommand:
@@ -150,3 +152,24 @@ class ElasticsearchVCommand(VCommand):
         """Validate elasticsearch status."""
 
         self._elasticsearch.validate(self.v_type, self.args)
+
+
+class HaStatusVCommand(VCommand):
+    """HA Status related commands."""
+
+    name = "ha"
+
+    def __init__(self, args):
+        super().__init__(args)
+        self._validator = HaStatusV()
+
+    def process(self):
+        """Validate HA status."""
+
+        v_type = self._v_type
+        if v_type == 'io-stack':
+            self._validator.validate_io_stack_sane()
+        else:
+            raise VError(
+                errno.EINVAL, "Invalid v_type given: {v_type}. "
+                "Supported values: [io-stack]")
