@@ -35,6 +35,9 @@ class ValidatorCommandFactory:
                         "\t[-h]\n"
                         "\t[network connectivity <ip1> <ip2> <...>]\n"
                         "\t[consul service <host> <port>]\n"
+                        "\t[storage hba <provider> <node-1> <...>]\n"
+                        "\t[storage luns <v_check> <node-1> <...>]\n"
+                        "\t[storage lvms <node-1> <...>]\n"
                         "\t[elasticsearch service <host> <port>]\n"
                         "\t[bmc accessible <node1> <node2> <...>]\n"
                         "\t[bmc stonith <node> <bmc_ip> <bmc_user> <bmc_passwd>]\n")
