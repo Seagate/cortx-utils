@@ -291,3 +291,38 @@ Membership information
         with self.assertRaises(VError):
             validator.validate_two_stonith_only()
 
+    def test_validate_failcounts_works(self):
+        client = PacemakerClient()
+        validator = PacemakerV(executor=client)
+        mock_methods(client)
+        failcount_text = '''
+        No failcounts
+        '''
+        client.get_resource_failcounts = MagicMock(
+            side_effect=[failcount_text])
+
+        validator.validate_no_failcounts()
+
+    def test_validate_failcounts_fails_when_there_were_failures(self):
+        client = PacemakerClient()
+        validator = PacemakerV(executor=client)
+        mock_methods(client)
+        failcount_text = '''
+Failcounts for resource 's3backprod'
+  srvnode-2: 1
+Failcounts for resource 's3server-c1-11'
+  srvnode-1: 1
+Failcounts for resource 's3server-c1-7'
+  srvnode-1: 1
+Failcounts for resource 's3server-c1-8'
+  srvnode-1: 1
+Failcounts for resource 's3server-c2-10'
+  srvnode-2: 1
+Failcounts for resource 's3server-c2-8'
+  srvnode-2: 1
+        '''
+        client.get_resource_failcounts = MagicMock(
+            side_effect=[failcount_text])
+
+        with self.assertRaises(VError):
+            validator.validate_no_failcounts()

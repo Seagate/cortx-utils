@@ -156,7 +156,8 @@ class PacemakerCommand(VCommand):
         vtype = self._v_type
         handlers = {
             'corosync': self._validate_config,
-            'stonith': self._validate_stonith
+            'stonith': self._validate_stonith,
+            'failcounts': self._validate_failcounts,
         }
         if vtype not in handlers:
             raise VError(
@@ -173,3 +174,6 @@ class PacemakerCommand(VCommand):
         v.validate_two_stonith_only()
         v.validate_stonith_for_both_nodes_exist()
         v.validate_all_stonith_running()
+
+    def _validate_failcounts(self):
+        self._validator.validate_no_failcounts()

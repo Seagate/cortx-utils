@@ -17,10 +17,10 @@
 import logging
 import re
 from errno import EINVAL, ERANGE
-from subprocess import PIPE, Popen  # nosec
 from typing import Any, Dict, List, Match, NamedTuple, Optional, Tuple
 
 import defusedxml.ElementTree as ET
+from cortx.utils.process import SimpleProcess
 
 from .error import VError
 
@@ -46,7 +46,6 @@ class StonithParser:
     Parser for 'pcs stonith show <id>' command output.
     Analyzes the ouput of CLI command and converts to List[StonithResource]
     """
-
     def _parse_kv(self, text: str) -> Dict[str, str]:
         def _pair(lst: List[str]) -> Tuple[str, str]:
             return (lst[0], lst[1])
@@ -95,10 +94,8 @@ class PacemakerClient:
     Encapsulates the details of communication with Pacemaker via various
     CLI interfaces
     """
-
     def get_stonith_resources(self) -> List[Resource]:
         """Returns the list of all stonith resources in Pacemaker cluster"""
-
         def is_stonith(rsr: Resource) -> bool:
             match = re.match(r'^stonith:', rsr.resource_agent)
             return match is not None
@@ -163,19 +160,16 @@ class PacemakerClient:
         ]
         return result
 
+    def get_resource_failcounts(self) -> str:
+        return self._execute(['pcs', 'resource', 'failcount', 'show'])
+
     def _execute(self, cmd: List[str]) -> str:
-        process = Popen(
-            cmd,  # nosec
-            stdin=PIPE,  # nosec
-            stdout=PIPE,  # nosec
-            stderr=PIPE,  # nosec
-            encoding='utf8')  # nosec
-        logging.debug('Issuing CLI command: %s', cmd)
-        out, err = process.communicate()
-        exit_code = process.returncode
-        logging.debug('Finished. Exit code: %d', exit_code)
-        if exit_code:
-            raise VError(exit_code, err)
+        out, err, exitcode = SimpleProcess(cmd).run()
+        out = out.decode('utf-8')
+        err = err.decode('utf-8')
+
+        if exitcode:
+            raise VError(exitcode, err)
         return out
 
 
@@ -241,3 +235,14 @@ class PacemakerV:
             raise VError(
                 ERANGE, 'Please ensure that both srvnode-1 and '
                 'srvnode-2 are configured in Pacemaker')
+
+    def validate_no_failcounts(self):
+        """Ensures that there was no fails among Pacemaker resources"""
+        output = self.executor.get_resource_failcounts()
+        match = re.match(r'.*No failcounts.*', output,
+                         re.MULTILINE | re.DOTALL)
+        if match:
+            return
+        raise VError(
+            EINVAL,
+            'There were fails. See the output from Pacemaker: ' + output)
