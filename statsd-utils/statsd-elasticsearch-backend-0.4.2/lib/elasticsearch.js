@@ -119,7 +119,7 @@ var flush_stats = function elastic_flush(ts, metrics) {
     es_bulk_insert(array_counts, array_timers, array_timer_data, array_gauges);
   }
   catch (e) {
-    lg.log("warning Connection to elasticsearch is failed.");
+    lg.log("warning","Connection to elasticsearch is failed.");
   }
 
   if (debug) {
