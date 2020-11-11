@@ -22,3 +22,4 @@
 uint64_t perfc_id_gen = PERFC_INVALID_ID;
 
 pthread_key_t perfc_tls_key;
+uint8_t perfc_tls_key_check = PERFC_INVALID_ID;
