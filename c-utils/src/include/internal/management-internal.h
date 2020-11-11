@@ -27,6 +27,7 @@
 #include <event.h> /* evbuf_t */
 #include <event2/http.h> /* evhttp_uridecode */
 #include <evhtp.h> /* evhtp_t, evhtp_request_t, evhtp_header_t */
+#include <str.h>
 
 /**
  * ######################################################################
@@ -140,16 +141,18 @@ struct request {
 
 	/* Request Data info. */
 	evbuf_t			*in_buffer;
-	int			 in_content_len;
-	int			 in_read_len;
-	int			 in_remaining_len;
+	int			in_content_len;
+	int			in_read_len;
+	int			in_remaining_len;
 	struct json_object	*in_json_req_obj;
+	const char		*in_etag_str;
 
 	/* Response data info. */
 	evbuf_t			*out_buffer;
 	int			 out_content_len;
 	struct json_object	*out_json_req_obj;
 	int			 err_code;
+	str256_t	 	out_etag_str;
 
 	/* Request Operations handlers and call backs. */
 	request_read_cb_func	 read_cb;
