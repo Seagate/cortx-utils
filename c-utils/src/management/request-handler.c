@@ -79,6 +79,7 @@ int request_validate_headers(struct request *request)
 	int rc = 0;
 	struct http *http = NULL;
 	const char *content_length = NULL;
+	const char *etag_str = NULL;
 
 	http = request->http;
 	content_length = http->header_find(http->evhtp_req->headers_in,
@@ -98,6 +99,14 @@ int request_validate_headers(struct request *request)
 	}
 
 	request->in_remaining_len = request->in_content_len;
+
+	/* Get the etag (object hash) for the request. */
+	etag_str = http->header_find(http->evhtp_req->headers_in,
+				     "If-Match");
+
+	if(etag_str != NULL) {
+		request_set_input_etag_value(request, etag_str);
+	}
 
 	/**
 	 * ...
@@ -209,6 +218,13 @@ void request_send_response(struct request *request,
 				       "Content-Length",
 				       str_resp_size);
 
+		if(request->out_etag_str.s_len != 0)
+		{
+			request_set_out_header(request,
+					       "Etag",
+					       request->out_etag_str.s_str);
+		}
+
 		request->out_buffer = evbuffer_new();
 		evbuffer_add(request->out_buffer,
 			     str_resp,
@@ -277,6 +293,28 @@ void request_set_errcode(struct request *request, int err)
 int request_content_length(struct request *request)
 {
 	return request->in_content_len;
+}
+
+const char* request_etag_value(struct request *request)
+{
+	return request->in_etag_str;
+}
+
+void request_init_etag(struct request *request)
+{
+	memset(&(request->out_etag_str), 0, sizeof(str256_t));
+	request->in_etag_str = NULL;
+}
+
+void request_set_input_etag_value(struct request *request, const char *etagstr)
+{
+	request->in_etag_str = etagstr;
+}
+
+void request_set_reponse_etag_value(struct request *request, str256_t etagstr)
+{
+	memcpy(&(request->out_etag_str), &etagstr, sizeof(str256_t));
+	request->out_etag_str.s_str[(request->out_etag_str).s_len] = '\0'; 
 }
 
 void request_set_readcb(struct request *request, request_read_cb_func cb)
@@ -386,6 +424,9 @@ int request_init(struct server *server,
 	evhtp_kvs_for_each(evhtp_req->headers_in,
 			   request_consume_header,
 			   request);
+
+	/* Initializing the etag fields. */
+	request_init_etag(request);
 
 	/* Assign InOut param value. */
 	*new_request = request;

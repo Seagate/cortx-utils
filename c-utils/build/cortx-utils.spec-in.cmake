@@ -33,6 +33,9 @@ Provides: %{name} = %{version}-%{release}
 @BCOND_ENABLE_DASSERT@ enable_dassert
 %global enable_dassert %{on_off_switch enable_dassert}
 
+@BCOND_ENABLE_TSDB_ADDB@ enable_tsdb_addb
+%global enable_tsdb_addb%{on_off_switch enable_tsdb_addb}
+
 %description
 The @PROJECT_NAME@ is the container to hold all the general purpose libraries.
 Libraries like - fault, log etc...
@@ -53,6 +56,7 @@ The @PROJECT_NAME@ is the container to hold all the general purpose libraries.
 %build
 cmake . -DFAULT_INJECT=%{fault_inject} \
 	-DENABLE_DASSERT=%{enable_dassert} \
+	-DENABLE_TSDB_ADDB=%{enable_tsdb_addb} \
 	-DPROJECT_NAME_BASE=@PROJECT_NAME_BASE@ \
 	-DCONFIGURE=OFF
 
