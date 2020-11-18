@@ -93,11 +93,11 @@ class Comm(metaclass=ABCMeta):
 class SSHSession:
     """Establish SSH connection on remote host"""
 
-    def __init__(self, host, username, password):
+    def __init__(self, host, username, password, port=22):
         self.host = host
         self.__user = username
         self.__pwd = password
-        self.port = 22
+        self.port = port
         self.timeout = 30
         self.client = None
         self.connect()
@@ -116,7 +116,7 @@ class SSHSession:
                                 password=self.__pwd,
                                 timeout=self.timeout)
         except paramiko.AuthenticationException:
-            raise Exception(f"Authentication failed, verify your credentials.")
+            raise Exception("Authentication failed, verify your credentials.")
         except paramiko.SSHException:
             sshError = traceback.format_exc()
             raise Exception(f"Could not establish SSH connection. {sshError}")
@@ -137,11 +137,24 @@ class SSHSession:
     def is_connection_alive(self):
         """Check transporting tunnel is active
         """
-        if self.client.get_transport() is None:
+        if (self.client is None) or (self.client.get_transport() is None):
             return False
         return True
 
     def disconnect(self):
         """Close the created ssh connection
         """
-        self.client.close()
+        if self.client:
+            try:
+                # Failure due to this may leave transport tunnel opened.
+                self.client.close()
+            except:
+                pass
+        # Explicitly handling the client connection
+        # instead of relying on garbage collection
+        self.client = None
+
+    def __del__(self):
+        """Destruct the connection
+        """
+        self.disconnect()
