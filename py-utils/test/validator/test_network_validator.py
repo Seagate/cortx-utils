@@ -20,6 +20,7 @@ import unittest
 
 from cortx.utils.validator.v_network import NetworkV
 from cortx.utils.validator.error import VError
+from cortx.utils.validator.config import Network_V_Types as v_types
 
 
 class TestNetworkValidator(unittest.TestCase):
@@ -30,53 +31,53 @@ class TestNetworkValidator(unittest.TestCase):
 
         fake_ip1 = '11.230.249.110'
         fake_ip2 = '12.230.249.110'
-        self.assertRaises(VError, NetworkV().validate, 'connectivity',
-                          [fake_ip1, fake_ip2])
+        self.assertRaises(VError, NetworkV().validate,
+                          v_types.CONNECTIVITY.value, [fake_ip1, fake_ip2])
 
     def test_connectivity_ok(self):
         ip1 = '8.8.8.8'
-        NetworkV().validate('connectivity', [ip1])
+        NetworkV().validate(v_types.CONNECTIVITY.value, [ip1])
 
     def test_host_connectivity_error(self):
         """Check host connectivity failure."""
 
         fake_host = 'www1.google.com'
-        self.assertRaises(VError, NetworkV().validate, 'connectivity',
-                          [fake_host])
+        self.assertRaises(VError, NetworkV().validate,
+                          v_types.CONNECTIVITY.value, [fake_host])
 
     def test_host_connectivity_ok(self):
         host = 'localhost'
-        NetworkV().validate('connectivity', [host])
+        NetworkV().validate(v_types.CONNECTIVITY.value, [host])
 
     def test_nopasswordless_ssh(self):
         fake_hosts = ['srvnod-1', 'srvnod-2']
         args = ['root']
         args.extend(fake_hosts)
-        self.assertRaises(VError, NetworkV().validate, 'passwordless',
-                          args)
+        self.assertRaises(VError, NetworkV().validate,
+                          v_types.PASSWORDLESS.value, args)
 
     def test_ofed_install_ok(self):
         """Check OFED Installed"""
 
-        NetworkV().validate('drivers', ["mlnx-ofed", 'srvnode-1'])
+        NetworkV().validate(v_types.DRIVERS.value, ["mlnx-ofed", 'srvnode-1'])
 
     def test_ofed_driver_error(self):
         """Check OFED Installed - ERROR."""
 
-        self.assertRaises(VError, NetworkV().validate, 'drivers',
+        self.assertRaises(VError, NetworkV().validate, v_types.DRIVERS.value,
                           ["abcd", 'srvnode-1'])
 
     def test_ofed_install_error(self):
         """Check OFED Installed - ERROR."""
 
         dummy_hosts = ['srv-1', 'srv-2']
-        self.assertRaises(VError, NetworkV().validate, 'drivers',
+        self.assertRaises(VError, NetworkV().validate, v_types.DRIVERS.value,
                           ["mlnx-ofed", dummy_hosts])
 
     def test_hca_present(self):
         """Check HCA present - CHECK."""
 
-        NetworkV().validate('hca', ["mellanox", 'srvnode-1'])
+        NetworkV().validate(v_types.HCA.value, ["mellanox", 'srvnode-1'])
 
     def test_hca_type_error(self):
         """Check HCA v_type - ERROR."""
@@ -88,14 +89,14 @@ class TestNetworkValidator(unittest.TestCase):
         """Check HCA provider - ERROR."""
 
         dummy_hosts = ['srv-1', 'srv-2']
-        self.assertRaises(VError, NetworkV().validate, 'hca',
+        self.assertRaises(VError, NetworkV().validate, v_types.HCA.value,
                           ["abcd", dummy_hosts])
 
     def test_hca_host_error(self):
         """Check HCA hosts - ERROR."""
 
         dummy_hosts = ['srv-1', 'srv-2']
-        self.assertRaises(VError, NetworkV().validate, 'hca',
+        self.assertRaises(VError, NetworkV().validate, v_types.HCA.value,
                           ["mellanox", dummy_hosts])
 
 

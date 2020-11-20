@@ -24,6 +24,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from cortx.utils.validator.v_consul import ConsulV
 from cortx.utils.validator.error import VError
+from cortx.utils.validator.config import Consul_V_Types as v_types
 
 
 class TestConsulValidator(unittest.TestCase):
@@ -31,7 +32,7 @@ class TestConsulValidator(unittest.TestCase):
 
     def test_service_status(self):
         """Check if consul service is down."""
-        self.assertRaises(VError, ConsulV().validate, 'service',
+        self.assertRaises(VError, ConsulV().validate, v_types.SERVICE.value,
                           ['localhost', '8500'])
 
 

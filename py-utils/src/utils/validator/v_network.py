@@ -20,6 +20,10 @@ import errno
 import socket
 from cortx.utils.validator.error import VError
 from cortx.utils.process import SimpleProcess
+from cortx.utils.validator.config import (
+    Network_V_Types as v_types,
+    HCA_PROVIDERS
+)
 
 
 class NetworkV:
@@ -38,7 +42,7 @@ class NetworkV:
         if not isinstance(args, list):
             raise VError(errno.EINVAL, "Invalid parameters %s" % args)
 
-        if v_type == "connectivity":
+        if v_type == v_types.CONNECTIVITY.value:
             if len(args) < 1:
                 raise VError(errno.EINVAL,
                              "Insufficient parameters. %s" % args)
@@ -49,13 +53,14 @@ class NetworkV:
                 raise VError(errno.EINVAL,
                              "Insufficient parameters. %s" % args)
 
-            if v_type == "passwordless":
+            if v_type == v_types.PASSWORDLESS.value:
                 self.validate_passwordless_ssh(args[0], args[1:])
-            elif v_type == "drivers":
+
+            elif v_type == v_types.DRIVERS.value:
                 self.validate_network_drivers(args[0], args[1:])
-            elif v_type == "hca":
-                # More providers can be added to the list in future, if required.
-                self.hca_checks = ['mellanox']
+
+            elif v_type == v_types.HCA.value:
+                self.hca_checks = HCA_PROVIDERS
                 if args[0].lower() not in self.hca_checks:
                     raise VError(errno.EINVAL,
                                  "Invalid HCA Provider name. "

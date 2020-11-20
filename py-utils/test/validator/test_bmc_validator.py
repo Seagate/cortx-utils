@@ -25,41 +25,46 @@ sys.path.append(utils_root)
 
 from cortx.utils.validator.v_bmc import BmcV
 from cortx.utils.validator.error import VError
+from cortx.utils.validator.config import Bmc_V_Types as v_types
 
 class TestBmcValidator(unittest.TestCase):
     """Test BMC related validations."""
 
     def test_accessibility_ok(self):
         """ Check BMC Accessibility """
-        BmcV().validate('accessible', ['srvnode-1','srvnode-2'])
+        BmcV().validate(v_types.ACCESSIBLE.value, ['srvnode-1','srvnode-2'])
 
     def test_accessibility_no_args_error(self):
         """ Check 'accessible' validation type for no arguments """
-        self.assertRaises(VError, BmcV().validate, 'accessible',[])
+        self.assertRaises(VError, BmcV().validate,
+                          v_types.ACCESSIBLE.value,[])
 
     def test_accessibility_error(self):
         """ Check 'accessible' validation type for fake arguments """
         fake_hosts = ['srv-1', 'srv-2']
-        self.assertRaises(VError, BmcV().validate, 'accessible',fake_hosts)
+        self.assertRaises(VError, BmcV().validate,
+                          v_types.ACCESSIBLE.value, fake_hosts)
 
     def test_stonith_ok(self):
         """ Check Stonith configuration """
         cfg_args = ['srvnode-1', '192.168.12.123', 'admin', 'Admin!']
-        BmcV().validate('stonith', cfg_args)
+        BmcV().validate(v_types.STONITH.value, cfg_args)
 
     def test_stonith_no_args_error(self):
         """ Check 'stonith' validation type for no arguments """
-        self.assertRaises(VError, BmcV().validate, 'stonith',[])
+        self.assertRaises(VError, BmcV().validate, v_types.STONITH.value,[])
 
     def test_stonith_less_args_error(self):
         """ Check 'stonith' validation type for less arguments """
         cfg_args = ['srvnode-1', '192.168.12.123', 'admin']
-        self.assertRaises(VError, BmcV().validate, 'stonith',cfg_args)
+        self.assertRaises(VError, BmcV().validate,
+                          v_types.STONITH.value,cfg_args)
 
     def test_stonith_more_args_error(self):
         """ Check 'stonith' validation type for more arguments """
         cfg_args = ['srvnode-1', '192.168.12.123', 'admin', 'Admin!', 'DummyData']
-        self.assertRaises(VError, BmcV().validate, 'stonith',cfg_args)
+        self.assertRaises(VError, BmcV().validate,
+                          v_types.STONITH.value, cfg_args)
 
     def test_incorrect_vtype(self):
         """ Check incorrect validation type """
