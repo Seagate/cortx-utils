@@ -15,6 +15,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import os
 import socket
 import paramiko
 import traceback
@@ -23,11 +24,12 @@ import traceback
 class SSHSession:
     """Establish SSH connection on remote host"""
 
-    def __init__(self, host, username, password, port=22):
+    def __init__(self, host, username, password=None, port=22, use_pkey=False):
         self.host = host
         self.__user = username
         self.__pwd = password
         self.port = port
+        self.use_pkey = use_pkey
         self.timeout = 30
         self.client = None
         self.connect()
@@ -40,11 +42,20 @@ class SSHSession:
         self.client = paramiko.SSHClient()
         self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
-            self.client.connect(hostname=self.host,
-                                port=self.port,
-                                username=self.__user,
-                                password=self.__pwd,
-                                timeout=self.timeout)
+            if self.use_pkey:
+                pkey_file = os.path.expanduser('~/.ssh/id_rsa_prvsnr')
+                key = paramiko.RSAKey.from_private_key_file(pkey_file)
+                self.client.connect(hostname=self.host,
+                                    port=self.port,
+                                    username=self.__user,
+                                    pkey=key,
+                                    timeout=self.timeout)
+            else:
+                self.client.connect(hostname=self.host,
+                                    port=self.port,
+                                    username=self.__user,
+                                    password=self.__pwd,
+                                    timeout=self.timeout)
         except paramiko.AuthenticationException:
             raise Exception("Authentication failed, verify your credentials.")
         except paramiko.SSHException:
