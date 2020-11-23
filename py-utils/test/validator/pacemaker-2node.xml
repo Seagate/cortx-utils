@@ -1,0 +1,253 @@
+<?xml version="1.0"?>
+<crm_mon version="1.1.21">
+    <summary>
+        <stack type="corosync" />
+        <current_dc present="true" version="1.1.21-4.el7-f14e36fd43" name="srvnode-1" id="1" with_quorum="true" />
+        <last_update time="Fri Nov  6 17:21:22 2020" />
+        <last_change time="Fri Nov  6 17:21:21 2020" user="root" client="cibadmin" origin="srvnode-1" />
+        <nodes_configured number="2" expected_votes="unknown" />
+        <resources_configured number="27" disabled="2" blocked="0" />
+        <cluster_options stonith-enabled="false" symmetric-cluster="true" no-quorum-policy="ignore" maintenance-mode="false" />
+    </summary>
+    <nodes>
+        <node name="srvnode-1" id="1" online="true" standby="false" standby_onfail="false" maintenance="false" pending="false" unclean="false" shutdown="false" expected_up="true" is_dc="true" resources_running="13" type="member" />
+        <node name="srvnode-2" id="2" online="true" standby="false" standby_onfail="false" maintenance="false" pending="false" unclean="false" shutdown="false" expected_up="true" is_dc="false" resources_running="14" type="member" />
+    </nodes>
+    <resources>
+        <clone id="ClusterIP-clone" multi_state="false" unique="true" managed="true" failed="false" failure_ignored="false" >
+            <resource id="ClusterIP:0" resource_agent="ocf::heartbeat:IPaddr2" role="Started" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+                <node name="srvnode-2" id="2" cached="false"/>
+            </resource>
+            <resource id="ClusterIP:1" resource_agent="ocf::heartbeat:IPaddr2" role="Started" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+                <node name="srvnode-2" id="2" cached="false"/>
+            </resource>
+        </clone>
+        <clone id="lnet-clone" multi_state="false" unique="false" managed="true" failed="false" failure_ignored="false" >
+            <resource id="lnet" resource_agent="systemd:lnet" role="Started" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+                <node name="srvnode-1" id="1" cached="false"/>
+            </resource>
+            <resource id="lnet" resource_agent="systemd:lnet" role="Started" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+                <node name="srvnode-2" id="2" cached="false"/>
+            </resource>
+        </clone>
+        <group id="c1" number_resources="8" >
+             <resource id="ip-c1" resource_agent="ocf::heartbeat:IPaddr2" role="Started" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+                 <node name="srvnode-1" id="1" cached="false"/>
+             </resource>
+             <resource id="consul-c1" resource_agent="systemd:hare-consul-agent-c1" role="Started" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+                 <node name="srvnode-1" id="1" cached="false"/>
+             </resource>
+             <resource id="lnet-c1" resource_agent="ocf::cortx:lnet" role="Started" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+                 <node name="srvnode-1" id="1" cached="false"/>
+             </resource>
+             <resource id="var-motr1" resource_agent="ocf::heartbeat:Filesystem" role="Started" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+                 <node name="srvnode-1" id="1" cached="false"/>
+             </resource>
+             <resource id="hax-c1" resource_agent="systemd:hare-hax-c1" role="Started" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+                 <node name="srvnode-1" id="1" cached="false"/>
+             </resource>
+             <resource id="motr-confd-c1" resource_agent="systemd:m0d@0x7200000000000001:0x9" role="Started" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+                 <node name="srvnode-1" id="1" cached="false"/>
+             </resource>
+             <resource id="motr-ios-c1" resource_agent="systemd:m0d@0x7200000000000001:0xc" role="Started" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+                 <node name="srvnode-1" id="1" cached="false"/>
+             </resource>
+             <resource id="io_path_health-c1" resource_agent="ocf::seagate:hw_comp_ra" role="Started" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+                 <node name="srvnode-1" id="1" cached="false"/>
+             </resource>
+        </group>
+        <group id="c2" number_resources="8" >
+             <resource id="ip-c2" resource_agent="ocf::heartbeat:IPaddr2" role="Started" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+                 <node name="srvnode-2" id="2" cached="false"/>
+             </resource>
+             <resource id="consul-c2" resource_agent="systemd:hare-consul-agent-c2" role="Started" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+                 <node name="srvnode-2" id="2" cached="false"/>
+             </resource>
+             <resource id="lnet-c2" resource_agent="ocf::cortx:lnet" role="Started" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+                 <node name="srvnode-2" id="2" cached="false"/>
+             </resource>
+             <resource id="var-motr2" resource_agent="ocf::heartbeat:Filesystem" role="Started" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+                 <node name="srvnode-2" id="2" cached="false"/>
+             </resource>
+             <resource id="hax-c2" resource_agent="systemd:hare-hax-c2" role="Started" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+                 <node name="srvnode-2" id="2" cached="false"/>
+             </resource>
+             <resource id="motr-confd-c2" resource_agent="systemd:m0d@0x7200000000000001:0x52" role="Started" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+                 <node name="srvnode-2" id="2" cached="false"/>
+             </resource>
+             <resource id="motr-ios-c2" resource_agent="systemd:m0d@0x7200000000000001:0x55" role="Started" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+                 <node name="srvnode-2" id="2" cached="false"/>
+             </resource>
+             <resource id="io_path_health-c2" resource_agent="ocf::seagate:hw_comp_ra" role="Started" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+                 <node name="srvnode-2" id="2" cached="false"/>
+             </resource>
+        </group>
+        <clone id="motr-kernel-clone" multi_state="false" unique="false" managed="true" failed="false" failure_ignored="false" >
+            <resource id="motr-kernel" resource_agent="systemd:motr-kernel" role="Started" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+                <node name="srvnode-1" id="1" cached="false"/>
+            </resource>
+            <resource id="motr-kernel" resource_agent="systemd:motr-kernel" role="Started" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+                <node name="srvnode-2" id="2" cached="false"/>
+            </resource>
+        </clone>
+        <resource id="motr-free-space-mon" resource_agent="systemd:motr-free-space-monitor" role="Started" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+            <node name="srvnode-1" id="1" cached="false"/>
+        </resource>
+        <clone id="rabbitmq-clone" multi_state="false" unique="false" managed="true" failed="false" failure_ignored="false" target_role="Stopped" >
+            <resource id="rabbitmq" resource_agent="systemd:rabbitmq-server" role="Stopping" target_role="Stopped" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+                <node name="srvnode-1" id="1" cached="false"/>
+            </resource>
+            <resource id="rabbitmq" resource_agent="systemd:rabbitmq-server" role="Stopping" target_role="Stopped" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+                <node name="srvnode-2" id="2" cached="false"/>
+            </resource>
+        </clone>
+        <resource id="stonith-c1" resource_agent="stonith:fence_ipmilan" role="Started" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+            <node name="srvnode-2" id="2" cached="false"/>
+        </resource>
+        <resource id="stonith-c2" resource_agent="stonith:fence_ipmilan" role="Started" active="true" orphaned="false" blocked="false" managed="true" failed="false" failure_ignored="false" nodes_running_on="1" >
+            <node name="srvnode-1" id="1" cached="false"/>
+        </resource>
+    </resources>
+    <node_attributes>
+        <node name="srvnode-1">
+            <attribute name="consul-c1-running" value="1" />
+            <attribute name="haproxy-running" value="0" />
+            <attribute name="hax-running" value="1" />
+            <attribute name="master-sspl" value="1" />
+            <attribute name="s3backcons-running" value="0" />
+        </node>
+        <node name="srvnode-2">
+            <attribute name="consul-c2-running" value="1" />
+            <attribute name="hax-running" value="1" />
+            <attribute name="master-sspl" value="1" />
+            <attribute name="s3backcons-running" value="0" />
+        </node>
+    </node_attributes>
+    <node_history>
+        <node name="srvnode-1">
+            <resource_history id="lnet" orphan="false" migration-threshold="1000000">
+                <operation_history call="682" task="start" last-rc-change="Fri Nov  6 17:01:51 2020" last-run="Fri Nov  6 17:01:51 2020" exec-time="2116ms" queue-time="0ms" rc="0" rc_text="ok" />
+                <operation_history call="693" task="monitor" interval="60000ms" last-rc-change="Fri Nov  6 17:01:58 2020" exec-time="3ms" queue-time="0ms" rc="0" rc_text="ok" />
+            </resource_history>
+            <resource_history id="motr-free-space-mon" orphan="false" migration-threshold="1000000">
+                <operation_history call="773" task="start" last-rc-change="Fri Nov  6 17:02:22 2020" last-run="Fri Nov  6 17:02:22 2020" exec-time="2146ms" queue-time="0ms" rc="0" rc_text="ok" />
+                <operation_history call="787" task="monitor" interval="30000ms" last-rc-change="Fri Nov  6 17:02:24 2020" exec-time="5ms" queue-time="0ms" rc="0" rc_text="ok" />
+            </resource_history>
+            <resource_history id="motr-kernel" orphan="false" migration-threshold="1000000">
+                <operation_history call="716" task="start" last-rc-change="Fri Nov  6 17:01:58 2020" last-run="Fri Nov  6 17:01:58 2020" exec-time="2253ms" queue-time="0ms" rc="0" rc_text="ok" />
+                <operation_history call="731" task="monitor" interval="60000ms" last-rc-change="Fri Nov  6 17:02:01 2020" exec-time="1ms" queue-time="0ms" rc="0" rc_text="ok" />
+            </resource_history>
+            <resource_history id="rabbitmq" orphan="false" migration-threshold="1000000">
+                <operation_history call="698" task="monitor" interval="30000ms" last-rc-change="Fri Nov  6 17:01:58 2020" exec-time="7ms" queue-time="0ms" rc="0" rc_text="ok" />
+                <operation_history call="-1" task="stop" last-rc-change="Fri Nov  6 17:21:21 2020" last-run="Fri Nov  6 17:21:21 2020" exec-time="0ms" queue-time="0ms" rc="193" rc_text="unknown" />
+            </resource_history>
+            <resource_history id="motr-ios-c1" orphan="false" migration-threshold="1000000">
+                <operation_history call="758" task="start" last-rc-change="Fri Nov  6 17:02:13 2020" last-run="Fri Nov  6 17:02:13 2020" exec-time="8145ms" queue-time="0ms" rc="0" rc_text="ok" />
+                <operation_history call="771" task="monitor" interval="60000ms" last-rc-change="Fri Nov  6 17:02:22 2020" exec-time="3ms" queue-time="0ms" rc="0" rc_text="ok" />
+            </resource_history>
+            <resource_history id="ip-c1" orphan="false" migration-threshold="1000000">
+                <operation_history call="681" task="start" last-rc-change="Fri Nov  6 17:01:51 2020" last-run="Fri Nov  6 17:01:51 2020" exec-time="133ms" queue-time="0ms" rc="0" rc_text="ok" />
+            </resource_history>
+            <resource_history id="hax-c1" orphan="false" migration-threshold="1000000">
+                <operation_history call="732" task="start" last-rc-change="Fri Nov  6 17:02:01 2020" last-run="Fri Nov  6 17:02:01 2020" exec-time="2140ms" queue-time="0ms" rc="0" rc_text="ok" />
+                <operation_history call="737" task="monitor" interval="60000ms" last-rc-change="Fri Nov  6 17:02:03 2020" exec-time="2ms" queue-time="0ms" rc="0" rc_text="ok" />
+            </resource_history>
+            <resource_history id="motr-confd-c1" orphan="false" migration-threshold="1000000">
+                <operation_history call="738" task="start" last-rc-change="Fri Nov  6 17:02:03 2020" last-run="Fri Nov  6 17:02:03 2020" exec-time="10144ms" queue-time="0ms" rc="0" rc_text="ok" />
+                <operation_history call="757" task="monitor" interval="60000ms" last-rc-change="Fri Nov  6 17:02:13 2020" exec-time="4ms" queue-time="0ms" rc="0" rc_text="ok" />
+            </resource_history>
+            <resource_history id="consul-c1" orphan="false" migration-threshold="1000000">
+                <operation_history call="687" task="start" last-rc-change="Fri Nov  6 17:01:51 2020" last-run="Fri Nov  6 17:01:51 2020" exec-time="6465ms" queue-time="0ms" rc="0" rc_text="ok" />
+                <operation_history call="694" task="monitor" interval="60000ms" last-rc-change="Fri Nov  6 17:01:58 2020" exec-time="2ms" queue-time="0ms" rc="0" rc_text="ok" />
+            </resource_history>
+            <resource_history id="var-motr1" orphan="false" migration-threshold="1000000">
+                <operation_history call="715" task="start" last-rc-change="Fri Nov  6 17:01:58 2020" last-run="Fri Nov  6 17:01:58 2020" exec-time="111ms" queue-time="0ms" rc="0" rc_text="ok" />
+                <operation_history call="721" task="monitor" interval="20000ms" last-rc-change="Fri Nov  6 17:01:58 2020" exec-time="59ms" queue-time="0ms" rc="0" rc_text="ok" />
+            </resource_history>
+            <resource_history id="lnet-c1" orphan="false" migration-threshold="1000000">
+                <operation_history call="695" task="start" last-rc-change="Fri Nov  6 17:01:58 2020" last-run="Fri Nov  6 17:01:58 2020" exec-time="166ms" queue-time="0ms" rc="0" rc_text="ok" />
+                <operation_history call="714" task="monitor" interval="30000ms" last-rc-change="Fri Nov  6 17:01:58 2020" exec-time="107ms" queue-time="0ms" rc="0" rc_text="ok" />
+            </resource_history>
+            <resource_history id="io_path_health-c1" orphan="false" migration-threshold="1000000">
+                <operation_history call="772" task="start" last-rc-change="Fri Nov  6 17:02:22 2020" last-run="Fri Nov  6 17:02:22 2020" exec-time="876ms" queue-time="0ms" rc="0" rc_text="ok" />
+                <operation_history call="786" task="monitor" interval="30000ms" last-rc-change="Fri Nov  6 17:02:24 2020" exec-time="832ms" queue-time="0ms" rc="0" rc_text="ok" />
+            </resource_history>
+            <resource_history id="ClusterIP:0" orphan="false" migration-threshold="1000000">
+                <operation_history call="441" task="probe" last-rc-change="Fri Nov  6 16:46:13 2020" last-run="Fri Nov  6 16:46:13 2020" exec-time="113ms" queue-time="1ms" rc="0" rc_text="ok" />
+                <operation_history call="447" task="monitor" interval="30000ms" last-rc-change="Fri Nov  6 16:46:13 2020" exec-time="102ms" queue-time="0ms" rc="0" rc_text="ok" />
+                <operation_history call="548" task="stop" last-rc-change="Fri Nov  6 16:59:38 2020" last-run="Fri Nov  6 16:59:38 2020" exec-time="164ms" queue-time="0ms" rc="0" rc_text="ok" />
+            </resource_history>
+            <resource_history id="stonith-c2" orphan="false" migration-threshold="1000000">
+                <operation_history call="700" task="start" last-rc-change="Fri Nov  6 17:01:58 2020" last-run="Fri Nov  6 17:01:58 2020" exec-time="119ms" queue-time="1ms" rc="0" rc_text="ok" />
+                <operation_history call="712" task="monitor" interval="10000ms" last-rc-change="Fri Nov  6 17:01:58 2020" exec-time="124ms" queue-time="0ms" rc="0" rc_text="ok" />
+            </resource_history>
+        </node>
+        <node name="srvnode-2">
+            <resource_history id="lnet" orphan="false" migration-threshold="1000000">
+                <operation_history call="608" task="start" last-rc-change="Fri Nov  6 17:01:51 2020" last-run="Fri Nov  6 17:01:51 2020" exec-time="2131ms" queue-time="0ms" rc="0" rc_text="ok" />
+                <operation_history call="620" task="monitor" interval="60000ms" last-rc-change="Fri Nov  6 17:01:58 2020" exec-time="3ms" queue-time="1ms" rc="0" rc_text="ok" />
+            </resource_history>
+            <resource_history id="ip-c2" orphan="false" migration-threshold="1000000">
+                <operation_history call="606" task="start" last-rc-change="Fri Nov  6 17:01:51 2020" last-run="Fri Nov  6 17:01:51 2020" exec-time="134ms" queue-time="0ms" rc="0" rc_text="ok" />
+            </resource_history>
+            <resource_history id="consul-c2" orphan="false" migration-threshold="1000000">
+                <operation_history call="613" task="start" last-rc-change="Fri Nov  6 17:01:51 2020" last-run="Fri Nov  6 17:01:51 2020" exec-time="6575ms" queue-time="0ms" rc="0" rc_text="ok" />
+                <operation_history call="621" task="monitor" interval="60000ms" last-rc-change="Fri Nov  6 17:01:58 2020" exec-time="3ms" queue-time="0ms" rc="0" rc_text="ok" />
+            </resource_history>
+            <resource_history id="lnet-c2" orphan="false" migration-threshold="1000000">
+                <operation_history call="622" task="start" last-rc-change="Fri Nov  6 17:01:58 2020" last-run="Fri Nov  6 17:01:58 2020" exec-time="172ms" queue-time="0ms" rc="0" rc_text="ok" />
+                <operation_history call="638" task="monitor" interval="30000ms" last-rc-change="Fri Nov  6 17:01:58 2020" exec-time="114ms" queue-time="0ms" rc="0" rc_text="ok" />
+            </resource_history>
+            <resource_history id="var-motr2" orphan="false" migration-threshold="1000000">
+                <operation_history call="639" task="start" last-rc-change="Fri Nov  6 17:01:58 2020" last-run="Fri Nov  6 17:01:58 2020" exec-time="113ms" queue-time="0ms" rc="0" rc_text="ok" />
+                <operation_history call="643" task="monitor" interval="20000ms" last-rc-change="Fri Nov  6 17:01:58 2020" exec-time="51ms" queue-time="0ms" rc="0" rc_text="ok" />
+            </resource_history>
+            <resource_history id="hax-c2" orphan="false" migration-threshold="1000000">
+                <operation_history call="652" task="start" last-rc-change="Fri Nov  6 17:02:01 2020" last-run="Fri Nov  6 17:02:01 2020" exec-time="2114ms" queue-time="0ms" rc="0" rc_text="ok" />
+                <operation_history call="656" task="monitor" interval="60000ms" last-rc-change="Fri Nov  6 17:02:03 2020" exec-time="1ms" queue-time="0ms" rc="0" rc_text="ok" />
+            </resource_history>
+            <resource_history id="motr-confd-c2" orphan="false" migration-threshold="1000000">
+                <operation_history call="657" task="start" last-rc-change="Fri Nov  6 17:02:03 2020" last-run="Fri Nov  6 17:02:03 2020" exec-time="8146ms" queue-time="0ms" rc="0" rc_text="ok" />
+                <operation_history call="666" task="monitor" interval="60000ms" last-rc-change="Fri Nov  6 17:02:13 2020" exec-time="3ms" queue-time="0ms" rc="0" rc_text="ok" />
+            </resource_history>
+            <resource_history id="motr-ios-c2" orphan="false" migration-threshold="1000000">
+                <operation_history call="667" task="start" last-rc-change="Fri Nov  6 17:02:13 2020" last-run="Fri Nov  6 17:02:13 2020" exec-time="8161ms" queue-time="0ms" rc="0" rc_text="ok" />
+                <operation_history call="672" task="monitor" interval="60000ms" last-rc-change="Fri Nov  6 17:02:22 2020" exec-time="4ms" queue-time="0ms" rc="0" rc_text="ok" />
+            </resource_history>
+            <resource_history id="io_path_health-c2" orphan="false" migration-threshold="1000000">
+                <operation_history call="673" task="start" last-rc-change="Fri Nov  6 17:02:22 2020" last-run="Fri Nov  6 17:02:22 2020" exec-time="803ms" queue-time="0ms" rc="0" rc_text="ok" />
+                <operation_history call="681" task="monitor" interval="30000ms" last-rc-change="Fri Nov  6 17:02:24 2020" exec-time="866ms" queue-time="0ms" rc="0" rc_text="ok" />
+            </resource_history>
+            <resource_history id="motr-kernel" orphan="false" migration-threshold="1000000">
+                <operation_history call="640" task="start" last-rc-change="Fri Nov  6 17:01:58 2020" last-run="Fri Nov  6 17:01:58 2020" exec-time="2110ms" queue-time="0ms" rc="0" rc_text="ok" />
+                <operation_history call="650" task="monitor" interval="60000ms" last-rc-change="Fri Nov  6 17:02:00 2020" exec-time="1ms" queue-time="0ms" rc="0" rc_text="ok" />
+            </resource_history>
+            <resource_history id="rabbitmq" orphan="false" migration-threshold="1000000">
+                <operation_history call="628" task="monitor" interval="30000ms" last-rc-change="Fri Nov  6 17:01:58 2020" exec-time="1ms" queue-time="0ms" rc="0" rc_text="ok" />
+                <operation_history call="-1" task="stop" last-rc-change="Fri Nov  6 17:21:21 2020" last-run="Fri Nov  6 17:21:21 2020" exec-time="0ms" queue-time="0ms" rc="193" rc_text="unknown" />
+            </resource_history>
+            <resource_history id="ClusterIP:0" orphan="false" migration-threshold="1000000">
+                <operation_history call="696" task="start" last-rc-change="Fri Nov  6 17:02:25 2020" last-run="Fri Nov  6 17:02:25 2020" exec-time="176ms" queue-time="0ms" rc="0" rc_text="ok" />
+                <operation_history call="699" task="monitor" interval="30000ms" last-rc-change="Fri Nov  6 17:02:25 2020" exec-time="88ms" queue-time="0ms" rc="0" rc_text="ok" />
+            </resource_history>
+            <resource_history id="ClusterIP:1" orphan="false" migration-threshold="1000000">
+                <operation_history call="430" task="probe" last-rc-change="Fri Nov  6 16:46:13 2020" last-run="Fri Nov  6 16:46:13 2020" exec-time="107ms" queue-time="0ms" rc="0" rc_text="ok" />
+                <operation_history call="697" task="start" last-rc-change="Fri Nov  6 17:02:25 2020" last-run="Fri Nov  6 17:02:25 2020" exec-time="583ms" queue-time="0ms" rc="0" rc_text="ok" />
+                <operation_history call="702" task="monitor" interval="30000ms" last-rc-change="Fri Nov  6 17:02:25 2020" exec-time="91ms" queue-time="0ms" rc="0" rc_text="ok" />
+            </resource_history>
+            <resource_history id="stonith-c1" orphan="false" migration-threshold="1000000">
+                <operation_history call="632" task="start" last-rc-change="Fri Nov  6 17:01:58 2020" last-run="Fri Nov  6 17:01:58 2020" exec-time="125ms" queue-time="0ms" rc="0" rc_text="ok" />
+                <operation_history call="636" task="monitor" interval="10000ms" last-rc-change="Fri Nov  6 17:01:58 2020" exec-time="167ms" queue-time="0ms" rc="0" rc_text="ok" />
+            </resource_history>
+        </node>
+    </node_history>
+    <fence_history>
+    </fence_history>
+    <tickets>
+    </tickets>
+    <bans>
+        <ban id="location-stonith-c2-srvnode-2--INFINITY" resource="stonith-c2" node="srvnode-2" weight="-1000000" master_only="false" />
+        <ban id="location-stonith-c1-srvnode-1--INFINITY" resource="stonith-c1" node="srvnode-1" weight="-1000000" master_only="false" />
+        <ban id="location-ClusterIP-clone-2-rule" resource="ClusterIP-clone" node="srvnode-1" weight="-1000000" master_only="false" />
+    </bans>
+</crm_mon>
