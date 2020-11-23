@@ -54,9 +54,12 @@ setup(name='cortx-py-utils',
                 'cortx.utils.ha.dm', 'cortx.utils.ha.dm.models',
                 'cortx.utils.ha.dm.repository',
                 'cortx.utils.ha',
+                'cortx.utils.validator',
+                'cortx.utils.kvstore',
                 'cortx.utils.message_bus','cortx.utils.message_bus.tcp',
                 'cortx.utils.message_bus.tcp.kafka', 'cortx.utils.product_features',
                 'cortx.utils.security', 'cortx.utils.schema',
+                'cortx.utils.appliance_info'
                 ],
       package_data={
         'cortx': ['py.typed'],

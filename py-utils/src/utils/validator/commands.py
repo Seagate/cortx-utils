@@ -16,79 +16,137 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import sys
-import os
 import errno
-
-from cortx.utils.validator.error import VError
 
 
 class VCommand:
     """Base class for all the commands."""
 
     def __init__(self, args):
-        self._args = args
+        self._v_type = args.v_type
+        self._args = args.args
 
     @property
     def args(self):
         return self._args
 
+    @property
+    def v_type(self):
+        return self._v_type
+
     @staticmethod
-    def add_args(parser):
-        raise VError(errno.EINVAL, "invalid command")
+    def add_args(parser, cmd_class, cmd_name):
+        """Add Command args for parsing."""
+        parser1 = parser.add_parser(
+            cmd_class.name, help='%s Validations' % cmd_name)
+        parser1.add_argument('v_type', help='validation type')
+        parser1.add_argument('args', nargs='*', default=[], help='args')
+        parser1.set_defaults(command=cmd_class)
 
 
 class NetworkVCommand(VCommand):
     """Network related commands."""
 
-    _name = "network"
+    name = "network"
 
     def __init__(self, args):
         super(NetworkVCommand, self).__init__(args)
 
-        sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
         from v_network import NetworkV
 
         self._network = NetworkV()
 
-    @staticmethod
-    def add_args(parser):
-        """Add Network Command args for parsing."""
-
-        parser1 = parser.add_parser(
-            NetworkVCommand._name, help='Network Validations')
-        parser1.add_argument('args', nargs='*', default=[], help='type')
-        parser1.set_defaults(command=NetworkVCommand)
-
     def process(self):
         """Validate network connectivity ip1 ip2 ip3..."""
 
-        self._network.validate(self.args)
+        self._network.validate(self.v_type, self.args)
 
 
 class ConsulVCommand(VCommand):
     """Consul related commands."""
 
-    _name = "consul"
+    name = "consul"
 
     def __init__(self, args):
         super(ConsulVCommand, self).__init__(args)
 
-        sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
         from v_consul import ConsulV
 
         self._consul = ConsulV()
 
-    @staticmethod
-    def add_args(parser):
-        """Add Consul Command args for parsing."""
-
-        parser1 = parser.add_parser(
-            ConsulVCommand._name, help='Consul Validations')
-        parser1.add_argument('args', nargs='*', default=[], help='type')
-        parser1.set_defaults(command=ConsulVCommand)
-
     def process(self):
         """Validate consul status."""
 
-        self._consul.validate(self.args)
+        self._consul.validate(self.v_type, self.args)
+
+
+class StorageVCommand(VCommand):
+    """Storage related commands."""
+
+    name = "storage"
+
+    def __init__(self, args):
+        super(StorageVCommand, self).__init__(args)
+
+        from v_storage import StorageV
+
+        self._storage = StorageV()
+
+    def process(self):
+        """Validate storage status."""
+
+        self._storage.validate(self.v_type, self.args)
+
+
+class SaltVCommand(VCommand):
+    """Salt related commands."""
+
+    name = "salt"
+
+    def __init__(self, args):
+        super(SaltVCommand, self).__init__(args)
+
+        from v_salt import SaltV
+
+        self._salt = SaltV()
+
+    def process(self):
+        """Validate salt minion connectivity <nodes>..."""
+
+        self._salt.validate(self.v_type, self.args)
+
+
+class BmcVCommand(VCommand):
+    """BMC related commands."""
+
+    name = "bmc"
+
+    def __init__(self, args):
+        super(BmcVCommand, self).__init__(args)
+
+        from v_bmc import BmcV
+
+        self._bmc = BmcV()
+
+    def process(self):
+        """Validate bmc status."""
+
+        self._bmc.validate(self.v_type, self.args)
+
+
+class ElasticsearchVCommand(VCommand):
+    """Elasticsearch related commands."""
+
+    name = "elasticsearch"
+
+    def __init__(self, args):
+        super(ElasticsearchVCommand, self).__init__(args)
+
+        from v_elasticsearch import ElasticsearchV
+
+        self._elasticsearch = ElasticsearchV()
+
+    def process(self):
+        """Validate elasticsearch status."""
+
+        self._elasticsearch.validate(self.v_type, self.args)

@@ -1,6 +1,6 @@
 #!/bin/python3
 
-# CORTX-Py-Utils: CORTX Python common library.
+# CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -15,21 +15,40 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+class KvStorage:
+    """
+    This Abstract class will serve as base for key-value storage/db.
+    The classes will extend this and provide their implementation of
+    get, set and delete.
+    """
 
-class VError(Exception):
-    """Class representing a generic error with error code and output of a command."""
+    def __init__(self):
+        pass
 
-    def __init__(self, rc, desc):
-        self._rc = rc
-        self._desc = desc
+    def get(self, key):
+        pass
 
-        error = "%s: %s" % (self._rc, self._desc)
-        super(VError, self).__init__(error)
+    def set(self, key, value):
+        pass
 
-    @property
-    def rc(self):
-        return self._rc
+    def delete(self, key):
+        pass
 
-    @property
-    def desc(self):
-        return self._desc
+
+class KvStore:
+    """
+    This class will take KvStorage implementation as input and be front facing
+    to the consumer.
+    """
+
+    def __init__(self, kvStorage):
+        self._storage = kvStorage
+
+    def get(self, key):
+        return self._storage.get(key)
+
+    def set(self, key, value):
+        return self._storage.set(key, value)
+
+    def delete(self, key):
+        return self._storage.delete(key)

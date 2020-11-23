@@ -1,6 +1,6 @@
 #!/bin/python3
 
-# CORTX-Py-Utils: CORTX Python common library.
+# CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -15,8 +15,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-
-class VError(Exception):
+class KvError(Exception):
     """Class representing a generic error with error code and output of a command."""
 
     def __init__(self, rc, desc):
@@ -24,7 +23,7 @@ class VError(Exception):
         self._desc = desc
 
         error = "%s: %s" % (self._rc, self._desc)
-        super(VError, self).__init__(error)
+        super(KvError, self).__init__(error)
 
     @property
     def rc(self):

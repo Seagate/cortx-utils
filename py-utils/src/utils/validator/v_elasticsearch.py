@@ -1,4 +1,4 @@
-#!/bin/python3
+#!/bin/env python3
 
 # CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
@@ -15,21 +15,31 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import errno
 
-class VError(Exception):
-    """Class representing a generic error with error code and output of a command."""
+from cortx.utils.validator.service import HttpService
+from cortx.utils.validator.error import VError
 
-    def __init__(self, rc, desc):
-        self._rc = rc
-        self._desc = desc
 
-        error = "%s: %s" % (self._rc, self._desc)
-        super(VError, self).__init__(error)
+class ElasticsearchV:
+    """Elasticsearch related validations."""
 
-    @property
-    def rc(self):
-        return self._rc
+    def validate(self, v_type, args):
+        """
+        Process elasticsearch validations.
+        Usage (arguments to be provided):
+        1. elasticsearch service localhost 9200
+        """
 
-    @property
-    def desc(self):
-        return self._desc
+        if not isinstance(args, list):
+            raise VError(errno.EINVAL, f"Invalid parameters {args}")
+
+        if len(args) < 2:
+            raise VError(errno.EINVAL, f"Insufficient parameters. {args}")
+
+        if v_type == "service":
+            HttpService("elasticsearch", args[0], args[1]).validate_service_status()
+        else:
+            raise VError(
+                errno.EINVAL, f"Action parameter {v_type} not supported")
+

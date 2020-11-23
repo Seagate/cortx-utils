@@ -1,6 +1,6 @@
-#!/bin/env python3
+#!/bin/python3
 
-# CORTX-Py-Utils: CORTX Python common library.
+# CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -21,47 +21,54 @@ import requests
 from cortx.utils.validator.error import VError
 
 
-class ConsulV:
-    """Consul related validations."""
+class Service:
+    """
+    This Abstract class will serve as base for all service validators.
+    The classes will extend this and provide their implementation of
+    validate_service_status.
+    """
 
-    def validate(self, v_type, args):
-        """
-        Process consul validations.
-        Usage (arguments to be provided):
-        1. consul service localhost 8500
-        """
+    def __init__(self):
+        pass
 
-        if not isinstance(args, list):
-            raise VError(errno.EINVAL, "Invalid parameters %s" % args)
+    def validate_service_status(self):
+        pass
 
-        if len(args) < 2:
-            raise VError(errno.EINVAL, "Insufficient parameters. %s" % args)
 
-        if v_type == "service":
-            self.validate_service_status(args[0], args[1])
-        else:
-            raise VError(
-                errno.EINVAL, "Action parameter %s not supported" % v_type)
+class HttpService(Service):
+    """
+    This class has validate_service_status implementation that makes http call
+    to check if service is up and running.
+    """
 
-    def validate_service_status(self, host, port):
-        """Validate Consul service status."""
+    def __init__(self, service_name, host, port, service_url=""):
+        super(HttpService, self).__init__()
 
-        url = f"http://{host}:{port}/v1/status/leader"
+        self.service_name = service_name
+        self.host = host
+        self.port = port
+        self.service_url = service_url
+
+    def validate_service_status(self):
+        """Validate service status."""
+
+        url = f"http://{self.host}:{self.port}{self.service_url}"
 
         try:
             status_code = requests.get(url).status_code
             if status_code != 200:
                 raise VError(
                     errno.ECOMM, (f"Error {status_code} obtained while "
-                    f"connecting to consul service on {host}:{port}."))
+                    f"connecting to {self.service_name} service on {self.host}:{self.port}."))
         except requests.exceptions.InvalidURL:
             raise VError(
-                errno.EINVAL, (f"Either or all inputs host '{host}' and port "
-                f"'{port}' are invalid."))
+                errno.EINVAL, (f"Either or all inputs host '{self.host}' and port "
+                f"'{self.port}' are invalid."))
         except requests.exceptions.ConnectionError:
             raise VError(errno.ECONNREFUSED,
-                         f"No Consul service running on {host}:{port}")
+                         f"No {self.service_name} service running on {self.host}:{self.port}")
         except requests.exceptions.RequestException as req_ex:
             raise VError(
-                errno.ECOMM, (f"Error connecting to consul service on "
-                f"{host}:{port}. {req_ex}"))
+                errno.ECOMM, (f"Error connecting to {self.service_name} service on "
+                f"{self.host}:{self.port}. {req_ex}"))
+
