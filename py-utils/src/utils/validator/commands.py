@@ -16,15 +16,29 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import errno
+from typing import Any, List
+
+from .v_bmc import BmcV
+from .v_consul import ConsulV
+from .v_elasticsearch import ElasticsearchV
+from .v_network import NetworkV
+from .v_salt import SaltV
+from .v_storage import StorageV
 
 
 class VCommand:
     """Base class for all the commands."""
+    def __init__(self, cli_args: List[str]):
+        self._args = cli_args
+        self._v_type = None
+        self._validator = self.create_validator()
 
-    def __init__(self, args):
-        self._v_type = args.v_type
-        self._args = args.args
+    def create_validator(self) -> Any:
+        """Factory method that knows how to instantiate the proper validatorV.
+        In the simplest case this is the only method to be overriden in a
+        custom Command class.
+        """
+        raise NotImplementedError()
 
     @property
     def args(self):
@@ -34,119 +48,75 @@ class VCommand:
     def v_type(self):
         return self._v_type
 
-    @staticmethod
-    def add_args(parser, cmd_class, cmd_name):
+    def set_parsed_args(self, args):
+        self._parsed_args = args
+        self._v_type = args.v_type
+
+    def process(self) -> None:
+        """Process the given CLI command. Note that args is the parsed
+        arguments provided by ArgParse"""
+
+        self._validator.validate(self.v_type, self.args)
+
+    def add_args(self, parser):
         """Add Command args for parsing."""
-        parser1 = parser.add_parser(
-            cmd_class.name, help='%s Validations' % cmd_name)
+        cmd_name = self.name
+
+        parser1 = parser.add_parser(cmd_name, help='%s Validations' % cmd_name)
         parser1.add_argument('v_type', help='validation type')
         parser1.add_argument('args', nargs='*', default=[], help='args')
-        parser1.set_defaults(command=cmd_class)
+        parser1.set_defaults(command=self)
 
 
-class NetworkVCommand(VCommand):
+class NetworkCommand(VCommand):
     """Network related commands."""
 
     name = "network"
 
-    def __init__(self, args):
-        super(NetworkVCommand, self).__init__(args)
-
-        from v_network import NetworkV
-
-        self._network = NetworkV()
-
-    def process(self):
-        """Validate network connectivity ip1 ip2 ip3..."""
-
-        self._network.validate(self.v_type, self.args)
+    def create_validator(self) -> Any:
+        return NetworkV()
 
 
-class ConsulVCommand(VCommand):
+class ConsulCommand(VCommand):
     """Consul related commands."""
 
     name = "consul"
 
-    def __init__(self, args):
-        super(ConsulVCommand, self).__init__(args)
-
-        from v_consul import ConsulV
-
-        self._consul = ConsulV()
-
-    def process(self):
-        """Validate consul status."""
-
-        self._consul.validate(self.v_type, self.args)
+    def create_validator(self) -> Any:
+        return ConsulV()
 
 
-class StorageVCommand(VCommand):
+class StorageCommand(VCommand):
     """Storage related commands."""
 
     name = "storage"
 
-    def __init__(self, args):
-        super(StorageVCommand, self).__init__(args)
-
-        from v_storage import StorageV
-
-        self._storage = StorageV()
-
-    def process(self):
-        """Validate storage status."""
-
-        self._storage.validate(self.v_type, self.args)
+    def create_validator(self) -> Any:
+        return StorageV()
 
 
-class SaltVCommand(VCommand):
+class SaltCommand(VCommand):
     """Salt related commands."""
 
     name = "salt"
 
-    def __init__(self, args):
-        super(SaltVCommand, self).__init__(args)
-
-        from v_salt import SaltV
-
-        self._salt = SaltV()
-
-    def process(self):
-        """Validate salt minion connectivity <nodes>..."""
-
-        self._salt.validate(self.v_type, self.args)
+    def create_validator(self) -> Any:
+        return SaltV()
 
 
-class BmcVCommand(VCommand):
+class BmcCommand(VCommand):
     """BMC related commands."""
 
     name = "bmc"
 
-    def __init__(self, args):
-        super(BmcVCommand, self).__init__(args)
-
-        from v_bmc import BmcV
-
-        self._bmc = BmcV()
-
-    def process(self):
-        """Validate bmc status."""
-
-        self._bmc.validate(self.v_type, self.args)
+    def create_validator(self) -> Any:
+        return BmcV()
 
 
-class ElasticsearchVCommand(VCommand):
+class ElasticsearchCommand(VCommand):
     """Elasticsearch related commands."""
 
     name = "elasticsearch"
 
-    def __init__(self, args):
-        super(ElasticsearchVCommand, self).__init__(args)
-
-        from v_elasticsearch import ElasticsearchV
-
-        self._elasticsearch = ElasticsearchV()
-
-    def process(self):
-        """Validate elasticsearch status."""
-
-        self._elasticsearch.validate(self.v_type, self.args)
+    def create_validator(self) -> Any:
+        return ElasticsearchV()
