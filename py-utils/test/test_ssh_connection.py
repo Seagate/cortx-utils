@@ -21,7 +21,7 @@ import errno
 import sys
 import os
 
-from cortx.utils.comm import SSHSession
+from cortx.utils.ssh import SSHSession
 from cortx.utils.validator.error import VError
 
 utils_root = os.path.join(os.path.dirname(__file__), "..", "..")
@@ -37,7 +37,7 @@ class TestSSHSession(unittest.TestCase):
         self.__user = "utiltester"
         self.__passwd = "P@ssw0rd"
         e_pass = crypt.crypt(self.__passwd, "22")
-        os.system(f"sudo useradd -m -p {e_pass} {self.__user}")
+        os.system(f"sudo useradd -M -p {e_pass} {self.__user}")
 
         # Let ssh connection be alive across all tests
         self.session = SSHSession(self.hostname, self.__user, self.__passwd)
