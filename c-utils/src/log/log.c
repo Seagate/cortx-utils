@@ -104,12 +104,9 @@ int log_write(log_level_t level, const char *fmt, ...)
 	if (level == LEVEL_TEST) {
 		//str = (char *) malloc(sizeof(char) * (len+1));
 		//vsprintf(str, fmt, args);
-		printf("\n**************************************************************\n");
-		printf("TEST TEST TEST \n");
-
 		//tmp = m0_strdup(str);
 		//M0_LOG(M0_DEBUG, "%s\n", (char *)tmp);
-		M0_LOG(M0_DEBUG, "I am here, so happy. Tommorow is Diwali\n");
+		M0_LOG(M0_DEBUG, "TEST TEST TEST\n");
 		//free(str);
 	}
 
