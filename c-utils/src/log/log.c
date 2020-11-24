@@ -26,8 +26,16 @@
 #include "common/log.h"
 #include <string.h>
 
+#include <stdlib.h>
+#include "lib/trace.h"
+
+
+#include "lib/string.h"            /* m0_strdup */
+#include "lib/user_space/types.h"  /* bool */
+
+
 static FILE *log_fp = NULL;
-static log_level_t log_level = LEVEL_INFO;
+static log_level_t log_level = LEVEL_TEST;
 
 const static struct {
 	log_level_t log_level;
@@ -38,7 +46,8 @@ const static struct {
 	{ LEVEL_WARN, "LEVEL_WARN"},
 	{ LEVEL_INFO, "LEVEL_INFO"},
 	{ LEVEL_TRACE, "LEVEL_TRACE"},
-	{ LEVEL_DEBUG, "LEVEL_DEBUG"}
+	{ LEVEL_DEBUG, "LEVEL_DEBUG"},
+	{ LEVEL_TEST, "LEVEL_TEST"}
 };
 
 log_level_t log_level_no(const char *log_level)
@@ -75,10 +84,12 @@ int log_write(log_level_t level, const char *fmt, ...)
 	va_list args;
 	time_t curr_time;
 	int pid = getpid();
+	//char *str;
+	//char *tmp;
 
-	if (level > log_level) {
+	/*if (level > log_level) {
 		goto out;
-	}
+	}*/
 
 	va_start(args, fmt);
 	curr_time = time(NULL);
@@ -90,7 +101,21 @@ int log_write(log_level_t level, const char *fmt, ...)
 
 	fflush(log_fp);
 
-out:
+	if (level == LEVEL_TEST) {
+		//str = (char *) malloc(sizeof(char) * (len+1));
+		//vsprintf(str, fmt, args);
+		printf("\n**************************************************************\n");
+		printf("TEST TEST TEST \n");
+
+		//tmp = m0_strdup(str);
+		//M0_LOG(M0_DEBUG, "%s\n", (char *)tmp);
+		M0_LOG(M0_DEBUG, "I am here, so happy. Tommorow is Diwali\n");
+		//free(str);
+	}
+
+	va_end(args);
+
+//out:
 	return rc;
 }
 
