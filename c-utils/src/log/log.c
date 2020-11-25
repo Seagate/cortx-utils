@@ -82,16 +82,18 @@ int log_write(log_level_t level, const char *fmt, ...)
 {
 	int rc = 0, len;
 	va_list args;
+	va_list args1;
 	time_t curr_time;
 	int pid = getpid();
-	//char *str;
-	//char *tmp;
+	char str[10000];
 
 	/*if (level > log_level) {
 		goto out;
 	}*/
 
 	va_start(args, fmt);
+	va_copy(args1, args);
+
 	curr_time = time(NULL);
 	fprintf(log_fp, "%10lld [%5d] ", (long long)curr_time, pid);
 	len = vfprintf(log_fp, fmt, args);
@@ -100,17 +102,14 @@ int log_write(log_level_t level, const char *fmt, ...)
 	}
 
 	fflush(log_fp);
+	va_end(args);
 
 	if (level == LEVEL_TEST) {
-		//str = (char *) malloc(sizeof(char) * (len+1));
-		//vsprintf(str, fmt, args);
-		//tmp = m0_strdup(str);
-		//M0_LOG(M0_DEBUG, "%s\n", (char *)tmp);
-		M0_LOG(M0_DEBUG, "TEST TEST TEST\n");
-		//free(str);
+		vsnprintf(str, sizeof(str), fmt, args1);
+		M0_LOG(M0_DEBUG, "%s\n", (char *)str);
 	}
 
-	va_end(args);
+	va_end(args1);
 
 //out:
 	return rc;
