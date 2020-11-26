@@ -9,12 +9,13 @@ pipeline {
 	environment {
 		branch = "custom-ci"
 		os_version = "rhel-7.7.1908"
+		thrid_party_version = "1.0.0-0"
 		release_dir = "/mnt/bigstorage/releases/cortx"
         integration_dir = "$release_dir/github/integration-custom-ci/release/$os_version"
         components_dir = "$release_dir/components/github/$branch/$os_version"
         release_tag = "custom-build-$BUILD_ID"
         passphrase = credentials('rpm-sign-passphrase')
-		thrid_party_dir = "/mnt/bigstorage/releases/cortx/third-party-deps/rhel/rhel-7.7.1908/"
+		thrid_party_dir = "/mnt/bigstorage/releases/cortx/third-party-deps/rhel/rhel-7.7.1908-$thrid_party_version/"
 		python_deps = "/mnt/bigstorage/releases/cortx/third-party-deps/python-packages"
     }
 	
@@ -26,7 +27,7 @@ pipeline {
 	}
 	
 	parameters {
-		string(name: 'CSM_BRANCH', defaultValue: 'Cortx-v1.0.0_Beta', description: 'This will be ignored by default.Set this to Cortx-v1.0.0_Beta for custom Beta build.For other builds CSM Agent and CSM Web will be used')
+		string(name: 'CSM_BRANCH', defaultValue: 'main', description: 'This will be ignored by default.Set this to Cortx-v1.0.0_Beta for custom Beta build.For other builds CSM Agent and CSM Web will be used')
 		string(name: 'CSM_URL', defaultValue: 'https://github.com/Seagate/cortx-csm.git', description: 'CSM URL')
 		string(name: 'CSM_AGENT_BRANCH', defaultValue: 'main', description: 'Branch for CSM Agent')
 		string(name: 'CSM_AGENT_URL', defaultValue: 'https://github.com/Seagate/cortx-manager', description: 'CSM_AGENT URL')
@@ -258,7 +259,7 @@ pipeline {
 			steps {
                 script { build_stage = env.STAGE_NAME }
                 
-			 checkout([$class: 'GitSCM', branches: [[name: '*/main']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'AuthorInChangelog']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: 'https://github.com/Seagate/cortx-re']]])
+			 checkout([$class: 'GitSCM', branches: [[name: 'third-party-versioning']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'AuthorInChangelog']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: 'https://github.com/shailesh-vaidya/cortx-re']]])
                 
                 sh label: 'Generate Key', script: '''
                     set +x
@@ -286,22 +287,6 @@ pipeline {
 			}
 		}
 		
-		stage ('Build MANIFEST') {
-			steps {
-                script { build_stage = env.STAGE_NAME }
-
-                sh label: 'Build MANIFEST', script: """
-					pushd scripts/release_support
-                    sh build_release_info.sh $integration_dir/$release_tag/cortx_iso/
-					sh build_readme.sh $integration_dir/$release_tag
-					popd
-					
-                    cp $integration_dir/$release_tag/README.txt .
-                    cp $integration_dir/$release_tag/cortx_iso/RELEASE.INFO .
-                """
-			}
-		}
-
 		stage ('Repo Creation') {
 			steps {
                 script { build_stage = env.STAGE_NAME }
@@ -327,12 +312,32 @@ pipeline {
 			}
 		}
 
+		stage ('Build MANIFEST') {
+			steps {
+                script { build_stage = env.STAGE_NAME }
+
+                sh label: 'Build MANIFEST', script: """
+					pushd scripts/release_support
+                    sh build_release_info.sh $integration_dir/$release_tag/cortx_iso/
+					sh build-3rdParty-release-info.sh $integration_dir/$release_tag/3rd_party
+					sh build_readme.sh $integration_dir/$release_tag
+					popd
+					
+                    cp $integration_dir/$release_tag/README.txt .
+                    cp $integration_dir/$release_tag/cortx_iso/RELEASE.INFO .
+					cp $integration_dir/$release_tag/3rd_party/THIRD_PARTY_RELEASE.INFO $integration_dir/$release_tag
+					cp $integration_dir/$release_tag/cortx_iso/RELEASE.INFO $integration_dir/$release_tag
+                """
+			}
+		}
+
 		stage ('Generate ISO Image') {
 		    steps {
 				
 				sh label: 'Generate Single ISO Image', script:'''
 		        mkdir $integration_dir/$release_tag/iso && pushd $integration_dir/$release_tag/iso
 					genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -publisher Seagate -o $release_tag-single.iso $integration_dir/$release_tag/
+					sed -i '/BUILD/d' $integration_dir/$release_tag/3rd_party/THIRD_PARTY_RELEASE.INFO
 				popd
 				'''
 				sh label: 'Generate ISO Image', script:'''
