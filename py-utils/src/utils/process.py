@@ -56,6 +56,7 @@ class SimpleProcess(Process):
             self._returncode = -1
         return self._output, self._err, self._returncode
 
+
 class PipedProcess(Process):
     ''' Execute process with pipe and provide output '''
     def __init__(self, cmd):

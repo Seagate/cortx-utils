@@ -10,6 +10,7 @@ SET(framework_LIB_SRCS
 	controller.c
 	utils.c
 	md5hash.c
+	error_response.c
 )
 
 SET(hash_SRC
