@@ -21,14 +21,14 @@ import errno
 import sys
 import os
 
-from cortx.utils.ssh import SSHSession
+from cortx.utils.ssh import SSHChannel
 from cortx.utils.validator.error import VError
 
 utils_root = os.path.join(os.path.dirname(__file__), "..", "..")
 sys.path.append(utils_root)
 
 
-class TestSSHSession(unittest.TestCase):
+class TestSSHChannel(unittest.TestCase):
     """ Check ssh connection related validations """
 
     def setUp(self):
@@ -40,7 +40,7 @@ class TestSSHSession(unittest.TestCase):
         os.system(f"sudo useradd -M -p {e_pass} {self.__user}")
 
         # Let ssh connection be alive across all tests
-        self.session = SSHSession(self.hostname, self.__user, self.__passwd)
+        self.session = SSHChannel(self.hostname, self.__user, self.__passwd, sftp_enabled=True)
 
     def test_connection_ok(self):
         """ Check if ssh connection is alive """
@@ -51,12 +51,12 @@ class TestSSHSession(unittest.TestCase):
     def test_command_execution_ok(self):
         """ Check if command is executed successfully """
         cmd = "whoami"
-        stdin, stdout, stderr = self.session.exec_command(cmd)
-        cmd_output = stdout.read().decode()
-        if self.__user not in cmd_output:
+        rc, output = self.session.execute(cmd)
+        if rc !=0  or self.__user not in output:
             raise VError(
                 errno.EINVAL, f"Command execution failed on {self.hostname}.\
-                                Command: '{cmd}'")
+                                Command: '{cmd}'\
+                                Return Code: {rc}")
 
     def test_reconnect_ok(self):
         """ Check ssh re-connect after disconnection caller """
@@ -71,6 +71,32 @@ class TestSSHSession(unittest.TestCase):
         if not self.session.is_connection_alive():
             raise VError(errno.EINVAL,
                 f"Connection is lost with client '{self.session.host}'")
+
+    def test_send_file(self):
+        # Create local file
+        local_file = '/tmp/test_file.txt'
+        fObj = open(local_file, 'w')
+        fObj.close()
+        # Send file to remote location
+        remote_dir = '/tmp/tmp_remote/'
+        os.makedirs(remote_dir, exist_ok=True)
+        os.chmod(remote_dir, 0o657)
+        remote_file = os.path.join(remote_dir, 'test_file.txt')
+        self.session.send_file(local_file, remote_file)
+        os.remove(local_file)
+        os.system(f"rm -rf {remote_dir}")
+
+    def test_recv_file(self):
+        # Create remote file
+        remote_dir = '/tmp/tmp_remote/'
+        os.makedirs(remote_dir, exist_ok=True)
+        remote_file = os.path.join(remote_dir, 'test_file.txt')
+        fObj = open(remote_file, 'w')
+        fObj.close()
+        # Receive file from remote location
+        local_file = '/tmp/test_file.txt'
+        self.session.recv_file(remote_file, local_file)
+        os.remove(remote_file)
 
     def tearDown(self):
         """ Cleanup the setup """

@@ -17,45 +17,52 @@
 
 import os
 import socket
+import getpass
 import paramiko
 import traceback
 
+from cortx.utils.log import Log
+from cortx.utils.comm import Channel
 
-class SSHSession:
+
+class SSHChannel(Channel):
     """Establish SSH connection on remote host"""
 
-    def __init__(self, host, username, password=None, port=22, use_pkey=False):
+    def __init__(self, host, username=None, password=None, port=22, pkey_filename=None, **args):
+        super().__init__()
         self.host = host
-        self.__user = username
+        self.__user = username or getpass.getuser()
         self.__pwd = password
         self.port = port
-        self.use_pkey = use_pkey
+        self.pkey_filename = pkey_filename
         self.timeout = 30
         self.client = None
+        self.sftp_enabled = False
+        self.__sftp = None
+        for key, value in args.items():
+            setattr(self, key, value)
         self.connect()
+
+    def init(self):
+        raise Exception('init not implemented for SSH Channel')
 
     def connect(self):
         """Creates ssh connection
            Also helps to reconnect same client without invoking new
            instance again if diconnect caller on the client is called
         """
+        Log.debug('host=%s user=%s' %(self.host, self.__user))
         self.client = paramiko.SSHClient()
         self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
-            if self.use_pkey:
-                pkey_file = os.path.expanduser('~/.ssh/id_rsa_prvsnr')
-                key = paramiko.RSAKey.from_private_key_file(pkey_file)
-                self.client.connect(hostname=self.host,
-                                    port=self.port,
-                                    username=self.__user,
-                                    pkey=key,
-                                    timeout=self.timeout)
-            else:
-                self.client.connect(hostname=self.host,
-                                    port=self.port,
-                                    username=self.__user,
-                                    password=self.__pwd,
-                                    timeout=self.timeout)
+            self.client.connect(hostname=self.host,
+                                port=self.port,
+                                username=self.__user,
+                                password=self.__pwd,
+                                key_filename=self.pkey_filename,
+                                timeout=self.timeout)
+            if self.sftp_enabled:
+                self.__sftp = self.client.open_sftp()
         except paramiko.AuthenticationException:
             raise Exception("Authentication failed, verify your credentials.")
         except paramiko.SSHException:
@@ -67,13 +74,45 @@ class SSHSession:
             sshError = traceback.format_exc()
             raise Exception(f"Exception in connecting to {self.host}\n. {sshError}")
 
-    def exec_command(self, command):
+    def execute(self, command):
         """Execute command on remote host
         """
         if not self.is_connection_alive:
             self.connect()
         stdin, stdout, stderr = self.client.exec_command(command)
-        return (stdin, stdout, stderr)
+        rc = stdout.channel.recv_exit_status()
+        output = stdout.read().decode()
+        error = stderr.read().decode()
+        if rc != 0: output = error
+        Log.debug(f'\nCommand: {command}\nOutput: {output})
+        return rc, output
+
+    def send(self, message):
+        raise Exception('send not implemented for SSH Channel')
+
+    def recv(self, message=None):
+        raise Exception('recv not implemented for SSH Channel')
+
+    def recv_file(self, remote_file, local_file):
+        """ Get a file from node """
+        if not self.sftp_enabled:
+            raise Exception('Internal Error: SFTP is not enabled')
+        try:
+            self.__sftp.get(remote_file, local_file)
+        except Exception as e:
+            raise Exception(e)
+
+    def send_file(self, local_file, remote_file):
+        """ Put a file in node """
+        if not self.sftp_enabled:
+            raise Exception('Internal Error: SFTP is not enabled')
+        try:
+            self.__sftp.put(local_file, remote_file)
+        except Exception as e:
+            raise Exception(e)
+
+    def acknowledge(self, delivery_tag=None):
+        raise Exception('acknowledge not implemented for SSH Channel')
 
     def is_connection_alive(self):
         """Check transporting tunnel is active
@@ -88,9 +127,10 @@ class SSHSession:
         if self.client:
             try:
                 # Failure due to this may leave transport tunnel opened.
+                if self.sftp_enabled: self.__sftp.close()
                 self.client.close()
-            except:
-                pass
+            except Exception as e:
+                Log.exception(e)
         # Explicitly handling the client connection
         # instead of relying on garbage collection
         self.client = None
