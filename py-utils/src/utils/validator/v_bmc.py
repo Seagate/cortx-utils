@@ -18,8 +18,7 @@
 import errno
 
 from cortx.utils.validator.error import VError
-from cortx.utils.process import SimpleProcess
-from cortx.utils.ssh import SSHSession
+from cortx.utils.ssh import SSHChannel
 
 
 class BmcV:
@@ -33,30 +32,26 @@ class BmcV:
         """ Get BMC IP along with status of command
         """
         cmd = "ipmitool lan print 1 | grep 'IP Address'"
-        stdin, stdout, stderr = self.session.exec_command(cmd)
-        cmd_output = stdout.read().decode()
-        rc = stdout.channel.recv_exit_status()
+        rc, output = self.session.execute(cmd)
         if rc != 0 :
             msg = f"Failed to get BMC IP of {node}. Command: '{cmd}',\
                     Return Code: '{rc}'."
-            msg += stderr.read().decode("utf-8").replace('\r','').replace('\n','')
+            msg += output
             raise VError(errno.EINVAL, msg)
-        bmc_ip = cmd_output.split()[-1]
+        bmc_ip = output.split()[-1]
         return bmc_ip
 
     def __get_bmc_power_status(self, node):
         """ Get BMC power status
         """
         cmd = "ipmitool chassis status | grep 'System Power'"
-        stdin, stdout, stderr = self.session.exec_command(cmd)
-        cmd_output = stdout.read().decode()
-        rc = stdout.channel.recv_exit_status()
+        rc, output = self.session.execute(cmd)
         if rc != 0 :
             msg = f"Failed to get BMC power status of {node}. Command: '{cmd}',\
                     Return Code: '{rc}'."
-            msg += stderr.read().decode("utf-8").replace('\r','').replace('\n','')
+            msg += output
             raise VError(errno.EINVAL, msg)
-        pw_status = cmd_output.split()[-1]
+        pw_status = output.split()[-1]
         return pw_status
 
     def __ping_bmc(self, node):
@@ -64,13 +59,11 @@ class BmcV:
         """
         ip = self.__get_bmc_ip(node)
         cmd = f"ping -c 1 -W 1 {ip}"
-        stdin, stdout, stderr = self.session.exec_command(cmd)
-        cmd_output = stdout.read().decode()
-        rc = stdout.channel.recv_exit_status()
+        rc, output = self.session.execute(cmd)
         if rc != 0 :
             msg = f"Ping failed for IP '{ip}'. Command: '{cmd}',\
                     Return Code: '{rc}'."
-            msg += stderr.read().decode("utf-8").replace('\r','').replace('\n','')
+            msg += output
             raise VError(errno.ECONNREFUSED, msg)
 
     def validate(self, v_type, args):
@@ -96,7 +89,7 @@ class BmcV:
         # Root user to execute ipmitool command
         user = "root"
         node = args[0]
-        self.session = SSHSession(node, user, use_pkey=True)
+        self.session = SSHChannel(node, user, pkey_filename='/root/.ssh/id_rsa_prvsnr')
 
         if v_type == "accessible":
             self.validate_bmc_accessibility(node, args[1], args[2], args[3])
@@ -122,26 +115,22 @@ class BmcV:
         """ Validations for BMC STONITH Configuration
         """
         cmd = f"fence_ipmilan -P -a {bmc_ip} -o status -l {bmc_user} -p {bmc_passwd}"
-        stdin, stdout, stderr = self.session.exec_command(cmd)
-        cmd_output = stdout.read().decode()
-        rc = stdout.channel.recv_exit_status()
+        rc, output = self.session.execute(cmd)
         if rc != 0:
             msg = f"Failed to check BMC STONITH Config. Command: '{cmd}',\
                     Return Code: '{rc}'."
-            msg += stderr.read().decode("utf-8").replace('\r','').replace('\n','')
+            msg += output
             raise VError(errno.EINVAL, msg)
 
     def validate_inband_bmc_channel(self, node):
         """ Get BMC channel information (inband)
         """
         cmd = f"ipmitool {self.channel_cmd}"
-        stdin, stdout, stderr = self.session.exec_command(cmd)
-        cmd_output = stdout.read().decode()
-        rc = stdout.channel.recv_exit_status()
+        rc, output = self.session.execute(cmd)
         if rc != 0:
             msg = f"Failed to get BMC channel info of '{node}''. Command: '{cmd}',\
                     Return Code: '{rc}'."
-            msg += stderr.read().decode("utf-8").replace('\r','').replace('\n','')
+            msg += output
             raise VError(errno.EINVAL, msg)
         return True
 
@@ -150,12 +139,10 @@ class BmcV:
         """
         # check BMC ip is accessible over lan (out of band)
         cmd = f"ipmitool -H {bmc_ip} -U {bmc_user} -P {bmc_passwd} -I lan {self.channel_cmd}"
-        stdin, stdout, stderr = self.session.exec_command(cmd)
-        cmd_output = stdout.read().decode()
-        rc = stdout.channel.recv_exit_status()
+        rc, output = self.session.execute(cmd)
         if rc != 0:
             msg = f"Failed to get BMC channel info of '{bmc_ip}' over lan. Command: '{cmd}',\
                     Return Code: '{rc}'."
-            msg += stderr.read().decode("utf-8").replace('\r','').replace('\n','')
+            msg += output
             raise VError(errno.EINVAL, msg)
         return True
