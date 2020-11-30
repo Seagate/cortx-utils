@@ -15,14 +15,16 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import os
 import socket
 import getpass
+import logging
 import paramiko
 import traceback
 
 from cortx.utils.log import Log
 from cortx.utils.comm import Channel
+
+Log = logging.getLogger(__name__)
 
 
 class SSHChannel(Channel):
@@ -33,6 +35,7 @@ class SSHChannel(Channel):
         self.host = host
         self.__user = username or getpass.getuser()
         self.__pwd = password
+        self.__pkey = None
         self.port = port
         self.pkey_filename = pkey_filename
         self.timeout = 30
@@ -55,11 +58,13 @@ class SSHChannel(Channel):
         self.client = paramiko.SSHClient()
         self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
+            if self.pkey_filename:
+                self.__pkey = paramiko.RSAKey.from_private_key_file(self.pkey_filename)
             self.client.connect(hostname=self.host,
                                 port=self.port,
                                 username=self.__user,
                                 password=self.__pwd,
-                                key_filename=self.pkey_filename,
+                                pkey=self.__pkey,
                                 timeout=self.timeout)
             if self.sftp_enabled:
                 self.__sftp = self.client.open_sftp()
@@ -84,7 +89,7 @@ class SSHChannel(Channel):
         output = stdout.read().decode()
         error = stderr.read().decode()
         if rc != 0: output = error
-        Log.debug(f'\nCommand: {command}\nOutput: {output})
+        Log.debug(f'\nCommand: {command}\nOutput: {output}')
         return rc, output
 
     def send(self, message):
