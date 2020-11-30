@@ -25,6 +25,7 @@ sys.path.append(utils_root)
 
 from cortx.utils.validator.v_salt import SaltV
 from cortx.utils.validator.error import VError
+from cortx.utils.validator.config import Salt_V_Types as v_types
 
 
 class TestSaltValidator(unittest.TestCase):
@@ -32,7 +33,7 @@ class TestSaltValidator(unittest.TestCase):
 
     def test_nosalt_minion_connectivity(self):
         fake_hosts = ['srvnod-1', 'srvnod-2']
-        self.assertRaises(VError, SaltV().validate, 'minions',
+        self.assertRaises(VError, SaltV().validate, v_types.MINIONS.value,
                           fake_hosts)
 
 

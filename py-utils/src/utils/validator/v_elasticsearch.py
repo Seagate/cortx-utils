@@ -19,6 +19,7 @@ import errno
 
 from cortx.utils.validator.service import HttpService
 from cortx.utils.validator.error import VError
+from cortx.utils.validator.config import Elasticsearch_V_Types as v_types
 
 
 class ElasticsearchV:
@@ -37,7 +38,7 @@ class ElasticsearchV:
         if len(args) < 2:
             raise VError(errno.EINVAL, f"Insufficient parameters. {args}")
 
-        if v_type == "service":
+        if v_type == v_types.SERVICE.value:
             HttpService("elasticsearch", args[0], args[1]).validate_service_status()
         else:
             raise VError(

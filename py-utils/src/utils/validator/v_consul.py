@@ -19,6 +19,7 @@ import errno
 import requests
 
 from cortx.utils.validator.error import VError
+from cortx.utils.validator.config import Consul_V_Types as v_types
 
 
 class ConsulV:
@@ -37,7 +38,7 @@ class ConsulV:
         if len(args) < 2:
             raise VError(errno.EINVAL, "Insufficient parameters. %s" % args)
 
-        if v_type == "service":
+        if v_type == v_types.SERVICE.value:
             self.validate_service_status(args[0], args[1])
         else:
             raise VError(

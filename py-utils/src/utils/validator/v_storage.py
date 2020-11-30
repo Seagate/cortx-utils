@@ -19,6 +19,11 @@ import errno
 
 from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.error import VError
+from cortx.utils.validator.config import (
+    Storage_V_Types as v_types,
+    LUNS_CHECKS,
+    HBA_PROVIDER
+)
 
 
 class StorageV:
@@ -36,7 +41,7 @@ class StorageV:
         if not isinstance(args, list):
             raise VError(errno.EINVAL, "Invalid parameters %s" % args)
 
-        if v_type == "lvms":
+        if v_type == v_types.LVMS.value:
             if len(args) < 1:
                 raise VError(errno.EINVAL, "Insufficient parameters. %s" % args)
             self.validate_lvm(args)
@@ -44,18 +49,17 @@ class StorageV:
         else:
             if len(args) < 2:
                 raise VError(errno.EINVAL, "Insufficient parameters. %s" % args)
-            if v_type == "luns":
-                luns_checks = ['accessible', 'mapped', 'size']
-                if args[0] not in luns_checks:
+
+            if v_type == v_types.LUNS.value:
+                if args[0] not in LUNS_CHECKS:
                     raise VError(errno.EINVAL,
-                          "Invalid check. Please choose one of %s" % luns_checks)
+                          "Invalid check. Please choose one of %s" % LUNS_CHECKS)
                 self.validate_luns(args[0], args[1:])
 
-            elif v_type == "hba":
-                hba_checks = ['lsi']    # More providers can be added in future, if required.
-                if args[0].lower() not in hba_checks:
+            elif v_type == v_types.HBA.value:
+                if args[0].lower() not in HBA_PROVIDER:
                     raise VError(errno.EINVAL,
-                          "Invalid HBA Provider name. Please choose from  %s" % hba_checks)
+                          "Invalid HBA Provider name. Please choose from  %s" % HBA_PROVIDER)
                 self.validate_hba(args[0], args[1:])
 
             else:

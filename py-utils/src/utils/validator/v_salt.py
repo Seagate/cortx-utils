@@ -20,6 +20,7 @@ import errno
 import os
 from cortx.utils.validator.error import VError
 from cortx.utils.process import SimpleProcess
+from cortx.utils.validator.config import Salt_V_Types as v_types
 
 
 class SaltV:
@@ -38,7 +39,7 @@ class SaltV:
         if len(args) < 1:
             raise VError(errno.EINVAL, "Insufficient parameters. %s" % args)
 
-        if v_type == "minions":
+        if v_type == v_types.MINIONS.value:
             self.validate_salt_minion_connectivity(args)
         else:
             raise VError(

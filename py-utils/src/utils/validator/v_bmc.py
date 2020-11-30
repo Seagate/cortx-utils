@@ -18,6 +18,7 @@
 import errno
 
 from cortx.utils.validator.error import VError
+from cortx.utils.validator.config import Bmc_V_Types as v_types
 from cortx.utils.process import SimpleProcess
 
 
@@ -103,11 +104,12 @@ class BmcV:
         if not isinstance(args, list):
             raise VError(errno.EINVAL, f"Invalid parameters '{args}'")
 
-        if v_type == "accessible":
+        if v_type == v_types.ACCESSIBLE.value:
             if len(args) < 1:
                 raise VError(errno.EINVAL, "No parameters specified")
             self.validate_bmc_accessibility(args)
-        elif v_type == "stonith":
+
+        elif v_type == v_types.STONITH.value:
             if len(args) < 4:
                 raise VError(errno.EINVAL,
                              f"Insufficient parameters '{args}' for 'bmc stonith'. Refer usage.")

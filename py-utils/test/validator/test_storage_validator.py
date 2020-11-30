@@ -20,6 +20,7 @@ import unittest
 
 from cortx.utils.validator.v_storage import StorageV
 from cortx.utils.validator.error import VError
+from cortx.utils.validator.config import Storage_V_Types as v_types
 
 
 class TestStorageValidator(unittest.TestCase):
@@ -28,61 +29,61 @@ class TestStorageValidator(unittest.TestCase):
     def test_hba_present(self):
         """Check HBA present """
 
-        StorageV().validate('hba', ["lsi", 'srvnode-1'])
+        StorageV().validate(v_types.HBA.value, ["lsi", 'srvnode-1'])
 
     def test_hba_provider(self):
         """Check HBA present """
 
-        self.assertRaises(VError, StorageV().validate, 'hba',
+        self.assertRaises(VError, StorageV().validate, v_types.HBA.value,
                           ["abcd", 'srvnode-1'])
 
     def test_hba_not_present(self):
         """Check HBA not present """
 
         dummy_hosts = ['srv-1', 'srv-2']
-        self.assertRaises(VError, StorageV().validate, 'hba',
+        self.assertRaises(VError, StorageV().validate, v_types.HBA.value,
                           ["lsi", dummy_hosts])
 
     def test_luns_accessible(self):
         """Check LUNs Accessible """
 
-        StorageV().validate('luns', ["accessible", 'srvnode-1'])
+        StorageV().validate(v_types.LUNS.value, ["accessible", 'srvnode-1'])
 
     def test_luns_accessible_error(self):
         """Check LUNs accessible """
 
         dummy_hosts = ['srv-1', 'srv-2']
-        self.assertRaises(VError, StorageV().validate, 'luns',
+        self.assertRaises(VError, StorageV().validate, v_types.LUNS.value,
                           ["accessible", dummy_hosts])
 
     def test_luns_size(self):
         """Check LUNs Size """
 
-        StorageV().validate('luns', ["size", 'srvnode-1'])
+        StorageV().validate(v_types.LUNS.value, ["size", 'srvnode-1'])
 
     def test_luns_size_error(self):
         """Check LUNs Ports """
 
         dummy_hosts = ['srv-1', 'srv-2']
-        self.assertRaises(VError, StorageV().validate, 'luns',
+        self.assertRaises(VError, StorageV().validate, v_types.LUNS.value,
                           ["size", dummy_hosts])
 
     def test_luns_wrongly_mapped(self):
         """Check LUNs mapping """
 
-        self.assertRaises(VError, StorageV().validate, 'luns',
+        self.assertRaises(VError, StorageV().validate, v_types.LUNS.value,
                           ["mapped", 'srvnode-1'])
 
     def test_luns_wrong_hosts(self):
         """Check LUNs mapping """
 
-        self.assertRaises(VError, StorageV().validate, 'luns',
+        self.assertRaises(VError, StorageV().validate, v_types.LUNS.value,
                           ["mapped", 'srvnode-1'])
 
     def test_lvm_error(self):
         """Check LVM not present."""
 
-        self.assertRaises(VError, StorageV().validate, 'lvms',
+        self.assertRaises(VError, StorageV().validate, v_types.LVMS.value,
                           ["srvnode-1", "srvnode-2"])
 
 
