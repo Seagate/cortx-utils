@@ -18,11 +18,9 @@
 import errno
 import traceback
 
-from cortx.utils import const
-from cortx.utils.ssh import SSHSession
+from cortx.utils.ssh import SSHChannel
 from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.error import VError
-from cortx.utils.security.cipher import Cipher
 
 
 class ControllerV:
@@ -68,7 +66,7 @@ class ControllerV:
         """
         # Check if ssh connection is successful
         try:
-            session = SSHSession(host=ip, username=username, password=password)
+            session = SSHChannel(host=ip, username=username, password=password)
             session.disconnect()
         except:
             sshError = traceback.format_exc()
@@ -89,17 +87,15 @@ class ControllerV:
             mc_expected: string or list of expected version(s)
         """
         try:
-            session = SSHSession(host=ip, username=username, password=password)
+            session = SSHChannel(host=ip, username=username, password=password)
         except:
             sshError = traceback.format_exc()
             raise VError(
                 errno.EINVAL, f"Failed to create ssh connection to {ip}, '{sshError}'")
 
         # check firmware version command execution on MC
-        stdin, stdout, stderr = session.exec_command(self.version_cmd)
-        cmd_output = stdout.read().decode()
-        cmd_error = stderr.read().decode()
-        if self.success_msg not in cmd_output:
+        rc, output = session.execute(self.version_cmd)
+        if (rc != 0) or (self.success_msg not in output):
             raise VError(
                 errno.EINVAL, f"Command failure on controller, '{self.version_cmd}'")
 
@@ -107,9 +103,9 @@ class ControllerV:
         _supported = False
         if mc_expected:
             if isinstance(mc_expected, list):
-                _supported = any(ver for ver in mc_expected if ver in cmd_output)
+                _supported = any(ver for ver in mc_expected if ver in output)
             else:
-                _supported = True if mc_expected in cmd_output else False
+                _supported = True if mc_expected in output else False
 
         if not _supported:
             raise VError(errno.EINVAL, f"Unsupported firmware version found on {ip}.\
