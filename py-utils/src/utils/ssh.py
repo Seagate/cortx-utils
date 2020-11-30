@@ -17,14 +17,11 @@
 
 import socket
 import getpass
-import logging
 import paramiko
 import traceback
 
 from cortx.utils.log import Log
 from cortx.utils.comm import Channel
-
-Log = logging.getLogger(__name__)
 
 
 class SSHChannel(Channel):
@@ -35,7 +32,6 @@ class SSHChannel(Channel):
         self.host = host
         self.__user = username or getpass.getuser()
         self.__pwd = password
-        self.__pkey = None
         self.port = port
         self.pkey_filename = pkey_filename
         self.timeout = 30
@@ -54,17 +50,14 @@ class SSHChannel(Channel):
            Also helps to reconnect same client without invoking new
            instance again if diconnect caller on the client is called
         """
-        Log.debug('host=%s user=%s' %(self.host, self.__user))
         self.client = paramiko.SSHClient()
         self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
-            if self.pkey_filename:
-                self.__pkey = paramiko.RSAKey.from_private_key_file(self.pkey_filename)
             self.client.connect(hostname=self.host,
                                 port=self.port,
                                 username=self.__user,
                                 password=self.__pwd,
-                                pkey=self.__pkey,
+                                key_filename=self.pkey_filename,
                                 timeout=self.timeout)
             if self.sftp_enabled:
                 self.__sftp = self.client.open_sftp()
@@ -89,7 +82,6 @@ class SSHChannel(Channel):
         output = stdout.read().decode()
         error = stderr.read().decode()
         if rc != 0: output = error
-        Log.debug(f'\nCommand: {command}\nOutput: {output}')
         return rc, output
 
     def send(self, message):
