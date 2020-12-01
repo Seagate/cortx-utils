@@ -17,6 +17,7 @@ pipeline {
 		passphrase = credentials('rpm-sign-passphrase')
 		thrid_party_dir="$release_dir/third-party-deps/centos/centos-7.8.2003-$thrid_party_version/"
 		python_deps="$release_dir/third-party-deps/python-packages"
+		cortx_os_iso="/mnt/bigstorage/releases/cortx_builds/custom-os-iso/cortx-os-1.0.0-23.iso"
 	}
 
 	options {
@@ -323,8 +324,13 @@ pipeline {
 				
 				sh label: 'Generate Single ISO Image',script:'''
 		        mkdir $integration_dir/$release_tag/iso && pushd $integration_dir/$release_tag/iso
-					genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -publisher Seagate -o $release_tag-single.iso $integration_dir/$release_tag/
+					genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -publisher Seagate -o cortx-$release_tag-single.iso $integration_dir/$release_tag/
 					sed -i '/BUILD/d' $integration_dir/$release_tag/3rd_party/THIRD_PARTY_RELEASE.INFO
+
+					ln -s $cortx_os_iso $(basename $cortx_os_iso)
+					cortx_prvsnr_preq=$(ls "$integration_dir/$release_tag/cortx_iso" | grep "python36-cortx-prvsnr" | cut -d- -f5 | cut -d_ -f2 | cut -d. -f1 | sed s/"git"//)
+                	wget -O cortx-prep-$release_tag.sh https://raw.githubusercontent.com/Seagate/cortx-prvsnr/$cortx_prvsnr_preq/cli/src/cortx_prep.sh
+			
 				popd
 				'''
 				sh label: 'Generate ISO Image',script:'''
