@@ -15,7 +15,6 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import os
 import socket
 import getpass
 import paramiko
@@ -51,7 +50,6 @@ class SSHChannel(Channel):
            Also helps to reconnect same client without invoking new
            instance again if diconnect caller on the client is called
         """
-        Log.debug('host=%s user=%s' %(self.host, self.__user))
         self.client = paramiko.SSHClient()
         self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
@@ -84,7 +82,6 @@ class SSHChannel(Channel):
         output = stdout.read().decode()
         error = stderr.read().decode()
         if rc != 0: output = error
-        Log.debug(f'\nCommand: {command}\nOutput: {output})
         return rc, output
 
     def send(self, message):
