@@ -37,3 +37,4 @@ device-mapper
 scsi-network-relay
 systemd-python
 libgudev1
+sos
