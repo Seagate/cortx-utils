@@ -784,6 +784,7 @@ void m0kvs_key_iter_fini(struct m0kvs_key_iter *priv)
 
 	m0_bufvec_free(&priv->key);
 	m0_bufvec_free(&priv->val);
+	// free(priv->rcs);
 
 	if (priv->op) {
 		perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_FINISH);
@@ -888,6 +889,121 @@ out:
 	return rc;
 }
 
+int m0kvs_key_iter_find_v1(const void* prefix, size_t prefix_len,
+			   struct m0kvs_key_iter_v1 *priv, int batch_size)
+{
+	struct m0_bufvec *key = &priv->key;
+	struct m0_bufvec *val = &priv->val;
+	struct m0_op **op = &priv->op;
+	struct m0_idx *index = priv->index;
+	int rc;
+	uint32_t flags = 0;
+
+	perfc_trace_inii(PFT_M0KVS_KEY_ITER_FIND, PEM_NFS_TO_MOTR);
+
+	if (priv->initialized == true) {
+		flags = M0_OIF_EXCLUDE_START_KEY;
+		/* Motr API: "'vals' vector ... should contain NULLs" */
+		m0kvs_bufvec_free_data(val);
+		m0_bufvec_free(key);
+		rc = m0_bufvec_alloc(key, batch_size, prefix_len);
+		if (rc != 0) {
+			goto out;
+		}
+		goto m0_op_exec;
+	}
+
+	if (prefix_len == 0) {
+		rc = m0_bufvec_empty_alloc(key, 1);
+	} else {
+		rc = m0_bufvec_alloc(key, batch_size, prefix_len);
+	}
+	if (rc != 0) {
+		goto out;
+	}
+
+	rc = m0_bufvec_empty_alloc(val, batch_size);
+	if (rc != 0) {
+		goto out_free_key;
+	}
+
+	priv->rcs = calloc(batch_size, sizeof (int));
+	if (priv->rcs == NULL) {
+		rc = -ENOMEM;
+		goto out_free_val;
+	}
+	priv->rcs_len = batch_size;
+
+m0_op_exec:
+	priv->idx_to_read = 0;
+	memcpy(priv->key.ov_buf[0], prefix, prefix_len);
+
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_IDX_OP);
+	rc = m0_idx_op(index, M0_IC_NEXT, key, val, priv->rcs, flags, op);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_IDX_OP);
+
+	if (rc != 0) {
+		goto out_free_rcs;
+	}
+
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_LAUNCH);
+	m0_op_launch(op, 1);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_LAUNCH);
+
+	perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_WAIT);
+	rc = m0_op_wait(*op,
+                    M0_BITS(M0_OS_FAILED,
+                    M0_OS_STABLE),
+                    M0_TIME_NEVER);
+	perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_WAIT);
+	perfc_trace_attr(PEA_M0_OP_SM_ID, (*op)->op_sm.sm_id);
+	perfc_trace_attr(PEA_M0_OP_SM_STATE, (*op)->op_sm.sm_state);
+	if (rc != 0) {
+		goto out_free_op;
+	}
+
+	/* release objects back to priv */
+	key = NULL;
+	val = NULL;
+	op = NULL;
+	priv->initialized = true;
+
+out_free_op:
+	if (op && *op) {
+		perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_FINISH);
+		m0_op_fini(*op);
+		perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_FINISH);
+
+		perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_FREE);
+		m0_op_free(*op);
+		perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_FREE);
+	}
+
+out_free_rcs:
+	if (rc != 0) {
+		free(priv->rcs);
+	}
+
+out_free_val:
+	if (val) {
+		m0_bufvec_free(val);
+	}
+
+out_free_key:
+	if (key) {
+		m0_bufvec_free(key);
+	}
+
+out:
+	if (rc != 0) {
+		memset(priv, 0, sizeof(*priv));
+	}
+
+	perfc_trace_attr(PEA_M0KVS_RES_RC, rc);
+	perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
+	return rc;
+}
+
 int m0kvs_key_iter_next(struct m0kvs_key_iter *priv)
 {
 	struct m0_idx *index = priv->index;
@@ -943,6 +1059,65 @@ void m0kvs_key_iter_get_kv(struct m0kvs_key_iter *priv, void **key,
 	*klen = k->ov_vec.v_count[0];
 	*val = v->ov_buf[0];
 	*vlen = v->ov_vec.v_count[0];
+}
+
+void m0kvs_key_iter_get_kv_v1(struct m0kvs_key_iter_v1 *priv, void **key,
+			     size_t *klen, void **val, size_t *vlen)
+{
+	struct m0_bufvec *k = &priv->key;
+	struct m0_bufvec *v = &priv->val;
+
+	*key = NULL;
+	*klen = 0;
+	*val = NULL;
+	*vlen = 0;
+
+	if (priv->initialized == false) {
+		return;
+	}
+
+	if ((priv->rcs_len == 0) || (priv->rcs == NULL)) {
+		return;
+	}
+
+	if (priv->idx_to_read > priv->rcs_len - 1) {
+		return;
+	}
+
+	if (priv->rcs[priv->idx_to_read] != 0) {
+		return;
+	}
+
+	if (priv->idx_to_read > k->ov_vec.v_nr - 1) {
+		return;
+	}
+
+	if (k->ov_vec.v_count[priv->idx_to_read] <= 0) {
+		return;
+	}
+
+	if (k->ov_buf[priv->idx_to_read] == NULL) {
+		return;
+	}
+
+	if (priv->idx_to_read > v->ov_vec.v_nr - 1) {
+		return;
+	}
+
+	if (v->ov_vec.v_count[priv->idx_to_read] <= 0) {
+		return;
+	}
+
+	if (v->ov_buf[priv->idx_to_read] == NULL) {
+		return;
+	}
+
+	*key = k->ov_buf[priv->idx_to_read];
+	*klen = k->ov_vec.v_count[priv->idx_to_read];
+	*val = v->ov_buf[priv->idx_to_read];
+	*vlen = v->ov_vec.v_count[priv->idx_to_read];
+
+	priv->idx_to_read++;
 }
 
 void *m0kvs_alloc(uint64_t size)
