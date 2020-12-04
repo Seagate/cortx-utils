@@ -10,5 +10,6 @@ add_executable(md5hash-test
 target_link_libraries(md5hash-test
 	ssl
 	crypto
+	motr
 	)
 

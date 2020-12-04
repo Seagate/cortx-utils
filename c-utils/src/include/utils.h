@@ -45,6 +45,7 @@ void buff_init(buff_t *dest, void *src, size_t src_len);
  * @return 0 if successful, a negative "-errno" value in case of failure.
  */
 int utils_init(struct collection_item *cfg_items);
+int utils_register_magic_symbol(void);
 
 /* finalize utils.
  * 

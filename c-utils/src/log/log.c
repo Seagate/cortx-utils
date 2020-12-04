@@ -26,8 +26,16 @@
 #include "common/log.h"
 #include <string.h>
 
+#include <stdlib.h>
+#include "lib/trace.h"
+
+
+#include "lib/string.h"            /* m0_strdup */
+#include "lib/user_space/types.h"  /* bool */
+
+bool m0_log_init_done = false;
 static FILE *log_fp = NULL;
-static log_level_t log_level = LEVEL_INFO;
+static log_level_t log_level = LEVEL_TEST;
 
 const static struct {
 	log_level_t log_level;
@@ -38,7 +46,8 @@ const static struct {
 	{ LEVEL_WARN, "LEVEL_WARN"},
 	{ LEVEL_INFO, "LEVEL_INFO"},
 	{ LEVEL_TRACE, "LEVEL_TRACE"},
-	{ LEVEL_DEBUG, "LEVEL_DEBUG"}
+	{ LEVEL_DEBUG, "LEVEL_DEBUG"},
+	{ LEVEL_TEST, "LEVEL_TEST"}
 };
 
 log_level_t log_level_no(const char *log_level)
@@ -75,20 +84,32 @@ int log_write(log_level_t level, const char *fmt, ...)
 	va_list args;
 	time_t curr_time;
 	int pid = getpid();
+	char str[10000];
 
 	if (level > log_level) {
 		goto out;
 	}
 
 	va_start(args, fmt);
-	curr_time = time(NULL);
-	fprintf(log_fp, "%10lld [%5d] ", (long long)curr_time, pid);
-	len = vfprintf(log_fp, fmt, args);
-	if (len < 0) {
-		rc = -len;
+
+	if (!m0_log_init_done) {
+		curr_time = time(NULL);
+		fprintf(log_fp, "%10lld [%5d] ", (long long)curr_time, pid);
+		len = vfprintf(log_fp, fmt, args);
+		if (len < 0) {
+			rc = -len;
+		}
+		fflush(log_fp);
+	}
+	else {
+		/* This should be done without if condition in final code */
+		if(level == LEVEL_TEST) {
+			vsnprintf(str, sizeof(str), fmt, args);
+			M0_LOG(M0_DEBUG, "%s\n", (char *)str);
+		}
 	}
 
-	fflush(log_fp);
+	va_end(args);
 
 out:
 	return rc;
@@ -99,5 +120,10 @@ int log_fini()
 	fclose(log_fp);
 	log_fp = NULL;
 	return 0;
+}
+
+void enable_m0_log(void)
+{
+	m0_log_init_done = true;
 }
 
