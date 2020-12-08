@@ -357,14 +357,9 @@ class ElasticSearchDB(GenericDataBase):
             auth = None
             if config.login:
                 auth = (config.login, config.password)
-            nodes = [{"host": x, "port": config.port} for x in config.hosts]
-            cls.elastic_instance = Elasticsearch(
-                hosts=nodes,
-                http_auth=auth,
-                sniff_on_start=True,  # sniff before doing anything
-                sniff_on_connection_fail=True,  # refresh nodes after a node fails to respond
-                sniff_timeout=10,
-                sniffer_timeout=60)  # and also every 60 seconds
+
+            node = {"host": config.host, "port": config.port}
+            cls.elastic_instance = Elasticsearch(hosts=[node], http_auth=auth)
             cls.pool = ThreadPoolExecutor(max_workers=multiprocessing.cpu_count())
             cls.loop = asyncio.get_event_loop()
 
