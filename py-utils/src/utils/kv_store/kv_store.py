@@ -21,34 +21,6 @@ from urllib.parse import urlparse
 from cortx.utils.kv_store import kv_store_collection
 from cortx.utils.kv_store.error import KvError
 
-class KvStoreFactory:
-    """ Factory class for File based KV Store """
-
-    _stores = {}
-
-    @staticmethod
-    def get_instance(store_url):
-        """ Obtain instance of KvStore for given file_type """
-
-        url_spec = urlparse(store_url)
-        store_type = url_spec.scheme
-        store_loc = url_spec.netloc
-        store_path = url_spec.path
-
-        if store_type in KvStoreFactory._stores.keys():
-            return KvStoreFactory._stores[store_type]
-
-        storage = inspect.getmembers(kv_store_collection, inspect.isclass)
-
-        for name, cls in storage:
-            if store_type == cls.name:
-                KvStoreFactory._stores[store_type] = \
-                    cls(store_loc, store_path)
-                return KvStoreFactory._stores[store_type]
-
-        raise KvStoreError(errno.EINVAL, "Invalid store type %s", \
-            store_type)
-
 class KvStore:
     """ Abstraction over all kinds of KV based Storage """
 
@@ -64,7 +36,7 @@ class KvStore:
     def loc(self):
         return self._store_loc
 
-    def _get(self, key, data: dict) -> str:
+    def _get(self, key: str, data: dict) -> str:
         """ Obtain value for the given key """
         k = key.split('.', 1)
         if k[0] not in data.keys(): return None
@@ -124,6 +96,35 @@ class KvStore:
         """ Dumps data onto the KV Storage """
         raise KvError(errno.ENOSYS, "%s:dump() not implemented", \
             type(self).__name__)
+
+
+class KvStoreFactory:
+    """ Factory class for File based KV Store """
+
+    _stores = {}
+
+    @staticmethod
+    def get_instance(store_url: str) -> KvStore:
+        """ Obtain instance of KvStore for given file_type """
+
+        url_spec = urlparse(store_url)
+        store_type = url_spec.scheme
+        store_loc = url_spec.netloc
+        store_path = url_spec.path
+
+        if store_type in KvStoreFactory._stores.keys():
+            return KvStoreFactory._stores[store_type]
+
+        storage = inspect.getmembers(kv_store_collection, inspect.isclass)
+
+        for name, cls in storage:
+            if store_type == cls.name:
+                KvStoreFactory._stores[store_type] = \
+                    cls(store_loc, store_path)
+                return KvStoreFactory._stores[store_type]
+
+        raise KvStoreError(errno.EINVAL, "Invalid store type %s", \
+            store_type)
 
 
 # TODO: Test Code - To be removed
