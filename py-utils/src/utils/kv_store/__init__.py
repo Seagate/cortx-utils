@@ -15,6 +15,4 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from src.utils.kv_store.kv_store import KvStore
-from src.utils.kv_store.kv_storage_factory import KvStoreFactory
-# from src.utils.kv_store.file_kv_storage_factory import FileKvStorageFactory
+from cortx.utils.kv_store.error import KvError

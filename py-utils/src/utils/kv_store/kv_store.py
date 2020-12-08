@@ -1,5 +1,3 @@
-
-from src.utils.kv_store.kv_storage import KvStorage
 #!/bin/python3
 
 # CORTX Python common library.
@@ -17,19 +15,37 @@ from src.utils.kv_store.kv_storage import KvStorage
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-class KvStore:
-    """
-    This Class is for Abstraction over, all kinds of KV based Storage
-    """
+from cortx.utils.kv_store.kv_storage import KvStorageFactory
 
-    def __init__(self, kvStorage):
-        self._storage = kvStorage
+class KvStore:
+    """ Abstraction over all kinds of KV based Storage """
+
+    def __init__(self, store_url):
+        self._storage = KvStorageFactory.get_instance(store_url)
+
+    def load(self):
+        """ Loads and returns data from KV storage """
+        return self._storage.load()
+
+    def save(self, data):
+        """ Saves data onto the KV Storage """
+        return self._storage.save(data)
 
     def get(self, key):
+        """ Reads value of Key from the KV Storage """
         return self._storage.get(key)
 
     def set(self, key, value):
+        """ Updates the value of Key onto the KV Storage """
         return self._storage.set(key, value)
 
     def delete(self, key):
         return self._storage.delete(key)
+
+
+if __name__ == "__main__":
+    import sys
+
+    kv_store = KvStore(sys.argv[1])
+    data = kv_store.load()
+    print(data)
