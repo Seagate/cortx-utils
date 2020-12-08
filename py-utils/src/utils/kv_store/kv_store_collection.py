@@ -16,93 +16,94 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import json, toml, yaml
-from src.utils.kv_store.kv_storage import KvStorage
+from cortx.utils.process import SimpleProcess
+from cortx.utils.kv_store.kv_store import KvStore
 
 
-class JsonKvStorage(KvStorage):
-    """  Represents a JSON File Storage """ 
+class JsonKvStore(KvStore):
+    """  Represents a JSON File Store """ 
 
     name = "json"
 
-    def __init__(self, store_path):
-        KvStorage.__init__(self, store_path)
+    def __init__(self, store_loc, store_path):
+        KvStore.__init__(self, store_loc, store_path)
 
-    def _load(self):
+    def load(self):
         """ Reads from the file """
         with open(self._store_path, 'r') as f:
             return json.load(f)
 
-    def _dump(self, data):
+    def dump(self, data):
         """ Saves data onto the file """
         with open(self._store_path, 'w') as f:
             json.dump(data, f, indent=2)
 
 
-class YamlKvStorage(KvStorage):
-    """  Represents a YAML File Storage """ 
+class YamlKvStore(KvStore):
+    """  Represents a YAML File Store """ 
 
     name = "yaml"
 
-    def __init__(self, store_path):
-        KvStorage.__init__(self, store_path)
+    def __init__(self, store_loc, store_path):
+        KvStore.__init__(self, store_loc, store_path)
 
-    def _load(self):
+    def load(self):
         """ Reads from the file """
         with open(self._store_path, 'r') as f:
             return yaml.safe_load(f)
 
-    def _dump(self, data):
+    def dump(self, data):
         with open(self._store_path, 'w') as f:
             yaml.dump(data, f)
 
 
-class TomlKvStorage(KvStorage):
-    """  Represents a TOML File Storage """ 
+class TomlKvStore(KvStore):
+    """  Represents a TOML File Store """ 
 
     name = "toml"
 
-    def __init__(self, store_path):
-        KvStorage.__init__(self, store_path)
+    def __init__(self, store_loc, store_path):
+        KvStore.__init__(self, store_loc, store_path)
 
-    def _load(self):
+    def load(self):
         """ Reads from the file """
         with open(self._store_path, 'r') as f:
             return toml.load(f, dict)
 
-    def _dump(self, data):
+    def dump(self, data):
         """ Saves data onto the file """
         with open(self._store_path, 'w') as f:
             toml.dump(data, f)
 
 
-class IniKvStorage(KvStorage):
-    """  Represents a YAML File Storage """ 
+class IniKvStore(KvStore):
+    """  Represents a YAML File Store """ 
 
     name = "ini"
 
-    def __init__(self, store_path):
+    def __init__(self, store_loc, store_path):
+        KvStore.__init__(self, store_loc, store_path)
         self._config = configparser.ConfigParser()
-        KvStorage.__init__(self, store_path)
         self._type = configparser.SectionProxy
 
-    def _load(self):
+    def load(self):
         """ Reads from the file """
         self._config.read(self._store_path)
         return self._config
 
-    def _dump(self, data):
+    def dump(self, data):
         """ Saves data onto the file """
         with open(self._store_path, 'w') as f:
             data.write(f)
 
 
-class DictKvStorage(KvStorage):
+class DictKvStore(KvStore):
     """ Represents Dictionary Without file """ 
 
     name = "dict"
 
-    def __init__(self, data={}):
-        KvStorage.__init__(self, data)
+    def __init__(self, store_loc, store_path):
+        KvStore.__init__(self, store_loc, store_path)
 
     def load(self):
         """ Reads from the file """
@@ -113,21 +114,20 @@ class DictKvStorage(KvStorage):
         self._store_path = data
 
 
-class JsonMessageKvStorage(JsonKvStorage):
+class JsonMessageKvStore(JsonKvStore):
     """ Represents and In Memory JSON Message """
 
     name = "jsonmessage"
 
-    def __init__(self, json_str):
+    def __init__(self, store_loc, store_path):
         """ 
         Represents the Json Without FIle
         :param json_str: Json String to be processed :type: str
         """ 
-        Json.__init__(self, json_str)
+        JsonKvStore.__init__(self, store_loc, store_path)
 
     def load(self):
         """ Load json to python Dictionary Object. Returns Dict """
-
         return json.loads(self._store_path)
 
     def dump(self, data: dict):
@@ -135,20 +135,60 @@ class JsonMessageKvStorage(JsonKvStorage):
         self._store_path = json.dumps(data)
 
 
-class TextKvStorage(KvStorage):
-    """ Represents a TEXT File Storage """ 
+class TextKvStore(KvStore):
+    """ Represents a TEXT File Store """ 
 
     name = "text"
 
-    def __init__(self, store_path):
-        KvStorage.__init__(self, store_path)
+    def __init__(self, store_loc, store_path):
+        KvStore.__init__(self, store_loc, store_path)
 
-    def _load(self):
+    def load(self):
         """ Loads data from text file """ 
         with open(self._store_path, 'r') as f:
             return f.read()
 
-    def _dump(self, data):
+    def dump(self, data):
         """ Dump the data to desired file or to the source """ 
         with open(self._store_path, 'w') as f:
             f.write(data)
+
+
+class PillarStore(KvStore):
+    """ Salt Pillar based KV Store """
+
+    def __init__(self, store_loc, store_path):
+        KvStore.__init__(self, store_loc, store_path)
+
+    def get(self, key):
+        """Get pillar data for key."""
+        cmd = f"salt-call pillar.get {key} --out=json"
+        cmd_proc = SimpleProcess(cmd)
+        out, err, rc = cmd_proc.run()
+
+        if rc != 0:
+            if rc == 127: err = f"salt command not found"
+            raise KvError(rc, f"Cant get data for %s. %s.", key, err)
+
+        res = None
+        try:
+            res = json.loads(out)
+            res = res['local']
+
+        except Exception as ex:
+            raise KvError(errno.ENOENT, f"Cant get data for %s. %s.", \
+                key, ex)
+
+        if res is None:
+            raise KvError(errno.ENOENT, f"Cant get data for %s. %s." \
+                f"Key not present")
+
+        return res
+
+    def set(self, key, value):
+        # TODO: Implement
+        pass
+
+    def delete(self, key):
+        # TODO: Implement
+        pass

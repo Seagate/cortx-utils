@@ -34,6 +34,8 @@ class KvError(Exception):
         if self._rc == 0: return self._desc
         return "error(%d): %s" %(self._rc, self._desc)
 
+
+# TODO: Test Code - To be removed
 if __name__ == "__main__":
     def test(rc, message, *args):
         try:
