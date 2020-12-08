@@ -15,14 +15,9 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from __future__ import absolute_import
-__title__ = 'message_bus'
-
-from src.utils.message_bus.bus import MessageBus, MyCallback, Topic, TopicSchema, BusClient
-from src.utils.message_bus.message import Message
-from src.utils.message_bus.message_broker import MessageBroker
-from src.utils.message_bus.kafka_message_broker import KafkaMessageBroker
-from src.utils.message_bus.message_queue_factory import KafkaFactory
-from src.utils.message_bus.producer import MessageProducer
-from src.utils.message_bus.consumer import MessageConsumer
-from src.utils.message_bus.config import MessageBusConfig
+class Singleton(type):
+    _obj = {}
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._obj:
+            cls._obj[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._obj[cls]

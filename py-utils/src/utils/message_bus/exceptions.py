@@ -15,14 +15,17 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from __future__ import absolute_import
-__title__ = 'message_bus'
 
-from src.utils.message_bus.bus import MessageBus, MyCallback, Topic, TopicSchema, BusClient
-from src.utils.message_bus.message import Message
-from src.utils.message_bus.message_broker import MessageBroker
-from src.utils.message_bus.kafka_message_broker import KafkaMessageBroker
-from src.utils.message_bus.message_queue_factory import KafkaFactory
-from src.utils.message_bus.producer import MessageProducer
-from src.utils.message_bus.consumer import MessageConsumer
-from src.utils.message_bus.config import MessageBusConfig
+from src.utils.errors import BaseError
+
+KEY_NOT_FOUND_ERROR = 0x1020
+CLIENT_NOT_FOUND_ERROR = 0x1021
+
+class ClientNotfoundError(BaseError):
+    def __init__(self, desc=None, message_id=None, message_args=None):
+        super().__init__(CLIENT_NOT_FOUND_ERROR, 'Exception : Client Not Found Error')
+
+
+class KeyNotFoundError(BaseError):
+    def __init__(self, desc=None, message_id=None, message_args=None):
+        super().__init__(KEY_NOT_FOUND_ERROR, 'Exception : Key Not Found Error')

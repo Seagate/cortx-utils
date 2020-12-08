@@ -15,14 +15,25 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from __future__ import absolute_import
-__title__ = 'message_bus'
+class MessageBusConfig():
+    def __init__(self, filename=None):
+        if filename is not None:
+            self.file_handle = filename
+        else:
+            self.config = {
+                'message_broker': "kafka",
+                'message_type': [{'name': "Alert", 'replication_factor': 3, 'policy': "Remove_on_ACK"}],
+                'message_server': [{'bootstrap.servers': 'localhost:9092'}],
+                'producer': [{'bootstrap.servers': 'localhost:9092'}],
+                'consumer': [
+                    {
+                        'bootstrap.servers': 'localhost:9092',
+                        'group.id': 'sspl',
+                        'auto.offset.reset': 'earliest',
+                        'enable.auto.commit': False
+                    }
+                ]
+            }
 
-from src.utils.message_bus.bus import MessageBus, MyCallback, Topic, TopicSchema, BusClient
-from src.utils.message_bus.message import Message
-from src.utils.message_bus.message_broker import MessageBroker
-from src.utils.message_bus.kafka_message_broker import KafkaMessageBroker
-from src.utils.message_bus.message_queue_factory import KafkaFactory
-from src.utils.message_bus.producer import MessageProducer
-from src.utils.message_bus.consumer import MessageConsumer
-from src.utils.message_bus.config import MessageBusConfig
+    def get_config(self):
+        return self.config

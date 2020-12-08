@@ -16,13 +16,9 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 from __future__ import absolute_import
-__title__ = 'message_bus'
 
-from src.utils.message_bus.bus import MessageBus, MyCallback, Topic, TopicSchema, BusClient
-from src.utils.message_bus.message import Message
-from src.utils.message_bus.message_broker import MessageBroker
-from src.utils.message_bus.kafka_message_broker import KafkaMessageBroker
-from src.utils.message_bus.message_queue_factory import KafkaFactory
-from src.utils.message_bus.producer import MessageProducer
-from src.utils.message_bus.consumer import MessageConsumer
-from src.utils.message_bus.config import MessageBusConfig
+from src.utils.message_bus.bus.bus_frame import MessageBus
+from src.utils.message_bus.bus.client import BusClient
+from src.utils.message_bus.bus.callback import BusCallback, MyCallback
+from src.utils.message_bus.bus.topic import Topic
+from src.utils.message_bus.bus.topic_schema import TopicSchema

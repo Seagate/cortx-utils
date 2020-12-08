@@ -15,14 +15,20 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from __future__ import absolute_import
-__title__ = 'message_bus'
 
-from src.utils.message_bus.bus import MessageBus, MyCallback, Topic, TopicSchema, BusClient
-from src.utils.message_bus.message import Message
-from src.utils.message_bus.message_broker import MessageBroker
-from src.utils.message_bus.kafka_message_broker import KafkaMessageBroker
-from src.utils.message_bus.message_queue_factory import KafkaFactory
-from src.utils.message_bus.producer import MessageProducer
-from src.utils.message_bus.consumer import MessageConsumer
-from src.utils.message_bus.config import MessageBusConfig
+class BusClient():
+    def __init__(self, bus_handle, role, consumer_group=None, message_type=None, auto_offset_reset=None):
+        self.role = role
+        self.bus_handle = bus_handle
+        self.message_type = message_type
+        self.consumer_group = consumer_group
+        self.bus_client = self.bus_handle.create(self.role, self.consumer_group, self.message_type, auto_offset_reset)
+
+    def send(self, message):
+        self.bus_handle.send(self.bus_client, message, self.message_type)
+
+    def receive(self):
+        return self.bus_handle.receive()
+
+    def create(self):
+        self.bus_handle.create(self.role)

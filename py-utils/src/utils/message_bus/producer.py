@@ -15,14 +15,18 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from __future__ import absolute_import
-__title__ = 'message_bus'
+from src.utils.message_bus.bus import BusClient
+from src.utils.message_bus import Message
 
-from src.utils.message_bus.bus import MessageBus, MyCallback, Topic, TopicSchema, BusClient
-from src.utils.message_bus.message import Message
-from src.utils.message_bus.message_broker import MessageBroker
-from src.utils.message_bus.kafka_message_broker import KafkaMessageBroker
-from src.utils.message_bus.message_queue_factory import KafkaFactory
-from src.utils.message_bus.producer import MessageProducer
-from src.utils.message_bus.consumer import MessageConsumer
-from src.utils.message_bus.config import MessageBusConfig
+
+class MessageProducer(BusClient):
+    def __init__(self, bus_handle, message_type):
+        self.type = Message(message_type=message_type).get_message_header()
+        self.message_type = self.type.message_type
+        super().__init__(bus_handle, 'PRODUCER', message_type=self.message_type)
+
+    def send(self, message):
+        messages_list = []
+        for each_message in message:
+            messages_list.append(Message(each_message, self.message_type))
+        super().send(messages_list)

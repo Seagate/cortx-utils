@@ -15,14 +15,27 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from __future__ import absolute_import
-__title__ = 'message_bus'
-
-from src.utils.message_bus.bus import MessageBus, MyCallback, Topic, TopicSchema, BusClient
-from src.utils.message_bus.message import Message
-from src.utils.message_bus.message_broker import MessageBroker
+from src.template import Factory
 from src.utils.message_bus.kafka_message_broker import KafkaMessageBroker
-from src.utils.message_bus.message_queue_factory import KafkaFactory
-from src.utils.message_bus.producer import MessageProducer
-from src.utils.message_bus.consumer import MessageConsumer
 from src.utils.message_bus.config import MessageBusConfig
+
+'''This module helps us to read Queue specific configurations 
+    and generate Queue specific administrators'''
+
+class KafkaFactory(Factory):
+    '''
+    why kafka factory
+    class MessageFactory
+    Glue layer to create different types of Message Queues
+    '''
+
+    def __init__(self):
+        config = MessageBusConfig()
+        self.config = config.get_config()
+        self.adapter = KafkaMessageBroker(self.config)
+        self.admin = self.adapter.create_admin()
+
+
+class RabbitMQFactory(Factory):
+    def __init__(self):
+        pass

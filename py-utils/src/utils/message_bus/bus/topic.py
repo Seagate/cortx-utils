@@ -15,14 +15,19 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from __future__ import absolute_import
-__title__ = 'message_bus'
 
-from src.utils.message_bus.bus import MessageBus, MyCallback, Topic, TopicSchema, BusClient
-from src.utils.message_bus.message import Message
-from src.utils.message_bus.message_broker import MessageBroker
-from src.utils.message_bus.kafka_message_broker import KafkaMessageBroker
-from src.utils.message_bus.message_queue_factory import KafkaFactory
-from src.utils.message_bus.producer import MessageProducer
-from src.utils.message_bus.consumer import MessageConsumer
-from src.utils.message_bus.config import MessageBusConfig
+class Topic():
+
+    def __init__(self, topic_config):
+        self.name = topic_config['name']
+        self.replication_factor = topic_config['replication_factor']
+        self.policy = topic_config['policy'] # Values to be set in bus.__init__ and It's class type.
+
+    def create(self, topic_name, timeout_ms=None, validate_only=False):
+        return self.bus_handle.create_topic(topic_name, timeout_ms, validate_only)
+
+    def get_topic(self,message):
+        return self.bus_handle.get_topic(message)
+
+    def get_all_topics(self):
+        return self.bus_handle.get_all_topics()
