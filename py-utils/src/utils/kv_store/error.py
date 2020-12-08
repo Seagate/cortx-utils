@@ -1,4 +1,4 @@
-#!/bin/python3
+#!/bin/env python3
 
 # CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
@@ -16,14 +16,11 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 class KvError(Exception):
-    """Class representing a generic error with error code and output of a command."""
+    """ Generic Exception with error code and output """
 
-    def __init__(self, rc, desc):
+    def __init__(self, rc, message, *args):
         self._rc = rc
-        self._desc = desc
-
-        error = "%s: %s" % (self._rc, self._desc)
-        super(KvError, self).__init__(error)
+        self._desc = message % (args)
 
     @property
     def rc(self):
@@ -32,3 +29,7 @@ class KvError(Exception):
     @property
     def desc(self):
         return self._desc
+
+    def __str__(self):
+        if self._rc == 0: return self._desc
+        return "error(%d): %s" %(self._rc, self._desc)
