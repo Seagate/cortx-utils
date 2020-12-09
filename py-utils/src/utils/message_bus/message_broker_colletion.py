@@ -43,12 +43,11 @@ class KafkaMessageBroker(MessageBroker):
         """ Obtain Kafka based Producer/Consumer """
 
         """ Validate and return if client already exists """
-        if client_type in self._clients.keys():
+        if client_type not in self._clients.keys():
             raise MessageBusError(errno.EINVAL, "Invalid client type %s",
                 client_type)
 
-        if self._clients[client_type] != None:
-            return self._clients[client_type]
+        if self._clients[client_type] != None: return
     
         """ validate input config """
         for entry in ['client_id', 'method']:

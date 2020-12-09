@@ -52,7 +52,7 @@ class MessageBroker:
         self._servers = ','.join(x["server"]+':'+x['port'] for x in \
                                 broker_conf['cluster'])
 
-    def init_client(self, client_type: str, **client_conf):
+    def init_client(self, **client_conf):
         pass
 
     def send(self, message_type: str, method: str, messages: str):
