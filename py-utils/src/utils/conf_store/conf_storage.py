@@ -35,7 +35,6 @@ class ConfStore:
         # return self.conf_cache.get(index)
 
     def get(self, key) -> dict:
-        import ipdb; ipdb.set_trace()
         return self._conf_cache.get(key)
 
     def set(self, index, key, value):
