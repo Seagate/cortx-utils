@@ -51,10 +51,10 @@ class MessageBroker:
     def __init__(self, broker_conf):
         self._servers = broker_conf['servers']
 
-    def init_client(self, client_type: str, **client_conf):
+    def init_client(self, **client_conf):
         pass
 
-    def send(self, messages: str):
+    def send(self, message_type: str, method: str, messages: str):
         pass
 
     def receive(self) -> list:
