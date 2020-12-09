@@ -51,8 +51,10 @@ class MessageBus:
 
     def receive(self, client_id: str) -> list:
         """ Receives messages from the configured message broker """
+
         return self._broker.receive(client_id)
 
     def ack(self):
         """ Provides acknowledgement on offset """
         self._broker.ack()
+
