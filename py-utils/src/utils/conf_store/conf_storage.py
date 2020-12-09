@@ -22,21 +22,20 @@ class ConfStore:
         # Need to be discussed
         self._conf_cache = ConfCache()
     
-    def load(self, index, store, force=False) -> None:
-        self._store = store
+    def load(self, index, kvstore, force=False) -> None:
+        self._store = kvstore
 
         # if self._conf_cache.get(index=index):
         if False:
             if force == False:
                 raise Exception(f'{index} is already loaded')
-        store_data = store.load()
+        store_data = kvstore.load()
         self._conf_cache.set(index, store_data)
             # self._store.load(self.configurations[index])
         # return self.conf_cache.get(index)
 
-    def get(self, key) -> dict:
-        import ipdb; ipdb.set_trace()
-        return self._conf_cache.get(key)
+    def get(self, index, key=None, default_value=None) -> dict:
+        return self._conf_cache.get(index, key, default_value)
 
     def set(self, index, key, value):
         # self.configurations[index] = {key:value}

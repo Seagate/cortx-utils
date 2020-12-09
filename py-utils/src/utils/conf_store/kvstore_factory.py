@@ -1,7 +1,7 @@
 import os
 from src.utils.conf_store.json_storage import JsonStorage
 
-class KvStorageFactory:
+class KvStoreFactory:
     """
     Implements a KvStorage Factory.
     """
