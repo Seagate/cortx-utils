@@ -41,13 +41,13 @@ class MessageBus:
         self._broker = MessageBrokerFactory.get_instance(broker_type, \
             self._broker_conf)
 
-    def get_client(self, client: str, **client_config):
+    def init_client(self, **client_conf):
         """ To create producer/consumer client based on the configurations """
-        self._message_broker.get_client(client, **client_config)
+        self._message_broker.get_client(client, **client_conf)
 
-    def send(self, messages: list):
+    def send(self, message_type: str, method: str, messages: list):
         """ Sends list of messages to the configured message broker """
-        self._message_broker.send(messages)
+        self._message_broker.send(message_type, method, messages)
 
     def receive(self) -> list:
         """ Receives messages from the configured message broker """

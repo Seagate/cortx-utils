@@ -34,7 +34,7 @@ class MessageBusClient:
     def send(self, messages: str):
         message_type = self._get_conf('message_type')
         method = self._get_conf('method')
-        self._message_bus.send(messages, message_type, method)
+        self._message_bus.send(message_type, method, messages)
 
     def receive(self) -> list:
         return self._message_bus.receive()
