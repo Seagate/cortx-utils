@@ -42,6 +42,8 @@ class KafkaMessageBroker(MessageBroker):
     def init_client(self, **client_conf):
         """ Obtain Kafka based Producer/Consumer """
 
+        client_type = client_conf['client_type']
+
         """ Validate and return if client already exists """
         if client_type not in self._clients.keys():
             raise MessageBusError(errno.EINVAL, "Invalid client type %s",
