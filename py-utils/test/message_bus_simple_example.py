@@ -21,7 +21,7 @@ from src.utils.message_bus import MessageBus, MessageProducer, MessageConsumer
 
 
 def main():
-    
+
     message_bus = MessageBus()
 
     producer = MessageProducer(message_bus, message_type="Alert")
