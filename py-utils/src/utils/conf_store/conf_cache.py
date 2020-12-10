@@ -15,7 +15,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.conf_store import ConfError
+from cortx.utils.conf_store import ConfStoreError
 
 class ConfCache:
     """ In-memory configuration Data """
@@ -50,7 +50,7 @@ class ConfCache:
             if type(data[key]) == str:
                 keys.append(key if pkey is None else "{pkey}.{key}")
             else
-                raise ConfError(errno.ENOSYS, "Cant handle key %s", key)
+                raise ConfStoreError(errno.ENOSYS, "Cant handle key %s", key)
                 
     def keys(self):
         """ Prepares the list of keys in the config cache """
