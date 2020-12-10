@@ -15,8 +15,9 @@ if op == "set":
     cs.set('global', key, val)
 elif op == "get":
     val = cs.get('global', key)
-    print(val)
+    print("test: %s" %val)
 elif op == "delete":
     cs.delete('global', key)
     
-print(cs.keys())
+#print(cs.get_data('global'))
+print(cs.get_keys('global'))

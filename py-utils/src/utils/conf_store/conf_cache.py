@@ -28,9 +28,11 @@ class ConfCache:
         self._data = {}
         self.load()
 
-    @property
-    def data(self):
+    def get_data(self):
         return self._data
+
+    def get_keys(self):
+        return self._keys
 
     def load(self):
         """ Loads the configuration from the KV backend """
@@ -38,27 +40,26 @@ class ConfCache:
             raise Exception('%s not synced to disk' % self._kv_store)
         self._data = self._kv_store.load()
 
-        self._keys = self.get_keys()
+        self._keys = []
+        self._refresh_keys(self._data)
 
     def dump(self):
         """ Dump the config values onto the corresponding KV backend """
         self._kv_store.dump(self._data)
         self._dirty = False
 
-    def _get_keys(self, data: dict, keys: list, pkey: str = None):
-        for key in data.keys():
-            if type(data[key]) == dict:
-                self._get_keys(data[key], keys, "{pkey}.{key}")
-            if type(data[key]) == str:
-                keys.append(key if pkey is None else "{pkey}.{key}")
-            else:
-                raise ConfStoreError(errno.ENOSYS, "Cant handle key %s", key)
+    def _refresh_keys(self, data, pkey: str = None):
+        if type(data) == list:
+            for i in range(len(data)):
+                self._keys.append("%s[%d]" %(pkey, i))
+        elif type(data) == dict: 
+            for key in data.keys():
+                nkey = key if pkey is None else "%s.%s" %(pkey, key)
+                if type(data[key]) == str: self._keys.append(nkey)
+                else: self._refresh_keys(data[key], nkey)
+        else:
+            raise ConfStoreError(errno.ENOSYS, "Cant handle type %s", type(data))
                 
-    def get_keys(self):
-        """ Prepares the list of keys in the config cache """
-        self._keys = []
-        self._get_keys(self._data, self._keys)
-
     def __iter__(self):
         self._iter = 0
         return self
@@ -78,7 +79,7 @@ class ConfCache:
 
     def get(self, key: str):
         """ Returns the value corresponding to the key """
-        return self._get(key, self._data)
+        return self._get(self._data, key)
 
     def _set(self, data: dict, key: str, val):
         k = key.split('.', 1)
