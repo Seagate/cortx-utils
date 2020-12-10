@@ -15,7 +15,9 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.conf_store import ConfStoreError
+import errno
+from cortx.utils.conf_store.error import ConfStoreError
+from cortx.utils.kv_store.kv_store import KvStore
 
 class ConfCache:
     """ In-memory configuration Data """
@@ -36,33 +38,33 @@ class ConfCache:
             raise Exception('%s not synced to disk' % self._kv_store)
         self._data = self._kv_store.load()
 
-        self._keys = self.keys()
+        self._keys = self.get_keys()
 
     def dump(self):
         """ Dump the config values onto the corresponding KV backend """
         self._kv_store.dump(self._data)
         self._dirty = False
 
-    def _keys(self, data: dict, keys: list, pkey = None: str):
+    def _get_keys(self, data: dict, keys: list, pkey: str = None):
         for key in data.keys():
             if type(data[key]) == dict:
-                self._keys(data[key], keys, "{pkey}.{key}")
+                self._get_keys(data[key], keys, "{pkey}.{key}")
             if type(data[key]) == str:
                 keys.append(key if pkey is None else "{pkey}.{key}")
-            else
+            else:
                 raise ConfStoreError(errno.ENOSYS, "Cant handle key %s", key)
                 
-    def keys(self):
+    def get_keys(self):
         """ Prepares the list of keys in the config cache """
         self._keys = []
-        self._keys(self._data, self._keys)
+        self._get_keys(self._data, self._keys)
 
     def __iter__(self):
         self._iter = 0
         return self
 
     def __next__(self):
-        if self_iter >= len(self._keys)
+        if self_iter >= len(self._keys):
             raise StopIteration
         key = self._keys[self._iter]
         self._iter += 1
