@@ -44,6 +44,14 @@ class ConfStore:
         kv_store = KvStoreFactory.get_instance(kvs_url)
         self._cache[index] = ConfCache(kv_store)
 
+    def save(self, index: str):
+        """ Saves the given index configuration onto KV Store """
+        if index not in self._cache.keys():
+            raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
+                index)
+
+        self._cache[index].save()
+
     def get(self, index: str, key: str, default_val=None):
         """
         Paraeters:
@@ -62,8 +70,7 @@ class ConfStore:
                 index)
 
         val = self._cache[index].get(key)
-        if val is None:
-            return default_val
+        return default_val if val is None else val
 
     def set(self, index: str, key: str, val):
         """
@@ -82,12 +89,19 @@ class ConfStore:
 
         self._cache[index].set(key, val)
 
+    def get_keys(self, index: str):
+        """ Obtains list of keys stored in the specific config store """
+        return self._cache[index].get_keys()
+
+    def get_data(self, index: str):
+        return self._cache[index].get_data()
+
     def delete(self, index: str, key: str):
         if index not in self._cache.keys():
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
                 index)
 
-        self._cache[index].delete(index, key)
+        self._cache[index].delete(key)
 
     def copy(self, src_index: str, dst_index: str, overwrite: bool = False):
         """
@@ -109,10 +123,3 @@ class ConfStore:
         for key in next(i_src):
             self._cache[dst_index].set(key, self._cache[src_index].get(key))
         
-    def save(self, index: str):
-        """ Saves the given index configuration onto KV Store """
-        if index not in self._cache.keys():
-            raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
-                index)
-
-        self._cache[index].save()
