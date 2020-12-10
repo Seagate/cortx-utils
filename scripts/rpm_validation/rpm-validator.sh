@@ -19,7 +19,7 @@
 #
 
 # Constants
-RPM_LOCATION="http://cortx-storage.colo.seagate.com/releases/cortx/github/cortx-1.0/rhel-7.7.1908"
+RPM_LOCATION="http://cortx-storage.colo.seagate.com/releases/cortx/github/cortx-1.0/centos-7.8.2003"
 
 # Validation Params
 RPM_VERSION_EXPECTED="1.0.0"
@@ -51,7 +51,7 @@ RPM_INSTALL_PATH_EXPECTED=(
                     "cortx-sspl:bin,lib,conf,log"                                           # SSPL
                 )
 
-VALIDATION_ENVIRONMENT="OS : $( grep -w "NAME=" /etc/os-release | cut -d= -f2 | sed 's/"//g') , Kernel : $(uname -r)"
+VALIDATION_ENVIRONMENT="OS : $(cat /etc/redhat-release | sed -e 's/ $//g') , Kernel : $(uname -r)"
 
 REPORT_HTML="<!DOCTYPE html><html><body> <h1 align='center'> <b>RPM Validation </b></h1> <h3>Validation Criteria:</h3>
 <b>Ref :</b> <a
