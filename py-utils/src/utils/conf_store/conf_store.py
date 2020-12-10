@@ -15,8 +15,8 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+from cortx.utils.conf_store import ConfStoreError
 from cortx.utils.conf_store import ConfCache
-from cortx.utils.conf_store import ConfError
 
 class ConfStore:
     """ Configuration Store based on the KvStore """
@@ -37,7 +37,8 @@ class ConfStore:
         callback:  Callback for the config changes in the KV Sto
         """
         if index in self._cache.keys() and not overwrite: 
-            raise ConfError(errno.EINVAL, "conf index %s already exists", index)
+            raise ConfStoreError(errno.EINVAL, "conf index %s already exists",
+                index)
 
         kv_store = KvStoreFactory.get_instance(kvs_url)
         self._cache[index] = ConfCache(kv_store)
@@ -56,7 +57,7 @@ class ConfStore:
                 Return type will be dict or string based of key
         """
         if index not in self._cache.keys():
-            raise ConfError(errno.EINVAL, "config index %s is not loaded", \
+            raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
                 index)
 
         val = self._cache[index].get(key)
@@ -75,12 +76,19 @@ class ConfStore:
         val     Value to be set. Can be string or dict
         """
         if index not in self._cache.keys():
-            raise ConfError(errno.EINVAL, "config index %s is not loaded", \
+            raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
                 index)
 
         self._cache[index].set(key, val)
 
-    def copy(self, src_index: str, dst_index: str, overwrite = False: bool):
+    def delete(self, index: str, key: str):
+        if index not in self._cache.keys():
+            raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
+                index)
+
+        self._cache[index].delete(index, key)
+
+    def copy(self, src_index: str, dst_index: str, overwrite: bool = False):
         """
         Copies one config domain to the other and saves
         
@@ -89,11 +97,11 @@ class ConfStore:
         dst_index Destination Index 
         """
         if src_index not in self._cache.keys():
-            raise ConfError(errno.EINVAL, "config index %s is not loaded", \
+            raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
                 src_index)
 
         if dst_index not in self._cache.keys():
-            raise ConfError(errno.EINVAL, "config index %s is not loaded", \
+            raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
                 dst_index)
 
         i_src = iter(self._cache[src_index])
@@ -103,7 +111,7 @@ class ConfStore:
     def save(self, index: str):
         """ Saves the given index configuration onto KV Store """
         if index not in self._cache.keys():
-            raise ConfError(errno.EINVAL, "config index %s is not loaded", \
+            raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
                 index)
 
         self._cache[index].save()
