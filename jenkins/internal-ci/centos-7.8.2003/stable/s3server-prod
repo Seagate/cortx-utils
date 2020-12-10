@@ -1,0 +1,121 @@
+pipeline {
+	agent {
+		node {
+			label 'docker-io-centos-7.8.2003-node'
+		}
+	}
+
+    parameters {
+        string(name: 'dev_build_number', defaultValue: '1', description: 'Dev Build number')
+        booleanParam(name: 'motr_trigger', defaultValue: false, description: 'trigger based build config')
+    }
+
+	environment {
+        env="prod"
+		component="s3server"
+		branch="stable"
+        os_version="centos-7.8.2003"
+        release_dir="/mnt/bigstorage/releases/cortx"
+        build_upload_dir="$release_dir/components/github/$branch/$os_version/$env/$component"
+        dev_build_number = "${params.dev_build_number}"
+    }
+    
+	options {
+		timeout(time: 240, unit: 'MINUTES')
+		timestamps()
+        ansiColor('xterm')   
+        disableConcurrentBuilds()   
+	}
+	
+	stages {   
+        stage('Checkout') {
+            steps {
+                script { build_stage=env.STAGE_NAME }
+                dir ('s3') {
+                    checkout([$class: 'GitSCM', branches: [[name: "stable"]], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'AuthorInChangelog'], [$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: true, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: 'https://github.com/Seagate/cortx-s3server']]])
+                }
+            }
+        }
+
+        stage("Set Motr Build"){
+			stages {			
+				stage("Motr Build - Last Successfull") {
+					when { expression { params.motr_trigger != true } }
+					steps {
+						script { build_stage=env.STAGE_NAME }
+						script {
+							sh label: '', script: '''
+								sed '/baseurl/d' /etc/yum.repos.d/motr_current_build.repo
+								echo "baseurl=http://cortx-storage.colo.seagate.com/releases/cortx/components/github/$branch/$os_version/dev/motr/last_successful/"  >> /etc/yum.repos.d/motr_current_build.repo
+								yum-config-manager --disable cortx-C7.7.1908
+								yum clean all;rm -rf /var/cache/yum
+							'''
+						}
+					}
+				}				
+				stage("Motr Build - Current") {
+					when { expression { params.motr_trigger == true } }
+					steps {
+						script { build_stage=env.STAGE_NAME }
+						script {
+							sh label: '', script: '''
+								sed '/baseurl/d' /etc/yum.repos.d/motr_current_build.repo
+								echo "baseurl=http://cortx-storage.colo.seagate.com/releases/cortx/components/github/$branch/$os_version/dev/motr/current_build/"  >> /etc/yum.repos.d/motr_current_build.repo
+								yum-config-manager --disable cortx-C7.7.1908
+								yum clean all;rm -rf /var/cache/yum
+							'''
+						}
+					}
+				}
+			}
+        }
+        
+        stage('Build') {
+            steps {
+                script { build_stage=env.STAGE_NAME }
+                dir ('s3') {	
+                    sh label: 'Build s3server RPM', script: '''
+                        yum clean all;rm -rf /var/cache/yum
+                        export build_number=$dev_build_number
+                        yum install cortx-motr{,-devel} -y
+                        ./rpms/s3/buildrpm.sh -P $PWD
+                        
+                    '''
+                     sh label: 'Build s3iamcli RPM', script: '''
+                        export build_number=$dev_build_number
+                        ./rpms/s3iamcli/buildrpm.sh -P $PWD
+                    '''
+                }			
+            }
+        }
+
+        stage ('Upload') {
+            steps {
+                script { build_stage=env.STAGE_NAME }
+                sh label: 'Copy RPMS', script: '''
+                    rm -rf $build_upload_dir/$dev_build_number
+                    mkdir -p $build_upload_dir/$dev_build_number
+                    cp /root/rpmbuild/RPMS/x86_64/*.rpm $build_upload_dir/$dev_build_number
+                    cp /root/rpmbuild/RPMS/noarch/*.rpm $build_upload_dir/$dev_build_number
+                '''
+                sh label: 'Repo Creation', script: '''pushd $build_upload_dir/$dev_build_number
+                    rpm -qi createrepo || yum install -y createrepo
+                    createrepo .
+                    popd
+                '''
+            }
+        }
+                            
+        stage ('Tag last_successful') {
+            when { expression { params.motr_trigger != true } }
+            steps {
+                script { build_stage=env.STAGE_NAME }
+                sh label: 'Tag last_successful', script: '''pushd $build_upload_dir/
+                    test -d $build_upload_dir/last_successful && rm -f last_successful
+                    ln -s $build_upload_dir/$dev_build_number last_successful
+                    popd
+                '''
+            }
+        }	
+	}
+}
