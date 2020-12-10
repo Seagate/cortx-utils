@@ -351,7 +351,8 @@ out:
 	perfc_trace_attr(PEA_TIME_ATTR_START_M0_OP_FINISH);
 	m0_op_fini(op);
 	perfc_trace_attr(PEA_TIME_ATTR_END_M0_OP_FINISH);
-	/* it seems like 0_free(&op) is not needed */
+	/* Added below line after memory leak was observed by Valgrind*/
+	m0_op_free(op);
 	perfc_trace_attr(PEA_M0KVS_RES_RC, rc);
 	perfc_trace_finii(PERFC_TLS_POP_DONT_VERIFY);
 	return rc;
