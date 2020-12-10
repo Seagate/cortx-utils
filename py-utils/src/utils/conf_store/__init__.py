@@ -17,5 +17,4 @@
 
 from cortx.utils.conf_store.conf_store import ConfStore
 from cortx.utils.conf_store.conf_cache import ConfCache
-from cortx.utils.conf_store.error import ConfError
-
+from cortx.utils.conf_store.error import ConfStoreError

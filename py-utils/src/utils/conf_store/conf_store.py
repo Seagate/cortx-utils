@@ -15,8 +15,9 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.conf_store import ConfStoreError
-from cortx.utils.conf_store import ConfCache
+from cortx.utils.conf_store.error import ConfStoreError
+from cortx.utils.conf_store.conf_cache import ConfCache
+from cortx.utils.kv_store.kv_store import KvStoreFactory
 
 class ConfStore:
     """ Configuration Store based on the KvStore """
