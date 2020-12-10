@@ -65,7 +65,7 @@ class ConfCache:
         return self
 
     def __next__(self):
-        if self_iter >= len(self._keys):
+        if self._iter >= len(self._keys):
             raise StopIteration
         key = self._keys[self._iter]
         self._iter += 1
