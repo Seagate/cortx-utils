@@ -19,6 +19,7 @@ from cortx.utils.conf_store.error import ConfStoreError
 from cortx.utils.conf_store.conf_cache import ConfCache
 from cortx.utils.kv_store.kv_store import KvStoreFactory
 
+
 class ConfStore:
     """ Configuration Store based on the KvStore """
 
@@ -50,7 +51,7 @@ class ConfStore:
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
                 index)
 
-        self._cache[index].save()
+        self._cache[index].dump()
 
     def get(self, index: str, key: str, default_val=None):
         """
@@ -120,6 +121,9 @@ class ConfStore:
                 dst_index)
 
         i_src = iter(self._cache[src_index])
-        for key in next(i_src):
-            self._cache[dst_index].set(key, self._cache[src_index].get(key))
-        
+        while True:
+            try:
+                key = next(i_src)
+                self._cache[dst_index].set(key, self._cache[src_index].get(key))
+            except:
+                break
