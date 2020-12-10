@@ -15,8 +15,10 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+
 class MessageBroker(object):
-    def __init__(self, config):
+    """ A super abstract class of Message Brokers"""
+    def __init__(self):
         pass
 
     def send(self, producer, topic, message):
@@ -27,5 +29,4 @@ class MessageBroker(object):
 
     def create(self, role):
         pass
-
 

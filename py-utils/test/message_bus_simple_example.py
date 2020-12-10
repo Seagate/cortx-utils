@@ -15,20 +15,24 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import sys
+sys.path.insert(1, '../')
+from src.utils.message_bus import MessageBus, MessageProducer, MessageConsumer
 
-class BusClient():
-    def __init__(self, bus_handle, role, consumer_group=None, message_type=None, auto_offset_reset=None):
-        self.role = role
-        self.bus_handle = bus_handle
-        self.message_type = message_type
-        self.consumer_group = consumer_group
-        self.bus_client = self.bus_handle.create(self.role, self.consumer_group, self.message_type, auto_offset_reset)
 
-    def send(self, message):
-        self.bus_handle.send(self.bus_client, message, self.message_type)
+def main():
+    
+    message_bus = MessageBus()
 
-    def receive(self):
-        return self.bus_handle.receive()
+    producer = MessageProducer(message_bus, message_type="Alert")
+    messages = ["This is message1", "This is message2"]
+    producer.send(messages)
 
-    def create(self):
-        self.bus_handle.create(self.role)
+    consumer = MessageConsumer(message_bus, consumer_group="sspl", message_type=['Alert'], offset='earliest')
+    messages = consumer.receive()
+    for message in messages:
+        print(message)
+
+
+if __name__ == "__main__":
+    main()

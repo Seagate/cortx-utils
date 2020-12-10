@@ -19,6 +19,6 @@ class Factory(object):
 
     def __init__(self, adapters):
         self.m_dict = adapters
-
+    #parameter
     def __call__(self, config):
         return self.m_dict[config['message_broker']]()

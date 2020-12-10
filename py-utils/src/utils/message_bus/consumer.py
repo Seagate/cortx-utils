@@ -16,12 +16,24 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 
-from src.utils.message_bus.bus import BusClient
+from src.utils.message_bus import MessageBusClient
 
-class MessageConsumer(BusClient):
 
-    def __init__(self, busHandle, consumer_group=None, message_type=None, offset=None):
-        super().__init__(busHandle, 'CONSUMER', consumer_group, message_type, offset)
+class MessageConsumer(MessageBusClient):
+
+    def __init__(self, message_bus, consumer_group=None, message_type=None, offset=None):
+        """ Initialize a Message Consumer
+
+        Keyword Arguments:
+            message_bus : An instance of message bus class.
+            consumer_group : A String that represents Consumer Group ID.
+                    Group of consumers can process messages
+            message_type : This is essentially equivalent to the queue/topic name.
+                    For e.g. ["Alert"]
+            offset : Can be set to "earliest" (default) or "latest".
+                    "earliest" will cause messages to be read from the beginning
+        """
+        super().__init__(message_bus, 'CONSUMER', consumer_group, message_type, offset)
 
     def receive(self):
         return super().receive()

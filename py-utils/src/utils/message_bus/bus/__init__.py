@@ -14,11 +14,3 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
-
-from __future__ import absolute_import
-
-from src.utils.message_bus.bus.bus_frame import MessageBus
-from src.utils.message_bus.bus.client import BusClient
-from src.utils.message_bus.bus.callback import BusCallback, MyCallback
-from src.utils.message_bus.bus.topic import Topic
-from src.utils.message_bus.bus.topic_schema import TopicSchema

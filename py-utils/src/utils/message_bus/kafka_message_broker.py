@@ -23,15 +23,20 @@ from confluent_kafka.admin import AdminClient, NewTopic, ClusterMetadata
 from src.utils.message_bus.message_broker import MessageBroker
 
 ConsumerRecord = namedtuple("ConsumerRecord",
-                            ["topic", "message", "partition", "offset", "key"])
+                            ["message_type", "message", "partition", "offset", "key"])
 
 
 class KafkaMessageBroker(MessageBroker):
-
+    """
+    A type of broker to send or receive messages across any component
+    on a node to any other component on the other
+    nodes, reliably and efficiently, using message
+    queues protocols
+    """
     def __init__(self, config):
         try:
             self.config = config
-            self.mapper = {}
+            self.admin, self.consumer, self.producer = None
         except Exception as e:
             print(e)
 
@@ -40,22 +45,16 @@ class KafkaMessageBroker(MessageBroker):
         self.admin = AdminClient(config)
         return self.admin
 
-    def create_topic(self, topic):
-        new_topic = NewTopic(name=topic,
-                             num_partitions=1,
-                             replication_factor=1)
-        self.admin.create_topics([new_topic])
-
-    def send(self, producer, message, topic):
+    def send(self, producer, message, message_type):
         for each_message in message:
-            producer.produce(topic, bytes(each_message.payload, 'utf-8'))
+            producer.produce(message_type, bytes(each_message.payload, 'utf-8'))
         #producer.flush()
 
     def receive(self):
-        msg_list = self.receive_subscribed_topic(self.consumer)
+        msg_list = self.receive_subscribed(self.consumer)
         return msg_list
 
-    def receive_subscribed_topic(self, consumer):
+    def receive_subscribed(self, consumer):
         try:
             while True:
                 msg = consumer.poll(timeout=0.5)
@@ -73,13 +72,12 @@ class KafkaMessageBroker(MessageBroker):
         except KeyboardInterrupt:
             sys.stderr.write('%% Aborted by user\n')
 
-
-    def create(self, role, consumer_group, message_type, auto_offset_reset):
-        if role == 'PRODUCER':
+    def create(self, client_id, consumer_group, message_type, auto_offset_reset):
+        if client_id == 'PRODUCER':
             config = self.config['producer'][0]
             self.producer = Producer(**config)
             return self.producer
-        elif role == 'CONSUMER':
+        elif client_id == 'CONSUMER':
             config = self.config['consumer'][0]
             if auto_offset_reset:
                 config['auto.offset.reset'] = auto_offset_reset
@@ -89,13 +87,4 @@ class KafkaMessageBroker(MessageBroker):
             self.consumer.subscribe(message_type)
             return self.consumer
         else:
-            assert role == 'PRODUCER' or role == 'CONSUMER'
-
-    def create_topics(self, new_topics, timeout_ms=None, validate_only=False):
-        new_topics = NewTopic(name=new_topics, num_partitions=1, replication_factor=1)
-        return self.admin.create_topics([new_topics], timeout_ms, validate_only)
-
-    def get_all_topics(self):
-        all_topics = self.admin.list_topics()
-        all_topics = [topic for topic in all_topics.topics]
-        return all_topics
+            assert client_id == 'PRODUCER' or client_id == 'CONSUMER'

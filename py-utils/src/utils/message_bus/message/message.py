@@ -15,26 +15,12 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-
-class MessageConst():
-    DEFAULT_MESSAGE_TYPE = 'default'
-    MESSAGE_TYPE_LIST = ['default','Alert', 'Emergency', 'Notice', 'Performance', 'testing', 'testing1']
-
-class MessageHeader():
-
-    def __init__(self, m_type):
-        self.msg_con_obj = MessageConfig()
-        self.message_type = self.msg_con_obj.get_message_config(m_type)
-
-    def create(self):
-        pass
-    def remove(self, type):
-        pass
-    def update(self, old, new):
-        pass
-
 class Message():
-
+    """
+    An interface that is used to set the payload,
+    format the messages if required and check
+    the message type.
+    """
     def __init__(self, msg=None, message_type=None, m_format=None):
         self.payload = msg if m_format is None else self.format_message(msg, m_format)
         self.m_header = MessageHeader(message_type)
@@ -59,6 +45,23 @@ class Message():
 
     def format_message(self, msg, m_format):
         return msg
+
+class MessageConst():
+    DEFAULT_MESSAGE_TYPE = 'default'
+    MESSAGE_TYPE_LIST = ['default','Alert', 'Emergency', 'Notice', 'Performance', 'testing', 'testing1']
+
+class MessageHeader():
+
+    def __init__(self, m_type):
+        self.msg_con_obj = MessageConfig()
+        self.message_type = self.msg_con_obj.get_message_config(m_type)
+
+    def create(self):
+        pass
+    def remove(self, type):
+        pass
+    def update(self, old, new):
+        pass
 
 
 class MessageConfig():
