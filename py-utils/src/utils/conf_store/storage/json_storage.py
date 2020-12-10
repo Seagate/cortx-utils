@@ -10,11 +10,6 @@ class JsonStorage(FileStorage):
         with open(self._source, 'r') as f:
             return json.load(f)
 
-    def get(self, key):
-        pass
-
-    def set(self, key, value):
-        pass
-
-    def delete(self, key):
-        pass
+    def _dump(self, data):
+        with open(self._source, 'w') as f:
+            json.dump(data, f, indent=2)

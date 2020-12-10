@@ -20,7 +20,29 @@ class ConfCache:
             print('Value for given key index not found')
             return default_value
             
-    def set(self, index, value):
+    def load(self, index, value):
         # self._configuration_payload[index] = self.payload.set(key, value)
         self._configuration_payload[index] = value
         return self._configuration_payload
+    
+    def setter(self, index, keyList, valueList):
+        try:
+            push_value = {}
+            for each_key in range(len(keyList)):
+                push_value[keyList[each_key]] = valueList[each_key]
+            self._configuration_payload[index].update(push_value)
+        except TypeError as e:
+            raise TypeError(f"Key should be a string: {e}")
+        return self._configuration_payload[index]
+    
+    # def set(self, index, key, value):
+    #     try:
+    #         eval(self.get_Key_of_sequence(index,key)+'='+value)
+    #     except:
+    #         pass
+    #     return self._configuration_payload
+    
+    # @staticmethod
+    # def get_Key_of_sequence(index, key):
+    #     key_sequence = "".join(str([e]) for e in key.split('.'))
+    #     return (str(self._configuration_payload[index])+key_sequence)
