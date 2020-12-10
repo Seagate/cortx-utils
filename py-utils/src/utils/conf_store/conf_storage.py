@@ -1,5 +1,5 @@
 
-from src.utils.kvstore.kvstore  import KvStore
+from src.utils.kv_store  import KvStore
 from src.utils.conf_store.conf_cache import ConfCache
 from src.utils.conf_store.conf_type import ConfType
 
@@ -29,22 +29,22 @@ class ConfStore:
         if False:
             if force == False:
                 raise Exception(f'{index} is already loaded')
-        store_data = kvstore.load()
-        self._conf_cache.set(index, store_data)
+        store_data = self._store.load()
+        self._conf_cache.load(index, store_data)
             # self._store.load(self.configurations[index])
         # return self.conf_cache.get(index)
 
     def get(self, index, key=None, default_value=None) -> dict:
         return self._conf_cache.get(index, key, default_value)
 
-    def set(self, index, key, value):
-        # self.configurations[index] = {key:value}
-        # return self.configurations
-        # self.conf_cache
-        pass
+    def setter(self, index, keyList, valueList):
+        # List of keys and values
+        return self._conf_cache.setter(index, keyList, valueList)
 
-    def save(self):
-        pass
+    def save(self, index):
+        data = self.get(index)
+        self._store.dump(data)
+
     def backup(self):
         pass
     def copy(self, index1, index2):

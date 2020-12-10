@@ -1,4 +1,4 @@
-#!/bin/env python3
+#!/bin/python3
 
 # CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
@@ -15,12 +15,15 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-class KvStoreError(Exception):
-    """ Generic Exception with error code and output """
+class KvError(Exception):
+    """ Generic Exception raised by KV Store Module ."""
 
-    def __init__(self, rc, message, *args):
+    def __init__(self, rc, desc):
         self._rc = rc
-        self._desc = message % (args)
+        self._desc = desc
+
+        error = "%s: %s" % (self._rc, self._desc)
+        super(KvError, self).__init__(error)
 
     @property
     def rc(self):

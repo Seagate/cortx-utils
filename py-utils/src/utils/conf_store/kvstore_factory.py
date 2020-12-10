@@ -1,14 +1,23 @@
 import os
-from src.utils.conf_store.json_storage import JsonStorage
+from src.utils.conf_store.storage import JsonStorage, YamlStorage
 
 class KvStoreFactory:
     """
     Implements a KvStorage Factory.
     """
     def __init__(self, source):
-        self._source = source
+        self._source = self.get_url(source)
         self._MAP = {"json": JsonStorage, "yaml": JsonStorage}
         self.__store = self.get_store_type()
+    
+    def get_url(self, source):
+        try:
+            if 'file://' in source:
+                # Consider that supplied url as file type
+                out = source.split('file://')
+                return out[-1]
+        except Exception as e:
+            raise Exception(f"Invalid path given")
 
     def get_store_type(self):
         try:
@@ -25,4 +34,4 @@ class KvStoreFactory:
         return self.__store.load()
 
     def dump(self, data):
-        pass
+        return self.__store.dump(data)
