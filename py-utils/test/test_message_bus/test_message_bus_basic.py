@@ -15,7 +15,24 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from __future__ import absolute_import
+import sys
+sys.path.insert(1, '../../')
+from src.utils.message_bus import MessageBus, MessageProducer, MessageConsumer
 
-from src.utils.message_bus.message.message import Message, MessageFormat, MessageConfig, MessageHeader
 
+def main():
+
+    message_bus = MessageBus()
+
+    producer = MessageProducer(message_bus, message_type="Alert")
+    messages = ["This is message1", "This is message2"]
+    producer.send(messages)
+
+    consumer = MessageConsumer(message_bus, consumer_group="sspl", message_type=['Alert'], offset='earliest')
+    messages = consumer.receive()
+    for message in messages:
+        print(message)
+
+
+if __name__ == "__main__":
+    main()

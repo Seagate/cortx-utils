@@ -18,11 +18,11 @@
 __title__ = 'message_bus'
 
 from src.utils.message_bus.message_bus import MessageBus, MessageBusClient
-from src.utils.message_bus.message import Message
 from src.utils.message_bus.producer import MessageProducer
 from src.utils.message_bus.consumer import MessageConsumer
 from src.utils.message_bus.message_broker import MessageBroker
 from src.utils.message_bus.message_broker_factory import MessageBrokerFactory
 from src.utils.message_bus.kafka_message_broker import KafkaMessageBroker
-from src.utils.message_bus.config import MessageBusConfig
+from src.utils.schema import Conf
 from src.utils.message_bus.exceptions import MessageBusError
+

@@ -18,9 +18,10 @@
 
 import sys
 from collections import namedtuple
-from confluent_kafka import Producer, Consumer, TopicPartition
-from confluent_kafka.admin import AdminClient, NewTopic, ClusterMetadata
+from confluent_kafka import Producer, Consumer
+from confluent_kafka.admin import AdminClient
 from src.utils.message_bus.message_broker import MessageBroker
+from src.utils.message_bus.exceptions import MessageBusError
 
 ConsumerRecord = namedtuple("ConsumerRecord",
                             ["message_type", "message", "partition", "offset", "key"])
@@ -28,27 +29,26 @@ ConsumerRecord = namedtuple("ConsumerRecord",
 
 class KafkaMessageBroker(MessageBroker):
     """
-    A type of broker to send or receive messages across any component
-    on a node to any other component on the other
-    nodes, reliably and efficiently, using message
-    queues protocols
+    Kafka Server based message broker implementation
     """
     def __init__(self, config):
-        try:
-            self.config = config
-            self.admin, self.consumer, self.producer = None
-        except Exception as e:
-            print(e)
+        self.config = config
+        self.message_type = None
+        self.producer = None
+        self.consumer = None
 
     def create_admin(self):
-        config = self.config['message_server'][0]
-        self.admin = AdminClient(config)
-        return self.admin
+        try:
+            config = {'bootstrap.servers': self.config.get('global', 'bootstrap.servers')}
+            admin = AdminClient(config)
+            return admin
+        except Exception as e:
+            raise MessageBusError(f"Invalid Client configuration. {e}")
 
-    def send(self, producer, message, message_type):
+    def send(self, producer, message):
         for each_message in message:
-            producer.produce(message_type, bytes(each_message.payload, 'utf-8'))
-        #producer.flush()
+            producer.produce(self.message_type, bytes(each_message, 'utf-8'))
+        producer.flush()
 
     def receive(self):
         msg_list = self.receive_subscribed(self.consumer)
@@ -63,7 +63,6 @@ class KafkaMessageBroker(MessageBroker):
                 if msg.error():
                     raise KafkaException(msg.error())
                 else:
-                    # Proper message
                     sys.stderr.write('%% %s [%d] at offset %d with key %s:\n' %
                                      (msg.topic(), msg.partition(), msg.offset(),
                                       str(msg.key())))
@@ -72,19 +71,25 @@ class KafkaMessageBroker(MessageBroker):
         except KeyboardInterrupt:
             sys.stderr.write('%% Aborted by user\n')
 
-    def create(self, client_id, consumer_group, message_type, auto_offset_reset):
-        if client_id == 'PRODUCER':
-            config = self.config['producer'][0]
-            self.producer = Producer(**config)
-            return self.producer
-        elif client_id == 'CONSUMER':
-            config = self.config['consumer'][0]
-            if auto_offset_reset:
-                config['auto.offset.reset'] = auto_offset_reset
-            if consumer_group:
-                config['group.id'] = consumer_group
-            self.consumer = Consumer(**config)
-            self.consumer.subscribe(message_type)
-            return self.consumer
-        else:
-            assert client_id == 'PRODUCER' or client_id == 'CONSUMER'
+    def create(self, client, consumer_group, message_type, offset):
+        try:
+            self.message_type = message_type
+            config = {}
+            if client == 'PRODUCER':
+                config['bootstrap.servers'] = self.config.get('global', 'bootstrap.servers')
+                self.producer = Producer(**config)
+                return self.producer
+            elif client == 'CONSUMER':
+                config['bootstrap.servers'] = self.config.get('global', 'bootstrap.servers')
+                config['enable.auto.commit'] = self.config.get('global', 'enable.auto.commit')
+                if offset:
+                    config['auto.offset.reset'] = offset
+                if consumer_group:
+                    config['group.id'] = consumer_group
+                self.consumer = Consumer(**config)
+                self.consumer.subscribe(self.message_type)
+                return self.consumer
+            else:
+                assert client == 'PRODUCER' or client == 'CONSUMER'
+        except Exception as e:
+            raise MessageBusError(f"Invalid {client} config. {e}")

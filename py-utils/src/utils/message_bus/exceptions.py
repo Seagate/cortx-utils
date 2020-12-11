@@ -20,6 +20,7 @@ from src.utils.errors import BaseError
 
 MESSAGE_BUS_ERROR = 0x1020
 
+
 class MessageBusError(BaseError):
-    def __init__(self, desc=None, message_id=None, message_args=None):
-        super().__init__(MESSAGE_BUS_ERROR, 'Exception :Message Bus Error')
+    def __init__(self, rc=0, desc=None, message_id=None, message_args=None):
+        super().__init__(MESSAGE_BUS_ERROR, desc, message_id, message_args)

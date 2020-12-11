@@ -1,7 +1,9 @@
 from src.utils.message_bus.kafka_message_broker import KafkaMessageBroker
-from src.utils.message_bus.config import MessageBusConfig
+from src.utils.schema import Conf
+from src.utils.message_bus.exceptions import MessageBusError
 
-class MessageBrokerFactory():
+
+class MessageBrokerFactory:
     """
     A Glue layer to create different types of Message Queues.
 
@@ -9,9 +11,15 @@ class MessageBrokerFactory():
     and generate Queue specific administrators.
     """
     def __init__(self, message_broker):
-        #Read the config
-        config = MessageBusConfig()
-        self.config = config.get_config()
-        if message_broker == 'kafka':
-            self.adapter = KafkaMessageBroker(self.config)
-        self.admin = self.adapter.create_admin()
+        try:
+            self.message_broker = message_broker
+            self._MAP = {
+                "kafka": KafkaMessageBroker
+            }
+            self.adapter = self.get_adapter()
+            self.admin = self.adapter.create_admin()
+        except Exception as e:
+            raise MessageBusError(f"Invalid Broker. {e}")
+
+    def get_adapter(self):
+        return self._MAP[self.message_broker](Conf)

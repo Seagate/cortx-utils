@@ -17,30 +17,28 @@
 
 from src.utils.message_bus.message_broker_factory import MessageBrokerFactory
 from src.utils.message_bus.exceptions import MessageBusError
-
+from src.utils.schema import Conf
 
 class MessageBus():
     """
     An interface that initialize message brokers
-    and read its respective producer, consumer and
-    admin configurations
+    and creates message clients (i.e) producer or consumer
     """
     def __init__(self):
-        self.message_broker = 'kafka' # Reads message broker from messagebus_conf
-        factory = MessageBrokerFactory(self.message_broker)
-        self.config, self.adapter, self.admin = factory.config, factory.adapter, factory.admin
+        Conf.load('global', '/etc/cortx/message_bus.json')
+        self.message_broker = Conf.get('global', 'message.broker')
+        message_broker_factory = MessageBrokerFactory(self.message_broker)
+        self.adapter, self.admin = message_broker_factory.adapter, message_broker_factory.admin
 
-    def create(self, client_id, consumer_group=None, message_type=None, auto_offset_reset=None):
-        self.client_id = client_id
-        self.message_type = message_type
-        self.consumer_group = consumer_group
-        create_busclient = self.adapter.create(self.client_id, self.consumer_group, self.message_type, auto_offset_reset)
-        return create_busclient
+    def create(self, client, consumer_group=None, message_type=None, offset=None):
+        create_client = self.adapter.create(client, consumer_group, message_type, offset)
+        return create_client
 
-    def send(self, producer, messages, message_type):
+    def send(self, producer, messages):
             try:
-                self.adapter.send(producer, messages, message_type)
-            except:
+                self.adapter.send(producer, messages)
+            except Exception as e:
+                print(e)
                 raise MessageBusError
 
     def receive(self):
@@ -53,15 +51,16 @@ class MessageBusClient():
     A common Interface that takes either producer/ consumer
     client as input to set the configurations
     """
-    def __init__(self, message_bus, client_id, consumer_group=None, message_type=None, auto_offset_reset=None):
-        self._client_id = client_id
+    def __init__(self, message_bus, client, consumer_group=None, message_type=None, offset=None):
+        self._client = client
         self._message_bus = message_bus
         self._message_type = message_type
         self._consumer_group = consumer_group
-        self._bus_client = self._message_bus.create(self._client_id, self._consumer_group, self._message_type, auto_offset_reset)
+        self._offset = offset
+        self._bus_client = self._message_bus.create(self._client, self._consumer_group, self._message_type, offset)
 
     def send(self, messages):
-        self._message_bus.send(self._bus_client, messages, self._message_type)
+        self._message_bus.send(self._bus_client, messages)
 
     def receive(self):
         return self._message_bus.receive()

@@ -25,13 +25,13 @@ class MessageConsumer(MessageBusClient):
         """ Initialize a Message Consumer
 
         Keyword Arguments:
-            message_bus : An instance of message bus class.
-            consumer_group : A String that represents Consumer Group ID.
+            message_bus: An instance of message bus class.
+            consumer_group: A String that represents Consumer Group ID.
                     Group of consumers can process messages
-            message_type : This is essentially equivalent to the queue/topic name.
+            message_type: This is essentially equivalent to the queue/topic name.
                     For e.g. ["Alert"]
-            offset : Can be set to "earliest" (default) or "latest".
-                    "earliest" will cause messages to be read from the beginning
+            offset: Can be set to "earliest" (default) or "latest".
+                    ("earliest" will cause messages to be read from the beginning)
         """
         super().__init__(message_bus, 'CONSUMER', consumer_group, message_type, offset)
 
