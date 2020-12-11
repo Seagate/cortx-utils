@@ -17,7 +17,7 @@ from src.utils.kv_store.file_kv_storage import FileKvStorage
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 class JsonKvStorage(FileKvStorage):
-    ''' Represents a JSON doc '''
+    ''' Represents a JSON File Storage'''
 
     def __init__(self, file_path):
         FileKvStorage.__init__(self, file_path)
@@ -32,7 +32,7 @@ class JsonKvStorage(FileKvStorage):
 
 
 class YamlKvStorage(FileKvStorage):
-    ''' Represents a YAML doc '''
+    ''' Represents a YAML File Storage '''
 
     def __init__(self, file_path):
         FileKvStorage.__init__(self, file_path)
@@ -47,7 +47,7 @@ class YamlKvStorage(FileKvStorage):
 
 
 class TomlKvStorage(FileKvStorage):
-    ''' Represents a TOML doc '''
+    ''' Represents a TOML File Storage '''
 
     def __init__(self, file_path):
         FileKvStorage.__init__(self, file_path)
@@ -62,7 +62,7 @@ class TomlKvStorage(FileKvStorage):
 
 
 class IniKvStorage(FileKvStorage):
-    ''' Represents a YAML doc '''
+    ''' Represents a YAML File Storage '''
 
     def __init__(self, file_path):
         self._config = configparser.ConfigParser()
@@ -114,7 +114,7 @@ class JsonMessageKvStorage(Json):
 
 class TextKvStorage(FileKvStorage):
 
-    '''Represents a TEXT doc'''
+    '''Represents a TEXT File Storage'''
     def __init__(self, file_path):
         FileKvStorage.__init__(self, file_path)
 

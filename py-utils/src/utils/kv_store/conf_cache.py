@@ -16,7 +16,9 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 class ConfCache:
-    ''' implements a ConfCache in specified format. '''
+    '''
+    ConfCache implements in-memory configuration management in specified format
+    '''
 
     def __init__(self, kvstore):
         self._dirty = False

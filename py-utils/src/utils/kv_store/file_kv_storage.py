@@ -17,6 +17,10 @@ import os, errno, sys
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 class FileKvStorage:
+    '''
+    FileKvStorage base implementation Provides generic interfaces for derived FileStorage classes
+    like Json, Yaml and Ini
+    '''
     _type = dict
 
     def __init__(self, file_path):
