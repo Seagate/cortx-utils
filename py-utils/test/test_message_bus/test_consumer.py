@@ -37,6 +37,5 @@ class TestMessage(unittest.TestCase):
         for message in messages:
             print(message)
 
-
 if __name__ == '__main__':
     unittest.main()
