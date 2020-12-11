@@ -59,76 +59,118 @@ pipeline {
 				stage ("Build Mero, Hare and S3Server") {
 					steps {
 						script { build_stage=env.STAGE_NAME }
-						build job: 'motr-custom-build', wait: true,
-						parameters: [
-							string(name: 'MOTR_URL', value: "${MOTR_URL}"),
-							string(name: 'MOTR_BRANCH', value: "${MOTR_BRANCH}"),
-							string(name: 'S3_URL', value: "${S3_URL}"),
-							string(name: 'S3_BRANCH', value: "${S3_BRANCH}"),
-							string(name: 'HARE_URL', value: "${HARE_URL}"),
-							string(name: 'HARE_BRANCH', value: "${HARE_BRANCH}")
-						]
+						script {
+							try {
+								def motrbuild = build job: 'motr-custom-build', wait: true,
+										parameters: [
+                                                        				string(name: 'MOTR_URL', value: "${MOTR_URL}"),
+                                                        				string(name: 'MOTR_BRANCH', value: "${MOTR_BRANCH}"),
+                                                        				string(name: 'S3_URL', value: "${S3_URL}"),
+                                                        				string(name: 'S3_BRANCH', value: "${S3_BRANCH}"),
+                                                        				string(name: 'HARE_URL', value: "${HARE_URL}"),
+                                                        				string(name: 'HARE_BRANCH', value: "${HARE_BRANCH}")
+                                                				]
+							}catch (err){
+								build_stage=env.STAGE_NAME 			
+								error "Failed to Build Motr, Hare and S3Server"
+							}
+						}										
 					}
 				}
 
 				stage ("Build Provisioner") {
 					steps {
 						script { build_stage=env.STAGE_NAME }
-						build job: 'prvsnr-custom-build', wait: true,
-						parameters: [
-							string(name: 'PRVSNR_URL', value: "${PRVSNR_URL}"),
-							string(name: 'PRVSNR_BRANCH', value: "${PRVSNR_BRANCH}")
-						]
+                                                script {
+                                                        try {
+								def prvsnrbuild = build job: 'prvsnr-custom-build', wait: true,
+								                  parameters: [
+									          	string(name: 'PRVSNR_URL', value: "${PRVSNR_URL}"),
+											string(name: 'PRVSNR_BRANCH', value: "${PRVSNR_BRANCH}")
+							        	          ]
+							}catch (err){
+								build_stage=env.STAGE_NAME
+								error "Failed to Build Provisioner"
+							}
+						}
 					}
 				}
 
 				stage ("Build HA") {
 					steps {
 						script { build_stage=env.STAGE_NAME }
-						sh label: 'Copy RPMS', script:'''
-						if [ "$HA_BRANCH" == "Cortx-v1.0.0_Beta"  ]; then
-							echo "cortx-ha does not have Cortx-v1.0.0_Beta branch."
-							exit 1
-						fi
-						'''
-						build job: 'cortx-ha', wait: true,
-						parameters: [
-											string(name: 'HA_URL', value: "${HA_URL}"),
-											string(name: 'HA_BRANCH', value: "${HA_BRANCH}")
-									]
+						script {
+							try {					
+								sh label: 'Copy RPMS', script:'''
+								if [ "$HA_BRANCH" == "Cortx-v1.0.0_Beta"  ]; then
+									echo "cortx-ha does not have Cortx-v1.0.0_Beta branch."
+									exit 1
+								fi
+								'''
+								def habuild = build job: 'cortx-ha', wait: true,
+									      parameters: [
+									      	  string(name: 'HA_URL', value: "${HA_URL}"),
+									      	  string(name: 'HA_BRANCH', value: "${HA_BRANCH}")
+									      ]
+							}catch (err){
+								build_stage=env.STAGE_NAME
+								error "Failed to Build HA"
+							}
+						}
 					}
 				}
 
 				stage ("Build CSM Agent") {
 					steps {
 						script { build_stage=env.STAGE_NAME }
-						build job: 'custom-csm-agent-build', wait: true,
-						parameters: [
-						string(name: 'CSM_AGENT_URL', value: "${CSM_AGENT_URL}"),
-						string(name: 'CSM_AGENT_BRANCH', value: "${CSM_AGENT_BRANCH}")
-						]
+						script {
+							try {
+								def csm_agent_build = build job: 'custom-csm-agent-build', wait: true,
+										      parameters: [
+										      	  string(name: 'CSM_AGENT_URL', value: "${CSM_AGENT_URL}"),
+						                                          string(name: 'CSM_AGENT_BRANCH', value: "${CSM_AGENT_BRANCH}")
+										      ]
+							}catch (err){
+								build_stage=env.STAGE_NAME
+								error "Failed to Build CSM Agent"
+							}
+						}                        
 					}
 				}	
 					
 				stage ("Build CSM Web") {
 					steps {
 						script { build_stage=env.STAGE_NAME }	
-						build job: 'custom-csm-web-build', wait: true,
-						parameters: [
-						string(name: 'CSM_WEB_URL', value: "${CSM_WEB_URL}"),
-						string(name: 'CSM_WEB_BRANCH', value: "${CSM_WEB_BRANCH}")
-						]
+						script {
+							try {	
+								def csm_web_build = build job: 'custom-csm-web-build', wait: true,
+										    parameters: [
+										        string(name: 'CSM_WEB_URL', value: "${CSM_WEB_URL}"),
+											string(name: 'CSM_WEB_BRANCH', value: "${CSM_WEB_BRANCH}")
+										    ]
+							}catch (err){
+								build_stage=env.STAGE_NAME
+								error "Failed to Build CSM Web"
+							}
+						}
 					}
 				}
 
 				stage ("Build SSPL") {
 					steps {
 						script { build_stage=env.STAGE_NAME }
-						build job: 'sspl-custom-build', wait: true,
-						parameters: [
-								string(name: 'SSPL_URL', value: "${SSPL_URL}"),
-								string(name: 'SSPL_BRANCH', value: "${SSPL_BRANCH}")
-							]
+						script {
+							try {	
+								def ssplbuild = build job: 'sspl-custom-build', wait: true,
+										parameters: [
+											string(name: 'SSPL_URL', value: "${SSPL_URL}"),
+											string(name: 'SSPL_BRANCH', value: "${SSPL_BRANCH}")
+										]
+							}catch (err){
+								build_stage=env.STAGE_NAME
+								 error "Failed to Build SSPL"
+							}
+						}
 					}
 				}
 			}
@@ -354,6 +396,7 @@ pipeline {
 			script {
 				env.release_build_location = "http://cortx-storage.colo.seagate.com/releases/cortx/github/integration-custom-ci/release/${env.os_version}/${env.release_tag}"
 				env.release_build = "${env.release_tag}"
+				env.build_stage = "${build_stage}"
 				def recipientProvidersClass = [[$class: 'RequesterRecipientProvider']]
 
 				def mailRecipients = "shailesh.vaidya@seagate.com"
