@@ -25,6 +25,7 @@ class MessageProducer(MessageBusClient):
 
         Keyword Arguments:
             message_bus: An instance of message bus class.
+            producer_id: A String that represents Producer client ID.
             message_type: This is essentially equivalent to the
                 queue/topic name. For e.g. ["Alert"]
         """
