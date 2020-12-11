@@ -53,7 +53,7 @@ class ConfStore:
 
         self._cache[index].dump()
 
-    def get(self, index: str, key: str, default_val=None):
+    def get(self, index: str, key: str = None, default_val=None):
         """
         Paraeters:
         index   Configuration Domain ID where config key values are stored
@@ -70,6 +70,7 @@ class ConfStore:
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
                 index)
 
+        if key is None: return self._cache[index].get_data()
         val = self._cache[index].get(key)
         return default_val if val is None else val
 
@@ -93,9 +94,6 @@ class ConfStore:
     def get_keys(self, index: str):
         """ Obtains list of keys stored in the specific config store """
         return self._cache[index].get_keys()
-
-    def get_data(self, index: str):
-        return self._cache[index].get_data()
 
     def delete(self, index: str, key: str):
         if index not in self._cache.keys():
@@ -127,3 +125,37 @@ class ConfStore:
                 self._cache[dst_index].set(key, self._cache[src_index].get(key))
             except:
                 break
+
+
+class Conf:
+    """ Singleton class instance based on conf_store """
+    _conf = None
+
+    def load(index: str, url: str):
+        """ Loads Config from the given URL """
+        if Conf._conf is None: Conf._conf = ConfStore()
+        Conf._conf.load(index, url)
+
+    def save(index: str):
+        """ Saves the configuration onto the backend store """
+        Conf._conf.save(index)
+
+    def set(index: str, key: str, val):
+        """ Sets config value for the given key """
+        Conf._conf.set(index, key, val)
+
+    def get(index: str, key: str):
+        """ Obtains config value for the given key """
+        return Conf._conf.get(index, key)
+
+    def delete(index: str, key: str):
+        """ Deletes a given key from the config """
+        Conf._conf.delete(index, key)
+
+    def backup(index: str, backup_index: str):
+        Conf._conf.copy(index, backup_index)
+        Conf._conf.save(backup_index)
+
+    def get_keys(index: str):
+        """ Obtains list of keys stored in the specific config store """
+        return Conf._conf.get_keys(index)

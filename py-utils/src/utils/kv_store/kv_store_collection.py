@@ -28,8 +28,8 @@ class JsonKvStore(KvStore):
 
     def __init__(self, store_loc, store_path):
         KvStore.__init__(self, store_loc, store_path)
-        with open(self._store_path, 'w+') as f:
-            pass
+        if not os.path.exists(self._store_path):
+            with open(self._store_path, 'w+') as f: pass
 
     def load(self) -> dict:
         """ Reads from the file """

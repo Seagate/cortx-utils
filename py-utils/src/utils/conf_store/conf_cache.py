@@ -93,13 +93,14 @@ class ConfCache:
         """ Sets the value into the DB for the given key """
         self._set(self._data, key, val)
         self._dirty = True
-        self._keys.append(key)
+        if key not in self._keys: self._keys.append(key)
 
     def _delete(self, data: dict, key: str):
         k = key.split('.', 1)
         if k[0] not in data.keys(): return 
         if len(k) > 1: return self._delete(data[k[0]], k[1])
         del data[k[0]]
+        if key in self._keys: self._keys.remove(key)
 
     def delete(self, key: str):
         """ Delets a given key from the config """
