@@ -19,8 +19,7 @@ from src.utils.kv_store.kv_storage import KvStorage
 
 class KvStore:
     """
-    This class will take KvStorage implementation as input and be front facing
-    to the consumer.
+    This Class is for Abstraction over, all kinds of KV based Storage
     """
 
     def __init__(self, kvStorage):

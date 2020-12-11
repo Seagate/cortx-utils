@@ -1,5 +1,6 @@
 
 #!/bin/python3
+from src.utils.kv_store.kv_storage_collections import JsonKvStorage, YamlKvStorage
 
 # CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
@@ -25,8 +26,7 @@ class FileKvStorageFactory:
         self._file_path = file_path
         # Mapping of file extensions and doc classes.
         self._MAP = {
-            "json": Json, "toml": Toml, "yaml": Yaml,
-            "ini": Ini, "yml": Yaml, "txt": Text
+            "json": JsonKvStorage, "yaml": YamlKvStorage,
         }
         self._doc = self.get_doc_type()
 
