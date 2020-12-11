@@ -16,7 +16,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
-from cortx.utils.schema.payload import *
+from src.utils.schema.payload import *
 
 class Conf:
     ''' Represents conf file - singleton '''
@@ -35,12 +35,13 @@ class Conf:
             if force == False:
                 raise Exception('index %s is already loaded')
             Conf.save(index)
-        Conf._payloads[index] = Payload(doc)
+        Conf._payloads[index] = CommonPayload(doc)
 
     @staticmethod
     def get(index, key, default_val=""):
         ''' Obtain value for the given key '''
-        return Conf._payloads[index].get(key) if Conf._payloads[index].get(key) is not None else default_val
+        return Conf._payloads[index].load().get(key)
+        #return Conf._payloads[index].get(key) if Conf._payloads[index].get(key) is not None else default_val
 
     @staticmethod
     def set(index, key, val):

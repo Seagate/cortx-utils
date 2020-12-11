@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
@@ -13,4 +15,9 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from src.utils.schema.conf import Conf, CommonPayload
+class Singleton(type):
+    _obj = {}
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._obj:
+            cls._obj[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._obj[cls]

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
@@ -13,4 +15,11 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from src.utils.schema.conf import Conf, CommonPayload
+from src.utils.errors import BaseError
+
+MESSAGE_BUS_ERROR = 0x1020
+
+
+class MessageBusError(BaseError):
+    def __init__(self, rc=0, desc=None, message_id=None, message_args=None):
+        super().__init__(MESSAGE_BUS_ERROR, desc, message_id, message_args)

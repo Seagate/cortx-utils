@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
@@ -13,4 +15,21 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from src.utils.schema.conf import Conf, CommonPayload
+from src.utils.message_bus import MessageBusClient
+
+
+class MessageProducer(MessageBusClient):
+
+    def __init__(self, message_bus, producer_id, message_type):
+        """ Initialize a Message Producer
+
+        Keyword Arguments:
+            message_bus: An instance of message bus class.
+            message_type: This is essentially equivalent to the
+                queue/topic name. For e.g. ["Alert"]
+        """
+        super().__init__(message_bus, 'PRODUCER', client_id=producer_id, message_type=message_type)
+
+    def send(self, messages):
+        """ Sends list of messages """
+        super().send(messages)
