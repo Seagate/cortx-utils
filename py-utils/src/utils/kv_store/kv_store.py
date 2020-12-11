@@ -117,15 +117,14 @@ class KvStoreFactory:
         store_loc = url_spec.netloc
         store_path = url_spec.path
 
-        if store_type in KvStoreFactory._stores.keys():
-            return KvStoreFactory._stores[store_type]
+        if store_url in KvStoreFactory._stores.keys():
+            return KvStoreFactory._stores[store_url]
 
         from cortx.utils.kv_store import kv_store_collection
         storage = inspect.getmembers(kv_store_collection, inspect.isclass)
         for name, cls in storage:
             if hasattr(cls, 'name') and name != "KvStore" and store_type == cls.name:
-                KvStoreFactory._stores[store_type] = \
-                    cls(store_loc, store_path)
-                return KvStoreFactory._stores[store_type]
+                KvStoreFactory._stores[store_url] = cls(store_loc, store_path)
+                return KvStoreFactory._stores[store_url]
 
         raise KvStoreError(errno.EINVAL, f"Invalid store type %s", store_type)

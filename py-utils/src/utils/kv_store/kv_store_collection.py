@@ -15,10 +15,11 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import os
 import json, toml, yaml, configparser
+from json.decoder import JSONDecodeError
 from cortx.utils.process import SimpleProcess
 from cortx.utils.kv_store.kv_store import KvStore
-
 
 class JsonKvStore(KvStore):
     """  Represents a JSON File Store """ 
@@ -27,14 +28,23 @@ class JsonKvStore(KvStore):
 
     def __init__(self, store_loc, store_path):
         KvStore.__init__(self, store_loc, store_path)
+        with open(self._store_path, 'w+') as f:
+            pass
 
     def load(self) -> dict:
         """ Reads from the file """
+        print("load: %s" %self._store_path)
+        data = {}
         with open(self._store_path, 'r') as f:
-            return json.load(f)
+            try:
+                data = json.load(f)
+            except JSONDecodeError:
+                pass
+        return data
 
     def dump(self, data) -> None:
         """ Saves data onto the file """
+        print("dump: %s" %self._store_path)
         with open(self._store_path, 'w') as f:
             json.dump(data, f, indent=2)
 
