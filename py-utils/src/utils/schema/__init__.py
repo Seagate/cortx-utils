@@ -13,4 +13,8 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+<<<<<<< HEAD
 from cortx.utils.schema.conf import Conf
+=======
+from src.utils.schema.conf import Conf, CommonPayload
+>>>>>>> 7c8472f (Message bus Send/Receive)

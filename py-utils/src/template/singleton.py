@@ -16,10 +16,14 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 class Singleton(type):
+<<<<<<< HEAD
     """Template to create same instance for multiple objects"""
 
     _obj = {}
 
+=======
+    _obj = {}
+>>>>>>> 7c8472f (Message bus Send/Receive)
     def __call__(cls, *args, **kwargs):
         if cls not in cls._obj:
             cls._obj[cls] = super(Singleton, cls).__call__(*args, **kwargs)

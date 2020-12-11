@@ -56,4 +56,3 @@ class MessageBus:
     def ack(self):
         """ Provides acknowledgement on offset """
         self._broker.ack()
-
