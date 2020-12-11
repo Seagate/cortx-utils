@@ -19,27 +19,43 @@ import sys
 from collections import namedtuple
 from confluent_kafka import Producer, Consumer
 from confluent_kafka.admin import AdminClient
-from src.utils.message_bus.message_broker import MessageBroker
 from src.utils.message_bus.exceptions import MessageBusError
 
 ConsumerRecord = namedtuple("ConsumerRecord",
                             ["message_type", "message", "partition", "offset", "key"])
 
 
+class MessageBroker:
+    """ A super abstract class of Message Brokers"""
+    def __init__(self):
+        pass
+
+    def send(self, producer, topic, message):
+        pass
+
+    def receive(self, consumer):
+        pass
+
+    def create(self, role):
+        pass
+
+
 class KafkaMessageBroker(MessageBroker):
     """
     Kafka Server based message broker implementation
     """
+    name = 'kafka'
+
     def __init__(self, config):
-        self.config = config
+        servers = ','.join([str(server) for server in config.get('global', 'message_broker')['servers']])
+        self.config = {'bootstrap.servers': servers}
         self.message_type = None
         self.producer = None
         self.consumer = None
 
     def create_admin(self):
         try:
-            config = {'bootstrap.servers': self.config.get('global', 'bootstrap.servers')}
-            admin = AdminClient(config)
+            admin = AdminClient(self.config)
             return admin
         except Exception as e:
             raise MessageBusError(f"Invalid Client configuration. {e}")
@@ -72,21 +88,19 @@ class KafkaMessageBroker(MessageBroker):
 
     def create(self, client, client_id, consumer_group, message_type, offset):
         try:
-            config = {}
             self.message_type = message_type
-            config['bootstrap.servers'] = self.config.get('global', 'bootstrap.servers')
-            config['client.id'] = client_id
+            if client_id:
+                self.config['client.id'] = client_id
             if client == 'PRODUCER':
-                self.producer = Producer(**config)
+                self.producer = Producer(**self.config)
                 return self.producer
             elif client == 'CONSUMER':
-                config['bootstrap.servers'] = self.config.get('global', 'bootstrap.servers')
-                config['enable.auto.commit'] = self.config.get('global', 'enable.auto.commit')
+                self.config['enable.auto.commit'] = False
                 if offset:
-                    config['auto.offset.reset'] = offset
+                    self.config['auto.offset.reset'] = offset
                 if consumer_group:
-                    config['group.id'] = consumer_group
-                self.consumer = Consumer(**config)
+                    self.config['group.id'] = consumer_group
+                self.consumer = Consumer(**self.config)
                 self.consumer.subscribe(self.message_type)
                 return self.consumer
             else:
