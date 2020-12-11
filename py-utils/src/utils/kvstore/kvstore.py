@@ -33,6 +33,8 @@ class KvStorage:
 
     def delete(self, key):
         pass
+#     read store delete
+# It could be file/db
 
 
 class KvStore:

@@ -1,5 +1,11 @@
 #!/bin/python3
+import sys
+import inspect
+import errno
 
+from urllib.parse import urlparse
+from src.utils.kv_store.error import KvError
+from src.utils.kv_store.file_kv_storage_factory import FileKvStorageFactory
 # CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
@@ -15,6 +21,23 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from src.utils.kv_store.kv_store import KvStore
-from src.utils.kv_store.kv_storage_factory import KvStoreFactory
-# from src.utils.kv_store.file_kv_storage_factory import FileKvStorageFactory
+
+class KvStoreFactory:
+    _stores = {}
+
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def get_instance(path_url):
+        s_type = urlparse(path_url).scheme
+        if s_type in KvStoreFactory._stores.keys():
+            return KvStoreFactory._stores[s_type]
+        stores = inspect.getmembers(sys.modules[__name__], inspect.isclass)
+        for name, cls in stores:
+            if name != "KvStore" and name.endswith("Factory"):
+                if s_type == cls.name:
+                    KvStoreFactory._stores[s_type] = cls(path_url)
+                    return KvStoreFactory._stores[s_type]
+
+        raise KvError(errno.EINVAL, "Invalid URL %s", path_url)

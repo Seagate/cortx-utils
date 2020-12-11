@@ -15,6 +15,20 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from src.utils.kv_store.kv_store import KvStore
-from src.utils.kv_store.kv_storage_factory import KvStoreFactory
-# from src.utils.kv_store.file_kv_storage_factory import FileKvStorageFactory
+class KvError(Exception):
+    """Class representing a generic error with error code and output of a command."""
+
+    def __init__(self, rc, desc):
+        self._rc = rc
+        self._desc = desc
+
+        error = "%s: %s" % (self._rc, self._desc)
+        super(KvError, self).__init__(error)
+
+    @property
+    def rc(self):
+        return self._rc
+
+    @property
+    def desc(self):
+        return self._desc

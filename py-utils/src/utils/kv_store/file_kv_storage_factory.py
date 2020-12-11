@@ -1,6 +1,7 @@
-
 #!/bin/python3
-from src.utils.kv_store.kv_storage_collections import JsonKvStorage, YamlKvStorage
+import os
+from src.utils.kv_store.kv_storage_collections import JsonKvStorage, YamlKvStorage, TomlKvStorage
+
 
 # CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
@@ -18,6 +19,7 @@ from src.utils.kv_store.kv_storage_collections import JsonKvStorage, YamlKvStora
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 class FileKvStorageFactory:
+    name = "file"
     """
     Implements a common file_storage to represent Json, Toml, Yaml, Ini Doc.
     """
@@ -26,11 +28,14 @@ class FileKvStorageFactory:
         self._file_path = file_path
         # Mapping of file extensions and doc classes.
         self._MAP = {
-            "json": JsonKvStorage, "yaml": YamlKvStorage,
+            "json": JsonKvStorage, "yaml": YamlKvStorage, "toml": TomlKvStorage
         }
-        self._doc = self.get_doc_type()
+        self._kvstore = self.get_store_type()
 
-    def get_doc_type(self):
+    def id(self):
+        return 'file'
+
+    def get_store_type(self):
         """
         Get mapped doc class object bases on file extension
         """
@@ -44,17 +49,17 @@ class FileKvStorageFactory:
             """
             if not extension:
                 extension = "txt"
-            doc_obj = self._MAP[extension]
-            return doc_obj(self._file_path)
+            store_obj = self._MAP[extension]
+            return store_obj(self._file_path)
         except KeyError as error:
             raise KeyError(f"Unsupported file type:{error}")
         except Exception as e:
             raise Exception(f"Unable to read file {self._file_path}. {e}")
 
     def load(self):
-        ''' Loads data from file of given format'''
-        return self._doc._load()
+        """ Loads data from file of given format"""
+        return self._kvstore._load()
 
     def dump(self, data):
-        ''' Dump the data to desired file or to the source '''
-        self._doc._dump(data)
+        """ Dump the data to desired file or to the source """
+        self._kvstore._dump(data)

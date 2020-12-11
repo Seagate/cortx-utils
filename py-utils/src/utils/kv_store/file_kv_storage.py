@@ -1,5 +1,6 @@
-import os, errno, sys
 #!/bin/python3
+import os, errno, sys
+from src.utils.kv_store import KvStore
 
 # CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
@@ -16,7 +17,7 @@ import os, errno, sys
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-class FileKvStorage:
+class FileKvStorage(KvStore):
     '''
     FileKvStorage base implementation Provides generic interfaces for derived FileStorage classes
     like Json, Yaml and Ini
@@ -24,7 +25,7 @@ class FileKvStorage:
     _type = dict
 
     def __init__(self, file_path):
-        self._file_path = file_path
+        self._file_path = self.get_url(file_path)
 
     def __str__(self):
         return str(self._file_path)
@@ -44,3 +45,12 @@ class FileKvStorage:
         if len(dir_path) > 0 and not os.path.exists(dir_path):
             os.makedirs(dir_path)
         self._dump(data)
+
+    def get_url(self, file_path):
+        try:
+            if 'file://' in file_path:
+                # Consider that supplied url as file type
+                out = file_path.split('file://')
+                return out[-1]
+        except Exception as e:
+            raise Exception(f"Invalid path given")

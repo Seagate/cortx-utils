@@ -1,5 +1,6 @@
-from src.utils.kv_store.file_kv_storage import FileKvStorage
 #!/bin/python3
+import json, toml, yaml
+from src.utils.kv_store.file_kv_storage import FileKvStorage
 
 # CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
@@ -89,7 +90,7 @@ class DictKvStorage(FileKvStorage):
     def dump(self, data):
         self._file_path = data
 
-class JsonMessageKvStorage(Json):
+class JsonMessageKvStorage(JsonKvStorage):
     def __init__(self, json_str):
         """
         Represents the Json Without FIle
