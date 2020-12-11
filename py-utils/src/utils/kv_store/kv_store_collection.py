@@ -33,7 +33,6 @@ class JsonKvStore(KvStore):
 
     def load(self) -> dict:
         """ Reads from the file """
-        print("load: %s" %self._store_path)
         data = {}
         with open(self._store_path, 'r') as f:
             try:
@@ -44,7 +43,6 @@ class JsonKvStore(KvStore):
 
     def dump(self, data) -> None:
         """ Saves data onto the file """
-        print("dump: %s" %self._store_path)
         with open(self._store_path, 'w') as f:
             json.dump(data, f, indent=2)
 
