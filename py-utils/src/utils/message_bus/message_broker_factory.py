@@ -15,20 +15,31 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-class Singleton(type):
-<<<<<<< HEAD
-    """Template to create same instance for multiple objects"""
+import sys
+import inspect
+from src.utils.message_bus.message_broker_collections import KafkaMessageBroker
+from src.utils.message_bus.exceptions import MessageBusError
+from src.utils.schema import Conf
 
-    _obj = {}
 
-=======
-    _obj = {}
-<<<<<<< HEAD
->>>>>>> 7c8472f (Message bus Send/Receive)
-=======
-    """Template to create same instance for multiple objects"""
->>>>>>> 3f62616 (Changes updated)
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._obj:
-            cls._obj[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return cls._obj[cls]
+class MessageBrokerFactory:
+    """
+    A Glue layer to create different types of Message Queues.
+
+    This module helps us to read Queue specific configurations
+    and generate Queue specific administrators.
+    """
+    _brokers = {}
+
+    def __init__(self, message_broker):
+        try:
+            brokers = inspect.getmembers(sys.modules[__name__], inspect.isclass)
+            for name, cls in brokers:
+                if name.endswith("Broker"):
+                    if message_broker == cls.name:
+                        self.adapter = cls(Conf)
+
+            self.admin = self.adapter.create_admin()
+        except Exception as e:
+            raise MessageBusError(f"Invalid Broker. {e}")
+
