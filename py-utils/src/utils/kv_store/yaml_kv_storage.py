@@ -1,3 +1,4 @@
+from src.utils.kv_store.file_kv_storage import FileKvStorage
 #!/bin/python3
 
 # CORTX Python common library.
@@ -15,6 +16,16 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from src.utils.kv_store.kv_store import KvStore
-from src.utils.kv_store.file_kv_storage_factory import FileKvStorageFactory
-from src.utils.kv_store.conf_cache import ConfCache
+class Yaml(FileKvStorage):
+    ''' Represents a YAML doc '''
+
+    def __init__(self, file_path):
+        Doc.__init__(self, file_path)
+
+    def _load(self):
+        with open(self._file_path, 'r') as f:
+            return yaml.safe_load(f)
+
+    def _dump(self, data):
+        with open(self._file_path, 'w') as f:
+            yaml.dump(data, f)

@@ -1,20 +1,37 @@
+#!/bin/python3
+
+# CORTX Python common library.
+# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published
+# by the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+# For any questions about this software or licensing,
+# please email opensource@seagate.com or cortx-questions@seagate.com.
+
 class ConfCache:
     ''' implements a ConfCache in specified format. '''
 
-    def __init__(self, doc):
+    def __init__(self, kvstore):
         self._dirty = False
-        self._doc = doc
+        self._kvstore = kvstore
         self.load()
 
     def load(self):
         if self._dirty:
-            raise Exception('%s not synced to disk' % self._doc)
-        self._data = self._doc.load()
+            raise Exception('%s not synced to disk' % self._kvstore)
+        self._data = self._kvstore.load()
         return self._data
 
     def dump(self):
         ''' Dump the anifest file to desired file or to the source '''
-        self._doc.dump(self._data)
+        self._kvstore.dump(self._data)
         self._dirty = False
 
     def _get(self, key, data):
@@ -25,7 +42,7 @@ class ConfCache:
 
     def get(self, key):
         if self._data is None:
-            raise Exception('Configuration %s not initialized' % self._doc)
+            raise Exception('Configuration %s not initialized' % self._kvstore)
         return self._get(key, self._data)
 
     def _set(self, key, val, data):
@@ -33,7 +50,7 @@ class ConfCache:
         if len(k) == 1:
             data[k[0]] = val
             return
-        if k[0] not in data.keys() or type(data[k[0]]) != self._doc._type:
+        if k[0] not in data.keys() or type(data[k[0]]) != self._kvstore._type:
             data[k[0]] = {}
         self._set(k[1], val, data[k[0]])
 
@@ -41,17 +58,3 @@ class ConfCache:
         ''' Sets the value into the DB for the given key '''
         self._set(key, val, self._data)
         self._dirty = True
-
-    def convert(self, map, payload):
-        """
-        Converts 1 Schema to 2nd Schema depending on mapping dictionary.
-        :param map: mapping dictionary :type:Dict
-        :param payload: Payload Class Object with desired Source.
-        :return: :type: Dict
-        Mapping file example -
-        key <input schema> : value <output schema>
-        """
-        for key in map.keys():
-            val = self.get(key)
-            payload.set(map[key], val)
-        return payload

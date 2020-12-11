@@ -1,3 +1,4 @@
+import os, errno, sys
 #!/bin/python3
 
 # CORTX Python common library.
@@ -15,6 +16,27 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from src.utils.kv_store.kv_store import KvStore
-from src.utils.kv_store.file_kv_storage_factory import FileKvStorageFactory
-from src.utils.kv_store.conf_cache import ConfCache
+class FileKvStorage:
+    _type = dict
+
+    def __init__(self, file_path):
+        self._file_path = file_path
+
+    def __str__(self):
+        return str(self._file_path)
+
+    def load(self):
+        ''' Loads data from file of given format '''
+        if not os.path.exists(self._file_path):
+            return {}
+        try:
+            return self._load()
+        except Exception as e:
+            raise Exception('Unable to read file %s. %s' % (self._file_path, e))
+
+    def dump(self, data):
+        ''' Dump the anifest file to desired file or to the source '''
+        dir_path = os.path.dirname(self._file_path)
+        if len(dir_path) > 0 and not os.path.exists(dir_path):
+            os.makedirs(dir_path)
+        self._dump(data)
