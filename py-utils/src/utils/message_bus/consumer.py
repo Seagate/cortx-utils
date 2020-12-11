@@ -25,6 +25,7 @@ class MessageConsumer(MessageBusClient):
 
         Keyword Arguments:
             message_bus: An instance of message bus class.
+            consumer_id: A String that represents Consumer client ID.
             consumer_group: A String that represents Consumer Group ID.
                     Group of consumers can process messages
             message_type: This is essentially equivalent to the queue/topic name.

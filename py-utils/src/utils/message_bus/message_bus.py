@@ -19,34 +19,40 @@ from src.utils.message_bus.message_broker_factory import MessageBrokerFactory
 from src.utils.message_bus.exceptions import MessageBusError
 from src.utils.schema import Conf
 
-class MessageBus():
+
+class MessageBus:
     """
     An interface that initialize message brokers
     and creates message clients (i.e) producer or consumer
     """
     def __init__(self):
         Conf.load('global', '/etc/cortx/message_bus.json')
-        self.message_broker = Conf.get('global', 'message.broker')
-        message_broker_factory = MessageBrokerFactory(self.message_broker)
+        self.message_broker = Conf.get('global', 'message_broker')
+        message_broker_factory = MessageBrokerFactory(self.message_broker['type'])
         self.adapter, self.admin = message_broker_factory.adapter, message_broker_factory.admin
 
     def create(self, client, client_id, consumer_group=None, message_type=None, offset=None):
-        create_client = self.adapter.create(client, client_id, consumer_group, message_type, offset)
-        return create_client
+        try:
+            create_client = self.adapter.create(client, client_id, consumer_group, message_type, offset)
+            return create_client
+        except Exception as e:
+            raise MessageBusError(f"Error creating {client}. {e}")
 
     def send(self, producer, messages):
-            try:
-                self.adapter.send(producer, messages)
-            except Exception as e:
-                print(e)
-                raise MessageBusError
+        try:
+            self.adapter.send(producer, messages)
+        except Exception as e:
+            raise MessageBusError(f"Error sending message(s). {e}")
 
     def receive(self):
-        consumer_obj = self.adapter.receive()
-        return consumer_obj
+        try:
+            consumer_obj = self.adapter.receive()
+            return consumer_obj
+        except Exception as e:
+            raise MessageBusError(f"Error receiving message(s). {e}")
 
 
-class MessageBusClient():
+class MessageBusClient:
     """
     A common Interface that takes either producer/ consumer
     client as input to set the configurations
