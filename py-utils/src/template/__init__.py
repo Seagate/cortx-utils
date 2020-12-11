@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
@@ -13,4 +15,4 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from src.utils.schema.conf import Conf, CommonPayload
+from src.template.singleton import Singleton
