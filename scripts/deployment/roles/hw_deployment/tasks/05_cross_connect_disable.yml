@@ -1,0 +1,32 @@
+---
+ 
+- name: "[cross-connect] : Added lsiutil"
+  unarchive:
+      src: "{{ LSI_UTIL }}"
+      dest: /root/
+      owner: root
+      group: root
+      mode: '0754'
+      remote_src: yes
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['nodes'] }}"
+
+- name: "[cross-connect] : Disable lsiutil on primary node"
+  shell: cd /root/lsiutil/; sh lsiutil.sh disable
+  delegate_to: "srvnode-1"
+
+- name: "[validate-cross-connect] : Ping '10.0.0.2'"
+  shell: ping -c 1 '10.0.0.2'
+  ignore_errors: true
+  register: ping1_result
+  delegate_to: "srvnode-1"
+
+- name: "[validate-cross-connect] : Ping '10.0.0.3'"
+  shell: ping -c 1 '10.0.0.3'
+  ignore_errors: true
+  register: ping2_result
+  delegate_to: "srvnode-1"
+
+- name: "[validate-cross-connect] : Validate cross connect by pinging 10.0.0.2','10.0.0.3' "
+  fail: msg="Cross connect validation Failed. Both 10.0.0.2','10.0.0.3' not pingable from Primary Node"
+  when: "ping1_result.rc != 0 and ping2_result.rc != 0"

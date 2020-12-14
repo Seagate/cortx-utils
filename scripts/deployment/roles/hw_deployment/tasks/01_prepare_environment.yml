@@ -1,0 +1,30 @@
+---
+
+- name: "[prepare] : Validate the required input arguments for this playbook"
+  fail: msg="Variable '{{ item }}' is not defined"
+  when: item not in vars
+  with_items: "{{required_vars}}"
+
+- name: "[prepare] : Install tools [expect, curl, bc, jq] on localhost"
+  yum:
+    name: [ 'expect', 'ipmitool', 'curl', 'bc', 'jq' ]
+    state: latest
+    update_cache: yes
+
+- name: "[prepare] : Update host files for node connect"
+  script: files/update_hosts.sh {{ NODE1 }} {{ NODE2 }}
+
+- meta: refresh_inventory
+
+- include: change_password.yml
+  when: CHANGE_PASS == "yes"
+
+- meta: refresh_inventory
+
+- include: passwordless_authentication.yml
+
+- name: "[prepare] : Remove storage and multipath from cluster if exists"
+  shell: salt '*' state.apply components.system.storage.teardown || true; salt '*' state.apply components.system.storage.multipath.teardown || true; salt '*' state.apply components.system.teardown || true
+  ignore_errors: true
+  ignore_unreachable: true
+  delegate_to: "srvnode-1"

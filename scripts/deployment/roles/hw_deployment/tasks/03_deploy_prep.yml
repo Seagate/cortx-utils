@@ -1,0 +1,128 @@
+---
+
+- meta: refresh_inventory
+
+- name: "[deploy-prep] : Wait for server to restart"
+  wait_for:
+      host={{ hostvars[item]['ansible_host'] }}
+      port=22
+      delay=60
+      timeout=1800
+  become: false
+  with_items: "{{ groups['nodes'] }}"
+
+- include: passwordless_authentication.yml
+
+- include: change_password.yml
+  when: CHANGE_PASS == "yes"
+
+- name: "[deploy-prep] : Remove volume_groups and reboot - primary node" 
+  script: files/storage_fix.sh
+  ignore_errors: true
+  become: true
+  ignore_unreachable: true
+  delegate_to: "srvnode-1"
+
+- name: "[deploy-prep] : Remove volume_groups and reboot - secondary node" 
+  script: files/storage_fix.sh
+  ignore_errors: true
+  become: true
+  ignore_unreachable: true
+  delegate_to: "srvnode-2"
+
+- name: "[deploy-prep] : Wait for server to restart"
+  wait_for:
+      host={{ hostvars[item]['ansible_host'] }}
+      port=22
+      delay=30
+      timeout={{ NODE_ACCESS_WAIT_TIME }}
+  become: false
+  with_items: "{{ groups['nodes'] }}"
+
+- name: "[deploy-prep] : Wait for SSH Connection"
+  pause:
+    minutes: 15
+
+- name: "[deploy-prep] : Create dir {{ CORTX_ISO_FOLDER }}"
+  file: path={{ CORTX_ISO_FOLDER }} state=directory
+  become: true
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['nodes'] }}"
+
+- name: "[deploy-prep] : Download single ISO on secondary node [async]"
+  shell: wget "{{ CORTX_BUILD_ISO_URL }}" -O {{ CORTX_ISO_FOLDER }}{{ CORTX_BUILD_ISO_URL | basename }}
+  async: 6000
+  poll: 0
+  become: true
+  register: srvnode2_single_iso_download_result
+  delegate_to: "srvnode-2"
+
+- name: "[deploy-prep] : Download single ISO on primary node" 
+  shell: wget "{{ CORTX_BUILD_ISO_URL }}" -O {{ CORTX_ISO_FOLDER }}{{ CORTX_BUILD_ISO_URL | basename }}
+  become: true
+  delegate_to: "srvnode-1"
+
+- name: "[deploy-prep] : Check Status of Download single ISO on secondary node"
+  async_status:
+    jid: '{{ srvnode2_single_iso_download_result.ansible_job_id }}'
+  register: srvnode2_single_iso_download_job_result
+  until: srvnode2_single_iso_download_job_result.finished
+  become: true
+  retries: 300
+  delay: 20
+  delegate_to: "srvnode-2"
+
+- name: "[deploy-prep] : Download OS ISO on secondary node [Async]"
+  shell: wget "{{ CORTX_OS_ISO_URL }}" -O {{ CORTX_ISO_FOLDER }}{{ CORTX_OS_ISO_URL | basename }}
+  async: 6000
+  poll: 0
+  become: true
+  register: srvnode2_os_iso_download_result
+  delegate_to: "srvnode-2"
+
+- name: "[deploy-prep] : Download OS ISO on primary name" 
+  shell: wget "{{ CORTX_OS_ISO_URL }}" -O {{ CORTX_ISO_FOLDER }}{{ CORTX_OS_ISO_URL | basename }}
+  become: true
+  delegate_to: "srvnode-1"
+
+- name: "[deploy-prep] : Check status of download OS ISO on secondary node"
+  async_status:
+    jid: '{{ srvnode2_os_iso_download_result.ansible_job_id }}'
+  register: srvnode2_os_iso_download_job_result
+  until: srvnode2_os_iso_download_job_result.finished
+  become: true
+  retries: 300
+  delay: 20
+  delegate_to: "srvnode-2"
+
+- name: "[deploy-prep] : Download cortx_prep.sh script on both nodes" 
+  get_url:
+    url: "{{ CORTX_PREP_URL }}"
+    dest: /opt/isos/{{ CORTX_PREP_URL | basename }}
+    mode: '0755'
+  become: true
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['nodes'] }}"
+
+- name: "[deploy-prep] : Run  cortx_prep.sh on primary node" 
+  command: /opt/isos/{{ CORTX_PREP_URL | basename }}
+  ignore_errors: true
+  become: true
+  delegate_to: "srvnode-1"
+
+- name: "[deploy-prep] : Wait for nodes to reboot"
+  wait_for:
+      host={{ hostvars[item]['ansible_host'] }}
+      port=22
+      delay=30
+      timeout={{ NODE_ACCESS_WAIT_TIME }}
+  become: false
+  ignore_errors: true
+  with_items: "{{ groups['nodes'] }}"
+
+- name: "[deploy-prep] : Download config file on primary node"
+  get_url:
+    url: "{{ CONFIG_URL }}"
+    dest: /root/config.ini
+    mode: '0754'
+  delegate_to: "srvnode-1"

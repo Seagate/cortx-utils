@@ -1,0 +1,11 @@
+---
+
+- name: "[deploy] : Install 'expect' RPM on primary Node"
+  yum: 
+    name: "{{ EXPECT_RPM }}"
+    state: present
+  delegate_to: "srvnode-1"
+
+- name: "[deploy] : Deploy Cluster on Primary Node"
+  script: files/cortx_deploy.sh "/opt/isos/{{ CORTX_BUILD_ISO_URL | basename }}" "/opt/isos/{{ CORTX_OS_ISO_URL | basename }}" {{ NODE1 }} {{ NODE2 }} {{ CLUSTER_PASS }}
+  delegate_to: "srvnode-1"

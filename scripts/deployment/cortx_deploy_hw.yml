@@ -1,0 +1,12 @@
+---
+ - hosts: localhost
+   gather_facts: True
+   become: yes
+   vars_files:
+     - roles/hw_deployment/vars/config.yml 
+   roles:
+      - hw_deployment
+
+
+
+     

@@ -1,0 +1,21 @@
+- include: 01_prepare_environment.yml
+  tags: ['01_PREPARE']
+
+- include: 02_system_reimage.yml
+  when: REIMAGE == "yes"
+  tags: ['02_REIMAGE']
+
+- include: 03_deploy_prep.yml 
+  tags: ['03_DEPLOY_PREP']
+  
+- include: 04_inband_setup.yml
+  tags: ['04_INBAND']
+
+- include: 05_cross_connect_disable.yml
+  tags: ['05_CC_DISABLE']
+
+- include: 06_deploy.yml
+  tags: ['06_DEPLOY']
+
+- include: 07_cross_connect_enable.yml
+  tags: ['07_CC_ENABLE']

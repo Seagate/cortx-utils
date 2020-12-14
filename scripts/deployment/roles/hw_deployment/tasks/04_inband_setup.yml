@@ -1,0 +1,48 @@
+---
+
+- name: "[inband] : Create /etc/scsi-network-relay.conf"
+  copy:
+      src: files/srvnode1
+      dest: /etc/scsi-network-relay.conf
+      owner: root
+      group: root
+      mode: '0754'
+  delegate_to: "srvnode-1"
+
+- name: "[inband] : Create /etc/scsi-network-relay.conf"
+  copy:
+      src: files/srvnode2
+      dest: /etc/scsi-network-relay.conf
+      owner: root
+      group: root
+      mode: '0754'
+  delegate_to: "srvnode-2"
+
+- name: "[inband] : Install SCSI RPM package"
+  yum: 
+    name: "{{ SCSI_NETWORK_RELAY_RPM }}"
+    state: present
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['nodes'] }}"
+
+- name: "[inband] : Start scsi-network-relay service"
+  service:
+    name: scsi-network-relay
+    state: started
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['nodes'] }}"
+
+- name: "[inband] : Enable scsi-network-relay service"
+  service:
+    name: scsi-network-relay
+    enabled: yes
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['nodes'] }}"
+
+- name: "[inband] : Validate inband by pinging '10.0.0.2', '10.0.0.3'"
+  shell: ping -c 1 {{ item.0 }}
+  delegate_to: "{{ item.1 }}"
+  with_nested:
+    - [ '10.0.0.2', '10.0.0.3' ]
+    - "{{ groups['nodes'] }}"
+
