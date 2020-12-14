@@ -23,7 +23,6 @@ import errno
 
 
 class MessageBus:
-
     """ Message Bus Framework over various types of Message Brokers """
 
     conf_file = "/etc/cortx/message_bus.conf"
