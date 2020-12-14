@@ -70,7 +70,8 @@ class KvStore:
     def _delete(self, key: str, data: dict):
         k = key.split('.', 1)
         if len(k) == 1:
-            del data[k[0]]
+            if k[0] in data.keys():
+                del data[k[0]]
             return
         if k[0] not in data.keys():
             return
