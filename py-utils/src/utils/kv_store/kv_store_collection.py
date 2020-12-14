@@ -15,7 +15,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import json, toml, yaml
+import json, toml, yaml, configparser
 from cortx.utils.process import SimpleProcess
 from cortx.utils.kv_store.kv_store import KvStore
 
@@ -156,7 +156,7 @@ class TextKvStore(KvStore):
 
 class PillarStore(KvStore):
     """ Salt Pillar based KV Store """
-
+    name = "salt"
     def __init__(self, store_loc, store_path):
         KvStore.__init__(self, store_loc, store_path)
 
