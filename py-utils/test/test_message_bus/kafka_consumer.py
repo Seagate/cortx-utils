@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-# CORTX-Py-Utils: CORTX Python common library.
+# CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -15,22 +16,28 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from src.utils.message_bus import MessageBusClient
+
+import unittest
+import sys
+sys.path.insert(1, '../../')
+from cortx.utils.message_bus import MessageBus, MessageProducer, MessageConsumer
 
 
-class MessageProducer(MessageBusClient):
+class TestMessage(unittest.TestCase):
+    """Test MessageBus related functionality."""
 
-    def __init__(self, message_bus, producer_id, message_type):
-        """ Initialize a Message Producer
+    def test_receive(self):
+        """Test Receive Message."""
+        message_bus = MessageBus()
+        consumer = MessageConsumer(message_bus, consumer_id="sspl_sensor",
+                                   consumer_group="sspl", message_type=['Alert'],
+                                   offset='latest')
+        self.assertIsNotNone(consumer, "Consumer not found")
+        messages = consumer.receive()
+        self.assertIsNotNone(messages, "Messages not found")
+        for message in messages:
+            print(message)
 
-        Keyword Arguments:
-            message_bus: An instance of message bus class.
-            producer_id: A String that represents Producer client ID.
-            message_type: This is essentially equivalent to the
-                queue/topic name. For e.g. ["Alert"]
-        """
-        super().__init__(message_bus, 'PRODUCER', client_id=producer_id, message_type=message_type)
 
-    def send(self, messages):
-        """ Sends list of messages """
-        super().send(messages)
+if __name__ == '__main__':
+    unittest.main()
