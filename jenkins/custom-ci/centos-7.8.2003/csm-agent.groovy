@@ -1,7 +1,7 @@
 pipeline {
 	agent {
 		node {
-			label 'docker-rhel7.7.1908-csm-cortx-node'
+			label 'docker-cp-centos-7.8.2003-node'
 		}
 	}
 	
@@ -9,7 +9,7 @@ pipeline {
         env = "dev"
 		component = "csm-agent"
         branch = "custom-ci" 
-        os_version = "rhel-7.7.1908"
+        os_version = "centos-7.8.2003"
         release_dir = "/mnt/bigstorage/releases/cortx"
         build_upload_dir = "$release_dir/components/github/$branch/$os_version/$env/$component/"
     }
@@ -46,7 +46,7 @@ pipeline {
 			steps {
 				script { build_stage = env.STAGE_NAME }
 				sh label: '', script: """
-				yum-config-manager --disable cortx-R7.7.1908
+				yum-config-manager --disable cortx-C7.7.1908
 				yum-config-manager --add http://cortx-storage.colo.seagate.com/releases/cortx/github/cortx-1.0/$os_version/last_successful/
 				echo "gpgcheck=0" >> \$(ls /etc/yum.repos.d/cortx-storage*.repo)
 				yum clean all && rm -rf /var/cache/yum
