@@ -15,4 +15,4 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from src.template.singleton import Singleton
+from cortx.template.singleton import Singleton
