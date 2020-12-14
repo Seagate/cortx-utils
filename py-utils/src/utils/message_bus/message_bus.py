@@ -15,60 +15,52 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from src.utils.message_bus.message_broker_factory import MessageBrokerFactory
-from src.utils.message_bus.exceptions import MessageBusError
-from src.utils.schema import Conf
+from cortx.utils.message_bus.message_broker import MessageBrokerFactory
+from cortx.utils.message_bus.error import MessageBusError
+from cortx.utils.schema import Conf
+from cortx.utils.schema.payload import *
+import errno
 
 
 class MessageBus:
     """
-    An interface that initialize message brokers
-    and creates message clients (i.e) producer or consumer
+    An interface that creates message brokers
+    and message clients (i.e) producer or consumer
     """
+
     def __init__(self):
-        Conf.load('global', '/etc/cortx/message_bus.json')
+        """
+        Initialize a MessageBus and load its configurations
+        """
+        Conf.load('global', Json('/etc/cortx/message_bus.json'))
         self.message_broker = Conf.get('global', 'message_broker')
         message_broker_factory = MessageBrokerFactory(self.message_broker['type'])
-        self.adapter, self.admin = message_broker_factory.adapter, message_broker_factory.admin
+        self.adapter = message_broker_factory.adapter
 
-    def create(self, client, client_id, consumer_group=None, message_type=None, offset=None):
+    def __call__(self, client, **client_config):
+        """
+        An instance method of MessageBus to create client based on the configurations
+        """
         try:
-            create_client = self.adapter.create(client, client_id, consumer_group, message_type, offset)
-            return create_client
+            self.adapter(client, **client_config)
         except Exception as e:
-            raise MessageBusError(f"Error creating {client}. {e}")
+            raise MessageBusError(errno.EINVAL, f"Error creating {client}. {e}")
 
-    def send(self, producer, messages):
+    def send(self, messages):
+        """
+        Sends list of messages to the configured message broker
+        """
         try:
-            self.adapter.send(producer, messages)
+            self.adapter.send(messages)
         except Exception as e:
-            raise MessageBusError(f"Error sending message(s). {e}")
+            raise MessageBusError(errno.EINVAL, f"Error sending message(s). {e}")
 
     def receive(self):
+        """
+        Receives messages from the configured message broker
+        """
         try:
             consumer_obj = self.adapter.receive()
             return consumer_obj
         except Exception as e:
-            raise MessageBusError(f"Error receiving message(s). {e}")
-
-
-class MessageBusClient:
-    """
-    A common Interface that takes either producer/ consumer
-    client as input to set the configurations
-    """
-    def __init__(self, message_bus, client, client_id=None, consumer_group=None, message_type=None, offset=None):
-        self._client = client
-        self._client_id = client_id
-        self._message_bus = message_bus
-        self._message_type = message_type
-        self._consumer_group = consumer_group
-        self._offset = offset
-        self._bus_client = self._message_bus.create(self._client, self._client_id,
-                                                    self._consumer_group, self._message_type, offset)
-
-    def send(self, messages):
-        self._message_bus.send(self._bus_client, messages)
-
-    def receive(self):
-        return self._message_bus.receive()
+            raise MessageBusError(errno.EINVAL, f"Error receiving message(s). {e}")

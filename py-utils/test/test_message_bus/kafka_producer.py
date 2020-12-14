@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-# CORTX-Py-Utils: CORTX Python common library.
+# CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -15,11 +16,24 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from src.utils.errors import BaseError
 
-MESSAGE_BUS_ERROR = 0x1020
+import unittest
+import sys
+sys.path.insert(1, '../../')
+from cortx.utils.message_bus import MessageBus, MessageProducer, MessageConsumer
+
+class TestMessage(unittest.TestCase):
+    """Test MessageBus related functionality."""
+
+    def test_send(self):
+        """Test Send Message."""
+        message_bus = MessageBus()
+        producer = MessageProducer(message_bus, producer_id="sspl_sensor", message_type="Alert")
+        self.assertIsNotNone(producer, "Producer not found")
+        messages = ["This is message1", "This is message2"]
+        self.assertIsInstance(messages, list)
+        producer.send(messages)
 
 
-class MessageBusError(BaseError):
-    def __init__(self, rc=0, desc=None, message_id=None, message_args=None):
-        super().__init__(MESSAGE_BUS_ERROR, desc, message_id, message_args)
+if __name__ == '__main__':
+    unittest.main()
