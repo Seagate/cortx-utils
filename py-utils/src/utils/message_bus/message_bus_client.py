@@ -15,6 +15,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+
 from cortx.utils.message_bus import MessageBus
 
 
@@ -62,6 +63,12 @@ class MessageProducer(MessageBusClient):
         super().__init__(message_bus, client_type='producer', \
             client_id=producer_id, message_type=message_type, method=method)
 
+    def send(self, messages):
+        """
+        Sends list of messages
+        """
+        super().send(messages)
+
 
 class MessageConsumer(MessageBusClient):
     """ A client that consumes messages """
@@ -84,3 +91,9 @@ class MessageConsumer(MessageBusClient):
         super().__init__(message_bus, client_type='consumer', \
             client_id=consumer_id, consumer_group=consumer_group, \
             message_type=message_type, auto_ack=auto_ack, offset=offset)
+
+    def receive(self):
+        """
+        Receives the messages
+        """
+        return super().receive()

@@ -41,7 +41,6 @@ class KafkaMessageBroker(MessageBroker):
 
         self._clients = {'producer': {}, 'consumer': {}}
 
-
     def init_client(self, client_type: str, **client_conf):
         """ Obtain Kafka based Producer/Consumer """
 

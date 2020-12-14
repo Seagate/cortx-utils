@@ -15,6 +15,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+
 import inspect
 import errno
 from cortx.utils.message_bus.error import MessageBusError
@@ -59,3 +60,4 @@ class MessageBroker:
 
     def receive(self) -> list:
         pass
+
