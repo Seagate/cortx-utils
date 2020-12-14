@@ -32,10 +32,13 @@ class MessageBus:
         """
         Initialize a MessageBus and load its configurations
         """
-        Conf.load('global', Json('/etc/cortx/message_bus.json'))
-        self.message_broker = Conf.get('global', 'message_broker')
-        message_broker_factory = MessageBrokerFactory(self.message_broker['type'])
-        self.adapter = message_broker_factory.adapter
+        try:
+            Conf.load('global', Json('/etc/cortx/message_bus.json'))
+            self.message_broker = Conf.get('global', 'message_broker')
+            message_broker_factory = MessageBrokerFactory(self.message_broker['type'])
+            self.adapter = message_broker_factory.adapter
+        except Exception as e:
+            raise MessageBusError(errno.EINVAL, f"Invalid Message Bus configurations. {e}")
 
     def __call__(self, client, **client_config):
         """
