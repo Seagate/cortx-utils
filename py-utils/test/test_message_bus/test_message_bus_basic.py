@@ -17,7 +17,7 @@
 
 import sys
 sys.path.insert(1, '../../')
-from src.utils.message_bus import MessageBus, MessageProducer, MessageConsumer
+from cortx.utils.message_bus import MessageBus, MessageProducer, MessageConsumer
 
 
 def main():

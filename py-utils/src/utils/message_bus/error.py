@@ -15,31 +15,19 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import sys
-import inspect
-from src.utils.message_bus.message_broker_collections import KafkaMessageBroker
-from src.utils.message_bus.exceptions import MessageBusError
-from src.utils.schema import Conf
+from cortx.utils.errors import BaseError
 
 
-class MessageBrokerFactory:
+class MessageBusError(BaseError):
     """
-    A Glue layer to create different types of Message Queues.
-
-    This module helps us to read Queue specific configurations
-    and generate Queue specific administrators.
+    An interface to catch all the errors
     """
-    _brokers = {}
 
-    def __init__(self, message_broker):
-        try:
-            brokers = inspect.getmembers(sys.modules[__name__], inspect.isclass)
-            for name, cls in brokers:
-                if name.endswith("Broker"):
-                    if message_broker == cls.name:
-                        self.adapter = cls(Conf)
+    def __init__(self, rc, message):
+        self._rc = rc
+        self._message = message
 
-            self.admin = self.adapter.create_admin()
-        except Exception as e:
-            raise MessageBusError(f"Invalid Broker. {e}")
-
+    def __str__(self):
+        if self._rc == 0:
+            return self._desc
+        return "error(%d): %s"(self._rc, self._desc)
