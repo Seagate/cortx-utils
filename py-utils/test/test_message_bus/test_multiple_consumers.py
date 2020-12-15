@@ -22,14 +22,14 @@ from cortx.utils.message_bus import MessageBus, MessageProducer, MessageConsumer
 
 
 class TestMessage(unittest.TestCase):
-    """Test MessageBus related functionality."""
+    """ Test MessageBus related functionality. """
 
     message_bus = MessageBus()
 
-    def test_send(self):
-        """Test Send Message."""
+    def test_producer(self):
+        """ Test Send Message. """
         messages = []
-        producer = MessageProducer(TestMessage.message_bus, producer_id="sspl_sensor", message_type="Alert")
+        producer = MessageProducer(TestMessage.message_bus, producer_id="sspl_sensor", message_type="test_type")
         self.assertIsNotNone(producer, "Producer not found")
         for i in range(0, 1000):
             messages.append("This is message" + str(i))
@@ -37,10 +37,23 @@ class TestMessage(unittest.TestCase):
         self.assertIsInstance(messages, list)
         producer.send(messages)
 
-    def test_receive(self):
-        """Test Receive Message."""
+    def test_consumer_one(self):
+        """ Test Receive Message for consumer group 1 """
         consumer = MessageConsumer(TestMessage.message_bus, consumer_id="sspl_sensor",
-                                   consumer_group="sspl", message_type=['Alert'],
+                                   consumer_group="c1", message_type=['test_type'],
+                                   offset='latest')
+        self.assertIsNotNone(consumer, "Consumer not found")
+        messages = consumer.receive()
+        self.assertEqual(len(list(messages)), 1000)
+        self.assertIsNotNone(messages, "Messages not found")
+        for message in messages:
+            print(message)
+        consumer.ack()
+
+    def test_consumer_two(self):
+        """ Test Receive Message for consumer group 2 """
+        consumer = MessageConsumer(TestMessage.message_bus, consumer_id="sspl_sensor",
+                                   consumer_group="c2", message_type=['test_type'],
                                    offset='latest')
         self.assertIsNotNone(consumer, "Consumer not found")
         messages = consumer.receive()

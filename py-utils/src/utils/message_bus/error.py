@@ -15,19 +15,24 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.errors import BaseError
 
+class MessageBusError(Exception):
+    """ Generic Exception with error code and output """
 
-class MessageBusError(BaseError):
-    """
-    An interface to catch all the errors
-    """
-
-    def __init__(self, rc, message):
+    def __init__(self, rc, message, *args):
         self._rc = rc
-        self._message = message
+        self._desc = message % (args)
+        print(self._desc)
+
+    @property
+    def rc(self):
+        return self._rc
+
+    @property
+    def desc(self):
+        return self._desc
 
     def __str__(self):
         if self._rc == 0:
             return self._desc
-        return "error(%d): %s"(self._rc, self._desc)
+        return "error(%d): %s" %(self._rc, self._desc)
