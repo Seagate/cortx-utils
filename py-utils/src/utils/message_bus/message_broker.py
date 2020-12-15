@@ -37,9 +37,6 @@ class MessageBrokerFactory:
 
     _brokers = {}
 
-    def __init__(self):
-        self.message_broker = None
-
     @staticmethod
     def get_instance(broker_type: str):
         try:
@@ -48,6 +45,7 @@ class MessageBrokerFactory:
                 if name != 'MessageBroker' and name.endswith("Broker"):
                     if broker_type == cls.name:
                         message_broker = cls(Conf)
+                        MessageBrokerFactory._brokers[broker_type] = message_broker
                         return message_broker
         except Exception as e:
             raise MessageBusError(errno.EINVAL, "Invalid broker name . %s", e)
