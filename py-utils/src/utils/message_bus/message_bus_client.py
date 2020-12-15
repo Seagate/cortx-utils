@@ -18,9 +18,6 @@
 from cortx.utils.message_bus import MessageBus
 
 
-from cortx.utils.message_bus import MessageBus
-
-
 class MessageBusClient:
     """ common infrastructure for producer and consumer """
 
