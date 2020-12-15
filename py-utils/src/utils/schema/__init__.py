@@ -14,7 +14,11 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 from cortx.utils.schema.conf import Conf
 =======
 from src.utils.schema.conf import Conf, CommonPayload
 >>>>>>> 7c8472f (Message bus Send/Receive)
+=======
+from cortx.utils.schema.conf import Conf
+>>>>>>> 1ba59f6 (Implementation of Ack and sync/async method)

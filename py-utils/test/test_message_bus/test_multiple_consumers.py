@@ -31,7 +31,7 @@ class TestMessage(unittest.TestCase):
         messages = []
         producer = MessageProducer(TestMessage.message_bus, producer_id="sspl",\
             message_type="test_type")
-        
+
         self.assertIsNotNone(producer, "Producer not found")
         for i in range(0, 1000):
             messages.append("This is message" + str(i))
@@ -65,7 +65,7 @@ class TestMessage(unittest.TestCase):
         self.assertIsNotNone(messages, "Messages not found")
         for message in messages:
             print(message)
-        #consumer.ack()
+        consumer.ack()
 
 
 if __name__ == '__main__':

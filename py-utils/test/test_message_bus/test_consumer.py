@@ -1,5 +1,5 @@
-#!/usr/bin/env python3
-
+# !/usr/bin/env python3
+#
 # CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
 #
@@ -22,7 +22,6 @@ from cortx.utils.message_bus import MessageBus, MessageConsumer
 
 
 class TestMessage(unittest.TestCase):
-
     """ Test MessageBus related functionality. """
 
     def test_receive(self):
@@ -37,6 +36,7 @@ class TestMessage(unittest.TestCase):
         self.assertIsNotNone(messages, "Messages not found")
         for message in messages:
             print(message)
+
 
 if __name__ == '__main__':
     unittest.main()
