@@ -17,7 +17,7 @@
 
 __title__ = 'message_bus'
 
-from src.utils.message_bus.message_bus import MessageBus
-from src.utils.message_bus.message_bus_client import MessageBusClient, MessageProducer, MessageConsumer
-from src.utils.message_bus.message_broker import MessageBroker, MessageBrokerFactory, KafkaMessageBroker
-from src.utils.message_bus.error import MessageBusError
+from cortx.utils.message_bus.message_bus import MessageBus
+from cortx.utils.message_bus.message_bus_client import MessageProducer, MessageConsumer
+from cortx.utils.message_bus.message_broker import MessageBroker, MessageBrokerFactory
+from cortx.utils.message_bus.error import MessageBusError

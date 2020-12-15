@@ -23,47 +23,43 @@ import errno
 
 
 class MessageBus:
-    """
-    An interface that creates message brokers
-    and message clients (i.e) producer or consumer
-    """
+    """ Message Bus Framework over various types of Message Brokers """
 
     def __init__(self):
-        """
-        Initialize a MessageBus and load its configurations
-        """
+        """ Initialize a MessageBus and load its configurations """
         try:
-            Conf.load('global', Json('/etc/cortx/message_bus.json'))
-            self.message_broker = Conf.get('global', 'message_broker')
-            message_broker_factory = MessageBrokerFactory(self.message_broker['type'])
-            self.adapter = message_broker_factory.adapter
+            Conf.load('global', Json('/etc/cortx/message_bus.conf'))
+            broker_type = Conf.get('global', 'message_broker.type')
+            self._message_broker = MessageBrokerFactory.get_instance(broker_type)
         except Exception as e:
-            raise MessageBusError(errno.EINVAL, f"Invalid Message Bus configurations. {e}")
+            raise MessageBusError(errno.EINVAL, "Invalid Message Bus configurations. %s", e)
 
-    def __call__(self, client, **client_config):
-        """
-        An instance method of MessageBus to create client based on the configurations
-        """
+    def get_client(self, client: str, **client_config):
+        """ To create producer/consumer client based on the configurations """
         try:
-            self.adapter(client, **client_config)
+            self._message_broker.get_client(client, **client_config)
         except Exception as e:
-            raise MessageBusError(errno.EINVAL, f"Error creating {client}. {e}")
+            raise MessageBusError(errno.EINVAL, f"Error creating {client}. %s", e)
 
-    def send(self, messages):
-        """
-        Sends list of messages to the configured message broker
-        """
+    def send(self, messages: list):
+        """ Sends list of messages to the configured message broker """
         try:
-            self.adapter.send(messages)
+            self._message_broker.send(messages)
         except Exception as e:
-            raise MessageBusError(errno.EINVAL, f"Error sending message(s). {e}")
+            raise MessageBusError(errno.EINVAL, f"Error sending message(s). %s", e)
 
-    def receive(self):
-        """
-        Receives messages from the configured message broker
-        """
+    def receive(self) -> list:
+        """ Receives messages from the configured message broker """
         try:
-            consumer_obj = self.adapter.receive()
+            consumer_obj = self._message_broker.receive()
             return consumer_obj
         except Exception as e:
-            raise MessageBusError(errno.EINVAL, f"Error receiving message(s). {e}")
+            raise MessageBusError(errno.EINVAL, f"Error receiving message(s). %s", e)
+
+    def ack(self):
+        """ Provides acknowledgement on offset """
+        try:
+            self._message_broker.ack()
+        except Exception as e:
+            raise MessageBusError(errno.EINVAL, f"Error committing offsets. %s", e)
+
