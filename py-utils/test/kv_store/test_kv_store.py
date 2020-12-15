@@ -15,16 +15,21 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
+
 from __future__ import absolute_import
 import os
 import sys
 import unittest
 import yaml, json, toml, configparser
-from conf_sample_json import sample_config
 
 from cortx.utils.kv_store.kv_store_factory import KvStoreFactory
+from cortx.utils.schema.payload import Json
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+file_path = os.path.join(dir_path, 'kv_store', 'conf_sample_json.json')
+sample_config = Json(file_path).load()
 
 def setup_and_generate_sample_files():
     """ This function will generate all required types of file """
@@ -57,7 +62,6 @@ class TestStore(unittest.TestCase):
 
     def test_json_file(self):
         """Test Kv JSON store. load json store from json:///tmp/file.json"""
-        import ipdb;ipdb.set_trace()
         result_data = TestStore.loaded_json[1]
         self.assertEqual(result_data, sample_config)
 

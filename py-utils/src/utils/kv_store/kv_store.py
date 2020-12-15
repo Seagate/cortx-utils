@@ -18,6 +18,7 @@
 import errno
 from cortx.utils.kv_store.error import KvStoreError
 
+
 class KvStore:
     """ Abstraction over all kinds of KV based Storage """
 
@@ -60,7 +61,7 @@ class KvStore:
     def set(self, keys: list, vals: list):
         """ Updates a given set of keys and values """
         if len(keys) != len(vals):
-            raise KvStoreError(errno.EINVAL, "Mismatched keys & values %s:%s",\
+            raise KvStoreError(errno.EINVAL, f"Mismatched keys & values %s:%s",\
                 keys, vals)
         data = self.load()
         for key, val in zip(keys, vals):
@@ -87,11 +88,11 @@ class KvStore:
 
     def load(self):
         """ Loads and returns data from KV storage """
-        raise KvStoreError(errno.ENOSYS, "%s:load() not implemented", \
+        raise KvStoreError(errno.ENOSYS, f"%s:load() not implemented", \
             type(self).__name__)
 
     def dump(self, data):
         """ Dumps data onto the KV Storage """
-        raise KvStoreError(errno.ENOSYS, "%s:dump() not implemented", \
+        raise KvStoreError(errno.ENOSYS, f"%s:dump() not implemented", \
             type(self).__name__)
 

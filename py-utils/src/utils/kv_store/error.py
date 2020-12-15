@@ -33,18 +33,3 @@ class KvStoreError(Exception):
     def __str__(self):
         if self._rc == 0: return self._desc
         return "error(%d): %s" %(self._rc, self._desc)
-
-
-# TODO: Test Code - To be removed
-if __name__ == "__main__":
-    def test(rc, message, *args):
-        try:
-            raise KvError(rc, message, *args)
-
-        except KvError as e:
-            print(e)
-
-    test(0, "Success")
-    test(0, "Operation %s completed successfully", "create")
-    test(2, "File %s does not exist", "test")
-    test(2, "File does not exist")

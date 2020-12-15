@@ -15,7 +15,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import os, errno, inspect
+import errno, inspect
 from urllib.parse import urlparse
 from cortx.utils.kv_store.error import KvStoreError
 from cortx.utils.kv_store.kv_store import KvStore
@@ -50,4 +50,4 @@ class KvStoreFactory:
                     cls(store_loc, store_path)
                 return KvStoreFactory._stores[store_type]
 
-        raise KvStoreError(errno.EINVAL, "Invalid store type %s", store_type)
+        raise KvStoreError(errno.EINVAL, f"Invalid store type %s", store_type)
