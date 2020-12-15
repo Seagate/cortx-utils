@@ -15,6 +15,8 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+from cortx.utils.message_bus import MessageBus
+
 
 class MessageBusClient:
     """
@@ -22,10 +24,10 @@ class MessageBusClient:
     client as input to set the configurations
     """
 
-    def __init__(self, message_bus, client, **client_config):
+    def __init__(self, message_bus: MessageBus, client: str, **client_config: dict):
         self._client = client
         self._message_bus = message_bus
-        self._bus_client = self._message_bus(self._client, **client_config)
+        self._bus_client = self._message_bus.get_client(self._client, **client_config)
 
     def send(self, messages):
         self._message_bus.send(messages)
@@ -33,11 +35,14 @@ class MessageBusClient:
     def receive(self):
         return self._message_bus.receive()
 
+    def ack(self):
+        self._message_bus.ack()
+
 
 class MessageProducer(MessageBusClient):
     """ A client that publishes messages """
 
-    def __init__(self, message_bus, producer_id, message_type):
+    def __init__(self, message_bus: MessageBus, producer_id: str, message_type: str, method: str = None):
         """ Initialize a Message Producer
 
         Parameters:
@@ -46,19 +51,18 @@ class MessageProducer(MessageBusClient):
             message_type     This is essentially equivalent to the
                              queue/topic name. For e.g. ["Alert"]
         """
-        super().__init__(message_bus, 'PRODUCER', client_id=producer_id, message_type=message_type)
+        super().__init__(message_bus, 'PRODUCER', client_id=producer_id, message_type=message_type, method=method)
 
-    def send(self, messages):
-        """
-        Sends list of messages
-        """
+    def send(self, messages: list):
+        """ Sends list of messages onto the Message Bus """
         super().send(messages)
 
 
 class MessageConsumer(MessageBusClient):
-    """ A client that consumes messages"""
+    """ A client that consumes messages """
 
-    def __init__(self, message_bus, consumer_id=None, consumer_group=None, message_type=None, offset=None):
+    def __init__(self, message_bus: MessageBus, consumer_id: str = None, consumer_group: str = None,
+                 message_type: str = None, offset: str = None):
         """ Initialize a Message Consumer
 
         Parameters:
@@ -75,8 +79,10 @@ class MessageConsumer(MessageBusClient):
                          consumer_group=consumer_group, message_type=message_type,
                          offset=offset)
 
-    def receive(self):
-        """
-        Receives the messages
-        """
+    def receive(self) -> list:
+        """ Receive messages from the Message Bus """
         return super().receive()
+
+    def ack(self):
+        """ Acknowledges a manual commit to the Bus """
+        super().ack()
