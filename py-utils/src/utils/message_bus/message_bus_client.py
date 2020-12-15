@@ -29,10 +29,10 @@ class MessageBusClient:
         self._message_bus = message_bus
         self._bus_client = self._message_bus.get_client(self._client, **client_config)
 
-    def send(self, messages):
+    def send(self, messages: str):
         self._message_bus.send(messages)
 
-    def receive(self):
+    def receive(self) -> list:
         return self._message_bus.receive()
 
     def ack(self):
