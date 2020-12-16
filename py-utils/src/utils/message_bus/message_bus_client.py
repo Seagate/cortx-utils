@@ -19,14 +19,14 @@ from cortx.utils.message_bus import MessageBus
 
 
 class MessageBusClient:
-    """ common infrastruture for producer and consumer """
+    """ common infrastructure for producer and consumer """
 
-    def __init__(self, message_bus: MessageBus, **client_conf: dict):
+    def __init__(self, message_bus: MessageBus, client_type: str, **client_conf: dict):
         self._message_bus = message_bus
-        self._message_bus.init_client(**client_conf)
+        self._message_bus.init_client(client_type, **client_conf)
         self._client_conf = client_conf
 
-    def _get_conf(self, key):
+    def _get_conf(self, key: str):
         if key not in self._client_conf.keys():
             raise MessageBusError(errno.EINVAL, "Invalid entry %s", key) 
         return self._client_conf[key]
@@ -46,8 +46,8 @@ class MessageBusClient:
 class MessageProducer(MessageBusClient):
     """ A client that publishes messages """
 
-    def __init__(self, message_bus: MessageBus, producer_id: str, \
-        message_type: str, method: str = None):
+    def __init__(self, message_bus: MessageBus, producer_id: str,
+                 message_type: str, method: str = None):
         """ Initialize a Message Producer
 
         Parameters:
@@ -56,15 +56,15 @@ class MessageProducer(MessageBusClient):
         message_type    This is essentially equivalent to the
                         queue/topic name. For e.g. ["Alert"]
         """
-        super().__init__(message_bus, client_type='producer', \
-            client_id=producer_id, message_type=message_type, method=method)
+        super().__init__(message_bus, client_type='producer', client_id=producer_id,
+                         message_type=message_type, method=method)
 
 
 class MessageConsumer(MessageBusClient):
     """ A client that consumes messages """
 
-    def __init__(self, message_bus: MessageBus, consumer_id: str, \
-        consumer_group: str, message_type: str, auto_ack: str, offset: str):
+    def __init__(self, message_bus: MessageBus, consumer_id: str, consumer_group: str,
+                 message_type: str, auto_ack: str, offset: str):
         """ Initialize a Message Consumer
 
         Parameters:
@@ -74,9 +74,10 @@ class MessageConsumer(MessageBusClient):
                         Group of consumers can process messages
         message_type    This is essentially equivalent to the queue/topic name.
                         For e.g. ["Alert"]
+        auto_ack
         offset          Can be set to "earliest" (default) or "latest".
                         ("earliest" will cause messages to be read from the beginning)
         """
-        super().__init__(message_bus, client_type='consumer', \
-            client_id=consumer_id, consumer_group=consumer_group, \
-            message_type=message_type, offset=offset)
+        super().__init__(message_bus, client_type='consumer', client_id=consumer_id,
+                         consumer_group=consumer_group, message_type=message_type,
+                         auto_ack=auto_ack, offset=offset)
