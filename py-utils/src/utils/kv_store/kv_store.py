@@ -16,6 +16,9 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
+import inspect
+from urllib.parse import urlparse
+
 from cortx.utils.kv_store.error import KvStoreError
 
 
@@ -77,7 +80,6 @@ class KvStore:
         if k[0] not in data.keys():
             return
         self._delete(k[1], data[k[0]])
-        
 
     def delete(self, keys: list):
         """ Deletes given set of keys from the """
@@ -96,3 +98,34 @@ class KvStore:
         raise KvStoreError(errno.ENOSYS, f"%s:dump() not implemented", \
             type(self).__name__)
 
+
+class KvStoreFactory:
+    """ Factory class for File based KV Store """
+
+    _stores = {}
+
+    def __init__(self):
+        """ Initializing KvStoreFactory"""
+        pass
+
+    @staticmethod
+    def get_instance(store_url: str) -> KvStore:
+        """ Obtain instance of KvStore for given file_type """
+
+        url_spec = urlparse(store_url)
+        store_type = url_spec.scheme
+        store_loc = url_spec.netloc
+        store_path = url_spec.path
+
+        if store_type in KvStoreFactory._stores.keys():
+            return KvStoreFactory._stores[store_type]
+
+        from cortx.utils.kv_store import kv_store_collection
+        storage = inspect.getmembers(kv_store_collection, inspect.isclass)
+        for name, cls in storage:
+            if hasattr(cls, 'name') and name != "KvStore" and store_type == cls.name:
+                KvStoreFactory._stores[store_type] = \
+                    cls(store_loc, store_path)
+                return KvStoreFactory._stores[store_type]
+
+        raise KvStoreError(errno.EINVAL, f"Invalid store type %s", store_type)
