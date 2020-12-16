@@ -35,15 +35,13 @@ class MessageBus:
             broker_type = self._broker_conf['type']
 
         except Exception as e:
-            raise MessageBusError(errno.EINVAL, "Invalid conf in %s. %s",
-                self.conf_file, e) 
+            raise MessageBusError(errno.EINVAL, "Invalid conf in %s. %s", self.conf_file, e)
 
-        self._broker = MessageBrokerFactory.get_instance(broker_type, \
-            self._broker_conf)
+        self._broker = MessageBrokerFactory.get_instance(broker_type, self._broker_conf)
 
-    def init_client(self, **client_conf):
+    def init_client(self, client_type: str, **client_conf: dict):
         """ To create producer/consumer client based on the configurations """
-        self._broker.get_client(client, **client_conf)
+        self._broker.init_client(client_type, **client_conf)
 
     def send(self, message_type: str, method: str, messages: list):
         """ Sends list of messages to the configured message broker """
