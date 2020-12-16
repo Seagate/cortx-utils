@@ -41,7 +41,6 @@ class TestMessage(unittest.TestCase):
 
     def test_receive(self):
         """Test Receive Message."""
-
         consumer = MessageConsumer(TestMessage.message_bus, \
             consumer_id="sspl_sensors", consumer_group="sspl", \
             message_type=['Alert'], auto_ack=True, offset='latest')

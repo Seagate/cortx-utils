@@ -23,6 +23,7 @@ from confluent_kafka.admin import AdminClient
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus.message_broker import MessageBroker
 
+
 ConsumerRecord = namedtuple("ConsumerRecord", ["message_type", "message",\
                     "partition", "offset", "key"])
 
@@ -40,6 +41,7 @@ class KafkaMessageBroker(MessageBroker):
         self._admin = AdminClient(kafka_conf)
 
         self._clients = {'producer': {}, 'consumer': {}}
+
 
     def init_client(self, client_type: str, **client_conf):
         """ Obtain Kafka based Producer/Consumer """
@@ -59,6 +61,7 @@ class KafkaMessageBroker(MessageBroker):
 
         if client_type == 'producer':
             producer = Producer(**kafka_conf)
+
             self._clients[client_type][client_conf['client_id']] = producer
 
         else:
@@ -73,6 +76,7 @@ class KafkaMessageBroker(MessageBroker):
 
             consumer = Consumer(**kafka_conf)
             consumer.subscribe(client_conf['message_type'])
+
             self._clients[client_type][client_conf['client_id']] = consumer
 
     def send(self, message_type: str, method: str, messages: list, client_id: str):
@@ -99,6 +103,7 @@ class KafkaMessageBroker(MessageBroker):
                 if msg is None:
                     continue
                 if msg.error():
+
                     raise MessageBusError(errno.ECONN, "Cant receive. %s", \
                         msg.error())
                 else:
