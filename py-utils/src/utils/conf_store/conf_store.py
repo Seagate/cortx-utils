@@ -29,7 +29,7 @@ class ConfStore:
         self.kvstore = ''
         self._payload = {}
 
-    def load(self, index, kvStore, force=False, callback=None):
+    def load(self, index, kvStore, force=False, callback=None) -> None:
         """
         Args:
             index (str): named key of the loaded value in the ConfCache
@@ -45,7 +45,7 @@ class ConfStore:
         else:
             raise Exception('kvStore value should be instance of kvStoreFactory')
 
-    def get(self, index, key=None, default_value=None):
+    def get(self, index, key=None, default_value=None) -> dict:
         """
         Args:
             index (str): named key of the loaded value in the ConfCache
@@ -53,6 +53,8 @@ class ConfStore:
             key will be chained with '.' to denote nested structure.
             eg. project.team.dev.name
             default_value (dict) : optional. W.I.P
+        return:
+            Return type will be dict or string based of key
         """
         if key is not None:
             return self._payload[index].get(key) if self._payload[index].get(key) is not None else default_value
