@@ -41,7 +41,7 @@ class TestMessage(unittest.TestCase):
         """Test Receive Message."""
         consumer = MessageConsumer(TestMessage.message_bus, consumer_id="sspl_sensor",
                                    consumer_group="sspl", message_type=['Alert'],
-                                   offset='latest')
+                                   auto_ack=False, offset='latest')
         self.assertIsNotNone(consumer, "Consumer not found")
         messages = consumer.receive()
         self.assertEqual(len(list(messages)), 1000)

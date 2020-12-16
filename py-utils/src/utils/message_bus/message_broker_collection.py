@@ -15,15 +15,16 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import sys
 import errno
 from collections import namedtuple
 from confluent_kafka import Producer, Consumer
 from confluent_kafka.admin import AdminClient
 from cortx.utils.message_bus.error import MessageBusError
-from cortx.utils.message_broker import MessageBroker
+from cortx.utils.message_bus.message_broker import MessageBroker
 
-ConsumerRecord = namedtuple("ConsumerRecord", \
-    ["message_type", "message", "partition", "offset", "key"])
+ConsumerRecord = namedtuple("ConsumerRecord", ["message_type", "message", "partition", "offset", "key"])
+
 
 class KafkaMessageBroker(MessageBroker):
     """ Kafka Server based message broker implementation """
@@ -39,26 +40,15 @@ class KafkaMessageBroker(MessageBroker):
 
         self._clients = {'producer': None, 'consumer': None}
 
-    def init_client(self, **client_conf):
+    def init_client(self, client_type: str, **client_conf):
         """ Obtain Kafka based Producer/Consumer """
-
-        client_type = client_conf['client_type']
 
         """ Validate and return if client already exists """
         if client_type not in self._clients.keys():
-            raise MessageBusError(errno.EINVAL, "Invalid client type %s",
-                client_type)
-
-        if self._clients[client_type] != None: return
-    
-        """ validate input config """
-        for entry in ['client_id', 'method']:
-            if entry not in client_conf.keys():
-                raise MessageBusError(errno.EINVAL, "No entry for %s in conf", \
-                    entry)
+            raise MessageBusError(errno.EINVAL, "Invalid client type %s", client_type)
 
         kafka_conf = {}
-        kafka_conf['bootstrap.servers'] = self.servers
+        kafka_conf['bootstrap.servers'] = self._servers
         kafka_conf['client.id'] = client_conf['client_id']
 
         if client_type == 'producer':
@@ -66,11 +56,11 @@ class KafkaMessageBroker(MessageBroker):
             self._clients[client_type] = producer
 
         else:
-            for entry in ['offset', 'consumer_group', 'message_type']:
+            for entry in ['offset', 'consumer_group', 'message_type', 'auto_ack']:
                 if entry not in client_conf.keys():
-                    raise MessageBusError(errno.EINVAL, "Missing conf entry %s", \
-                        entry)
-                         
+                    raise MessageBusError(errno.EINVAL, "Missing conf entry %s", entry)
+
+            kafka_conf['enable.auto.commit'] = client_conf['auto_ack']
             kafka_conf['auto.offset.reset'] = client_conf['offset']
             kafka_conf['group.id'] = client_conf['consumer_group']
 
@@ -81,34 +71,38 @@ class KafkaMessageBroker(MessageBroker):
     def send(self, message_type: str, method: str, messages: list):
         """ Sends list of messages to Kafka cluster(s) """
         producer = self._clients['producer']
-        if producer == None:
+        if producer is None:
             raise MessageBusError(errno.EINVAL, "init_client is not called")
 
         for message in messages:
             producer.produce(message_type, bytes(message, 'utf-8'))
-        if method == 'sync': producer.flush()
+            if method == 'sync':
+                producer.flush()
+        producer.flush()
 
     def receive(self, timeout=0.5) -> list:
         """ Receives list of messages to Kafka cluster(s) """
         consumer = self._clients['consumer']
-        if consumer == None:
+        if consumer is None:
             raise MessageBusError(errno.EINVAL, "init_client is not called")
+
         try:
             while True:
                 msg = consumer.poll(timeout=timeout)
-                if msg is None: continue
+                if msg is None:
+                    continue
                 if msg.error():
-                    raise MessageBusError(errno.ECONN, "Cant receive. %s", \
-                        msg.error())
-                yield ConsumerRecord(msg.topic(), msg.value(), msg.partition(), msg.offset(), str(msg.key()))
+                    raise MessageBusError(errno.ECONN, "Cant receive. %s", msg.error())
+                else:
+                    yield ConsumerRecord(msg.topic(), msg.value(), msg.partition(), msg.offset(), str(msg.key()))
 
         except KeyboardInterrupt:
-            raise MessageBusError(errno.EINTR, "Aborted by user")
+            sys.stderr.write('%% Aborted by user\n')
 
     def ack(self):
         """ To manually commit offset """
         consumer = self._clients['consumer']
-        if consumer == None:
+        if consumer is None:
             raise MessageBusError(errno.EINVAL, "init_client is not called")
         consumer.commit()
         consumer.close()

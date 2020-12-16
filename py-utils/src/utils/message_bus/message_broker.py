@@ -15,10 +15,8 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import sys
 import inspect
 import errno
-from cortx.utils.schema import Conf
 from cortx.utils.message_bus.error import MessageBusError
 
 
@@ -41,8 +39,7 @@ class MessageBrokerFactory:
                     MessageBrokerFactory._brokers[broker_type] = message_broker
                     return message_broker
 
-        raise MessageBusError(errno.EINVAL, "Invalid broker type %s. %s", \
-            broker_type, e)
+        raise MessageBusError(errno.EINVAL, "Invalid broker type %s. %s", broker_type, e)
 
 
 class MessageBroker:
@@ -50,7 +47,7 @@ class MessageBroker:
 
     def __init__(self, broker_conf):
         # TODO: Handle ports
-        self._servers = ','.join(x["server"] for x in broker_conf['cluster'])
+        self._servers = ','.join(x["server"]+':'+x['port'] for x in broker_conf['cluster'])
 
     def init_client(self, **client_conf):
         pass
