@@ -61,6 +61,8 @@ class ConfCache:
         self._set(k[1], val, data[k[0]])
 
     def set(self, key, val) -> None:
-        ''' Sets the value into the DB for the given key '''
+        """
+        Sets the value into the DB for the given key
+        """
         self._set(key, val, self._data)
         self._dirty = True
