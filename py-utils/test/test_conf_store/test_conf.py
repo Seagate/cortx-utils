@@ -59,8 +59,8 @@ class TestConfStore(unittest.TestCase):
         Test by loading the give config file to in-memory
         """
         load_config('sspl_local', 'json:///tmp/file1.json')
-        result_data = Conf.get('sspl_local')
-        self.assertTrue(True if 'bridge' in result_data else False)
+        result_data = Conf.get('sspl_local', 'bridge')
+        self.assertTrue(True if 'name' in result_data else False)
 
     def test_conf_store_get_by_index_with_single_key(self):
         """
@@ -103,17 +103,8 @@ class TestConfStore(unittest.TestCase):
     def test_conf_store_delete(self):
         load_config('delete_local', 'json:///tmp/file1.json')
         Conf.delete('delete_local', 'bridge.proxy')
-        result_data = Conf.get('delete_local', 'bridge.proxy', default_val=None)
+        result_data = Conf.get('delete_local', 'bridge.proxy')
         self.assertEqual(result_data, None)
-
-    def test_conf_store_backup_and_save_a_copy(self):
-        conf_file = 'json:/tmp/file1.json'
-        load_config('csm_local', conf_file)
-        Conf.load('backup', f"{conf_file}.bak")
-        Conf.copy('csm_local', 'backup')
-        Conf.save('backup')
-        result_data = Conf.get_keys('backup')
-        self.assertTrue(True if len(result_data) > 1 else False)
 
 
 async def run_test():
