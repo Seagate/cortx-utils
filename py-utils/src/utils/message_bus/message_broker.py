@@ -15,7 +15,6 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-
 import inspect
 import errno
 from cortx.utils.message_bus.error import MessageBusError
@@ -48,18 +47,17 @@ class MessageBroker:
     """ A common interface of Message Brokers"""
 
     def __init__(self, broker_conf):
-        # TODO: Handle ports
         self._servers = ','.join(x["server"]+':'+x['port'] for x in \
                                 broker_conf['cluster'])
 
     def init_client(self, **client_conf):
         pass
 
-    def send(self, message_type: str, method: str, messages: str):
+    def send(self, producer_id: str, message_type: str, method: str, messages: str):
         pass
 
-    def receive(self) -> list:
+    def receive(self, consumer_id: str) -> list:
         pass
 
-    def ack(self):
+    def ack(self, consumer_id: str):
         pass

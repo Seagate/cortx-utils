@@ -45,15 +45,14 @@ class MessageBus:
         """ To create producer/consumer client based on the configurations """
         self._broker.init_client(client_type, **client_conf)
 
-    def send(self, message_type: str, method: str, messages: list, client_id: str):
+    def send(self, client_id: str, message_type: str, method: str, messages: list):
         """ Sends list of messages to the configured message broker """
-        self._broker.send(message_type, method, messages, client_id)
+        self._broker.send(client_id, message_type, method, messages)
 
     def receive(self, client_id: str) -> list:
         """ Receives messages from the configured message broker """
         return self._broker.receive(client_id)
 
-    def ack(self):
+    def ack(self, client_id: str):
         """ Provides acknowledgement on offset """
-        self._broker.ack()
-
+        self._broker.ack(client_id)

@@ -41,7 +41,6 @@ class KafkaMessageBroker(MessageBroker):
 
         self._clients = {'producer': {}, 'consumer': {}}
 
-
     def init_client(self, client_type: str, **client_conf):
         """ Obtain Kafka based Producer/Consumer """
 
@@ -63,7 +62,8 @@ class KafkaMessageBroker(MessageBroker):
             self._clients[client_type][client_conf['client_id']] = producer
 
         else:
-            for entry in ['offset', 'consumer_group', 'message_type', 'auto_ack']:
+            for entry in ['offset', 'consumer_group', 'message_type', 'auto_ack'\
+                , 'client_id']:
                 if entry not in client_conf.keys():
                     raise MessageBusError(errno.EINVAL, "Missing conf entry %s"\
                         , entry)
@@ -76,9 +76,9 @@ class KafkaMessageBroker(MessageBroker):
             consumer.subscribe(client_conf['message_type'])
             self._clients[client_type][client_conf['client_id']] = consumer
 
-    def send(self, message_type: str, method: str, messages: list, client_id: str):
+    def send(self, producer_id: str, message_type: str, method: str, messages: list):
         """ Sends list of messages to Kafka cluster(s) """
-        producer = self._clients['producer'][client_id]
+        producer = self._clients['producer'][producer_id]
         if producer is None:
             raise MessageBusError(errno.EINVAL, "init_client is not called")
 
@@ -88,9 +88,9 @@ class KafkaMessageBroker(MessageBroker):
                 producer.flush()
         producer.flush()
 
-    def receive(self, client_id, timeout=0.5) -> list:
+    def receive(self, consumer_id: str, timeout=0.5) -> list:
         """ Receives list of messages to Kafka cluster(s) """
-        consumer = self._clients['consumer'][client_id]
+        consumer = self._clients['consumer'][consumer_id]
         if consumer is None:
             raise MessageBusError(errno.EINVAL, "init_client is not called")
 
@@ -109,11 +109,10 @@ class KafkaMessageBroker(MessageBroker):
         except KeyboardInterrupt:
             sys.stderr.write('%% Aborted by user\n')
 
-    def ack(self):
+    def ack(self, consumer_id:str):
         """ To manually commit offset """
-        consumer = self._clients['consumer']
+        consumer = self._clients['consumer'][consumer_id]
         if consumer is None:
             raise MessageBusError(errno.EINVAL, "init_client is not called")
         consumer.commit()
         consumer.close()
-

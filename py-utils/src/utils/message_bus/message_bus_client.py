@@ -36,14 +36,15 @@ class MessageBusClient:
         message_type = self._get_conf('message_type')
         method = self._get_conf('method')
         client_id = self._get_conf('client_id')
-        self._message_bus.send(message_type, method, messages, client_id)
+        self._message_bus.send(client_id, message_type, method, messages)
 
     def receive(self) -> list:
         client_id = self._get_conf('client_id')
         return self._message_bus.receive(client_id)
 
     def ack(self):
-        self._message_bus.ack()
+        client_id = self._get_conf('client_id')
+        self._message_bus.ack(client_id)
 
 
 class MessageProducer(MessageBusClient):
@@ -81,7 +82,7 @@ class MessageConsumer(MessageBusClient):
                         Group of consumers can process messages
         message_type    This is essentially equivalent to the queue/topic name.
                         For e.g. ["Alert"]
-        auto_ack
+        auto_ack        Can be set to "True" or "False"
         offset          Can be set to "earliest" (default) or "latest".
                         ("earliest" will cause messages to be read from the beginning)
         """

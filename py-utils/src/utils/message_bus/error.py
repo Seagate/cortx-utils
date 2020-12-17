@@ -22,7 +22,6 @@ class MessageBusError(Exception):
     def __init__(self, rc, message, *args):
         self._rc = rc
         self._desc = message % (args)
-        print(self._desc)
 
     @property
     def rc(self):
