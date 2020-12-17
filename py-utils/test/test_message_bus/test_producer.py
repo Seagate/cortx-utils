@@ -28,8 +28,8 @@ class TestMessage(unittest.TestCase):
         """ Test Send Message. """
         messages = []
         message_bus = MessageBus()
-        producer = MessageProducer(message_bus, producer_id="sel", \
-            message_type="Sel", method="async")
+        producer = MessageProducer(message_bus, producer_id='sel', \
+            message_type='Sel', method='async')
 
         self.assertIsNotNone(producer, "Producer not found")
         for i in range(0, 10):

@@ -23,7 +23,7 @@ from confluent_kafka.admin import AdminClient
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus.message_broker import MessageBroker
 
-ConsumerRecord = namedtuple("ConsumerRecord", ["message_type", "message",\
+ConsumerRecord = namedtuple("ConsumerRecord", ["message_type", "message", \
                     "partition", "offset", "key"])
 
 
@@ -32,7 +32,7 @@ class KafkaMessageBroker(MessageBroker):
 
     name = 'kafka'
 
-    def __init__(self, broker_conf):
+    def __init__(self, broker_conf: dict):
         """ Initialize Kafka based Configurations """
         super().__init__(broker_conf)
 
@@ -41,13 +41,13 @@ class KafkaMessageBroker(MessageBroker):
 
         self._clients = {'producer': {}, 'consumer': {}}
 
-    def init_client(self, client_type: str, **client_conf):
+    def init_client(self, client_type: str, **client_conf: dict):
         """ Obtain Kafka based Producer/Consumer """
 
         """ Validate and return if client already exists """
         if client_type not in self._clients.keys():
-            raise MessageBusError(errno.EINVAL, "Invalid client type %s", \
-                client_type)
+            raise MessageBusError(errno.EINVAL, "Invalid client type %s" \
+                %client_type)
 
         if client_conf['client_id'] in self._clients[client_type].keys():
             if self._clients[client_type][client_conf['client_id']] != {}:
@@ -62,11 +62,11 @@ class KafkaMessageBroker(MessageBroker):
             self._clients[client_type][client_conf['client_id']] = producer
 
         else:
-            for entry in ['offset', 'consumer_group', 'message_type', 'auto_ack'\
-                , 'client_id']:
+            for entry in ['offset', 'consumer_group', 'message_type', \
+                'auto_ack', 'client_id']:
                 if entry not in client_conf.keys():
-                    raise MessageBusError(errno.EINVAL, "Missing conf entry %s"\
-                        , entry)
+                    raise MessageBusError(errno.EINVAL, "Missing conf entry \
+                        %s" %entry)
 
             kafka_conf['enable.auto.commit'] = client_conf['auto_ack']
             kafka_conf['auto.offset.reset'] = client_conf['offset']
@@ -76,23 +76,27 @@ class KafkaMessageBroker(MessageBroker):
             consumer.subscribe(client_conf['message_type'])
             self._clients[client_type][client_conf['client_id']] = consumer
 
-    def send(self, producer_id: str, message_type: str, method: str, messages: list):
+    def send(self, producer_id: str, message_type: str, method: str, \
+        messages: list, timeout=0.1):
         """ Sends list of messages to Kafka cluster(s) """
         producer = self._clients['producer'][producer_id]
         if producer is None:
-            raise MessageBusError(errno.EINVAL, "init_client is not called")
+            raise MessageBusError(errno.EINVAL, "Producer %s is not \
+                initialized" %producer_id)
 
         for message in messages:
             producer.produce(message_type, bytes(message, 'utf-8'))
             if method == 'sync':
                 producer.flush()
-        producer.flush()
+            else:
+                producer.poll(timeout=timeout)
 
     def receive(self, consumer_id: str, timeout=0.5) -> list:
         """ Receives list of messages to Kafka cluster(s) """
         consumer = self._clients['consumer'][consumer_id]
         if consumer is None:
-            raise MessageBusError(errno.EINVAL, "init_client is not called")
+            raise MessageBusError(errno.EINVAL, "Consumer %s is not \
+                initialized" %consumer_id)
 
         try:
             while True:
@@ -109,10 +113,11 @@ class KafkaMessageBroker(MessageBroker):
         except KeyboardInterrupt:
             sys.stderr.write('%% Aborted by user\n')
 
-    def ack(self, consumer_id:str):
+    def ack(self, consumer_id: str):
         """ To manually commit offset """
         consumer = self._clients['consumer'][consumer_id]
         if consumer is None:
-            raise MessageBusError(errno.EINVAL, "init_client is not called")
+            raise MessageBusError(errno.EINVAL, "Consumer %s is not \
+                initialized" %consumer_id)
         consumer.commit()
         consumer.close()

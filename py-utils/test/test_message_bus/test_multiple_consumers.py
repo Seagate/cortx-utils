@@ -29,8 +29,8 @@ class TestMessage(unittest.TestCase):
     def test_send(self):
         """ Test Send Message. """
         messages = []
-        producer = MessageProducer(TestMessage.message_bus, producer_id="sspl",\
-            message_type="test_type")
+        producer = MessageProducer(TestMessage.message_bus, producer_id='sspl',\
+            message_type='test_type')
 
         self.assertIsNotNone(producer, "Producer not found")
         for i in range(0, 1000):
@@ -42,7 +42,7 @@ class TestMessage(unittest.TestCase):
     def test_consumer_one(self):
         """ Test Receive Message for consumer group 1 """
         consumer = MessageConsumer(TestMessage.message_bus, \
-            consumer_id="sspl_sensor", consumer_group="c1", \
+            consumer_id='sspl_sensor', consumer_group='c1', \
             message_type=['test_type'], auto_ack=True, offset='latest')
 
         self.assertIsNotNone(consumer, "Consumer not found")
@@ -51,12 +51,12 @@ class TestMessage(unittest.TestCase):
         self.assertIsNotNone(messages, "Messages not found")
         for message in messages:
             print(message)
-        #consumer.ack()
+        consumer.ack()
 
     def test_consumer_two(self):
         """ Test Receive Message for consumer group 2 """
         consumer = MessageConsumer(TestMessage.message_bus, \
-            consumer_id="sspl_sensor1", consumer_group="c3", \
+            consumer_id='sspl_sensor1', consumer_group='c3', \
             message_type=['test_type'], auto_ack=True, offset='latest')
 
         self.assertIsNotNone(consumer, "Consumer not found")
@@ -65,7 +65,7 @@ class TestMessage(unittest.TestCase):
         self.assertIsNotNone(messages, "Messages not found")
         for message in messages:
             print(message)
-        #consumer.ack()
+        consumer.ack()
 
 
 if __name__ == '__main__':

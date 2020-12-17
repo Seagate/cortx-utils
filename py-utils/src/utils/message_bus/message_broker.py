@@ -33,7 +33,7 @@ class MessageBrokerFactory:
         from cortx.utils.message_bus import message_broker_collection
         brokers = inspect.getmembers(message_broker_collection, inspect.isclass)
         for name, cls in brokers:
-            if name != 'MessageBroker' and name.endswith("Broker"):
+            if name != 'MessageBroker' and name.endswith('Broker'):
                 if broker_type == cls.name:
                     message_broker = cls(broker_conf)
                     MessageBrokerFactory._brokers[broker_type] = message_broker
@@ -46,14 +46,15 @@ class MessageBrokerFactory:
 class MessageBroker:
     """ A common interface of Message Brokers"""
 
-    def __init__(self, broker_conf):
-        self._servers = ','.join(x["server"]+':'+x['port'] for x in \
+    def __init__(self, broker_conf: dict):
+        self._servers = ','.join(x['server']+':'+x['port'] for x in \
                                 broker_conf['cluster'])
 
-    def init_client(self, **client_conf):
+    def init_client(self, **client_conf: dict):
         pass
 
-    def send(self, producer_id: str, message_type: str, method: str, messages: str):
+    def send(self, producer_id: str, message_type: str, method: str, \
+        messages: list):
         pass
 
     def receive(self, consumer_id: str) -> list:

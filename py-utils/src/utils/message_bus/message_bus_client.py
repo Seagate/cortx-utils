@@ -32,7 +32,7 @@ class MessageBusClient:
             raise MessageBusError(errno.EINVAL, "Invalid entry %s", key) 
         return self._client_conf[key]
 
-    def send(self, messages: str):
+    def send(self, messages: list):
         message_type = self._get_conf('message_type')
         method = self._get_conf('method')
         client_id = self._get_conf('client_id')
@@ -63,10 +63,6 @@ class MessageProducer(MessageBusClient):
         super().__init__(message_bus, client_type='producer', \
             client_id=producer_id, message_type=message_type, method=method)
 
-    def send(self, messages: list):
-        """ Sends list of messages onto the Message Bus """
-        super().send(messages)
-
 
 class MessageConsumer(MessageBusClient):
     """ A client that consumes messages """
@@ -84,16 +80,9 @@ class MessageConsumer(MessageBusClient):
                         For e.g. ["Alert"]
         auto_ack        Can be set to "True" or "False"
         offset          Can be set to "earliest" (default) or "latest".
-                        ("earliest" will cause messages to be read from the beginning)
+                        ("earliest" will cause messages to be read from the
+                        beginning)
         """
         super().__init__(message_bus, client_type='consumer', \
             client_id=consumer_id, consumer_group=consumer_group, \
             message_type=message_type, auto_ack=auto_ack, offset=offset)
-
-    def receive(self) -> list:
-        """ Receive messages from the Message Bus """
-        return super().receive()
-
-    def ack(self):
-        """ Acknowledges a manual commit to the Bus """
-        super().ack()

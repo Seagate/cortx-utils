@@ -30,7 +30,7 @@ class TestMessage(unittest.TestCase):
         """Test Send Message."""
         messages = []
         producer = MessageProducer(TestMessage.message_bus, \
-            producer_id="sspl_sensor", message_type="Alert")
+            producer_id='sspl_sensor', message_type='Alert')
 
         self.assertIsNotNone(producer, "Producer not found")
         for i in range(0, 1000):
@@ -42,7 +42,7 @@ class TestMessage(unittest.TestCase):
     def test_receive(self):
         """Test Receive Message."""
         consumer = MessageConsumer(TestMessage.message_bus, \
-            consumer_id="sspl_sensors", consumer_group="sspl", \
+            consumer_id='sspl_sensors', consumer_group='sspl', \
             message_type=['Alert'], auto_ack=True, offset='latest')
 
         self.assertIsNotNone(consumer, "Consumer not found")

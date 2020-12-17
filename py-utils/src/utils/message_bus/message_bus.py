@@ -25,13 +25,13 @@ import errno
 class MessageBus:
     """ Message Bus Framework over various types of Message Brokers """
 
-    conf_file = "/etc/cortx/message_bus.conf"
+    conf_file = '/etc/cortx/message_bus.conf'
 
     def __init__(self):
         """ Initialize a MessageBus and load its configurations """
         try:
             Conf.load('message_bus', Json(self.conf_file))
-            self._broker_conf = Conf.get("message_bus", "message_broker")
+            self._broker_conf = Conf.get('message_bus', 'message_broker')
             broker_type = self._broker_conf['type']
 
         except Exception as e:
@@ -45,7 +45,8 @@ class MessageBus:
         """ To create producer/consumer client based on the configurations """
         self._broker.init_client(client_type, **client_conf)
 
-    def send(self, client_id: str, message_type: str, method: str, messages: list):
+    def send(self, client_id: str, message_type: list, method: str, \
+        messages: list):
         """ Sends list of messages to the configured message broker """
         self._broker.send(client_id, message_type, method, messages)
 

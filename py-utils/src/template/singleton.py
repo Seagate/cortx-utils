@@ -16,6 +16,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 class Singleton(type):
+
     """Template to create same instance for multiple objects"""
 
     _obj = {}
