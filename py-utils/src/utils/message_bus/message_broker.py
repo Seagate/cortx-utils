@@ -60,3 +60,6 @@ class MessageBroker:
 
     def receive(self) -> list:
         pass
+
+    def ack(self):
+        pass
