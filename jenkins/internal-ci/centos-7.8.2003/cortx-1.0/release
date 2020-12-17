@@ -20,7 +20,7 @@ pipeline {
         passphrase = credentials('rpm-sign-passphrase')
         token = credentials('shailesh-github-token')
         // Used in Changelog generation
-        ARTIFACT_LOCATION="http://cortx-storage.colo.seagate.com/releases/cortx/github/$branch/rhel-7.7.1908"
+        ARTIFACT_LOCATION="http://cortx-storage.colo.seagate.com/releases/cortx/github/$branch/$os_version"
 		githubrelease_repo="Seagate/cortx"
         cortx_build_dir="/mnt/bigstorage/releases/cortx_builds/$os_version"
         thrid_party_dir="$release_dir/third-party-deps/centos/centos-7.8.2003-$thrid_party_version/"
@@ -113,7 +113,7 @@ pipeline {
 			steps {
                 script { build_stage=env.STAGE_NAME }
                 
-                checkout([$class: 'GitSCM', branches: [[name: '*/main']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'AuthorInChangelog']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: 'https://github.com/Seagate/cortx-re']]])
+                checkout([$class: 'GitSCM', branches: [[name: 'cortx-1.0']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'AuthorInChangelog']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: 'https://github.com/Seagate/cortx-re']]])
                 
                 sh label: 'Generate Key', script: '''
                     set +x
