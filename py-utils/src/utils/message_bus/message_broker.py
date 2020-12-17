@@ -42,7 +42,6 @@ class MessageBrokerFactory:
         raise MessageBusError(errno.EINVAL, "Invalid broker type %s.", \
             broker_type)
 
-
 class MessageBroker:
     """ A common interface of Message Brokers"""
 
