@@ -23,9 +23,6 @@ from confluent_kafka.admin import AdminClient
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus.message_broker import MessageBroker
 
-ConsumerRecord = namedtuple("ConsumerRecord", ["message_type", "message", \
-                    "partition", "offset", "key"])
-
 
 class KafkaMessageBroker(MessageBroker):
     """ Kafka Server based message broker implementation """
@@ -107,8 +104,7 @@ class KafkaMessageBroker(MessageBroker):
                     raise MessageBusError(errno.ECONN, "Cant receive. %s", \
                         msg.error())
                 else:
-                    yield ConsumerRecord(msg.topic(), msg.value(), \
-                        msg.partition(), msg.offset(), str(msg.key()))
+                    yield msg.value()
 
         except KeyboardInterrupt:
             sys.stderr.write('%% Aborted by user\n')
