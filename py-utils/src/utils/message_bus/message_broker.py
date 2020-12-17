@@ -43,13 +43,13 @@ class MessageBrokerFactory:
             broker_type)
 
 
-
 class MessageBroker:
     """ A common interface of Message Brokers"""
 
     def __init__(self, broker_conf):
         # TODO: Handle ports
-        self._servers = ','.join(x["server"]+':'+x['port'] for x in broker_conf['cluster'])
+        self._servers = ','.join(x["server"]+':'+x['port'] for x in \
+                                broker_conf['cluster'])
 
     def init_client(self, **client_conf):
         pass
