@@ -46,8 +46,8 @@ class KafkaMessageBroker(MessageBroker):
 
         """ Validate and return if client already exists """
         if client_type not in self._clients.keys():
-            raise MessageBusError(errno.EINVAL, "Invalid client type %s" \
-                %client_type)
+            raise MessageBusError(errno.EINVAL, "Invalid client type %s", \
+                client_type)
 
         if client_conf['client_id'] in self._clients[client_type].keys():
             if self._clients[client_type][client_conf['client_id']] != {}:
@@ -66,7 +66,7 @@ class KafkaMessageBroker(MessageBroker):
                 'auto_ack', 'client_id']:
                 if entry not in client_conf.keys():
                     raise MessageBusError(errno.EINVAL, "Missing conf entry \
-                        %s" %entry)
+                        %s", entry)
 
             kafka_conf['enable.auto.commit'] = client_conf['auto_ack']
             kafka_conf['auto.offset.reset'] = client_conf['offset']
@@ -82,7 +82,7 @@ class KafkaMessageBroker(MessageBroker):
         producer = self._clients['producer'][producer_id]
         if producer is None:
             raise MessageBusError(errno.EINVAL, "Producer %s is not \
-                initialized" %producer_id)
+                initialized", producer_id)
 
         for message in messages:
             producer.produce(message_type, bytes(message, 'utf-8'))
@@ -96,7 +96,7 @@ class KafkaMessageBroker(MessageBroker):
         consumer = self._clients['consumer'][consumer_id]
         if consumer is None:
             raise MessageBusError(errno.EINVAL, "Consumer %s is not \
-                initialized" %consumer_id)
+                initialized", consumer_id)
 
         try:
             while True:
@@ -118,6 +118,6 @@ class KafkaMessageBroker(MessageBroker):
         consumer = self._clients['consumer'][consumer_id]
         if consumer is None:
             raise MessageBusError(errno.EINVAL, "Consumer %s is not \
-                initialized" %consumer_id)
+                initialized", consumer_id)
         consumer.commit()
         consumer.close()

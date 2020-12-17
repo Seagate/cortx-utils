@@ -29,7 +29,7 @@ class TestMessage(unittest.TestCase):
         messages = []
         message_bus = MessageBus()
         producer = MessageProducer(message_bus, producer_id='sel', \
-            message_type='test_type', method='async')
+            message_type='test_typeE', method='async')
 
         self.assertIsNotNone(producer, "Producer not found")
         for i in range(0, 10):
