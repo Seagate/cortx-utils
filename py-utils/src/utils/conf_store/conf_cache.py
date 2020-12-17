@@ -56,8 +56,10 @@ class ConfCache:
         elif type(data) == dict: 
             for key in data.keys():
                 nkey = key if pkey is None else "%s.%s" %(pkey, key)
-                if type(data[key]) == str or type(data[key]) == int: self._keys.append(nkey)
-                else: self._refresh_keys(data[key], nkey)
+                if type(data[key]) == str or type(data[key]) == int:
+                    self._keys.append(nkey)
+                else:
+                    self._refresh_keys(data[key], nkey)
         else:
             raise ConfStoreError(errno.ENOSYS, "Cant handle type %s", type(data))
                 

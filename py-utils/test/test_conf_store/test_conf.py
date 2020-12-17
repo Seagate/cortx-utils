@@ -33,39 +33,28 @@ sample_config = Json(file_path).load()
 
 def setup_and_generate_sample_files():
     """ This function will generate all required types of file """
-    with open(r'/tmp/config.json', 'w+') as file:
+    with open(r'/tmp/file1.json', 'w+') as file:
         json.dump(sample_config, file, indent=2)
 
 
-conf = Conf()
-
-
 def load_config(index, backend_url):
-    """
-    Instantiate and Load Config into constore
-    """
+    """Instantiate and Load Config into constore"""
     # conf_backend = KvStoreFactory.get_instance(backend_url)
     Conf.load(index, backend_url)
     return Conf
 
 
 class TestConfStore(unittest.TestCase):
-    """
-    Test case will test available API's of ConfStore
-    """
+    """Test case will test available API's of ConfStore"""
 
     def test_conf_store_load_and_get(self):
-        """
-        Test by loading the give config file to in-memory
-        """
+        """Test by loading the give config file to in-memory"""
         load_config('sspl_local', 'json:///tmp/file1.json')
         result_data = Conf.get('sspl_local', 'bridge')
         self.assertTrue(True if 'name' in result_data else False)
 
     def test_conf_store_get_by_index_with_single_key(self):
-        """
-        Test by getting the key from the loaded config
-        """
+        """Test by getting the key from the loaded config"""
         load_config('msg_local', 'json:///tmp/file1.json')
         result_data = Conf.get('msg_local', 'bridge')
         self.assertTrue(True if 'name' in result_data else False)
@@ -79,28 +68,26 @@ class TestConfStore(unittest.TestCase):
         self.assertEqual(result_data, 'Homebridge')
 
     def test_conf_store_get_wrong_key(self):
-        """
-        Test by trying to get the wrong key from the loaded config
-        """
+        """Test by trying to get the wrong key from the loaded config"""
         load_config('new_local', 'json:///tmp/file1.json')
         result_data = Conf.get('test_local', 'bridge.no_name_field')
         self.assertEqual(result_data, None)
 
     def test_conf_store_set(self):
-        """
-        Test by setting the key, value to given index and reading it back.
-        """
+        """Test by setting the key, value to given index and reading it back"""
         load_config('set_local', 'json:///tmp/file1.json')
         Conf.set('set_local', 'bridge.proxy', 'no')
         result_data = Conf.get('set_local', 'bridge.proxy')
         self.assertEqual(result_data, 'no')
 
     def test_conf_store_get_keys(self):
+        """Test listing all available keys for given index"""
         load_config('get_keys_local', 'json:///tmp/file1.json')
         result_data = Conf.get_keys('get_keys_local')
         self.assertTrue(True if len(result_data) > 1 else False)
 
     def test_conf_store_delete(self):
+        """Test by removing the key, val to given index and reading it back"""
         load_config('delete_local', 'json:///tmp/file1.json')
         Conf.delete('delete_local', 'bridge.proxy')
         result_data = Conf.get('delete_local', 'bridge.proxy')
@@ -108,15 +95,11 @@ class TestConfStore(unittest.TestCase):
 
 
 async def run_test():
-    """
-    Firstly create the file and load sample json into it.
-    """
-    # setup_and_generate_sample_files()
+    """Firstly create the file and load sample json into it."""
+    setup_and_generate_sample_files()
     await asyncio.sleep(2)
     unittest.main()
 
 if __name__ == '__main__':
-    """
-    Start test
-    """
+    """Start test"""
     asyncio.run(run_test())
