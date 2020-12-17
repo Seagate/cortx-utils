@@ -21,15 +21,17 @@ from json.decoder import JSONDecodeError
 from cortx.utils.process import SimpleProcess
 from cortx.utils.kv_store.kv_store import KvStore
 
+
 class JsonKvStore(KvStore):
-    """  Represents a JSON File Store """ 
+    """  Represents a JSON File Store """
 
     name = "json"
 
     def __init__(self, store_loc, store_path):
         KvStore.__init__(self, store_loc, store_path)
-        with open(self._store_path, 'w+') as f:
-            pass
+        if not os.path.exists(self._store_path):
+            with open(self._store_path, 'w+') as f:
+                pass
 
     def load(self) -> dict:
         """ Reads from the file """
@@ -48,7 +50,7 @@ class JsonKvStore(KvStore):
 
 
 class YamlKvStore(KvStore):
-    """  Represents a YAML File Store """ 
+    """  Represents a YAML File Store """
 
     name = "yaml"
 
@@ -66,7 +68,7 @@ class YamlKvStore(KvStore):
 
 
 class TomlKvStore(KvStore):
-    """  Represents a TOML File Store """ 
+    """  Represents a TOML File Store """
 
     name = "toml"
 
@@ -85,7 +87,7 @@ class TomlKvStore(KvStore):
 
 
 class IniKvStore(KvStore):
-    """  Represents a YAML File Store """ 
+    """  Represents a YAML File Store """
 
     name = "ini"
 
@@ -106,7 +108,7 @@ class IniKvStore(KvStore):
 
 
 class DictKvStore(KvStore):
-    """ Represents Dictionary Without file """ 
+    """ Represents Dictionary Without file """
 
     name = "dict"
 
@@ -131,7 +133,7 @@ class JsonMessageKvStore(JsonKvStore):
         """ 
         Represents the Json Without FIle
         :param json_str: Json String to be processed :type: str
-        """ 
+        """
         JsonKvStore.__init__(self, store_loc, store_path)
 
     def load(self) -> dict:
@@ -144,7 +146,7 @@ class JsonMessageKvStore(JsonKvStore):
 
 
 class TextKvStore(KvStore):
-    """ Represents a TEXT File Store """ 
+    """ Represents a TEXT File Store """
 
     name = "text"
 
@@ -152,12 +154,12 @@ class TextKvStore(KvStore):
         KvStore.__init__(self, store_loc, store_path)
 
     def load(self) -> dict:
-        """ Loads data from text file """ 
+        """ Loads data from text file """
         with open(self._store_path, 'r') as f:
             return f.read()
 
     def dump(self, data) -> None:
-        """ Dump the data to desired file or to the source """ 
+        """ Dump the data to desired file or to the source """
         with open(self._store_path, 'w') as f:
             f.write(data)
 
@@ -186,11 +188,11 @@ class PillarStore(KvStore):
 
         except Exception as ex:
             raise KvError(errno.ENOENT, f"Cant get data for %s. %s.", \
-                key, ex)
+                          key, ex)
 
         if res is None:
             raise KvError(errno.ENOENT, f"Cant get data for %s. %s." \
-                f"Key not present")
+                                        f"Key not present")
 
         return res
 

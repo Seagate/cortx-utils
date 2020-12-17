@@ -19,6 +19,7 @@ import errno
 from cortx.utils.conf_store.error import ConfStoreError
 from cortx.utils.kv_store.kv_store import KvStore
 
+
 class ConfCache:
     """ In-memory configuration Data """
 
@@ -55,7 +56,7 @@ class ConfCache:
         elif type(data) == dict: 
             for key in data.keys():
                 nkey = key if pkey is None else "%s.%s" %(pkey, key)
-                if type(data[key]) == str: self._keys.append(nkey)
+                if type(data[key]) == str or type(data[key]) == int: self._keys.append(nkey)
                 else: self._refresh_keys(data[key], nkey)
         else:
             raise ConfStoreError(errno.ENOSYS, "Cant handle type %s", type(data))
@@ -93,13 +94,16 @@ class ConfCache:
         """ Sets the value into the DB for the given key """
         self._set(self._data, key, val)
         self._dirty = True
-        self._keys.append(key)
+        if key not in self._keys:
+            self._keys.append(key)
 
     def _delete(self, data: dict, key: str):
         k = key.split('.', 1)
         if k[0] not in data.keys(): return 
         if len(k) > 1: return self._delete(data[k[0]], k[1])
         del data[k[0]]
+        if key in self._keys:
+            self._keys.remove(key)
 
     def delete(self, key: str):
         """ Delets a given key from the config """

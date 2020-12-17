@@ -24,7 +24,7 @@ import unittest
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 from cortx.utils.schema.payload import Json
-from cortx.utils.conf_store import ConfStore
+from cortx.utils.conf_store import Conf
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 file_path = os.path.join(dir_path, 'test_conf_sample_json.json')
@@ -37,7 +37,7 @@ def setup_and_generate_sample_files():
         json.dump(sample_config, file, indent=2)
 
 
-conf_store = ConfStore()
+conf = Conf()
 
 
 def load_config(index, backend_url):
@@ -45,8 +45,8 @@ def load_config(index, backend_url):
     Instantiate and Load Config into constore
     """
     # conf_backend = KvStoreFactory.get_instance(backend_url)
-    conf_store.load(index, backend_url)
-    return conf_store
+    Conf.load(index, backend_url)
+    return Conf
 
 
 class TestConfStore(unittest.TestCase):
@@ -59,7 +59,7 @@ class TestConfStore(unittest.TestCase):
         Test by loading the give config file to in-memory
         """
         load_config('sspl_local', 'json:///tmp/file1.json')
-        result_data = conf_store.get('sspl_local', default_val=None)
+        result_data = Conf.get('sspl_local')
         self.assertTrue(True if 'bridge' in result_data else False)
 
     def test_conf_store_get_by_index_with_single_key(self):
@@ -67,7 +67,7 @@ class TestConfStore(unittest.TestCase):
         Test by getting the key from the loaded config
         """
         load_config('msg_local', 'json:///tmp/file1.json')
-        result_data = conf_store.get('msg_local', 'bridge', default_val=None)
+        result_data = Conf.get('msg_local', 'bridge')
         self.assertTrue(True if 'name' in result_data else False)
 
     def test_conf_store_get_by_index_with_chained_key(self):
@@ -75,7 +75,7 @@ class TestConfStore(unittest.TestCase):
         Test by getting the chained key(key1.key2.key3) from the loaded config
         """
         load_config('test_local', 'json:///tmp/file1.json')
-        result_data = conf_store.get('test_local', 'bridge.name', default_val=None)
+        result_data = Conf.get('test_local', 'bridge.name')
         self.assertEqual(result_data, 'Homebridge')
 
     def test_conf_store_get_wrong_key(self):
@@ -83,7 +83,7 @@ class TestConfStore(unittest.TestCase):
         Test by trying to get the wrong key from the loaded config
         """
         load_config('new_local', 'json:///tmp/file1.json')
-        result_data = conf_store.get('test_local', 'bridge.no_name_field', default_val=None)
+        result_data = Conf.get('test_local', 'bridge.no_name_field')
         self.assertEqual(result_data, None)
 
     def test_conf_store_set(self):
@@ -91,28 +91,28 @@ class TestConfStore(unittest.TestCase):
         Test by setting the key, value to given index and reading it back.
         """
         load_config('set_local', 'json:///tmp/file1.json')
-        conf_store.set('set_local', 'bridge.proxy', 'no')
-        result_data = conf_store.get('set_local', 'bridge.proxy', default_val=None)
+        Conf.set('set_local', 'bridge.proxy', 'no')
+        result_data = Conf.get('set_local', 'bridge.proxy')
         self.assertEqual(result_data, 'no')
 
     def test_conf_store_get_keys(self):
         load_config('get_keys_local', 'json:///tmp/file1.json')
-        result_data = conf_store.get_keys('get_keys_local')
+        result_data = Conf.get_keys('get_keys_local')
         self.assertTrue(True if len(result_data) > 1 else False)
 
     def test_conf_store_delete(self):
         load_config('delete_local', 'json:///tmp/file1.json')
-        conf_store.delete('delete_local', 'bridge.proxy')
-        result_data = conf_store.get('delete_local', 'bridge.proxy', default_val=None)
+        Conf.delete('delete_local', 'bridge.proxy')
+        result_data = Conf.get('delete_local', 'bridge.proxy', default_val=None)
         self.assertEqual(result_data, None)
 
     def test_conf_store_backup_and_save_a_copy(self):
         conf_file = 'json:/tmp/file1.json'
         load_config('csm_local', conf_file)
-        conf_store.load('backup', f"{conf_file}.bak")
-        conf_store.copy('csm_local', 'backup')
-        conf_store.save('backup')
-        result_data = conf_store.get_keys('backup')
+        Conf.load('backup', f"{conf_file}.bak")
+        Conf.copy('csm_local', 'backup')
+        Conf.save('backup')
+        result_data = Conf.get_keys('backup')
         self.assertTrue(True if len(result_data) > 1 else False)
 
 

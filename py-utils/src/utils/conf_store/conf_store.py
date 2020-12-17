@@ -15,9 +15,13 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import errno
+
 from cortx.utils.conf_store.error import ConfStoreError
 from cortx.utils.conf_store.conf_cache import ConfCache
 from cortx.utils.kv_store.kv_store import KvStoreFactory
+
+CONF_CACHE = ConfCache
 
 
 class ConfStore:
@@ -43,7 +47,7 @@ class ConfStore:
                 index)
 
         kv_store = KvStoreFactory.get_instance(kvs_url)
-        self._cache[index] = ConfCache(kv_store)
+        self._cache[index] = CONF_CACHE(kv_store)
 
     def save(self, index: str):
         """ Saves the given index configuration onto KV Store """
@@ -53,7 +57,7 @@ class ConfStore:
 
         self._cache[index].dump()
 
-    def get(self, index: str, key: str, default_val=None):
+    def get(self, index: str, key=None, default_val=None):
         """
         Paraeters:
         index   Configuration Domain ID where config key values are stored
@@ -68,9 +72,12 @@ class ConfStore:
         """
         if index not in self._cache.keys():
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
-                index)
+                                 index)
+        if key is not None:
+            val = self._cache[index].get(key)
+        else:
+            val = self._cache[index].get_data()
 
-        val = self._cache[index].get(key)
         return default_val if val is None else val
 
     def set(self, index: str, key: str, val):
@@ -127,3 +134,45 @@ class ConfStore:
                 self._cache[dst_index].set(key, self._cache[src_index].get(key))
             except:
                 break
+
+
+class Conf:
+    """ Singleton class instance based on conf_store """
+    _conf = None
+
+    @staticmethod
+    def load(index: str, url: str):
+        """ Loads Config from the given URL """
+        if Conf._conf is None: Conf._conf = ConfStore()
+        Conf._conf.load(index, url)
+
+    @staticmethod
+    def save(index: str):
+        """ Saves the configuration onto the backend store """
+        Conf._conf.save(index)
+
+    @staticmethod
+    def set(index: str, key: str, val):
+        """ Sets config value for the given key """
+        Conf._conf.set(index, key, val)
+
+    @staticmethod
+    def get(index: str, key: str):
+        """ Obtains config value for the given key """
+        return Conf._conf.get(index, key)
+
+    @staticmethod
+    def delete(index: str, key: str):
+        """ Deletes a given key from the config """
+        Conf._conf.delete(index, key)
+
+    @staticmethod
+    def backup(index: str, backup_index: str):
+        """ Creates a backup suffixed file for main file"""
+        Conf._conf.copy(index, backup_index)
+        Conf._conf.save(backup_index)
+
+    @staticmethod
+    def get_keys(index: str):
+        """ Obtains list of keys stored in the specific config store """
+        return Conf._conf.get_keys(index)
