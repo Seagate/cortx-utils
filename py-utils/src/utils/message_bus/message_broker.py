@@ -42,7 +42,7 @@ class MessageBrokerFactory:
         raise MessageBusError(errno.EINVAL, "Invalid broker type %s.", \
             broker_type)
 
-class MessageBroker:
+class MessageBroker:git 
     """ A common interface of Message Brokers"""
 
     def __init__(self, broker_conf):
