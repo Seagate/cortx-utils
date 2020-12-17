@@ -75,7 +75,8 @@ class TestConfStore(unittest.TestCase):
         Test by getting the chained key(key1.key2.key3) from the loaded config
         """
         load_config('test_local', 'json:///tmp/file1.json')
-        result_data = conf_store.get('test_local', 'bridge.name', default_val=None)
+        result_data = conf_store.get('test_local', 'bridge.name',
+                                     default_val=None)
         self.assertEqual(result_data, 'Homebridge')
 
     def test_conf_store_get_wrong_key(self):
@@ -83,7 +84,8 @@ class TestConfStore(unittest.TestCase):
         Test by trying to get the wrong key from the loaded config
         """
         load_config('new_local', 'json:///tmp/file1.json')
-        result_data = conf_store.get('test_local', 'bridge.no_name_field', default_val=None)
+        result_data = conf_store.get('test_local', 'bridge.no_name_field',
+                                     default_val=None)
         self.assertEqual(result_data, None)
 
     def test_conf_store_set(self):
@@ -92,7 +94,8 @@ class TestConfStore(unittest.TestCase):
         """
         load_config('set_local', 'json:///tmp/file1.json')
         conf_store.set('set_local', 'bridge.proxy', 'no')
-        result_data = conf_store.get('set_local', 'bridge.proxy', default_val=None)
+        result_data = conf_store.get('set_local', 'bridge.proxy',
+                                     default_val=None)
         self.assertEqual(result_data, 'no')
 
     def test_conf_store_get_keys(self):
@@ -103,7 +106,8 @@ class TestConfStore(unittest.TestCase):
     def test_conf_store_delete(self):
         load_config('delete_local', 'json:///tmp/file1.json')
         conf_store.delete('delete_local', 'bridge.proxy')
-        result_data = conf_store.get('delete_local', 'bridge.proxy', default_val=None)
+        result_data = conf_store.get('delete_local', 'bridge.proxy',
+                                     default_val=None)
         self.assertEqual(result_data, None)
 
     def test_conf_store_backup_and_save_a_copy(self):

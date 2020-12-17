@@ -87,7 +87,7 @@ class TomlKvStore(KvStore):
 
 
 class IniKvStore(KvStore):
-    """  Represents a YAML File Store """
+    """  Represents a Ini File Store """
 
     name = "ini"
 
