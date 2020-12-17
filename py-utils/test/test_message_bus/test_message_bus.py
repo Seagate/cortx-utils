@@ -29,7 +29,9 @@ class TestMessage(unittest.TestCase):
     def test_send(self):
         """Test Send Message."""
         messages = []
-        producer = MessageProducer(TestMessage.message_bus, producer_id="sspl_sensor", message_type="Alert")
+        producer = MessageProducer(TestMessage.message_bus, \
+            producer_id="sspl_sensor", message_type="Alert")
+
         self.assertIsNotNone(producer, "Producer not found")
         for i in range(0, 1000):
             messages.append("This is message" + str(i))
@@ -39,9 +41,10 @@ class TestMessage(unittest.TestCase):
 
     def test_receive(self):
         """Test Receive Message."""
-        consumer = MessageConsumer(TestMessage.message_bus, consumer_id="sspl_sensor",
-                                   consumer_group="sspl", message_type=['Alert'],
-                                   auto_ack=False, offset='latest')
+        consumer = MessageConsumer(TestMessage.message_bus, \
+            consumer_id="sspl_sensor", consumer_group="sspl", \
+            message_type=['Alert'], auto_ack=True, offset='latest')
+
         self.assertIsNotNone(consumer, "Consumer not found")
         messages = consumer.receive()
         self.assertEqual(len(list(messages)), 1000)
