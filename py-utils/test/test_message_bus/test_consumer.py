@@ -29,7 +29,7 @@ class TestMessage(unittest.TestCase):
         message_bus = MessageBus()
         consumer = MessageConsumer(message_bus, consumer_id='sel', \
             consumer_group='sel', message_type=['Sel'], auto_ack=False, \
-            offset='earliest')
+            offset='latest')
 
         self.assertIsNotNone(consumer, "Consumer not found")
         messages = consumer.receive()

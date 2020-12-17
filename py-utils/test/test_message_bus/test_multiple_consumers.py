@@ -26,19 +26,6 @@ class TestMessage(unittest.TestCase):
 
     message_bus = MessageBus()
 
-    def test_send(self):
-        """ Test Send Message. """
-        messages = []
-        producer = MessageProducer(TestMessage.message_bus, producer_id='sspl',\
-            message_type='test_type')
-
-        self.assertIsNotNone(producer, "Producer not found")
-        for i in range(0, 1000):
-            messages.append("This is message" + str(i))
-        self.assertEqual(len(messages), 1000)
-        self.assertIsInstance(messages, list)
-        producer.send(messages)
-
     def test_consumer_one(self):
         """ Test Receive Message for consumer group 1 """
         consumer = MessageConsumer(TestMessage.message_bus, \
@@ -47,7 +34,7 @@ class TestMessage(unittest.TestCase):
 
         self.assertIsNotNone(consumer, "Consumer not found")
         messages = consumer.receive()
-        self.assertEqual(len(list(messages)), 1000)
+        self.assertEqual(len(list(messages)), 10)
         self.assertIsNotNone(messages, "Messages not found")
         for message in messages:
             print(message)
@@ -61,7 +48,7 @@ class TestMessage(unittest.TestCase):
 
         self.assertIsNotNone(consumer, "Consumer not found")
         messages = consumer.receive()
-        self.assertEqual(len(list(messages)), 1000)
+        self.assertEqual(len(list(messages)), 10)
         self.assertIsNotNone(messages, "Messages not found")
         for message in messages:
             print(message)
