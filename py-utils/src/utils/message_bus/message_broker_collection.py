@@ -23,7 +23,8 @@ from confluent_kafka.admin import AdminClient
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus.message_broker import MessageBroker
 
-ConsumerRecord = namedtuple("ConsumerRecord", ["message_type", "message", "partition", "offset", "key"])
+ConsumerRecord = namedtuple("ConsumerRecord", ["message_type", "message",\
+                    "partition", "offset", "key"])
 
 
 class KafkaMessageBroker(MessageBroker):
@@ -38,14 +39,20 @@ class KafkaMessageBroker(MessageBroker):
         kafka_conf = {'bootstrap.servers': self._servers}
         self._admin = AdminClient(kafka_conf)
 
-        self._clients = {'producer': None, 'consumer': None}
+        self._clients = {'producer': {}, 'consumer': {}}
+
 
     def init_client(self, client_type: str, **client_conf):
         """ Obtain Kafka based Producer/Consumer """
 
         """ Validate and return if client already exists """
         if client_type not in self._clients.keys():
-            raise MessageBusError(errno.EINVAL, "Invalid client type %s", client_type)
+            raise MessageBusError(errno.EINVAL, "Invalid client type %s", \
+                client_type)
+
+        if client_conf['client_id'] in self._clients[client_type].keys():
+            if self._clients[client_type][client_conf['client_id']] != {}:
+                return
 
         kafka_conf = {}
         kafka_conf['bootstrap.servers'] = self._servers
@@ -53,12 +60,13 @@ class KafkaMessageBroker(MessageBroker):
 
         if client_type == 'producer':
             producer = Producer(**kafka_conf)
-            self._clients[client_type] = producer
+            self._clients[client_type][client_conf['client_id']] = producer
 
         else:
             for entry in ['offset', 'consumer_group', 'message_type', 'auto_ack']:
                 if entry not in client_conf.keys():
-                    raise MessageBusError(errno.EINVAL, "Missing conf entry %s", entry)
+                    raise MessageBusError(errno.EINVAL, "Missing conf entry %s"\
+                        , entry)
 
             kafka_conf['enable.auto.commit'] = client_conf['auto_ack']
             kafka_conf['auto.offset.reset'] = client_conf['offset']
@@ -66,11 +74,11 @@ class KafkaMessageBroker(MessageBroker):
 
             consumer = Consumer(**kafka_conf)
             consumer.subscribe(client_conf['message_type'])
-            self._clients[client_type] = consumer
+            self._clients[client_type][client_conf['client_id']] = consumer
 
-    def send(self, message_type: str, method: str, messages: list):
+    def send(self, message_type: str, method: str, messages: list, client_id: str):
         """ Sends list of messages to Kafka cluster(s) """
-        producer = self._clients['producer']
+        producer = self._clients['producer'][client_id]
         if producer is None:
             raise MessageBusError(errno.EINVAL, "init_client is not called")
 
@@ -80,9 +88,9 @@ class KafkaMessageBroker(MessageBroker):
                 producer.flush()
         producer.flush()
 
-    def receive(self, timeout=0.5) -> list:
+    def receive(self, client_id, timeout=0.5) -> list:
         """ Receives list of messages to Kafka cluster(s) """
-        consumer = self._clients['consumer']
+        consumer = self._clients['consumer'][client_id]
         if consumer is None:
             raise MessageBusError(errno.EINVAL, "init_client is not called")
 
@@ -92,9 +100,11 @@ class KafkaMessageBroker(MessageBroker):
                 if msg is None:
                     continue
                 if msg.error():
-                    raise MessageBusError(errno.ECONN, "Cant receive. %s", msg.error())
+                    raise MessageBusError(errno.ECONN, "Cant receive. %s", \
+                        msg.error())
                 else:
-                    yield ConsumerRecord(msg.topic(), msg.value(), msg.partition(), msg.offset(), str(msg.key()))
+                    yield ConsumerRecord(msg.topic(), msg.value(), \
+                        msg.partition(), msg.offset(), str(msg.key()))
 
         except KeyboardInterrupt:
             sys.stderr.write('%% Aborted by user\n')

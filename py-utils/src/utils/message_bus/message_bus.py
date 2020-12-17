@@ -35,21 +35,23 @@ class MessageBus:
             broker_type = self._broker_conf['type']
 
         except Exception as e:
-            raise MessageBusError(errno.EINVAL, "Invalid conf in %s. %s", self.conf_file, e)
+            raise MessageBusError(errno.EINVAL, "Invalid conf in %s. %s", \
+                self.conf_file, e)
 
-        self._broker = MessageBrokerFactory.get_instance(broker_type, self._broker_conf)
+        self._broker = MessageBrokerFactory.get_instance(broker_type, \
+                self._broker_conf)
 
     def init_client(self, client_type: str, **client_conf: dict):
         """ To create producer/consumer client based on the configurations """
         self._broker.init_client(client_type, **client_conf)
 
-    def send(self, message_type: str, method: str, messages: list):
+    def send(self, message_type: str, method: str, messages: list, client_id: str):
         """ Sends list of messages to the configured message broker """
-        self._broker.send(message_type, method, messages)
+        self._broker.send(message_type, method, messages, client_id)
 
-    def receive(self) -> list:
+    def receive(self, client_id: str) -> list:
         """ Receives messages from the configured message broker """
-        return self._broker.receive()
+        return self._broker.receive(client_id)
 
     def ack(self):
         """ Provides acknowledgement on offset """

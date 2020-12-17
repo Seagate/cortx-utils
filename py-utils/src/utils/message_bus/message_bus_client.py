@@ -21,7 +21,8 @@ from cortx.utils.message_bus import MessageBus
 class MessageBusClient:
     """ common infrastructure for producer and consumer """
 
-    def __init__(self, message_bus: MessageBus, client_type: str, **client_conf: dict):
+    def __init__(self, message_bus: MessageBus, client_type: str, \
+        **client_conf: dict):
         self._message_bus = message_bus
         self._message_bus.init_client(client_type, **client_conf)
         self._client_conf = client_conf
@@ -34,10 +35,12 @@ class MessageBusClient:
     def send(self, messages: str):
         message_type = self._get_conf('message_type')
         method = self._get_conf('method')
-        self._message_bus.send(message_type, method, messages)
+        client_id = self._get_conf('client_id')
+        self._message_bus.send(message_type, method, messages, client_id)
 
     def receive(self) -> list:
-        return self._message_bus.receive()
+        client_id = self._get_conf('client_id')
+        return self._message_bus.receive(client_id)
 
     def ack(self):
         self._message_bus.ack()
@@ -46,8 +49,8 @@ class MessageBusClient:
 class MessageProducer(MessageBusClient):
     """ A client that publishes messages """
 
-    def __init__(self, message_bus: MessageBus, producer_id: str,
-                 message_type: str, method: str = None):
+    def __init__(self, message_bus: MessageBus, producer_id: str, \
+        message_type: str, method: str = None):
         """ Initialize a Message Producer
 
         Parameters:
@@ -56,15 +59,15 @@ class MessageProducer(MessageBusClient):
         message_type    This is essentially equivalent to the
                         queue/topic name. For e.g. ["Alert"]
         """
-        super().__init__(message_bus, client_type='producer', client_id=producer_id,
-                         message_type=message_type, method=method)
+        super().__init__(message_bus, client_type='producer', \
+            client_id=producer_id, message_type=message_type, method=method)
 
 
 class MessageConsumer(MessageBusClient):
     """ A client that consumes messages """
 
-    def __init__(self, message_bus: MessageBus, consumer_id: str, consumer_group: str,
-                 message_type: str, auto_ack: str, offset: str):
+    def __init__(self, message_bus: MessageBus, consumer_id: str, \
+        consumer_group: str, message_type: str, auto_ack: str, offset: str):
         """ Initialize a Message Consumer
 
         Parameters:
@@ -78,6 +81,6 @@ class MessageConsumer(MessageBusClient):
         offset          Can be set to "earliest" (default) or "latest".
                         ("earliest" will cause messages to be read from the beginning)
         """
-        super().__init__(message_bus, client_type='consumer', client_id=consumer_id,
-                         consumer_group=consumer_group, message_type=message_type,
-                         auto_ack=auto_ack, offset=offset)
+        super().__init__(message_bus, client_type='consumer', \
+            client_id=consumer_id, consumer_group=consumer_group, \
+            message_type=message_type, auto_ack=auto_ack, offset=offset)
