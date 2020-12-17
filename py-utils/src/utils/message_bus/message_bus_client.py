@@ -49,8 +49,8 @@ class MessageBusClient:
 class MessageProducer(MessageBusClient):
     """ A client that publishes messages """
 
-    def __init__(self, message_bus: MessageBus, producer_id: str,
-                 message_type: str, method: str = None):
+    def __init__(self, message_bus: MessageBus, producer_id: str, \
+        message_type: str, method: str = None):
         """ Initialize a Message Producer
 
         Parameters:
@@ -59,8 +59,8 @@ class MessageProducer(MessageBusClient):
         message_type    This is essentially equivalent to the
                         queue/topic name. For e.g. ["Alert"]
         """
-        super().__init__(message_bus, client_type='producer', client_id=producer_id,
-                         message_type=message_type, method=method)
+        super().__init__(message_bus, client_type='producer', \
+            client_id=producer_id, message_type=message_type, method=method)
 
     def send(self, messages: list):
         """ Sends list of messages onto the Message Bus """
@@ -70,8 +70,8 @@ class MessageProducer(MessageBusClient):
 class MessageConsumer(MessageBusClient):
     """ A client that consumes messages """
 
-    def __init__(self, message_bus: MessageBus, consumer_id: str, consumer_group: str,
-                 message_type: str, auto_ack: str, offset: str):
+    def __init__(self, message_bus: MessageBus, consumer_id: str, \
+        consumer_group: str, message_type: str, auto_ack: str, offset: str):
         """ Initialize a Message Consumer
 
         Parameters:

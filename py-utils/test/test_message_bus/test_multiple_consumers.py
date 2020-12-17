@@ -65,7 +65,7 @@ class TestMessage(unittest.TestCase):
         self.assertIsNotNone(messages, "Messages not found")
         for message in messages:
             print(message)
-        consumer.ack()
+        #consumer.ack()
 
 
 if __name__ == '__main__':
