@@ -15,16 +15,11 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import sys
 import errno
-from collections import namedtuple
 from confluent_kafka import Producer, Consumer
 from confluent_kafka.admin import AdminClient
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus.message_broker import MessageBroker
-
-ConsumerRecord = namedtuple("ConsumerRecord", ["message_type", "message", \
-                    "partition", "offset", "key"])
 
 
 class KafkaMessageBroker(MessageBroker):
@@ -99,19 +94,16 @@ class KafkaMessageBroker(MessageBroker):
                 initialized", consumer_id)
 
         try:
-            while True:
-                msg = consumer.poll(timeout=timeout)
-                if msg is None:
-                    continue
-                if msg.error():
-                    raise MessageBusError(errno.ECONN, "Cant receive. %s", \
-                        msg.error())
-                else:
-                    yield ConsumerRecord(msg.topic(), msg.value(), \
-                        msg.partition(), msg.offset(), str(msg.key()))
-
+            msg = consumer.poll(timeout=timeout)
+            if msg is None:
+                pass
+            if msg.error():
+                raise MessageBusError(errno.ECONN, "Cant receive. %s", \
+                    msg.error())
+            else:
+                return msg.value()
         except KeyboardInterrupt:
-            pass
+            raise MessageBusError(errno.EINVAL, "Cant Recieve %s")
 
     def ack(self, consumer_id: str):
         """ To manually commit offset """
@@ -120,4 +112,3 @@ class KafkaMessageBroker(MessageBroker):
             raise MessageBusError(errno.EINVAL, "Consumer %s is not \
                 initialized", consumer_id)
         consumer.commit()
-        consumer.close()

@@ -43,15 +43,19 @@ class TestMessage(unittest.TestCase):
         """Test Receive Message."""
         consumer = MessageConsumer(TestMessage.message_bus, \
             consumer_id='sspl_sensors', consumer_group='sspl', \
-            message_type=['Alert'], auto_ack=True, offset='latest')
+            message_type=['Alert'], auto_ack=False, offset='latest')
 
         self.assertIsNotNone(consumer, "Consumer not found")
-        messages = consumer.receive()
-        self.assertEqual(len(list(messages)), 1000)
-        self.assertIsNotNone(messages, "Messages not found")
-        for message in messages:
-            print(message)
-        consumer.ack()
+        count = 0
+        while True:
+            try:
+                message = consumer.receive()
+                count += 1
+                self.assertIsNotNone(message, "Message not found")
+                consumer.ack()
+            except Exception as e:
+                self.assertEqual(count, 1000)
+                break
 
 
 if __name__ == '__main__':

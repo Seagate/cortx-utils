@@ -30,29 +30,37 @@ class TestMessage(unittest.TestCase):
         """ Test Receive Message for consumer group 1 """
         consumer = MessageConsumer(TestMessage.message_bus, \
             consumer_id='sspl_sensor', consumer_group='c1', \
-            message_type=['test_type'], auto_ack=True, offset='latest')
+            message_type=['test_type'], auto_ack=False, offset='latest')
 
         self.assertIsNotNone(consumer, "Consumer not found")
-        messages = consumer.receive()
-        self.assertEqual(len(list(messages)), 10)
-        self.assertIsNotNone(messages, "Messages not found")
-        for message in messages:
-            print(message)
-        consumer.ack()
+        count = 0
+        while True:
+            try:
+                message = consumer.receive()
+                count += 1
+                self.assertIsNotNone(message, "Message not found")
+                consumer.ack()
+            except Exception as e:
+                self.assertEqual(count, 10)
+                break
 
     def test_consumer_two(self):
         """ Test Receive Message for consumer group 2 """
         consumer = MessageConsumer(TestMessage.message_bus, \
             consumer_id='sspl_sensor1', consumer_group='c3', \
-            message_type=['test_type'], auto_ack=True, offset='latest')
+            message_type=['test_type'], auto_ack=False, offset='latest')
 
         self.assertIsNotNone(consumer, "Consumer not found")
-        messages = consumer.receive()
-        self.assertEqual(len(list(messages)), 10)
-        self.assertIsNotNone(messages, "Messages not found")
-        for message in messages:
-            print(message)
-        consumer.ack()
+        count = 0
+        while True:
+            try:
+                message = consumer.receive()
+                count += 1
+                self.assertIsNotNone(message, "Message not found")
+                consumer.ack()
+            except Exception as e:
+                self.assertEqual(count, 10)
+                break
 
 
 if __name__ == '__main__':

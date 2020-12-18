@@ -32,10 +32,13 @@ class TestMessage(unittest.TestCase):
             offset='latest')
 
         self.assertIsNotNone(consumer, "Consumer not found")
-        messages = consumer.receive()
-        self.assertIsNotNone(messages, "Messages not found")
-        for message in messages:
-            print(message)
+        while True:
+            try:
+                message = consumer.receive()
+                self.assertIsNotNone(message, "Message not found")
+                consumer.ack()
+            except Exception as e:
+                break
 
 
 if __name__ == '__main__':
