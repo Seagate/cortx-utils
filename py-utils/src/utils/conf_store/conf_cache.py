@@ -80,9 +80,15 @@ class ConfCache:
         if k[0] not in data.keys(): return None
         return self._get(data[k[0]], k[1]) if len(k) > 1 else data[k[0]]
 
-    def get(self, key: str):
+    def get(self, key: str = None):
         """ Returns the value corresponding to the key """
-        return self._get(self._data, key)
+        if key is None:
+            return self._data
+        if key is not None:
+            val = self._get(self._data, key)
+        else:
+            val = self.get_data()
+        return val
 
     def _set(self, data: dict, key: str, val):
         k = key.split('.', 1)

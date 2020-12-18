@@ -178,7 +178,8 @@ class PillarStore(KvStore):
         out, err, rc = cmd_proc.run()
 
         if rc != 0:
-            if rc == 127: err = f"salt command not found"
+            if rc == 127:
+                err = f"salt command not found"
             raise KvError(rc, f"Cant get data for %s. %s.", key, err)
 
         res = None
@@ -187,13 +188,10 @@ class PillarStore(KvStore):
             res = res['local']
 
         except Exception as ex:
-            raise KvError(errno.ENOENT, f"Cant get data for %s. %s.", \
-                          key, ex)
-
+            raise KvError(errno.ENOENT, f"Cant get data for %s. %s.", key, ex)
         if res is None:
-            raise KvError(errno.ENOENT, f"Cant get data for %s. %s." \
+            raise KvError(errno.ENOENT, f"Cant get data for %s. %s."
                                         f"Key not present")
-
         return res
 
     def set(self, key, value):

@@ -21,8 +21,6 @@ from cortx.utils.conf_store.error import ConfStoreError
 from cortx.utils.conf_store.conf_cache import ConfCache
 from cortx.utils.kv_store.kv_store import KvStoreFactory
 
-CONF_CACHE = ConfCache
-
 
 class ConfStore:
     """ Configuration Store based on the KvStore """
@@ -47,7 +45,7 @@ class ConfStore:
                 index)
 
         kv_store = KvStoreFactory.get_instance(kvs_url)
-        self._cache[index] = CONF_CACHE(kv_store)
+        self._cache[index] = ConfCache(kv_store)
 
     def save(self, index: str):
         """ Saves the given index configuration onto KV Store """
@@ -73,11 +71,7 @@ class ConfStore:
         if index not in self._cache.keys():
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
                                  index)
-        if key is not None:
-            val = self._cache[index].get(key)
-        else:
-            val = self._cache[index].get_data()
-
+        val = self._cache[index].get(key)
         return default_val if val is None else val
 
     def set(self, index: str, key: str, val):
