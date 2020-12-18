@@ -15,23 +15,33 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import os
 import json, toml, yaml, configparser
+from json.decoder import JSONDecodeError
 from cortx.utils.process import SimpleProcess
 from cortx.utils.kv_store.kv_store import KvStore
 
 
 class JsonKvStore(KvStore):
-    """  Represents a JSON File Store """ 
+    """  Represents a JSON File Store """
 
     name = "json"
 
     def __init__(self, store_loc, store_path):
         KvStore.__init__(self, store_loc, store_path)
+        if not os.path.exists(self._store_path):
+            with open(self._store_path, 'w+') as f:
+                pass
 
     def load(self) -> dict:
         """ Reads from the file """
+        data = {}
         with open(self._store_path, 'r') as f:
-            return json.load(f)
+            try:
+                data = json.load(f)
+            except JSONDecodeError:
+                pass
+        return data
 
     def dump(self, data) -> None:
         """ Saves data onto the file """
@@ -40,7 +50,7 @@ class JsonKvStore(KvStore):
 
 
 class YamlKvStore(KvStore):
-    """  Represents a YAML File Store """ 
+    """  Represents a YAML File Store """
 
     name = "yaml"
 
@@ -58,7 +68,7 @@ class YamlKvStore(KvStore):
 
 
 class TomlKvStore(KvStore):
-    """  Represents a TOML File Store """ 
+    """  Represents a TOML File Store """
 
     name = "toml"
 
@@ -77,7 +87,7 @@ class TomlKvStore(KvStore):
 
 
 class IniKvStore(KvStore):
-    """  Represents a YAML File Store """ 
+    """  Represents a Ini File Store """
 
     name = "ini"
 
@@ -98,7 +108,7 @@ class IniKvStore(KvStore):
 
 
 class DictKvStore(KvStore):
-    """ Represents Dictionary Without file """ 
+    """ Represents Dictionary Without file """
 
     name = "dict"
 
@@ -120,10 +130,10 @@ class JsonMessageKvStore(JsonKvStore):
     name = "jsonmessage"
 
     def __init__(self, store_loc, store_path):
-        """ 
+        """
         Represents the Json Without FIle
         :param json_str: Json String to be processed :type: str
-        """ 
+        """
         JsonKvStore.__init__(self, store_loc, store_path)
 
     def load(self) -> dict:
@@ -136,7 +146,7 @@ class JsonMessageKvStore(JsonKvStore):
 
 
 class TextKvStore(KvStore):
-    """ Represents a TEXT File Store """ 
+    """ Represents a TEXT File Store """
 
     name = "text"
 
@@ -144,12 +154,12 @@ class TextKvStore(KvStore):
         KvStore.__init__(self, store_loc, store_path)
 
     def load(self) -> dict:
-        """ Loads data from text file """ 
+        """ Loads data from text file """
         with open(self._store_path, 'r') as f:
             return f.read()
 
     def dump(self, data) -> None:
-        """ Dump the data to desired file or to the source """ 
+        """ Dump the data to desired file or to the source """
         with open(self._store_path, 'w') as f:
             f.write(data)
 
@@ -168,7 +178,8 @@ class PillarStore(KvStore):
         out, err, rc = cmd_proc.run()
 
         if rc != 0:
-            if rc == 127: err = f"salt command not found"
+            if rc == 127:
+                err = f"salt command not found"
             raise KvError(rc, f"Cant get data for %s. %s.", key, err)
 
         res = None
@@ -177,13 +188,10 @@ class PillarStore(KvStore):
             res = res['local']
 
         except Exception as ex:
-            raise KvError(errno.ENOENT, f"Cant get data for %s. %s.", \
-                key, ex)
-
+            raise KvError(errno.ENOENT, f"Cant get data for %s. %s.", key, ex)
         if res is None:
-            raise KvError(errno.ENOENT, f"Cant get data for %s. %s." \
-                f"Key not present")
-
+            raise KvError(errno.ENOENT, f"Cant get data for %s. %s."
+                                        f"Key not present")
         return res
 
     def set(self, key, value):
