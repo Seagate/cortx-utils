@@ -111,4 +111,4 @@ class KafkaMessageBroker(MessageBroker):
         if consumer is None:
             raise MessageBusError(errno.EINVAL, "Consumer %s is not \
                 initialized", consumer_id)
-        consumer.commit()
+        consumer.commit(async=False)
