@@ -52,7 +52,7 @@ class ConfCache:
     def _refresh_keys(self, data, pkey: str = None):
         if type(data) == list:
             for i in range(len(data)):
-                self._keys.append("%s[%d]" %(pkey, i))
+                self._keys.append("%s[%d]" % (pkey, i))
         elif type(data) == dict: 
             for key in data.keys():
                 nkey = key if pkey is None else "%s.%s" %(pkey, key)
@@ -77,13 +77,12 @@ class ConfCache:
     def _get(self, data: dict, key: str):
         """ Obtain value for the given key """
         k = key.split('.', 1)
-        if k[0] not in data.keys(): return None
+        if k[0] not in data.keys():
+            return None
         return self._get(data[k[0]], k[1]) if len(k) > 1 else data[k[0]]
 
     def get(self, key: str = None):
         """ Returns the value corresponding to the key """
-        if key is None:
-            return self._data
         if key is not None:
             val = self._get(self._data, key)
         else:

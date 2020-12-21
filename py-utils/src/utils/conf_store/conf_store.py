@@ -105,7 +105,7 @@ class ConfStore:
 
         self._cache[index].delete(key)
 
-    def copy(self, src_index: str, dst_index: str, overwrite: bool = False):
+    def copy(self, src_index: str, dst_index: str, key_list: list = None):
         """
         Copies one config domain to the other and saves
         
@@ -128,6 +128,10 @@ class ConfStore:
                 self._cache[dst_index].set(key, self._cache[src_index].get(key))
             except:
                 break
+        if key_list is None:
+            key_list = self._cache[src_index].get_keys()
+        for key in key_list:
+            self._cache[dst_index].set(key, self._cache[src_index].get(key))
 
 
 class Conf:
@@ -160,11 +164,17 @@ class Conf:
         """ Deletes a given key from the config """
         Conf._conf.delete(index, key)
 
+    # @staticmethod
+    # def backup(index: str, backup_index: str):
+    #     """ Creates a backup suffixed file for main file"""
+    #     Conf._conf.copy(index, backup_index)
+    #     Conf._conf.save(backup_index)
+
     @staticmethod
-    def backup(index: str, backup_index: str):
-        """ Creates a backup suffixed file for main file"""
-        Conf._conf.copy(index, backup_index)
-        Conf._conf.save(backup_index)
+    def copy(src_index: str, dst_index: str, key_list: list = None):
+        """ Creates a Copy suffixed file for main file"""
+        Conf._conf.copy(src_index, dst_index, key_list)
+        Conf._conf.save(dst_index)
 
     @staticmethod
     def get_keys(index: str):
