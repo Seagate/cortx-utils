@@ -10,6 +10,22 @@ pipeline {
         timestamps() 
     }
 
+    parameters {
+				
+        choice(
+            name: 'branch', 
+            choices: ['stable', 'main', 'cortx-1.0'],
+            description: 'Branch Name'
+        )
+        
+         choice(
+            name: 'os_version', 
+            choices: ['centos-7.8.2003', 'rhel-7.7.1908'],
+            description: 'OS Version'
+        )
+	}	
+	
+
     stages {
 
         stage('Checkout Script') {
@@ -23,7 +39,7 @@ pipeline {
         stage('Generate Report') {
             steps {             
                 script {    
-                    sh "bash scripts/rpm_validation/rpm-validator.sh"
+                    sh "bash scripts/release_support/rpm-validator.sh $branch $os_version"
                     publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: '', reportFiles: 'rpm_validation.html', reportName: 'RMP Check', reportTitles: ''])
                 }
             }
