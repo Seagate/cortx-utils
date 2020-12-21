@@ -83,10 +83,7 @@ class ConfCache:
 
     def get(self, key: str = None):
         """ Returns the value corresponding to the key """
-        if key is not None:
-            val = self._get(self._data, key)
-        else:
-            val = self.get_data()
+        val = self._get(self._data, key)
         return val
 
     def _set(self, data: dict, key: str, val):

@@ -53,7 +53,7 @@ class TestConfStore(unittest.TestCase):
     def test_conf_store_load_and_get(self):
         """Test by loading the give config file to in-memory"""
         load_config('sspl_local', 'json:///tmp/file1.json')
-        result_data = conf_store.get('sspl_local', default_val=None)
+        result_data = conf_store.get_data('sspl_local')
         self.assertTrue(True if 'bridge' in result_data else False)
 
     def test_conf_store_get_by_index_with_single_key(self):

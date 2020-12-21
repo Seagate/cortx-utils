@@ -55,7 +55,7 @@ class ConfStore:
 
         self._cache[index].dump()
 
-    def get(self, index: str, key=None, default_val=None):
+    def get(self, index: str, key: str, default_val=None):
         """
         Paraeters:
         index   Configuration Domain ID where config key values are stored
@@ -71,6 +71,9 @@ class ConfStore:
         if index not in self._cache.keys():
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
                                  index)
+        if key is None:
+            raise ConfStoreError(errno.EINVAL, "can't able to find config key "
+                                               "%s in loaded config", key)
         val = self._cache[index].get(key)
         return default_val if val is None else val
 
@@ -96,6 +99,9 @@ class ConfStore:
         return self._cache[index].get_keys()
 
     def get_data(self, index: str):
+        if index not in self._cache.keys():
+            raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
+                                 index)
         return self._cache[index].get_data()
 
     def delete(self, index: str, key: str):
