@@ -15,9 +15,4 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-__title__ = 'message_bus'
-
-from cortx.utils.message_bus.message_bus import MessageBus
-from cortx.utils.message_bus.message_bus_client import MessageProducer, MessageConsumer
-from cortx.utils.message_bus.message_broker import MessageBroker, MessageBrokerFactory
-from cortx.utils.message_bus.error import MessageBusError
+from cortx.template.singleton import Singleton
