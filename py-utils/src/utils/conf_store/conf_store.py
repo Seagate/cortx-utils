@@ -170,12 +170,6 @@ class Conf:
         """ Deletes a given key from the config """
         Conf._conf.delete(index, key)
 
-    # @staticmethod
-    # def backup(index: str, backup_index: str):
-    #     """ Creates a backup suffixed file for main file"""
-    #     Conf._conf.copy(index, backup_index)
-    #     Conf._conf.save(backup_index)
-
     @staticmethod
     def copy(src_index: str, dst_index: str, key_list: list = None):
         """ Creates a Copy suffixed file for main file"""
