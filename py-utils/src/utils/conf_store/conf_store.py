@@ -127,13 +127,6 @@ class ConfStore:
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
                 dst_index)
 
-        i_src = iter(self._cache[src_index])
-        while True:
-            try:
-                key = next(i_src)
-                self._cache[dst_index].set(key, self._cache[src_index].get(key))
-            except:
-                break
         if key_list is None:
             key_list = self._cache[src_index].get_keys()
         for key in key_list:
