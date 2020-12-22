@@ -121,7 +121,8 @@ class TestConfStore(unittest.TestCase):
         self.assertEqual(result_data, 'Homebridge')
 
     def test_conf_store_get_by_wrong_delimiter(self):
-        """Test by getting the key from the loaded config"""
+        """Test negative case by getting the wrong type key
+        from the loaded config"""
         load_config('sspl_wrg_deli', 'json:///tmp/file1.json')
         try:
             conf_store.get('sspl_wrg_deli', 'bridge>name', key_delimiter=type)
@@ -129,7 +130,8 @@ class TestConfStore(unittest.TestCase):
             self.assertEqual(err.__class__, ConfStoreError)
 
     def test_conf_store_get_by_mismatch_delimiter(self):
-        """Test by getting the key from the loaded config"""
+        """Test negative case by getting the wrong key
+        delimited from the loaded config"""
         load_config('sspl_none', 'json:///tmp/file1.json')
         result_data = conf_store.get('sspl_none', 'bridge>name',
                                      key_delimiter='.')

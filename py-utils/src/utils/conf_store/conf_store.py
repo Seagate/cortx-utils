@@ -70,6 +70,8 @@ class ConfStore:
 
         Return Value:
                 Return type will be dict or string based of key
+        key_delimiter : defines how to split the given key chain
+        key1>key2 or key1.key2
         """
         if index not in self._cache.keys():
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
@@ -91,6 +93,8 @@ class ConfStore:
                 1. "xyz" - Top Level Key
                 2. "x.y.z" - Key 'z' under x and y. Nested Structure.
         val     Value to be set. Can be string or dict
+        key_delimiter : defines how to split the given key chain
+        key1>key2 or key1.key2
         """
         if index not in self._cache.keys():
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
@@ -112,7 +116,11 @@ class ConfStore:
         return self._cache[index].get_data()
 
     def delete(self, index: str, key: str, key_delimiter: str = None):
-        """ Delets a given key from the config """
+        """
+        Delets a given key from the config
+        key_delimiter : defines how to split the given key chain
+        key1>key2 or key1.key2
+        """
         if index not in self._cache.keys():
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
                 index)
