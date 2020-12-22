@@ -23,7 +23,7 @@ import unittest
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 from cortx.utils.schema.payload import Json
-from cortx.utils.conf_store import ConfStore
+from cortx.utils.conf_store import ConfStore, ConfStoreError
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 file_path = os.path.join(dir_path, 'test_conf_sample_json.json')
@@ -112,6 +112,28 @@ class TestConfStore(unittest.TestCase):
         conf_store.save('backup')
         result_data = conf_store.get_keys('backup')
         self.assertTrue(True if len(result_data) > 1 else False)
+
+    def test_conf_store_get_by_configured_delimiter(self):
+        """Test by getting the key from the loaded config"""
+        load_config('sspl_delimited', 'json:///tmp/file1.json')
+        result_data = conf_store.get('sspl_delimited', 'bridge>name',
+                                     key_delimiter='>')
+        self.assertEqual(result_data, 'Homebridge')
+
+    def test_conf_store_get_by_wrong_delimiter(self):
+        """Test by getting the key from the loaded config"""
+        load_config('sspl_wrg_deli', 'json:///tmp/file1.json')
+        try:
+            conf_store.get('sspl_wrg_deli', 'bridge>name', key_delimiter=type)
+        except Exception as err:
+            self.assertEqual(err.__class__, ConfStoreError)
+
+    def test_conf_store_get_by_mismatch_delimiter(self):
+        """Test by getting the key from the loaded config"""
+        load_config('sspl_none', 'json:///tmp/file1.json')
+        result_data = conf_store.get('sspl_none', 'bridge>name',
+                                     key_delimiter='.')
+        self.assertEqual(result_data, None)
 
 
 if __name__ == '__main__':

@@ -55,7 +55,7 @@ class ConfStore:
 
         self._cache[index].dump()
 
-    def get(self, index: str, key: str, default_val=None):
+    def get(self, index: str, key: str, default_val=None, key_delimiter=None):
         """
         Obtain value for the given configuration
 
@@ -76,7 +76,17 @@ class ConfStore:
         if key is None:
             raise ConfStoreError(errno.EINVAL, "can't able to find config key "
                                                "%s in loaded config", key)
-        val = self._cache[index].get(key)
+        delimiter_list = ['.', '|', '>', ',', ';', ':', '%', '#', '@', '/']
+        if (key_delimiter is not None and
+                (type(key_delimiter) is not str or key_delimiter.strip() == "")
+                and key_delimiter not in delimiter_list):
+            raise ConfStoreError(
+                errno.EINVAL,
+                "Key delimiter should be a type of str and also be either one "
+                "of allowed '. | > , ; : %% # @ /' . Empty delimiters are not "
+                "allowed %s try > or < or .",
+                key_delimiter)
+        val = self._cache[index].get(key, key_delimiter)
         return default_val if val is None else val
 
     def set(self, index: str, key: str, val):

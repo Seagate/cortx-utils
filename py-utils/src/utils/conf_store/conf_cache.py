@@ -74,16 +74,17 @@ class ConfCache:
         self._iter += 1
         return key
 
-    def _get(self, data: dict, key: str):
+    def _get(self, data: dict, key: str, key_delimiter: str = None):
         """ Obtain value for the given key """
-        k = key.split('.', 1)
+        delimiter = '.' if key_delimiter is None else key_delimiter
+        k = key.split(delimiter, 1)
         if k[0] not in data.keys():
             return None
         return self._get(data[k[0]], k[1]) if len(k) > 1 else data[k[0]]
 
-    def get(self, key: str = None):
+    def get(self, key: str = None, key_delimiter: str = None):
         """ Returns the value corresponding to the key """
-        val = self._get(self._data, key)
+        val = self._get(self._data, key, key_delimiter)
         return val
 
     def _set(self, data: dict, key: str, val):
