@@ -1,4 +1,6 @@
-# CORTX-Py-Utils: CORTX Python common library.
+#!/bin/env python3
+
+# CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -13,4 +15,21 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.schema.conf import Conf
+class ConfStoreError(Exception):
+    """ Generic Exception with error code and output """
+
+    def __init__(self, rc, message, *args):
+        self._rc = rc
+        self._desc = message % (args)
+
+    @property
+    def rc(self):
+        return self._rc
+
+    @property
+    def desc(self):
+        return self._desc
+
+    def __str__(self):
+        if self._rc == 0: return self._desc
+        return "error(%d): %s" %(self._rc, self._desc)

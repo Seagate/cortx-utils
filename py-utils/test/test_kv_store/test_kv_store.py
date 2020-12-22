@@ -18,7 +18,6 @@
 
 from __future__ import absolute_import
 
-import asyncio
 import os
 import sys
 import unittest
@@ -54,6 +53,10 @@ def setup_and_generate_sample_files():
         p_config.write(file)
 
 
+# This function should be executed before testcase class
+setup_and_generate_sample_files()
+
+
 def test_current_file(file_path):
     kv_store = KvStoreFactory.get_instance(file_path)
     data = kv_store.load()
@@ -73,21 +76,29 @@ class TestStore(unittest.TestCase):
         self.assertTrue(True if 'bridge' in result_data else False)
 
     def test_json_file_get(self):
-        """Test Kv JSON store by retrieving value of given key from the jsonstore"""
+        """
+        Test Kv JSON store by retrieving value of given key from the jsonstore
+        """
         result_data = TestStore.loaded_json[0].get(['bridge.name'])
         self.assertEqual(result_data[0], 'Homebridge')
 
     def test_json_file_set(self):
-        """Test kv JSON store by setting the value of given key, value to the jsonstore"""
+        """
+        Test kv JSON store by setting the value of given key, value to the
+        jsonstore
+        """
         TestStore.loaded_json[0].set(['user'], ['kvstore'])
         result_data = TestStore.loaded_json[0].get(['user'])
         self.assertEqual(result_data[0], 'kvstore')
 
     def test_json_delete(self):
-        """Test kv JSON store by removing given key and its value from jsonstore"""
+        """
+        Test kv JSON store by removing given key and its value from jsonstore
+        """
         TestStore.loaded_json[0].delete(['user'])
         result_data = TestStore.loaded_json[0].load()
-        self.assertTrue( True if 'user' not in result_data else False, "Test case failed")
+        self.assertTrue( True if 'user' not in result_data else False,
+                         "Test case failed")
 
     # YAML starts
     def test_yaml_file_load(self):
@@ -96,21 +107,27 @@ class TestStore(unittest.TestCase):
         self.assertTrue(True if 'bridge' in result_data else False)
 
     def test_yaml_get(self):
-        """Test Kv YAML store by retrieving value of given key from the yamlstore"""
+        """
+        Test Kv YAML store by retrieving value of given key from the yamlstore
+        """
         result_data = TestStore.loaded_yaml[0].get(['bridge.model'])
         self.assertEqual(result_data[0], "homebridge")
 
     def test_yaml_set(self):
-        """Test kv YAML store by setting the value of given key, value to the yamlstore"""
+        """
+        Test kv YAML store by setting the value of given key, value to the
+        yamlstore"""
         TestStore.loaded_yaml[0].set(['user'], ['kvstore'])
         result_data = TestStore.loaded_yaml[0].get(['user'])
         self.assertEqual(result_data[0], "kvstore")
 
     def test_yaml_delete(self):
-        """Test kv YAML store by removing given key and its value from yamlstore"""
+        """Test kv YAML store by removing given key and its value from
+        yamlstore"""
         TestStore.loaded_yaml[0].delete(['user'])
         result_data = TestStore.loaded_yaml[0].load()
-        self.assertTrue(True if 'user' not in result_data else False, "Test case failed")
+        self.assertTrue(True if 'user' not in result_data else False,
+                        "Test case failed")
 
     # TOML starts
     def test_toml_file_load(self):
@@ -119,21 +136,25 @@ class TestStore(unittest.TestCase):
         self.assertTrue(True if 'bridge' in result_data else False)
 
     def test_toml_get(self):
-        """Test Kv toml store by retrieving value of given key from the tomlstore"""
+        """Test Kv toml store by retrieving value of given key from the
+        tomlstore"""
         result_data = TestStore.loaded_toml[0].get(['bridge.model'])
         self.assertEqual(result_data[0], "homebridge")
 
     def test_toml_set(self):
-        """Test kv TOML store by setting the value of given key, value to the tomlstore"""
+        """Test kv TOML store by setting the value of given key, value to the
+        tomlstore"""
         TestStore.loaded_toml[0].set(['user'], ['kvstore'])
         result_data = TestStore.loaded_toml[0].get(['user'])
         self.assertEqual(result_data[0], "kvstore")
 
     def test_toml_delete(self):
-        """Test kv TOML store by removing given key and its value from tomlstore"""
+        """Test kv TOML store by removing given key and its value from
+        tomlstore"""
         TestStore.loaded_toml[0].delete(['user'])
         result_data = TestStore.loaded_toml[0].load()
-        self.assertTrue(True if 'user' not in result_data else False, "Test case failed")
+        self.assertTrue(True if 'user' not in result_data else False,
+                        "Test case failed")
 
     # Ini starts
     def test_ini_file_load(self):
@@ -143,27 +164,26 @@ class TestStore(unittest.TestCase):
         self.assertTrue(True if 'bridge' in result_data else False)
 
     def test_ini_get(self):
-        """Test Kv INI store by retrieving value of given key from the inistore"""
+        """Test Kv INI store by retrieving value of given key from the
+        inistore"""
         result_data = TestStore.loaded_ini[0].get(['bridge.model'])
         self.assertEqual(result_data[0], "homebridge")
 
     def test_ini_set(self):
-        """Test kv INI store by setting the value of given key, value to the inistore"""
+        """Test kv INI store by setting the value of given key, value to the
+        inistore"""
         TestStore.loaded_ini[0].set(['user'], ['kvstore'])
         result_data = TestStore.loaded_ini[0].get(['user'])
         self.assertEqual(result_data[0], "kvstore")
 
     def test_ini_delete(self):
-        """Test kv INI store by removing given key and its value from inistore"""
+        """Test kv INI store by removing given key and its value from
+        inistore"""
         TestStore.loaded_ini[0].delete(['user'])
         result_data = TestStore.loaded_ini[0].load()
-        self.assertTrue(True if 'user' not in result_data else False, "Test case failed")
+        self.assertTrue(True if 'user' not in result_data else False,
+                        "Test case failed")
 
-
-async def run_test():
-    setup_and_generate_sample_files()
-    await asyncio.sleep(2)
-    unittest.main()
 
 if __name__ == '__main__':
-    asyncio.run(run_test())
+    unittest.main()

@@ -1,4 +1,6 @@
-# CORTX-Py-Utils: CORTX Python common library.
+#!/bin/python3
+
+# CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -13,4 +15,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.schema.conf import Conf
+from cortx.utils.conf_store.conf_store import ConfStore
+from cortx.utils.conf_store.conf_store import Conf
+from cortx.utils.conf_store.conf_cache import ConfCache
+from cortx.utils.conf_store.error import ConfStoreError
