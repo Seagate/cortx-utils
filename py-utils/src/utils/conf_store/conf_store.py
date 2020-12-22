@@ -1,5 +1,4 @@
-#!/bin/python3
-
+#!/bin/python3 
 # CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
@@ -25,11 +24,14 @@ from cortx.utils.kv_store.kv_store import KvStoreFactory
 class ConfStore:
     """ Configuration Store based on the KvStore """
 
-    def __init__(self):
+    def __init__(self, delim='>'):
         """ kvstore will be initialized at the time of load """
+        if len(delim) > 1 or val not in [':', '>', '.', '|', ';', '/']:
+            raise ConfStoreError(errno.EINVAL, "invalid delim %s", val)
+        self._delim = delim
         self._cache = {}
 
-    def load(self, index: str, kvs_url: str, overwrite=False, callback=None):
+    def load(self, index: str, kvs_url: str, **kwargs):
         """
         Loads the config from KV Store
 
@@ -45,7 +47,7 @@ class ConfStore:
                 index)
 
         kv_store = KvStoreFactory.get_instance(kvs_url)
-        self._cache[index] = ConfCache(kv_store)
+        self._cache[index] = ConfCache(kv_store, delim=self._delim)
 
     def save(self, index: str):
         """ Saves the given index configuration onto KV Store """
@@ -140,11 +142,16 @@ class ConfStore:
 class Conf:
     """ Singleton class instance based on conf_store """
     _conf = None
+    _delim = '>'
+
+    @staticmethod
+    def init(**kwargs):
+        for key, val in kwargs.items(): setattr(self, f"_{key}", val)
 
     @staticmethod
     def load(index: str, url: str):
         """ Loads Config from the given URL """
-        if Conf._conf is None: Conf._conf = ConfStore()
+        if Conf._conf is None: Conf._conf = ConfStore(delim=self._delim)
         Conf._conf.load(index, url)
 
     @staticmethod
