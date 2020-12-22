@@ -56,7 +56,7 @@ class ConfStore:
         self._cache[index].dump()
 
     def get(self, index: str, key: str, default_val=None,
-            key_delimiter: str = None):
+            key_delimiter: str = None) -> str:
         """
         Obtain value for the given configuration
 
@@ -83,7 +83,7 @@ class ConfStore:
         val = self._cache[index].get(key, key_delimiter)
         return default_val if val is None else val
 
-    def set(self, index: str, key: str, val, key_delimiter: str = None):
+    def set(self, index: str, key: str, val, key_delimiter: str = None) -> None:
         """
         Sets the value into the DB for the given index, key
 
@@ -104,18 +104,18 @@ class ConfStore:
 
         self._cache[index].set(key, val, key_delimiter)
 
-    def get_keys(self, index: str):
+    def get_keys(self, index: str) -> list:
         """ Obtains list of keys stored in the specific config store """
         return self._cache[index].get_keys()
 
-    def get_data(self, index: str):
+    def get_data(self, index: str) -> dict:
         """ Obtains entire config for given index """
         if index not in self._cache.keys():
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
                                  index)
         return self._cache[index].get_data()
 
-    def delete(self, index: str, key: str, key_delimiter: str = None):
+    def delete(self, index: str, key: str, key_delimiter: str = None) -> None:
         """
         Delets a given key from the config
         key_delimiter : defines how to split the given key chain
@@ -128,7 +128,8 @@ class ConfStore:
 
         self._cache[index].delete(key, key_delimiter)
 
-    def copy(self, src_index: str, dst_index: str, key_list: list = None):
+    def copy(self, src_index: str, dst_index: str, key_list: list = None) \
+            -> None:
         """
         Copies one config domain to the other and saves
         
@@ -150,7 +151,7 @@ class ConfStore:
             self._cache[dst_index].set(key, self._cache[src_index].get(key))
 
     @staticmethod
-    def check_key_delimiter(key_delimiter=None):
+    def check_key_delimiter(key_delimiter=None) -> None:
         delimiter_list = ['.', '|', '>', ',', ';', ':', '%', '#', '@', '/']
         if (key_delimiter is not None and
                 (type(key_delimiter) is not str or key_delimiter.strip() == "")
@@ -168,38 +169,38 @@ class Conf:
     _conf = None
 
     @staticmethod
-    def load(index: str, url: str):
+    def load(index: str, url: str) -> None:
         """ Loads Config from the given URL """
         if Conf._conf is None: Conf._conf = ConfStore()
         Conf._conf.load(index, url)
 
     @staticmethod
-    def save(index: str):
+    def save(index: str) -> None:
         """ Saves the configuration onto the backend store """
         Conf._conf.save(index)
 
     @staticmethod
-    def set(index: str, key: str, val, key_delimiter: str = None):
+    def set(index: str, key: str, val, key_delimiter: str = None) -> None:
         """ Sets config value for the given key """
         Conf._conf.set(index, key, val, key_delimiter=key_delimiter)
 
     @staticmethod
-    def get(index: str, key: str, key_delimiter: str = None):
+    def get(index: str, key: str, key_delimiter: str = None) -> str:
         """ Obtains config value for the given key """
         return Conf._conf.get(index, key, key_delimiter=key_delimiter)
 
     @staticmethod
-    def delete(index: str, key: str, key_delimiter: str = None):
+    def delete(index: str, key: str, key_delimiter: str = None) -> None:
         """ Deletes a given key from the config """
         Conf._conf.delete(index, key, key_delimiter=key_delimiter)
 
     @staticmethod
-    def copy(src_index: str, dst_index: str, key_list: list = None):
+    def copy(src_index: str, dst_index: str, key_list: list = None) -> None:
         """ Creates a Copy suffixed file for main file"""
         Conf._conf.copy(src_index, dst_index, key_list)
         Conf._conf.save(dst_index)
 
     @staticmethod
-    def get_keys(index: str):
+    def get_keys(index: str) -> list:
         """ Obtains list of keys stored in the specific config store """
         return Conf._conf.get_keys(index)
