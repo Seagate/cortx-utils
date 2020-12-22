@@ -57,6 +57,8 @@ class ConfStore:
 
     def get(self, index: str, key: str, default_val=None):
         """
+        Obtain value for the given configuration
+
         Paraeters:
         index   Configuration Domain ID where config key values are stored
         key     Configuration key. This can take two forms
@@ -79,7 +81,7 @@ class ConfStore:
 
     def set(self, index: str, key: str, val):
         """
-        Obtain value for the given configuration 
+        Sets the value into the DB for the given index, key
 
         Parameters:
         index   Configuration Domain ID where config key values are stored
@@ -99,12 +101,14 @@ class ConfStore:
         return self._cache[index].get_keys()
 
     def get_data(self, index: str):
+        """ Obtains entire config for given index """
         if index not in self._cache.keys():
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
                                  index)
         return self._cache[index].get_data()
 
     def delete(self, index: str, key: str):
+        """ Delets a given key from the config """
         if index not in self._cache.keys():
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
                 index)
