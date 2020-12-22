@@ -53,7 +53,7 @@ def setup_and_generate_sample_files():
     with open(r'/tmp/test.ini', 'w+') as file:
         p_config.write(file)
 
-
+kv_store = KvStoreFactory.get_instance('/tmp/file.json')
 def test_current_file(file_path):
     kv_store = KvStoreFactory.get_instance(file_path)
     data = kv_store.load()
@@ -65,7 +65,7 @@ class TestStore(unittest.TestCase):
     loaded_json = test_current_file('json:///tmp/file.json')
     loaded_toml = test_current_file('toml:///tmp/document.toml')
     loaded_yaml = test_current_file('yaml:///tmp/sample.yaml')
-    loaded_ini = test_current_file('ini:///tmp/test.ini')
+        loaded_ini = test_current_file('ini:///tmp/test.ini')
 
     def test_json_file(self):
         """Test Kv JSON store. load json store from json:///tmp/file.json"""
@@ -160,10 +160,6 @@ class TestStore(unittest.TestCase):
         self.assertTrue(True if 'user' not in result_data else False, "Test case failed")
 
 
-async def run_test():
-    setup_and_generate_sample_files()
-    await asyncio.sleep(2)
-    unittest.main()
-
 if __name__ == '__main__':
-    asyncio.run(run_test())
+    setup_and_generate_sample_files()
+    unittest.main()

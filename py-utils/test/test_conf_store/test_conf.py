@@ -16,7 +16,6 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import asyncio
 import json
 import os
 import sys
@@ -94,12 +93,10 @@ class TestConfStore(unittest.TestCase):
         self.assertEqual(result_data, None)
 
 
-async def run_test():
-    """Firstly create the file and load sample json into it."""
-    setup_and_generate_sample_files()
-    await asyncio.sleep(2)
-    unittest.main()
-
 if __name__ == '__main__':
-    """Start test"""
-    asyncio.run(run_test())
+    """
+    Firstly create the file and load sample json into it.
+    Start test
+    """
+    setup_and_generate_sample_files()
+    unittest.main()
