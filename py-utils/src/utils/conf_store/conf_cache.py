@@ -23,10 +23,13 @@ from cortx.utils.kv_store.kv_store import KvStore
 class ConfCache:
     """ In-memory configuration Data """
 
-    def __init__(self, kv_store: KvStore):
+    def __init__(self, kv_store: KvStore, delim='>'):
+        if len(delim) > 1:
+            raise ConfStoreError(errno.EINVAL, "invalid delim %s", delim)
         self._dirty = False
         self._kv_store = kv_store
         self._data = {}
+        self._delim = delim
         self.load()
 
     def get_data(self):
@@ -55,7 +58,7 @@ class ConfCache:
                 self._keys.append("%s[%d]" % (pkey, i))
         elif type(data) == dict: 
             for key in data.keys():
-                nkey = key if pkey is None else "%s.%s" %(pkey, key)
+                nkey = key if pkey is None else f"%s%s%s" %(pkey, self._delim, key)
                 if type(data[key]) == str or type(data[key]) == int:
                     self._keys.append(nkey)
                 else:
@@ -76,7 +79,7 @@ class ConfCache:
 
     def _get(self, data: dict, key: str):
         """ Obtain value for the given key """
-        k = key.split('.', 1)
+        k = key.split(self._delim, 1)
         if k[0] not in data.keys():
             return None
         return self._get(data[k[0]], k[1]) if len(k) > 1 else data[k[0]]
@@ -87,7 +90,7 @@ class ConfCache:
         return val
 
     def _set(self, data: dict, key: str, val):
-        k = key.split('.', 1)
+        k = key.split(self._delim, 1)
         if len(k) == 1:
             data[k[0]] = val
             return
@@ -102,7 +105,7 @@ class ConfCache:
             self._keys.append(key)
 
     def _delete(self, data: dict, key: str):
-        k = key.split('.', 1)
+        k = key.split(self._delim, 1)
         if k[0] not in data.keys():
             return
         if len(k) > 1:
