@@ -23,7 +23,7 @@ import unittest
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 from cortx.utils.schema.payload import Json
-from cortx.utils.conf_store import Conf
+from cortx.utils.conf_store import Conf, ConfStoreError
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 file_path = os.path.join(dir_path, 'test_conf_sample_json.json')
@@ -60,23 +60,23 @@ class TestConfStore(unittest.TestCase):
 
     def test_conf_store_get_by_index_with_chained_key(self):
         """
-        Test by getting the chained key(key1.key2.key3) from the loaded config
+        Test by getting the chained key(key1>key2>key3) from the loaded config
         """
         load_config('test_local', 'json:///tmp/file1.json')
-        result_data = Conf.get('test_local', 'bridge.name')
+        result_data = Conf.get('test_local', 'bridge>name')
         self.assertEqual(result_data, 'Homebridge')
 
     def test_conf_store_get_wrong_key(self):
         """Test by trying to get the wrong key from the loaded config"""
         load_config('new_local', 'json:///tmp/file1.json')
-        result_data = Conf.get('test_local', 'bridge.no_name_field')
+        result_data = Conf.get('test_local', 'bridge>no_name_field')
         self.assertEqual(result_data, None)
 
     def test_conf_store_set(self):
         """Test by setting the key, value to given index and reading it back"""
         load_config('set_local', 'json:///tmp/file1.json')
-        Conf.set('set_local', 'bridge.proxy', 'no')
-        result_data = Conf.get('set_local', 'bridge.proxy')
+        Conf.set('set_local', 'bridge>proxy', 'no')
+        result_data = Conf.get('set_local', 'bridge>proxy')
         self.assertEqual(result_data, 'no')
 
     def test_conf_store_get_keys(self):
@@ -88,9 +88,27 @@ class TestConfStore(unittest.TestCase):
     def test_conf_store_delete(self):
         """Test by removing the key, val to given index and reading it back"""
         load_config('delete_local', 'json:///tmp/file1.json')
-        Conf.delete('delete_local', 'bridge.proxy')
-        result_data = Conf.get('delete_local', 'bridge.proxy')
+        Conf.delete('delete_local', 'bridge>proxy')
+        result_data = Conf.get('delete_local', 'bridge>proxy')
         self.assertEqual(result_data, None)
+
+    def test_conf_store_get_by_delimited_keys(self):
+        """
+        Test by getting the chained key(key1.key2.key3) from the loaded config
+        """
+        load_config('test_del', 'json:///tmp/file1.json')
+        result_data = Conf.get('test_del', 'bridge.name', key_delimiter='.')
+        self.assertEqual(result_data, 'Homebridge')
+
+    def test_conf_store_get_by_wrong_key_type(self):
+        """
+        Test negative case by getting wrong key type other than string
+        """
+        load_config('test_wrong', 'json:///tmp/file1.json')
+        try:
+            Conf.get('test_wrong', 'bridge>name', key_delimiter=type)
+        except Exception as err:
+            self.assertEqual(err.__class__, ConfStoreError)
 
 
 if __name__ == '__main__':

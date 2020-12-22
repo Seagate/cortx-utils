@@ -63,17 +63,17 @@ class TestConfStore(unittest.TestCase):
 
     def test_conf_store_get_by_index_with_chained_key(self):
         """
-        Test by getting the chained key(key1.key2.key3) from the loaded config
+        Test by getting the chained key(key1>key2>key3) from the loaded config
         """
         load_config('test_local', 'json:///tmp/file1.json')
-        result_data = conf_store.get('test_local', 'bridge.name',
+        result_data = conf_store.get('test_local', 'bridge>name',
                                      default_val=None)
         self.assertEqual(result_data, 'Homebridge')
 
     def test_conf_store_get_wrong_key(self):
         """Test by trying to get the wrong key from the loaded config"""
         load_config('new_local', 'json:///tmp/file1.json')
-        result_data = conf_store.get('test_local', 'bridge.no_name_field',
+        result_data = conf_store.get('test_local', 'bridge>no_name_field',
                                      default_val=None)
         self.assertEqual(result_data, None)
 
@@ -82,8 +82,8 @@ class TestConfStore(unittest.TestCase):
         Test by setting the key, value to given index and reading it back.
         """
         load_config('set_local', 'json:///tmp/file1.json')
-        conf_store.set('set_local', 'bridge.proxy', 'no')
-        result_data = conf_store.get('set_local', 'bridge.proxy',
+        conf_store.set('set_local', 'bridge>proxy', 'no')
+        result_data = conf_store.get('set_local', 'bridge>proxy',
                                      default_val=None)
         self.assertEqual(result_data, 'no')
 
@@ -98,8 +98,8 @@ class TestConfStore(unittest.TestCase):
         Test by removing the key, value to given index and reading it back.
         """
         load_config('delete_local', 'json:///tmp/file1.json')
-        conf_store.delete('delete_local', 'bridge.proxy')
-        result_data = conf_store.get('delete_local', 'bridge.proxy',
+        conf_store.delete('delete_local', 'bridge>proxy')
+        result_data = conf_store.get('delete_local', 'bridge>proxy',
                                      default_val=None)
         self.assertEqual(result_data, None)
 
@@ -116,8 +116,8 @@ class TestConfStore(unittest.TestCase):
     def test_conf_store_get_by_configured_delimiter(self):
         """Test by getting the key from the loaded config"""
         load_config('sspl_delimited', 'json:///tmp/file1.json')
-        result_data = conf_store.get('sspl_delimited', 'bridge>name',
-                                     key_delimiter='>')
+        result_data = conf_store.get('sspl_delimited', 'bridge.name',
+                                     key_delimiter='.')
         self.assertEqual(result_data, 'Homebridge')
 
     def test_conf_store_get_by_wrong_delimiter(self):

@@ -55,7 +55,8 @@ class ConfStore:
 
         self._cache[index].dump()
 
-    def get(self, index: str, key: str, default_val=None, key_delimiter=None):
+    def get(self, index: str, key: str, default_val=None,
+            key_delimiter: str = None):
         """
         Obtain value for the given configuration
 
@@ -76,20 +77,11 @@ class ConfStore:
         if key is None:
             raise ConfStoreError(errno.EINVAL, "can't able to find config key "
                                                "%s in loaded config", key)
-        delimiter_list = ['.', '|', '>', ',', ';', ':', '%', '#', '@', '/']
-        if (key_delimiter is not None and
-                (type(key_delimiter) is not str or key_delimiter.strip() == "")
-                and key_delimiter not in delimiter_list):
-            raise ConfStoreError(
-                errno.EINVAL,
-                "Key delimiter should be a type of str and also be either one "
-                "of allowed '. | > , ; : %% # @ /' . Empty delimiters are not "
-                "allowed %s try > or < or .",
-                key_delimiter)
+        ConfStore.check_key_delimiter(key_delimiter)
         val = self._cache[index].get(key, key_delimiter)
         return default_val if val is None else val
 
-    def set(self, index: str, key: str, val):
+    def set(self, index: str, key: str, val, key_delimiter: str = None):
         """
         Sets the value into the DB for the given index, key
 
@@ -104,7 +96,9 @@ class ConfStore:
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
                 index)
 
-        self._cache[index].set(key, val)
+        ConfStore.check_key_delimiter(key_delimiter)
+
+        self._cache[index].set(key, val, key_delimiter)
 
     def get_keys(self, index: str):
         """ Obtains list of keys stored in the specific config store """
@@ -117,13 +111,14 @@ class ConfStore:
                                  index)
         return self._cache[index].get_data()
 
-    def delete(self, index: str, key: str):
+    def delete(self, index: str, key: str, key_delimiter: str = None):
         """ Delets a given key from the config """
         if index not in self._cache.keys():
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
                 index)
+        ConfStore.check_key_delimiter(key_delimiter)
 
-        self._cache[index].delete(key)
+        self._cache[index].delete(key, key_delimiter)
 
     def copy(self, src_index: str, dst_index: str, key_list: list = None):
         """
@@ -146,6 +141,19 @@ class ConfStore:
         for key in key_list:
             self._cache[dst_index].set(key, self._cache[src_index].get(key))
 
+    @staticmethod
+    def check_key_delimiter(key_delimiter=None):
+        delimiter_list = ['.', '|', '>', ',', ';', ':', '%', '#', '@', '/']
+        if (key_delimiter is not None and
+                (type(key_delimiter) is not str or key_delimiter.strip() == "")
+                and key_delimiter not in delimiter_list):
+            raise ConfStoreError(
+                errno.EINVAL,
+                "Key delimiter should be a type of str and also be either one "
+                "of allowed '. | > , ; : %% # @ /' . Empty delimiters are not "
+                "allowed %s try > or < or .",
+                key_delimiter)
+
 
 class Conf:
     """ Singleton class instance based on conf_store """
@@ -163,19 +171,19 @@ class Conf:
         Conf._conf.save(index)
 
     @staticmethod
-    def set(index: str, key: str, val):
+    def set(index: str, key: str, val, key_delimiter: str = None):
         """ Sets config value for the given key """
-        Conf._conf.set(index, key, val)
+        Conf._conf.set(index, key, val, key_delimiter=key_delimiter)
 
     @staticmethod
-    def get(index: str, key: str):
+    def get(index: str, key: str, key_delimiter: str = None):
         """ Obtains config value for the given key """
-        return Conf._conf.get(index, key)
+        return Conf._conf.get(index, key, key_delimiter=key_delimiter)
 
     @staticmethod
-    def delete(index: str, key: str):
+    def delete(index: str, key: str, key_delimiter: str = None):
         """ Deletes a given key from the config """
-        Conf._conf.delete(index, key)
+        Conf._conf.delete(index, key, key_delimiter=key_delimiter)
 
     @staticmethod
     def copy(src_index: str, dst_index: str, key_list: list = None):

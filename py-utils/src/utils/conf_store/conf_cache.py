@@ -76,7 +76,7 @@ class ConfCache:
 
     def _get(self, data: dict, key: str, key_delimiter: str = None):
         """ Obtain value for the given key """
-        delimiter = '.' if key_delimiter is None else key_delimiter
+        delimiter = '>' if key_delimiter is None else key_delimiter
         k = key.split(delimiter, 1)
         if k[0] not in data.keys():
             return None
@@ -87,23 +87,26 @@ class ConfCache:
         val = self._get(self._data, key, key_delimiter)
         return val
 
-    def _set(self, data: dict, key: str, val):
-        k = key.split('.', 1)
+    def _set(self, data: dict, key: str, val, key_delimiter: str = None):
+        delimiter = '>' if key_delimiter is None else key_delimiter
+        k = key.split(delimiter, 1)
         if len(k) == 1:
             data[k[0]] = val
             return
-        if k[0] not in data.keys(): data[k[0]] = {}
+        if k[0] not in data.keys():
+            data[k[0]] = {}
         self._set(data[k[0]], k[1], val)
 
-    def set(self, key: str, val):
+    def set(self, key: str, val, key_delimiter: str = None):
         """ Sets the value into the DB for the given key """
-        self._set(self._data, key, val)
+        self._set(self._data, key, val, key_delimiter)
         self._dirty = True
         if key not in self._keys:
             self._keys.append(key)
 
-    def _delete(self, data: dict, key: str):
-        k = key.split('.', 1)
+    def _delete(self, data: dict, key: str, key_delimiter: str = None):
+        delimiter = '>' if key_delimiter is None else key_delimiter
+        k = key.split(delimiter, 1)
         if k[0] not in data.keys():
             return
         if len(k) > 1:
@@ -113,6 +116,6 @@ class ConfCache:
             self._keys.remove(key)
         self._dirty = True
 
-    def delete(self, key: str):
+    def delete(self, key: str, key_delimiter: str = None):
         """ Delets a given key from the config """
-        self._delete(self._data, key)
+        self._delete(self._data, key, key_delimiter)
