@@ -23,7 +23,9 @@ from cortx.utils.kv_store.kv_store import KvStore
 class ConfCache:
     """ In-memory configuration Data """
 
-    def __init__(self, kv_store: KvStore):
+    def __init__(self, kv_store: KvStore, delim='>'):
+        if len(delim) > 1:
+            raise ConfStoreError(errno.EINVAL, "invalid delim %s", delim)
         self._dirty = False
         self._kv_store = kv_store
         self._data = None
