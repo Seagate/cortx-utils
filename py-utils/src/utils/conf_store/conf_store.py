@@ -26,8 +26,8 @@ class ConfStore:
 
     def __init__(self, delim='>'):
         """ kvstore will be initialized at the time of load """
-        if len(delim) > 1 or val not in [':', '>', '.', '|', ';', '/']:
-            raise ConfStoreError(errno.EINVAL, "invalid delim %s", val)
+        if len(delim) > 1 or delim not in [':', '>', '.', '|', ';', '/']:
+            raise ConfStoreError(errno.EINVAL, "invalid delim %s", delim)
         self._delim = delim
         self._cache = {}
 
@@ -46,8 +46,8 @@ class ConfStore:
             raise ConfStoreError(errno.EINVAL, "conf index %s already exists",
                 index)
 
-        kv_store = KvStoreFactory.get_instance(kvs_url)
-        self._cache[index] = ConfCache(kv_store, delim=self._delim)
+        kv_store = KvStoreFactory.get_instance(kvs_url, self._delim)
+        self._cache[index] = ConfCache(kv_store)
 
     def save(self, index: str):
         """ Saves the given index configuration onto KV Store """
@@ -151,7 +151,7 @@ class Conf:
     @staticmethod
     def load(index: str, url: str):
         """ Loads Config from the given URL """
-        if Conf._conf is None: Conf._conf = ConfStore(delim=self._delim)
+        if Conf._conf is None: Conf._conf = ConfStore(delim=Conf._delim)
         Conf._conf.load(index, url)
 
     @staticmethod

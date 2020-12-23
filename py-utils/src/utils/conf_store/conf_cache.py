@@ -17,7 +17,7 @@
 
 import errno
 from cortx.utils.conf_store.error import ConfStoreError
-from cortx.utils.kv_store.kv_store import KvStore, KvData
+from cortx.utils.kv_store.kv_store import KvStore
 
 
 class ConfCache:
