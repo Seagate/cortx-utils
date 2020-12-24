@@ -26,6 +26,7 @@ class ConfCache:
     def __init__(self, kv_store: KvStore, delim='>'):
         if len(delim) > 1:
             raise ConfStoreError(errno.EINVAL, "invalid delim %s", delim)
+        self._delim = delim
         self._dirty = False
         self._kv_store = kv_store
         self._data = None
@@ -55,7 +56,7 @@ class ConfCache:
 
     def set(self, key: str, val):
         """ Sets the value into the DB for the given key """
-        self._data.get(key)
+        self._data.set(key, val)
         self._dirty = True
 
     def delete(self, key: str):
