@@ -64,7 +64,6 @@ def test_current_file(file_path):
 
 
 class TestStore(unittest.TestCase):
-
     loaded_json = test_current_file('json:///tmp/file.json')
     loaded_toml = test_current_file('toml:///tmp/document.toml')
     loaded_yaml = test_current_file('yaml:///tmp/sample.yaml')
@@ -72,15 +71,15 @@ class TestStore(unittest.TestCase):
 
     def test_json_file(self):
         """Test Kv JSON store. load json store from json:///tmp/file.json"""
-        result_data = TestStore.loaded_json[1]
-        self.assertTrue(True if 'bridge' in result_data else False)
+        result_data = TestStore.loaded_ini[1].get('bridge>name')
+        self.assertTrue(result_data, 'Homebridge')
 
     def test_json_file_get(self):
         """
         Test Kv JSON store by retrieving value of given key from the jsonstore
         """
-        result_data = TestStore.loaded_json[0].get(['bridge.name'])
-        self.assertEqual(result_data[0], 'Homebridge')
+        result_data = TestStore.loaded_json[0].get(['bridge>port'])
+        self.assertEqual(result_data[0], "51826")
 
     def test_json_file_set(self):
         """
@@ -95,22 +94,21 @@ class TestStore(unittest.TestCase):
         """
         Test kv JSON store by removing given key and its value from jsonstore
         """
-        TestStore.loaded_json[0].delete(['user'])
-        result_data = TestStore.loaded_json[0].load()
-        self.assertTrue( True if 'user' not in result_data else False,
-                         "Test case failed")
+        TestStore.loaded_json[0].delete(['bridge>name'])
+        result_data = TestStore.loaded_json[0].get(['bridge>name'])
+        self.assertEqual(result_data[0], None)
 
     # YAML starts
     def test_yaml_file_load(self):
         """Test Kv YAML store. load yaml store from yaml:///tmp/sample.toml"""
-        result_data = TestStore.loaded_yaml[1]
-        self.assertTrue(True if 'bridge' in result_data else False)
+        result_data = TestStore.loaded_yaml[0].get(['bridge>model'])
+        self.assertEqual(result_data[0], "homebridge")
 
     def test_yaml_get(self):
         """
         Test Kv YAML store by retrieving value of given key from the yamlstore
         """
-        result_data = TestStore.loaded_yaml[0].get(['bridge.model'])
+        result_data = TestStore.loaded_yaml[0].get(['bridge>model'])
         self.assertEqual(result_data[0], "homebridge")
 
     def test_yaml_set(self):
@@ -124,24 +122,23 @@ class TestStore(unittest.TestCase):
     def test_yaml_delete(self):
         """Test kv YAML store by removing given key and its value from
         yamlstore"""
-        TestStore.loaded_yaml[0].delete(['user'])
-        result_data = TestStore.loaded_yaml[0].load()
-        self.assertTrue(True if 'user' not in result_data else False,
-                        "Test case failed")
+        TestStore.loaded_yaml[0].delete(['bridge>port'])
+        result_data = TestStore.loaded_yaml[0].get(['bridge>port'])
+        self.assertEqual(result_data[0], None)
 
     # TOML starts
     def test_toml_file_load(self):
         """Test Kv TOML store. load toml store from toml:///tmp/document.toml"""
-        result_data = TestStore.loaded_toml[1]
-        self.assertTrue(True if 'bridge' in result_data else False)
+        result_data = TestStore.loaded_toml[1].get('bridge>model')
+        self.assertEqual(result_data, "homebridge")
 
     def test_toml_get(self):
         """Test Kv toml store by retrieving value of given key from the
         tomlstore"""
-        result_data = TestStore.loaded_toml[0].get(['bridge.model'])
+        result_data = TestStore.loaded_toml[0].get(['bridge>model'])
         self.assertEqual(result_data[0], "homebridge")
 
-    def test_toml_set(self):
+    def test_toml_by_set(self):
         """Test kv TOML store by setting the value of given key, value to the
         tomlstore"""
         TestStore.loaded_toml[0].set(['user'], ['kvstore'])
@@ -152,37 +149,37 @@ class TestStore(unittest.TestCase):
         """Test kv TOML store by removing given key and its value from
         tomlstore"""
         TestStore.loaded_toml[0].delete(['user'])
-        result_data = TestStore.loaded_toml[0].load()
-        self.assertTrue(True if 'user' not in result_data else False,
-                        "Test case failed")
+        result_data = TestStore.loaded_toml[0].get(['user'])
+        self.assertEqual(result_data[0], None)
 
     # Ini starts
     def test_ini_file_load(self):
         """Test Kv INI store. load ini store from ini:///tmp/document.ini"""
-        result_data = {s: dict(TestStore.loaded_ini[1].items(s)) for s in
-                                 TestStore.loaded_ini[1].sections()}
-        self.assertTrue(True if 'bridge' in result_data else False)
+        result_data = TestStore.loaded_ini[1].get('bridge>name')
+        self.assertTrue(True if result_data == 'Homebridge' else False)
 
     def test_ini_get(self):
         """Test Kv INI store by retrieving value of given key from the
         inistore"""
-        result_data = TestStore.loaded_ini[0].get(['bridge.model'])
+        result_data = TestStore.loaded_ini[0].get(['bridge>model'])
         self.assertEqual(result_data[0], "homebridge")
 
-    def test_ini_set(self):
+    def test_ini_by_set(self):
         """Test kv INI store by setting the value of given key, value to the
         inistore"""
-        TestStore.loaded_ini[0].set(['user'], ['kvstore'])
-        result_data = TestStore.loaded_ini[0].get(['user'])
+
+        TestStore.loaded_ini[0].set(['bridge>user'], ['kvstore'])
+        result_data = TestStore.loaded_ini[0].get(['bridge>user'])
         self.assertEqual(result_data[0], "kvstore")
 
     def test_ini_delete(self):
         """Test kv INI store by removing given key and its value from
         inistore"""
-        TestStore.loaded_ini[0].delete(['user'])
-        result_data = TestStore.loaded_ini[0].load()
-        self.assertTrue(True if 'user' not in result_data else False,
-                        "Test case failed")
+        TestStore.loaded_ini[0].delete(['bridge>user'])
+        try:
+            TestStore.loaded_ini[0].get(['bridge>user'])
+        except Exception as err:
+            self.assertTrue('user' in err.args)
 
 
 if __name__ == '__main__':

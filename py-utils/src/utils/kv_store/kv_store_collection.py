@@ -15,9 +15,15 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import configparser
+import errno
+import json
 import os
-import json, toml, yaml, configparser
+import toml
+import yaml
 from json.decoder import JSONDecodeError
+
+from cortx.utils.kv_store.error import KvStoreError
 from cortx.utils.process import SimpleProcess
 from cortx.utils.kv_store.kv_store import KvStore, KvData, DictKvData
 
@@ -96,7 +102,6 @@ class IniKvData(KvData):
         for section in self._data.sections():
             for key in [option for option in self._data[section]]:
                 self._keys.append(f"{section}>{key}")
-        print("=== keys", self._keys)
 
     def set(self, key, val):
         k = key.split('>', 1)
@@ -112,7 +117,6 @@ class IniKvData(KvData):
         if len(k) <= 1:
             raise KvStoreError(errno.EINVAL, "Missing section in key %s", \
                 key)
-        print("=== get", k)
         return self._data[k[0]][k[1]]
 
     def delete(self, key):
