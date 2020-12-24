@@ -24,6 +24,7 @@ from cortx.utils.kv_store.error import KvStoreError
 
 class KvData:
     """ Base class to represent in memory config data """
+
     def __init__(self, data):
         self._data = data
         self._keys = []
@@ -56,6 +57,7 @@ class KvData:
 
 class DictKvData(KvData):
     """ Dict based in memory representation of conf data """
+
     def __init__(self, data: dict):
         super(DictKvData, self).__init__(data)
 
@@ -69,15 +71,16 @@ class DictKvData(KvData):
         self._set(k[1], val, data[k[0]])
 
     def set(self, key: str, val: str):
+        """ Updates the value for the given key in the dictionary """
         return self._set(key, val, self._data)
 
     def _get(self, key: str, data: dict) -> str:
-        """ Obtain value for the given key """
         k = key.split('>', 1)
         if k[0] not in data.keys(): return None
         return self._get(k[1], data[k[0]]) if len(k) > 1 else data[k[0]]
 
     def get(self, key: str) -> str:
+        """ Obtain value for the given key """
         return self._get(key, self._data)
 
     def _delete(self, key: str, data: dict):
@@ -91,6 +94,7 @@ class DictKvData(KvData):
         self._delete(k[1], data[k[0]])
 
     def delete(self, key):
+        """ Deletes given set of keys from the dictionary """
         return self._delete(key, self._data)
 
 
@@ -117,7 +121,6 @@ class KvStore:
             vals.append(data.get(key))
         return vals
 
-
     def set(self, keys: list, vals: list):
         """ Updates a given set of keys and values """
         if len(keys) != len(vals):
@@ -129,7 +132,7 @@ class KvStore:
         self.dump(data)
 
     def delete(self, keys: list):
-        """ Deletes given set of keys from the """
+        """ Deletes given set of keys from the store"""
         data = self.load()
         for key in keys:
             data.delete(key)
