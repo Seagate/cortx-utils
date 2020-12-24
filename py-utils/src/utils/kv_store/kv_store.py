@@ -109,31 +109,14 @@ class KvStore:
     def loc(self):
         return self._store_loc
 
-    # def _get(self, key: str, data: dict) -> str:
-    #     """ Obtain value for the given key """
-    #     k = key.split('.', 1)
-    #     if k[0] not in data.keys(): return None
-    #     return self._get(k[1], data[k[0]]) if len(k) > 1 else data[k[0]]
-
     def get(self, keys: list) -> list:
         """ Obtains values of keys. Return list of values. """
         data = self.load()
         vals = []
         for key in keys:
             vals.append(data.get(key))
-        # for key in keys:
-        #     val = self._get(key, data)
-        #     vals.append(val)
         return vals
 
-    # def _set(self, key: str, val: str, data: dict):
-    #     k = key.split('.', 1)
-    #     if len(k) == 1:
-    #         data[k[0]] = val
-    #         return
-    #     if k[0] not in data.keys():
-    #         data[k[0]] = {}
-    #     self._set(k[1], val, data[k[0]])
 
     def set(self, keys: list, vals: list):
         """ Updates a given set of keys and values """
@@ -144,16 +127,6 @@ class KvStore:
         for key, val in zip(keys, vals):
             data.set(key, val)
         self.dump(data)
-
-    # def _delete(self, key: str, data: dict):
-    #     k = key.split('.', 1)
-    #     if len(k) == 1:
-    #         if k[0] in data.keys():
-    #             del data[k[0]]
-    #         return
-    #     if k[0] not in data.keys():
-    #         return
-    #     self._delete(k[1], data[k[0]])
 
     def delete(self, keys: list):
         """ Deletes given set of keys from the """
