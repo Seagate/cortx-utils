@@ -15,11 +15,17 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import configparser
+import errno
+import json
 import os
-import json, toml, yaml, configparser
+import toml
+import yaml
 from json.decoder import JSONDecodeError
+
+from cortx.utils.kv_store.error import KvStoreError
+from cortx.utils.kv_store.kv_store import KvStore, KvData, DictKvData
 from cortx.utils.process import SimpleProcess
-from cortx.utils.kv_store.kv_store import KvStore
 
 
 class JsonKvStore(KvStore):
@@ -33,7 +39,7 @@ class JsonKvStore(KvStore):
             with open(self._store_path, 'w+') as f:
                 pass
 
-    def load(self) -> dict:
+    def load(self) -> DictKvData:
         """ Reads from the file """
         data = {}
         with open(self._store_path, 'r') as f:
@@ -41,12 +47,12 @@ class JsonKvStore(KvStore):
                 data = json.load(f)
             except JSONDecodeError:
                 pass
-        return data
+        return DictKvData(data)
 
     def dump(self, data) -> None:
         """ Saves data onto the file """
         with open(self._store_path, 'w') as f:
-            json.dump(data, f, indent=2)
+            json.dump(data.get_data(), f, indent=2)
 
 
 class YamlKvStore(KvStore):
@@ -57,14 +63,14 @@ class YamlKvStore(KvStore):
     def __init__(self, store_loc, store_path):
         KvStore.__init__(self, store_loc, store_path)
 
-    def load(self) -> dict:
+    def load(self) -> DictKvData:
         """ Reads from the file """
         with open(self._store_path, 'r') as f:
-            return yaml.safe_load(f)
+            return DictKvData(yaml.safe_load(f))
 
     def dump(self, data) -> None:
         with open(self._store_path, 'w') as f:
-            yaml.dump(data, f)
+            yaml.dump(data.get_data(), f)
 
 
 class TomlKvStore(KvStore):
@@ -75,15 +81,52 @@ class TomlKvStore(KvStore):
     def __init__(self, store_loc, store_path):
         KvStore.__init__(self, store_loc, store_path)
 
-    def load(self) -> dict:
+    def load(self) -> DictKvData:
         """ Reads from the file """
         with open(self._store_path, 'r') as f:
-            return toml.load(f, dict)
+            return DictKvData(toml.load(f, dict))
 
     def dump(self, data) -> None:
         """ Saves data onto the file """
         with open(self._store_path, 'w') as f:
-            toml.dump(data, f)
+            toml.dump(data.get_data(), f)
+
+
+class IniKvData(KvData):
+    """ In memory representation of INI conf data """
+    def __init__(self, configparser):
+        super().__init__(configparser)
+
+    def refresh_keys(self):
+        self._keys = []
+        for section in self._data.sections():
+            for key in [option for option in self._data[section]]:
+                self._keys.append(f"{section}>{key}")
+
+    def set(self, key, val):
+        k = key.split('>', 1)
+        if len(k) <= 1:
+            raise KvStoreError(errno.EINVAL, "Missing section in key %s", \
+                key)
+
+        self._data[k[0]][k[1]] = val
+        if key not in self._keys:
+            self._keys.append(key)
+
+    def get(self, key):
+        k = key.split('>', 1)
+        if len(k) <= 1:
+            raise KvStoreError(errno.EINVAL, "Missing section in key %s", \
+                key)
+        return self._data[k[0]][k[1]]
+
+    def delete(self, key):
+        k = key.split('>', 1)
+        if len(k) == 1:
+            self._data.remove_section(k[0])
+        elif len(k) == 2:
+            self._data.remove_option(k[0], k[1])
+        if key in self._keys: self._keys.remove(key)
 
 
 class IniKvStore(KvStore):
@@ -96,15 +139,16 @@ class IniKvStore(KvStore):
         self._config = configparser.ConfigParser()
         self._type = configparser.SectionProxy
 
-    def load(self) -> dict:
+    def load(self) -> IniKvData:
         """ Reads from the file """
         self._config.read(self._store_path)
-        return self._config
+        return IniKvData(self._config)
 
     def dump(self, data) -> None:
         """ Saves data onto the file """
+        config = data.get_data()
         with open(self._store_path, 'w') as f:
-            data.write(f)
+            config.write(f)
 
 
 class DictKvStore(KvStore):
@@ -115,13 +159,13 @@ class DictKvStore(KvStore):
     def __init__(self, store_loc, store_path):
         KvStore.__init__(self, store_loc, store_path)
 
-    def load(self) -> dict:
+    def load(self) -> DictKvData:
         """ Reads from the file """
-        return self._store_path
+        return DictKvData(self._store_path)
 
     def dump(self, data) -> None:
         """ Saves data onto dictionary itself """
-        self._store_path = data
+        self._store_path = data.get_data()
 
 
 class JsonMessageKvStore(JsonKvStore):
@@ -136,13 +180,13 @@ class JsonMessageKvStore(JsonKvStore):
         """
         JsonKvStore.__init__(self, store_loc, store_path)
 
-    def load(self) -> dict:
+    def load(self) -> DictKvData:
         """ Load json to python Dictionary Object. Returns Dict """
-        return json.loads(self._store_path)
+        return DictKvData(json.loads(self._store_path))
 
     def dump(self, data: dict) -> None:
         """ Sets data after converting to json """
-        self._store_path = json.dumps(data)
+        self._store_path = json.dumps(data.get_data())
 
 
 class TextKvStore(KvStore):
@@ -153,15 +197,15 @@ class TextKvStore(KvStore):
     def __init__(self, store_loc, store_path):
         KvStore.__init__(self, store_loc, store_path)
 
-    def load(self) -> dict:
+    def load(self) -> DictKvData:
         """ Loads data from text file """
         with open(self._store_path, 'r') as f:
-            return f.read()
+            return DictKvData(f.read())
 
     def dump(self, data) -> None:
         """ Dump the data to desired file or to the source """
         with open(self._store_path, 'w') as f:
-            f.write(data)
+            f.write(data.get_data())
 
 
 class PillarStore(KvStore):
