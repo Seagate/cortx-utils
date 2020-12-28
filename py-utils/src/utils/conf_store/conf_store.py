@@ -44,18 +44,18 @@ class ConfStore:
                    Default: False 
         callback:  Callback for the config changes in the KV Sto
         """
-        if index in self._cache.keys() and not overwrite: 
+        if index in self._cache.keys() and not overwrite:
             raise ConfStoreError(errno.EINVAL, "conf index %s already exists",
-                index)
+                                 index)
 
-        kv_store = KvStoreFactory.get_instance(kvs_url)
+        kv_store = KvStoreFactory.get_instance(kvs_url, self._delim)
         self._cache[index] = ConfCache(kv_store, self._delim)
 
     def save(self, index: str):
         """ Saves the given index configuration onto KV Store """
         if index not in self._cache.keys():
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
-                index)
+                                 index)
 
         self._cache[index].dump()
 
@@ -96,7 +96,7 @@ class ConfStore:
         """
         if index not in self._cache.keys():
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
-                index)
+                                 index)
 
         self._cache[index].set(key, val)
 
@@ -115,25 +115,25 @@ class ConfStore:
         """ Delets a given key from the config """
         if index not in self._cache.keys():
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
-                index)
+                                 index)
 
         self._cache[index].delete(key)
 
     def copy(self, src_index: str, dst_index: str, key_list: list = None):
         """
         Copies one config domain to the other and saves
-        
+
         Parameters:
         src_index Source Index 
         dst_index Destination Index 
         """
         if src_index not in self._cache.keys():
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
-                src_index)
+                                 src_index)
 
         if dst_index not in self._cache.keys():
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
-                dst_index)
+                                 dst_index)
 
         if key_list is None:
             key_list = self._cache[src_index].get_keys()
@@ -146,7 +146,7 @@ class Conf:
     _conf = None
     _delim = '>'
 
-    @ staticmethod
+    @staticmethod
     def init(**kwargs):
         for key, val in kwargs.items():
             setattr(Conf, f"_{key}", val)

@@ -25,8 +25,11 @@ from cortx.utils.kv_store.error import KvStoreError
 class KvData:
     """ Base class to represent in memory config data """
 
-    def __init__(self, data):
+    def __init__(self, data, delim='>'):
         self._data = data
+        if len(delim) > 1:
+            raise KvStoreError(errno.EINVAL, "Invalid delim %s", delim)
+        self._delim = delim
         self._keys = []
         self.refresh_keys()
 
@@ -43,10 +46,10 @@ class KvData:
     def _refresh_keys(self, data, pkey: str = None):
         if type(data) == list:
             for i in range(len(data)):
-                self._keys.append("%s[%d]" %(pkey, i))
+                self._keys.append("%s[%d]" % (pkey, i))
         elif type(data) == dict:
             for key in data.keys():
-                nkey = key if pkey is None else "%s>%s" % (pkey, key)
+                nkey = key if pkey is None else "%s%s%s" % (pkey, self._delim, key)
                 if type(data[key]) in [str, int]:
                     self._keys.append(nkey)
                 else:
@@ -58,11 +61,11 @@ class KvData:
 class DictKvData(KvData):
     """ Dict based in memory representation of conf data """
 
-    def __init__(self, data: dict):
-        super(DictKvData, self).__init__(data)
+    def __init__(self, data: dict, delim='>'):
+        super(DictKvData, self).__init__(data, delim)
 
     def _set(self, key: str, val: str, data: dict):
-        k = key.split('>', 1)
+        k = key.split(self._delim, 1)
         if len(k) == 1:
             data[k[0]] = val
             return
@@ -75,8 +78,9 @@ class DictKvData(KvData):
         return self._set(key, val, self._data)
 
     def _get(self, key: str, data: dict) -> str:
-        k = key.split('>', 1)
-        if k[0] not in data.keys(): return None
+        k = key.split(self._delim, 1)
+        if k[0] not in data.keys():
+            return None
         return self._get(k[1], data[k[0]]) if len(k) > 1 else data[k[0]]
 
     def get(self, key: str) -> str:
@@ -84,7 +88,7 @@ class DictKvData(KvData):
         return self._get(key, self._data)
 
     def _delete(self, key: str, data: dict):
-        k = key.split('>', 1)
+        k = key.split(self._delim, 1)
         if len(k) == 1:
             if k[0] in data.keys():
                 del data[k[0]]
@@ -101,9 +105,10 @@ class DictKvData(KvData):
 class KvStore:
     """ Abstraction over all kinds of KV based Storage """
 
-    def __init__(self, store_loc, store_path):
+    def __init__(self, store_loc, store_path, delim='>'):
         self._store_loc = store_loc
         self._store_path = store_path
+        self._delim = delim
 
     @property
     def path(self):
@@ -112,6 +117,10 @@ class KvStore:
     @property
     def loc(self):
         return self._store_loc
+
+    @property
+    def delim(self):
+        return self._delim
 
     def get(self, keys: list) -> list:
         """ Obtains values of keys. Return list of values. """
@@ -159,7 +168,7 @@ class KvStoreFactory:
         pass
 
     @staticmethod
-    def get_instance(store_url: str) -> KvStore:
+    def get_instance(store_url: str, delim='>') -> KvStore:
         """ Obtain instance of KvStore for given file_type """
 
         url_spec = urlparse(store_url)
@@ -173,8 +182,10 @@ class KvStoreFactory:
         from cortx.utils.kv_store import kv_store_collection
         storage = inspect.getmembers(kv_store_collection, inspect.isclass)
         for name, cls in storage:
-            if hasattr(cls, 'name') and name != "KvStore" and store_type == cls.name:
-                KvStoreFactory._stores[store_url] = cls(store_loc, store_path)
+            if hasattr(cls, 'name') and name != "KvStore" \
+                    and store_type == cls.name:
+                KvStoreFactory._stores[store_url] = cls(store_loc, store_path,
+                                                        delim)
                 return KvStoreFactory._stores[store_url]
 
         raise KvStoreError(errno.EINVAL, f"Invalid store type %s", store_type)
