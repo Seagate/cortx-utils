@@ -148,15 +148,14 @@ class Conf:
 
     @ staticmethod
     def init(**kwargs):
-        import ipdb;ipdb.set_trace()
         for key, val in kwargs.items():
-            setattr(self, f"_{key}", val)
+            setattr(Conf, f"_{key}", val)
 
     @staticmethod
     def load(index: str, url: str):
         """ Loads Config from the given URL """
         if Conf._conf is None:
-            Conf._conf = ConfStore(delim=self._delim)
+            Conf._conf = ConfStore(delim=Conf._delim)
         Conf._conf.load(index, url)
 
     @staticmethod
