@@ -17,7 +17,7 @@
 
 import errno
 from confluent_kafka import Producer, Consumer
-from confluent_kafka.admin import AdminClient
+from confluent_kafka.admin import AdminClient, ConfigResource
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus.message_broker import MessageBroker
 
@@ -86,8 +86,20 @@ class KafkaMessageBroker(MessageBroker):
             else:
                 producer.poll(timeout=timeout)
 
+    def delete(self, message_type: str):
+        """ Deletes all the messages from Kafka cluster(s) """
+        resource = ConfigResource('topic', message_type)
+        resource.set_config('retention.ms', 1)
+        self._admin.alter_configs([resource])
+        resource.set_config('retention.ms', 604800000)
+        default_params = self._admin.alter_configs([resource])
+
+        if list(default_params.values())[0].result() is not None:
+            raise MessageBusError(errno.EINVAL, "Unable to delete messages \
+                for %s", message_type)
+
     def receive(self, consumer_id: str, timeout=0.5) -> list:
-        """ Receives list of messages to Kafka cluster(s) """
+        """ Receives list of messages from Kafka cluster(s) """
         consumer = self._clients['consumer'][consumer_id]
         if consumer is None:
             raise MessageBusError(errno.EINVAL, "Consumer %s is not \
