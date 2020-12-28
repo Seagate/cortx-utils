@@ -150,3 +150,21 @@ class ElasticsearchVCommand(VCommand):
         """Validate elasticsearch status."""
 
         self._elasticsearch.validate(self.v_type, self.args)
+
+
+class ControllerVCommand(VCommand):
+    """Controller related commands."""
+
+    name = "controller"
+
+    def __init__(self, args):
+        super(ControllerVCommand, self).__init__(args)
+
+        from v_controller import ControllerV
+
+        self._controller = ControllerV()
+
+    def process(self):
+        """Validate controller status."""
+
+        self._controller.validate(self.v_type, self.args)
