@@ -27,9 +27,8 @@ class KvData:
 
     def __init__(self, data, delim='>'):
         """
-        data - {key: value} pairs
-        delim: defines how to split the given key chain
-        key1>key2 or key1.key2
+        kvstore will be initialized at the time of load
+        delim is used to split key into hierarchy, e.g. "k1>2" or "k1.k2"
         """
         self._data = data
         if len(delim) > 1:
@@ -69,9 +68,9 @@ class DictKvData(KvData):
 
     def __init__(self, data: dict, delim='>'):
         """
-        data - {key: value} pairs
-        delim: defines how to split the given key chain
-        key1>key2 or key1.key2
+        Args:
+        data: Dictionary representing keys (hierarchical) and values
+        delim: It is used to split key into hierarchy, e.g. "k1>2" or "k1.k2"
         """
         super(DictKvData, self).__init__(data, delim)
 
@@ -118,10 +117,12 @@ class KvStore:
 
     def __init__(self, store_loc, store_path, delim='>'):
         """
-        store_loc: store location
-        store_path: store path from where to load data
-        delim: defines how to split the given key chain
-        key1>key2 or key1.key2
+        Args:
+
+            store_loc: store location
+            store_path: store path from where to load data
+            delim: It is used to split key into hierarchy, e.g. "k1>2" or
+            "k1.k2"
         """
         self._store_loc = store_loc
         self._store_path = store_path
@@ -164,12 +165,12 @@ class KvStore:
             data.delete(key)
         self.dump(data)
 
-    def load(self):
+    def load(self, delim='>'):
         """ Loads and returns data from KV storage """
         raise KvStoreError(errno.ENOSYS, f"%s:load() not implemented", \
             type(self).__name__)
 
-    def dump(self, data):
+    def dump(self, data, delim='>'):
         """ Dumps data onto the KV Storage """
         raise KvStoreError(errno.ENOSYS, f"%s:dump() not implemented", \
             type(self).__name__)

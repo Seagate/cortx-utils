@@ -27,9 +27,8 @@ class ConfStore:
 
     def __init__(self, delim='>'):
         """
-        kvstore will be initialized at the time of load
-        delim : defines how to split the given key chain
-        key1>key2 or key1.key2
+        ConfStore will be initialized at the time of load
+        delim is used to split key into hierarchy, e.g. "k1>2" or "k1.k2"
         """
 
         if len(delim) > 1 or delim not in [':', '>', '.', '|', ';', '/']:
@@ -37,7 +36,7 @@ class ConfStore:
         self._delim = delim
         self._cache = {}
 
-    def load(self, index: str, kvs_url: str, overwrite=False, callback=None):
+    def load(self, index: str, kvs_url: str, **kwargs):
         """
         Loads the config from KV Store
 

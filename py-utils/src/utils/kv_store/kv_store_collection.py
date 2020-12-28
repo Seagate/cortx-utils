@@ -33,7 +33,7 @@ class JsonKvStore(KvStore):
 
     name = "json"
 
-    def __init__(self, store_loc, store_path, delim):
+    def __init__(self, store_loc, store_path, delim='>'):
         KvStore.__init__(self, store_loc, store_path, delim)
         if not os.path.exists(self._store_path):
             with open(self._store_path, 'w+') as f:
@@ -45,6 +45,7 @@ class JsonKvStore(KvStore):
         with open(self._store_path, 'r') as f:
             try:
                 data = json.load(f)
+
             except JSONDecodeError:
                 pass
         return DictKvData(data, self._delim)
@@ -60,7 +61,7 @@ class YamlKvStore(KvStore):
 
     name = "yaml"
 
-    def __init__(self, store_loc, store_path, delim):
+    def __init__(self, store_loc, store_path, delim='>'):
         KvStore.__init__(self, store_loc, store_path, delim)
 
     def load(self) -> DictKvData:
@@ -78,7 +79,7 @@ class TomlKvStore(KvStore):
 
     name = "toml"
 
-    def __init__(self, store_loc, store_path, delim):
+    def __init__(self, store_loc, store_path, delim='>'):
         KvStore.__init__(self, store_loc, store_path, delim)
 
     def load(self) -> DictKvData:
@@ -134,7 +135,7 @@ class IniKvStore(KvStore):
 
     name = "ini"
 
-    def __init__(self, store_loc, store_path, delim):
+    def __init__(self, store_loc, store_path, delim='>'):
         KvStore.__init__(self, store_loc, store_path, delim)
         self._config = configparser.ConfigParser()
         self._type = configparser.SectionProxy
@@ -156,7 +157,7 @@ class DictKvStore(KvStore):
 
     name = "dict"
 
-    def __init__(self, store_loc, store_path, delim):
+    def __init__(self, store_loc, store_path, delim='>'):
         KvStore.__init__(self, store_loc, store_path, delim)
 
     def load(self) -> DictKvData:
@@ -173,7 +174,7 @@ class JsonMessageKvStore(JsonKvStore):
 
     name = "jsonmessage"
 
-    def __init__(self, store_loc, store_path, delim):
+    def __init__(self, store_loc, store_path, delim='>'):
         """
         Represents the Json Without FIle
         :param json_str: Json String to be processed :type: str
@@ -194,7 +195,7 @@ class TextKvStore(KvStore):
 
     name = "text"
 
-    def __init__(self, store_loc, store_path, delim):
+    def __init__(self, store_loc, store_path, delim='>'):
         KvStore.__init__(self, store_loc, store_path, delim)
 
     def load(self) -> DictKvData:
@@ -212,7 +213,7 @@ class PillarStore(KvStore):
     """ Salt Pillar based KV Store """
     name = "salt"
 
-    def __init__(self, store_loc, store_path, delim):
+    def __init__(self, store_loc, store_path, delim='>'):
         KvStore.__init__(self, store_loc, store_path, delim)
 
     def get(self, key):
