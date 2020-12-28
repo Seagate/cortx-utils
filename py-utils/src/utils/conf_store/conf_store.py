@@ -26,7 +26,11 @@ class ConfStore:
     """ Configuration Store based on the KvStore """
 
     def __init__(self, delim='>'):
-        """ kvstore will be initialized at the time of load """
+        """
+        kvstore will be initialized at the time of load
+        delim : defines how to split the given key chain
+        key1>key2 or key1.key2
+        """
 
         if len(delim) > 1 or delim not in [':', '>', '.', '|', ';', '/']:
             raise ConfStoreError(errno.EINVAL, "invalid delim %s", delim)

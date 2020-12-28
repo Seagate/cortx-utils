@@ -26,6 +26,11 @@ class KvData:
     """ Base class to represent in memory config data """
 
     def __init__(self, data, delim='>'):
+        """
+        data - {key: value} pairs
+        delim: defines how to split the given key chain
+        key1>key2 or key1.key2
+        """
         self._data = data
         if len(delim) > 1:
             raise KvStoreError(errno.EINVAL, "Invalid delim %s", delim)
@@ -49,7 +54,8 @@ class KvData:
                 self._keys.append("%s[%d]" % (pkey, i))
         elif type(data) == dict:
             for key in data.keys():
-                nkey = key if pkey is None else "%s%s%s" % (pkey, self._delim, key)
+                nkey = key if pkey is None else f"%s%s%s" % (pkey, self._delim,
+                                                             key)
                 if type(data[key]) in [str, int]:
                     self._keys.append(nkey)
                 else:
@@ -62,6 +68,11 @@ class DictKvData(KvData):
     """ Dict based in memory representation of conf data """
 
     def __init__(self, data: dict, delim='>'):
+        """
+        data - {key: value} pairs
+        delim: defines how to split the given key chain
+        key1>key2 or key1.key2
+        """
         super(DictKvData, self).__init__(data, delim)
 
     def _set(self, key: str, val: str, data: dict):
@@ -106,6 +117,12 @@ class KvStore:
     """ Abstraction over all kinds of KV based Storage """
 
     def __init__(self, store_loc, store_path, delim='>'):
+        """
+        store_loc: store location
+        store_path: store path from where to load data
+        delim: defines how to split the given key chain
+        key1>key2 or key1.key2
+        """
         self._store_loc = store_loc
         self._store_path = store_path
         self._delim = delim
