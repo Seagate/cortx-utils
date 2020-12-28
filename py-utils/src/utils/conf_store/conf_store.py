@@ -25,8 +25,12 @@ from cortx.utils.kv_store.kv_store import KvStoreFactory
 class ConfStore:
     """ Configuration Store based on the KvStore """
 
-    def __init__(self):
+    def __init__(self, delim='>'):
         """ kvstore will be initialized at the time of load """
+
+        if len(delim) > 1 or delim not in [':', '>', '.', '|', ';', '/']:
+            raise ConfStoreError(errno.EINVAL, "invalid delim %s", delim)
+        self._delim = delim
         self._cache = {}
 
     def load(self, index: str, kvs_url: str, overwrite=False, callback=None):
@@ -45,7 +49,7 @@ class ConfStore:
                 index)
 
         kv_store = KvStoreFactory.get_instance(kvs_url)
-        self._cache[index] = ConfCache(kv_store)
+        self._cache[index] = ConfCache(kv_store, self._delim)
 
     def save(self, index: str):
         """ Saves the given index configuration onto KV Store """
@@ -140,11 +144,19 @@ class ConfStore:
 class Conf:
     """ Singleton class instance based on conf_store """
     _conf = None
+    _delim = '>'
+
+    @ staticmethod
+    def init(**kwargs):
+        import ipdb;ipdb.set_trace()
+        for key, val in kwargs.items():
+            setattr(self, f"_{key}", val)
 
     @staticmethod
     def load(index: str, url: str):
         """ Loads Config from the given URL """
-        if Conf._conf is None: Conf._conf = ConfStore()
+        if Conf._conf is None:
+            Conf._conf = ConfStore(delim=self._delim)
         Conf._conf.load(index, url)
 
     @staticmethod

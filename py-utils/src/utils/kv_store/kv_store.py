@@ -47,7 +47,7 @@ class KvData:
         elif type(data) == dict:
             for key in data.keys():
                 nkey = key if pkey is None else "%s>%s" % (pkey, key)
-                if type(data[key]) == str:
+                if type(data[key]) in [str, int]:
                     self._keys.append(nkey)
                 else:
                     self._refresh_keys(data[key], nkey)
