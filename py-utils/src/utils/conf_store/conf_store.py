@@ -89,7 +89,7 @@ class ConfStore:
         """
         if index not in self._cache.keys():
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
-                                 index)
+                index)
         if key is None:
             raise ConfStoreError(errno.EINVAL, "can't able to find config key "
                                                "%s in loaded config", key)
@@ -109,7 +109,7 @@ class ConfStore:
         """
         if index not in self._cache.keys():
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
-                                 index)
+                index)
 
         self._cache[index].set(key, val)
 
