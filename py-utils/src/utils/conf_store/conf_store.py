@@ -142,11 +142,11 @@ class ConfStore:
         """
         if src_index not in self._cache.keys():
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
-                                 src_index)
+                src_index)
 
         if dst_index not in self._cache.keys():
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
-                                 dst_index)
+                dst_index)
 
         if key_list is None:
             key_list = self._cache[src_index].get_keys()
