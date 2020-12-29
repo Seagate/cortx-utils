@@ -41,7 +41,6 @@ conf_store = ConfStore()
 
 def load_config(index, backend_url):
     """Instantiate and Load Config into constore"""
-    # conf_backend = KvStoreFactory.get_instance(backend_url)
     conf_store.load(index, backend_url)
     return conf_store
 

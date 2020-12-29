@@ -55,7 +55,7 @@ class ConfStore:
             elif key == 'callback':
                 self._callbacks[index] = val
             else:
-                raise ConfStoreError("Invalid parameter %s", key)
+                raise ConfStoreError(errno.EINVAL, "Invalid parameter %s", key)
 
         if index in self._cache.keys() and not overwrite:
             raise ConfStoreError(errno.EINVAL, "conf index %s already exists",
