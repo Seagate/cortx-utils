@@ -35,6 +35,7 @@ class ConfStore:
             raise ConfStoreError(errno.EINVAL, "invalid delim %s", delim)
         self._delim = delim
         self._cache = {}
+        self._callbacks = {}
 
     def load(self, index: str, kvs_url: str, **kwargs):
         """
@@ -47,6 +48,15 @@ class ConfStore:
                    Default: False 
         callback:  Callback for the config changes in the KV Sto
         """
+        overwrite = False
+        for key, val in kwargs.items():
+            if key == 'overwrite':
+                overwrite = True
+            elif key == 'callback':
+                self._callbacks[index] = val
+            else:
+                raise ConfStoreError("Invalid parameter %s", key)
+
         if index in self._cache.keys() and not overwrite:
             raise ConfStoreError(errno.EINVAL, "conf index %s already exists",
                 index)
