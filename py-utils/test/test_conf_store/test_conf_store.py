@@ -112,6 +112,15 @@ class TestConfStore(unittest.TestCase):
         result_data = conf_store.get_keys('backup')
         self.assertTrue(True if 'bridge>name' in result_data else False)
 
+    def test_conf_load_invalid_arguments(self):
+        """
+        Test by passing invalid argument to confstore load -invalid case
+        """
+        try:
+            conf_store.load('invalid_arg', 'json:/tmp/file1.json', test_arg='This is invalid')
+        except Exception as err:
+            self.assertEqual('Invalid parameter test_arg', err.desc)
+
 
 if __name__ == '__main__':
     """
