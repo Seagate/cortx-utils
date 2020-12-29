@@ -49,7 +49,7 @@ class ConfStore:
         """
         if index in self._cache.keys() and not overwrite:
             raise ConfStoreError(errno.EINVAL, "conf index %s already exists",
-                                 index)
+                index)
 
         kv_store = KvStoreFactory.get_instance(kvs_url, self._delim)
         self._cache[index] = ConfCache(kv_store, self._delim)
@@ -58,7 +58,7 @@ class ConfStore:
         """ Saves the given index configuration onto KV Store """
         if index not in self._cache.keys():
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
-                                 index)
+                index)
 
         self._cache[index].dump()
 
