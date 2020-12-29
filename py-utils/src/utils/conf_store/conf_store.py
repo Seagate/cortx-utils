@@ -128,7 +128,7 @@ class ConfStore:
         """ Delets a given key from the config """
         if index not in self._cache.keys():
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
-                                 index)
+                index)
 
         self._cache[index].delete(key)
 
