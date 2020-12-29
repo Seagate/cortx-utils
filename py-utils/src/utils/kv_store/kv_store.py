@@ -118,11 +118,9 @@ class KvStore:
     def __init__(self, store_loc, store_path, delim='>'):
         """
         Args:
-
-            store_loc: store location
-            store_path: store path from where to load data
-            delim: It is used to split key into hierarchy, e.g. "k1>2" or
-            "k1.k2"
+        store_loc: store location
+        store_path: store path from where to load data
+        delim: It is used to split key into hierarchy, e.g. "k1>2" or "k1.k2"
         """
         self._store_loc = store_loc
         self._store_path = store_path
@@ -159,7 +157,7 @@ class KvStore:
         self.dump(data)
 
     def delete(self, keys: list):
-        """ Deletes given set of keys from the store"""
+        """ Deletes given set of keys from the store """
         data = self.load()
         for key in keys:
             data.delete(key)
@@ -182,7 +180,7 @@ class KvStoreFactory:
     _stores = {}
 
     def __init__(self):
-        """ Initializing KvStoreFactory"""
+        """ Initializing KvStoreFactory """
         pass
 
     @staticmethod
