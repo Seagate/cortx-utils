@@ -89,14 +89,23 @@ class KafkaMessageBroker(MessageBroker):
     def delete(self, message_type: str):
         """ Deletes all the messages from Kafka cluster(s) """
         resource = ConfigResource('topic', message_type)
+        conf = self._admin.describe_configs([resource])
+        default_configs = list(conf.values())[0].result()
+        saved_retention = int(default_configs['retention.ms'].__dict__['value'])
+
         resource.set_config('retention.ms', 1)
-        self._admin.alter_configs([resource])
-        resource.set_config('retention.ms', 604800000)
+        tuned_params = self._admin.alter_configs([resource])
+
+        if list(tuned_params.values())[0].result() is not None:
+            raise MessageBusError(errno.EINVAL, "Unable to delete messages \
+                for %s", message_type)
+
+        resource.set_config('retention.ms', saved_retention)
         default_params = self._admin.alter_configs([resource])
 
         if list(default_params.values())[0].result() is not None:
-            raise MessageBusError(errno.EINVAL, "Unable to delete messages \
-                for %s", message_type)
+            raise MessageBusError(errno.EINVAL, "Unknown configuration for \
+                %s", message_type)
 
     def receive(self, consumer_id: str, timeout=0.5) -> list:
         """ Receives list of messages from Kafka cluster(s) """

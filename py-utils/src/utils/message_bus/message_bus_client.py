@@ -38,7 +38,7 @@ class MessageBusClient:
         client_id = self._get_conf('client_id')
         self._message_bus.send(client_id, message_type, method, messages)
 
-    def delete(self, filters: str):
+    def delete(self, **criteria: dict):
         message_type = self._get_conf('message_type')
         self._message_bus.delete(message_type)
 
