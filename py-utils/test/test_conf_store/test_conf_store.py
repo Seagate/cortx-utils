@@ -91,7 +91,7 @@ class TestConfStore(unittest.TestCase):
         """Test listing all available keys for given index"""
         load_config('get_keys_local', 'json:///tmp/file1.json')
         result_data = conf_store.get_keys('get_keys_local')
-        self.assertTrue(True if len(result_data) > 1 else False)
+        self.assertTrue(True if 'bridge>name' in result_data else False)
 
     def test_conf_store_delete(self):
         """
@@ -111,7 +111,7 @@ class TestConfStore(unittest.TestCase):
         conf_store.copy('csm_local', 'backup')
         conf_store.save('backup')
         result_data = conf_store.get_keys('backup')
-        self.assertTrue(True if len(result_data) > 1 else False)
+        self.assertTrue(True if 'bridge>name' in result_data else False)
 
 
 if __name__ == '__main__':
