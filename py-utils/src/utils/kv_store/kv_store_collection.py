@@ -95,7 +95,7 @@ class TomlKvStore(KvStore):
 
 class IniKvData(KvData):
     """ In memory representation of INI conf data """
-    def __init__(self, configparser, delim=">"):
+    def __init__(self, configparser, delim='>'):
         super().__init__(configparser, delim)
 
     def refresh_keys(self):
