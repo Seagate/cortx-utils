@@ -46,7 +46,7 @@ class ConfStore:
         kv_store:  KV Store (Conf Backend)
         overwrite: When False, it throws exception if index already exists. 
                    Default: False 
-        callback:  Callback for the config changes in the KV Store
+        callback:  Callback for the config changes in the KV Store.
         """
         overwrite = False
         for key, val in kwargs.items():
