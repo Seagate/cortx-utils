@@ -56,6 +56,12 @@ class KafkaMessageBroker(MessageBroker):
             producer = Producer(**kafka_conf)
             self._clients[client_type][client_conf['client_id']] = producer
 
+            self._resource = ConfigResource('topic', client_conf['message_type'])
+            conf = self._admin.describe_configs([self._resource])
+            default_configs = list(conf.values())[0].result()
+            self._saved_retention = int(default_configs['retention.ms'] \
+                                       .__dict__['value'])
+
         else:
             for entry in ['offset', 'consumer_group', 'message_type', \
                 'auto_ack', 'client_id']:
@@ -88,24 +94,27 @@ class KafkaMessageBroker(MessageBroker):
 
     def delete(self, message_type: str):
         """ Deletes all the messages from Kafka cluster(s) """
-        resource = ConfigResource('topic', message_type)
-        conf = self._admin.describe_configs([resource])
-        default_configs = list(conf.values())[0].result()
-        saved_retention = int(default_configs['retention.ms'].__dict__['value'])
+        for i in range(0, 3):
+            self._resource.set_config('retention.ms', 1)
+            tuned_params = self._admin.alter_configs([self._resource])
+            if list(tuned_params.values())[0].result() is not None:
+                if i > 1:
+                    raise MessageBusError(errno.EINVAL, "Unable to delete \
+                    messages for %s", message_type)
+                continue
+            else:
+                break
 
-        resource.set_config('retention.ms', 1)
-        tuned_params = self._admin.alter_configs([resource])
-
-        if list(tuned_params.values())[0].result() is not None:
-            raise MessageBusError(errno.EINVAL, "Unable to delete messages \
-                for %s", message_type)
-
-        resource.set_config('retention.ms', saved_retention)
-        default_params = self._admin.alter_configs([resource])
-
-        if list(default_params.values())[0].result() is not None:
-            raise MessageBusError(errno.EINVAL, "Unknown configuration for \
-                %s", message_type)
+        for i in range(0, 3):
+            self._resource.set_config('retention.ms', self._saved_retention)
+            default_params = self._admin.alter_configs([self._resource])
+            if list(default_params.values())[0].result() is not None:
+                if i > 1:
+                    raise MessageBusError(errno.EINVAL, "Unknown configuration \
+                        for %s", message_type)
+                continue
+            else:
+                break
 
     def receive(self, consumer_id: str, timeout=0.5) -> list:
         """ Receives list of messages from Kafka cluster(s) """
