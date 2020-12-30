@@ -79,7 +79,7 @@ class TestStore(unittest.TestCase):
         Test Kv JSON store by retrieving value of given key from the jsonstore
         """
         result_data = TestStore.loaded_json[0].get(['bridge>port'])
-        self.assertEqual(result_data[0], "51826")
+        self.assertEqual(result_data[0], 51826)
 
     def test_json_file_set(self):
         """
