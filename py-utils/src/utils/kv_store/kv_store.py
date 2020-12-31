@@ -80,6 +80,9 @@ class DictKvData(KvData):
         if re.search(r'\[(\d)\]', k[0]):
             k_index = list(filter(None, re.split('\W+', k[0])))
             if k_index[0] in data.keys():
+                if len(data[k_index[0]]) > int(k_index[1]):
+                    # W.I.P 
+                    pass
                 if len(k) > 1:
                     return self._set(k[1], val, data[k_index[0]][int(k_index[1])])
                 else:
