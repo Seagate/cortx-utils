@@ -16,6 +16,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
+import re
 import inspect
 from urllib.parse import urlparse
 
@@ -76,6 +77,15 @@ class DictKvData(KvData):
 
     def _set(self, key: str, val: str, data: dict):
         k = key.split(self._delim, 1)
+        if re.search(r'\[(\d)\]', k[0]):
+            k_index = list(filter(None, re.split('\W+', k[0])))
+            if k_index[0] in data.keys():
+                if len(k) > 1:
+                    return self._set(k[1], val, data[k_index[0]][int(k_index[1])])
+                else:
+                    data[k_index[0]][int(k_index[1])] = val
+                    return
+
         if len(k) == 1:
             data[k[0]] = val
             return
@@ -89,9 +99,14 @@ class DictKvData(KvData):
 
     def _get(self, key: str, data: dict) -> str:
         k = key.split(self._delim, 1)
-        if k[0] not in data.keys():
-            return None
-        return self._get(k[1], data[k[0]]) if len(k) > 1 else data[k[0]]
+        if re.search(r'\[(\d)\]', k[0]):
+            k_index = list(filter(None, re.split('\W+', k[0])))
+            if k_index[0] in data.keys():
+                return self._get(k[1], data[k_index[0]][int(k_index[1])]
+                                 ) if len(k) > 1 else data[k_index[0]]
+        elif k[0] in data.keys():
+            return self._get(k[1], data[k[0]]) if len(k) > 1 else data[k[0]]
+        return None
 
     def get(self, key: str) -> str:
         """ Obtain value for the given key """

@@ -121,6 +121,25 @@ class TestConfStore(unittest.TestCase):
         except Exception as err:
             self.assertEqual('Invalid parameter test_arg', err.desc)
 
+    def test_conf_store_get_by_index_with_chained_index(self):
+        """
+        Test by getting the chained key(key1.key2.key3) from the loaded config
+        """
+        load_config('test_local1', 'json:///tmp/file1.json')
+        result_data = conf_store.get('test_local1', 'bridge>lte_type[0]>name',
+                                     default_val=None)
+        self.assertEqual(result_data, '3g')
+
+    def test_conf_store_set_index(self):
+        """
+        Test by setting the key, value to given index and reading it back.
+        """
+        load_config('set_local1', 'json:///tmp/file1.json')
+        conf_store.set('set_local', 'bridge>lte_type[2]>test',
+                       {'name': '5g', 'location': 'NY'})
+        result_data = conf_store.get('set_local', 'bridge>avail_data[2]>test',
+                                     default_val=None)
+        self.assertEqual(result_data, 'no')
 
 if __name__ == '__main__':
     """
