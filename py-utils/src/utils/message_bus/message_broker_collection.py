@@ -59,6 +59,11 @@ class KafkaMessageBroker(MessageBroker):
             self._resource = ConfigResource('topic', client_conf['message_type'])
             conf = self._admin.describe_configs([self._resource])
             default_configs = list(conf.values())[0].result()
+            for params in ['retention.ms']:
+                if params not in default_configs:
+                    raise MessageBusError(errno.EINVAL, "Missing required \
+                        config parameter %s", params)
+
             self._saved_retention = int(default_configs['retention.ms'] \
                                        .__dict__['value'])
 
@@ -94,7 +99,7 @@ class KafkaMessageBroker(MessageBroker):
 
     def delete(self, message_type: str):
         """ Deletes all the messages from Kafka cluster(s) """
-        for i in range(0, 3):
+        for i in range(3):
             self._resource.set_config('retention.ms', 1)
             tuned_params = self._admin.alter_configs([self._resource])
             if list(tuned_params.values())[0].result() is not None:
@@ -105,7 +110,7 @@ class KafkaMessageBroker(MessageBroker):
             else:
                 break
 
-        for i in range(0, 3):
+        for i in range(3):
             self._resource.set_config('retention.ms', self._saved_retention)
             default_params = self._admin.alter_configs([self._resource])
             if list(default_params.values())[0].result() is not None:
