@@ -207,7 +207,7 @@ class KvStore:
         """ Updates a given set of keys and values """
         if len(keys) != len(vals):
             raise KvStoreError(errno.EINVAL, f"Mismatched keys & values %s:%s", \
-                               keys, vals)
+                keys, vals)
         data = self.load()
         for key, val in zip(keys, vals):
             data.set(key, val)
