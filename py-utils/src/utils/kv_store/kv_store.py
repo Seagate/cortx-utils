@@ -82,6 +82,12 @@ class DictKvData(KvData):
         index = None
         ki = re.split(r'\W+', k[0])
         if len(ki) > 1:
+            if not (ki[0] and ki[0].strip()):
+                raise KvStoreError(errno.EINVAL, "Invalid key name %s", ki[0])
+            # if ki[1] is not numeric then raise error
+            if not ki[1].isnumeric():
+                raise KvStoreError(errno.EINVAL,
+                                   "Invalid key index for the key %s", ki[0])
             k[0], index = ki[0], int(ki[1])
 
         if k[0] not in data.keys():
@@ -104,6 +110,8 @@ class DictKvData(KvData):
             data[k[0]] = val
         else:
             # This is not the leaf node of the key, process intermediate node
+            if type(data[k[0]]) is str:
+                data[k[0]] = {}
             self._set(k[1], val, data[k[0]])
 
     def set(self, key: str, val: str):
@@ -117,6 +125,12 @@ class DictKvData(KvData):
         index = None
         ki = re.split(r'\W+', k[0])
         if len(ki) > 1:
+            if not (ki[0] and ki[0].strip()):
+                raise KvStoreError(errno.EINVAL, "Invalid key %s", ki[0])
+
+            if not ki[1].isnumeric():
+                raise KvStoreError(errno.EINVAL,
+                                   "Invalid key index for the key %s", ki[0])
             k[0], index = ki[0], int(ki[1])
 
         if k[0] not in data.keys():
