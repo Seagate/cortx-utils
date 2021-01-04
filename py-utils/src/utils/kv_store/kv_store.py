@@ -206,7 +206,7 @@ class KvStore:
     def set(self, keys: list, vals: list):
         """ Updates a given set of keys and values """
         if len(keys) != len(vals):
-            raise KvStoreError(errno.EINVAL, f"Mismatched keys & values %s:%s", \
+            raise KvStoreError(errno.EINVAL, f"Mismatched keys & values %s:%s",\
                 keys, vals)
         data = self.load()
         for key, val in zip(keys, vals):
@@ -223,12 +223,12 @@ class KvStore:
     def load(self, delim='>'):
         """ Loads and returns data from KV storage """
         raise KvStoreError(errno.ENOSYS, f"%s:load() not implemented", \
-                           type(self).__name__)
+            type(self).__name__)
 
     def dump(self, data, delim='>'):
         """ Dumps data onto the KV Storage """
         raise KvStoreError(errno.ENOSYS, f"%s:dump() not implemented", \
-                           type(self).__name__)
+            type(self).__name__)
 
 
 class KvStoreFactory:
