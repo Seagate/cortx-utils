@@ -137,9 +137,11 @@ class TestConfStore(unittest.TestCase):
         load_config('set_local1', 'json:///tmp/file1.json')
         conf_store.set('set_local', 'bridge>lte_type[2]>test',
                        {'name': '5g', 'location': 'NY'})
-        result_data = conf_store.get('set_local', 'bridge>avail_data[2]>test',
+        result_data = conf_store.get('set_local',
+                                     'bridge>lte_type[2]>test>location',
                                      default_val=None)
-        self.assertEqual(result_data, 'no')
+        self.assertEqual(result_data, 'NY')
+
 
 if __name__ == '__main__':
     """

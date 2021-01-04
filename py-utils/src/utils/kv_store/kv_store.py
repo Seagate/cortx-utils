@@ -77,24 +77,34 @@ class DictKvData(KvData):
 
     def _set(self, key: str, val: str, data: dict):
         k = key.split(self._delim, 1)
-        if re.search(r'\[(\d)\]', k[0]):
-            k_index = list(filter(None, re.split('\W+', k[0])))
-            if k_index[0] in data.keys():
-                if len(data[k_index[0]]) > int(k_index[1]):
-                    # W.I.P 
-                    pass
-                if len(k) > 1:
-                    return self._set(k[1], val, data[k_index[0]][int(k_index[1])])
-                else:
-                    data[k_index[0]][int(k_index[1])] = val
-                    return
 
-        if len(k) == 1:
-            data[k[0]] = val
-            return
+        # Check if key has index, if so identify index
+        index = None
+        ki = re.split(r'\W+', k[0])
+        if len(ki) > 1:
+            k[0], index = ki[0], int(ki[1])
+
         if k[0] not in data.keys():
             data[k[0]] = {}
-        self._set(k[1], val, data[k[0]])
+        if index is not None:
+            if k[0] not in data.keys() or type(data[k[0]]) != list:
+                data[k[0]] = []
+            # if index is more than list size, extend the list
+            for i in range(len(data[k[0]]), index + 1):
+                data[k[0]].append({})
+            # if this is leaf node of the key
+            if len(k) == 1:
+                data[k[0]][index] = val
+            else:
+                self._set(k[1], val, data[k[0]][index])
+            return
+
+        if len(k) == 1:
+            # if this is leaf node of the key
+            data[k[0]] = val
+        else:
+            # This is not the leaf node of the key, process intermediate node
+            self._set(k[1], val, data[k[0]])
 
     def set(self, key: str, val: str):
         """ Updates the value for the given key in the dictionary """
@@ -102,14 +112,26 @@ class DictKvData(KvData):
 
     def _get(self, key: str, data: dict) -> str:
         k = key.split(self._delim, 1)
-        if re.search(r'\[(\d)\]', k[0]):
-            k_index = list(filter(None, re.split('\W+', k[0])))
-            if k_index[0] in data.keys():
-                return self._get(k[1], data[k_index[0]][int(k_index[1])]
-                                 ) if len(k) > 1 else data[k_index[0]]
-        elif k[0] in data.keys():
-            return self._get(k[1], data[k[0]]) if len(k) > 1 else data[k[0]]
-        return None
+
+        # Check if key has index, if so identify index
+        index = None
+        ki = re.split(r'\W+', k[0])
+        if len(ki) > 1:
+            k[0], index = ki[0], int(ki[1])
+
+        if k[0] not in data.keys():
+            return None
+        data1 = data[k[0]]
+        if index is not None:
+            if type(data[k[0]]) != list or index >= len(data[k[0]]):
+                return None
+            data1 = data[k[0]][index]
+
+        # if this is leaf node of the key
+        if len(k) == 1: return data1
+
+        # This is not the leaf node of the key, process intermediate node
+        return self._get(k[1], data1)
 
     def get(self, key: str) -> str:
         """ Obtain value for the given key """
@@ -117,13 +139,30 @@ class DictKvData(KvData):
 
     def _delete(self, key: str, data: dict):
         k = key.split(self._delim, 1)
-        if len(k) == 1:
-            if k[0] in data.keys():
-                del data[k[0]]
-            return
+
+        index = None
+        ki = re.split(r'\W+', k[0])
+        if len(ki) > 1:
+            k[0], index = ki[0], int(ki[1])
+
         if k[0] not in data.keys():
+            return None
+
+        if index is not None:
+            if type(data[k[0]]) != list:
+                raise KvStoreError(errno.EINVAL, "Invalid key %s", key)
+            if index >= len(data[k[0]]):
+                return
+            if len(k) == 1:
+                del data[k[0]][index]
+            else:
+                self._delete(k[1], data[k[0]][index])
             return
-        self._delete(k[1], data[k[0]])
+
+        if len(k) == 1:
+            del data[k[0]]
+        else:
+            self._delete(k[1], data[k[0]])
 
     def delete(self, key):
         """ Deletes given set of keys from the dictionary """
@@ -167,8 +206,8 @@ class KvStore:
     def set(self, keys: list, vals: list):
         """ Updates a given set of keys and values """
         if len(keys) != len(vals):
-            raise KvStoreError(errno.EINVAL, f"Mismatched keys & values %s:%s",\
-                keys, vals)
+            raise KvStoreError(errno.EINVAL, f"Mismatched keys & values %s:%s", \
+                               keys, vals)
         data = self.load()
         for key, val in zip(keys, vals):
             data.set(key, val)
@@ -184,12 +223,12 @@ class KvStore:
     def load(self, delim='>'):
         """ Loads and returns data from KV storage """
         raise KvStoreError(errno.ENOSYS, f"%s:load() not implemented", \
-            type(self).__name__)
+                           type(self).__name__)
 
     def dump(self, data, delim='>'):
         """ Dumps data onto the KV Storage """
         raise KvStoreError(errno.ENOSYS, f"%s:dump() not implemented", \
-            type(self).__name__)
+                           type(self).__name__)
 
 
 class KvStoreFactory:
