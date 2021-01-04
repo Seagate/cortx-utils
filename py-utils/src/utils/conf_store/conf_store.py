@@ -25,11 +25,19 @@ from cortx.utils.kv_store.kv_store import KvStoreFactory
 class ConfStore:
     """ Configuration Store based on the KvStore """
 
-    def __init__(self):
-        """ kvstore will be initialized at the time of load """
-        self._cache = {}
+    def __init__(self, delim='>'):
+        """
+        ConfStore will be initialized at the time of load
+        delim is used to split key into hierarchy, e.g. "k1>2" or "k1.k2"
+        """
 
-    def load(self, index: str, kvs_url: str, overwrite=False, callback=None):
+        if len(delim) > 1 or delim not in [':', '>', '.', '|', ';', '/']:
+            raise ConfStoreError(errno.EINVAL, "invalid delim %s", delim)
+        self._delim = delim
+        self._cache = {}
+        self._callbacks = {}
+
+    def load(self, index: str, kvs_url: str, **kwargs):
         """
         Loads the config from KV Store
 
@@ -38,14 +46,23 @@ class ConfStore:
         kv_store:  KV Store (Conf Backend)
         overwrite: When False, it throws exception if index already exists. 
                    Default: False 
-        callback:  Callback for the config changes in the KV Sto
+        callback:  Callback for the config changes in the KV Store.
         """
-        if index in self._cache.keys() and not overwrite: 
+        overwrite = False
+        for key, val in kwargs.items():
+            if key == 'overwrite':
+                overwrite = True
+            elif key == 'callback':
+                self._callbacks[index] = val
+            else:
+                raise ConfStoreError(errno.EINVAL, "Invalid parameter %s", key)
+
+        if index in self._cache.keys() and not overwrite:
             raise ConfStoreError(errno.EINVAL, "conf index %s already exists",
                 index)
 
-        kv_store = KvStoreFactory.get_instance(kvs_url)
-        self._cache[index] = ConfCache(kv_store)
+        kv_store = KvStoreFactory.get_instance(kvs_url, self._delim)
+        self._cache[index] = ConfCache(kv_store, self._delim)
 
     def save(self, index: str):
         """ Saves the given index configuration onto KV Store """
@@ -72,7 +89,7 @@ class ConfStore:
         """
         if index not in self._cache.keys():
             raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
-                                 index)
+                index)
         if key is None:
             raise ConfStoreError(errno.EINVAL, "can't able to find config key "
                                                "%s in loaded config", key)
@@ -118,7 +135,7 @@ class ConfStore:
     def copy(self, src_index: str, dst_index: str, key_list: list = None):
         """
         Copies one config domain to the other and saves
-        
+
         Parameters:
         src_index Source Index 
         dst_index Destination Index 
@@ -140,11 +157,18 @@ class ConfStore:
 class Conf:
     """ Singleton class instance based on conf_store """
     _conf = None
+    _delim = '>'
+
+    @staticmethod
+    def init(**kwargs):
+        for key, val in kwargs.items():
+            setattr(Conf, f"_{key}", val)
 
     @staticmethod
     def load(index: str, url: str):
         """ Loads Config from the given URL """
-        if Conf._conf is None: Conf._conf = ConfStore()
+        if Conf._conf is None:
+            Conf._conf = ConfStore(delim=Conf._delim)
         Conf._conf.load(index, url)
 
     @staticmethod

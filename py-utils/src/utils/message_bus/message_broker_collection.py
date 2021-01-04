@@ -17,7 +17,7 @@
 
 import errno
 from confluent_kafka import Producer, Consumer
-from confluent_kafka.admin import AdminClient
+from confluent_kafka.admin import AdminClient, ConfigResource
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus.message_broker import MessageBroker
 
@@ -56,6 +56,17 @@ class KafkaMessageBroker(MessageBroker):
             producer = Producer(**kafka_conf)
             self._clients[client_type][client_conf['client_id']] = producer
 
+            self._resource = ConfigResource('topic', client_conf['message_type'])
+            conf = self._admin.describe_configs([self._resource])
+            default_configs = list(conf.values())[0].result()
+            for params in ['retention.ms']:
+                if params not in default_configs:
+                    raise MessageBusError(errno.EINVAL, "Missing required \
+                        config parameter %s", params)
+
+            self._saved_retention = int(default_configs['retention.ms'] \
+                                       .__dict__['value'])
+
         else:
             for entry in ['offset', 'consumer_group', 'message_type', \
                 'auto_ack', 'client_id']:
@@ -86,8 +97,32 @@ class KafkaMessageBroker(MessageBroker):
             else:
                 producer.poll(timeout=timeout)
 
+    def delete(self, message_type: str):
+        """ Deletes all the messages from Kafka cluster(s) """
+        for i in range(3):
+            self._resource.set_config('retention.ms', 1)
+            tuned_params = self._admin.alter_configs([self._resource])
+            if list(tuned_params.values())[0].result() is not None:
+                if i > 1:
+                    raise MessageBusError(errno.EINVAL, "Unable to delete \
+                    messages for %s", message_type)
+                continue
+            else:
+                break
+
+        for i in range(3):
+            self._resource.set_config('retention.ms', self._saved_retention)
+            default_params = self._admin.alter_configs([self._resource])
+            if list(default_params.values())[0].result() is not None:
+                if i > 1:
+                    raise MessageBusError(errno.EINVAL, "Unknown configuration \
+                        for %s", message_type)
+                continue
+            else:
+                break
+
     def receive(self, consumer_id: str, timeout=0.5) -> list:
-        """ Receives list of messages to Kafka cluster(s) """
+        """ Receives list of messages from Kafka cluster(s) """
         consumer = self._clients['consumer'][consumer_id]
         if consumer is None:
             raise MessageBusError(errno.EINVAL, "Consumer %s is not \

@@ -41,7 +41,6 @@ conf_store = ConfStore()
 
 def load_config(index, backend_url):
     """Instantiate and Load Config into constore"""
-    # conf_backend = KvStoreFactory.get_instance(backend_url)
     conf_store.load(index, backend_url)
     return conf_store
 
@@ -53,7 +52,7 @@ class TestConfStore(unittest.TestCase):
         """Test by loading the give config file to in-memory"""
         load_config('sspl_local', 'json:///tmp/file1.json')
         result_data = conf_store.get_data('sspl_local')
-        self.assertTrue(True if 'bridge' in result_data else False)
+        self.assertTrue('bridge' in result_data._data)
 
     def test_conf_store_get_by_index_with_single_key(self):
         """Test by getting the key from the loaded config"""
@@ -66,14 +65,14 @@ class TestConfStore(unittest.TestCase):
         Test by getting the chained key(key1.key2.key3) from the loaded config
         """
         load_config('test_local', 'json:///tmp/file1.json')
-        result_data = conf_store.get('test_local', 'bridge.name',
+        result_data = conf_store.get('test_local', 'bridge>name',
                                      default_val=None)
         self.assertEqual(result_data, 'Homebridge')
 
     def test_conf_store_get_wrong_key(self):
         """Test by trying to get the wrong key from the loaded config"""
         load_config('new_local', 'json:///tmp/file1.json')
-        result_data = conf_store.get('test_local', 'bridge.no_name_field',
+        result_data = conf_store.get('test_local', 'bridge>no_name_field',
                                      default_val=None)
         self.assertEqual(result_data, None)
 
@@ -82,8 +81,8 @@ class TestConfStore(unittest.TestCase):
         Test by setting the key, value to given index and reading it back.
         """
         load_config('set_local', 'json:///tmp/file1.json')
-        conf_store.set('set_local', 'bridge.proxy', 'no')
-        result_data = conf_store.get('set_local', 'bridge.proxy',
+        conf_store.set('set_local', 'bridge>proxy', 'no')
+        result_data = conf_store.get('set_local', 'bridge>proxy',
                                      default_val=None)
         self.assertEqual(result_data, 'no')
 
@@ -91,15 +90,15 @@ class TestConfStore(unittest.TestCase):
         """Test listing all available keys for given index"""
         load_config('get_keys_local', 'json:///tmp/file1.json')
         result_data = conf_store.get_keys('get_keys_local')
-        self.assertTrue(True if len(result_data) > 1 else False)
+        self.assertTrue(True if 'bridge>name' in result_data else False)
 
     def test_conf_store_delete(self):
         """
         Test by removing the key, value to given index and reading it back.
         """
         load_config('delete_local', 'json:///tmp/file1.json')
-        conf_store.delete('delete_local', 'bridge.proxy')
-        result_data = conf_store.get('delete_local', 'bridge.proxy',
+        conf_store.delete('delete_local', 'bridge>proxy')
+        result_data = conf_store.get('delete_local', 'bridge>proxy',
                                      default_val=None)
         self.assertEqual(result_data, None)
 
@@ -111,7 +110,16 @@ class TestConfStore(unittest.TestCase):
         conf_store.copy('csm_local', 'backup')
         conf_store.save('backup')
         result_data = conf_store.get_keys('backup')
-        self.assertTrue(True if len(result_data) > 1 else False)
+        self.assertTrue(True if 'bridge>name' in result_data else False)
+
+    def test_conf_load_invalid_arguments(self):
+        """
+        Test by passing invalid argument to confstore load -invalid case
+        """
+        try:
+            conf_store.load('invalid_arg', 'json:/tmp/file1.json', test_arg='This is invalid')
+        except Exception as err:
+            self.assertEqual('Invalid parameter test_arg', err.desc)
 
 
 if __name__ == '__main__':

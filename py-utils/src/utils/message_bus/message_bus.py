@@ -50,6 +50,10 @@ class MessageBus:
         """ Sends list of messages to the configured message broker """
         self._broker.send(client_id, message_type, method, messages)
 
+    def delete(self, message_type: str):
+        """ Deletes all the messages from the configured message broker """
+        self._broker.delete(message_type)
+
     def receive(self, client_id: str) -> list:
         """ Receives messages from the configured message broker """
         return self._broker.receive(client_id)
