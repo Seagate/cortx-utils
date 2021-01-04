@@ -110,7 +110,13 @@ class TestConfStore(unittest.TestCase):
         conf_store.copy('csm_local', 'backup')
         conf_store.save('backup')
         result_data = conf_store.get_keys('backup')
-        self.assertTrue(True if 'bridge>name' in result_data else False)
+        # Expected list should match the result_data list output
+        expected_list = [
+            'bridge>name', 'bridge>username', 'bridge>manufacturer',
+            'bridge>model', 'bridge>pin', 'bridge>port',
+            'bridge>lte_type[0]', 'bridge>lte_type[1]'
+        ]
+        self.assertListEqual(expected_list, result_data)
 
     def test_conf_load_invalid_arguments(self):
         """
@@ -124,6 +130,7 @@ class TestConfStore(unittest.TestCase):
     def test_conf_store_get_by_index_with_chained_index(self):
         """
         Test by getting the chained key(key1.key2.key3) from the loaded config
+        at given index
         """
         load_config('test_local1', 'json:///tmp/file1.json')
         result_data = conf_store.get('test_local1', 'bridge>lte_type[0]>name',
@@ -137,9 +144,20 @@ class TestConfStore(unittest.TestCase):
         load_config('set_local1', 'json:///tmp/file1.json')
         conf_store.set('set_local', 'bridge>lte_type[2]>test',
                        {'name': '5g', 'location': 'NY'})
-        result_data = conf_store.get('set_local', 'bridge>avail_data[2]>test',
+        result_data = conf_store.get('set_local',
+                                     'bridge>lte_type[2]>test>location',
                                      default_val=None)
-        self.assertEqual(result_data, 'no')
+        self.assertEqual(result_data, 'NY')
+
+    def test_conf_store_delete_with_index(self):
+        """ Test by removing the key, value from the given index. """
+        load_config('delete_local_index', 'json:///tmp/file1.json')
+        conf_store.delete('delete_local_index', 'bridge>lte_type[1]')
+        result_data = conf_store.get('delete_local_index',
+                                     'bridge>lte_type[1]>name',
+                                     default_val=None)
+        self.assertEqual(result_data, None)
+
 
 if __name__ == '__main__':
     """
