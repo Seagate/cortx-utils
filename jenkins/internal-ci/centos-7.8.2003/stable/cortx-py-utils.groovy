@@ -51,7 +51,8 @@ pipeline {
                 script { build_stage = env.STAGE_NAME }
                 sh label: 'Copy RPMS', script: '''
                     mkdir -p $build_upload_dir/$BUILD_NUMBER
-					cp ./py-utils/dist/*.rpm $build_upload_dir/$BUILD_NUMBER
+                    shopt -s extglob
+					cp ./py-utils/dist/!(*.src.rpm|*.tar.gz) $build_upload_dir/$BUILD_NUMBER
 					cp ./statsd-utils/dist/rpmbuild/RPMS/x86_64/*.rpm $build_upload_dir/$BUILD_NUMBER
                 '''
                 sh label: 'Repo Creation', script: '''
