@@ -84,7 +84,6 @@ class DictKvData(KvData):
         if len(ki) > 1:
             if not (ki[0] and ki[0].strip()):
                 raise KvStoreError(errno.EINVAL, "Invalid key name %s", ki[0])
-            # if ki[1] is not numeric then raise error
             if not ki[1].isnumeric():
                 raise KvStoreError(errno.EINVAL,
                                    "Invalid key index for the key %s", ki[0])
