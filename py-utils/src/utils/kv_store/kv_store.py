@@ -102,6 +102,9 @@ class DictKvData(KvData):
             if len(k) == 1:
                 data[k[0]][index] = val
             else:
+                # In case the value is string replace with {}
+                if type(data[k[0]][index]) is str:
+                    data[k[0]][index] = {}
                 self._set(k[1], val, data[k[0]][index])
             return
 
