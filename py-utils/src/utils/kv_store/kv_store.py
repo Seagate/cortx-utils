@@ -16,6 +16,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
+import re
 import inspect
 from urllib.parse import urlparse
 
@@ -76,12 +77,44 @@ class DictKvData(KvData):
 
     def _set(self, key: str, val: str, data: dict):
         k = key.split(self._delim, 1)
-        if len(k) == 1:
-            data[k[0]] = val
-            return
+
+        # Check if key has index, if so identify index
+        index = None
+        ki = re.split(r'\W+', k[0])
+        if len(ki) > 1:
+            if len(ki[0].strip()) == 0:
+                raise KvStoreError(errno.EINVAL, "Invalid key name %s", ki[0])
+            if not ki[1].isnumeric():
+                raise KvStoreError(errno.EINVAL,
+                                   "Invalid key index for the key %s", ki[0])
+            k[0], index = ki[0], int(ki[1])
+
         if k[0] not in data.keys():
             data[k[0]] = {}
-        self._set(k[1], val, data[k[0]])
+        if index is not None:
+            if k[0] not in data.keys() or type(data[k[0]]) != list:
+                data[k[0]] = []
+            # if index is more than list size, extend the list
+            for i in range(len(data[k[0]]), index + 1):
+                data[k[0]].append({})
+            # if this is leaf node of the key
+            if len(k) == 1:
+                data[k[0]][index] = val
+            else:
+                # In case the value is string replace with {}
+                if type(data[k[0]][index]) in [str, list]:
+                    data[k[0]][index] = {}
+                self._set(k[1], val, data[k[0]][index])
+            return
+
+        if len(k) == 1:
+            # if this is leaf node of the key
+            data[k[0]] = val
+        else:
+            # This is not the leaf node of the key, process intermediate node
+            if type(data[k[0]]) in [str, list]:
+                data[k[0]] = {}
+            self._set(k[1], val, data[k[0]])
 
     def set(self, key: str, val: str):
         """ Updates the value for the given key in the dictionary """
@@ -89,9 +122,32 @@ class DictKvData(KvData):
 
     def _get(self, key: str, data: dict) -> str:
         k = key.split(self._delim, 1)
+
+        # Check if key has index, if so identify index
+        index = None
+        ki = re.split(r'\W+', k[0])
+        if len(ki) > 1:
+            if len(ki[0].strip()) == 0:
+                raise KvStoreError(errno.EINVAL, "Invalid key %s", ki[0])
+
+            if not ki[1].isnumeric():
+                raise KvStoreError(errno.EINVAL,
+                                   "Invalid key index for the key %s", ki[0])
+            k[0], index = ki[0], int(ki[1])
+
         if k[0] not in data.keys():
             return None
-        return self._get(k[1], data[k[0]]) if len(k) > 1 else data[k[0]]
+        data1 = data[k[0]]
+        if index is not None:
+            if type(data[k[0]]) != list or index >= len(data[k[0]]):
+                return None
+            data1 = data[k[0]][index]
+
+        # if this is leaf node of the key
+        if len(k) == 1: return data1
+
+        # This is not the leaf node of the key, process intermediate node
+        return self._get(k[1], data1)
 
     def get(self, key: str) -> str:
         """ Obtain value for the given key """
@@ -99,13 +155,30 @@ class DictKvData(KvData):
 
     def _delete(self, key: str, data: dict):
         k = key.split(self._delim, 1)
-        if len(k) == 1:
-            if k[0] in data.keys():
-                del data[k[0]]
-            return
+
+        index = None
+        ki = re.split(r'\W+', k[0])
+        if len(ki) > 1:
+            k[0], index = ki[0], int(ki[1])
+
         if k[0] not in data.keys():
+            return None
+
+        if index is not None:
+            if type(data[k[0]]) != list:
+                raise KvStoreError(errno.EINVAL, "Invalid key %s", key)
+            if index >= len(data[k[0]]):
+                return
+            if len(k) == 1:
+                del data[k[0]][index]
+            else:
+                self._delete(k[1], data[k[0]][index])
             return
-        self._delete(k[1], data[k[0]])
+
+        if len(k) == 1:
+            del data[k[0]]
+        else:
+            self._delete(k[1], data[k[0]])
 
     def delete(self, key):
         """ Deletes given set of keys from the dictionary """
