@@ -1,0 +1,35 @@
+# C7.8.2003
+[C7.8.2003-base]
+name=CentOS-7.8.2003 - Base
+baseurl=http://linuxsoft.cern.ch/centos-vault/7.8.2003/os/$basearch/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+enabled=1
+
+[C7.8.2003-updates]
+name=CentOS-7.8.2003 - Updates
+baseurl=http://linuxsoft.cern.ch/centos-vault/7.8.2003/updates/$basearch/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+enabled=0
+
+[C7.8.2003-extras]
+name=CentOS-7.8.2003 - Extras
+baseurl=http://linuxsoft.cern.ch/centos-vault/7.8.2003/extras/$basearch/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+enabled=1
+
+[C7.8.2003-centosplus]
+name=CentOS-7.8.2003 - CentOSPlus
+baseurl=http://linuxsoft.cern.ch/centos-vault/7.8.2003/centosplus/$basearch/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+enabled=1
+
+[C7.8.2003-fasttrack]
+name=CentOS-7.8.2003 - Fasttrack
+baseurl=http://linuxsoft.cern.ch/centos-vault/7.8.2003/fasttrack/$basearch/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+enabled=1
