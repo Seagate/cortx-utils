@@ -82,7 +82,7 @@ class DictKvData(KvData):
         index = None
         ki = re.split(r'\W+', k[0])
         if len(ki) > 1:
-            if not (ki[0] and ki[0].strip()):
+            if len(ki[0].strip()) == 0:
                 raise KvStoreError(errno.EINVAL, "Invalid key name %s", ki[0])
             if not ki[1].isnumeric():
                 raise KvStoreError(errno.EINVAL,
@@ -127,7 +127,7 @@ class DictKvData(KvData):
         index = None
         ki = re.split(r'\W+', k[0])
         if len(ki) > 1:
-            if not (ki[0] and ki[0].strip()):
+            if len(ki[0].strip()) == 0:
                 raise KvStoreError(errno.EINVAL, "Invalid key %s", ki[0])
 
             if not ki[1].isnumeric():
