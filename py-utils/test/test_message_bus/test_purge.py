@@ -18,17 +18,30 @@
 
 
 import unittest
+<<<<<<< HEAD
 from cortx.utils.message_bus import MessageBus, MessageProducer
+=======
+from cortx.utils.message_bus import MessageBus, MessageProducer, MessageConsumer
+>>>>>>> 349582e17618208b5838b593951f83460464b8a9
 
 
 class TestMessage(unittest.TestCase):
     """ Test MessageBus related functionality. """
 
+<<<<<<< HEAD
     def test_send(self):
         """ Test Send Message. """
         messages = []
         message_bus = MessageBus()
         producer = MessageProducer(message_bus, producer_id='sel', \
+=======
+    message_bus = MessageBus()
+
+    def test_send(self):
+        """ Test Send Message. """
+        messages = []
+        producer = MessageProducer(TestMessage.message_bus, producer_id='sel', \
+>>>>>>> 349582e17618208b5838b593951f83460464b8a9
             message_type='Sel', method='async')
 
         self.assertIsNotNone(producer, "Producer not found")
@@ -37,8 +50,30 @@ class TestMessage(unittest.TestCase):
         self.assertIsInstance(messages, list)
         producer.send(messages)
         producer.send(messages)
+<<<<<<< HEAD
         producer.delete(filters=None)
         producer.send(messages)
+=======
+        producer.delete()
+
+    def test_receive(self):
+        """Test Receive Message."""
+        consumer = MessageConsumer(TestMessage.message_bus, \
+            consumer_id='sspl_sensors', consumer_group='sspl', \
+            message_type=['Sel'], auto_ack=False, offset='latest')
+
+        self.assertIsNotNone(consumer, "Consumer not found")
+        count = 0
+        while True:
+            try:
+                message = consumer.receive()
+                count += 1
+                self.assertIsNotNone(message, "Message not found")
+                consumer.ack()
+            except Exception as e:
+                self.assertEqual(count, 0)
+                break
+>>>>>>> 349582e17618208b5838b593951f83460464b8a9
 
 
 if __name__ == '__main__':
