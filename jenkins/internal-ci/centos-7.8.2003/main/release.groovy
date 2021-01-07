@@ -14,7 +14,7 @@ pipeline {
 	environment {
 
         	version = "1.0.0"
-		thrid_party_version = "1.0.0-1"
+			thrid_party_version = "1.0.0-3"
 	        release_component = "${release_component != null ? release_component : 'dry_run'}"
         	release_build = "${release_build != null ? release_build : BUILD_NUMBER}"
 	        env = "dev"
