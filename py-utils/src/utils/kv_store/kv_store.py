@@ -56,7 +56,7 @@ class KvData:
             for key in data.keys():
                 nkey = key if pkey is None else f"%s%s%s" % (pkey, self._delim,
                                                              key)
-                if type(data[key]) in [str, int]:
+                if type(data[key]) not in [dict, list]:
                     self._keys.append(nkey)
                 else:
                     self._refresh_keys(data[key], nkey)
