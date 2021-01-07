@@ -56,7 +56,7 @@ class KvData:
             for key in data.keys():
                 nkey = key if pkey is None else f"%s%s%s" % (pkey, self._delim,
                                                              key)
-                if type(data[key]) in [str, int]:
+                if type(data[key]) not in [dict, list]:
                     self._keys.append(nkey)
                 else:
                     self._refresh_keys(data[key], nkey)
@@ -102,7 +102,7 @@ class DictKvData(KvData):
                 data[k[0]][index] = val
             else:
                 # In case the value is string replace with {}
-                if type(data[k[0]][index]) is str:
+                if type(data[k[0]][index]) in [str, list]:
                     data[k[0]][index] = {}
                 self._set(k[1], val, data[k[0]][index])
             return
@@ -112,7 +112,7 @@ class DictKvData(KvData):
             data[k[0]] = val
         else:
             # This is not the leaf node of the key, process intermediate node
-            if type(data[k[0]]) is str:
+            if type(data[k[0]]) in [str, list]:
                 data[k[0]] = {}
             self._set(k[1], val, data[k[0]])
 
