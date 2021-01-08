@@ -9,7 +9,7 @@ pipeline {
 	environment {
 		branch = "custom-ci"
 		os_version = "centos-7.8.2003"
-		thrid_party_version = "1.0.0-1"
+		thrid_party_version = "1.0.0-3"
 		release_dir = "/mnt/bigstorage/releases/cortx"
 		integration_dir = "$release_dir/github/integration-custom-ci/release/$os_version"
 		components_dir = "$release_dir/components/github/$branch/$os_version"
@@ -28,22 +28,22 @@ pipeline {
 	}
 
 	parameters {
-		string(name: 'CSM_AGENT_BRANCH', defaultValue: 'main', description: 'Branch for CSM Agent')
-		string(name: 'CSM_AGENT_URL', defaultValue: 'https://github.com/Seagate/cortx-manager', description: 'CSM_AGENT URL')
-		string(name: 'CSM_WEB_BRANCH', defaultValue: 'main', description: 'Branch for CSM Web')
-		string(name: 'CSM_WEB_URL', defaultValue: 'https://github.com/Seagate/cortx-management-portal', description: 'CSM WEB URL')
-		string(name: 'HARE_BRANCH', defaultValue: 'main', description: 'Branch for Hare')
-		string(name: 'HARE_URL', defaultValue: 'https://github.com/Seagate/cortx-hare', description: 'Hare URL')
-		string(name: 'HA_BRANCH', defaultValue: 'main', description: 'Branch for Cortx-HA')
-		string(name: 'HA_URL', defaultValue: 'https://github.com/Seagate/cortx-ha.git', description: 'Cortx-HA URL')
-		string(name: 'MOTR_BRANCH', defaultValue: 'main', description: 'Branch for Motr')
-		string(name: 'MOTR_URL', defaultValue: 'https://github.com/Seagate/cortx-motr.git', description: 'Motr URL')
-		string(name: 'PRVSNR_BRANCH', defaultValue: 'main', description: 'Branch for Provisioner')
-		string(name: 'PRVSNR_URL', defaultValue: 'https://github.com/Seagate/cortx-prvsnr.git', description: 'Provisioner URL')
-		string(name: 'S3_BRANCH', defaultValue: 'main', description: 'Branch for S3Server')
-		string(name: 'S3_URL', defaultValue: 'https://github.com/Seagate/cortx-s3server.git', description: 'S3Server URL')
-		string(name: 'SSPL_BRANCH', defaultValue: 'main', description: 'Branch for SSPL')
-		string(name: 'SSPL_URL', defaultValue: 'https://github.com/Seagate/cortx-monitor.git', description: 'SSPL URL')
+		string(name: 'CSM_AGENT_BRANCH', defaultValue: 'main', description: 'Branch or GitHash for CSM Agent', trim: true)
+		string(name: 'CSM_AGENT_URL', defaultValue: 'https://github.com/Seagate/cortx-manager', description: 'CSM_AGENT Repository URL', trim: true)
+		string(name: 'CSM_WEB_BRANCH', defaultValue: 'main', description: 'Branch or GitHash for CSM Web', trim: true)
+		string(name: 'CSM_WEB_URL', defaultValue: 'https://github.com/Seagate/cortx-management-portal', description: 'CSM WEB Repository URL', trim: true)
+		string(name: 'HARE_BRANCH', defaultValue: 'main', description: 'Branch or GitHash for Hare', trim: true)
+		string(name: 'HARE_URL', defaultValue: 'https://github.com/Seagate/cortx-hare', description: 'Hare Repository URL', trim: true)
+		string(name: 'HA_BRANCH', defaultValue: 'main', description: 'Branch or GitHash for Cortx-HA', trim: true)
+		string(name: 'HA_URL', defaultValue: 'https://github.com/Seagate/cortx-ha.git', description: 'Cortx-HA Repository URL', trim: true)
+		string(name: 'MOTR_BRANCH', defaultValue: 'main', description: 'Branch or GitHash for Motr', trim: true)
+		string(name: 'MOTR_URL', defaultValue: 'https://github.com/Seagate/cortx-motr.git', description: 'Motr Repository URL', trim: true)
+		string(name: 'PRVSNR_BRANCH', defaultValue: 'main', description: 'Branch or GitHash for Provisioner', trim: true)
+		string(name: 'PRVSNR_URL', defaultValue: 'https://github.com/Seagate/cortx-prvsnr.git', description: 'Provisioner Repository URL', trim: true)
+		string(name: 'S3_BRANCH', defaultValue: 'main', description: 'Branch or GitHash for S3Server', trim: true)
+		string(name: 'S3_URL', defaultValue: 'https://github.com/Seagate/cortx-s3server.git', description: 'S3Server Repository URL', trim: true)
+		string(name: 'SSPL_BRANCH', defaultValue: 'main', description: 'Branch or GitHash for SSPL', trim: true)
+		string(name: 'SSPL_URL', defaultValue: 'https://github.com/Seagate/cortx-monitor.git', description: 'SSPL Repository URL', trim: true)
 
 		choice(
 			name: 'OTHER_COMPONENT_BRANCH',
