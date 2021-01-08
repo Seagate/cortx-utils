@@ -18,7 +18,6 @@
 import errno
 import re
 from cortx.utils.kv_store.error import KvError
-from cortx.utils.schema import Formatter
 
 class KvPayload:
     """ Dict based in memory representation of Key Value data """
@@ -28,7 +27,7 @@ class KvPayload:
         kvstore will be initialized at the time of load
         delim is used to split key into hierarchy, e.g. "k1>2" or "k1.k2"
         """
-        self._data = data if data is not None else {}
+        self._data = data
         if len(delim) > 1:
             raise KvError(errno.EINVAL, "Invalid delim %s", delim)
         self._delim = delim
