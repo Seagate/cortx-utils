@@ -5,6 +5,7 @@
     "manufacturer": "homebridge.io",
     "model": "homebridge",
     "pin": "031-45-154",
-    "port": 51826
+    "port": 51826,
+    "lte_type": [{"name": "3g"}, {"name": "4g"}]
   }
 }
