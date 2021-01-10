@@ -18,6 +18,7 @@
 import errno
 import re
 from cortx.utils.kv_store.error import KvError
+from cortx.utils.schema import Formatter
 
 class KvPayload:
     """ Dict based in memory representation of Key Value data """
@@ -37,8 +38,7 @@ class KvPayload:
     def get_data(self, format_type: str = None):
         if format_type == None:
             return self._data
-        formatter = Formatter.get(format_type)
-        return formatter.convert(self._data)
+        return Formatter.dump(self._data, format_type)
 
     def get_keys(self):
         return self._keys

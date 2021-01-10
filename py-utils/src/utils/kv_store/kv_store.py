@@ -48,6 +48,10 @@ class KvStore:
     def delim(self):
         return self._delim
 
+    def get_data(self, format_type: str = None) -> str:
+        payload = self.load()
+        return payload.get_data(format_type)
+
     def get(self, keys: list) -> list:
         """ Obtains values of keys. Return list of values. """
         payload = self.load()
