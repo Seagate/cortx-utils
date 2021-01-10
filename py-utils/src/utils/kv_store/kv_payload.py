@@ -114,7 +114,6 @@ class KvPayload:
         index = None
         ki = re.split(r'\W+', k[0])
         if len(ki) > 1:
-            print("### ", ki)
             if len(ki[0].strip()) == 0:
                 raise KvError(errno.EINVAL, "Invalid key %s", ki[0])
 
