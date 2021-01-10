@@ -18,6 +18,7 @@
 import errno
 import re
 from cortx.utils.kv_store.error import KvError
+from cortx.utils.schema import Format
 
 class KvPayload:
     """ Dict based in memory representation of Key Value data """
@@ -27,7 +28,7 @@ class KvPayload:
         kvstore will be initialized at the time of load
         delim is used to split key into hierarchy, e.g. "k1>2" or "k1.k2"
         """
-        self._data = data
+        self._data = data if data is not None else {}
         if len(delim) > 1:
             raise KvError(errno.EINVAL, "Invalid delim %s", delim)
         self._delim = delim
@@ -37,7 +38,7 @@ class KvPayload:
     def get_data(self, format_type: str = None):
         if format_type == None:
             return self._data
-        return Formatter.dump(self._data, format_type)
+        return Format.dump(self._data, format_type)
 
     def get_keys(self):
         return self._keys
@@ -66,7 +67,7 @@ class KvPayload:
 
         # Check if key has index, if so identify index
         index = None
-        ki = re.split(r'\W+', k[0])
+        ki = re.split(r'\[([0-9]+)\]', k[0])
         if len(ki) > 1:
             if len(ki[0].strip()) == 0:
                 raise KvError(errno.EINVAL, "Invalid key name %s", ki[0])
@@ -111,7 +112,7 @@ class KvPayload:
 
         # Check if key has index, if so identify index
         index = None
-        ki = re.split(r'\W+', k[0])
+        ki = re.split(r'\[([0-9]+)\]', k[0])
         if len(ki) > 1:
             if len(ki[0].strip()) == 0:
                 raise KvError(errno.EINVAL, "Invalid key %s", ki[0])
@@ -143,7 +144,7 @@ class KvPayload:
         k = key.split(self._delim, 1)
 
         index = None
-        ki = re.split(r'\W+', k[0])
+        ki = re.split(r'\[([0-9]+)\]', k[0])
         if len(ki) > 1:
             k[0], index = ki[0], int(ki[1])
 

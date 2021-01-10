@@ -181,6 +181,15 @@ class TestStore(unittest.TestCase):
         except Exception as err:
             self.assertTrue('user' in err.args)
 
+    def test_kv_format_yaml_to_json(self):
+        """Test Kv format converter functionality store.
+        load yaml store from yaml:///tmp/sample.toml"""
+        result_data = TestStore.loaded_yaml[0].get_data('json')
+        self.assertTrue(result_data,
+            '{"bridge": {"manufacturer": "homebridge.io", "model": '
+            '"homebridge","name": "Homebridge", "pin": "031-45-154", '
+            '"port": 51826, "username": "CC:22:3D:E3:CE:30"}}')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -142,8 +142,9 @@ def main():
         args = parser.parse_args()
         ConfCli.init(args.url)
         out = args.func(args.args)
-        if args.format == None:
+        if 'format' not in dir(args) or args.format == None:
             args.format = "json"
+
         if out is not None and len(out) > 0:
             print(Format.dump(out, args.format))
         return 0
