@@ -20,7 +20,7 @@ import json
 import os
 import sys
 import unittest
-import subprocess
+from cortx.utils.process import SimpleProcess
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 from cortx.utils.schema.payload import Json
@@ -90,9 +90,7 @@ class TestConfCli(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    """
-    Firstly create the file and load sample json into it.
-    Start test
-    """
+
+    # create the file and load sample json into it. Start test
     setup_and_generate_sample_files()
     unittest.main()

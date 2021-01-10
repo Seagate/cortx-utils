@@ -23,8 +23,7 @@ import traceback
 from argparse import RawTextHelpFormatter
 
 from cortx.utils.conf_store import Conf
-from cortx.utils.conf_store import ConfError
-
+from cortx.utils.conf_store.error import ConfError
 
 class ConfCli:
     """ CLI for the Conf Store """
@@ -43,7 +42,8 @@ class ConfCli:
             raise ConfError(errno.EINVAL, "invalid command %s", cmd)
         return fn[cmd](args)
 
-    def set(args: list): 
+    @staticmethod
+    def set(args: list):
         """ Set Key Value """
         kv_list = args[0].split(';')
         for kv in kv_list:
@@ -54,6 +54,7 @@ class ConfCli:
             Conf.set(ConfCli._index, key, val)
         Conf.save(ConfCli._index)
 
+    @staticmethod
     def get(args: list):
         """ Obtain value for the given keys """
         key_list = args[0].split(';')
@@ -63,6 +64,7 @@ class ConfCli:
             vals.append(val)
         return vals
 
+    @staticmethod
     def delete(args: list):
         """ Delete given set of keys from the config """
         key_list = args[0].split(';')
