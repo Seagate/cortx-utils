@@ -27,7 +27,7 @@ class KvPayload:
         kvstore will be initialized at the time of load
         delim is used to split key into hierarchy, e.g. "k1>2" or "k1.k2"
         """
-        self._data = data
+        self._data = data if data is not None else {}
         if len(delim) > 1:
             raise KvError(errno.EINVAL, "Invalid delim %s", delim)
         self._delim = delim
