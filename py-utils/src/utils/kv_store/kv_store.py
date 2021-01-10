@@ -113,4 +113,4 @@ class KvStoreFactory:
                                                         delim)
                 return KvStoreFactory._stores[store_url]
 
-        raise KvError(errno.EINVAL, f"Invalid store type %s", store_type)
+        raise KvError(errno.EINVAL, f"Invalid URL %s", store_url)

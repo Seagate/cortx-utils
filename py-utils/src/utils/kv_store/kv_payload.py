@@ -34,8 +34,11 @@ class KvPayload:
         self._keys = []
         self.refresh_keys()
 
-    def get_data(self):
-        return self._data
+    def get_data(self, format_type: str = None):
+        if format_type == None:
+            return self._data
+        formatter = Formatter.get(format_type)
+        return formatter.convert(self._data)
 
     def get_keys(self):
         return self._keys
