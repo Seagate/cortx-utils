@@ -58,7 +58,6 @@ setup(name='cortx-py-utils',
                 'cortx.utils.kvstore',
                 'cortx.utils.kv_store',
                 'cortx.utils.conf_store',
-                'cortx.utils.conf_store.conf_cli',
                 'cortx.utils.message_bus',
                 'cortx.utils.msg_bus','cortx.utils.msg_bus.tcp',
                 'cortx.utils.msg_bus.tcp.kafka', 'cortx.utils.product_features',
@@ -71,7 +70,7 @@ setup(name='cortx-py-utils',
       entry_points={
         'console_scripts': [
             'hac = cortx.utils.ha.hac.hac:main',
-            'conf = cortx.utils.conf_store.conf_cli.__main__:main'
+            'conf = cortx.utils.conf_store.conf_cli:main'
         ]
       },
       data_files = [ ('/var/lib/cortx/ha/specs', specs),

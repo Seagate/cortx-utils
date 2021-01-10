@@ -15,7 +15,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-class ConfStoreError(Exception):
+class ConfError(Exception):
     """ Generic Exception with error code and output """
 
     def __init__(self, rc, message, *args):
