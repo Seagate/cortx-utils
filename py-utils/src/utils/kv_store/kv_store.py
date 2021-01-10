@@ -19,7 +19,7 @@ import errno
 import inspect
 from urllib.parse import urlparse
 
-from cortx.utils.kv_store.error import KvError
+from cortx.utils.kv_store.error import KvStoreError
 
 
 class KvStore:
@@ -63,7 +63,7 @@ class KvStore:
     def set(self, keys: list, vals: list):
         """ Updates a given set of keys and values """
         if len(keys) != len(vals):
-            raise KvError(errno.EINVAL, f"Mismatched keys & values %s:%s",\
+            raise KvStoreError(errno.EINVAL, f"Mismatched keys & values %s:%s",\
                 keys, vals)
         payload = self.load()
         for key, val in zip(keys, vals):
@@ -79,12 +79,12 @@ class KvStore:
 
     def load(self, delim='>'):
         """ Loads and returns data from KV storage """
-        raise KvError(errno.ENOSYS, f"%s:load() not implemented", \
+        raise KvStoreError(errno.ENOSYS, f"%s:load() not implemented", \
             type(self).__name__)
 
     def dump(self, payload, delim='>'):
         """ Dumps data onto the KV Storage """
-        raise KvError(errno.ENOSYS, f"%s:dump() not implemented", \
+        raise KvStoreError(errno.ENOSYS, f"%s:dump() not implemented", \
             type(self).__name__)
 
 
@@ -117,4 +117,4 @@ class KvStoreFactory:
                                                         delim)
                 return KvStoreFactory._stores[store_url]
 
-        raise KvError(errno.EINVAL, f"Invalid URL %s", store_url)
+        raise KvStoreError(errno.EINVAL, f"Invalid URL %s", store_url)

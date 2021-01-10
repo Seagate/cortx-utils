@@ -20,6 +20,7 @@ import json
 import os
 import sys
 import unittest
+import subprocess
 from cortx.utils.process import SimpleProcess
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -46,7 +47,7 @@ class TestConfCli(unittest.TestCase):
         escapes = ''.join([chr(char) for char in range(1, 32)])
         translator = str.maketrans('', '', escapes)
         result_data = result_data.decode().translate(translator)
-        self.assertEqual(result_data, "Homebridge")
+        self.assertEqual(eval(result_data)[0], "Homebridge")
 
     def test_conf_cli_by_set(self):
         """ Test by setting a value into given key position """
@@ -64,7 +65,7 @@ class TestConfCli(unittest.TestCase):
         result_data = subprocess.check_output(['conf', 'json:///tmp/file1.json',
             'get', 'bridge>name;bridge>lte_type[0]>name'])
         result_data = result_data.decode().split('\n')
-        self.assertListEqual(result_data, ['Homebridge', '3g', ''])
+        self.assertListEqual(eval(result_data)[0], ['Homebridge', '3g'])
 
     def test_conf_cli_by_set_list_of_value(self):
         """

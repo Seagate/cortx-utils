@@ -23,7 +23,7 @@ import toml
 import yaml
 from json.decoder import JSONDecodeError
 
-from cortx.utils.kv_store.error import KvError
+from cortx.utils.kv_store.error import KvStoreError
 from cortx.utils.kv_store.kv_store import KvStore
 from cortx.utils.kv_store.kv_payload import KvPayload
 from cortx.utils.process import SimpleProcess
@@ -114,7 +114,7 @@ class IniKvPayload(KvPayload):
     def set(self, key, val):
         k = key.split('>', 1)
         if len(k) <= 1:
-            raise KvError(errno.EINVAL, "Missing section in key %s", \
+            raise KvStoreError(errno.EINVAL, "Missing section in key %s", \
                 key)
 
         self._data[k[0]][k[1]] = val
@@ -124,7 +124,7 @@ class IniKvPayload(KvPayload):
     def get(self, key):
         k = key.split('>', 1)
         if len(k) <= 1:
-            raise KvError(errno.EINVAL, "Missing section in key %s", \
+            raise KvStoreError(errno.EINVAL, "Missing section in key %s", \
                 key)
         return self._data[k[0]][k[1]]
 
@@ -232,7 +232,7 @@ class PillarStore(KvStore):
         if rc != 0:
             if rc == 127:
                 err = f"salt command not found"
-            raise KvError(rc, f"Cant get data for %s. %s.", key, err)
+            raise KvStoreError(rc, f"Cant get data for %s. %s.", key, err)
 
         res = None
         try:
@@ -240,9 +240,9 @@ class PillarStore(KvStore):
             res = res['local']
 
         except Exception as ex:
-            raise KvError(errno.ENOENT, f"Cant get data for %s. %s.", key, ex)
+            raise KvStoreError(errno.ENOENT, f"Cant get data for %s. %s.", key, ex)
         if res is None:
-            raise KvError(errno.ENOENT, f"Cant get data for %s. %s."
+            raise KvStoreError(errno.ENOENT, f"Cant get data for %s. %s."
                                         f"Key not present")
         return res
 
