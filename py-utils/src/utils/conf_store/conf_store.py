@@ -72,7 +72,7 @@ class ConfStore:
 
         self._cache[index].dump()
 
-    def get(self, index: str, key: str, default_val=None):
+    def get(self, index: str, key: str, default_val: str = None):
         """
         Obtain value for the given configuration
 
@@ -182,9 +182,9 @@ class Conf:
         Conf._conf.set(index, key, val)
 
     @staticmethod
-    def get(index: str, key: str):
+    def get(index: str, key: str, default_val: str = None):
         """ Obtains config value for the given key """
-        return Conf._conf.get(index, key)
+        return Conf._conf.get(index, key, default_val)
 
     @staticmethod
     def delete(index: str, key: str):

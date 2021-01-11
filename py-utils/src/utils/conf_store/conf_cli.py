@@ -20,10 +20,10 @@ import argparse
 import inspect
 import sys
 import traceback
-import json
 from argparse import RawTextHelpFormatter
 from cortx.utils.conf_store import Conf
 from cortx.utils.conf_store.error import ConfError
+from cortx.utils.schema import Format
 
 
 class ConfCli:
@@ -51,11 +51,18 @@ class ConfCli:
     def get(args: list):
         """ Obtain value for the given keys """
         key_list = args[0].split(';')
-        vals = []
-        for key in key_list:
-            val = Conf.get(ConfCli._index, key)
-            vals.append(val)
-        return vals
+        n_keys = len(key_list)
+        def_val_list = list(None for i in range(0, n_keys))
+        if len(args) > 1:
+            def_val_list = args[1].split(';')
+            if len(def_val_list) != n_keys:
+                raise ConfError(errno.EINVAL,
+                    "No. of default values, dont match no. of keys")
+        val_list = []
+        for i in range(0, n_keys):
+            val = Conf.get(ConfCli._index, key_list[i], def_val_list[i])
+            val_list.append(val)
+        return val_list
 
     @staticmethod
     def delete(args: list):
@@ -78,6 +85,8 @@ class GetCmd:
             "Example command:\n"
             "# conf json:///tmp/csm.conf get 'k6>k4[2]>k5'\n\n")
         s_parser.set_defaults(func=ConfCli.get)
+        s_parser.add_argument('-f', dest='format', help=
+                'Output Format json(default), yaml or toml')
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 
@@ -118,8 +127,6 @@ def main():
     # Setup Parser
     parser = argparse.ArgumentParser(description='Conf Store CLI',
         formatter_class=RawTextHelpFormatter)
-    parser.add_argument('-f', dest='format', help=
-            'Output Format json(default), yaml or toml')
     parser.add_argument('url', help='URL for the ConfStore backend')
     sub_parser = parser.add_subparsers(title='command',
         help='represents the action from: set, get, delete\n\n', dest='command')
@@ -135,7 +142,10 @@ def main():
         args = parser.parse_args()
         ConfCli.init(args.url)
         out = args.func(args.args)
-        if out is not None: print(json.dumps(out))
+        if args.format == None:
+            args.format = "json"
+        if out is not None and len(out) > 0:
+            print(Format.dump(out, args.format))
         return 0
 
     except Exception as e:
