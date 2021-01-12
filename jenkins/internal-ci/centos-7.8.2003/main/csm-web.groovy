@@ -11,7 +11,7 @@ pipeline {
 	
 	environment {      
         env = "dev"
-		component = "csm-agent"
+		component = "csm-web"
         os_version = "centos-7.8.2003"
         pipeline_group = "main"
         release_dir = "/mnt/bigstorage/releases/cortx"
@@ -36,7 +36,8 @@ pipeline {
         stage('Checkout') {
             steps {
                 script { build_stage = env.STAGE_NAME }
-                checkout([$class: 'GitSCM', branches: [[name: "${branch}"]], doGenerateSubmoduleConfigurations: false,  extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: true, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: 'https://github.com/Seagate/cortx-manager']]])
+                
+                checkout([$class: 'GitSCM', branches: [[name: "*/${branch}"]], doGenerateSubmoduleConfigurations: false,  extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: true, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: 'https://github.com/Seagate/cortx-management-portal']]])
                 
             }
         }
@@ -45,13 +46,12 @@ pipeline {
             steps {
                 script { build_stage = env.STAGE_NAME }
                 sh label: '', script: '''
-				sed -i 's/gpgcheck=1/gpgcheck=0/' /etc/yum.conf
-                yum-config-manager --disable cortx-C7.7.1908,cortx-uploads
-				yum-config-manager --add http://cortx-storage.colo.seagate.com/releases/cortx/github/stable/$os_version/last_successful/
-				yum-config-manager --add http://cortx-storage.colo.seagate.com/releases/cortx/components/github/main/$os_version/dev/cortx-utils/last_successful/
-				yum clean all && rm -rf /var/cache/yum
-				yum install -y cortx-prvsnr
-				pip3.6 install  pyinstaller==3.5
+					sed -i 's/gpgcheck=1/gpgcheck=0/' /etc/yum.conf
+					yum-config-manager --disable cortx-C7.7.1908,cortx-uploads
+					yum-config-manager --add http://cortx-storage.colo.seagate.com/releases/cortx/github/stable/$os_version/last_successful/
+					yum-config-manager --add http://cortx-storage.colo.seagate.com/releases/cortx/components/github/main/$os_version/dev/cortx-utils/last_successful/
+					yum clean all && rm -rf /var/cache/yum
+                    pip3.6 install  pyinstaller==3.5
                 '''
             }
         }	
@@ -59,8 +59,7 @@ pipeline {
         stage('Build') {
             steps {
                 script { build_stage = env.STAGE_NAME }
-                // Exclude return code check for csm_setup and csm_test
-                sh label: 'Build', returnStatus: true, script: '''
+                sh label: 'Build', script: '''
                     BUILD=$(git rev-parse --short HEAD)
                     VERSION=$(cat $WORKSPACE/VERSION)
                     echo "Executing build script"
@@ -78,21 +77,19 @@ pipeline {
                     mkdir -p $build_upload_dir/$BUILD_NUMBER
                     cp ./dist/rpmbuild/RPMS/x86_64/*.rpm $build_upload_dir/$BUILD_NUMBER
                 '''
-                sh label: 'Repo Creation', script: '''
-                    pushd $build_upload_dir/$BUILD_NUMBER
+                sh label: 'Repo Creation', script: '''pushd $build_upload_dir/$BUILD_NUMBER
                     rpm -qi createrepo || yum install -y createrepo
                     createrepo .
                     popd
                 '''
-             }
+            }
         }
 
         stage ('Tag last_successful') {
 			steps {
 				script { build_stage = env.STAGE_NAME }
-				sh label: 'Tag last_successful', script: '''
-                    pushd $build_upload_dir/
-                    test -L $build_upload_dir/last_successful && rm -f last_successful
+				sh label: 'Tag last_successful', script: '''pushd $build_upload_dir/
+                    test --L $build_upload_dir/last_successful && rm -f last_successful
                     ln -s $build_upload_dir/$BUILD_NUMBER last_successful
                     popd
                 '''

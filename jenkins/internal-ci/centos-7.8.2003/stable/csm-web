@@ -40,7 +40,7 @@ pipeline {
 			steps {
 				script { build_stage=env.STAGE_NAME }
 				sh label: '', script: '''
-					yum install -y eos-py-utils cortx-prvsnr
+					yum install -y cortx-prvsnr
 					pip3.6 install  pyinstaller==3.5
 				'''
 			}
@@ -151,9 +151,9 @@ pipeline {
 				env.build_stage = "${build_stage}"
 
 				def toEmail = ""
-				def recipientProvidersClass = [[$class: 'DevelopersRecipientProvider']]
+				def recipientProvidersClass = [[$class: 'DevelopersRecipientProvider'], [$class: 'RequesterRecipientProvider']]
 				if( manager.build.result.toString() == "FAILURE"){
-					toEmail = ""
+					toEmail = "CORTX.CSM@seagate.com"
 					recipientProvidersClass = [[$class: 'DevelopersRecipientProvider'],[$class: 'RequesterRecipientProvider']]
 				}
 				emailext (
