@@ -266,13 +266,14 @@ pipeline {
                 env.release_build = "${env.release_tag}"
                 env.build_stage = "${build_stage}"
 
-                def toEmail = "shailesh.vaidya@seagate.com, swati.magar@seagate.com, gowthaman.chinnathambi@seagate.com"
+                def toEmail = "shailesh.vaidya@seagate.com, priyank.p.dalal@seagate.com, gowthaman.chinnathambi@seagate.com"
                 emailext ( 
                     body: '''${SCRIPT, template="release-email.template"}''',
                     mimeType: 'text/html',
                     subject: "[Jenkins Build ${currentBuild.currentResult}] : ${env.JOB_NAME}",
                     attachLog: true,
                     to: toEmail,
+                    attachmentsPattern: 'CHANGESET.txt'
                 )
 
 				archiveArtifacts artifacts: "README.txt, RELEASE.INFO, CHANGESET.txt", onlyIfSuccessful: false, allowEmptyArchive: true
