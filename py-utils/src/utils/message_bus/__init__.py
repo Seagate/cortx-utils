@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# CORTX-Utils: CORTX Python common library.
+
+# CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -13,3 +14,10 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
+
+__title__ = 'message_bus'
+
+from cortx.utils.message_bus.message_bus import MessageBus
+from cortx.utils.message_bus.message_bus_client import MessageProducer, MessageConsumer
+from cortx.utils.message_bus.message_broker import MessageBroker, MessageBrokerFactory
+from cortx.utils.message_bus.error import MessageBusError

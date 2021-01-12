@@ -34,7 +34,15 @@ class ValidatorCommandFactory:
         usage_string = (f"usage: {prog}\n"
                         "\t[-h]\n"
                         "\t[network connectivity <ip1> <ip2> <...>]\n"
-                        "\t[consul service <host> <port>]\n")
+                        "\t[network drivers <driver_name> <node-1> <...>]\n"
+                        "\t[network hca <provider> <node-1> <...>]\n"
+                        "\t[consul service <host> <port>]\n"
+                        "\t[storage hba <provider> <node-1> <...>]\n"
+                        "\t[storage luns <v_check> <node-1> <...>]\n"
+                        "\t[storage lvms <node-1> <...>]\n"
+                        "\t[elasticsearch service <host> <port>]\n"
+                        "\t[bmc accessible <node> <bmc_ip> <bmc_user> <bmc_passwd>]\n"
+                        "\t[bmc stonith <node> <bmc_ip> <bmc_user> <bmc_passwd>]\n")
         sys.stderr.write(usage_string)
 
     @staticmethod
