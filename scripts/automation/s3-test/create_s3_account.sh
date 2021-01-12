@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/expect -f
 #
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
 #
@@ -17,7 +17,6 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 #
-#!/bin/expect -f
 # ./create_s3_account.sh username email ldap_user ldap_pwd
 
 set USER_NAME [lindex $argv 0];
