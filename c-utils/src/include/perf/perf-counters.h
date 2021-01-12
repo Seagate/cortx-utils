@@ -80,6 +80,10 @@ enum perfc_subtags {
 #define PERFC_INVALID_ID 0
 extern uint64_t perfc_id_gen;
 extern pthread_key_t perfc_tls_key;
+/*
+ * used to detect if perfc_tls_key is initialized
+ */
+extern uint8_t perfc_tls_key_check;
 
 struct perfc_tls_ctx {
 	uint8_t mod;
@@ -252,14 +256,26 @@ enum perfc_entity_maps_ranges {
 
 #ifdef ENABLE_TSDB_ADDB
 
+#define perfc_tsdb_setup() do {						\
+	int rc;								\
+	if (perfc_tls_key_check == PERFC_INVALID_ID) {			\
+		rc = pthread_key_create(&perfc_tls_key, NULL);		\
+		dassert(rc == 0);					\
+		perfc_tls_key_check = 1U;				\
+	}								\
+} while (0)
+
 static inline uint64_t perf_id_gen(void)
 {
 	return __sync_add_and_fetch(&perfc_id_gen, 1);
 }
 
 #define perfc_tls_push(_ptc) do {					\
-	struct perfc_callstack *perfstack =				\
-		pthread_getspecific(perfc_tls_key);			\
+	struct perfc_callstack *perfstack;				\
+	if (perfc_tls_key_check == PERFC_INVALID_ID) {			\
+		break;							\
+	}								\
+	perfstack = pthread_getspecific(perfc_tls_key);			\
 	if (perfstack) {						\
 		_ptc.mod = perfstack->mod;				\
 		dassert(perfstack->top < MAX_PERFC_STACK_DEPTH - 1);	\
@@ -268,8 +284,11 @@ static inline uint64_t perf_id_gen(void)
 } while (0)
 
 #define perfc_tls_pop(_ptc) do {					\
-	struct perfc_callstack *perfstack =				\
-		pthread_getspecific(perfc_tls_key);			\
+	struct perfc_callstack *perfstack;				\
+	if (perfc_tls_key_check == PERFC_INVALID_ID) {			\
+		break;							\
+	}								\
+	perfstack = pthread_getspecific(perfc_tls_key);			\
 	if (perfstack) {						\
 		if (perfstack->top != -1) {				\
 			_ptc = perfstack->pstack[perfstack->top--];	\
@@ -282,8 +301,11 @@ static inline uint64_t perf_id_gen(void)
 #define perfc_tls_ini(_mod, _opid, _fn_tag) do {			\
 	int rc;								\
 	struct perfc_tls_ctx ptc;					\
-	struct perfc_callstack *perfstack =				\
-				alloca(sizeof (struct perfc_callstack));\
+	struct perfc_callstack *perfstack;				\
+	if (perfc_tls_key_check == PERFC_INVALID_ID) {			\
+		break;							\
+	}								\
+	perfstack = alloca(sizeof (struct perfc_callstack));		\
 	dassert(perfstack != NULL);					\
 	perfstack->mod = _mod;						\
 	perfstack->top = -1;						\
@@ -298,6 +320,9 @@ static inline uint64_t perf_id_gen(void)
 
 #define perfc_tls_fini() do {						\
 	int rc;								\
+	if (perfc_tls_key_check == PERFC_INVALID_ID) {			\
+		break;							\
+	}								\
 	rc = pthread_setspecific(perfc_tls_key, NULL);			\
 	dassert(rc != NULL);						\
 } while (0)
@@ -305,7 +330,13 @@ static inline uint64_t perf_id_gen(void)
 static inline struct perfc_tls_ctx perfc_tls_get_origin(void)
 {
 	struct perfc_tls_ctx ptctx = {.opid = PERFC_INVALID_ID};
-	struct perfc_callstack *perfstack = pthread_getspecific(perfc_tls_key);
+	struct perfc_callstack *perfstack;
+
+	if (perfc_tls_key_check == PERFC_INVALID_ID) {
+		return ptctx;
+	}
+
+	perfstack = pthread_getspecific(perfc_tls_key);
 
 	if (perfstack == NULL) {
 	    return ptctx;
@@ -321,7 +352,14 @@ static inline struct perfc_tls_ctx perfc_tls_get_origin(void)
 static inline struct perfc_tls_ctx perfc_tls_get_top(void)
 {
 	struct perfc_tls_ctx ptctx = {.opid = PERFC_INVALID_ID};
-	struct perfc_callstack *perfstack = pthread_getspecific(perfc_tls_key);
+	struct perfc_callstack *perfstack;
+
+	if (perfc_tls_key_check == PERFC_INVALID_ID) {
+		return ptctx;
+	}
+
+	perfstack = pthread_getspecific(perfc_tls_key);
+
 
 	if ((perfstack == NULL) || (perfstack->top == -1)) {
 	    return ptctx;
@@ -333,7 +371,13 @@ static inline struct perfc_tls_ctx perfc_tls_get_top(void)
 static inline struct perfc_tls_ctx perfc_tls_get_prev(void)
 {
 	struct perfc_tls_ctx ptctx = {.opid = PERFC_INVALID_ID};
-	struct perfc_callstack *perfstack = pthread_getspecific(perfc_tls_key);
+	struct perfc_callstack *perfstack;
+
+	if (perfc_tls_key_check == PERFC_INVALID_ID) {
+		return ptctx;
+	}
+
+	perfstack = pthread_getspecific(perfc_tls_key);
 
 	if ((perfstack == NULL) || (perfstack->top == -1)) {
 	    return ptctx;
@@ -399,7 +443,11 @@ static inline struct perfc_tls_ctx perfc_tls_get_prev(void)
 } while (0)
 
 #define perfc_trace_ini(ptc) do {					\
-	struct perfc_callstack *pstack = pthread_getspecific(perfc_tls_key);\
+	struct perfc_callstack *pstack;					\
+	if (perfc_tls_key_check == PERFC_INVALID_ID) {			\
+		break;							\
+	}								\
+	pstack = pthread_getspecific(perfc_tls_key);			\
 	if (pstack) {							\
 		dassert(ptc.opid != PERFC_INVALID_ID);			\
 		ptc.mod = pstack->mod;					\
@@ -432,6 +480,8 @@ static inline struct perfc_tls_ctx perfc_tls_get_prev(void)
 #define perfc_trace_finii(verify) perfc_trace_fini(ptc, verify)
 
 #else
+
+#define perfc_tsdb_setup(...)
 
 static inline uint64_t perf_id_gen(void)
 {

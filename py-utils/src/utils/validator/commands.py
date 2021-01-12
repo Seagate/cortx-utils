@@ -114,3 +114,57 @@ class SaltVCommand(VCommand):
         """Validate salt minion connectivity <nodes>..."""
 
         self._salt.validate(self.v_type, self.args)
+
+
+class BmcVCommand(VCommand):
+    """BMC related commands."""
+
+    name = "bmc"
+
+    def __init__(self, args):
+        super(BmcVCommand, self).__init__(args)
+
+        from v_bmc import BmcV
+
+        self._bmc = BmcV()
+
+    def process(self):
+        """Validate bmc status."""
+
+        self._bmc.validate(self.v_type, self.args)
+
+
+class ElasticsearchVCommand(VCommand):
+    """Elasticsearch related commands."""
+
+    name = "elasticsearch"
+
+    def __init__(self, args):
+        super(ElasticsearchVCommand, self).__init__(args)
+
+        from v_elasticsearch import ElasticsearchV
+
+        self._elasticsearch = ElasticsearchV()
+
+    def process(self):
+        """Validate elasticsearch status."""
+
+        self._elasticsearch.validate(self.v_type, self.args)
+
+
+class ControllerVCommand(VCommand):
+    """Controller related commands."""
+
+    name = "controller"
+
+    def __init__(self, args):
+        super(ControllerVCommand, self).__init__(args)
+
+        from v_controller import ControllerV
+
+        self._controller = ControllerV()
+
+    def process(self):
+        """Validate controller status."""
+
+        self._controller.validate(self.v_type, self.args)
