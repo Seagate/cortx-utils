@@ -1,0 +1,23 @@
+---
+- name: Poweroff the VM
+  vmware_guest_powerstate:
+    hostname: "{{ VSPHERE_HOSTNAME }}"
+    username: "{{ VSPHERE_USERNAME }}"
+    password: "{{ VSPHERE_PASSWORD }}"
+    folder: "{{ VSPHERE_VM_PATH }}"
+    name: "{{ VSPHERE_VM_NAME }}"
+    validate_certs: no
+    state: powered-off
+
+- name: Unmount ISO from VM
+  vmware_guest:
+    hostname: "{{ VSPHERE_HOSTNAME }}"
+    username: "{{ VSPHERE_USERNAME }}"
+    password: "{{ VSPHERE_PASSWORD }}"
+    name: "{{ VSPHERE_VM_NAME }}"
+    validate_certs: no
+    cdrom:
+      type: none
+
+- name: Build ova file
+  shell: ovftool vi://{{ VSPHERE_USERNAME }}:{{ VSPHERE_PASSWORD }}@{{ VSPHERE_VM_PATH }}/{{ VSPHERE_VM_NAME }} {{ OVA_FILE_PATH }}

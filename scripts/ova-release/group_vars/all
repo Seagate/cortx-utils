@@ -1,0 +1,9 @@
+---
+VSPHERE_VM_NAME: "ova-test-3"
+VSPHERE_VM_SNAPSHOT_NAME: "ova-test-3-snap"
+VSPHERE_VM_PATH: "cortx-vsphere1.colo.seagate.com/CORTX1/vm"
+VSPHERE_DATACENTER: "CORTX1"
+VSPHERE_CLUSTER: "cluster1"
+VSPHERE_DATASTORE: "DATA-1"
+BUILD_NUMBER: "{{ BUILD_URL.split('/')[-2] }}"
+OVA_FILE_PATH: "/root/cortx-{{ BUILD_NUMBER }}.ova"

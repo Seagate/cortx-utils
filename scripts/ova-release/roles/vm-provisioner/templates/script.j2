@@ -1,0 +1,7 @@
+#!/usr/bin/expect -f
+set timeout 10
+spawn provisioner auto_deploy_vm srvnode-1:{{ ansible_nodename }} --logfile --logfile-filename /var/log/seagate/provisioner/setup.log --source rpm --config-path /root/config.ini --dist-type bundle --target-build {{ BUILD_URL }}
+match_max 100000
+expect -exact "root@{{ ansible_nodename }}'s password: " { send "{{ NODE_SSH_PASS }}\r" }
+
+interact

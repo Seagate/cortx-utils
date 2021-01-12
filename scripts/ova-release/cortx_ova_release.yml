@@ -1,0 +1,37 @@
+---
+- name: Revert VM to base snapshot
+  hosts: localhost
+  gather_facts: true
+  become: true
+  become_user: root
+  roles:
+    - role: vm-snapshot-revert
+      tags:
+        - snapshot-revert
+
+- name: SSH Setup and cortx installation
+  hosts: vmware-hosts
+  gather_facts: true
+  become: true
+  become_user: root
+  roles:
+    - role: vm-ssh-setup
+      tags:
+        - ssh-setup
+    - role: vm-provisioner
+      tags:
+        - install-cortx
+
+- name: Build OVA file
+  hosts: localhost
+  gather_facts: true
+  become: true
+  become_user: root
+  roles:
+    - role: vm-ovabuild
+      tags:
+        - ovabuild
+ 
+  
+
+

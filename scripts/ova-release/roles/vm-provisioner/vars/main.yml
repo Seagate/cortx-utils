@@ -1,0 +1,5 @@
+OVA_HOSTNAME: "ova-builder.seagate.com"
+MGMT_ITF: "ens32"
+PBDATA_ITF: "ens33"
+PVDATA_ITF: "ens34"
+PREREQ_SCRIPT: "https://raw.githubusercontent.com/Seagate/cortx-prvsnr/cortx-1.0/cli/src/cortx-prereqs.sh"

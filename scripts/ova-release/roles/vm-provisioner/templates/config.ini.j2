@@ -1,0 +1,10 @@
+[storage_enclosure]
+type=other
+
+[srvnode-1]
+hostname={{ OVA_HOSTNAME }}
+network.data_nw.pvt_ip_addr=None
+network.data_nw.iface={{ PBDATA_ITF }}, {{ PVDATA_ITF }}
+network.mgmt_nw.iface={{ MGMT_ITF }}
+bmc.user=None
+bmc.secret=None

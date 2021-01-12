@@ -1,0 +1,16 @@
+---
+- name: Create ssh direcotry
+  file:
+    path: "/root/.ssh"
+    state: directory
+
+- name: Create authorized keys file
+  file:
+    path: "/root/.ssh/authorized_keys"
+    state: touch
+
+- name: Place public key in authorized keys
+  lineinfile:
+    path: "/root/.ssh/authorized_keys"
+    line: "{{ DEPLOYMENT_HOST_SSH_KEY }}"
+

@@ -1,0 +1,14 @@
+preboarding:
+  url: "https://{{ cortx_cluster_ip }}:28100/#/preboarding/welcome"
+  username: "{{ TEST_USER }}"
+  password: "{{ TEST_PASS }}"
+  email: "admin@seagate.com"
+ 
+onboarding:
+  url: "https://{{ cortx_cluster_ip }}:28100/#/preboarding/login"
+  username: "{{ TEST_USER }}"
+  password: "{{ TEST_PASS }}"
+  system: "System"
+  dns: "10.237.10.253,10.237.10.254"
+  search: "seagate.com"
+  ntp: "time.seagate.com"

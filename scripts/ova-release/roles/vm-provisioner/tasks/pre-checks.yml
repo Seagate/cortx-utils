@@ -1,0 +1,58 @@
+---
+- name: Validate {{ MGMT_ITF }} interface
+  lineinfile:
+    path: /etc/sysconfig/network-scripts/ifcfg-{{ MGMT_ITF }}
+    state: present
+    regexp: '^ONBOOT='
+    line: 'ONBOOT=yes'
+  when: ansible_{{ MGMT_ITF }}.ipv4.address is not defined
+  notify:
+    - Restart network
+
+- name: Validate {{ PBDATA_ITF }} interface
+  lineinfile:
+    path: /etc/sysconfig/network-scripts/ifcfg-{{ PBDATA_ITF }}
+    state: present
+    regexp: '^ONBOOT='
+    line: 'ONBOOT=yes'
+  when: ansible_{{ PBDATA_ITF }}.ipv4.address is not defined
+  notify:
+    - Restart network
+
+- name: Validate {{ PVDATA_ITF }} interface
+  lineinfile:
+    path: /etc/sysconfig/network-scripts/ifcfg-{{ PVDATA_ITF }}
+    state: present
+    regexp: '^ONBOOT='
+    line: 'ONBOOT=yes'
+  when: ansible_{{ PVDATA_ITF }}.ipv4.address is not defined
+  notify:
+    - Restart network
+
+- meta: flush_handlers
+
+- name: Fetch hostname
+  shell: hostname -f
+  register: host
+
+- name: Print hostname
+  debug:
+    msg: "{{ host.stdout }}"
+  when:
+    - host.stdout is defined and 'localhost' not in "{{ host.stdout }}"
+
+- name: Set hostname
+  shell: hostnamectl --static --transient set-hostname "{{ OVA_HOSTNAME }}"
+  when: "{{ 'localhost' in host.stdout }}"
+
+- name: Add a new host in hosts file
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ ansible_default_ipv4.address }} {{ OVA_HOSTNAME }}"
+    create: yes
+  when: "{{ 'localhost' in host.stdout }}"
+
+- name: set hostname fact
+  set_fact: 
+    ansible_nodename: "{{ OVA_HOSTNAME }}"
+  when: "{{ 'localhost' in host.stdout }}"

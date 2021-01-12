@@ -1,0 +1,95 @@
+---
+- name: Run pre-checks
+  include_tasks: pre-checks.yml
+
+- name: Download cortx-prereqs script
+  get_url:
+    url: "{{ PREREQ_SCRIPT }}"
+    dest: /root/cortx-prereqs.sh
+    mode: '0751' 
+
+- name: Execute cortx-prereqs script
+  shell: ./cortx-prereqs.sh --disable-sub-mgr
+  ignore_errors: yes
+
+- name: Install dependency packages
+  yum:
+    name:
+      - git
+      - firewalld-0.6.3-8.el7
+      - python3
+      - expect
+    state: present
+
+- name: Template a config file
+  template:
+    src: config.ini.j2
+    dest: ~/config.ini
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Template a provisioner script
+  template:
+    src: script.j2
+    dest: ~/script
+    owner: root
+    group: root
+    mode: '0750'
+
+- name: Copy provisioner script
+  copy:
+      src: files/provisioner.sh
+      dest: provisioner.sh
+      owner: root
+      group: root
+      mode: '0754'
+
+- name: Execute provisioner script
+  shell: ./provisioner.sh
+  register: command_result
+  failed_when: "'ERROR' in command_result.stdout"
+
+- name: Edit config file
+  shell: "sed 's/host:.*/host: 127.0.0.1/g' /etc/csm/database.yaml"
+
+- name: Restart csm_sgent
+  shell: systemctl restart csm_agent
+
+- name: Verify cortx cluster status
+  shell: hctl status
+  register: cluster_status
+
+- name: Print cortx cluster status
+  debug: 
+    msg: "{{ cluster_status.stdout }}"
+
+- name: Verify salt master setup
+  shell: "{{ item }}"
+  loop:
+    - "salt '*' test.ping"  
+    - "salt '*' service.disable puppet"
+    - "salt '*' pillar.get release"  
+    - "salt '*' grains.get node_id"  
+    - "salt '*' grains.get cluster_id"  
+    - "salt '*' grains.get roles"
+  
+- name: Add srvnode1 in hosts
+  lineinfile:
+    dest: /etc/hosts
+    regexp: '^127\.0\.0\.1'
+    line: "127.0.0.1 localhost localhost.localdomain localhost4 localhost4.localdomain4 srvnode-1"
+
+- name: Delete horizontal line in hosts file
+  lineinfile:
+    path: /etc/hosts
+    state: absent
+    regexp: '^--'
+
+- name: Cleanup yum repo files
+  file:
+    path: /etc/yum.repos.d/*.repo 
+    state: absent
+
+- name: Clean bash history
+  shell: cat /dev/null > /root/.bash_history

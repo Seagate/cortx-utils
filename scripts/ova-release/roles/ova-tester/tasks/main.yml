@@ -1,0 +1,35 @@
+---
+- name: Install dependency packages
+  pip:
+    name:
+      - unittest2
+
+- name: Template a config file
+  template:
+    src: config.yaml.j2
+    dest: ~/config.yaml
+    owner: root
+    group: root
+    mode: '0750'
+
+- name: Copy onboarding script
+  copy:
+      src: files/csm_boarding.py
+      dest: csm_boarding.py
+      owner: root
+      group: root
+      mode: '0754'
+
+- name: Copy gui locators script
+  copy:
+      src: files/gui_element_locators.py
+      dest: gui_element_locators.py
+      owner: root
+      group: root
+      mode: '0754'
+
+- name: Execute pre-boarding test
+  shell: python -m unittest csm_boarding.CSM_boarding.test_preboarding 
+
+- name: Execute on-boarding test
+  shell: python -m unittest csm_boarding.CSM_boarding.test_onboarding

@@ -1,0 +1,28 @@
+---
+- name: Poweron the VM
+  vmware_guest_powerstate:
+    hostname: "{{ VSPHERE_HOSTNAME }}"
+    username: "{{ VSPHERE_USERNAME }}"
+    password: "{{ VSPHERE_PASSWORD }}"
+    folder: "{{ VSPHERE_VM_PATH }}"
+    name: "{{ VSPHERE_VM_NAME }}"
+    validate_certs: no
+    state: powered-on
+
+- name: Install dependency packages
+  yum:
+    name:
+      - python-pyvmomi
+    state: present
+
+- name: Revert VM to snapshot
+  vmware_guest_snapshot:
+    hostname: "{{ VSPHERE_HOSTNAME }}"
+    username: "{{ VSPHERE_USERNAME }}"
+    password: "{{ VSPHERE_PASSWORD }}"
+    datacenter: "{{ VSPHERE_DATACENTER }}"
+    folder: "{{ VSPHERE_VM_PATH }}"
+    name: "{{ VSPHERE_VM_NAME }}"
+    validate_certs: no
+    state: revert
+    snapshot_name: "{{ VSPHERE_VM_SNAPSHOT_NAME }}"

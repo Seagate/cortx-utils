@@ -1,0 +1,7 @@
+- hosts: localhost
+  gather_facts: true
+  user: root
+  vars_files:
+    - group_vars/secrets.yml
+  roles:
+    - ova-tester

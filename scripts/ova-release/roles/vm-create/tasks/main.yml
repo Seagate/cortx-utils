@@ -1,0 +1,17 @@
+---
+- name: Install dependency packages
+  yum:
+    name:
+      - python-pyvmomi
+    state: present
+
+- vmware_deploy_ovf:
+    hostname: "{{ VSPHERE_HOSTNAME }}"
+    username: "{{ VSPHERE_USERNAME }}"
+    password: "{{ VSPHERE_PASSWORD }}"
+    validate_certs: false
+    datacenter: "{{ VSPHERE_DATACENTER }}"
+    cluster: "{{ VSPHERE_CLUSTER }}"
+    datastore: "{{ VSPHERE_DATASTORE }}"
+    name: "{{ OVA_VM_NAME }}"
+    ovf: "{{ OVA_FILE_PATH }}"
