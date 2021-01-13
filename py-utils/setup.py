@@ -70,7 +70,7 @@ setup(name='cortx-py-utils',
       },
       entry_points={
         'console_scripts': [
-            'hac = cortx.utils.ha.hac.hac:main'
+            'hac = cortx.utils.ha.hac.hac:main',
             'conf = cortx.utils.conf_store.conf_cli.__main__:main'
         ]
       },
