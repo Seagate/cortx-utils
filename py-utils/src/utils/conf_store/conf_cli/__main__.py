@@ -97,10 +97,6 @@ def main():
             vals = Conf.get(index, key)
             print(vals)
 
-    elif command == 'get_keys':
-        keys = Conf.get_keys(index)
-        print(keys)
-
     elif command == "delete":
         for key in key_val_lst:
             Conf.delete(index, key)
