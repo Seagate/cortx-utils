@@ -17,7 +17,7 @@
 
 import errno
 
-from cortx.utils.conf_store.error import ConfStoreError
+from cortx.utils.conf_store.error import ConfError
 from cortx.utils.conf_store.conf_cache import ConfCache
 from cortx.utils.kv_store.kv_store import KvStoreFactory
 
@@ -32,7 +32,7 @@ class ConfStore:
         """
 
         if len(delim) > 1 or delim not in [':', '>', '.', '|', ';', '/']:
-            raise ConfStoreError(errno.EINVAL, "invalid delim %s", delim)
+            raise ConfError(errno.EINVAL, "invalid delim %s", delim)
         self._delim = delim
         self._cache = {}
         self._callbacks = {}
@@ -55,10 +55,10 @@ class ConfStore:
             elif key == 'callback':
                 self._callbacks[index] = val
             else:
-                raise ConfStoreError(errno.EINVAL, "Invalid parameter %s", key)
+                raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
 
         if index in self._cache.keys() and not overwrite:
-            raise ConfStoreError(errno.EINVAL, "conf index %s already exists",
+            raise ConfError(errno.EINVAL, "conf index %s already exists",
                 index)
 
         kv_store = KvStoreFactory.get_instance(kvs_url, self._delim)
@@ -67,7 +67,7 @@ class ConfStore:
     def save(self, index: str):
         """ Saves the given index configuration onto KV Store """
         if index not in self._cache.keys():
-            raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
+            raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
 
         self._cache[index].dump()
@@ -88,10 +88,10 @@ class ConfStore:
                 Return type will be dict or string based of key
         """
         if index not in self._cache.keys():
-            raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
+            raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
         if key is None:
-            raise ConfStoreError(errno.EINVAL, "can't able to find config key "
+            raise ConfError(errno.EINVAL, "can't able to find config key "
                                                "%s in loaded config", key)
         val = self._cache[index].get(key)
         return default_val if val is None else val
@@ -108,7 +108,7 @@ class ConfStore:
         val     Value to be set. Can be string or dict
         """
         if index not in self._cache.keys():
-            raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
+            raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
 
         self._cache[index].set(key, val)
@@ -120,14 +120,14 @@ class ConfStore:
     def get_data(self, index: str):
         """ Obtains entire config for given index """
         if index not in self._cache.keys():
-            raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
+            raise ConfError(errno.EINVAL, "config index %s is not loaded",
                                  index)
         return self._cache[index].get_data()
 
     def delete(self, index: str, key: str):
         """ Delets a given key from the config """
         if index not in self._cache.keys():
-            raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
+            raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
 
         self._cache[index].delete(key)
@@ -141,11 +141,11 @@ class ConfStore:
         dst_index Destination Index 
         """
         if src_index not in self._cache.keys():
-            raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
+            raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 src_index)
 
         if dst_index not in self._cache.keys():
-            raise ConfStoreError(errno.EINVAL, "config index %s is not loaded",
+            raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 dst_index)
 
         if key_list is None:
