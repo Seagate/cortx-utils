@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # CORTX Python common library.
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -46,7 +46,7 @@ class TestConfCli(unittest.TestCase):
         escapes = ''.join([chr(char) for char in range(1, 32)])
         translator = str.maketrans('', '', escapes)
         result_data = result_data.decode().translate(translator)
-        self.assertEqual(result_data, "Homebridge")
+        self.assertEqual(result_data, "['Homebridge']")
 
     def test_conf_cli_by_set(self):
         """ Test by setting a value into given key position """
@@ -57,14 +57,14 @@ class TestConfCli(unittest.TestCase):
         escapes = ''.join([chr(char) for char in range(1, 32)])
         translator = str.maketrans('', '', escapes)
         result_data = result_data.decode().translate(translator)
-        self.assertEqual(result_data, "client")
+        self.assertEqual(result_data, "['client']")
 
     def test_conf_cli_by_get_list(self):
         """ Test by retrieving list of values for given keys seperated by ;"""
         result_data = subprocess.check_output(['conf', 'json:///tmp/file1.json',
             'get', 'bridge>name;bridge>lte_type[0]>name'])
         result_data = result_data.decode().split('\n')
-        self.assertListEqual(result_data, ['Homebridge', '3g', ''])
+        self.assertListEqual(eval(result_data[0]), ['Homebridge', '3g'])
 
     def test_conf_cli_by_set_list_of_value(self):
         """
@@ -75,7 +75,7 @@ class TestConfCli(unittest.TestCase):
         result_data = subprocess.check_output(['conf', 'json:///tmp/file1.json',
             'get', 'bridge>cli_name;bridge>has_internet'])
         result_data = result_data.decode().split('\n')
-        self.assertListEqual(result_data, ['client', 'no', ''])
+        self.assertListEqual(eval(result_data[0]), ['client', 'no'])
 
     def test_conf_cli_by_delete(self):
         """ Test by deleting a value from the conf """
@@ -86,7 +86,7 @@ class TestConfCli(unittest.TestCase):
         escapes = ''.join([chr(char) for char in range(1, 32)])
         translator = str.maketrans('', '', escapes)
         result_data = result_data.decode().translate(translator)
-        self.assertEqual(result_data, "None")
+        self.assertEqual(eval(result_data)[0], None)
 
 
 if __name__ == '__main__':

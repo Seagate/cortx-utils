@@ -22,7 +22,45 @@ from cortx.utils.conf_store import Conf
 from cortx.utils.conf_store.error import ConfStoreError
 
 
+class ConfCli:
+    _index = "conf_cli"
+
+    def __init__(self, url):
+        Conf.load(ConfCli._index, url)
+
+    @staticmethod
+    def set(kv_spec):
+        key_val_lst = kv_spec.split(';')
+        key_val_dict = {}
+        for each in key_val_lst:
+            if len(each.split('=')) > 1:
+                key_val_dict[each.split('=')[0]] = eval(each.split('=')[1])
+            else:
+                raise ConfStoreError(errno.EINVAL,
+                                     "key or values should not be empty %s",
+                                     each)
+        for key, value in key_val_dict.items():
+            Conf.set(ConfCli._index, key, value)
+        Conf.save(ConfCli._index)
+
+    @staticmethod
+    def get(kv_list):
+        val = []
+        key_val_lst = kv_list.split(';')
+        for key in key_val_lst:
+            val.append(Conf.get(ConfCli._index, key))
+        return val
+
+    @staticmethod
+    def delete(kv_list):
+        key_val_lst = kv_list.split(';')
+        for key in key_val_lst:
+            Conf.delete(ConfCli._index, key)
+        Conf.save(ConfCli._index)
+
+
 def main():
+    # Declaring argparse arguments
     common_parser = argparse.ArgumentParser(description='Conf',
         formatter_class=RawTextHelpFormatter)
 
@@ -70,37 +108,16 @@ def main():
 
     args = common_parser.parse_args()
     command = args.subparser_name
-    index = "conf_cli"
-    Conf.load(index, args.url)
+    # Load conf
+    ConfCli(args.url)
 
     if command == "set":
-        key_val = args.kv_spec
-    else:
-        key_val = args.kv_list
-
-    key_val_lst = key_val.split(';')
-
-    if command == "set":
-        key_val_dict = {}
-        for each in key_val_lst:
-            if len(each.split('=')) > 1:
-                key_val_dict[each.split('=')[0]] = eval(each.split('=')[1])
-            else:
-                raise ConfStoreError(errno.EINVAL,
-                    "key or values should not be empty %s", each)
-        for key, value in key_val_dict.items():
-            Conf.set(index, key, value)
-        Conf.save(index)
-
+        ConfCli.set(args.kv_spec)
     elif command == "get":
-        for key in key_val_lst:
-            vals = Conf.get(index, key)
-            print(vals)
-
+        result = ConfCli.get(args.kv_list)
+        print(result)
     elif command == "delete":
-        for key in key_val_lst:
-            Conf.delete(index, key)
-        Conf.save(index)
+        ConfCli.delete(args.kv_list)
 
 
 if __name__ == "__main__":
