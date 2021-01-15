@@ -80,7 +80,7 @@ class DictKvData(KvData):
 
         # Check if key has index, if so identify index
         index = None
-        ki = re.split(r'\W+', k[0])
+        ki = re.split(r'\[([0-9]+)\]', k[0])
         if len(ki) > 1:
             if len(ki[0].strip()) == 0:
                 raise KvStoreError(errno.EINVAL, "Invalid key name %s", ki[0])
@@ -122,10 +122,9 @@ class DictKvData(KvData):
 
     def _get(self, key: str, data: dict) -> str:
         k = key.split(self._delim, 1)
-
         # Check if key has index, if so identify index
         index = None
-        ki = re.split(r'\W+', k[0])
+        ki = re.split(r'\[([0-9]+)\]', k[0])
         if len(ki) > 1:
             if len(ki[0].strip()) == 0:
                 raise KvStoreError(errno.EINVAL, "Invalid key %s", ki[0])

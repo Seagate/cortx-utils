@@ -14,3 +14,4 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 from cortx.utils.schema.conf import Conf
+from cortx.utils.schema.format import Format
