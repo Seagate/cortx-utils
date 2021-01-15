@@ -21,9 +21,10 @@ import inspect
 import sys
 import traceback
 from argparse import RawTextHelpFormatter
-
 from cortx.utils.conf_store import Conf
 from cortx.utils.conf_store.error import ConfError
+from cortx.utils.schema import Format
+
 
 class ConfCli:
     """ CLI for the Conf Store """
@@ -33,14 +34,6 @@ class ConfCli:
     def init(url: str):
         """ Load ConfStore URL """
         Conf.load(ConfCli._index, url)
-
-    @staticmethod
-    def process(cmd, args: list):
-        """ Process Command Line """
-        fn = { 'set': ConfCli.set, 'get': ConfCli.get, 'delete': ConfCli.delete}
-        if cmd not in fn.keys():
-            raise ConfError(errno.EINVAL, "invalid command %s", cmd)
-        return fn[cmd](args)
 
     @staticmethod
     def set(args: list):
@@ -58,11 +51,18 @@ class ConfCli:
     def get(args: list):
         """ Obtain value for the given keys """
         key_list = args[0].split(';')
-        vals = []
-        for key in key_list:
-            val = Conf.get(ConfCli._index, key)
-            vals.append(val)
-        return vals
+        n_keys = len(key_list)
+        def_val_list = list(None for i in range(0, n_keys))
+        if len(args) > 1:
+            def_val_list = args[1].split(';')
+            if len(def_val_list) != n_keys:
+                raise ConfError(errno.EINVAL,
+                    "No. of default values, dont match no. of keys")
+        val_list = []
+        for i in range(0, n_keys):
+            val = Conf.get(ConfCli._index, key_list[i], def_val_list[i])
+            val_list.append(val)
+        return val_list
 
     @staticmethod
     def delete(args: list):
@@ -84,7 +84,10 @@ class GetCmd:
             "Example(s): 'k1', 'k1>k2;k3', 'k4[2]>k5', 'k6>k4[2]>k5'\n\n"
             "Example command:\n"
             "# conf json:///tmp/csm.conf get 'k6>k4[2]>k5'\n\n")
-        s_parser.add_argument('args', nargs='*', default=[], help='args')
+        s_parser.set_defaults(func=ConfCli.get)
+        s_parser.add_argument('-f', dest='format', help=
+                'Output Format json(default), yaml or toml')
+        s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 
 class SetCmd:
@@ -100,7 +103,8 @@ class SetCmd:
             "Examples: 'k1=v1', 'k1=v1;k2=v2', 'k4[2]>k5=v6', 'k6>k4[2]>k5=v3'\n\n"
             "Example command:\n"
             "# conf json:///tmp/csm.conf set 'k1>k2=v1;k3=1'\n\n")
-        s_parser.add_argument('args', nargs='*', default=[], help='args')
+        s_parser.set_defaults(func=ConfCli.set)
+        s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 
 class DeleteCmd:
@@ -115,7 +119,8 @@ class DeleteCmd:
             "Example(s): 'k1', 'k1>k2;k3', 'k4[2]>k5', 'k6>k4[2]>k5'\n\n"
             "Example command:\n"
             "# conf json:///tmp/csm.conf delete 'k1>k2;k3'\n\n")
-        s_parser.add_argument('args', nargs='*', default=[], help='args')
+        s_parser.set_defaults(func=ConfCli.delete)
+        s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 
 def main():
@@ -136,8 +141,12 @@ def main():
     try:
         args = parser.parse_args()
         ConfCli.init(args.url)
-        out = ConfCli.process(args.command, args.args)
-        if out is not None: print(out)
+        out = args.func(args.args)
+        if args.format == None:
+            args.format = "json"
+        if out is not None and len(out) > 0:
+            print(Format.dump(out, args.format))
+        return 0
 
     except Exception as e:
         sys.stderr.write("%s\n\n" % str(e))
@@ -145,4 +154,5 @@ def main():
         return errno.EINVAL
 
 if __name__ == "__main__":
-    main()
+    rc = main()
+    sys.exit(rc)
