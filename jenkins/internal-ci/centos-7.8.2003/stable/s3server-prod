@@ -79,11 +79,6 @@ pipeline {
                         export build_number=$dev_build_number
                         yum install cortx-motr{,-devel} -y
                         ./rpms/s3/buildrpm.sh -P $PWD
-                        
-                    '''
-                     sh label: 'Build s3iamcli RPM', script: '''
-                        export build_number=$dev_build_number
-                        ./rpms/s3iamcli/buildrpm.sh -P $PWD
                     '''
                 }			
             }
@@ -96,7 +91,6 @@ pipeline {
                     rm -rf $build_upload_dir/$dev_build_number
                     mkdir -p $build_upload_dir/$dev_build_number
                     cp /root/rpmbuild/RPMS/x86_64/*.rpm $build_upload_dir/$dev_build_number
-                    cp /root/rpmbuild/RPMS/noarch/*.rpm $build_upload_dir/$dev_build_number
                 '''
                 sh label: 'Repo Creation', script: '''pushd $build_upload_dir/$dev_build_number
                     rpm -qi createrepo || yum install -y createrepo

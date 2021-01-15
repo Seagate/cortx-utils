@@ -67,6 +67,7 @@ pipeline {
 
                     pushd $integration_dir/$release_tag/cortx_build_temp/prod
                         rm -f *-debuginfo-*.rpm
+                        rm -f cortx-s3iamcli*.rpm
                     popd
                 '''
 			}
