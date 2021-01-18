@@ -25,7 +25,7 @@ pushd "$BUILD_LOCATION" || exit
 cat <<EOF > RELEASE.INFO
 ---
 NAME: "CORTX"
-VERSION: "1.0.0"
+VERSION: "1.0.1"
 BUILD: $(echo "$BUILD_NUMBER" | sed -e 's/^/\"/g' -e 's/$/\"/g')
 OS: $(cat /etc/redhat-release | sed -e 's/ $//g' -e 's/^/\"/g' -e 's/$/\"/g')
 DATETIME: $(date +"%d-%b-%Y %H:%M %Z" | sed -e 's/^/\"/g' -e 's/$/\"/g')
