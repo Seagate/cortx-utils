@@ -25,6 +25,7 @@ pipeline {
 		timestamps()
 		disableConcurrentBuilds()
 		ansiColor('xterm')
+		parallelsAlwaysFailFast()
 	}
 
 	parameters {
