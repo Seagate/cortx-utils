@@ -17,12 +17,12 @@
 
 import errno
 import time
+import json
+import re
 from confluent_kafka import Producer, Consumer
 from confluent_kafka.admin import AdminClient, ConfigResource
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus.message_broker import MessageBroker
-import json
-import re
 from cortx.utils.process import SimpleProcess
 
 
@@ -30,7 +30,6 @@ class KafkaMessageBroker(MessageBroker):
     """ Kafka Server based message broker implementation """
 
     name = 'kafka'
-    kafka_dir = '/home/centos/kafka_2.13-2.7.0'
 
     def __init__(self, broker_conf: dict):
         """ Initialize Kafka based Configurations """
