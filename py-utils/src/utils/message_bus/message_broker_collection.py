@@ -16,16 +16,21 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
+import time
 from confluent_kafka import Producer, Consumer
 from confluent_kafka.admin import AdminClient, ConfigResource
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus.message_broker import MessageBroker
+import json
+import re
+from cortx.utils.process import SimpleProcess
 
 
 class KafkaMessageBroker(MessageBroker):
     """ Kafka Server based message broker implementation """
 
     name = 'kafka'
+    kafka_dir = '/home/centos/kafka_2.13-2.7.0'
 
     def __init__(self, broker_conf: dict):
         """ Initialize Kafka based Configurations """
@@ -64,8 +69,12 @@ class KafkaMessageBroker(MessageBroker):
                     raise MessageBusError(errno.EINVAL, "Missing required \
                         config parameter %s", params)
 
-            self._saved_retention = int(default_configs['retention.ms'] \
-                                       .__dict__['value'])
+            self._saved_retention = int(default_configs['retention.ms']\
+                .__dict__['value'])
+
+            ''' Set retention to default value if fetching from admin fails'''
+            self._saved_retention = 604800000 if self._saved_retention == 1 \
+                else int(default_configs['retention.ms'].__dict__['value'])
 
         else:
             for entry in ['offset', 'consumer_group', 'message_type', \
@@ -97,6 +106,27 @@ class KafkaMessageBroker(MessageBroker):
             else:
                 producer.poll(timeout=timeout)
 
+    def __get_log__(self, message_type: str):
+        """ Gets size of log across all the partitions"""
+        total_size = 0
+        cmd = "/home/centos/kafka_2.13-2.7.0/bin/kafka-log-dirs.sh --describe \
+            --bootstrap-server " + self._servers + " --topic-list " \
+            + message_type
+        try:
+            cmd_proc = SimpleProcess(cmd)
+            run_result = cmd_proc.run()
+            to_str = run_result[0].decode('utf-8')
+            x = re.search(r'({.+})', to_str).group(0)
+            l = json.loads(x)
+            for brokers in l['brokers']:
+                partition = brokers['logDirs'][0]['partitions']
+                for e in partition:
+                    total_size += e['size']
+            return total_size
+        except Exception as e:
+            raise MessageBusError(errno.EINVAL, "Unable to fetch log size for \
+                message type %s", message_type)
+
     def delete(self, message_type: str):
         """ Deletes all the messages from Kafka cluster(s) """
         for i in range(3):
@@ -104,10 +134,19 @@ class KafkaMessageBroker(MessageBroker):
             tuned_params = self._admin.alter_configs([self._resource])
             if list(tuned_params.values())[0].result() is not None:
                 if i > 1:
-                    raise MessageBusError(errno.EINVAL, "Unable to delete \
-                    messages for %s", message_type)
+                    raise MessageBusError(errno.EINVAL, "Unable to change \
+                    retention for %s", message_type)
                 continue
             else:
+                break
+
+        for i in range(1,7):
+            if i > 5:
+                raise MessageBusError(errno.EINVAL, "Unable to delete \
+                                    messages for %s", message_type)
+            time.sleep(0.1*i)
+            log_size = self.__get_log__(message_type)
+            if log_size == 0:
                 break
 
         for i in range(3):
