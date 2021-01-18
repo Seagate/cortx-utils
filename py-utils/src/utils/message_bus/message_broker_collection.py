@@ -109,9 +109,8 @@ class KafkaMessageBroker(MessageBroker):
     def __get_log__(self, message_type: str):
         """ Gets size of log across all the partitions"""
         total_size = 0
-        cmd = "/home/centos/kafka_2.13-2.7.0/bin/kafka-log-dirs.sh --describe \
-            --bootstrap-server " + self._servers + " --topic-list " \
-            + message_type
+        cmd = "/opt/kafka/bin/kafka-log-dirs.sh --describe --bootstrap-server "\
+              + self._servers + " --topic-list " + message_type
         try:
             cmd_proc = SimpleProcess(cmd)
             run_result = cmd_proc.run()
