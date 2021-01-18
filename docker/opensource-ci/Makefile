@@ -2,7 +2,7 @@ SHELL := /bin/bash
 BUILD_ID = 0
 RELASE_BUILD = "/var/artifacts/${BUILD_ID}"
 RPM_DIR = "/var/artifacts/${BUILD_ID}/cortx_iso"
-THIRD_PARTY_VERSION = "third-party-deps-1.0.0-2"
+THIRD_PARTY_VERSION = "third-party-deps-1.0.0-0"
 
 .PHONY: help
 ## help: print this help message.
@@ -345,7 +345,7 @@ release_build:
 	popd && \
 	pushd ${RELASE_BUILD} && \
 		sh /opt/release_support/build_release_info.sh ${RPM_DIR} && \
-		githubrelease --github-token $$GITHUB_TOKEN asset seagate/cortx-re download ${THIRD_PARTY_VERSION} && \
+		githubrelease asset seagate/cortx download ${THIRD_PARTY_VERSION} && \
 		mkdir -p 3rd_party && tar -xvzf *.tar.gz -C 3rd_party --strip-components=1 && \
 	popd
 
