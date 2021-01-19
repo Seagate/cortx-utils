@@ -54,8 +54,8 @@ class KvPayload:
                 self._keys.append("%s[%d]" % (pkey, i))
         elif isinstance(data, dict):
             for key in data.keys():
-                nkey = key if pkey is None else f"%s%s%s" % (pkey, self._delim,
-                                                             key)
+                nkey = key if pkey is None else "%s%s%s" % (pkey, self._delim,
+                                                            key)
                 if not isinstance(data[key], (dict, list)):
                     self._keys.append(nkey)
                 else:

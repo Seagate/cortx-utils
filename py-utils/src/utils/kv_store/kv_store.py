@@ -63,8 +63,8 @@ class KvStore:
     def set(self, keys: list, vals: list):
         """ Updates a given set of keys and values """
         if len(keys) != len(vals):
-            raise KvError(errno.EINVAL, f"Mismatched keys & values %s:%s",\
-                keys, vals)
+            raise KvError(errno.EINVAL, "Mismatched keys & values %s:%s",
+                          keys, vals)
         payload = self.load()
         for key, val in zip(keys, vals):
             payload.set(key, val)
@@ -79,13 +79,13 @@ class KvStore:
 
     def load(self, delim='>'):
         """ Loads and returns data from KV storage """
-        raise KvError(errno.ENOSYS, f"%s:load() not implemented", \
-            type(self).__name__)
+        raise KvError(errno.ENOSYS, "%s:load() not implemented",
+                      type(self).__name__)
 
     def dump(self, payload, delim='>'):
         """ Dumps data onto the KV Storage """
-        raise KvError(errno.ENOSYS, f"%s:dump() not implemented", \
-            type(self).__name__)
+        raise KvError(errno.ENOSYS, "%s:dump() not implemented",
+                      type(self).__name__)
 
 
 class KvStoreFactory:
@@ -117,4 +117,4 @@ class KvStoreFactory:
                                                         delim)
                 return KvStoreFactory._stores[store_url]
 
-        raise KvError(errno.EINVAL, f"Invalid URL %s", store_url)
+        raise KvError(errno.EINVAL, "Invalid URL %s", store_url)
