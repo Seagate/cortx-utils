@@ -1,0 +1,12 @@
+{
+  "bridge": {
+    "name": "Homebridge",
+    "username": "CC:22:3D:E3:CE:30",
+    "manufacturer": "homebridge.io",
+    "model": "homebridge",
+    "pin": "031-45-154",
+    "port": 51826,
+    "lte_type": [{"name": "3g"}, {"name": "4g"}]
+  }
+}
+
