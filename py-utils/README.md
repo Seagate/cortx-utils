@@ -23,6 +23,8 @@ A common utils framework which includes common modules across components
 
 ## Prerequisites for build
 ```bash
+$ sudo yum install gcc
+$ sudo yum install rpm-build
 $ sudo yum install python36
 $ sudo yum install python36-pip
 $ sudo yum install python36-devel

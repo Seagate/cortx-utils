@@ -36,9 +36,9 @@ class ConfCli:
         Conf.load(ConfCli._index, url)
 
     @staticmethod
-    def set(args: list):
+    def set(args):
         """ Set Key Value """
-        kv_list = args[0].split(';')
+        kv_list = args.args[0].split(';')
         for kv in kv_list:
             try:
                 key, val = kv.split('=')
@@ -48,13 +48,14 @@ class ConfCli:
         Conf.save(ConfCli._index)
 
     @staticmethod
-    def get(args: list):
+    def get(args) -> str:
         """ Obtain value for the given keys """
-        key_list = args[0].split(';')
+        params = args.args
+        key_list = params[0].split(';')
         n_keys = len(key_list)
         def_val_list = list(None for i in range(0, n_keys))
-        if len(args) > 1:
-            def_val_list = args[1].split(';')
+        if len(params) > 1:
+            def_val_list = params[1].split(';')
             if len(def_val_list) != n_keys:
                 raise ConfError(errno.EINVAL,
                     "No. of default values, dont match no. of keys")
@@ -62,12 +63,13 @@ class ConfCli:
         for i in range(0, n_keys):
             val = Conf.get(ConfCli._index, key_list[i], def_val_list[i])
             val_list.append(val)
-        return val_list
+        format_type = 'json' if args.format == None else args.format
+        return Format.dump(val_list, format_type)
 
     @staticmethod
-    def delete(args: list):
+    def delete(args):
         """ Delete given set of keys from the config """
-        key_list = args[0].split(';')
+        key_list = args.args[0].split(';')
         for key in key_list:
             Conf.delete(ConfCli._index, key)
         Conf.save(ConfCli._index)
@@ -141,12 +143,9 @@ def main():
     try:
         args = parser.parse_args()
         ConfCli.init(args.url)
-        out = args.func(args.args)
-        if 'format' not in dir(args) or args.format == None:
-            args.format = "json"
-
+        out = args.func(args)
         if out is not None and len(out) > 0:
-            print(Format.dump(out, args.format))
+            print(out)
         return 0
 
     except Exception as e:
