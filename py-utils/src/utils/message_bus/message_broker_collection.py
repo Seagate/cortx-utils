@@ -71,7 +71,7 @@ class KafkaMessageBroker(MessageBroker):
             self._saved_retention = int(default_configs['retention.ms']\
                 .__dict__['value'])
 
-            """ Set retention to default value if fetching from admin fails """
+            #Set retention to default value if fetching from admin fails
             self._saved_retention = 604800000 if self._saved_retention == 1 \
                 else int(default_configs['retention.ms'].__dict__['value'])
 
