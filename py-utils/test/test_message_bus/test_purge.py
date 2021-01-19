@@ -42,7 +42,7 @@ class TestMessage(unittest.TestCase):
         producer.send(messages)
 
     def test_receive(self):
-        """Test Receive Message."""
+        """ Test Receive Message. """
         consumer = MessageConsumer(TestMessage.message_bus, \
             consumer_id='sspl_sensors', consumer_group='sspl', \
             message_type=['Sel'], auto_ack=False, offset='latest')
