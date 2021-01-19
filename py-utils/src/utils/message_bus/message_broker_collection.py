@@ -105,21 +105,21 @@ class KafkaMessageBroker(MessageBroker):
             else:
                 producer.poll(timeout=timeout)
 
-    def __get_log__(self, message_type: str):
+    def get_log_size(self, message_type: str):
         """ Gets size of log across all the partitions"""
         total_size = 0
         cmd = "/opt/kafka/bin/kafka-log-dirs.sh --describe --bootstrap-server "\
-              + self._servers + " --topic-list " + message_type
+            + self._servers + " --topic-list " + message_type
         try:
             cmd_proc = SimpleProcess(cmd)
             run_result = cmd_proc.run()
-            to_str = run_result[0].decode('utf-8')
-            x = re.search(r'({.+})', to_str).group(0)
-            l = json.loads(x)
-            for brokers in l['brokers']:
+            decoded_string = run_result[0].decode('utf-8')
+            output_json = json.loads(re.search(r'({.+})', decoded_string).\
+                group(0))
+            for brokers in output_json['brokers']:
                 partition = brokers['logDirs'][0]['partitions']
-                for e in partition:
-                    total_size += e['size']
+                for each_partition in partition:
+                    total_size += each_partition['size']
             return total_size
         except Exception as e:
             raise MessageBusError(errno.EINVAL, "Unable to fetch log size for \
@@ -133,17 +133,17 @@ class KafkaMessageBroker(MessageBroker):
             if list(tuned_params.values())[0].result() is not None:
                 if i > 1:
                     raise MessageBusError(errno.EINVAL, "Unable to change \
-                    retention for %s", message_type)
+                        retention for %s", message_type)
                 continue
             else:
                 break
 
-        for i in range(1,7):
-            if i > 5:
+        for retry_count in range(1,7):
+            if retry_count > 5:
                 raise MessageBusError(errno.EINVAL, "Unable to delete \
-                                    messages for %s", message_type)
-            time.sleep(0.1*i)
-            log_size = self.__get_log__(message_type)
+                    messages for %s", message_type)
+            time.sleep(0.1*retry_count)
+            log_size = self.get_log_size(message_type)
             if log_size == 0:
                 break
 

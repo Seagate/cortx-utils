@@ -30,8 +30,7 @@ class MessageBus:
     def __init__(self):
         """ Initialize a MessageBus and load its configurations """
         try:
-            if Conf._payloads == {}:
-                Conf.load('message_bus', Json(self.conf_file))
+            Conf.load('message_bus', Json(self.conf_file))
             self._broker_conf = Conf.get('message_bus', 'message_broker')
             broker_type = self._broker_conf['type']
 
