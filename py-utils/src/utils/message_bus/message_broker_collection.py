@@ -123,7 +123,7 @@ class KafkaMessageBroker(MessageBroker):
             return total_size
         except Exception as e:
             raise MessageBusError(errno.EINVAL, "Unable to fetch log size for \
-                message type %s", message_type)
+                message type %s. %s" , message_type, e)
 
     def delete(self, message_type: str):
         """ Deletes all the messages from Kafka cluster(s) """
