@@ -2,7 +2,7 @@ Name: stats_utils
 Version: %{version}
 Release: %{_build_number}_%{dist}
 Summary: STATS Tools
-License: Seagate Proprietary
+License: Seagate
 Requires: statsd
 URL: http://gitlab.mero.colo.seagate.com/third_party/statsd-utils
 Source0: statsd-utils-%{version}.tar.gz

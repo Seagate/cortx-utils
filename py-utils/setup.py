@@ -54,16 +54,23 @@ setup(name='cortx-py-utils',
                 'cortx.utils.ha.dm', 'cortx.utils.ha.dm.models',
                 'cortx.utils.ha.dm.repository',
                 'cortx.utils.ha',
-                'cortx.utils.message_bus','cortx.utils.message_bus.tcp',
-                'cortx.utils.message_bus.tcp.kafka', 'cortx.utils.product_features',
+                'cortx.utils.validator',
+                'cortx.utils.kvstore',
+                'cortx.utils.kv_store',
+                'cortx.utils.conf_store',
+                'cortx.utils.message_bus',
+                'cortx.utils.msg_bus','cortx.utils.msg_bus.tcp',
+                'cortx.utils.msg_bus.tcp.kafka', 'cortx.utils.product_features',
                 'cortx.utils.security', 'cortx.utils.schema',
+                'cortx.utils.appliance_info'
                 ],
       package_data={
         'cortx': ['py.typed'],
       },
       entry_points={
         'console_scripts': [
-            'hac = cortx.utils.ha.hac.hac:main'
+            'hac = cortx.utils.ha.hac.hac:main',
+            'conf = cortx.utils.conf_store.conf_cli:main'
         ]
       },
       data_files = [ ('/var/lib/cortx/ha/specs', specs),

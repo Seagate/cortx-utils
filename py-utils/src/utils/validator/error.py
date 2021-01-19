@@ -15,6 +15,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+
 class VError(Exception):
     """Class representing a generic error with error code and output of a command."""
 
