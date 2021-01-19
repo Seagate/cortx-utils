@@ -1,4 +1,4 @@
-#!/bin/python3 
+#!/bin/python3
 
 # CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
@@ -19,6 +19,7 @@ import errno
 import re
 from cortx.utils.kv_store.error import KvError
 from cortx.utils.schema import Format
+
 
 class KvPayload:
     """ Dict based in memory representation of Key Value data """
@@ -48,14 +49,14 @@ class KvPayload:
         self._refresh_keys(self._data)
 
     def _refresh_keys(self, data, pkey: str = None):
-        if type(data) == list:
+        if isinstance(data, list):
             for i in range(len(data)):
                 self._keys.append("%s[%d]" % (pkey, i))
-        elif type(data) == dict:
+        elif isinstance(data, dict):
             for key in data.keys():
                 nkey = key if pkey is None else f"%s%s%s" % (pkey, self._delim,
                                                              key)
-                if type(data[key]) not in [dict, list]:
+                if not isinstance(data[key], (dict, list)):
                     self._keys.append(nkey)
                 else:
                     self._refresh_keys(data[key], nkey)
@@ -79,7 +80,7 @@ class KvPayload:
         if k[0] not in data.keys():
             data[k[0]] = {}
         if index is not None:
-            if k[0] not in data.keys() or type(data[k[0]]) != list:
+            if k[0] not in data.keys() or not isinstance(data[k[0]], list):
                 data[k[0]] = []
             # if index is more than list size, extend the list
             for i in range(len(data[k[0]]), index + 1):
@@ -89,7 +90,7 @@ class KvPayload:
                 data[k[0]][index] = val
             else:
                 # In case the value is string replace with {}
-                if type(data[k[0]][index]) in [str, list]:
+                if isinstance(data[k[0]][index], (str, list)):
                     data[k[0]][index] = {}
                 self._set(k[1], val, data[k[0]][index])
             return
@@ -99,7 +100,7 @@ class KvPayload:
             data[k[0]] = val
         else:
             # This is not the leaf node of the key, process intermediate node
-            if type(data[k[0]]) in [str, list]:
+            if isinstance(data[k[0]], (str, list)):
                 data[k[0]] = {}
             self._set(k[1], val, data[k[0]])
 
@@ -126,7 +127,7 @@ class KvPayload:
             return None
         data1 = data[k[0]]
         if index is not None:
-            if type(data[k[0]]) != list or index >= len(data[k[0]]):
+            if not isinstance(data[k[0]], list) or index >= len(data[k[0]]):
                 return None
             data1 = data[k[0]][index]
 
@@ -152,7 +153,7 @@ class KvPayload:
             return None
 
         if index is not None:
-            if type(data[k[0]]) != list:
+            if not isinstance(data[k[0]], list):
                 raise KvError(errno.EINVAL, "Invalid key %s", key)
             if index >= len(data[k[0]]):
                 return
