@@ -39,6 +39,7 @@ class TestMessage(unittest.TestCase):
         producer.send(messages)
         producer.send(messages)
         producer.delete()
+        producer.send(messages)
 
     def test_receive(self):
         """Test Receive Message."""
@@ -55,7 +56,7 @@ class TestMessage(unittest.TestCase):
                 self.assertIsNotNone(message, "Message not found")
                 consumer.ack()
             except Exception as e:
-                self.assertEqual(count, 0)
+                self.assertEqual(count, 10)
                 break
 
 
