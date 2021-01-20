@@ -25,7 +25,7 @@ class Service:
         systemd1 = system_bus.get_object('org.freedesktop.systemd1', '/org/freedesktop/systemd1')
         self.dbus_manager = dbus.Interface(systemd1, 'org.freedesktop.systemd1.Manager')
 
-    def run(self):
+    def run(self, **args):
         pass
 
 class EnableDisableService(Service):
