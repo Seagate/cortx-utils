@@ -75,7 +75,7 @@ class YamlKvStore(KvStore):
 
     def dump(self, data) -> None:
         with open(self._store_path, 'w') as f:
-            yaml.dump(data.get_data(), f)
+            yaml.dump(data.get_data(), f, default_flow_style=False)
 
 
 class TomlKvStore(KvStore):
