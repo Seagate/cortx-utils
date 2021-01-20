@@ -20,6 +20,7 @@ import json
 import os
 import sys
 import unittest
+import subprocess
 from cortx.utils.process import SimpleProcess
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -43,10 +44,7 @@ class TestConfCli(unittest.TestCase):
         """ Test by retrieving a value using get api """
         result_data = subprocess.check_output(['conf', 'json:///tmp/file1.json',
                                                'get', 'bridge>name'])
-        escapes = ''.join([chr(char) for char in range(1, 32)])
-        translator = str.maketrans('', '', escapes)
-        result_data = result_data.decode().translate(translator)
-        self.assertEqual(result_data, "Homebridge")
+        self.assertEqual(result_data, b'["Homebridge"]\n')
 
     def test_conf_cli_by_set(self):
         """ Test by setting a value into given key position """
@@ -54,17 +52,13 @@ class TestConfCli(unittest.TestCase):
                                  "bridge>cli_name='client'"])
         result_data = subprocess.check_output(['conf', 'json:///tmp/file1.json',
                                                'get', 'bridge>cli_name'])
-        escapes = ''.join([chr(char) for char in range(1, 32)])
-        translator = str.maketrans('', '', escapes)
-        result_data = result_data.decode().translate(translator)
-        self.assertEqual(result_data, "client")
+        self.assertEqual(result_data, b'["\'client\'"]\n')
 
     def test_conf_cli_by_get_list(self):
         """ Test by retrieving list of values for given keys seperated by ;"""
         result_data = subprocess.check_output(['conf', 'json:///tmp/file1.json',
             'get', 'bridge>name;bridge>lte_type[0]>name'])
-        result_data = result_data.decode().split('\n')
-        self.assertListEqual(result_data, ['Homebridge', '3g', ''])
+        self.assertEqual(result_data, b'["Homebridge", "3g"]\n')
 
     def test_conf_cli_by_set_list_of_value(self):
         """
@@ -74,8 +68,7 @@ class TestConfCli(unittest.TestCase):
             "bridge>cli_name='client';bridge>has_internet='no'"])
         result_data = subprocess.check_output(['conf', 'json:///tmp/file1.json',
             'get', 'bridge>cli_name;bridge>has_internet'])
-        result_data = result_data.decode().split('\n')
-        self.assertListEqual(result_data, ['client', 'no', ''])
+        self.assertEqual(result_data, b'["\'client\'", "\'no\'"]\n')
 
     def test_conf_cli_by_delete(self):
         """ Test by deleting a value from the conf """
@@ -83,11 +76,19 @@ class TestConfCli(unittest.TestCase):
                                  "bridge>port"])
         result_data = subprocess.check_output(['conf', 'json:///tmp/file1.json',
                                                'get', 'bridge>port'])
-        escapes = ''.join([chr(char) for char in range(1, 32)])
-        translator = str.maketrans('', '', escapes)
-        result_data = result_data.decode().translate(translator)
-        self.assertEqual(result_data, "None")
+        self.assertEqual(result_data, b'[null]\n')
 
+    def test_conf_cli_by_format_data(self):
+        """ Test by converting data into toml format """
+        exp_result = b'- lte_type:\n  - name: 3g\n  - name: 4g\n  ' \
+                     b'manufacturer: homebridge.io\n  model: homebridge\n' \
+                     b'  name: Homebridge\n  pin: 031-45-154\n' \
+                     b'  username: CC:22:3D:E3:CE:30\n\n'
+        subprocess.check_output(["conf", "json:///tmp/file1.json", "delete",
+                                 "bridge>port"])
+        result_data = subprocess.check_output(['conf', 'json:///tmp/file1.json',
+                                               'get', 'bridge', '-f', 'yaml'])
+        self.assertEqual(result_data, exp_result)
 
 if __name__ == '__main__':
 

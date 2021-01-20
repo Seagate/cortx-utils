@@ -239,6 +239,26 @@ class TestConfStore(unittest.TestCase):
         result_data = Conf.get('delete_local_index', 'bridge>lte_type[1]>name')
         self.assertEqual(result_data, None)
 
+    def test_conf_store_set_key_with_hypen(self):
+        """
+        Test by setting the key with hypen special character in it
+        & reading it back.
+        """
+        load_config('sc_local', 'json:///tmp/file1.json')
+        Conf.set('sc_local', 'bridge>proxy-type', 'cloud')
+        result_data = Conf.get('sc_local', 'bridge>proxy-type')
+        self.assertEqual(result_data, 'cloud')
+
+    def test_conf_store_set_key_with_at(self):
+        """
+        Test by setting the key with at '@' special character in it
+        & reading it back.
+        """
+        load_config('at_local', 'json:///tmp/file1.json')
+        Conf.set('at_local', 'bridge>proxy@type', 'cloud')
+        result_data = Conf.get('at_local', 'bridge>proxy@type')
+        self.assertEqual(result_data, 'cloud')
+
 
 if __name__ == '__main__':
     """
