@@ -48,7 +48,7 @@ class EnableDisableService(Service):
                 raise dbus.DBusException(error)
             self.dbus_manager.Reload()
             return
-        
+
         except dbus.DBusException as err:
             print(f"Failed to {self._action} on {self._service} due to error : {err}")
             return 1
