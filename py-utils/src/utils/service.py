@@ -16,7 +16,6 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import dbus
-import sys
 
 class Service:
     def __init__(self, service, action):
