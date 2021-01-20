@@ -51,7 +51,7 @@
   failed_when: "'ERROR' in command_result.stdout"
 
 - name: Edit config file
-  shell: "sed 's/host:.*/host: 127.0.0.1/g' /etc/csm/database.yaml"
+  shell: "sed -i 's/host:.*/host: 127.0.0.1/g' /etc/csm/database.yaml"
 
 - name: Restart csm_sgent
   shell: systemctl restart csm_agent
