@@ -25,14 +25,19 @@ from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus.message_broker import MessageBroker
 from cortx.utils.process import SimpleProcess
 
-DEFAULT_MSG_RETENTION_TIME_MS = 604800000
-MIN_MSG_RETENTION_TIME_MS = 1
-MSG_PURGE_RETRY_COUNT = 7
 
 class KafkaMessageBroker(MessageBroker):
     """ Kafka Server based message broker implementation """
 
     name = 'kafka'
+
+    # Retention period in Milliseconds
+    _default_msg_retention_period = 604800000
+    _min_msg_retention_period = 1
+
+    # Maximum retry count
+    _max_config_retry_count = 3
+    _max_purge_retry_count = 7
 
     def __init__(self, broker_conf: dict):
         """ Initialize Kafka based Configurations """
@@ -74,9 +79,9 @@ class KafkaMessageBroker(MessageBroker):
             self._saved_retention = int(default_configs['retention.ms']\
                 .__dict__['value'])
 
-            #Set retention to default if the value is 1 ms
-            self._saved_retention = DEFAULT_MSG_RETENTION_TIME_MS if \
-                self._saved_retention == MIN_MSG_RETENTION_TIME_MS else \
+            # Set retention to default if the value is 1 ms
+            self._saved_retention = self._default_msg_retention_period if \
+                self._saved_retention == self._min_msg_retention_period else \
                 int(default_configs['retention.ms'].__dict__['value'])
 
         else:
@@ -131,8 +136,9 @@ class KafkaMessageBroker(MessageBroker):
 
     def delete(self, message_type: str):
         """ Deletes all the messages from Kafka cluster(s) """
-        for i in range(3):
-            self._resource.set_config('retention.ms', MIN_MSG_RETENTION_TIME_MS)
+        for i in range(self._max_config_retry_count):
+            self._resource.set_config('retention.ms', \
+                self._min_msg_retention_period)
             tuned_params = self._admin.alter_configs([self._resource])
             if list(tuned_params.values())[0].result() is not None:
                 if i > 1:
@@ -142,7 +148,7 @@ class KafkaMessageBroker(MessageBroker):
             else:
                 break
 
-        for retry_count in range(1, MSG_PURGE_RETRY_COUNT):
+        for retry_count in range(1, self._max_purge_retry_count):
             if retry_count > 5:
                 raise MessageBusError(errno.EINVAL, "Unable to delete \
                     messages for %s", message_type)
@@ -151,7 +157,7 @@ class KafkaMessageBroker(MessageBroker):
             if log_size == 0:
                 break
 
-        for i in range(3):
+        for i in range(self._max_config_retry_count):
             self._resource.set_config('retention.ms', self._saved_retention)
             default_params = self._admin.alter_configs([self._resource])
             if list(default_params.values())[0].result() is not None:
