@@ -20,21 +20,21 @@ import errno
 from cortx.utils.validator.error import VError
 from cortx.utils.process import SimpleProcess
 
-def search_pkg(cmd):
-	# print(f"Running {cmd}")
-	handler = SimpleProcess(cmd)
-	stdout, stderr, retcode = handler.run()
-	if retcode != 0:
-		raise VError(errno.EINVAL,
-			     "cmd: %s failed with error code: %d"
-			     %(cmd, retcode))
-	if stderr:
-		raise VError(errno.EINVAL,
-			     "cmd: %s failed with stderr: %s"
-			     %(cmd, stderr))
-
 class PkgV:
 	"""Pkg related validations."""
+
+	def __search_pkg(self, cmd):
+		# print(f"Running {cmd}")
+		handler = SimpleProcess(cmd)
+		stdout, stderr, retcode = handler.run()
+		if retcode != 0:
+			raise VError(errno.EINVAL,
+				     "cmd: %s failed with error code: %d"
+				     %(cmd, retcode))
+		if stderr:
+			raise VError(errno.EINVAL,
+				     "cmd: %s failed with stderr: %s"
+				     %(cmd, stderr))
 
 	def validate(self, v_type: str, args: list, host: str = None):
 		"""
@@ -44,9 +44,9 @@ class PkgV:
 		2. pkg validate_pip3s host (optional) [pip3 packagenames]
 		"""
 
-		if v_type == "validate_rpms":
+		if v_type == "rpms":
 			return self.validate_rpms(host, args)
-		elif v_type == "validate_pip3s":
+		elif v_type == "pip3s":
 			return self.validate_pip3s(host, args)
 		else:
 			raise VError(errno.EINVAL,
@@ -57,15 +57,15 @@ class PkgV:
 
 		for pkg in pkgs:
 			if host != None:
-				search_pkg(f"ssh {host} rpm -qa | grep {pkg}")
+				self.__search_pkg(f"ssh {host} rpm -qa | grep {pkg}")
 			else:
-				search_pkg(f"rpm -qa | grep {pkg}")
+				self.__search_pkg(f"rpm -qa | grep {pkg}")
 
 	def validate_pip3s(self, host, pkgs):
 		"""Check if pip3 pkg is installed."""
 
 		for pkg in pkgs:
 			if host != None:
-				search_pkg(f"ssh {host} pip3 list --format=legacy | grep {pkg}")
+				self.__search_pkg(f"ssh {host} pip3 list --format=legacy | grep {pkg}")
 			else:
-				search_pkg(f"pip3 list --format=legacy {pkg}")
+				self.__search_pkg(f"pip3 list --format=legacy {pkg}")

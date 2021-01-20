@@ -27,27 +27,27 @@ class TestRpmValidator(unittest.TestCase):
 	def test_rpm_installed(self):
 		"""Check if rpm pkg installed."""
 
-		PkgV().validate('validate_rpms', self.pkg)
+		PkgV().validate('rpms', self.pkg)
 
 	def test_pip3_installed(self):
 		"""Check if pip3 pkg installed."""
 
 		try:
 			pkg = ["toml", "salt"]
-			PkgV().validate('validate_pip3s', [pkg])
+			PkgV().validate('pip3s', [pkg])
 		except Exception as e:
 			self.fail("{}".format(e))
 
 	def test_remote_rpm_installed(self):
 		"""Check if rpm pkg installed."""
 
-		PkgV().validate('validate_rpms', self.pkg, self.host)
+		PkgV().validate('rpms', self.pkg, self.host)
 
 	def test_remote_pip3_installed(self):
 		"""Check if pip3 pkg installed."""
 
 		pkg = "toml"
-		PkgV().validate('validate_pip3s', [pkg], self.host)
+		PkgV().validate('pip3s', [pkg], self.host)
 
 if __name__ == '__main__':
     unittest.main()
