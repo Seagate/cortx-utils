@@ -30,7 +30,7 @@ class Service:
 
 class EnableDisableService(Service):
     """Enable/Disable systemd services."""
-    def __init__(self, service, action):
+    def __init__(self, service, action="enable"):
         super(EnableDisableService, self).__init__(service, action)
 
     def run(self, **args):
@@ -53,7 +53,7 @@ class EnableDisableService(Service):
 
 class SystemctlServiceAction(Service):
     """Start/Stop/Restart systemctl services."""
-    def __init__(self, service, action):
+    def __init__(self, service, action="start"):
         super(SystemctlServiceAction, self).__init__(service, action)
 
     def run(self, **args):
