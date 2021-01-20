@@ -136,12 +136,12 @@ class KafkaMessageBroker(MessageBroker):
 
     def delete(self, message_type: str):
         """ Deletes all the messages from Kafka cluster(s) """
-        for i in range(self._max_config_retry_count):
+        for tuned_retry in range(self._max_config_retry_count):
             self._resource.set_config('retention.ms', \
                 self._min_msg_retention_period)
             tuned_params = self._admin.alter_configs([self._resource])
             if list(tuned_params.values())[0].result() is not None:
-                if i > 1:
+                if tuned_retry > 1:
                     raise MessageBusError(errno.EINVAL, "Unable to change \
                         retention for %s", message_type)
                 continue
@@ -157,11 +157,11 @@ class KafkaMessageBroker(MessageBroker):
             if log_size == 0:
                 break
 
-        for i in range(self._max_config_retry_count):
+        for default_retry in range(self._max_config_retry_count):
             self._resource.set_config('retention.ms', self._saved_retention)
             default_params = self._admin.alter_configs([self._resource])
             if list(default_params.values())[0].result() is not None:
-                if i > 1:
+                if default_retry > 1:
                     raise MessageBusError(errno.EINVAL, "Unknown configuration \
                         for %s", message_type)
                 continue
