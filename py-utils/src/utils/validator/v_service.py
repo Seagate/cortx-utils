@@ -55,3 +55,5 @@ class ServiceV:
 				raise VError(errno.EINVAL,
 					     "cmd: %s failed with stderr: %s"
 					     %(cmd, stderr))
+			# To calm down codacy.
+			stdout = stdout

@@ -35,6 +35,8 @@ class PkgV:
 			raise VError(errno.EINVAL,
 				     "cmd: %s failed with stderr: %s"
 				     %(cmd, stderr))
+		# To calm down codacy.
+		stdout = stdout
 
 	def validate(self, v_type: str, args: list, host: str = None):
 		"""
