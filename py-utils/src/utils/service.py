@@ -39,15 +39,15 @@ class EnableDisableService(Service):
             setattr(self, key, value)
 
         try:
-            if self._action == 'enable':
-                self.dbus_manager.EnableUnitFiles([f'{self._service}'], False, True)
-            else:
+            if self._action == 'disable':
                 self.dbus_manager.DisableUnitFiles([f'{self._service}'], False)
+            else:
+                self.dbus_manager.EnableUnitFiles([f'{self._service}'], False, True)
             self.dbus_manager.Reload()
             return
         
         except dbus.DBusException as err:
-            print(f"Failed to take action on {self._service} with an error : {err}")
+            print(f"Failed to {self._action} on {self._service} due to error : {err}")
             return 1
 
 
@@ -74,5 +74,5 @@ class SystemctlServiceAction(Service):
             return
 
         except dbus.DBusException as err:
-            print(f"Failed to take action on {self._service} with an error : {err}")
+            print(f"Failed to {self._action} on {self._service} due to error : {err}")
             return 1
