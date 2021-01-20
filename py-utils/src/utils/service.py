@@ -41,8 +41,11 @@ class EnableDisableService(Service):
         try:
             if self._action == 'disable':
                 self.dbus_manager.DisableUnitFiles([f'{self._service}'], False)
-            else:
+            elif self._action == 'enable':
                 self.dbus_manager.EnableUnitFiles([f'{self._service}'], False, True)
+            else:
+                error = "Please provide an appropriate action to be taken against the service."
+                raise dbus.DBusException(error)
             self.dbus_manager.Reload()
             return
         
@@ -69,8 +72,8 @@ class SystemctlServiceAction(Service):
             elif self._action == 'restart':
                 self.dbus_manager.RestartUnit(f'{self._service}', 'fail')
             else:
-                print(f"Invalid action: f'{self._service}' :Please provide an appropriate action name for the service.")
-                return 1
+                error = "Please provide an appropriate action to be taken against the service."
+                raise dbus.DBusException(error)
             return
 
         except dbus.DBusException as err:
