@@ -142,7 +142,7 @@ class KafkaMessageBroker(MessageBroker):
             else:
                 break
 
-        for retry_count in range(1,MSG_PURGE_RETRY_COUNT):
+        for retry_count in range(1, MSG_PURGE_RETRY_COUNT):
             if retry_count > 5:
                 raise MessageBusError(errno.EINVAL, "Unable to delete \
                     messages for %s", message_type)
