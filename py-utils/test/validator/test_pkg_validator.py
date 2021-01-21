@@ -34,7 +34,7 @@ class TestRpmValidator(unittest.TestCase):
 
 		try:
 			pkg = ["toml", "salt"]
-			PkgV().validate('pip3s', [pkg])
+			PkgV().validate('pip3s', pkg)
 		except Exception as e:
 			self.fail("{}".format(e))
 
@@ -46,8 +46,8 @@ class TestRpmValidator(unittest.TestCase):
 	def test_remote_pip3_installed(self):
 		"""Check if pip3 pkg installed."""
 
-		pkg = "toml"
-		PkgV().validate('pip3s', [pkg], self.host)
+		pkg = ["toml"]
+		PkgV().validate('pip3s', pkg, self.host)
 
 if __name__ == '__main__':
     unittest.main()

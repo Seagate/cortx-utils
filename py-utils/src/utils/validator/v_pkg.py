@@ -39,7 +39,7 @@ class PkgV:
 				     "cmd: %s failed with stderr: %s"
 				     %(cmd, stderr))
 		# To calm down codacy.
-		stdout = stdout
+		return stdout.decode("utf-8")
 
 	def validate(self, v_type: str, args: list, host: str = None):
 		"""
@@ -67,15 +67,21 @@ class PkgV:
 
 		for pkg in pkgs:
 			if host != None:
-				self.__search_pkg(f"ssh {host} rpm -qa | grep {pkg}")
+				result = self.__search_pkg(f"ssh {host} rpm -qa")
 			else:
-				self.__search_pkg(f"rpm -qa | grep {pkg}")
+				result = self.__search_pkg(f"rpm -qa")
+			if result.find(f"{pkg}") == -1:
+				raise VError(errno.EINVAL,
+					     "rpm pkg: %s not found" % pkg)
 
 	def validate_pip3s(self, host, pkgs):
 		"""Check if pip3 pkg is installed."""
 
 		for pkg in pkgs:
 			if host != None:
-				self.__search_pkg(f"ssh {host} pip3 list --format=legacy | grep {pkg}")
+				result = self.__search_pkg(f"ssh {host} pip3 list --format=legacy")
 			else:
-				self.__search_pkg(f"pip3 list --format=legacy {pkg}")
+				result = self.__search_pkg(f"pip3 list --format=legacy")
+			if result.find(f"{pkg}") == -1:
+				raise VError(errno.EINVAL,
+					     "pip3 pkg: %s not found" % pkg)
