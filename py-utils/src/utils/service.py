@@ -55,6 +55,8 @@ class DbusServiceHandler:
     name = "dbus"
 
     def process(self, action: str, service_name: str):
+        if action not in ['enable', 'disable', 'start', 'stop', 'restart']:
+            raise ServiceError(errno.EINVAL, "Invalid action '%s' for the service %s" %(action, service_name))
         try:
             system_bus = dbus.SystemBus()
             systemd1 = system_bus.get_object('org.freedesktop.systemd1', '/org/freedesktop/systemd1')
@@ -71,8 +73,6 @@ class DbusServiceHandler:
                 dbus_manager.StopUnit(f'{service_name}', 'fail')
             elif action == 'restart':
                 dbus_manager.RestartUnit(f'{service_name}', 'fail')
-            else:
-                raise ServiceError(errno.EINVAL, "Invalid action '%s' for the service %s" %(action, service_name))
 
         except dbus.DBusException as err:
             raise ServiceError(errno.EINVAL, "Failed to '%s' on '%s' due to error :%s" %(action, service_name, err))
@@ -84,5 +84,5 @@ class Service:
     def __init__(self, handler_type: str):
         self._handler = ServiceHandler.get(handler_type)
 
-    def process(self, action: str, service_name: str):
-        self._handler.process(self, action, service_name)
+    def process(self, action: str, *args):
+        self._handler.process(self, action, *args)
