@@ -11,6 +11,7 @@ pipeline {
     }
     
     environment {
+		version="2.0.0"
         env="dev"
 		component="hare"
         branch="stable"
@@ -86,7 +87,7 @@ pipeline {
 					pushd $component
 					echo "Executing build script"
 					export build_number=${BUILD_ID}
-					make rpm
+					make VERSION=$version rpm
 					popd
 				'''	
 			}

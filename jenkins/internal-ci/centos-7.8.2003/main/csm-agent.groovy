@@ -9,7 +9,8 @@ pipeline {
         string(name: 'branch', defaultValue: 'main', description: 'Branch Name')
     }
 	
-	environment {      
+	environment {
+        version = "2.0.0"      
         env = "dev"
 		component = "csm-agent"
         os_version = "centos-7.8.2003"

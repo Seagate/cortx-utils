@@ -10,7 +10,8 @@ pipeline {
         pollSCM '*/5 * * * *'
     }
 	
-	environment {      
+	environment { 
+		version="2.0.0"     
         env="dev"
 		component="csm-agent"
         branch="stable"
@@ -53,11 +54,9 @@ pipeline {
 				// Exclude return code check for csm_setup and csm_test
 				sh label: 'Build', returnStatus: true, script: '''
 					BUILD=$(git rev-parse --short HEAD)
-					VERSION=$(cat $WORKSPACE/VERSION)
 					echo "Executing build script"
-					echo "VERSION:$VERSION"
 					echo "Python:$(python --version)"
-					./cicd/build.sh -v $VERSION -b $BUILD_NUMBER -t -i
+					./cicd/build.sh -v $version -b $BUILD_NUMBER -t -i
 				'''	
 			}
 		}

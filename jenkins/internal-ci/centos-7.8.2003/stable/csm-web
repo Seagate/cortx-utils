@@ -10,7 +10,8 @@ pipeline {
         pollSCM '*/5 * * * *'
     }
 	
-	environment {      
+	environment {
+		version="2.0.0"      
         env="dev"
 		component="csm-web"
         branch="stable"
@@ -51,11 +52,9 @@ pipeline {
 				script { build_stage=env.STAGE_NAME }
 				sh label: 'Build', script: '''
 					BUILD=$(git rev-parse --short HEAD)
-					VERSION=$(cat $WORKSPACE/VERSION)
 					echo "Executing build script"
-					echo "VERSION:$VERSION"
 					echo "Python:$(python --version)"
-					./cicd/build.sh -v $VERSION -b $BUILD_NUMBER -t -i
+					./cicd/build.sh -v $version -b $BUILD_NUMBER -t -i
 				'''	
 			}
 		}

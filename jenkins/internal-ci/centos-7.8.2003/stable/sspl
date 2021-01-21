@@ -10,7 +10,8 @@ pipeline {
         pollSCM '*/5 * * * *'
     }
 
-	environment {   
+	environment {
+        version="2.0.0"
         env="dev"
 		component="sspl"
         branch="stable"
@@ -61,7 +62,7 @@ pipeline {
                                     #Execute build script
                                     echo "Executing build script"
                                     echo "VERSION:$VERSION"
-                                    ./jenkins/build.sh -l DEBUG
+                                    ./jenkins/build.sh -v $version -l DEBUG
                                     popd
                                 '''	
                             }

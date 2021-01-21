@@ -11,7 +11,8 @@ pipeline {
     }
 
 		
-	environment {    
+	environment {
+		version="2.0.0"    
         env="dev"
 		component="motr"
         branch="stable"

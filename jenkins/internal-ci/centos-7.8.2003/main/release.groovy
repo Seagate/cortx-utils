@@ -13,7 +13,7 @@ pipeline {
 	}
 	
 	environment {
-		version = "1.0.0"
+		version = "2.0.0"
 		thrid_party_version = "1.0.0-3"
 		release_component = "${release_component != null ? release_component : 'dry_run'}"
 		release_build = "${release_build != null ? release_build : BUILD_NUMBER}"
@@ -222,8 +222,8 @@ pipeline {
                 script { build_stage = env.STAGE_NAME }
                 sh label: 'Build Release Info', script: """
 				    pushd scripts/release_support
-                        sh build_release_info.sh $integration_dir/$release_tag/dev
-                        sh build_release_info.sh $integration_dir/$release_tag/prod
+                        sh build_release_info.sh -v $version -b $integration_dir/$release_tag/dev
+                        sh build_release_info.sh -v $version -b $integration_dir/$release_tag/prod
 						sh build-3rdParty-release-info.sh $cortx_build_dir/$release_tag/3rd_party
     					sh build_readme.sh $integration_dir/$release_tag
 					popd

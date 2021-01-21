@@ -11,6 +11,7 @@ pipeline {
     }
 	
 	environment {
+        version="2.0.0"
         env="dev"
 		component="provisioner"
         branch="stable"
@@ -46,10 +47,10 @@ pipeline {
             steps {
 				script { build_stage=env.STAGE_NAME }
                 sh encoding: 'utf-8', label: 'Provisioner RPMS', returnStdout: true, script: """
-                    sh ./devops/rpms/buildrpm.sh -g \$(git rev-parse --short HEAD) -e 1.0.0 -b ${BUILD_NUMBER}
+                    sh ./devops/rpms/buildrpm.sh -g \$(git rev-parse --short HEAD) -e $version -b ${BUILD_NUMBER}
                 """
                 sh encoding: 'utf-8', label: 'Provisioner CLI RPMS', returnStdout: true, script: """
-				    sh ./cli/buildrpm.sh -g \$(git rev-parse --short HEAD) -e 1.0.0 -b ${BUILD_NUMBER}
+				    sh ./cli/buildrpm.sh -g \$(git rev-parse --short HEAD) -e $version -b ${BUILD_NUMBER}
                 """
 				
 				sh encoding: 'UTF-8', label: 'api', script: '''

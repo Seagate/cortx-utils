@@ -11,6 +11,7 @@ pipeline {
     }
 
     environment {
+		version="2.0.0"
         env="dev"
 		component="cortx-ha"
         branch="stable"
@@ -57,7 +58,7 @@ pipeline {
 					set -xe
 					pushd $component
 					echo "Executing build script"
-   				   ./jenkins/build.sh -b $BUILD_NUMBER
+   				   ./jenkins/build.sh -v $version -b $BUILD_NUMBER
 					popd
 				'''	
 			}
