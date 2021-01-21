@@ -75,7 +75,8 @@ class DbusServiceHandler:
                 dbus_manager.RestartUnit(f'{service_name}', 'fail')
 
         except dbus.DBusException as err:
-            raise ServiceError(errno.EINVAL, "Failed to '%s' on '%s' due to error :%s" %(action, service_name, err))
+            raise ServiceError(errno.EINVAL, "Failed to '%s' on '%s' due to error. :%s" \
+                %(action, service_name, err))
 
 
 class Service:
