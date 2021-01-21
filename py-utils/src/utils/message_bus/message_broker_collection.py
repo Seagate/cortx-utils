@@ -37,7 +37,7 @@ class KafkaMessageBroker(MessageBroker):
 
     # Maximum retry count
     _max_config_retry_count = 3
-    _max_purge_retry_count = 7
+    _max_purge_retry_count = 5
 
     def __init__(self, broker_conf: dict):
         """ Initialize Kafka based Configurations """
@@ -148,8 +148,8 @@ class KafkaMessageBroker(MessageBroker):
             else:
                 break
 
-        for retry_count in range(1, self._max_purge_retry_count):
-            if retry_count > 5:
+        for retry_count in range(1, (self._max_purge_retry_count + 2)):
+            if retry_count > self._max_purge_retry_count:
                 raise MessageBusError(errno.EINVAL, "Unable to delete \
                     messages for %s", message_type)
             time.sleep(0.1*retry_count)
