@@ -1,6 +1,6 @@
 #!/bin/env python3
 
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -30,8 +30,22 @@ class Cmd:
 
     def __init__(self, args: dict):
         self._url = args.url
-        Conf.load(self._index, self._url)
         self._args = args.args
+        Conf.load(self._index, self._url)
+        # Read the required keys
+        all_servers = list((Conf.get(self._index, \
+                            'cluster>server_nodes')).items())
+        no_servers = len(all_servers)
+        self._kafka_server_list = []
+        self._kafka_servers = 0
+        for i in range(no_servers):
+            if 'kafka_server' in (Conf.get(self._index, \
+                                  f'cluster>{all_servers[i][1]}>roles')):
+                self._kafka_server_list.append(Conf.get(self._index, \
+                         f'cluster>{all_servers[i][1]}>network>mgmt>public_ip'))
+                self._kafka_servers += 1
+        if self._kafka_servers == 0 or self._kafka_server_list == None:
+             raise ValueError("Data incorrect")
 
     @property
     def args(self) -> str:
@@ -68,7 +82,7 @@ class Cmd:
 
     @staticmethod
     def add_args(parser: str, cls: str, name: str):
-        """ Add Command args for parsing."""
+        """ Add Command args for parsing """
 
         parser1 = parser.add_parser(cls.name, help='setup %s' % name)
         parser1.add_argument('url', help='Conf Store URL')
@@ -78,14 +92,15 @@ class Cmd:
 
 class PostInstallCmd(Cmd):
     """ PostInstall Setup Cmd """
-    name = "postinstall"
+    name = "post_install"
 
     def __init__(self, args: dict):
         super().__init__(args)
 
     def process(self):
         Utils.validate('post_install')
-        Utils.post_install()
+        rc = Utils.post_install(self._kafka_server_list[0])
+        return rc
 
 
 class ConfigCmd(Cmd):
@@ -97,7 +112,8 @@ class ConfigCmd(Cmd):
 
     def process(self):
         Utils.validate('config')
-        Utils.config()
+        rc = Utils.config(self._kafka_server_list)
+        return rc
 
 
 class InitCmd(Cmd):
@@ -109,15 +125,43 @@ class InitCmd(Cmd):
 
     def process(self):
         Utils.validate('init')
-        Utils.init()
+        rc = Utils.init()
+        return rc
+
+
+class TestCmd(Cmd):
+    """ Test Setup Cmd """
+    name = "test"
+
+    def __init__(self, args):
+        super().__init__(args)
+
+    def process(self):
+        Utils.validate('test')
+        rc = Utils.test(self._kafka_server_list)
+        return rc
+
+
+class ResetCmd(Cmd):
+    """ Reset Setup Cmd """
+    name = "reset"
+
+    def __init__(self, args):
+        super().__init__(args)
+
+    def process(self):
+        Utils.validate('reset')
+        rc = Utils.reset()
+        return rc
 
 
 def main(argv: dict):
     try:
         desc = "CORTX Utils Setup command"
         command = Cmd.get_command(desc, argv[1:])
-        command.process()
-
+        rc = command.process()
+        if rc != 0:
+            raise ValueError(f"Failed to run {argv[1]}")
     except Exception as e:
         sys.stderr.write("error: %s\n\n" % str(e))
         sys.stderr.write("%s\n" % traceback.format_exc())
