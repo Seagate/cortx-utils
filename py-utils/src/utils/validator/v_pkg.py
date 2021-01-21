@@ -16,9 +16,12 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import os
+import pwd
 import errno
 from cortx.utils.validator.error import VError
 from cortx.utils.process import SimpleProcess
+from cortx.utils.validator.v_network import NetworkV
 
 class PkgV:
 	"""Pkg related validations."""
@@ -45,6 +48,11 @@ class PkgV:
 		1. pkg validate_rpms host (optional) [packagenames]
 		2. pkg validate_pip3s host (optional) [pip3 packagenames]
 		"""
+
+		# Ensure we can perform passwordless ssh and there are no prompts
+		if host:
+			NetworkV().validate('passwordless',
+				[pwd.getpwuid(os.getuid()).pw_name, host])
 
 		if v_type == "rpms":
 			return self.validate_rpms(host, args)

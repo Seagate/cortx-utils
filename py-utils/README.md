@@ -106,3 +106,21 @@ try:
 except CipherInvalidToken:
     print('Key is wrong')
 ```
+### Utility
+#### Validator
+The validator modules can be used to perform checks and validate a wide range of things. For example, if a certain service is running, certain packages are installed or not, examine network connectivity etc.
+
+```python
+from cortx.utils.validator.v_pkg import PkgV
+try:
+	PkgV().validate('rpms', ["lvm2-2.02.186-7.el7", "openldap-server"])
+except Exception as e:
+	print("one or more pkgs are not installed on this machine")
+
+try:
+	PkgV().validate('rpms', ["lvm2-2.02.186-7.el7", "openldap-server"], "remote_hostname")
+except Exception as e:
+	print("one or more pkgs are not installed on that remote machine")
+```
+Note that the optional hostname usage will cause ssh connection to remote host, and the ssh must be set up without password beforehand otherwise operation will fail.
+```

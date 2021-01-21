@@ -16,9 +16,12 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import os
+import pwd
 import errno
 from cortx.utils.validator.error import VError
 from cortx.utils.process import SimpleProcess
+from cortx.utils.validator.v_network import NetworkV
 
 class ServiceV:
 	"""Service related validations."""
@@ -29,6 +32,11 @@ class ServiceV:
 		Usage (arguments to be provided):
 		1. service isrunning host (optional) [servicenames]
 		"""
+
+		# Ensure we can perform passwordless ssh and there are no prompts
+		if host:
+			NetworkV().validate('passwordless',
+				[pwd.getpwuid(os.getuid()).pw_name, host])
 
 		if v_type == "isrunning":
 			return self.validate_services(host, args)
