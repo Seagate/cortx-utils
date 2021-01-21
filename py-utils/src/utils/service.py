@@ -24,6 +24,7 @@ import sys
 class ServiceError(Exception):
     """ Generic Exception with error code and output """
     _module = 'service'
+
     def __init__(self, rc, message, *args):
         self._rc = rc
         self._desc = message % (args)
@@ -35,6 +36,7 @@ class ServiceError(Exception):
 
 class ServiceHandler:
     """ Handler for Service Control """
+
     @staticmethod
     def get(handler_type: str):
         members = inspect.getmembers(sys.modules[__name__])
@@ -51,11 +53,12 @@ class ServiceHandler:
 class DbusServiceHandler:
     """ Handler for Service Control using DBUS interface """
     name = "dbus"
+
     def process(self, action: str, service_name: str):
-        system_bus = dbus.SystemBus()
-        systemd1 = system_bus.get_object('org.freedesktop.systemd1', '/org/freedesktop/systemd1')
-        dbus_manager = dbus.Interface(systemd1, 'org.freedesktop.systemd1.Manager')
         try:
+            system_bus = dbus.SystemBus()
+            systemd1 = system_bus.get_object('org.freedesktop.systemd1', '/org/freedesktop/systemd1')
+            dbus_manager = dbus.Interface(systemd1, 'org.freedesktop.systemd1.Manager')
             if action == 'disable':
                 dbus_manager.DisableUnitFiles([f'{service_name}'], False)
                 dbus_manager.Reload()
@@ -78,6 +81,7 @@ class DbusServiceHandler:
 
 class Service:
     """ Represents a Service which needs to be controlled """
+    
     def __init__(self, handler_type: str):
         self._handler = ServiceHandler.get(handler_type)
 
