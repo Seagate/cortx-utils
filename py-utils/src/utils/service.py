@@ -72,11 +72,10 @@ class DbusServiceHandler:
             elif action == 'restart':
                 dbus_manager.RestartUnit(f'{service_name}', 'fail')
             else:
-                error = "Please provide an appropriate action to be taken against the service."
-                raise dbus.DBusException(error)
+                raise ServiceError(errno.EINVAL, "Invalid action '%s' for the service %s" %(action, service_name))
 
         except dbus.DBusException as err:
-            raise ServiceError(errno.EINVAL, f"Failed to {action} on {service_name} due to error : {err}")
+            raise ServiceError(errno.EINVAL, "Failed to '%s' on '%s' due to error :%s" %(action, service_name, err))
 
 
 class Service:
