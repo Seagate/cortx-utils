@@ -56,7 +56,8 @@ class DbusServiceHandler:
 
     def process(self, action: str, service_name: str):
         if action not in ['enable', 'disable', 'start', 'stop', 'restart']:
-            raise ServiceError(errno.EINVAL, "Invalid action '%s' for the service %s" %(action, service_name))
+            raise ServiceError(errno.EINVAL, "Invalid action '%s' for the service %s" \
+                %(action, service_name))
         try:
             system_bus = dbus.SystemBus()
             systemd1 = system_bus.get_object('org.freedesktop.systemd1', '/org/freedesktop/systemd1')
