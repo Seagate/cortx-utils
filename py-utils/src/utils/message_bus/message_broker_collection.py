@@ -115,7 +115,7 @@ class KafkaMessageBroker(MessageBroker):
                 producer.poll(timeout=timeout)
 
     def get_log_size(self, message_type: str):
-        """ Gets size of log across all the partitions"""
+        """ Gets size of log across all the partitions """
         total_size = 0
         cmd = "/opt/kafka/bin/kafka-log-dirs.sh --describe --bootstrap-server "\
             + self._servers + " --topic-list " + message_type
