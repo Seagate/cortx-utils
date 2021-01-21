@@ -80,7 +80,7 @@ class DbusServiceHandler:
 
 class Service:
     """ Represents a Service which needs to be controlled """
-    
+
     def __init__(self, handler_type: str):
         self._handler = ServiceHandler.get(handler_type)
 
