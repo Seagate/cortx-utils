@@ -106,3 +106,38 @@ try:
 except CipherInvalidToken:
     print('Key is wrong')
 ```
+### Utility
+#### Validator
+The validator modules can be used to perform checks and validate a wide range of things. For example, if a certain service is running, certain packages are installed or not, examine network connectivity etc. For the remote checks, there is an optional hostname usage which will cause ssh connection to remote host, and the ssh must be set up without password beforehand otherwise operation will fail.
+
+  - Package validator: Currently two types of package validators are supported. One for checking rpm packages and the other one for pip3 packages. These APIs can be used to check if certain packages are installed on a remote host as well.
+
+    -- To check if rpm packages are installed, use command "rpms", and pass a list of package names.
+```python
+from cortx.utils.validator.v_pkg import PkgV
+try:
+	PkgV().validate('rpms', ["lvm2-2.02.186-7.el7", "openldap-server"])
+except Exception as e:
+	print("one or more pkgs are not installed on this machine")
+```
+Note The second example below shows how to check if packages are installed on a remote host specified by "remote_hostname".
+```python
+	PkgV().validate('rpms', ["lvm2-2.02.186-7.el7", "openldap-server"], "remote_hostname")
+```
+    -- To check if pip3 packages are installed, use command "pip3", and pass a list of package names.
+```python
+	PkgV().validate('pip3', ["toml", "salt"])
+	PkgV().validate('pip3', ["toml", "salt"], "remote_hostname") # for checking remote pip3 packages
+```
+  - Service validator: This can be used to check if certain services are running on this host or on a remote host. Use command "isrunning" to check, pass a list of name of services which needs to be checked.
+```python
+from cortx.utils.validator.v_service import ServiceV
+try:
+	ServiceV().validate('isrunning', ["rabbitmq-server", "sshd"])
+except Exception as e:
+	print("one or more services are not running on this machine")
+```
+Note The second example below shows how to check if gievn services are running on a remote host specified by "remote_hostname".
+```python
+	ServiceV().validate('isrunning', ["rabbitmq-server", "sshd"], "remote_hostname")
+```

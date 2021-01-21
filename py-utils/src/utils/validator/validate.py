@@ -42,7 +42,9 @@ class ValidatorCommandFactory:
                         "\t[storage lvms <node-1> <...>]\n"
                         "\t[elasticsearch service <host> <port>]\n"
                         "\t[bmc accessible <node> <bmc_ip> <bmc_user> <bmc_passwd>]\n"
-                        "\t[bmc stonith <node> <bmc_ip> <bmc_user> <bmc_passwd>]\n")
+                        "\t[bmc stonith <node> <bmc_ip> <bmc_user> <bmc_passwd>]\n"
+                        "\t[pkg <packagenames> <host>]\n"
+                        "\t[service <servicenames> <host>]\n")
         sys.stderr.write(usage_string)
 
     @staticmethod
