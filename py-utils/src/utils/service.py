@@ -16,66 +16,70 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import dbus
+import inspect
+import errno
+import sys
 
-class Service:
-    def __init__(self, service, action):
-        self._service = service
-        self._action = action
-        system_bus = dbus.SystemBus()
-        systemd1 = system_bus.get_object('org.freedesktop.systemd1', '/org/freedesktop/systemd1')
-        self.dbus_manager = dbus.Interface(systemd1, 'org.freedesktop.systemd1.Manager')
 
-    def run(self, **args):
+class ServiceError(Exception):
+    """ Generic Exception with error code and output """
+    _module = 'service'
+    def __init__(self, rc, message, *args):
+        self._rc = rc
+        self._desc = message % (args)
+
+    def __str__(self):
+        if self._rc == 0: return self._desc
+        return "%s: error(%d): %s" %(self._module, self._rc, self._desc)
+
+
+class ServiceHandler:
+    """ Handler for Service Control """
+    @staticmethod
+    def get(handler_type: str):
+        members = inspect.getmembers(sys.modules[__name__])
+        for name, cls in members:
+            if name != "Handler" and name.endswith("Handler"):
+                if cls.name == handler_type:
+                    return cls
+        raise ServiceError(errno.EINVAL, "Invalid handler type %s" %handler_type)
+
+    def process(self, action, service_name):
         pass
 
-class EnableDisableService(Service):
-    """Enable/Disable systemd services."""
-    def __init__(self, service, action="enable"):
-        super(EnableDisableService, self).__init__(service, action)
 
-    def run(self, **args):
-        """This will execute the action"""
-        for key, value in args.items():
-            setattr(self, key, value)
-
+class DbusServiceHandler:
+    """ Handler for Service Control using DBUS interface """
+    name = "dbus"
+    def process(self, action: str, service_name: str):
+        system_bus = dbus.SystemBus()
+        systemd1 = system_bus.get_object('org.freedesktop.systemd1', '/org/freedesktop/systemd1')
+        dbus_manager = dbus.Interface(systemd1, 'org.freedesktop.systemd1.Manager')
         try:
-            if self._action == 'disable':
-                self.dbus_manager.DisableUnitFiles([f'{self._service}'], False)
-            elif self._action == 'enable':
-                self.dbus_manager.EnableUnitFiles([f'{self._service}'], False, True)
+            if action == 'disable':
+                dbus_manager.DisableUnitFiles([f'{service_name}'], False)
+                dbus_manager.Reload()
+            elif action == 'enable':
+                dbus_manager.EnableUnitFiles([f'{service_name}'], False, True)
+                dbus_manager.Reload()
+            elif action == 'start':
+                dbus_manager.StartUnit(f'{service_name}', 'fail')
+            elif action == 'stop':
+                dbus_manager.StopUnit(f'{service_name}', 'fail')
+            elif action == 'restart':
+                dbus_manager.RestartUnit(f'{service_name}', 'fail')
             else:
                 error = "Please provide an appropriate action to be taken against the service."
                 raise dbus.DBusException(error)
-            self.dbus_manager.Reload()
-            return
 
         except dbus.DBusException as err:
-            print(f"Failed to {self._action} on {self._service} due to error : {err}")
-            return 1
+            raise ServiceError(errno.EINVAL, f"Failed to {action} on {service_name} due to error : {err}")
 
 
-class SystemctlServiceAction(Service):
-    """Start/Stop/Restart systemctl services."""
-    def __init__(self, service, action="start"):
-        super(SystemctlServiceAction, self).__init__(service, action)
+class Service:
+    """ Represents a Service which needs to be controlled """
+    def __init__(self, handler_type: str):
+        self._handler = ServiceHandler.get(handler_type)
 
-    def run(self, **args):
-        """This will execute the action"""
-        for key, value in args.items():
-            setattr(self, key, value)
-
-        try:
-            if self._action == 'start':
-                self.dbus_manager.StartUnit(f'{self._service}', 'fail')
-            elif self._action == 'stop':
-                self.dbus_manager.StopUnit(f'{self._service}', 'fail')
-            elif self._action == 'restart':
-                self.dbus_manager.RestartUnit(f'{self._service}', 'fail')
-            else:
-                error = "Please provide an appropriate action to be taken against the service."
-                raise dbus.DBusException(error)
-            return
-
-        except dbus.DBusException as err:
-            print(f"Failed to {self._action} on {self._service} due to error : {err}")
-            return 1
+    def process(self, action: str, service_name: str):
+        self._handler.process(self, action, service_name)
