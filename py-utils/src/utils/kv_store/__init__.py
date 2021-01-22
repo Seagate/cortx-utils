@@ -16,3 +16,4 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 from cortx.utils.kv_store.kv_store import KvStoreFactory
+from cortx.utils.kv_store.kv_payload import KvPayload
