@@ -130,7 +130,7 @@ class ConfStore:
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
 
-        self._cache[index].delete(key)
+        return self._cache[index].delete(key)
 
     def copy(self, src_index: str, dst_index: str, key_list: list = None):
         """
@@ -189,7 +189,7 @@ class Conf:
     @staticmethod
     def delete(index: str, key: str):
         """ Deletes a given key from the config """
-        Conf._conf.delete(index, key)
+        return Conf._conf.delete(index, key)
 
     @staticmethod
     def copy(src_index: str, dst_index: str, key_list: list = None):
