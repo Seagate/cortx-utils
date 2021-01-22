@@ -7,6 +7,7 @@ pipeline {
 	}
 
 	environment {
+		version = "2.0.0"
 		branch = "custom-ci"
 		os_version = "centos-7.8.2003"
 		thrid_party_version = "1.0.0-3"
@@ -351,7 +352,7 @@ pipeline {
 
                 sh label: 'Build MANIFEST', script: """
 					pushd scripts/release_support
-                    sh build_release_info.sh $integration_dir/$release_tag/cortx_iso/
+                    sh build_release_info.sh -v $version -b $integration_dir/$release_tag/cortx_iso/
 					sh build-3rdParty-release-info.sh $integration_dir/$release_tag/3rd_party
 					sh build_readme.sh $integration_dir/$release_tag
 					popd
