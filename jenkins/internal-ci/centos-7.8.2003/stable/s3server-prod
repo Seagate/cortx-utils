@@ -79,7 +79,7 @@ pipeline {
                         yum clean all;rm -rf /var/cache/yum
                         export build_number=$dev_build_number
                         yum install cortx-motr{,-devel} -y
-                        ./rpms/s3/buildrpm.sh -P $PWD
+                        ./rpms/s3/buildrpm.sh -S $version -P $PWD
                     '''
                 }			
             }

@@ -91,12 +91,12 @@ pipeline {
                         export build_number=${BUILD_ID}
                         yum install cortx-motr{,-devel} -y
                         yum erase log4cxx_eos-devel -q -y
-                        ./rpms/s3/buildrpm.sh -P $PWD -l
+                        ./rpms/s3/buildrpm.sh -S $version -P $PWD -l
                         
                     '''
                     sh label: 'Build s3iamcli RPM', script: '''
                         export build_number=${BUILD_ID}
-                        ./rpms/s3iamcli/buildrpm.sh -P $PWD
+                        ./rpms/s3iamcli/buildrpm.sh -S $version -P $PWD
                     '''
                 }			
             }
