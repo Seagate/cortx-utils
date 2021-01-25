@@ -27,7 +27,7 @@ from cortx.utils.validator.v_network import NetworkV
 class ServiceV:
 	"""Service related validations."""
 
-	def validate(self, v_type: str, args: list, host: str = None, 
+	def validate(self, v_type: str, args: list, host: str = None,
 					is_process : bool = False):
 		"""
 		Process service validations.
@@ -70,7 +70,7 @@ class ServiceV:
 					     %(cmd, stderr))
 			# To calm down codacy.
 			stdout = stdout
-	
+
 	def validate_processes(self, process_list):
 		"""Check if process are running"""
 		process_list = [proc.lower() for proc in process_list]
