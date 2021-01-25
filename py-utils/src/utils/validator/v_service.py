@@ -19,6 +19,7 @@
 import os
 import pwd
 import errno
+from psutil import process_iter
 from cortx.utils.validator.error import VError
 from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.v_network import NetworkV
@@ -26,7 +27,8 @@ from cortx.utils.validator.v_network import NetworkV
 class ServiceV:
 	"""Service related validations."""
 
-	def validate(self, v_type: str, args: list, host: str = None):
+	def validate(self, v_type: str, args: list, host: str = None, 
+					is_process : bool = False):
 		"""
 		Process service validations.
 		Usage (arguments to be provided):
@@ -39,7 +41,10 @@ class ServiceV:
 				[pwd.getpwuid(os.getuid()).pw_name, host])
 
 		if v_type == "isrunning":
-			return self.validate_services(host, args)
+			if is_process:
+				return self.validate_processes(args)
+			else:
+				return self.validate_services(host, args)
 		else:
 			raise VError(errno.EINVAL,
 				     "Action parameter %s not supported" % v_type)
@@ -65,3 +70,19 @@ class ServiceV:
 					     %(cmd, stderr))
 			# To calm down codacy.
 			stdout = stdout
+	
+	def validate_processes(self, process_list):
+		"""Check if process are running"""
+		process_list = [proc.lower() for proc in process_list]
+		running_pl = []
+		
+		for proc_obj in process_iter():
+			if proc_obj.name().lower() in process_list:
+				running_pl.append(proc_obj.name().lower())
+
+		for proc in process_list:
+			if proc not in running_pl:
+				raise VError(errno.EINVAL,
+						 "Process : %s is not running"
+						 % proc)
+
