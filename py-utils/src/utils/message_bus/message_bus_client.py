@@ -42,9 +42,9 @@ class MessageBusClient:
         message_type = self._get_conf('message_type')
         self._message_bus.delete(message_type)
 
-    def receive(self) -> list:
+    def receive(self, blocking: bool = False) -> list:
         client_id = self._get_conf('client_id')
-        return self._message_bus.receive(client_id)
+        return self._message_bus.receive(client_id, blocking)
 
     def ack(self):
         client_id = self._get_conf('client_id')
