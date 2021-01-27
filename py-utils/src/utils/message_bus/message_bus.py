@@ -55,9 +55,9 @@ class MessageBus:
         """ Deletes all the messages from the configured message broker """
         self._broker.delete(message_type)
 
-    def receive(self, client_id: str) -> list:
+    def receive(self, client_id: str, blocking: bool) -> list:
         """ Receives messages from the configured message broker """
-        return self._broker.receive(client_id)
+        return self._broker.receive(client_id, blocking)
 
     def ack(self, client_id: str):
         """ Provides acknowledgement on offset """

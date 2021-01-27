@@ -168,7 +168,7 @@ class KafkaMessageBroker(MessageBroker):
             else:
                 break
 
-    def receive(self, consumer_id: str, timeout=0.5) -> list:
+    def receive(self, consumer_id: str, blocking: bool, timeout=0.5) -> list:
         """ Receives list of messages from Kafka cluster(s) """
         consumer = self._clients['consumer'][consumer_id]
         if consumer is None:
@@ -178,8 +178,12 @@ class KafkaMessageBroker(MessageBroker):
         try:
             msg = consumer.poll(timeout=timeout)
             if msg is None:
-                pass
-            if msg.error():
+                # if blocking is True, NoneType messages are ignored
+                if blocking:
+                    return msg.value()
+                else:
+                    pass
+            elif msg.error():
                 raise MessageBusError(errno.ECONN, "Cant receive. %s", \
                     msg.error())
             else:
