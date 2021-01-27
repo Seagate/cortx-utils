@@ -178,6 +178,7 @@ class KafkaMessageBroker(MessageBroker):
         try:
             msg = consumer.poll(timeout=timeout)
             if msg is None:
+                # if blocking is True, NoneType messages are ignored
                 if blocking:
                     return msg.value()
                 else:
