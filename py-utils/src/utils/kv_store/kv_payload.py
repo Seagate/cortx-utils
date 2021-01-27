@@ -150,21 +150,23 @@ class KvPayload:
             k[0], index = ki[0], int(ki[1])
 
         if k[0] not in data.keys():
-            return None
+            return False
 
         if index is not None:
             if not isinstance(data[k[0]], list):
                 raise KvError(errno.EINVAL, "Invalid key %s", key)
             if index >= len(data[k[0]]):
-                return
+                return False
             if len(k) == 1:
                 del data[k[0]][index]
+                return True
             else:
                 self._delete(k[1], data[k[0]][index])
-            return
+            return False
 
         if len(k) == 1:
             del data[k[0]]
+            return True
         else:
             self._delete(k[1], data[k[0]])
 
