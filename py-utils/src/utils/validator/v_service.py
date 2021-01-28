@@ -28,7 +28,7 @@ class ServiceV:
 	"""Service related validations."""
 
 	def validate(self, v_type: str, args: list, host: str = None,
-					is_process : bool = False):
+				 is_process : bool = False, username : str = None):
 		"""
 		Process service validations.
 		Usage (arguments to be provided):
@@ -42,7 +42,7 @@ class ServiceV:
 
 		if v_type == "isrunning":
 			if is_process:
-				return self.validate_processes(args)
+				return self.validate_processes(args, username)
 			else:
 				return self.validate_services(host, args)
 		else:
@@ -71,7 +71,7 @@ class ServiceV:
 			# To calm down codacy.
 			stdout = stdout
 
-	def validate_processes(self, process_list):
+	def validate_processes(self, process_list : list, username : str):
 		""" Validates if processes are running :
 			1. You want to validate a specific process from many
 			   processes started by a service.
@@ -83,11 +83,13 @@ class ServiceV:
 		
 		for proc_obj in process_iter():
 			if proc_obj.name().lower() in process_list:
-				running_pl.append(proc_obj.name().lower())
+				if not username or username == proc_obj.username(): 
+					running_pl.append(proc_obj.name().lower())
+
+		error_str = "Process %s is not running" + \
+					(f" with user {username}" if username else '')
 
 		for proc in process_list:
 			if proc not in running_pl:
 				raise VError(errno.EINVAL,
-						 "Process : %s is not running"
-						 % proc)
-
+							 error_str % proc)
