@@ -9,7 +9,8 @@ pipeline {
 		string(name: 'CSM_WEB_BRANCH', defaultValue: 'stable', description: 'Branch/Hash for cortx-management-web build.')
 	}	
 
-	environment {      
+	environment {
+		version="1.0.1"    
         env="dev"
 		component="csm-web"
         branch="cortx-1.0"
@@ -54,11 +55,8 @@ pipeline {
 				    pushd cortx-management-portal
 					BUILD=$(git rev-parse --short HEAD)
 					popd
-					VERSION=$(cat $WORKSPACE/cortx-management-portal/VERSION)
-					echo "Executing build script"
-					echo "VERSION:$VERSION"
 					echo "Python:$(python --version)"
-					./cortx-management-portal/cicd/build.sh -v $VERSION -b $BUILD_NUMBER -t -i
+					./cortx-management-portal/cicd/build.sh -v $version -b $BUILD_NUMBER -t -i
 				'''	
 			}
 		}
