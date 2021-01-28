@@ -72,7 +72,12 @@ class ServiceV:
 			stdout = stdout
 
 	def validate_processes(self, process_list):
-		"""Check if process are running"""
+		""" Validates if processes are running :
+			1. You want to validate a specific process from many
+			   processes started by a service.
+			2. Validation of bare processes like Consul which do
+			   do not have a parent service.
+		"""
 		process_list = [proc.lower() for proc in process_list]
 		running_pl = []
 		
