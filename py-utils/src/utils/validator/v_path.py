@@ -93,6 +93,6 @@ class PathV:
 				result = self.__run_cmd(f"stat {_path} --printf=%F")
 			if result.find(f"{__type}") == -1:
 				raise VError(errno.EINVAL,
-					     "rpm pkg: %s not found" % pkg)
+					     "object: %s not found" % path)
 
 
