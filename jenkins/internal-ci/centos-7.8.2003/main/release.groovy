@@ -283,8 +283,8 @@ pipeline {
                 script { build_stage = env.STAGE_NAME }
                 sh label: 'Tag last_successful', script: '''
                     pushd $integration_dir
-                    test -L last_successful && rm -f last_successful
-                    ln -s $integration_dir/$release_tag/dev last_successful
+                    test -L "${release_component}_last_successful" && rm -f "${release_component}_last_successful"
+                    ln -s $integration_dir/$release_tag/dev "${release_component}_last_successful"
                     popd
                 '''
 			}
@@ -294,6 +294,8 @@ pipeline {
     post {
 		always {
 			script {
+
+				manager.addHtmlBadge("&emsp;<b>Build :</b><a href='http://cortx-storage.colo.seagate.com/releases/cortx/github/$pipeline_group/$os_version/$release_tag'> ${release_tag}</a>")
 					
 				currentBuild.upstreamBuilds?.each { b -> env.upstream_project = "${b.getProjectName()}";env.upstream_build = "${b.getId()}" }
 				env.release_build_location = "http://cortx-storage.colo.seagate.com/releases/cortx/github/$pipeline_group/$os_version/$release_tag"
