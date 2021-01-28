@@ -30,6 +30,8 @@ class SimpleProcess(Process):
     def __init__(self, cmd):
         super(SimpleProcess, self).__init__(cmd)
         self.shell=False
+        self.stdout=subprocess.PIPE
+        self.realtime_output=False
         self.cwd=None
         self.timeout=None
         self.env=None
@@ -42,7 +44,9 @@ class SimpleProcess(Process):
 
         try:
             cmd = self._cmd.split() if type(self._cmd) is str else self._cmd
-            self._cp = subprocess.run(cmd, stdout=subprocess.PIPE,
+            if getattr(self, 'realtime_output'):
+                self.stdout=None
+            self._cp = subprocess.run(cmd, stdout=self.stdout,
                     stderr=subprocess.PIPE, shell=self.shell, cwd=self.cwd,
                     timeout=self.timeout, env=self.env,
                     universal_newlines=self.universal_newlines)
