@@ -161,10 +161,10 @@ pipeline {
 				env.build_stage = "${build_stage}"
 
                 if (currentBuild.rawBuild.getCause (hudson.triggers.SCMTrigger$SCMTriggerCause) ) {
-                    def toEmail = "shailesh.vaidya@seagate.com"
+                    def toEmail = ""
                     def recipientProvidersClass = [[$class: 'DevelopersRecipientProvider']]
                     if ( manager.build.result.toString() == "FAILURE") {
-                        toEmail = "CORTX.s3@seagate.com"
+                        toEmail = "CORTX.s3@seagate.com,shailesh.vaidya@seagate.com"
                         recipientProvidersClass = [[$class: 'DevelopersRecipientProvider'],[$class: 'RequesterRecipientProvider']]
                     }
 

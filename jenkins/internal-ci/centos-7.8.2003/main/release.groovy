@@ -300,14 +300,20 @@ pipeline {
 				env.release_build = "${env.release_tag}"
 				env.build_stage = "${build_stage}"
 
-				def mailRecipients = ""
+				def toEmail = ""
+				def recipientProvidersClass = [[$class: 'DevelopersRecipientProvider']]
+				if ( manager.build.result.toString() != "SUCCESS") {
+					toEmail = "shailesh.vaidya@seagate.com"
+					recipientProvidersClass = [[$class: 'DevelopersRecipientProvider'], [$class: 'RequesterRecipientProvider']]
+				}
 				emailext ( 
 					body: '''${SCRIPT, template="release-email.template"}''',
 					mimeType: 'text/html',
 					subject: "Main Release # ${env.release_tag} - ${currentBuild.currentResult}",
 					attachmentsPattern: 'CHANGESET.txt',
 					attachLog: true,
-					to: "${mailRecipients}",
+					to: toEmail,
+                    recipientProviders: recipientProvidersClass
 				)
 
 				archiveArtifacts artifacts: "README.txt, RELEASE.INFO", onlyIfSuccessful: false, allowEmptyArchive: true
