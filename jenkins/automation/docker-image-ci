@@ -1,0 +1,86 @@
+pipeline {
+    agent {
+        node {
+            label 'docker-image-centos-7.8.2003-node'
+        }
+    }
+    
+   	environment {
+	    GITHUB_CRED = credentials('shailesh-github')
+	}
+
+
+    options {
+		timeout(time: 120, unit: 'MINUTES')
+		timestamps()
+		disableConcurrentBuilds()
+        buildDiscarder(logRotator(daysToKeepStr: '30', numToKeepStr: '30'))
+		ansiColor('xterm')
+	}
+
+    parameters {
+
+        string(name: 'CORTX_RE_BRANCH', defaultValue: 'main', description: 'Branch or GitHash to build docker image', trim: true)
+
+        choice (
+            name: 'OS_VERSION', 
+            choices: ['centos-7.8.2003'],
+            description: 'OS Version'
+        )
+
+        choice (
+            choices: ['no' , 'yes'],
+            description: 'Push newly built Docker image to GitHub ',
+            name: 'GITHUB_PUSH'
+        )
+
+	}	
+
+    stages {
+
+        stage('Checkout Script') {
+            steps {             
+                script {
+                    checkout([$class: 'GitSCM', branches: [[name: '${CORTX_RE_BRANCH}']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: 'https://github.com/shailesh-vaidya/cortx-re/']]])                
+                }
+            }
+        }
+
+        stage ('Build Docker image') {
+			steps {
+				script { build_stage = env.STAGE_NAME }
+				sh label: 'Build Docker image', script: '''
+                echo 'y' | docker image prune
+                docker-compose -f docker/internal-ci/docker-compose.yml build --force-rm  --compress --build-arg GIT_HASH="$(git rev-parse --short HEAD)" cortx-build-internal-$OS_VERSION
+                echo 'y' | docker image prune
+                '''
+			}
+		}
+
+        stage ('Validation') {
+			steps {
+				script { build_stage = env.STAGE_NAME }
+				               
+                checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: 'main']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: '/mnt/docker/tmp/cortx-workspace'], [$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: false, recursiveSubmodules: true, reference: '', shallow: true, trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/Seagate/cortx']]]
+
+                sh label: 'Validate Docker image', script: '''
+                docker run --rm -v /mnt/docker/tmp/cortx-workspace:/cortx-workspace -v /mnt/docker/tmp/artifacts:/var/artifacts ghcr.io/seagate/cortx-re/cortx-build-internal:centos-7.8.2003 make clean build -i
+                rm -rf /mnt/docker/tmp/
+                '''
+			}
+		}
+
+        stage ('Push  Docker image') {
+            when {
+                expression { params.GITHUB_PUSH == 'yes' }
+            }
+			steps {
+				script { build_stage = env.STAGE_NAME }
+				sh label: 'Build Docker image', script: '''
+                docker login ghcr.io -u ${GITHUB_CRED_USR} -p ${GITHUB_CRED_PSW}
+                docker-compose -f docker/internal-ci/docker-compose.yml push cortx-build-internal-$OS_VERSION
+                '''
+			}
+		}
+    }
+}

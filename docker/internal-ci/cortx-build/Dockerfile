@@ -21,9 +21,12 @@ FROM centos:${CENTOS_RELEASE} AS base
 
 ARG CENTOS_RELEASE
 ARG ENVIRONMENT
+ARG GIT_HASH
 
-LABEL maintainer="CORTX.opensource@seagate.com"
-LABEL Description="This image is used to build CORTX components"
+LABEL maintainer="cortx.opensource@seagate.com" \
+      Description="This image is used to build CORTX components" \
+      org.opencontainers.image.revision=$GIT_HASH \
+      org.opencontainers.image.source="https://github.com/Seagate/cortx-re"
 
 ENV BASH_ENV "/etc/profile"
 ENV PATH="/root/.nvm/versions/node/v12.13.0/bin:${PATH}"
@@ -31,10 +34,11 @@ ENV LANG=en_US.UTF-8 \
     LC_ALL=en_US.UTF-8
 
 #Disable default repositories. 
-RUN yum-config-manager --disable base,extras,updates && mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.bkp
+RUN rm -rf /etc/yum.repos.d/CentOS-*
 
-#Add centos-7.7.1908 repository
-COPY ./docker/${ENVIRONMENT}/centos-${CENTOS_RELEASE}/*.repo /etc/yum.repos.d/
+#Add Internal and CORTX uploads repository
+COPY ./docker/${ENVIRONMENT}/cortx-build/internal.repo /etc/yum.repos.d/
+COPY ./docker/${ENVIRONMENT}/cortx-build/cortx-centos-${CENTOS_RELEASE}.repo /etc/yum.repos.d/
 
 # enable EPEL and SCL repos
 RUN yum install centos-release-scl -y && yum clean all \
@@ -85,6 +89,9 @@ openssl-devel \
 doxygen \
 dbus-devel \
 yum-priorities \
+expect \
+rpm-sign \
+genisoimage \
 redhat-ls && yum clean all \
 && rm -rf /var/cache/yum
 
@@ -102,34 +109,55 @@ RUN localedef -i en_US -f UTF-8 en_US.UTF-8
 RUN rpmdev-setuptree
 
 # Copy scripts
-COPY ./docker/${ENVIRONMENT}/centos-${CENTOS_RELEASE}/*.sh /opt/
+COPY ./docker/${ENVIRONMENT}/cortx-build/*.sh /opt/
 
 # install node
-RUN bash /opt/install-node.sh v12.13.0
+RUN bash /opt/install-node.sh v12.13.0 \
+&& rm -rf /opt/install-node.sh \
+&& rm -rf install.sh
 
 # docker-systemctl-replacement
 RUN sh /opt/systemctl-replacement.sh \
-&& rm -f /opt/systemctl-replacement.sh
+&& rm -f /opt/systemctl-replacement.sh \
+&& rm -f systemctl.py
 
 # For Provisioner
 RUN bash /opt/setup_fpm.sh \
 && rm -f /opt/setup_fpm.sh && yum clean all \
-&& rm -rf /var/cache/yum
+&& rm -rf /var/cache/yum \
+&& rm -rf rh-ruby23.sh
+
+# rpm signing
+COPY ./scripts/rpm-signing/* /opt/rpm-signing/
+
+RUN  cat /opt/rpm-signing/gpgoptions >>  ~/.rpmmacros && \
+     sed -i '/passphrase/d' /opt/rpm-signing/genkey-batch && \
+     sed -i -e 's/$argv 1/$argv 0/g' -e 's/${PASSPHRASE}/ /g' -e '/PASSPHRASE/d' /opt/rpm-signing/rpm-sign.sh && \
+     /usr/bin/gpg --batch --gen-key /opt/rpm-signing/genkey-batch && \
+     /usr/bin/gpg --export -a 'Seagate'  > /opt/rpm-signing/RPM-GPG-KEY-Seagate && \
+     rpm --import /opt/rpm-signing/RPM-GPG-KEY-Seagate
+
+# release helper scripts
+COPY ./scripts/release_support/build_release_info.sh /opt/release_support/
+
+# Makefile for build
+COPY ./docker/${ENVIRONMENT}/cortx-build/Makefile . 
 
 FROM base as lustre-rpm-builder
 
 ARG LUSTRE_VERSION 
-ARG CENTOS_RELEASE
 ARG ENVIRONMENT
 
-ADD  https://downloads.whamcloud.com/public/lustre/lustre-${LUSTRE_VERSION}/el7/client/SRPMS/lustre-${LUSTRE_VERSION}-1.src.rpm . 
+ADD https://downloads.whamcloud.com/public/lustre/lustre-${LUSTRE_VERSION}/el7/client/SRPMS/lustre-${LUSTRE_VERSION}-1.src.rpm . 
 RUN rpm -i lustre-${LUSTRE_VERSION}-1.src.rpm 
 
-COPY ./docker/${ENVIRONMENT}/centos-${CENTOS_RELEASE}/lustre-2.9.0.spec.patch .
+COPY ./docker/${ENVIRONMENT}/cortx-build/lustre-2.9.0.spec.patch .
 RUN patch -p1 -i lustre-2.9.0.spec.patch /root/rpmbuild/SPECS/lustre.spec
 
 RUN yum -y install kernel{,-devel}-3.10.0-1127.el7  \
-	&& yum-builddep -y /root/rpmbuild/SPECS/lustre.spec
+	&& yum-builddep -y /root/rpmbuild/SPECS/lustre.spec \
+        && yum clean all \
+        && rm -rf /var/cache/yum
 	
 RUN QA_RPATHS=255 rpmbuild -bb --without servers --without lustre-tests \
         --define 'configure_args --disable-gss-keyring' \
@@ -160,10 +188,12 @@ RUN curl -k https://raw.githubusercontent.com/Seagate/cortx-motr/stable/cortx-mo
 RUN curl -k https://raw.githubusercontent.com/Seagate/cortx-s3server/stable/rpms/s3/s3rpm.spec -o s3rpm.spec \
      && yum install -y http://cortx-storage.colo.seagate.com/releases/cortx/components/github/motr-base/cortx-motr-1.0.0-0_git588b298_3.10.0_1062.el7.x86_64.rpm \
      http://cortx-storage.colo.seagate.com/releases/cortx/components/github/motr-base/cortx-motr-devel-1.0.0-0_git588b298_3.10.0_1062.el7.x86_64.rpm \
-    && yum install -y git-clang-format \
     && yum-builddep -y s3rpm.spec \
     && rm -f s3rpm.spec \
-    && yum remove -y cortx-motr cortx-motr-devel kernel-3.10.0-1160.el7
+    && yum remove -y cortx-motr cortx-motr-devel kernel-3.10.0-1160.el7 kernel-devel-3.10.0-1062.el7 \
+    && rm -rf /opt/seagate/cortx/motr/ \
+    && yum clean all \
+    && rm -rf /var/cache/yum
 
 ENV HARE_VENV_DIR=$HOME/.hare-venv
 
