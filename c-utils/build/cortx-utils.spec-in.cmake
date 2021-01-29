@@ -12,6 +12,7 @@ Group: Development/Libraries
 Source: %{sourcename}.tar.gz
 BuildRequires: cmake gcc
 #BuildRequires: @RPM_DEVEL_REQUIRES@
+Requires: python36-toml
 Provides: %{name} = %{version}-%{release}
 
 # CORTX UTILS library paths
