@@ -168,3 +168,37 @@ class ControllerVCommand(VCommand):
         """Validate controller status."""
 
         self._controller.validate(self.v_type, self.args)
+
+class PkgVCommand(VCommand):
+    """Pkg check related commands."""
+
+    name = "Pkg"
+
+    def __init__(self, args):
+        super(PkgVCommand, self).__init__(args)
+
+        from v_pkg import PkgV
+
+        self._pkg = PkgV()
+
+    def process(self):
+        """Validate pkg status."""
+
+        self._pkg.validate(self.v_type, self.args)
+
+class ServiceVCommand(VCommand):
+    """Service check related commands."""
+
+    name = "Service"
+
+    def __init__(self, args):
+        super(ServiceVCommand, self).__init__(args)
+
+        from v_service import ServiceV
+
+        self._service = ServiceV()
+
+    def process(self):
+        """Validate service status."""
+
+        self._service.validate(self.v_type, self.args)

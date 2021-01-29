@@ -17,7 +17,6 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
-
 import socket
 from cortx.utils.validator.error import VError
 from cortx.utils.process import SimpleProcess
