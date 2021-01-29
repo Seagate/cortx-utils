@@ -16,16 +16,28 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
+import time
+import json
+import re
 from confluent_kafka import Producer, Consumer
 from confluent_kafka.admin import AdminClient, ConfigResource
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus.message_broker import MessageBroker
+from cortx.utils.process import SimpleProcess
 
 
 class KafkaMessageBroker(MessageBroker):
     """ Kafka Server based message broker implementation """
 
     name = 'kafka'
+
+    # Retention period in Milliseconds
+    _default_msg_retention_period = 604800000
+    _min_msg_retention_period = 1
+
+    # Maximum retry count
+    _max_config_retry_count = 3
+    _max_purge_retry_count = 5
 
     def __init__(self, broker_conf: dict):
         """ Initialize Kafka based Configurations """
@@ -64,8 +76,13 @@ class KafkaMessageBroker(MessageBroker):
                     raise MessageBusError(errno.EINVAL, "Missing required \
                         config parameter %s", params)
 
-            self._saved_retention = int(default_configs['retention.ms'] \
-                                       .__dict__['value'])
+            self._saved_retention = int(default_configs['retention.ms']\
+                .__dict__['value'])
+
+            # Set retention to default if the value is 1 ms
+            self._saved_retention = self._default_msg_retention_period if \
+                self._saved_retention == self._min_msg_retention_period else \
+                int(default_configs['retention.ms'].__dict__['value'])
 
         else:
             for entry in ['offset', 'consumer_group', 'message_type', \
@@ -97,24 +114,54 @@ class KafkaMessageBroker(MessageBroker):
             else:
                 producer.poll(timeout=timeout)
 
+    def get_log_size(self, message_type: str):
+        """ Gets size of log across all the partitions """
+        total_size = 0
+        cmd = "/opt/kafka/bin/kafka-log-dirs.sh --describe --bootstrap-server "\
+            + self._servers + " --topic-list " + message_type
+        try:
+            cmd_proc = SimpleProcess(cmd)
+            run_result = cmd_proc.run()
+            decoded_string = run_result[0].decode('utf-8')
+            output_json = json.loads(re.search(r'({.+})', decoded_string).\
+                group(0))
+            for brokers in output_json['brokers']:
+                partition = brokers['logDirs'][0]['partitions']
+                for each_partition in partition:
+                    total_size += each_partition['size']
+            return total_size
+        except Exception as e:
+            raise MessageBusError(errno.EINVAL, "Unable to fetch log size for \
+                message type %s. %s" , message_type, e)
+
     def delete(self, message_type: str):
         """ Deletes all the messages from Kafka cluster(s) """
-        for i in range(3):
-            self._resource.set_config('retention.ms', 1)
+        for tuned_retry in range(self._max_config_retry_count):
+            self._resource.set_config('retention.ms', \
+                self._min_msg_retention_period)
             tuned_params = self._admin.alter_configs([self._resource])
             if list(tuned_params.values())[0].result() is not None:
-                if i > 1:
-                    raise MessageBusError(errno.EINVAL, "Unable to delete \
-                    messages for %s", message_type)
+                if tuned_retry > 1:
+                    raise MessageBusError(errno.EINVAL, "Unable to change \
+                        retention for %s", message_type)
                 continue
             else:
                 break
 
-        for i in range(3):
+        for retry_count in range(1, (self._max_purge_retry_count + 2)):
+            if retry_count > self._max_purge_retry_count:
+                raise MessageBusError(errno.EINVAL, "Unable to delete \
+                    messages for %s", message_type)
+            time.sleep(0.1*retry_count)
+            log_size = self.get_log_size(message_type)
+            if log_size == 0:
+                break
+
+        for default_retry in range(self._max_config_retry_count):
             self._resource.set_config('retention.ms', self._saved_retention)
             default_params = self._admin.alter_configs([self._resource])
             if list(default_params.values())[0].result() is not None:
-                if i > 1:
+                if default_retry > 1:
                     raise MessageBusError(errno.EINVAL, "Unknown configuration \
                         for %s", message_type)
                 continue
