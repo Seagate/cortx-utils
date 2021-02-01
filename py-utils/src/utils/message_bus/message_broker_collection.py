@@ -20,7 +20,8 @@ import time
 import json
 import re
 from confluent_kafka import Producer, Consumer
-from confluent_kafka.admin import AdminClient, ConfigResource
+from confluent_kafka.admin import AdminClient, ConfigResource, NewTopic, \
+    NewPartitions
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus.message_broker import MessageBroker
 from cortx.utils.process import SimpleProcess
@@ -43,10 +44,10 @@ class KafkaMessageBroker(MessageBroker):
         """ Initialize Kafka based Configurations """
         super().__init__(broker_conf)
 
-        kafka_conf = {'bootstrap.servers': self._servers}
-        self._admin = AdminClient(kafka_conf)
+        #kafka_conf = {'bootstrap.servers': self._servers}
+        #self._admin = AdminClient(kafka_conf)
 
-        self._clients = {'producer': {}, 'consumer': {}}
+        self._clients = {'admin': {}, 'producer': {}, 'consumer': {}}
 
     def init_client(self, client_type: str, **client_conf: dict):
         """ Obtain Kafka based Producer/Consumer """
@@ -64,12 +65,16 @@ class KafkaMessageBroker(MessageBroker):
         kafka_conf['bootstrap.servers'] = self._servers
         kafka_conf['client.id'] = client_conf['client_id']
 
-        if client_type == 'producer':
+        if client_type == 'admin' or self._clients['admin'] == {}:
+            admin = AdminClient(kafka_conf)
+            self._clients['admin'][client_conf['client_id']] = admin
+
+        elif client_type == 'producer':
             producer = Producer(**kafka_conf)
             self._clients[client_type][client_conf['client_id']] = producer
 
             self._resource = ConfigResource('topic', client_conf['message_type'])
-            conf = self._admin.describe_configs([self._resource])
+            conf = admin.describe_configs([self._resource])
             default_configs = list(conf.values())[0].result()
             for params in ['retention.ms']:
                 if params not in default_configs:
@@ -98,6 +103,37 @@ class KafkaMessageBroker(MessageBroker):
             consumer = Consumer(**kafka_conf)
             consumer.subscribe(client_conf['message_type'])
             self._clients[client_type][client_conf['client_id']] = consumer
+
+    def futures(self, tasks :dict):
+        for topic, f in tasks.items():
+            try:
+                f.result()  # The result itself is None
+            except Exception as e:
+                raise MessageBusError(errno.EINVAL, "hahahah %s.", e)
+
+    def register_message_type(self, admin_id: str, message_type: list, \
+        partitions: int):
+        """ Creates a topic """
+        admin = self._clients['admin'][admin_id]
+        new_message_type = [NewTopic(topic, num_partitions=partitions) for \
+            topic in message_type]
+        created_message_types = admin.create_topics(new_message_type)
+        self.futures(created_message_types)
+
+    def deregister_message_type(self, admin_id: str, message_type: list):
+        """ Deletes a topic """
+        admin = self._clients['admin'][admin_id]
+        deleted_message_types = admin.delete_topics(message_type)
+        self.futures(deleted_message_types)
+
+    def increase_parallelism(self, admin_id: str, message_type: list, \
+        partitions: int):
+        """ Increases the partitions for message type """
+        admin = self._clients['admin'][admin_id]
+        new_partition = [NewPartitions(topic, new_total_count=partitions) for \
+            topic in message_type]
+        partitions = admin.create_partitions(new_partition)
+        self.futures(partitions)
 
     def send(self, producer_id: str, message_type: str, method: str, \
         messages: list, timeout=0.1):

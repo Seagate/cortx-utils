@@ -46,6 +46,22 @@ class MessageBus:
         """ To create producer/consumer client based on the configurations """
         self._broker.init_client(client_type, **client_conf)
 
+    def register_message_type(self, client_id: str, message_type: list, \
+        partitions: int):
+        """ Registers a message type in the configured message broker """
+        self._broker.register_message_type(client_id, message_type, \
+            partitions)
+
+    def deregister_message_type(self, client_id: str, message_type: list):
+        """ Deregisters a message type in the configured message broker """
+        self._broker.deregister_message_type(client_id, message_type)
+
+    def increase_parallelism(self, client_id: str, message_type: list, \
+        partitions: int):
+        """ Increases partition to achieve parallelism """
+        self._broker.increase_parallelism(client_id, message_type, \
+            partitions)
+
     def send(self, client_id: str, message_type: list, method: str, \
         messages: list):
         """ Sends list of messages to the configured message broker """

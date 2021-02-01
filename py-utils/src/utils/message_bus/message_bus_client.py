@@ -32,6 +32,20 @@ class MessageBusClient:
             raise MessageBusError(errno.EINVAL, "Invalid entry %s", key) 
         return self._client_conf[key]
 
+    def register_message_type(self, message_type: list, partitions: int):
+        client_id = self._get_conf('client_id')
+        self._message_bus.register_message_type(client_id, message_type, \
+            partitions)
+
+    def deregister_message_type(self, message_type: list):
+        client_id = self._get_conf('client_id')
+        self._message_bus.deregister_message_type(client_id, message_type)
+
+    def increase_parallelism(self, message_type: list, partitions: int):
+        client_id = self._get_conf('client_id')
+        self._message_bus.increase_parallelism(client_id, message_type, \
+            partitions)
+
     def send(self, messages: list):
         message_type = self._get_conf('message_type')
         method = self._get_conf('method')
@@ -49,6 +63,27 @@ class MessageBusClient:
     def ack(self):
         client_id = self._get_conf('client_id')
         self._message_bus.ack(client_id)
+
+
+class MessageBusAdmin(MessageBusClient):
+    """ A client that do admin jobs """
+
+    def __init__(self, message_bus: MessageBus, admin_id: str):
+        """ Initialize a Message Admin
+
+        Parameters:
+        message_bus     An instance of message bus class.
+        consumer_id     A String that represents Consumer client ID.
+        consumer_group  A String that represents Consumer Group ID.
+                        Group of consumers can process messages
+        message_type    This is essentially equivalent to the queue/topic name.
+                        For e.g. ["Alert"]
+        auto_ack        Can be set to "True" or "False"
+        offset          Can be set to "earliest" (default) or "latest".
+                        ("earliest" will cause messages to be read from the
+                        beginning)
+        """
+        super().__init__(message_bus, client_type='admin', client_id=admin_id)
 
 
 class MessageProducer(MessageBusClient):
