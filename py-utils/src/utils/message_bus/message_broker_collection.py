@@ -171,21 +171,29 @@ class KafkaMessageBroker(MessageBroker):
             else:
                 break
 
-    def receive(self, consumer_id: str, input_timeout: float) -> list:
-        """ Receives list of messages from Kafka cluster(s) """
+    def receive(self, consumer_id: str, timeout: float) -> list:
+        """
+        Receives list of messages from Kafka Message Server
+
+        Parameters:
+        consumer_id     Consumer ID for which messages are to be retrieved
+        timeout         Time in seconds to wait for the message. Timeout of 0
+                        will lead to blocking indefinitely for the message
+        """
         consumer = self._clients['consumer'][consumer_id]
         if consumer is None:
             raise MessageBusError(errno.EINVAL, "Consumer %s is not \
                 initialized", consumer_id)
 
-        timeout = self._default_timeout if input_timeout == 0 else input_timeout
+        if timeout is None:
+            timeout = self._default_timeout
 
         try:
             while True:
                 msg = consumer.poll(timeout=timeout)
                 if msg is None:
                     # if blocking is True, NoneType messages are ignored
-                    if not input_timeout:
+                    if timeout == 0:
                         continue
                     else:
                         return msg
