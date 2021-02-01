@@ -176,18 +176,19 @@ class KafkaMessageBroker(MessageBroker):
                 initialized", consumer_id)
 
         try:
-            msg = consumer.poll(timeout=timeout)
-            if msg is None:
-                # if blocking is True, NoneType messages are ignored
-                if blocking:
-                    return msg.value()
+            while True:
+                msg = consumer.poll(timeout=timeout)
+                if msg is None:
+                    # if blocking is True, NoneType messages are ignored
+                    if blocking:
+                        continue
+                    else:
+                        return msg
+                elif msg.error():
+                    raise MessageBusError(errno.ECONN, "Cant receive. %s", \
+                        msg.error())
                 else:
-                    pass
-            elif msg.error():
-                raise MessageBusError(errno.ECONN, "Cant receive. %s", \
-                    msg.error())
-            else:
-                return msg.value()
+                    return msg.value()
         except KeyboardInterrupt:
             raise MessageBusError(errno.EINVAL, "Cant Recieve %s")
 
