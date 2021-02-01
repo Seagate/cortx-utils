@@ -192,18 +192,16 @@ class KafkaMessageBroker(MessageBroker):
             while True:
                 msg = consumer.poll(timeout=timeout)
                 if msg is None:
-                    # if blocking is True, NoneType messages are ignored
-                    if timeout == 0:
-                        continue
-                    else:
-                        return msg
+                    # if blocking (timeout=0), NoneType messages are ignored
+                    if timeout > 0:
+                        return None
                 elif msg.error():
                     raise MessageBusError(errno.ECONN, "Cant receive. %s", \
                         msg.error())
                 else:
                     return msg.value()
         except KeyboardInterrupt:
-            raise MessageBusError(errno.EINVAL, "Cant Recieve %s")
+            raise MessageBusError(errno.EINVAL, "Cant Receive %s")
 
     def ack(self, consumer_id: str):
         """ To manually commit offset """
