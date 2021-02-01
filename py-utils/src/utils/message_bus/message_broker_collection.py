@@ -39,6 +39,9 @@ class KafkaMessageBroker(MessageBroker):
     _max_config_retry_count = 3
     _max_purge_retry_count = 5
 
+    # Polling timeout
+    _default_timeout = 0.5
+
     def __init__(self, broker_conf: dict):
         """ Initialize Kafka based Configurations """
         super().__init__(broker_conf)
@@ -168,19 +171,21 @@ class KafkaMessageBroker(MessageBroker):
             else:
                 break
 
-    def receive(self, consumer_id: str, blocking: bool, timeout=0.5) -> list:
+    def receive(self, consumer_id: str, input_timeout: float) -> list:
         """ Receives list of messages from Kafka cluster(s) """
         consumer = self._clients['consumer'][consumer_id]
         if consumer is None:
             raise MessageBusError(errno.EINVAL, "Consumer %s is not \
                 initialized", consumer_id)
 
+        timeout = self._default_timeout if input_timeout == 0 else input_timeout
+
         try:
             while True:
                 msg = consumer.poll(timeout=timeout)
                 if msg is None:
                     # if blocking is True, NoneType messages are ignored
-                    if blocking:
+                    if not input_timeout:
                         continue
                     else:
                         return msg
