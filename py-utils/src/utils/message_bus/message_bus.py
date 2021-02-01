@@ -55,7 +55,7 @@ class MessageBus:
         """ Deletes all the messages from the configured message broker """
         self._broker.delete(message_type)
 
-    def receive(self, client_id: str, timeout: float) -> list:
+    def receive(self, client_id: str, timeout: float = None) -> list:
         """ Receives messages from the configured message broker """
         return self._broker.receive(client_id, timeout)
 
