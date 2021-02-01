@@ -171,7 +171,7 @@ class KafkaMessageBroker(MessageBroker):
             else:
                 break
 
-    def receive(self, consumer_id: str, timeout: float) -> list:
+    def receive(self, consumer_id: str, timeout: float = None) -> list:
         """
         Receives list of messages from Kafka Message Server
 
