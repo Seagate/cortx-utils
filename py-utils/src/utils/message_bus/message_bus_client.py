@@ -28,25 +28,40 @@ class MessageBusClient:
         self._client_conf = client_conf
 
     def _get_conf(self, key: str):
+        """ To get the client configurations """
         if key not in self._client_conf.keys():
             raise MessageBusError(errno.EINVAL, "Invalid entry %s", key) 
         return self._client_conf[key]
 
     def send(self, messages: list):
+        """
+        Sends list of messages to the Message Bus
+
+        Parameters:
+        messages     A list of messages sent to Message Bus
+        """
         message_type = self._get_conf('message_type')
         method = self._get_conf('method')
         client_id = self._get_conf('client_id')
         self._message_bus.send(client_id, message_type, method, messages)
 
     def delete(self):
+        """ Deletes the messages """
         message_type = self._get_conf('message_type')
         self._message_bus.delete(message_type)
 
-    def receive(self) -> list:
+    def receive(self, timeout: float = None) -> list:
+        """
+        Receives list of messages from the Message Bus
+
+        Parameters:
+        timeout     Time in seconds to wait for the message.
+        """
         client_id = self._get_conf('client_id')
-        return self._message_bus.receive(client_id)
+        return self._message_bus.receive(client_id, timeout)
 
     def ack(self):
+        """ Provides acknowledgement on offset """
         client_id = self._get_conf('client_id')
         self._message_bus.ack(client_id)
 
