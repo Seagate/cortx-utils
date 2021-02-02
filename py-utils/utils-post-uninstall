@@ -14,15 +14,10 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-
-PIP=pip3.6 
-POST_INSTALL_REQUIREMENTS=/opt/seagate/cortx/utils/conf/requirements.txt
-
-# rpm utility passes additional parameter to indicate whether it is a fresh
-# install, un-install or upgrade. For this script un-install or upgrade are
-# the valid scenarios. 0 means un-install and 1 means upgrade.
-# Remove required packages only when uninstall
+# Take action only in case of un-install
 if [ $1 == 0 ]
 then
-    sudo $PIP uninstall --yes -r $POST_INSTALL_REQUIREMENTS
+    # Remove the files we have created
+    /bin/rm /opt/seagate/cortx/utils/bin/utils_setup
+    /bin/rm -rf /opt/seagate/cortx/utils
 fi

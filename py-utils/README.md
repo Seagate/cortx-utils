@@ -45,7 +45,7 @@ $ python3 setup.py bdist_wheel
   - Create RPM Package
     - It will create `cortx-py-utils-1.0.0-1.noarch.rpm`
 ```bash
-$ python3.6 setup.py bdist_rpm --post-install utils-post-install --pre-uninstall utils-pre-uninstall
+$ python3.6 setup.py bdist_rpm --post-install utils-post-install --pre-uninstall utils-pre-uninstall --post-uninstall utils-post-uninstall
 ```
 
 ## Installation
