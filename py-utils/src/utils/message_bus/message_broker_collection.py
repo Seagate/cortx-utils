@@ -111,8 +111,8 @@ class KafkaMessageBroker(MessageBroker):
             try:
                 f.result()  # The result itself is None
             except Exception as e:
-                raise MessageBusError(errno.EINVAL, "Admin operation fails \
-                    %s.", e)
+                raise MessageBusError(errno.EINVAL, "Admin operation fails for \
+                    %s. %s", message_type, e)
 
     def _get_metadata(self, admin: object):
         """ To get the metadata information of message type """
