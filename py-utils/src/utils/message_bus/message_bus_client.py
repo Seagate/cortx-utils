@@ -28,39 +28,79 @@ class MessageBusClient:
         self._client_conf = client_conf
 
     def _get_conf(self, key: str):
+        """ To get the client configurations """
         if key not in self._client_conf.keys():
             raise MessageBusError(errno.EINVAL, "Invalid entry %s", key) 
         return self._client_conf[key]
 
     def register_message_type(self, message_type: list, partitions: int):
+        """
+        Registers a Message Type
+
+        Parameters:
+        message_type     This is essentially equivalent to the queue/topic name.
+                         For e.g. ["Alert"]
+        partitions       Integer that represents number of partitions to be
+                         created.
+        """
         client_id = self._get_conf('client_id')
         self._message_bus.register_message_type(client_id, message_type, \
             partitions)
 
     def deregister_message_type(self, message_type: list):
+        """
+        Deregisters a Message Type
+
+        Parameters:
+        message_type     This is essentially equivalent to the queue/topic name.
+                         For e.g. ["Alert"]
+        """
         client_id = self._get_conf('client_id')
         self._message_bus.deregister_message_type(client_id, message_type)
 
     def increase_parallelism(self, message_type: list, partitions: int):
+        """
+        To increase the number of partitions of a Message Type
+
+        Parameters:
+        message_type     This is essentially equivalent to the queue/topic name.
+                         For e.g. ["Alert"]
+        partitions       Integer that represents number of partitions to be
+                         increased.
+        """
         client_id = self._get_conf('client_id')
         self._message_bus.increase_parallelism(client_id, message_type, \
             partitions)
 
     def send(self, messages: list):
+        """
+        Sends list of messages to the Message Bus
+
+        Parameters:
+        messages     A list of messages sent to Message Bus
+        """
         message_type = self._get_conf('message_type')
         method = self._get_conf('method')
         client_id = self._get_conf('client_id')
         self._message_bus.send(client_id, message_type, method, messages)
 
     def delete(self):
+        """ Deletes the messages """
         message_type = self._get_conf('message_type')
         self._message_bus.delete(message_type)
 
-    def receive(self, blocking: bool = False) -> list:
+    def receive(self, timeout: float = None) -> list:
+        """
+        Receives list of messages from the Message Bus
+
+        Parameters:
+        timeout     Time in seconds to wait for the message.
+        """
         client_id = self._get_conf('client_id')
-        return self._message_bus.receive(client_id, blocking)
+        return self._message_bus.receive(client_id, timeout)
 
     def ack(self):
+        """ Provides acknowledgement on offset """
         client_id = self._get_conf('client_id')
         self._message_bus.ack(client_id)
 

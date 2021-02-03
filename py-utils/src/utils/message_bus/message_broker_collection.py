@@ -39,13 +39,14 @@ class KafkaMessageBroker(MessageBroker):
     # Maximum retry count
     _max_config_retry_count = 3
     _max_purge_retry_count = 5
+    _max_list_message_type_count = 15
+
+    # Polling timeout
+    _default_timeout = 0.5
 
     def __init__(self, broker_conf: dict):
         """ Initialize Kafka based Configurations """
         super().__init__(broker_conf)
-
-        #kafka_conf = {'bootstrap.servers': self._servers}
-        #self._admin = AdminClient(kafka_conf)
 
         self._clients = {'admin': {}, 'producer': {}, 'consumer': {}}
 
@@ -69,7 +70,7 @@ class KafkaMessageBroker(MessageBroker):
             admin = AdminClient(kafka_conf)
             self._clients['admin'][client_conf['client_id']] = admin
 
-        elif client_type == 'producer':
+        if client_type == 'producer':
             producer = Producer(**kafka_conf)
             self._clients[client_type][client_conf['client_id']] = producer
 
@@ -89,7 +90,7 @@ class KafkaMessageBroker(MessageBroker):
                 self._saved_retention == self._min_msg_retention_period else \
                 int(default_configs['retention.ms'].__dict__['value'])
 
-        else:
+        elif client_type == 'consumer':
             for entry in ['offset', 'consumer_group', 'message_type', \
                 'auto_ack', 'client_id']:
                 if entry not in client_conf.keys():
@@ -104,36 +105,83 @@ class KafkaMessageBroker(MessageBroker):
             consumer.subscribe(client_conf['message_type'])
             self._clients[client_type][client_conf['client_id']] = consumer
 
-    def futures(self, tasks :dict):
-        for topic, f in tasks.items():
+    def _futures(self, tasks :dict):
+        """ Check if the task is completed successfully """
+        for message_type, f in tasks.items():
             try:
                 f.result()  # The result itself is None
             except Exception as e:
-                raise MessageBusError(errno.EINVAL, "hahahah %s.", e)
+                raise MessageBusError(errno.EINVAL, "Admin operation fails \
+                    %s.", e)
+
+    def _get_metadata(self, admin: object):
+        """ To get the metadata information of message type """
+        try:
+            message_type_metadata = admin.list_topics().__dict__
+            return message_type_metadata['topics']
+        except Exception as e:
+            raise MessageBusError(errno.EINVAL, "Unable to list message type. \
+                %s", e)
 
     def register_message_type(self, admin_id: str, message_type: list, \
         partitions: int):
-        """ Creates a topic """
+        """ Creates a new message type """
         admin = self._clients['admin'][admin_id]
-        new_message_type = [NewTopic(topic, num_partitions=partitions) for \
-            topic in message_type]
+        new_message_type = [NewTopic(each_message_type, \
+            num_partitions=partitions) for each_message_type in message_type]
         created_message_types = admin.create_topics(new_message_type)
-        self.futures(created_message_types)
+        self._futures(created_message_types)
+
+        for each_message_type in message_type:
+            for list_retry in range(1, self._max_list_message_type_count+2):
+                if each_message_type not in \
+                    list(self._get_metadata(admin).keys()):
+                    if list_retry > self._max_list_message_type_count:
+                        raise MessageBusError(errno.EINVAL, "Maximum retries \
+                            exceeded for creating %s.", each_message_type)
+                    time.sleep(list_retry*1)
+                    continue
+                else:
+                    break
 
     def deregister_message_type(self, admin_id: str, message_type: list):
-        """ Deletes a topic """
+        """ Deletes a message type """
         admin = self._clients['admin'][admin_id]
         deleted_message_types = admin.delete_topics(message_type)
-        self.futures(deleted_message_types)
+        self._futures(deleted_message_types)
+
+        for each_message_type in message_type:
+            for list_retry in range(1, self._max_list_message_type_count+2):
+                if each_message_type in list(self._get_metadata(admin).keys()):
+                    if list_retry > self._max_list_message_type_count:
+                        raise MessageBusError(errno.EINVAL, "Maximum retries \
+                            exceeded for deleting %s.", each_message_type)
+                    time.sleep(list_retry*1)
+                    continue
+                else:
+                    break
 
     def increase_parallelism(self, admin_id: str, message_type: list, \
         partitions: int):
         """ Increases the partitions for message type """
         admin = self._clients['admin'][admin_id]
-        new_partition = [NewPartitions(topic, new_total_count=partitions) for \
-            topic in message_type]
+        new_partition = [NewPartitions(each_message_type, \
+            new_total_count=partitions) for each_message_type in message_type]
         partitions = admin.create_partitions(new_partition)
-        self.futures(partitions)
+        self._futures(partitions)
+
+        for each_message_type in message_type:
+            for list_retry in range(1, self._max_list_message_type_count+2):
+                if partitions != len(self._get_metadata(admin)\
+                    [each_message_type].__dict__['partitions']):
+                    if list_retry > self._max_list_message_type_count:
+                        raise MessageBusError(errno.EINVAL, "Maximum retries \
+                            exceeded to increase partition for %s.", \
+                            each_message_type)
+                    time.sleep(list_retry*1)
+                    continue
+                else:
+                    break
 
     def send(self, producer_id: str, message_type: str, method: str, \
         messages: list, timeout=0.1):
@@ -204,28 +252,37 @@ class KafkaMessageBroker(MessageBroker):
             else:
                 break
 
-    def receive(self, consumer_id: str, blocking: bool, timeout=0.5) -> list:
-        """ Receives list of messages from Kafka cluster(s) """
+    def receive(self, consumer_id: str, timeout: float = None) -> list:
+        """
+        Receives list of messages from Kafka Message Server
+
+        Parameters:
+        consumer_id     Consumer ID for which messages are to be retrieved
+        timeout         Time in seconds to wait for the message. Timeout of 0
+                        will lead to blocking indefinitely for the message
+        """
         consumer = self._clients['consumer'][consumer_id]
         if consumer is None:
             raise MessageBusError(errno.EINVAL, "Consumer %s is not \
                 initialized", consumer_id)
 
+        if timeout is None:
+            timeout = self._default_timeout
+
         try:
-            msg = consumer.poll(timeout=timeout)
-            if msg is None:
-                # if blocking is True, NoneType messages are ignored
-                if blocking:
-                    return msg.value()
+            while True:
+                msg = consumer.poll(timeout=timeout)
+                if msg is None:
+                    # if blocking (timeout=0), NoneType messages are ignored
+                    if timeout > 0:
+                        return None
+                elif msg.error():
+                    raise MessageBusError(errno.ECONN, "Cant receive. %s", \
+                        msg.error())
                 else:
-                    pass
-            elif msg.error():
-                raise MessageBusError(errno.ECONN, "Cant receive. %s", \
-                    msg.error())
-            else:
-                return msg.value()
+                    return msg.value()
         except KeyboardInterrupt:
-            raise MessageBusError(errno.EINVAL, "Cant Recieve %s")
+            raise MessageBusError(errno.EINVAL, "Cant Receive %s")
 
     def ack(self, consumer_id: str):
         """ To manually commit offset """

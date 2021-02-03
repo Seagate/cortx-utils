@@ -30,8 +30,7 @@ class MessageBus:
     def __init__(self):
         """ Initialize a MessageBus and load its configurations """
         try:
-            if Conf._payloads == {}:
-                Conf.load('message_bus', Json(self.conf_file))
+            Conf.load('message_bus', Json(self.conf_file))
             self._broker_conf = Conf.get('message_bus', 'message_broker')
             broker_type = self._broker_conf['type']
 
@@ -71,9 +70,9 @@ class MessageBus:
         """ Deletes all the messages from the configured message broker """
         self._broker.delete(message_type)
 
-    def receive(self, client_id: str, blocking: bool) -> list:
+    def receive(self, client_id: str, timeout: float = None) -> list:
         """ Receives messages from the configured message broker """
-        return self._broker.receive(client_id, blocking)
+        return self._broker.receive(client_id, timeout)
 
     def ack(self, client_id: str):
         """ Provides acknowledgement on offset """
