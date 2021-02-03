@@ -14,11 +14,6 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-PIP=pip3.6 
-POST_INSTALL_REQUIREMENTS=/opt/seagate/cortx/utils/conf/requirements.txt
-
-sudo $PIP install -r $POST_INSTALL_REQUIREMENTS
-
 # Copy the setup_cli.py as utils_setup
 /bin/mkdir -p /opt/seagate/cortx/utils/bin
 /bin/cp /usr/lib/python3.6/site-packages/cortx/utils/setup/setup_cli.py /opt/seagate/cortx/utils/bin/utils_setup
