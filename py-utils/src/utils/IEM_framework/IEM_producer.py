@@ -23,12 +23,13 @@ class IEM_Producer:
     site_id=None
     rack_id=None    
     node_id=None
-
-    def _init_(self,cluster_id,site_id,rack_id,node_id):
+        
+    def ___init__(self,cluster_id,site_id,rack_id,node_id):
         self.cluster_id=cluster_id
         self.site_id=site_id
         self.rack_id=rack_id
         self.node_id=node_id
+
     """ Intialize the Producer class 
         Parameters :
         site_id  HEX number that represents the data center site
