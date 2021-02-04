@@ -18,9 +18,16 @@
 from cortx.utils.IEM_framework import IEM
 
 class IEM_Consumer:
+    """ A client that consumes the alerts """
+
     def __init__(self,component_id,module_id):
         self._component_id=component_id
         self._module_id=module_id
+    """ Initializing IEM Consumer
+        Parameter:
+        component_id  Hex_number that represent the Consumer client ID
+        module_id     Hex_number that represents the COnsumer Module ID
+    """
 
     def recieve()->list
         return self.recieve()

@@ -89,4 +89,4 @@ class MessageConsumer(MessageBusClient):
         """
         super().__init__(message_bus, client_type='consumer', \
             client_id=consumer_id, consumer_group=consumer_group, \
-            message_type=message_type, auto_ack=auto_ack, offset=offset)
+             message_type=message_type, auto_ack=auto_ack, offset=offset)

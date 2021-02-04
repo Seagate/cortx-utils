@@ -18,6 +18,7 @@
 from  cortx.utils.IEM_framework import IEM
 
 class IEM_Producer:
+    """ A class that produce the IEM alerts """
     cluster_id=None
     site_id=None
     rack_id=None    
@@ -27,7 +28,12 @@ class IEM_Producer:
         self.cluster_id=cluster_id
         self.site_id=site_id
         self.rack_id=rack_id
-        self..node_id=node_id
-
+        self.node_id=node_id
+    """ Intialize the Producer class 
+        Parameters :
+        site_id  HEX number that represents the data center site
+        rack_id  Hex value that identify the a single rack in a single site
+        node_id  Hex number that represents the type of node in a cluster 
+    """ 
     def send(self,iem:IEM):
         return self.send(iem)
