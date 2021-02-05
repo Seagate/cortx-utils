@@ -10,7 +10,7 @@ pipeline {
 		version = "2.0.0"
 		branch = "custom-ci"
 		os_version = "centos-7.8.2003"
-		thrid_party_version = "1.0.0-4"
+		thrid_party_version = "2.0.0-1"
 		release_dir = "/mnt/bigstorage/releases/cortx"
 		integration_dir = "$release_dir/github/integration-custom-ci/release/$os_version"
 		components_dir = "$release_dir/components/github/$branch/$os_version"
