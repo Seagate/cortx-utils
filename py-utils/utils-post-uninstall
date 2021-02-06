@@ -14,7 +14,10 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-# Copy the setup_cli.py as utils_setup
-/bin/mkdir -p /opt/seagate/cortx/utils/bin
-/bin/cp /usr/lib/python3.6/site-packages/cortx/utils/setup/setup_cli.py /opt/seagate/cortx/utils/bin/utils_setup
-/bin/chmod +x /opt/seagate/cortx/utils/bin/utils_setup
+# Take action only in case of un-install
+if [ $1 == 0 ]
+then
+    # Remove the files we have created
+    /bin/rm /opt/seagate/cortx/utils/bin/utils_setup
+    /bin/rm -rf /opt/seagate/cortx/utils
+fi

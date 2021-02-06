@@ -31,12 +31,6 @@ with open('LICENSE', 'r') as lf:
 with open('README.md', 'r') as rf:
     long_description = rf.read()
 
-def get_install_requirements() -> List:
-    install_requires = []
-    with open('requirements.txt') as r:
-        install_requires = [line.strip() for line in r]
-    return install_requires
-
 setup(name='cortx-py-utils',
       version='1.0.0',
       url='https://github.com/Seagate/cortx-py-utils',
@@ -55,7 +49,6 @@ setup(name='cortx-py-utils',
                 'cortx.utils.ha.dm.repository',
                 'cortx.utils.ha',
                 'cortx.utils.validator',
-                'cortx.utils.kvstore',
                 'cortx.utils.kv_store',
                 'cortx.utils.conf_store',
                 'cortx.utils.message_bus',
@@ -79,5 +72,4 @@ setup(name='cortx-py-utils',
                      ('/opt/seagate/cortx/utils/conf', ['requirements.txt'])],
       long_description=long_description,
       zip_safe=False,
-      python_requires='>=3.6.8',
-      install_requires=get_install_requirements())
+      python_requires='>=3.6.8')

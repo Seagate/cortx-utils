@@ -1,6 +1,8 @@
-#!/bin/bash
-#
+#!/usr/bin/env python3
+
+# CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -14,7 +16,23 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-# Copy the setup_cli.py as utils_setup
-/bin/mkdir -p /opt/seagate/cortx/utils/bin
-/bin/cp /usr/lib/python3.6/site-packages/cortx/utils/setup/setup_cli.py /opt/seagate/cortx/utils/bin/utils_setup
-/bin/chmod +x /opt/seagate/cortx/utils/bin/utils_setup
+import unittest
+from cortx.utils.validator.v_path import PathV
+
+class TestPathValidator(unittest.TestCase):
+	"""Test Path related validations."""
+	paths = ["dir:/", "file:/etc/hosts", "device:/dev/loop9"]
+	host = "localhost"
+
+	def test_path(self):
+		"""Check paths."""
+
+		PathV().validate('exists', self.paths)
+
+	def test_remote_path(self):
+		"""Check paths."""
+
+		PathV().validate('exists', self.paths, self.host)
+
+if __name__ == '__main__':
+    unittest.main()

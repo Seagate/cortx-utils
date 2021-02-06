@@ -45,7 +45,7 @@ $ python3 setup.py bdist_wheel
   - Create RPM Package
     - It will create `cortx-py-utils-1.0.0-1.noarch.rpm`
 ```bash
-$ python3.6 setup.py bdist_rpm --post-install utils-post-install --pre-uninstall utils-pre-uninstall
+$ python3.6 setup.py bdist_rpm --post-install utils-post-install --post-uninstall utils-post-uninstall
 ```
 
 ## Installation
@@ -137,7 +137,19 @@ try:
 except Exception as e:
 	print("one or more services are not running on this machine")
 ```
-Note The second example below shows how to check if gievn services are running on a remote host specified by "remote_hostname".
+Note The second example below shows how to check if given services are running on a remote host specified by "remote_hostname".
 ```python
 	ServiceV().validate('isrunning', ["rabbitmq-server", "sshd"], "remote_hostname")
+```
+  - Path validator: This can be used to check if certain paths and their types are as expected. Use command "exists" to check, pass a list of colon separated types followed by absolute paths. e.g. ["dir:/", "file:/etc/hosts", "device:/dev/loop9"]
+```python
+from cortx.utils.validator.v_path import PathV
+try:
+	PathV().validate('exists', ["dir:/", "file:/etc/hosts", "device:/dev/loop9"])
+except Exception as e:
+	print("one or more path checks failed")
+```
+Note The second example below shows how to check if given paths are ok on a remote host specified by "remote_hostname".
+```python
+	PathV().validate('exists', ["dir:/", "file:/etc/hosts", "device:/dev/loop9"], "remote_hostname")
 ```
