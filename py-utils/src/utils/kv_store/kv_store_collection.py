@@ -214,7 +214,6 @@ class PropertiesKvStore(KvStore):
             for line in f.readlines():
                 key, val = line.rstrip('\n').split('=')
                 data[key.strip()] = val.strip()
-        print("load: %s" %data)
         return KvPayload(data, self._delim)
 
     def dump(self, data) -> None:
@@ -223,7 +222,6 @@ class PropertiesKvStore(KvStore):
         with open(self._store_path, 'w') as f:
             for key, val in kv_list.items(): 
                 f.write("%s = %s\n" %(key, val))
-        print("dump: %s" %kv_list)
 
 
 class PillarStore(KvStore):
