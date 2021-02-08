@@ -199,16 +199,16 @@ class JsonMessageKvStore(JsonKvStore):
         self._store_path = json.dumps(data.get_data())
 
 
-class TextKvStore(KvStore):
-    """ Represents a TEXT File Store """
+class PropertiesKvStore(KvStore):
+    """ Represents a Properties File Store """
 
-    name = "text"
+    name = "properties"
 
     def __init__(self, store_loc, store_path, delim='>'):
         KvStore.__init__(self, store_loc, store_path, delim)
 
     def load(self) -> KvPayload:
-        """ Loads data from text file """
+        """ Loads data from properties file """
         data = {}
         with open(self._store_path, 'r') as f:
             for line in f.readlines():
