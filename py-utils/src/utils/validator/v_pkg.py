@@ -70,7 +70,7 @@ class PkgV:
 			if host != None:
 				result = self.__search_pkg(f"ssh {host} rpm -qa")
 			else:
-				result = self.__search_pkg(f"rpm -qa")
+				result = self.__search_pkg("rpm -qa")
 			if result.find(f"{pkg}") == -1:
 				raise VError(errno.EINVAL,
 					     "rpm pkg: %s not found" % pkg)
@@ -82,7 +82,7 @@ class PkgV:
 			if host != None:
 				result = self.__search_pkg(f"ssh {host} pip3 list")
 			else:
-				result = self.__search_pkg(f"pip3 list")
+				result = self.__search_pkg("pip3 list")
 			if result.find(f"{pkg}") == -1:
 				raise VError(errno.EINVAL,
 					     "pip3 pkg: %s not found" % pkg)
