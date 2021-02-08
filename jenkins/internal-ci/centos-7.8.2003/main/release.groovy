@@ -1,160 +1,126 @@
 #!/usr/bin/env groovy
 pipeline {
-	
-	agent {
+	 	 
+    agent {
 		node {
 			label 'docker-cp-centos-7.8.2003-node'
 		}
-	}	
-
-	parameters {
-		string(name: 'release_component', defaultValue: 'provisioner', description: 'Component name that triggers this release')
-		string(name: 'release_build', defaultValue: '1', description: 'Component build number that triggers this release')
 	}
 	
-	environment {
-		version = "2.0.0"
-		thrid_party_version = "2.0.0-1"
-		release_component = "${release_component != null ? release_component : 'dry_run'}"
-		release_build = "${release_build != null ? release_build : BUILD_NUMBER}"
-		env = "dev"
-		pipeline_group = "main"
-		os_version = "centos-7.8.2003"
-		release_dir = "/mnt/bigstorage/releases/cortx"
-		// WARNING : 'rm' command where used in this dir path, be conscious while changing the value 
-		integration_dir = "$release_dir/github/$pipeline_group/$os_version"
-		components_dir = "$release_dir/components/github/$pipeline_group/$os_version"
-		premerge_component_dir = "$release_dir/components/github/$pipeline_group/$os_version/$env"
-		master_component_dir = "$release_dir/components/github/stable/centos-7.8.2003/$env"
-	
-		release_tag = "${release_component}_${release_build}"
-		passphrase = credentials('rpm-sign-passphrase')
-	
-		token = credentials('shailesh-github-token')
-		// Used in Changelog generation
-		ARTIFACT_LOCATION = "http://cortx-storage.colo.seagate.com/releases/cortx/github/$pipeline_group/centos-7.8.2003"
-		githubrelease_repo = "Seagate/cortx"
-		thrid_party_dir = "$release_dir/third-party-deps/centos/centos-7.8.2003-$thrid_party_version/"
+    environment {
+        version = "2.0.0"
+        thrid_party_version = "2.0.0-1"
+        os_version = "centos-7.8.2003"
+        branch = "main"
+        release_dir = "/mnt/bigstorage/releases/cortx"
+        integration_dir = "$release_dir/github/$branch/$os_version"
+        components_dir = "$release_dir/components/github/$branch/$os_version"
+        release_tag = "$BUILD_NUMBER"
+        BUILD_TO_DELETE = ""
+        passphrase = credentials('rpm-sign-passphrase')
+        token = credentials('shailesh-github-token')
+        ARTIFACT_LOCATION = "http://cortx-storage.colo.seagate.com/releases/cortx/github/$branch/$os_version"
+        thrid_party_dir = "$release_dir/third-party-deps/centos/centos-7.8.2003-$thrid_party_version/"
 		python_deps = "/mnt/bigstorage/releases/cortx/third-party-deps/python-packages"
-		cortx_os_iso = "/mnt/bigstorage/releases/cortx_builds/custom-os-iso/cortx-os-1.0.0-23.iso"
-		iso_location = "$release_dir/github/$pipeline_group/iso/$os_version"
-		// WARNING : 'rm' command where used in this dir path, be conscious while changing the value  
-		cortx_build_dir = "$release_dir/github/$pipeline_group/$os_version/cortx_builds"
+        cortx_os_iso = "/mnt/bigstorage/releases/cortx_builds/custom-os-iso/cortx-os-1.0.0-23.iso"
+        // WARNING : 'rm' command where used in this dir path, be conscious while changing the value  
+		cortx_build_dir = "$release_dir/github/$branch/$os_version/cortx_builds" 
     }
 	
 	options {
-		timeout(time: 60, unit: 'MINUTES') 
-        ansiColor('xterm') 
-        disableConcurrentBuilds()  
+		timeout(time: 120, unit: 'MINUTES')
+		timestamps()
+        ansiColor('xterm')
+		disableConcurrentBuilds()  
 	}
 		
-	stages {
-
-        stage('Install Dependecies') {
+	stages {	
+	
+		stage('Install Dependecies') {
 			steps {
-                	script { build_stage = env.STAGE_NAME }
-	                sh label: 'Installed Dependecies', script: '''
-        	            yum install -y expect rpm-sign rng-tools genisoimage python3-pip
-			    		pip3 install githubrelease
-                	    systemctl start rngd
-                	'''	
+                script { build_stage = env.STAGE_NAME }
+                sh label: 'Installed Dependecies', script: '''
+                    yum install -y expect rpm-sign rng-tools genisoimage python3-pip
+					pip3 install githubrelease
+                    systemctl start rngd
+                '''	
 			}
-		}			
-        
-	    stage('Checkout Release scripts') {
+		}
+
+        stage('Checkout Release scripts') {
 			steps {
         	    script { build_stage = env.STAGE_NAME }
                 checkout([$class: 'GitSCM', branches: [[name: 'main']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'AuthorInChangelog']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: 'https://github.com/Seagate/cortx-re']]])
 			}
 		}
-
-	    stage ('Integrate Component RPM') {
+			
+		stage ('Collect Component RPMS') {
 			steps {
-				script { build_stage = env.STAGE_NAME }
-				sh label: 'Copy RPMS', script:'''
-					# Create Release Dir
-					test -d $integration_dir/$release_tag && rm -rf $integration_dir/$release_tag   
-				
-					mkdir -p $integration_dir/$release_tag/dev
-					mkdir -p $integration_dir/$release_tag/prod
+                script { build_stage = env.STAGE_NAME }
+                sh label: 'Copy RPMS', script:'''
+                    for env in "dev";
+                    do
+                        mkdir -p $integration_dir/$release_tag/$env
+                        pushd $components_dir/$env
+                        for component in  `ls -1 | grep -Evx 'cortx-extension'`
+                        do
+                            echo -e "Copying RPM's for $component"
+                            if ls $component/last_successful/*.rpm 1> /dev/null 2>&1; then
+                                cp $component/last_successful/*.rpm $integration_dir/$release_tag/$env
+                            fi
+                        done
+                        popd
+                    done
 
+                    mkdir -p $integration_dir/$release_tag/prod
+                    cp -n -r $integration_dir/$release_tag/dev/* $integration_dir/$release_tag/prod/
 
-					premerge_comp="${release_component}"
-					if  [ "${release_component}" == "motr" ] ; then
-						premerge_comp="motr|s3server|hare"
-						fi
-
-					# Push Premerge Buil RPM of release component
-					pushd $premerge_component_dir
-						for component in $(echo $premerge_comp | tr "|" "\n"); do 
-							component_real_build_path=$(readlink -f "${premerge_component_dir}/${component}/last_successful")
-							cp -R $component_real_build_path/*.rpm $integration_dir/$release_tag/dev
-							cp -R $component_real_build_path/*.rpm $integration_dir/$release_tag/prod
-						done    
-					popd
-
-					# Push master Build RPM of other component
-					pushd $master_component_dir
-						echo "Pre-merge  : $premerge_comp"
-						for component in `ls -1 | grep -E -v "$premerge_comp" | grep -Evx  'mero|csm|luster|halon|integration|nightly|centos-7.6.1810'`
-						do
-							echo "\033[1;33m Processing $component RPM \033[0m "
-							component_last_successful_dir=$component/last_successful
-							if [[ -L $component_last_successful_dir ]]; then
-								component_real_build_path=$(readlink -f $component_last_successful_dir)
-								cp -R $component_real_build_path/*.rpm $integration_dir/$release_tag/dev
-								cp -R $component_real_build_path/*.rpm $integration_dir/$release_tag/prod
-							else
-								echo "\033[1;31m [ $component ] : last_successful symlink or directory does not exist \033[0m"
-							fi 
-						done
-					popd
-					pushd $integration_dir/$release_tag/prod
-						rm -f *-debuginfo-*.rpm
-					popd
-				'''
+                    pushd $integration_dir/$release_tag/prod
+                        rm -f *-debuginfo-*.rpm
+                        rm -f cortx-s3iamcli*.rpm
+                    popd
+                '''
 			}
 		}
 
-	    stage('RPM Validation') {
+        stage('RPM Validation') {
 			steps {
-        	    script { build_stage = env.STAGE_NAME }
-				sh label: 'Validate RPMS for Motr Dependency', script:''' 
-					for env in "dev" "prod";
-					do
-						set +x
-						pushd $integration_dir/$release_tag/$env
-							motr_rpm=$(ls -1 | grep "cortx-motr" | grep -E -v "cortx-motr-debuginfo|cortx-motr-devel|cortx-motr-tests")
-							motr_rpm_release=`rpm -qp ${motr_rpm} --qf '%{RELEASE}' | tr -d '\040\011\012\015'`
-							motr_rpm_version=`rpm -qp ${motr_rpm} --qf '%{VERSION}' | tr -d '\040\011\012\015'`
-							motr_rpm_release_version="${motr_rpm_version}-${motr_rpm_release}"
-							for component in `ls -1`
-							do
-								motr_dep=`echo $(rpm -qpR ${component} | grep -E "cortx-motr =") | cut -d= -f2 | tr -d '\040\011\012\015'`
-								if [ -z "$motr_dep" ]
-								then
-									echo "\033[1;33m $component has no dependency to motr - Validation Success \033[0m "
-								else
-									if [ "$motr_dep" = "$motr_rpm_release_version" ]; then
-										echo "\033[1;32m $component motr version  ( $motr_dep ) matches with integration motr rpm ( $motr_rpm_release_version ) Good to Go - Validation Success \033[0m "
-									else
-										echo "\033[1;31m $component motr version ( $motr_dep ) mismatchs with integration motr rpm ( $motr_rpm_release_version ) - Validation Failed \033[0m"
-									
-										mv "$integration_dir/$release_tag" "$integration_dir/${release_tag}-do-not-use"
-										exit 1
-									fi
-								fi
-							done
-						popd
-					done
-				'''
+                script { build_stage = env.STAGE_NAME }
+				sh label: 'Validate RPMS for Motr Dependency', script:'''
+                for env in "dev" "prod";
+                do
+                    set +x
+                    echo "VALIDATING $env RPM'S................"
+                    echo "-------------------------------------"
+                    pushd $integration_dir/$release_tag/$env
+                    motr_rpm=$(ls -1 | grep "cortx-motr" | grep -E -v "cortx-motr-debuginfo|cortx-motr-devel|cortx-motr-tests")
+                    motr_rpm_release=`rpm -qp ${motr_rpm} --qf '%{RELEASE}' | tr -d '\040\011\012\015'`
+                    motr_rpm_version=`rpm -qp ${motr_rpm} --qf '%{VERSION}' | tr -d '\040\011\012\015'`
+                    motr_rpm_release_version="${motr_rpm_version}-${motr_rpm_release}"
+                    for component in `ls -1`
+                    do
+                        motr_dep=`echo $(rpm -qpR ${component} | grep -E "cortx-motr =") | cut -d= -f2 | tr -d '\040\011\012\015'`
+                        if [ -z "$motr_dep" ]
+                        then
+                            echo "\033[1;33m $component has no dependency to Motr - Validation Success \033[0m "
+                        else
+                            if [ "$motr_dep" = "$motr_rpm_release_version" ]; then
+                                echo "\033[1;32m $component Motr version matches with integration Motr rpm ($motr_rpm_release_version) Good to Go - Validation Success \033[0m "
+                            else
+                                echo "\033[1;31m $component Motr version ( $motr_dep ) mismatchs with integration Motr rpm ( $motr_rpm_release_version ) - Validation Failed \033[0m"		
+                                exit 1
+                            fi
+                        fi
+                    done
+                done
+                '''
 			}
 		}
-
+		
 		stage ('Sign rpm') {
 			steps {
                 script { build_stage = env.STAGE_NAME }
-                            
+                                
                 sh label: 'Generate Key', script: '''
                     set +x
 					pushd scripts/rpm-signing
@@ -283,43 +249,39 @@ pipeline {
                 script { build_stage = env.STAGE_NAME }
                 sh label: 'Tag last_successful', script: '''
                     pushd $integration_dir
-                    test -L "${release_component}_last_successful" && rm -f "${release_component}_last_successful"
-                    ln -s $integration_dir/$release_tag/dev "${release_component}_last_successful"
+                    test -L last_successful && rm -f last_successful
+                    ln -s $integration_dir/$release_tag/dev last_successful
                     popd
                 '''
 			}
 		}
+
 	}
-    
-    post {
+	
+	post {
+	
 		always {
-			script {
+            script {
+                	
+                currentBuild.upstreamBuilds?.each { b -> env.upstream_project = "${b.getProjectName()}";env.upstream_build = "${b.getId()}" }
+                env.release_build_location = "http://cortx-storage.colo.seagate.com/releases/cortx/github/${branch}/${os_version}/${env.release_tag}"
+                env.release_build = "${env.release_tag}"
+                env.build_stage = "${build_stage}"
 
-				manager.addHtmlBadge("&emsp;<b>Build :</b><a href='http://cortx-storage.colo.seagate.com/releases/cortx/github/$pipeline_group/$os_version/$release_tag'> ${release_tag}</a>")
-					
-				currentBuild.upstreamBuilds?.each { b -> env.upstream_project = "${b.getProjectName()}";env.upstream_build = "${b.getId()}" }
-				env.release_build_location = "http://cortx-storage.colo.seagate.com/releases/cortx/github/$pipeline_group/$os_version/$release_tag"
-				env.release_build = "${env.release_tag}"
-				env.build_stage = "${build_stage}"
+                def toEmail = "shailesh.vaidya@seagate.com, priyank.p.dalal@seagate.com, mukul.malhotra@seagate.com, amol.j.kongre@seagate.com, gowthaman.chinnathambi@seagate.com"
+                
+                toEmail = "gowthaman.chinnathambi@seagate.com"  
+                emailext ( 
+                        body: '''${SCRIPT, template="release-email.template"}''',
+                        mimeType: 'text/html',
+                        subject: "[Jenkins Build ${currentBuild.currentResult}] : ${env.JOB_NAME}",
+                        attachLog: true,
+                        to: toEmail,
+                        attachmentsPattern: 'CHANGESET.txt'
+                    )
 
-				def toEmail = ""
-				def recipientProvidersClass = [[$class: 'DevelopersRecipientProvider']]
-				if ( manager.build.result.toString() != "SUCCESS") {
-					toEmail = "shailesh.vaidya@seagate.com"
-					recipientProvidersClass = [[$class: 'DevelopersRecipientProvider'], [$class: 'RequesterRecipientProvider']]
-				}
-				emailext ( 
-					body: '''${SCRIPT, template="release-email.template"}''',
-					mimeType: 'text/html',
-					subject: "Main Release # ${env.release_tag} - ${currentBuild.currentResult}",
-					attachmentsPattern: 'CHANGESET.txt',
-					attachLog: true,
-					to: toEmail,
-                    recipientProviders: recipientProvidersClass
-				)
-
-				archiveArtifacts artifacts: "README.txt, RELEASE.INFO", onlyIfSuccessful: false, allowEmptyArchive: true
-			}
-		}
-	}
+				archiveArtifacts artifacts: "README.txt, RELEASE.INFO, CHANGESET.txt", onlyIfSuccessful: false, allowEmptyArchive: true
+            }
+        }
+    }
 }

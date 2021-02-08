@@ -6,33 +6,26 @@ pipeline {
 		}
 	}
 
-    parameters {
-        string(name: 'branch', defaultValue: 'main', description: 'Branch Name')
+	triggers {
+        pollSCM '*/5 * * * *'
     }
 
 	environment {
-        version = "2.0.0"   
+        version = "2.0.0"
         env = "dev"
 		component = "sspl"
+        branch = "main"
         os_version = "centos-7.8.2003"
-        pipeline_group = "main"
         release_dir = "/mnt/bigstorage/releases/cortx"
-        build_upload_dir = "${release_dir}/components/github/${pipeline_group}/${os_version}/${env}/${component}"
-
-        // Param hack for initial config
-        branch="${branch != null ? branch : 'main'}"
+        build_upload_dir = "$release_dir/components/github/$branch/$os_version/$env/$component"
     }
 
 	options {
-		timeout(time: 60, unit: 'MINUTES')
+		timeout(time: 120, unit: 'MINUTES')
 		timestamps()
         ansiColor('xterm')  
         disableConcurrentBuilds()  
 	}
-	
-	triggers {
-        pollSCM 'H/5 * * * *'
-    }
 
 	stages {
 
@@ -49,11 +42,7 @@ pipeline {
             steps {
                 script { build_stage = env.STAGE_NAME }
                 sh label: '', script: '''
-					sed -i 's/gpgcheck=1/gpgcheck=0/' /etc/yum.conf
-					yum-config-manager --disable cortx-C7.7.1908
-					yum-config-manager --add http://cortx-storage.colo.seagate.com/releases/cortx/github/stable/$os_version/last_successful/
-					yum-config-manager --add http://cortx-storage.colo.seagate.com/releases/cortx/components/github/main/$os_version/dev/cortx-utils/last_successful/
-					yum clean all && rm -rf /var/cache/yum
+                    yum install sudo python-Levenshtein libtool doxygen python-pep8 openssl-devel graphviz check-devel -y
                 '''
             }
         }
@@ -61,7 +50,7 @@ pipeline {
         stage('Build') {
             steps {
                 script { build_stage = env.STAGE_NAME }
-                sh label: 'Build', script: '''
+                sh label: 'Build', returnStatus: true, script: '''
                     set -xe
                     pushd cortx-sspl
                     VERSION=$(cat VERSION)
@@ -101,34 +90,32 @@ pipeline {
                 '''
             }
         }
-
         stage ("Release") {
-            //when { triggeredBy 'SCMTrigger' }
+            when { triggeredBy 'SCMTrigger' }
             steps {
                 script { build_stage = env.STAGE_NAME }
 				script {
-                	def releaseBuild = build job: 'Main Release', propagate: true, parameters: [string(name: 'release_component', value: "${component}"), string(name: 'release_build', value: "${BUILD_NUMBER}")]
-				 	env.release_build = "${BUILD_NUMBER}"
-                    env.release_build_location = "http://cortx-storage.colo.seagate.com/releases/cortx/github/$pipeline_group/$os_version/${component}_${BUILD_NUMBER}"
+                	def releaseBuild = build job: 'Main Release', propagate: true
+				 	env.release_build = releaseBuild.number
+                    env.release_build_location="http://cortx-storage.colo.seagate.com/releases/cortx/github/$branch/$os_version/${env.release_build}"
 				}
             }
-        }
-
+        } 
+        
         stage ("Test") {
-            when { expression { false } }
+            when { triggeredBy 'SCMTrigger' }
             steps {
                 script { build_stage = env.STAGE_NAME }
 				script {
-                	build job: '../SSPL/SSPL_Build_Sanity', propagate: false, wait: false,  parameters: [string(name: 'TARGET_BUILD', value: "main:${component}_${BUILD_NUMBER}")]
+                	build job: '../SSPL/SSPL_Build_Sanity', propagate: false, wait: false,  parameters: [string(name: 'TARGET_BUILD', value: "main:${env.release_build}")]
 				}
             }
-        }  
+        }		
 	}
 
 	post {
 		always {
-			script {
-            	
+			script  {    	
 				echo 'Cleanup Workspace.'
 				deleteDir() /* clean up our workspace */
 
@@ -137,21 +124,28 @@ pipeline {
 				env.component = (env.component).toUpperCase()
 				env.build_stage = "${build_stage}"
 
+                env.vm_deployment = (env.deployVMURL != null) ? env.deployVMURL : "" 
+                if ( env.deployVMStatus != null && env.deployVMStatus != "SUCCESS" && manager.build.result.toString() == "SUCCESS" ) {
+                    manager.buildUnstable()
+                }
+
 				def toEmail = ""
 				def recipientProvidersClass = [[$class: 'DevelopersRecipientProvider']]
-				if ( manager.build.result.toString() == "FAILURE") {
+				if( manager.build.result.toString() == "FAILURE" ) {
 					toEmail = "CORTX.monitor@seagate.com,shailesh.vaidya@seagate.com"
-					recipientProvidersClass = [[$class: 'DevelopersRecipientProvider'],[$class: 'RequesterRecipientProvider']]
+					recipientProvidersClass = [[$class: 'DevelopersRecipientProvider'], [$class: 'RequesterRecipientProvider']]
 				}
+
+                toEmail = ""
 				emailext (
-					body: '''${SCRIPT, template="component-email.template"}''',
+					body: '''${SCRIPT, template="component-email-dev.template"}''',
 					mimeType: 'text/html',
 					subject: "[Jenkins Build ${currentBuild.currentResult}] : ${env.JOB_NAME}",
 					attachLog: true,
 					to: toEmail,
-					recipientProviders: recipientProvidersClass
+					//recipientProviders: recipientProvidersClass
 				)
 			}
-		}
+		}	
     }
 }
