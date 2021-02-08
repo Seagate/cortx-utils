@@ -63,7 +63,7 @@ class ConfCache:
         """
         Delete a given key from the config.
         Return Value:
-        return boolean true for success else false
+        return boolean True for success else False
         """
         result = self._data.delete(key)
         self._dirty = True
