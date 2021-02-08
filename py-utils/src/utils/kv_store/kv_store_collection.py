@@ -1,4 +1,4 @@
-#!/bin/python3
+    #!bin/python3
 
 # CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
@@ -19,8 +19,6 @@ import configparser
 import errno
 import json
 import os
-import toml
-import yaml
 from json.decoder import JSONDecodeError
 
 from cortx.utils.kv_store.error import KvError
@@ -70,10 +68,12 @@ class YamlKvStore(KvStore):
 
     def load(self) -> KvPayload:
         """ Reads from the file """
+        import yaml
         with open(self._store_path, 'r') as f:
             return KvPayload(yaml.safe_load(f), self._delim)
 
     def dump(self, data) -> None:
+        import yaml
         with open(self._store_path, 'w') as f:
             yaml.dump(data.get_data(), f, default_flow_style=False)
 
@@ -91,11 +91,13 @@ class TomlKvStore(KvStore):
 
     def load(self) -> KvPayload:
         """ Reads from the file """
+        import toml
         with open(self._store_path, 'r') as f:
             return KvPayload(toml.load(f, dict), self._delim)
 
     def dump(self, data) -> None:
         """ Saves data onto the file """
+        import toml
         with open(self._store_path, 'w') as f:
             toml.dump(data.get_data(), f)
 
@@ -207,13 +209,21 @@ class TextKvStore(KvStore):
 
     def load(self) -> KvPayload:
         """ Loads data from text file """
+        data = {}
         with open(self._store_path, 'r') as f:
-            return KvPayload(f.read(), self._delim)
+            for line in f.readlines():
+                key, val = line.rstrip('\n').split('=')
+                data[key.strip()] = val.strip()
+        print("load: %s" %data)
+        return KvPayload(data, self._delim)
 
     def dump(self, data) -> None:
         """ Dump the data to desired file or to the source """
+        kv_list = data.get_data()
         with open(self._store_path, 'w') as f:
-            f.write(data.get_data())
+            for key, val in kv_list.items(): 
+                f.write("%s = %s\n" %(key, val))
+        print("dump: %s" %kv_list)
 
 
 class PillarStore(KvStore):
