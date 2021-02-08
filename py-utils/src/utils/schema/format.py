@@ -19,8 +19,6 @@ import errno
 import sys
 import inspect
 import json
-import yaml
-import toml
 
 
 class FormatError(Exception):
@@ -64,6 +62,7 @@ class YamlFormat(Format):
 
     @staticmethod
     def _dump(data: dict) -> str:
+        import yaml
         return yaml.dump(data)
 
 
@@ -73,4 +72,5 @@ class TomlFormat(Format):
 
     @staticmethod
     def _dump(data: dict) -> str:
+        import toml
         return toml.dumps(data)
