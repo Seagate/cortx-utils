@@ -56,6 +56,8 @@ $ pip3 install cortx_py_utils-1.0.0-py3-none-any.whl
 ```
 
   - Installation with RPM package
+Note : The rpm package installation will not install any dependent python packages.
+Please refer to WIKI (https://github.com/Seagate/cortx-utils/wiki/%22cortx-py-utils%22-single-node-manual-provisioning)
 ```bash
 $ cd dist;
 $ yum install -y cortx-py-utils-1.0.0-1.noarch.rpm
