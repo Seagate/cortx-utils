@@ -68,7 +68,7 @@ class ConfCli:
 
     @staticmethod
     def delete(args):
-        """ Delete given set of keys from the config """
+        """ Deletes given set of keys from the config """
         key_list = args.args[0].split(';')
         is_deleted = []
         for key in key_list:
