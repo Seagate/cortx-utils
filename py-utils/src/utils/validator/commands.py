@@ -202,3 +202,20 @@ class ServiceVCommand(VCommand):
         """Validate service status."""
 
         self._service.validate(self.v_type, self.args)
+
+class PathVCommand(VCommand):
+    """Path, file and directory check related commands."""
+
+    name = "Path"
+
+    def __init__(self, args):
+        super(PathVCommand, self).__init__(args)
+
+        from v_path import PathV
+
+        self._path = PathV()
+
+    def process(self):
+        """Validate Path, file and directory check related status."""
+
+        self._path.validate(self.v_path, self.args)
