@@ -43,9 +43,10 @@ $ python3 setup.py bdist_wheel
 ```
 
   - Create RPM Package
-    - It will create `cortx-py-utils-1.0.0-1.noarch.rpm`
+It will create `cortx-py-utils-1.0.0-1.noarch.rpm` by default. One can change the version by passing extra `--version=<version_string>` parameter.
+Below command passes version string as 2.0.0, which creates `cortx-py-utils-2.0.0-1.noarch.rpm`
 ```bash
-$ python3.6 setup.py bdist_rpm --post-install utils-post-install --post-uninstall utils-post-uninstall
+$ python3.6 setup.py bdist_rpm --version=2.0.0 --post-install utils-post-install --post-uninstall utils-post-uninstall
 ```
 
 ## Installation
