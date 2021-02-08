@@ -162,7 +162,6 @@ class KvPayload:
                 return True
             else:
                 self._delete(k[1], data[k[0]][index])
-            return False
 
         if len(k) == 1:
             del data[k[0]]

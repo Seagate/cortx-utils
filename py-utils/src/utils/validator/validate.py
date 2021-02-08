@@ -44,7 +44,8 @@ class ValidatorCommandFactory:
                         "\t[bmc accessible <node> <bmc_ip> <bmc_user> <bmc_passwd>]\n"
                         "\t[bmc stonith <node> <bmc_ip> <bmc_user> <bmc_passwd>]\n"
                         "\t[pkg <packagenames> <host>]\n"
-                        "\t[service <servicenames> <host>]\n")
+                        "\t[service <servicenames> <host>]\n"
+                        "\t[path <type:path> <host>]\n")
         sys.stderr.write(usage_string)
 
     @staticmethod

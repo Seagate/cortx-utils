@@ -20,7 +20,6 @@ import argparse
 import inspect
 import traceback
 
-from cortx.utils.conf_store import Conf
 from cortx.utils.setup import Utils
 
 
@@ -31,21 +30,6 @@ class Cmd:
     def __init__(self, args: dict):
         self._url = args.url
         self._args = args.args
-        Conf.load(self._index, self._url)
-        # Read the required keys
-        all_servers = list((Conf.get(self._index, \
-                            'cluster>server_nodes')).items())
-        no_servers = len(all_servers)
-        self._kafka_server_list = []
-        self._kafka_servers = 0
-        for i in range(no_servers):
-            if 'kafka_server' in (Conf.get(self._index, \
-                                  f'cluster>{all_servers[i][1]}>roles')):
-                self._kafka_server_list.append(Conf.get(self._index, \
-                         f'cluster>{all_servers[i][1]}>network>mgmt>public_ip'))
-                self._kafka_servers += 1
-        if self._kafka_servers == 0 or self._kafka_server_list == None:
-             raise ValueError("Data incorrect")
 
     @property
     def args(self) -> str:
@@ -99,7 +83,7 @@ class PostInstallCmd(Cmd):
 
     def process(self):
         Utils.validate('post_install')
-        rc = Utils.post_install(self._kafka_server_list[0])
+        rc = Utils.post_install()
         return rc
 
 
@@ -112,7 +96,7 @@ class ConfigCmd(Cmd):
 
     def process(self):
         Utils.validate('config')
-        rc = Utils.config(self._kafka_server_list)
+        rc = Utils.config(self._url)
         return rc
 
 
@@ -138,7 +122,7 @@ class TestCmd(Cmd):
 
     def process(self):
         Utils.validate('test')
-        rc = Utils.test(self._kafka_server_list)
+        rc = Utils.test()
         return rc
 
 
