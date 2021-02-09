@@ -250,7 +250,9 @@ pipeline {
                 sh label: 'Tag last_successful', script: '''
                     pushd $integration_dir
                     test -L last_successful && rm -f last_successful
+                    test -L last_successful && rm -f last_successful_prod
                     ln -s $integration_dir/$release_tag/dev last_successful
+                    ln -s $integration_dir/$release_tag/prod last_successful_prod
                     popd
                 '''
 			}
@@ -270,7 +272,6 @@ pipeline {
 
                 def toEmail = "shailesh.vaidya@seagate.com, priyank.p.dalal@seagate.com, mukul.malhotra@seagate.com, amol.j.kongre@seagate.com, gowthaman.chinnathambi@seagate.com"
                 
-                toEmail = "gowthaman.chinnathambi@seagate.com"  
                 emailext ( 
                         body: '''${SCRIPT, template="release-email.template"}''',
                         mimeType: 'text/html',

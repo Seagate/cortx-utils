@@ -158,14 +158,13 @@ pipeline {
 					recipientProvidersClass = [[$class: 'DevelopersRecipientProvider'],[$class: 'RequesterRecipientProvider']]
 				}
 
-				toEmail = ""
 				emailext (
 					body: '''${SCRIPT, template="component-email-dev.template"}''',
 					mimeType: 'text/html',
 					subject: "[Jenkins Build ${currentBuild.currentResult}] : ${env.JOB_NAME}",
 					attachLog: true,
 					to: toEmail,
-					//recipientProviders: recipientProvidersClass
+					recipientProviders: recipientProvidersClass
 				)
 			}
 		}	

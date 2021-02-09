@@ -21,8 +21,7 @@ pipeline {
         build_upload_dir = "$release_dir/components/github/$branch/$os_version/$env/$component"
 
         // Dependent component job build
-        build_upload_dir_s3_dev = "$release_dir/components/github/$branch/$os_version/dev/s3server"
-        build_upload_dir_s3_prod = "$release_dir/components/github/$branch/$os_version/prod/s3server"
+        build_upload_dir_s3_dev = "$release_dir/components/github/$branch/$os_version/$env/s3server"
         build_upload_dir_hare = "$release_dir/components/github/$branch/$os_version/$env/hare"
     }
 	
@@ -152,10 +151,6 @@ pipeline {
                     # S3Server Build
                     test -d $build_upload_dir_s3_dev/last_successful && rm -f $build_upload_dir_s3_dev/last_successful
 					ln -s $build_upload_dir_s3_dev/$S3_BUILD_NUMBER $build_upload_dir_s3_dev/last_successful
-					
-					# S3Server Build
-                    test -d $build_upload_dir_s3_prod/last_successful && rm -f $build_upload_dir_s3_prod/last_successful
-					ln -s $build_upload_dir_s3_prod/$S3_BUILD_NUMBER $build_upload_dir_s3_prod/last_successful
 				'''
 			}
 		}
@@ -196,14 +191,13 @@ pipeline {
 					recipientProvidersClass = [[$class: 'DevelopersRecipientProvider'], [$class: 'RequesterRecipientProvider']]
 				}
 
-				toEmail = ""
 				emailext (
 					body: '''${SCRIPT, template="component-email-dev.template"}''',
 					mimeType: 'text/html',
 					subject: "[Jenkins Build ${currentBuild.currentResult}] : ${env.JOB_NAME}",
 					attachLog: true,
 					to: toEmail,
-					//recipientProviders: recipientProvidersClass
+					recipientProviders: recipientProvidersClass
 				)
 			}
 		}	
