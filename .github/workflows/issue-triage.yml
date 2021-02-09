@@ -1,0 +1,21 @@
+name: Bug Triage
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  build:
+    name: Triage
+    runs-on: ubuntu-16.04
+    steps:
+    - uses: Logerfo/triage-action@0.0.2
+      with:
+        github-token: ${{ secrets.TOKEN }}
+        label: "needs-triage"
+
+    - uses: alex-page/github-project-automation-plus@v0.3.0
+      with:
+        project: "Bug Triage"
+        column: "Needs triage"
+        repo-token: ${{ secrets.TOKEN }}
