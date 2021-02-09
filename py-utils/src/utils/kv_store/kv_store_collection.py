@@ -216,16 +216,15 @@ class TextKvStore(KvStore):
             f.write(data.get_data())
 
 
-class PillarStore(KvStore):
-    """ Salt Pillar based KV Store """
-    name = "salt"
+class PillarKvPayload(KvPayload):
+    """ In memory representation of pillar data """
+    def __init__(self, data, delim='>'):
+        super().__init__(data, delim)
 
-    def __init__(self, store_loc, store_path, delim='>'):
-        KvStore.__init__(self, store_loc, store_path, delim)
-
-    def get(self, key):
+    def get_bkup(self, key):
         """Get pillar data for key."""
-        cmd = f"salt-call pillar.get {key} --out=json"
+        key = key.replace(self._delim, ':')
+        cmd = f"salt pillar.get {key} --out=json"
         cmd_proc = SimpleProcess(cmd)
         out, err, rc = cmd_proc.run()
 
@@ -246,10 +245,32 @@ class PillarStore(KvStore):
                                         f"Key not present")
         return res
 
-    def set(self, key, value):
-        # TODO: Implement
-        pass
 
-    def delete(self, key):
-        # TODO: Implement
-        pass
+class PillarKvStore(KvStore):
+    """ Salt Pillar based KV Store """
+    name = "pillar"
+
+    def __init__(self, store_loc, store_path, delim='>'):
+        KvStore.__init__(self, store_loc, store_path, delim)
+    
+    def load(self, target='*') -> KvPayload:
+        """ Loads data from pillar store """
+        cmd = f"salt {target} pillar.items --out=json"
+        cmd_proc = SimpleProcess(cmd)
+        out, err, rc = cmd_proc.run()
+        
+        if rc != 0:
+            if rc == 127:
+                err = "salt command not found"
+            raise KvError(rc, "Cant get data for %s. %s.", key, err)
+        
+        try:
+            res = json.loads(out)
+        except Exception as ex:
+            raise KvError(errno.ENOENT, "Cant get data for %s. %s.", key, ex)
+        return PillarKvPayload(res, self._delim)
+    
+    def dump(self, data, store_path='/tmp/pillar_store.json') -> None:
+        """ Saves data onto the file """
+        with open(store_path, 'w+') as f:
+            json.dump(data.get_data(), f, indent=2)
