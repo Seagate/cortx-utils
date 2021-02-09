@@ -39,6 +39,9 @@ class KafkaMessageBroker(MessageBroker):
     _max_config_retry_count = 3
     _max_purge_retry_count = 5
 
+    # Polling timeout
+    _default_timeout = 0.5
+
     def __init__(self, broker_conf: dict):
         """ Initialize Kafka based Configurations """
         super().__init__(broker_conf)
@@ -168,24 +171,37 @@ class KafkaMessageBroker(MessageBroker):
             else:
                 break
 
-    def receive(self, consumer_id: str, timeout=0.5) -> list:
-        """ Receives list of messages from Kafka cluster(s) """
+    def receive(self, consumer_id: str, timeout: float = None) -> list:
+        """
+        Receives list of messages from Kafka Message Server
+
+        Parameters:
+        consumer_id     Consumer ID for which messages are to be retrieved
+        timeout         Time in seconds to wait for the message. Timeout of 0
+                        will lead to blocking indefinitely for the message
+        """
         consumer = self._clients['consumer'][consumer_id]
         if consumer is None:
             raise MessageBusError(errno.EINVAL, "Consumer %s is not \
                 initialized", consumer_id)
 
+        if timeout is None:
+            timeout = self._default_timeout
+
         try:
-            msg = consumer.poll(timeout=timeout)
-            if msg is None:
-                pass
-            if msg.error():
-                raise MessageBusError(errno.ECONN, "Cant receive. %s", \
-                    msg.error())
-            else:
-                return msg.value()
+            while True:
+                msg = consumer.poll(timeout=timeout)
+                if msg is None:
+                    # if blocking (timeout=0), NoneType messages are ignored
+                    if timeout > 0:
+                        return None
+                elif msg.error():
+                    raise MessageBusError(errno.ECONN, "Cant receive. %s", \
+                        msg.error())
+                else:
+                    return msg.value()
         except KeyboardInterrupt:
-            raise MessageBusError(errno.EINVAL, "Cant Recieve %s")
+            raise MessageBusError(errno.EINVAL, "Cant Receive %s")
 
     def ack(self, consumer_id: str):
         """ To manually commit offset """

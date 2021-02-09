@@ -23,31 +23,30 @@ from cortx.utils.validator.error import VError
 from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.v_network import NetworkV
 
-class PkgV:
+class PathV:
 	"""Pkg related validations."""
 
-	def __search_pkg(self, cmd):
+	def __run_cmd(self, cmd):
 		# print(f"Running {cmd}")
 		handler = SimpleProcess(cmd)
 		stdout, stderr, retcode = handler.run()
 		if retcode != 0:
 			raise VError(errno.EINVAL,
-				     "cmd: %s failed with error code: %d"
-				     %(cmd, retcode))
+				     "cmd: %s failed with error code: %d stderr: %s"
+				     %(cmd, retcode, stderr))
 		if stderr:
-			if "WARNING:" not in stderr.decode("utf-8"):
-				raise VError(errno.EINVAL,
-					     "cmd: %s failed with stderr: %s"
-					     %(cmd, stderr))
+			raise VError(errno.EINVAL,
+				     "cmd: %s failed with stderr: %s"
+				     %(cmd, stderr))
 		# To calm down codacy.
 		return stdout.decode("utf-8")
 
 	def validate(self, v_type: str, args: list, host: str = None):
 		"""
-		Process rpm validations.
+		Process path validations.
 		Usage (arguments to be provided):
-		1. pkg validate_rpms host (optional) [packagenames]
-		2. pkg validate_pip3s host (optional) [pip3 packagenames]
+		1. path exists host (optional) [<type>:<absolute_path>]
+                   Note: Supported type keywords: file, dir, link, device.
 		"""
 
 		# Ensure we can perform passwordless ssh and there are no prompts
@@ -55,34 +54,45 @@ class PkgV:
 			NetworkV().validate('passwordless',
 				[pwd.getpwuid(os.getuid()).pw_name, host])
 
-		if v_type == "rpms":
-			return self.validate_rpms(host, args)
-		elif v_type == "pip3s":
-			return self.validate_pip3s(host, args)
+		if v_type == "exists":
+			return self.validate_paths(host, args)
 		else:
 			raise VError(errno.EINVAL,
 				     "Action parameter %s not supported" % v_type)
 
-	def validate_rpms(self, host, pkgs):
-		"""Check if rpm pkg is installed."""
+	def validate_paths(self, host, paths):
+		"""Check if path are found and matching."""
 
-		for pkg in pkgs:
-			if host != None:
-				result = self.__search_pkg(f"ssh {host} rpm -qa")
-			else:
-				result = self.__search_pkg("rpm -qa")
-			if result.find(f"{pkg}") == -1:
+		for path in paths:
+			if ":" not in path:
 				raise VError(errno.EINVAL,
-					     "rpm pkg: %s not found" % pkg)
-
-	def validate_pip3s(self, host, pkgs):
-		"""Check if pip3 pkg is installed."""
-
-		for pkg in pkgs:
-			if host != None:
-				result = self.__search_pkg(f"ssh {host} pip3 list")
-			else:
-				result = self.__search_pkg("pip3 list")
-			if result.find(f"{pkg}") == -1:
+					     "Input should contain colon ':' separated values, given: %s" % path)
+			_type = path.split(":")[0]
+			_path = path.split(":")[1]
+			if _type not in ["file", "dir", "link", "device"]:
 				raise VError(errno.EINVAL,
-					     "pip3 pkg: %s not found" % pkg)
+					     "invalid type: %s" % _type)
+			if _type == "file":
+				__type = "regular file"
+			elif _type == "dir":
+				__type = "directory"
+			elif _type == "link":
+				__type = "symbolic link"
+			elif _type == "device":
+				__type = "block special file"
+			else:
+				raise VError(errno.EINVAL,
+					     "Invalid type: %s" % _type)
+
+			if _path == "":
+				raise VError(errno.EINVAL,
+					     "Absolute path must be provided, given: %s!" % path)
+			if host != None:
+				result = self.__run_cmd(f"ssh {host} stat {_path} --printf=%F")
+			else:
+				result = self.__run_cmd(f"stat {_path} --printf=%F")
+			if result.find(f"{__type}") == -1:
+				raise VError(errno.EINVAL,
+					     "object: %s not found" % path)
+
+

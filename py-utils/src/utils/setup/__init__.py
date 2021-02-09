@@ -16,3 +16,5 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 from cortx.utils.setup.utils import Utils
+from cortx.utils.setup.utils import SetupError
+from cortx.utils.setup.msg_bus_test import MessageBusTest
