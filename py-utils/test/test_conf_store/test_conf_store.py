@@ -27,6 +27,7 @@ from cortx.utils.conf_store import Conf
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 file_path = os.path.join(dir_path, 'test_conf_sample_json.json')
+properties_file = os.path.join(dir_path, 'properties.txt')
 sample_config = Json(file_path).load()
 
 
@@ -34,6 +35,12 @@ def setup_and_generate_sample_files():
     """ This function will generate all required types of file """
     with open(r'/tmp/file1.json', 'w+') as file:
         json.dump(sample_config, file, indent=2)
+    
+    with open(r'/tmp/example.properties', 'w+') as file:
+        """For testing seek writing multiple lines into the file"""
+        sample_config.update(sample_config['bridge'])
+        for key, val in sample_config.items(): 
+            file.write("%s = %s\n" %(key, val))
 
 
 def load_config(index, backend_url):
@@ -258,7 +265,34 @@ class TestConfStore(unittest.TestCase):
         Conf.set('at_local', 'bridge>proxy@type', 'cloud')
         result_data = Conf.get('at_local', 'bridge>proxy@type')
         self.assertEqual(result_data, 'cloud')
+    
+    # Properties test
+    def test_conf_store_by_load_and_get(self):
+        """Test by loading the give properties config file to in-memory"""
+        load_config('pro_local', 'properties:///tmp/example.properties')
+        result_data = Conf.get_keys('pro_local')
+        self.assertTrue('bridge' in result_data)
+    
+    def test_conf_store_by_set_and_get(self):
+        """Test by setting the value to given key."""
+        Conf.set('pro_local', 'studio_location', 'amritsar')
+        result_data = Conf.get('pro_local', 'studio_location')
+        self.assertEqual(result_data, 'amritsar')
+    
+    def test_conf_store_delte_and_get(self):
+        """Test by removing the key, value from the given index."""
+        Conf.delete('pro_local', 'studio_location')
+        result_data = Conf.get('pro_local', 'studio_location')
+        self.assertEqual(result_data, None)
 
+    def test_conf_store_by_wrong_value(self):
+        """Test by setting the wrong value to given key."""
+        Conf.set('pro_local', 'studio_location', '=amritsar')
+        Conf.save('pro_local')
+        try:
+            load_config('pro_local1', 'properties:///tmp/example.properties')
+        except Exception as err:
+            self.assertEqual('Invalid properties store format %s. %s.', err.args[1])
 
 if __name__ == '__main__':
     """

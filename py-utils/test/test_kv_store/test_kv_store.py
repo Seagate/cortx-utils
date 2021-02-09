@@ -32,6 +32,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 file_path = os.path.join(dir_path, 'conf_sample_json.json')
+properties_file = os.path.join(dir_path, 'properties.txt')
 sample_config = Json(file_path).load()
 
 
@@ -51,7 +52,12 @@ def setup_and_generate_sample_files():
     p_config.read_dict(sample_config)
     with open(r'/tmp/test.ini', 'w+') as file:
         p_config.write(file)
-
+    
+    with open(r'/tmp/example.properties', 'w+') as file:
+        """For testing seek writing multiple lines into the file"""
+        sample_config.update(sample_config['bridge'])
+        for key, val in sample_config.items(): 
+            file.write("%s = %s\n" %(key, val))
 
 # This function should be executed before testcase class
 setup_and_generate_sample_files()
@@ -68,6 +74,8 @@ class TestStore(unittest.TestCase):
     loaded_toml = test_current_file('toml:///tmp/document.toml')
     loaded_yaml = test_current_file('yaml:///tmp/sample.yaml')
     loaded_ini = test_current_file('ini:///tmp/test.ini')
+    loaded_properties = test_current_file(
+        'properties:///tmp/example.properties')
 
     def test_json_file(self):
         """Test Kv JSON store. load json store from json:///tmp/file.json"""
@@ -189,7 +197,71 @@ class TestStore(unittest.TestCase):
             '{"bridge": {"manufacturer": "homebridge.io", "model": '
             '"homebridge","name": "Homebridge", "pin": "031-45-154", '
             '"port": 51826, "username": "CC:22:3D:E3:CE:30"}}')
+    
+    # Properties starts
+    def test_properties_file_load(self):
+        """Test Kv Properties store. load properties store from 
+        properties:///tmp/example.properties"""
+        result_data = TestStore.loaded_properties[1].get('model')
+        self.assertEqual(result_data, "homebridge")
 
+    def test_properties_get(self):
+        """Test Kv properties store by retrieving value of given key from the
+        propertiesstore"""
+        result_data = TestStore.loaded_properties[0].get(['model'])
+        self.assertEqual(result_data[0], "homebridge")
+
+    def test_properties_by_set(self):
+        """Test kv Properties store by setting the value of given key, value to the
+        propertiesstore"""
+        TestStore.loaded_properties[0].set(['user'], ['kvstore'])
+        result_data = TestStore.loaded_properties[0].get(['user'])
+        self.assertEqual(result_data[0], "kvstore")
+    
+    def test_properties_by_set_empty_string(self):
+        """Test kv Properties store by setting the empty value for the given
+        key to the propertiesstore"""
+        TestStore.loaded_properties[0].set(['empty_value'], [''])
+        result_data = TestStore.loaded_properties[0].get(['empty_value'])
+        self.assertEqual(result_data[0], "")
+
+    def test_properties_by_set_eq_sp(self):
+        """Test kv Properties store by setting the value of given key, value to the
+        propertiesstore"""
+        TestStore.loaded_properties[0].set(['location'], ['in'])
+        result_data = TestStore.loaded_properties[0].get(['location'])
+        self.assertEqual(result_data[0], "in")
+
+    def test_properties_delete(self):
+        """Test kv Properties store by removing given key and its value from
+        propertiesstore"""
+        TestStore.loaded_properties[0].delete(['user'])
+        result_data = TestStore.loaded_properties[0].get(['user'])
+        self.assertEqual(result_data[0], None)
+    
+    def test_properties_non_exist_key_delete(self):
+        """Test kv Properties store by trying to remove given key and its value
+        from which is not available in propertiesstore"""
+        TestStore.loaded_properties[0].delete(['user'])
+        result_data = TestStore.loaded_properties[0].get(['user'])
+        self.assertEqual(result_data[0], None)
+    
+    def test_properties_set_with_multiple_eq(self):
+        """Test kv Properties store by setting the value of given key, value to the
+        propertiesstore"""
+        TestStore.loaded_properties[0].set(['test_ml_eq'], ['=kv = store'])
+        try:
+            result_data = TestStore.loaded_properties[0].get(['user'])
+        except Exception as err:
+            self.assertEqual('Invalid properties store format %s. %s.', err.args[1])
+    
+    def test_properties_protocol_with_yamlfile(self):
+        """Test kv Properties store by setting the value of given key, value to the
+        propertiesstore"""        
+        try:
+            loaded_properties = test_current_file('properties:///tmp/sample.yaml')
+        except Exception as err:
+            self.assertEqual('Invalid properties store format %s. %s.', err.args[1])
 
 if __name__ == '__main__':
     unittest.main()
