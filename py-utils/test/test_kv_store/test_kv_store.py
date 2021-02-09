@@ -189,7 +189,16 @@ class TestStore(unittest.TestCase):
             '{"bridge": {"manufacturer": "homebridge.io", "model": '
             '"homebridge","name": "Homebridge", "pin": "031-45-154", '
             '"port": 51826, "username": "CC:22:3D:E3:CE:30"}}')
-
+    
+    def test_kv_pillar_support(self):
+        """ Test Kv Store with pillar data by loading it to KvStore """
+        try:
+            kv_store = KvStoreFactory.get_instance("pillar://root:seagate@localhost")
+            data = kv_store.load()
+        except Exception as ex:
+            #Todo implemented
+            self.assertEqual(ex, "")
+        self.assertGreaterEqual(len(data.get_keys()), 0)
 
 if __name__ == '__main__':
     unittest.main()
