@@ -211,16 +211,19 @@ class PropertiesKvStore(KvStore):
         """ Loads data from properties file """
         data = {}
         with open(self._store_path, 'r') as f:
-            for line in f.readlines():
-                key, val = line.rstrip('\n').split('=')
-                data[key.strip()] = val.strip()
+            try:
+                for line in f.readlines():
+                    key, val = line.rstrip('\n').split('=')
+                    data[key.strip()] = val.strip()
+            except Exception as ex:
+                raise KvError(errno.ENOENT, f"Invalid properties store format %s. %s.", line, ex)
         return KvPayload(data, self._delim)
 
     def dump(self, data) -> None:
         """ Dump the data to desired file or to the source """
         kv_list = data.get_data()
         with open(self._store_path, 'w') as f:
-            for key, val in kv_list.items(): 
+            for key, val in kv_list.items():
                 f.write("%s = %s\n" %(key, val))
 
 
