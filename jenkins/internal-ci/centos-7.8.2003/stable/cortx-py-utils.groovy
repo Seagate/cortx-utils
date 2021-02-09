@@ -9,7 +9,8 @@ pipeline {
         pollSCM 'H/5 * * * *'
     }
 
-	environment {      
+	environment {
+		version = "2.0.0"      
         env = "dev"
 		component = "cortx-utils"
         branch = "stable"
@@ -39,10 +40,10 @@ pipeline {
 				sh label: 'Build', script: '''
 				yum install python36-devel -y
 				pushd py-utils
-				python3.6 setup.py bdist_rpm --post-install utils-post-install --post-uninstall utils-post-uninstall --post-uninstall utils-post-uninstall --release="${BUILD_NUMBER}_$(git rev-parse --short HEAD)"
+				python3.6 setup.py bdist_rpm --version=$version --post-install utils-post-install --post-uninstall utils-post-uninstall --post-uninstall utils-post-uninstall --release="${BUILD_NUMBER}_$(git rev-parse --short HEAD)"
 				popd
 				
-				./statsd-utils/jenkins/build.sh -b $BUILD_NUMBER
+				./statsd-utils/jenkins/build.sh -v $version -b $BUILD_NUMBER
 	        '''	
 			}
 		}	
