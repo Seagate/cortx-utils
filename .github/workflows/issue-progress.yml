@@ -1,0 +1,17 @@
+name: Issue Progress
+
+on:
+  issues:
+    types: [labeled ]
+
+jobs:
+  build:
+    if: ${{ github.event.label.name != 'needs-triage' }}
+    name: Issue Progress
+    runs-on: ubuntu-16.04
+    steps:
+    - uses: alex-page/github-project-automation-plus@v0.3.0
+      with:
+        project: "Bug Triage"
+        column: "In progress"
+        repo-token: ${{ secrets.TOKEN }}
