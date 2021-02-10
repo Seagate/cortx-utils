@@ -68,11 +68,14 @@ class ConfCli:
 
     @staticmethod
     def delete(args):
-        """ Delete given set of keys from the config """
+        """ Deletes given set of keys from the config """
         key_list = args.args[0].split(';')
+        is_deleted = []
         for key in key_list:
-            Conf.delete(ConfCli._index, key)
-        Conf.save(ConfCli._index)
+            status = Conf.delete(ConfCli._index, key)
+            is_deleted.append(status)
+        if any(is_deleted):
+            Conf.save(ConfCli._index)
 
 
 class GetCmd:
