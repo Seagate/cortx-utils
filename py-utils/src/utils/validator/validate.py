@@ -44,7 +44,7 @@ class ValidatorCommandFactory:
                         "\t[bmc accessible <node> <bmc_ip> <bmc_user> <bmc_passwd>]\n"
                         "\t[bmc stonith <node> <bmc_ip> <bmc_user> <bmc_passwd>]\n"
                         "\t[controller accessible <ip> <username> <password>]\n"
-                        "\t[controller firmware <ip> <username> <password> <mc_version>]\n
+                        "\t[controller firmware <ip> <username> <password> <mc_version>]\n"
                         "\t[pkg <packagenames> <host>]\n"
                         "\t[service <servicenames> <host>]\n"
                         "\t[path <type:path> <host>]\n")
