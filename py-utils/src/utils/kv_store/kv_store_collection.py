@@ -216,7 +216,7 @@ class PropertiesKvStore(KvStore):
                     key, val = line.rstrip('\n').split('=')
                     data[key.strip()] = val.strip()
             except Exception as ex:
-                raise KvError(errno.ENOENT, f"Invalid properties store format %s. %s.", line, ex)
+                raise KvError(errno.ENOENT, "Invalid properties store format %s. %s.", line, ex)
         return KvPayload(data, self._delim)
 
     def dump(self, data) -> None:

@@ -98,30 +98,39 @@ class TestConfCli(unittest.TestCase):
 
     def test_conf_cli_by_get_from_properties_store(self):
         """ Test by retrieving a value from properties store using get api """
-        result_data = subprocess.check_output(['conf', 'properties:///tmp/example.properties',
-            'get', 'name'])
+        result_data = subprocess.check_output(['conf',
+            'properties:///tmp/example.properties', 'get', 'name'])
         self.assertEqual(result_data, b'["Homebridge"]\n')
     
     def test_conf_cli_by_set_to_properties_store(self):
         """ Test by setting a value to properties store using set api """
-        result_data = subprocess.check_output(['conf', 'properties:///tmp/example.properties',
+        result_data = subprocess.check_output(['conf', 'properties:///tmp/example.properties', 
             'set', 'age=27;contact=789654112'])
         result_data = subprocess.check_output(['conf', 'properties:///tmp/example.properties', 
             'get', 'age'])
         self.assertEqual(result_data, b'["27"]\n')
-    
+
+    def test_conf_cli_by_wrong_file_format_properties_store(self):
+        """ Test by wrong file with properties store """
+        try:
+            subprocess.check_output(['conf', 'properties:///tmp/file1.json',
+            'get', 'ssh_host'])
+        except Exception as err:
+            exit_code = 22
+            self.assertEqual(err.args[0], exit_code)
+
     def test_conf_cli_by_empty_str_properties_store(self):
         """ Test by setting an empty value to properties store using set api """
-        result_data = subprocess.check_output(['conf', 'properties:///tmp/example.properties',
-            'set', 'ssh_host='])
-        result_data = subprocess.check_output(['conf', 'properties:///tmp/example.properties', 
-            'get', 'ssh_host'])
+        result_data = subprocess.check_output(['conf',
+            'properties:///tmp/example.properties', 'set', 'ssh_host='])
+        result_data = subprocess.check_output(['conf',
+            'properties:///tmp/example.properties', 'get', 'ssh_host'])
         self.assertEqual(result_data, b'[""]\n')
 
     def test_conf_cli_by_wrong_file_store(self):
         """ Test by wrong file with properties store """
         try:
-            subprocess.check_output(['conf', 'properties:///tmp/file1.json', 
+            subprocess.check_output(['conf', 'properties:///tmp/file1.json',
                 'get', 'ssh_host'])
         except Exception as err:
             exit_code = 22
