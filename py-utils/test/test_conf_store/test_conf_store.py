@@ -266,25 +266,25 @@ class TestConfStore(unittest.TestCase):
     
     # Properties test
     def test_conf_store_by_load_and_get(self):
-        """Test by loading the give properties config file to in-memory"""
+        """ Test by loading the give properties config file to in-memory """
         load_config('pro_local', 'properties:///tmp/example.properties')
         result_data = Conf.get_keys('pro_local')
         self.assertTrue('bridge' in result_data)
     
     def test_conf_store_by_set_and_get(self):
-        """Test by setting the value to given key."""
+        """ Test by setting the value to given key. """
         Conf.set('pro_local', 'studio_location', 'amritsar')
         result_data = Conf.get('pro_local', 'studio_location')
         self.assertEqual(result_data, 'amritsar')
     
     def test_conf_store_delte_and_get(self):
-        """Test by removing the key, value from the given index."""
+        """ Test by removing the key, value from the given index. """
         Conf.delete('pro_local', 'studio_location')
         result_data = Conf.get('pro_local', 'studio_location')
         self.assertEqual(result_data, None)
 
     def test_conf_store_by_wrong_value(self):
-        """Test by setting the wrong value to given key."""
+        """ Test by setting the wrong value to given key. """
         Conf.set('pro_local', 'studio_location', '=amritsar')
         Conf.save('pro_local')
         try:

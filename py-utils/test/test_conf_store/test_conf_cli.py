@@ -130,7 +130,7 @@ class TestConfCli(unittest.TestCase):
         self.assertEqual(result_data, b'[""]\n')
 
     def test_conf_cli_by_wrong_file_store(self):
-        """ Test by wrong file with properties store """
+        """ Test by trying to load wrong json file for properties protocol """
         try:
             subprocess.check_output(['conf', 'properties:///tmp/file1.json',
                 'get', 'ssh_host'])

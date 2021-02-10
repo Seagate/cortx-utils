@@ -60,6 +60,11 @@ class ConfCache:
         self._dirty = True
 
     def delete(self, key: str):
-        """ Delets a given key from the config """
-        self._data.delete(key)
+        """
+        Delete a given key from the config.
+        Return Value:
+        return boolean True for success else False
+        """
+        result = self._data.delete(key)
         self._dirty = True
+        return result

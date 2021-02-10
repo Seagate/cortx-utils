@@ -199,55 +199,71 @@ class TestStore(unittest.TestCase):
     
     # Properties starts
     def test_properties_file_load(self):
-        """Test Kv Properties store. load properties store from
-        properties:///tmp/example.properties"""
+        """
+        Test Kv Properties store. load properties store from
+        properties:///tmp/example.properties
+        """
         result_data = TestStore.loaded_properties[1].get('model')
         self.assertEqual(result_data, "homebridge")
 
     def test_properties_get(self):
-        """Test Kv properties store by retrieving value of given key from the
-        propertiesstore"""
+        """
+        Test Kv properties store by retrieving value of given key from the
+        propertiesstore
+        """
         result_data = TestStore.loaded_properties[0].get(['model'])
         self.assertEqual(result_data[0], "homebridge")
 
     def test_properties_by_set(self):
-        """Test kv Properties store by setting the value of given key, value to the
-        propertiesstore"""
+        """
+        Test kv Properties store by setting the value of given key, value to the
+        propertiesstore
+        """
         TestStore.loaded_properties[0].set(['user'], ['kvstore'])
         result_data = TestStore.loaded_properties[0].get(['user'])
         self.assertEqual(result_data[0], "kvstore")
     
     def test_properties_by_set_empty_string(self):
-        """Test kv Properties store by setting the empty value for the given
-        key to the propertiesstore"""
+        """
+        Test kv Properties store by setting the empty value for the given
+        key to the propertiesstore
+        """
         TestStore.loaded_properties[0].set(['empty_value'], [''])
         result_data = TestStore.loaded_properties[0].get(['empty_value'])
         self.assertEqual(result_data[0], "")
 
     def test_properties_by_set_eq_sp(self):
-        """Test kv Properties store by setting the value of given key, value to the
-        propertiesstore"""
+        """
+        Test kv Properties store by setting the value of given key, value to the
+        propertiesstore
+        """
         TestStore.loaded_properties[0].set(['location'], ['in'])
         result_data = TestStore.loaded_properties[0].get(['location'])
         self.assertEqual(result_data[0], "in")
 
     def test_properties_delete(self):
-        """Test kv Properties store by removing given key and its value from
-        propertiesstore"""
+        """
+        Test kv Properties store by removing given key and its value from
+        propertiesstore
+        """
         TestStore.loaded_properties[0].delete(['user'])
         result_data = TestStore.loaded_properties[0].get(['user'])
         self.assertEqual(result_data[0], None)
     
     def test_properties_non_exist_key_delete(self):
-        """Test kv Properties store by trying to remove given key and its value
-        from which is not available in propertiesstore"""
+        """
+        Test kv Properties store by trying to remove given key and its value
+        from which is not available in propertiesstore
+        """
         TestStore.loaded_properties[0].delete(['user'])
         result_data = TestStore.loaded_properties[0].get(['user'])
         self.assertEqual(result_data[0], None)
     
     def test_properties_set_with_multiple_eq(self):
-        """Test kv Properties store by setting the value of given key, value to the
-        propertiesstore"""
+        """
+        Test kv Properties store by setting the value of given key, value to the
+        propertiesstore
+        """
         TestStore.loaded_properties[0].set(['test_ml_eq'], ['=kv = store'])
         try:
             TestStore.loaded_properties[0].get(['user'])
@@ -255,8 +271,10 @@ class TestStore(unittest.TestCase):
             self.assertEqual('Invalid properties store format %s. %s.', err.args[1])
     
     def test_properties_protocol_with_yamlfile(self):
-        """Test kv Properties store by setting the value of given key, value to the
-        propertiesstore"""
+        """
+        Test kv Properties store by setting the value of given key, value to the
+        propertiesstore
+        """
         try:
             test_current_file('properties:///tmp/sample.yaml')
         except Exception as err:
