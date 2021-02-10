@@ -52,7 +52,7 @@ def setup_and_generate_sample_files():
     p_config.read_dict(sample_config)
     with open(r'/tmp/test.ini', 'w+') as file:
         p_config.write(file)
-    
+
     with open(r'/tmp/example.properties', 'w+') as file:
         sample_config.update(sample_config['bridge'])
         for key, val in sample_config.items():
