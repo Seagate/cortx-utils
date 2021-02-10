@@ -1,3 +1,6 @@
+#!/bin/bash
+#
+# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,7 +29,7 @@ ARG GIT_HASH
 LABEL maintainer="cortx.opensource@seagate.com" \
       Description="This image is used to build CORTX components" \
       org.opencontainers.image.revision=$GIT_HASH \
-      org.opencontainers.image.source="https://github.com/Seagate/cortx-re"
+      org.opencontainers.image.source="https://github.com/Seagate/cortx/blob/main/doc/Release_Build_Creation.rst"
 
 ENV BASH_ENV "/etc/profile"
 ENV PATH="/root/.nvm/versions/node/v12.13.0/bin:${PATH}"
@@ -37,10 +40,13 @@ ENV LANG=en_US.UTF-8 \
 RUN rm -rf /etc/yum.repos.d/CentOS-*
 
 #Add Internal and CORTX uploads repository
-COPY ./docker/${ENVIRONMENT}/cortx-build/internal.repo /etc/yum.repos.d/
-COPY ./docker/${ENVIRONMENT}/cortx-build/cortx-centos-${CENTOS_RELEASE}.repo /etc/yum.repos.d/
+COPY ./docker/cortx-build/${ENVIRONMENT}/*.repo /etc/yum.repos.d/
 
-# enable EPEL and SCL repos
+# Install EPEL repo for opensource-ci
+RUN if [ "$ENVIRONMENT" = "opensource-ci" ] ; then yum install epel-release -y ; fi && yum clean all \
+&& rm -rf /var/cache/yum
+
+# Enable SCL repos
 RUN yum install centos-release-scl -y && yum clean all \
 && rm -rf /var/cache/yum
 
@@ -109,7 +115,7 @@ RUN localedef -i en_US -f UTF-8 en_US.UTF-8
 RUN rpmdev-setuptree
 
 # Copy scripts
-COPY ./docker/${ENVIRONMENT}/cortx-build/*.sh /opt/
+COPY ./docker/cortx-build/*.sh /opt/
 
 # install node
 RUN bash /opt/install-node.sh v12.13.0 \
@@ -127,6 +133,12 @@ RUN bash /opt/setup_fpm.sh \
 && rm -rf /var/cache/yum \
 && rm -rf rh-ruby23.sh
 
+# yum repo from GitHub Release 
+RUN sh /opt/set-githubrelease-repo.sh \
+&& yum clean all \
+&& rm -rf /var/cache/yum \
+&& rm -f /opt/set-githubrelease-repo.sh
+
 # rpm signing
 COPY ./scripts/rpm-signing/* /opt/rpm-signing/
 
@@ -141,7 +153,7 @@ RUN  cat /opt/rpm-signing/gpgoptions >>  ~/.rpmmacros && \
 COPY ./scripts/release_support/build_release_info.sh /opt/release_support/
 
 # Makefile for build
-COPY ./docker/${ENVIRONMENT}/cortx-build/Makefile . 
+COPY ./docker/cortx-build/Makefile . 
 
 FROM base as lustre-rpm-builder
 
@@ -151,7 +163,8 @@ ARG ENVIRONMENT
 ADD https://downloads.whamcloud.com/public/lustre/lustre-${LUSTRE_VERSION}/el7/client/SRPMS/lustre-${LUSTRE_VERSION}-1.src.rpm . 
 RUN rpm -i lustre-${LUSTRE_VERSION}-1.src.rpm 
 
-COPY ./docker/${ENVIRONMENT}/cortx-build/lustre-2.9.0.spec.patch .
+COPY ./docker/cortx-build/lustre-2.9.0.spec.patch .
+
 RUN patch -p1 -i lustre-2.9.0.spec.patch /root/rpmbuild/SPECS/lustre.spec
 
 RUN yum -y install kernel{,-devel}-3.10.0-1127.el7  \
@@ -184,26 +197,3 @@ RUN curl -k https://raw.githubusercontent.com/Seagate/cortx-motr/stable/cortx-mo
         && yum-builddep -y cortx-motr.spec \
 	&& yum clean all \
         && rm -rf /var/cache/yum
-
-RUN curl -k https://raw.githubusercontent.com/Seagate/cortx-s3server/stable/rpms/s3/s3rpm.spec -o s3rpm.spec \
-     && yum install -y http://cortx-storage.colo.seagate.com/releases/cortx/components/github/motr-base/cortx-motr-1.0.0-0_git588b298_3.10.0_1062.el7.x86_64.rpm \
-     http://cortx-storage.colo.seagate.com/releases/cortx/components/github/motr-base/cortx-motr-devel-1.0.0-0_git588b298_3.10.0_1062.el7.x86_64.rpm \
-    && yum-builddep -y s3rpm.spec \
-    && rm -f s3rpm.spec \
-    && yum remove -y cortx-motr cortx-motr-devel kernel-3.10.0-1160.el7 kernel-devel-3.10.0-1062.el7 \
-    && rm -rf /opt/seagate/cortx/motr/ \
-    && yum clean all \
-    && rm -rf /var/cache/yum
-
-ENV HARE_VENV_DIR=$HOME/.hare-venv
-
-RUN mkdir $HARE_VENV_DIR \
-    && python3 -m venv $HARE_VENV_DIR
-
-RUN source $HARE_VENV_DIR/bin/activate \
-    && pip3 install PyYAML flake8 mypy ply wheel
-
-ADD https://github.com/dhall-lang/dhall-haskell/releases/download/1.26.1/dhall-1.26.1-x86_64-linux.tar.bz2      /var/cache
-ADD https://github.com/dhall-lang/dhall-haskell/releases/download/1.26.1/dhall-json-1.4.1-x86_64-linux.tar.bz2  /var/cache
-
-RUN for f in /var/cache/dhall*.tar*; do tar -C /usr/local -xf "$f"; done

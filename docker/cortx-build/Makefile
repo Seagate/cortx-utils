@@ -3,7 +3,7 @@ BUILD_ID = 0
 RELEASE_VERSION = "2.0.0"
 RELASE_BUILD = "/var/artifacts/${BUILD_ID}"
 RPM_DIR = "/var/artifacts/${BUILD_ID}/cortx_iso"
-THIRD_PARTY_VERSION = "third-party-deps-1.0.0-2"
+THIRD_PARTY_VERSION = "third-party-deps-1.0.0-0"
 
 .PHONY: help
 ## help: print this help message.
@@ -184,7 +184,7 @@ _cortx-py-utils_build:
 	@echo "***************  Installing cortx-management-portal Prereqsites *********************"
 	pushd cortx-workspace/cortx-utils/py-utils && \
 		yum install python36-devel -y && \
-		python3 setup.py bdist_rpm --post-install utils-post-install --pre-uninstall utils-pre-uninstall --release="${BUILD_ID}_$$(git rev-parse --short HEAD)" && \
+		python3.6 setup.py bdist_rpm --version=${RELEASE_VERSION} --post-install utils-post-install --post-uninstall utils-post-uninstall --post-uninstall utils-post-uninstall --release="${BUILD_NUMBER}_$(git rev-parse --short HEAD)" && \
 		../statsd-utils/jenkins/build.sh -b ${BUILD_ID} && \
 		mv /cortx-workspace/cortx-utils/statsd-utils/dist/rpmbuild/RPMS/x86_64/*.rpm ${RPM_DIR} && \
 		mv /cortx-workspace/cortx-utils/py-utils/dist/*.rpm ${RPM_DIR} && \
@@ -210,7 +210,8 @@ _cortx-management-portal_build:
 	
 	pushd cortx-workspace/cortx-management-portal && \
 		BUILD=$$(git rev-parse --short HEAD) && \
-		./cicd/build.sh -v ${RELEASE_VERSION} -b "${BUILD_ID}" -t -i && \
+		echo "Python:$$(python --version)" && \
+		./cicd/build.sh -v ${RELEASE_VERSION} -v ${RELEASE_VERSION} -b "${BUILD_ID}" -t -i && \
 		cp ./dist/rpmbuild/RPMS/x86_64/*.rpm ${RPM_DIR} && \
 		createrepo -v ${RPM_DIR} && \
 	popd
@@ -236,6 +237,7 @@ _cortx-manager_build:
 	
 	pushd cortx-workspace/cortx-manager && \
 		BUILD=$$(git rev-parse --short HEAD) && \
+		echo "Python:$(python --version)" && \
 		./cicd/build.sh -v ${RELEASE_VERSION} -b "${BUILD_ID}" -t -i && \
 		cp ./dist/rpmbuild/RPMS/x86_64/*.rpm ${RPM_DIR} && \
 		createrepo -v ${RPM_DIR} && \
@@ -285,10 +287,8 @@ _cortx-monitor_build:
 	@echo "***************  Building sspl RPMS *********************"
 	
 	pushd cortx-workspace/cortx-monitor && \
-		VERSION=$$(cat VERSION) && \
 		export build_number=${BUILD_ID} && \
 		echo "Executing build script" && \
-		echo "VERSION:$$VERSION" && \
 		./jenkins/build.sh -v ${RELEASE_VERSION} -l DEBUG && \
 		cp /root/rpmbuild/RPMS/x86_64/*.rpm ${RPM_DIR} && \
         cp /root/rpmbuild/RPMS/noarch/*.rpm ${RPM_DIR} && \
@@ -337,8 +337,8 @@ release_build:
 		createrepo -v . && \
 	popd && \
 	pushd ${RELASE_BUILD} && \
-		sh /opt/release_support/build_release_info.sh -v ${RELEASE_VERSION} -b ${RPM_DIR} && \
-                wget http://cortx-storage.colo.seagate.com/releases/cortx/third-party-deps/centos/zip/third-party-centos-7.8.2003-1.0.0-2.tar.gz && \
+		sh /opt/release_support/build_release_info.sh -v ${RELEASE_VERSION} -b ${RPM_DIR}  && \
+		githubrelease asset seagate/cortx download ${THIRD_PARTY_VERSION} && \
 		mkdir -p 3rd_party && tar -xvzf *.tar.gz -C 3rd_party --strip-components=1 && \
 	popd
 

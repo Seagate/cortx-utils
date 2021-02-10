@@ -21,28 +21,27 @@ version: "3"
 
 services:
   cortx-build-centos-7.8.2003:
-    image: cortx-build:centos-7.8.2003
+    image: ghcr.io/seagate/cortx-build:centos-7.8.2003
     build:
       context: ../../
-      dockerfile: ./docker/opensource-ci/Dockerfile
+      dockerfile: ./docker/cortx-build/Dockerfile
       args:
        CENTOS_RELEASE: 7.8.2003
        LUSTRE_VERSION: 2.12.5
+       ENVIRONMENT: opensource-ci
     volumes:
      - /var/artifacts:/var/artifacts
      - /root/cortx:/cortx-workspace
 
-
-
-  cortx-build-centos-7.7.1908:
-    image: cortx-build:centos-7.7.1908
+  cortx-build-internal-centos-7.8.2003:
+    image: ghcr.io/seagate/cortx-re/cortx-build-internal:centos-7.8.2003
     build:
       context: ../../
-      dockerfile: ./docker/opensource-ci/Dockerfile
+      dockerfile: ./docker/cortx-build//Dockerfile
       args:
-       CENTOS_RELEASE: 7.7.1908
-       LUSTRE_VERSION: 2.12.3
+       CENTOS_RELEASE: 7.8.2003
+       LUSTRE_VERSION: 2.12.5
+       ENVIRONMENT: internal-ci
     volumes:
      - /var/artifacts:/var/artifacts
      - /root/cortx:/cortx-workspace
-

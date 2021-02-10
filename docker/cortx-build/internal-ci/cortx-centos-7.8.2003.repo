@@ -1,5 +1,5 @@
 [cortx-uploads-r2-centos-7.8.2003]
 gpgcheck=0
 enabled=1
-baseurl=http://cortx-storage.colo.seagate.com/releases/cortx/uploads-r2/centos-7.8.2003/
+baseurl=http://cortx-storage.colo.seagate.com/releases/cortx/uploads/R2/centos-7.8.2003/
 name=cortx-uploads-r2-centos-7.8.2003

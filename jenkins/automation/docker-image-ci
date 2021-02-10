@@ -29,6 +29,12 @@ pipeline {
         )
 
         choice (
+            name: 'ENVIRONMENT', 
+            choices: ['internal-ci', 'opensource-ci'],
+            description: 'CI Environment'
+        )
+
+        choice (
             choices: ['no' , 'yes'],
             description: 'Push newly built Docker image to GitHub ',
             name: 'GITHUB_PUSH'
@@ -50,12 +56,17 @@ pipeline {
 			steps {
 				script { build_stage = env.STAGE_NAME }
 				sh label: 'Build Docker image', script: '''
-                echo 'y' | docker image prune
-                docker-compose -f docker/internal-ci/docker-compose.yml build --force-rm  --compress --build-arg GIT_HASH="$(git rev-parse --short HEAD)" cortx-build-internal-$OS_VERSION
-                echo 'y' | docker image prune
-                '''
+				echo -e "Running on $HOST_HOSTNAME"
+                		echo 'y' | docker image prune
+		                if [ $ENVIRONMENT == "internal-ci" ]; then
+                	    	    docker-compose -f docker/cortx-build/docker-compose.yml build --force-rm  --compress --build-arg GIT_HASH="$(git rev-parse --short HEAD)" cortx-build-internal-$OS_VERSION
+		                else
+                		    docker-compose -f docker/cortx-build/docker-compose.yml build --force-rm  --compress --build-arg GIT_HASH="$(git rev-parse --short HEAD)" cortx-build-$OS_VERSION
+		                fi
+                		echo 'y' | docker image prune
+		                '''
+			   }
 			}
-		}
 
         stage ('Validation') {
 			steps {
@@ -64,7 +75,11 @@ pipeline {
                 checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: 'main']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: '/mnt/docker/tmp/cortx-workspace'], [$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: false, recursiveSubmodules: true, reference: '', shallow: true, trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/Seagate/cortx']]]
 
                 sh label: 'Validate Docker image', script: '''
-                docker run --rm -v /mnt/docker/tmp/cortx-workspace:/cortx-workspace -v /mnt/docker/tmp/artifacts:/var/artifacts ghcr.io/seagate/cortx-re/cortx-build-internal:centos-7.8.2003 make clean build -i
+                if [ $ENVIRONMENT == "internal-ci" ]; then
+                    docker run --rm -v /mnt/docker/tmp/cortx-workspace:/cortx-workspace -v /mnt/docker/tmp/artifacts:/var/artifacts ghcr.io/seagate/cortx-re/cortx-build-internal:$OS_VERSION make clean build -i
+                else    
+                    docker run --rm -v /mnt/docker/tmp/cortx-workspace:/cortx-workspace -v /mnt/docker/tmp/artifacts:/var/artifacts ghcr.io/seagate/cortx-build:$OS_VERSION make clean build -i
+                fi    
                 rm -rf /mnt/docker/tmp/
                 '''
 			}
