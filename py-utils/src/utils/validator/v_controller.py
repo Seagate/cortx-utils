@@ -62,8 +62,7 @@ class ControllerV:
                 errno.EINVAL, f"Action parameter '{v_type}' is not supported. Refer usage.")
 
     def validate_controller_accessibility(self, ip, username, password):
-        """Check contoller console is accessible to node
-        """
+        """Check contoller console is accessible to node."""
         # Check if ssh connection is successful
         try:
             session = SSHChannel(host=ip, username=username, password=password)
@@ -84,7 +83,7 @@ class ControllerV:
 
     def validate_firmware(self, ip, username, password, mc_expected):
         """Check expected contoller bundle version found
-            mc_expected: string or list of expected version(s)
+        mc_expected: string or list of expected version(s).
         """
         try:
             session = SSHChannel(host=ip, username=username, password=password)
