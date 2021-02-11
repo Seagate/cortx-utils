@@ -222,7 +222,7 @@ class TestStore(unittest.TestCase):
         TestStore.loaded_properties[0].set(['user'], ['kvstore'])
         result_data = TestStore.loaded_properties[0].get(['user'])
         self.assertEqual(result_data[0], "kvstore")
-    
+
     def test_properties_by_set_empty_string(self):
         """
         Test kv Properties store by setting the empty value for the given
@@ -249,7 +249,7 @@ class TestStore(unittest.TestCase):
         TestStore.loaded_properties[0].delete(['user'])
         result_data = TestStore.loaded_properties[0].get(['user'])
         self.assertEqual(result_data[0], None)
-    
+
     def test_properties_non_exist_key_delete(self):
         """
         Test kv Properties store by trying to remove given key and its value
@@ -258,7 +258,7 @@ class TestStore(unittest.TestCase):
         TestStore.loaded_properties[0].delete(['user'])
         result_data = TestStore.loaded_properties[0].get(['user'])
         self.assertEqual(result_data[0], None)
-    
+
     def test_properties_set_with_multiple_eq(self):
         """
         Test kv Properties store by setting the value of given key, value to the
@@ -269,7 +269,7 @@ class TestStore(unittest.TestCase):
             TestStore.loaded_properties[0].get(['user'])
         except Exception as err:
             self.assertEqual('Invalid properties store format %s. %s.', err.args[1])
-    
+
     def test_properties_protocol_with_yamlfile(self):
         """
         Test kv Properties store by setting the value of given key, value to the
