@@ -20,7 +20,6 @@ import json
 import os
 import sys
 import unittest
-import subprocess
 from cortx.utils.process import SimpleProcess
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -48,40 +47,48 @@ class TestConfCli(unittest.TestCase):
 
     def test_conf_cli_by_get(self):
         """ Test by retrieving a value using get api """
-        result_data = subprocess.check_output(['conf', 'json:///tmp/file1.json',
-                                               'get', 'bridge>name'])
+        cmd = "conf json:///tmp/file1.json get bridge>name"
+        cmd_proc = SimpleProcess(cmd)
+        result_data, err, rc = cmd_proc.run()
         self.assertEqual(result_data, b'["Homebridge"]\n')
 
     def test_conf_cli_by_set(self):
         """ Test by setting a value into given key position """
-        subprocess.check_output(["conf", "json:///tmp/file1.json", "set",
-                                 "bridge>cli_name='client'"])
-        result_data = subprocess.check_output(['conf', 'json:///tmp/file1.json',
-                                               'get', 'bridge>cli_name'])
+        cmd_1 = "conf json:///tmp/file1.json set bridge>cli_name='client'"
+        cmd_proc_1 = SimpleProcess(cmd_1)
+        cmd_proc_1.run()
+        cmd_2 = "conf json:///tmp/file1.json get bridge>cli_name"
+        cmd_proc_2 = SimpleProcess(cmd_2)
+        result_data, err, rc = cmd_proc_2.run()
         self.assertEqual(result_data, b'["\'client\'"]\n')
 
     def test_conf_cli_by_get_list(self):
         """ Test by retrieving list of values for given keys seperated by ;"""
-        result_data = subprocess.check_output(['conf', 'json:///tmp/file1.json',
-            'get', 'bridge>name;bridge>lte_type[0]>name'])
+        cmd = "conf json:///tmp/file1.json get bridge>name;bridge>lte_type[0]>name"
+        cmd_proc = SimpleProcess(cmd)
+        result_data, err, rc = cmd_proc.run()
         self.assertEqual(result_data, b'["Homebridge", "3g"]\n')
 
     def test_conf_cli_by_set_list_of_value(self):
         """
         Test by setting list of k,v seperated by ';' semicolon into conf
         """
-        subprocess.check_output(["conf", "json:///tmp/file1.json", "set",
-            "bridge>cli_name='client';bridge>has_internet='no'"])
-        result_data = subprocess.check_output(['conf', 'json:///tmp/file1.json',
-            'get', 'bridge>cli_name;bridge>has_internet'])
+        cmd_1 = "conf json:///tmp/file1.json set bridge>cli_name='client';bridge>has_internet='no'"
+        cmd_proc_1 = SimpleProcess(cmd_1)
+        cmd_proc_1.run()
+        cmd_2 = "conf json:///tmp/file1.json get bridge>cli_name;bridge>has_internet"
+        cmd_proc_2 = SimpleProcess(cmd_2)
+        result_data, err, rc = cmd_proc_2.run()
         self.assertEqual(result_data, b'["\'client\'", "\'no\'"]\n')
 
     def test_conf_cli_by_delete(self):
         """ Test by deleting a value from the conf """
-        subprocess.check_output(["conf", "json:///tmp/file1.json", "delete",
-                                 "bridge>port"])
-        result_data = subprocess.check_output(['conf', 'json:///tmp/file1.json',
-                                               'get', 'bridge>port'])
+        cmd_1 = "conf json:///tmp/file1.json delete bridge>port"
+        cmd_proc_1 = SimpleProcess(cmd_1)
+        cmd_proc_1.run()
+        cmd_2 = "conf json:///tmp/file1.json get bridge>port"
+        cmd_proc_2 = SimpleProcess(cmd_2)
+        result_data, err, rc = cmd_proc_2.run()
         self.assertEqual(result_data, b'[null]\n')
 
     def test_conf_cli_by_format_data(self):
@@ -90,50 +97,56 @@ class TestConfCli(unittest.TestCase):
                      b'manufacturer: homebridge.io\n  model: homebridge\n' \
                      b'  name: Homebridge\n  pin: 031-45-154\n' \
                      b'  username: CC:22:3D:E3:CE:30\n\n'
-        subprocess.check_output(["conf", "json:///tmp/file1.json", "delete",
-                                 "bridge>port"])
-        result_data = subprocess.check_output(['conf', 'json:///tmp/file1.json',
-                                               'get', 'bridge', '-f', 'yaml'])
+        
+        cmd_1 = "conf json:///tmp/file1.json delete bridge>port"
+        cmd_proc_1 = SimpleProcess(cmd_1)
+        cmd_proc_1.run()
+        cmd_2 = "conf json:///tmp/file1.json get bridge -f yaml"
+        cmd_proc_2 = SimpleProcess(cmd_2)
+        result_data, err, rc = cmd_proc_2.run()
         self.assertEqual(result_data, exp_result)
 
     # Properties store test case starts here
     def test_conf_cli_by_get_from_properties_store(self):
         """ Test by retrieving a value from properties store using get api """
-        result_data = subprocess.check_output(['conf',
-            'properties:///tmp/example.properties', 'get', 'name'])
+        cmd = "conf properties:///tmp/example.properties get name"
+        cmd_proc = SimpleProcess(cmd)
+        result_data, err, rc = cmd_proc.run()
         self.assertEqual(result_data, b'["Homebridge"]\n')
 
     def test_conf_cli_by_set_to_properties_store(self):
         """ Test by setting a value to properties store using set api """
-        result_data = subprocess.check_output(['conf',
-            'properties:///tmp/example.properties',
-            'set', 'age=27;contact=789654112'])
-        result_data = subprocess.check_output(['conf',
-            'properties:///tmp/example.properties', 'get', 'age'])
+        cmd_1 = "conf properties:///tmp/example.properties set age=27;contact=789654112"
+        cmd_proc_1 = SimpleProcess(cmd_1)
+        cmd_proc_1.run()
+        cmd_2 = "conf properties:///tmp/example.properties get age"
+        cmd_proc_2 = SimpleProcess(cmd_2)
+        result_data, err, rc = cmd_proc_2.run()
         self.assertEqual(result_data, b'["27"]\n')
 
     def test_conf_cli_by_wrong_file_format_properties_store(self):
         """ Test by wrong file with properties store """
-        try:
-            subprocess.check_output(['conf', 'properties:///tmp/file1.json',
-            'get', 'ssh_host'])
-        except Exception as err:
-            exit_code = 22
-            self.assertEqual(err.args[0], exit_code)
+        cmd = "conf properties:///tmp/file1.json get ssh_host"
+        cmd_proc = SimpleProcess(cmd)
+        result_data, err, rc = cmd_proc.run()
+        self.assertEqual(rc, 22)
 
     def test_conf_cli_by_empty_str_properties_store(self):
         """ Test by setting an empty value to propertiesStore using set api """
-        result_data = subprocess.check_output(['conf',
-            'properties:///tmp/example.properties', 'set', 'ssh_host='])
-        result_data = subprocess.check_output(['conf',
-            'properties:///tmp/example.properties', 'get', 'ssh_host'])
+        cmd_1 = "conf properties:///tmp/example.properties set ssh_host="
+        cmd_proc_1 = SimpleProcess(cmd_1)
+        cmd_proc_1.run()
+        cmd_2 = "conf properties:///tmp/example.properties get ssh_host"
+        cmd_proc_2 = SimpleProcess(cmd_2)
+        result_data, err, rc = cmd_proc_2.run()
         self.assertEqual(result_data, b'[""]\n')
 
     def test_conf_cli_by_wrong_file_store(self):
         """ Test by trying to load wrong json file for properties protocol """
         try:
-            subprocess.check_output(['conf', 'properties:///tmp/file1.json',
-                'get', 'ssh_host'])
+            cmd = "conf properties:///tmp/file1.json get ssh_host"
+            cmd_proc = SimpleProcess(cmd)
+            cmd_proc.run()
         except Exception as err:
             exit_code = 22
             self.assertEqual(err.args[0], exit_code)
