@@ -49,8 +49,8 @@ class TestConfCli(unittest.TestCase):
         """ Test by retrieving a value using get api """
         cmd = "conf json:///tmp/file1.json get bridge>name"
         cmd_proc = SimpleProcess(cmd)
-        result_data, err, rc = cmd_proc.run()
-        self.assertEqual(result_data, b'["Homebridge"]\n')
+        result_data = cmd_proc.run()
+        self.assertEqual(result_data[0], b'["Homebridge"]\n')
 
     def test_conf_cli_by_set(self):
         """ Test by setting a value into given key position """
@@ -97,7 +97,6 @@ class TestConfCli(unittest.TestCase):
                      b'manufacturer: homebridge.io\n  model: homebridge\n' \
                      b'  name: Homebridge\n  pin: 031-45-154\n' \
                      b'  username: CC:22:3D:E3:CE:30\n\n'
-        
         cmd_1 = "conf json:///tmp/file1.json delete bridge>port"
         cmd_proc_1 = SimpleProcess(cmd_1)
         cmd_proc_1.run()
