@@ -50,7 +50,8 @@ class TestConfCli(unittest.TestCase):
         cmd = "conf json:///tmp/file1.json get bridge>name"
         cmd_proc = SimpleProcess(cmd)
         result_data = cmd_proc.run()
-        self.assertEqual(result_data[0], b'["Homebridge"]\n')
+        self.assertTrue(True if result_data[2] == 0 and
+            result_data[0] == b'["Homebridge"]\n' else False, result_data[1])
 
     def test_conf_cli_by_set(self):
         """ Test by setting a value into given key position """
@@ -60,36 +61,43 @@ class TestConfCli(unittest.TestCase):
         cmd_2 = "conf json:///tmp/file1.json get bridge>cli_name"
         cmd_proc_2 = SimpleProcess(cmd_2)
         result_data = cmd_proc_2.run()
-        self.assertEqual(result_data[0], b'["\'client\'"]\n')
+        self.assertTrue(True if result_data[2]==0 and
+            result_data[0]==b'["\'client\'"]\n' else False, result_data[1])
 
     def test_conf_cli_by_get_list(self):
         """ Test by retrieving list of values for given keys seperated by ;"""
         cmd = "conf json:///tmp/file1.json get bridge>name;bridge>lte_type[0]>name"
         cmd_proc = SimpleProcess(cmd)
         result_data = cmd_proc.run()
-        self.assertEqual(result_data[0], b'["Homebridge", "3g"]\n')
+        self.assertTrue(True if result_data[2]==0 and
+            result_data[0]==b'["Homebridge", "3g"]\n' else False, result_data[1])
 
     def test_conf_cli_by_set_list_of_value(self):
         """
         Test by setting list of k,v seperated by ';' semicolon into conf
         """
-        cmd_1 = "conf json:///tmp/file1.json set bridge>cli_name='client';bridge>has_internet='no'"
+        cmd_1 = "conf json:///tmp/file1.json set bridge>cli_name='client';" \
+                "bridge>has_internet='no'"
         cmd_proc_1 = SimpleProcess(cmd_1)
         cmd_proc_1.run()
-        cmd_2 = "conf json:///tmp/file1.json get bridge>cli_name;bridge>has_internet"
+        cmd_2 = "conf json:///tmp/file1.json get bridge>cli_name;" \
+                "bridge>has_internet"
         cmd_proc_2 = SimpleProcess(cmd_2)
         result_data = cmd_proc_2.run()
-        self.assertEqual(result_data[0], b'["\'client\'", "\'no\'"]\n')
+        self.assertTrue(True if result_data[2] == 0 and
+            result_data[0] == b'["\'client\'", "\'no\'"]\n'
+            else False, result_data[1])
 
     def test_conf_cli_by_delete(self):
         """ Test by deleting a value from the conf """
-        cmd_1 = "conf json:///tmp/file1.json delete bridge>port"
+        cmd_1 = "conf json:///tmp/file1.json delete 'bridge>port'"
         cmd_proc_1 = SimpleProcess(cmd_1)
         cmd_proc_1.run()
-        cmd_2 = "conf json:///tmp/file1.json get bridge>port"
+        cmd_2 = "conf json:///tmp/file1.json get 'bridge>port'"
         cmd_proc_2 = SimpleProcess(cmd_2)
         result_data = cmd_proc_2.run()
-        self.assertEqual(result_data[0], b'[null]\n')
+        self.assertTrue(True if result_data[2] == 0 and
+            result_data[0]==b'[null]\n' else False, result_data[1])
 
     def test_conf_cli_by_format_data(self):
         """ Test by converting data into toml format """
@@ -103,7 +111,8 @@ class TestConfCli(unittest.TestCase):
         cmd_2 = "conf json:///tmp/file1.json get bridge -f yaml"
         cmd_proc_2 = SimpleProcess(cmd_2)
         result_data = cmd_proc_2.run()
-        self.assertEqual(result_data[0], exp_result)
+        self.assertTrue(True if result_data[2]==0 and
+            result_data[0]==exp_result else False, result_data[1])
 
     # Properties store test case starts here
     def test_conf_cli_by_get_from_properties_store(self):
@@ -111,17 +120,20 @@ class TestConfCli(unittest.TestCase):
         cmd = "conf properties:///tmp/example.properties get name"
         cmd_proc = SimpleProcess(cmd)
         result_data = cmd_proc.run()
-        self.assertEqual(result_data[0], b'["Homebridge"]\n')
+        self.assertTrue(True if result_data[2] == 0 and result_data[0] ==
+            b'["Homebridge"]\n' else False, result_data[1])
 
     def test_conf_cli_by_set_to_properties_store(self):
         """ Test by setting a value to properties store using set api """
-        cmd_1 = "conf properties:///tmp/example.properties set age=27;contact=789654112"
+        cmd_1 = "conf properties:///tmp/example.properties set age=27;" \
+                "contact=789654112"
         cmd_proc_1 = SimpleProcess(cmd_1)
         cmd_proc_1.run()
         cmd_2 = "conf properties:///tmp/example.properties get age"
         cmd_proc_2 = SimpleProcess(cmd_2)
         result_data = cmd_proc_2.run()
-        self.assertEqual(result_data[0], b'["27"]\n')
+        self.assertTrue(True if result_data[2] == 0 and
+            result_data[0] == b'["27"]\n' else False, result_data[1])
 
     def test_conf_cli_by_wrong_file_format_properties_store(self):
         """ Test by wrong file with properties store """
@@ -138,7 +150,8 @@ class TestConfCli(unittest.TestCase):
         cmd_2 = "conf properties:///tmp/example.properties get ssh_host"
         cmd_proc_2 = SimpleProcess(cmd_2)
         result_data = cmd_proc_2.run()
-        self.assertEqual(result_data[0], b'[""]\n')
+        self.assertTrue(False if result_data[0]!=b'[""]\n' and result_data[0]>0
+                        else True)
 
     def test_conf_cli_by_wrong_file_store(self):
         """ Test by trying to load wrong json file for properties protocol """
@@ -151,7 +164,6 @@ class TestConfCli(unittest.TestCase):
             self.assertEqual(err.args[0], exit_code)
 
 if __name__ == '__main__':
-
     # create the file and load sample json into it. Start test
     setup_and_generate_sample_files()
     unittest.main()
