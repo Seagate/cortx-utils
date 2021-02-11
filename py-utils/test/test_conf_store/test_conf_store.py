@@ -35,7 +35,7 @@ def setup_and_generate_sample_files():
     """ This function will generate all required types of file """
     with open(r'/tmp/file1.json', 'w+') as file:
         json.dump(sample_config, file, indent=2)
-    
+
     with open(r'/tmp/example.properties', 'w+') as file:
         sample_config.update(sample_config['bridge'])
         for key, val in sample_config.items():

@@ -196,7 +196,7 @@ class TestStore(unittest.TestCase):
             '{"bridge": {"manufacturer": "homebridge.io", "model": '
             '"homebridge","name": "Homebridge", "pin": "031-45-154", '
             '"port": 51826, "username": "CC:22:3D:E3:CE:30"}}')
-    
+
     # Properties starts
     def test_properties_file_load(self):
         """
