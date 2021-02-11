@@ -21,7 +21,7 @@ pipeline {
         token = credentials('shailesh-github-token')
         ARTIFACT_LOCATION = "http://cortx-storage.colo.seagate.com/releases/cortx/github/$branch/$os_version"
 		thrid_party_dir = "$release_dir/third-party-deps/centos/centos-7.8.2003-$thrid_party_version/"
-		python_deps = "/mnt/bigstorage/releases/cortx/third-party-deps/python-packages"
+		python_deps = "$release_dir/third-party-deps/python-deps/python-packages-2.0.0-0"
         cortx_os_iso = "/mnt/bigstorage/releases/cortx_builds/custom-os-iso/cortx-os-1.0.0-23.iso"
         // WARNING : 'rm' command where used in this dir path, be conscious while changing the value  
 		cortx_build_dir = "$release_dir/github/$branch/$os_version/cortx_builds" 
