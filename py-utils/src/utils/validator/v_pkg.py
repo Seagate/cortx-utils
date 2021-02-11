@@ -32,14 +32,8 @@ class PkgV:
 		stdout, stderr, retcode = handler.run()
 		if retcode != 0:
 			raise VError(errno.EINVAL,
-				     "cmd: %s failed with error code: %d"
-				     %(cmd, retcode))
-		if stderr:
-			if "WARNING:" not in stderr.decode("utf-8"):
-				raise VError(errno.EINVAL,
-					     "cmd: %s failed with stderr: %s"
-					     %(cmd, stderr))
-		# To calm down codacy.
+				     "cmd: %s failed with error code: %d, stderr: %s"
+				     %(cmd, retcode, stderr))
 		return stdout.decode("utf-8")
 
 	def validate(self, v_type: str, args: list, host: str = None):
