@@ -36,7 +36,7 @@ class JsonKvStore(KvStore):
         KvStore.__init__(self, store_loc, store_path, delim)
         if not os.path.exists(self._store_path):
             with open(self._store_path, 'w+') as f:
-                pass
+                json.dump({}, f, indent=2)
 
     def load(self) -> KvPayload:
         """ Reads from the file """
@@ -44,9 +44,9 @@ class JsonKvStore(KvStore):
         with open(self._store_path, 'r') as f:
             try:
                 data = json.load(f)
-
-            except JSONDecodeError:
-                pass
+            except JSONDecodeError as jerr:
+                raise KvError(errno.EINVAL, "Invalid JSON format %s",
+                                   jerr.__str__())
         return KvPayload(data, self._delim)
 
     def dump(self, data) -> None:
@@ -70,7 +70,12 @@ class YamlKvStore(KvStore):
         """ Reads from the file """
         import yaml
         with open(self._store_path, 'r') as f:
-            return KvPayload(yaml.safe_load(f), self._delim)
+            try:
+                data = yaml.safe_load(f)
+            except Exception as yerr:
+                raise KvError(errno.EINVAL, "Invalid YAML format %s",
+                                   yerr.__str__())
+        return KvPayload(data, self._delim)
 
     def dump(self, data) -> None:
         import yaml
@@ -93,7 +98,12 @@ class TomlKvStore(KvStore):
         """ Reads from the file """
         import toml
         with open(self._store_path, 'r') as f:
-            return KvPayload(toml.load(f, dict), self._delim)
+            try:
+                data = toml.load(f, dict)
+            except Exception as terr:
+                raise KvError(errno.EINVAL, "Invalid TOML format %s",
+                                   terr.__str__())
+        return KvPayload(data, self._delim)
 
     def dump(self, data) -> None:
         """ Saves data onto the file """
@@ -151,7 +161,11 @@ class IniKvStore(KvStore):
 
     def load(self) -> IniKvPayload:
         """ Reads from the file """
-        self._config.read(self._store_path)
+        try:
+            self._config.read(self._store_path)
+        except Exception as err:
+            raise KvError(errno.EINVAL, "Invalid INI format %s",
+                               err.__str__())
         return IniKvPayload(self._config, self._delim)
 
     def dump(self, data) -> None:
