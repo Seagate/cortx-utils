@@ -123,16 +123,16 @@ class KafkaMessageBroker(MessageBroker):
             raise MessageBusError(errno.EINVAL, "Unable to list message type. \
                 %s", e)
 
-    def register_message_type(self, admin_id: str, message_type: list, \
+    def register_message_type(self, admin_id: str, message_types: list, \
         partitions: int):
         """ Creates a new message type """
         admin = self._clients['admin'][admin_id]
         new_message_type = [NewTopic(each_message_type, \
-            num_partitions=partitions) for each_message_type in message_type]
+            num_partitions=partitions) for each_message_type in message_types]
         created_message_types = admin.create_topics(new_message_type)
         self._task_status(created_message_types)
 
-        for each_message_type in message_type:
+        for each_message_type in message_types:
             for list_retry in range(1, self._max_list_message_type_count+2):
                 if each_message_type not in \
                     list(self._get_metadata(admin).keys()):
@@ -144,13 +144,13 @@ class KafkaMessageBroker(MessageBroker):
                 else:
                     break
 
-    def deregister_message_type(self, admin_id: str, message_type: list):
+    def deregister_message_type(self, admin_id: str, message_types: list):
         """ Deletes a message type """
         admin = self._clients['admin'][admin_id]
-        deleted_message_types = admin.delete_topics(message_type)
+        deleted_message_types = admin.delete_topics(message_types)
         self._task_status(deleted_message_types)
 
-        for each_message_type in message_type:
+        for each_message_type in message_types:
             for list_retry in range(1, self._max_list_message_type_count+2):
                 if each_message_type in list(self._get_metadata(admin).keys()):
                     if list_retry > self._max_list_message_type_count:
@@ -161,16 +161,16 @@ class KafkaMessageBroker(MessageBroker):
                 else:
                     break
 
-    def increase_parallelism(self, admin_id: str, message_type: list, \
+    def increase_parallelism(self, admin_id: str, message_types: list, \
         partitions: int):
         """ Increases the partitions for message type """
         admin = self._clients['admin'][admin_id]
         new_partition = [NewPartitions(each_message_type, \
-            new_total_count=partitions) for each_message_type in message_type]
+            new_total_count=partitions) for each_message_type in message_types]
         partitions = admin.create_partitions(new_partition)
         self._task_status(partitions)
 
-        for each_message_type in message_type:
+        for each_message_type in message_types:
             for list_retry in range(1, self._max_list_message_type_count+2):
                 if partitions != len(self._get_metadata(admin)\
                     [each_message_type].__dict__['partitions']):
