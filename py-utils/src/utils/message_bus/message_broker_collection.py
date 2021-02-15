@@ -105,7 +105,7 @@ class KafkaMessageBroker(MessageBroker):
             consumer.subscribe(client_conf['message_type'])
             self._clients[client_type][client_conf['client_id']] = consumer
 
-    def _futures(self, tasks :dict):
+    def _task_status(self, tasks :dict):
         """ Check if the task is completed successfully """
         for message_type, f in tasks.items():
             try:
@@ -130,7 +130,7 @@ class KafkaMessageBroker(MessageBroker):
         new_message_type = [NewTopic(each_message_type, \
             num_partitions=partitions) for each_message_type in message_type]
         created_message_types = admin.create_topics(new_message_type)
-        self._futures(created_message_types)
+        self._task_status(created_message_types)
 
         for each_message_type in message_type:
             for list_retry in range(1, self._max_list_message_type_count+2):
@@ -148,7 +148,7 @@ class KafkaMessageBroker(MessageBroker):
         """ Deletes a message type """
         admin = self._clients['admin'][admin_id]
         deleted_message_types = admin.delete_topics(message_type)
-        self._futures(deleted_message_types)
+        self._task_status(deleted_message_types)
 
         for each_message_type in message_type:
             for list_retry in range(1, self._max_list_message_type_count+2):
@@ -168,7 +168,7 @@ class KafkaMessageBroker(MessageBroker):
         new_partition = [NewPartitions(each_message_type, \
             new_total_count=partitions) for each_message_type in message_type]
         partitions = admin.create_partitions(new_partition)
-        self._futures(partitions)
+        self._task_status(partitions)
 
         for each_message_type in message_type:
             for list_retry in range(1, self._max_list_message_type_count+2):
