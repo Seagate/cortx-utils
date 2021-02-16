@@ -107,7 +107,7 @@ pipeline {
             steps {
                 script { build_stage = env.STAGE_NAME }
 				script {
-                	build job: '../SSPL/SSPL_Build_Sanity', propagate: false, wait: false,  parameters: [string(name: 'TARGET_BUILD', value: "main:${env.release_build}")]
+                	build job: '../../SSPL/SSPL_Build_Sanity', propagate: false, wait: false,  parameters: [string(name: 'TARGET_BUILD', value: "main:${env.release_build}")]
 				}
             }
         }		
