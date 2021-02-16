@@ -41,7 +41,7 @@ class ConfCli:
         kv_list = args.args[0].split(';')
         for kv in kv_list:
             try:
-                key, val = kv.split('=')
+                key, val = kv.split('=',1)
             except:
                raise ConfError(errno.EINVAL, "Invalid KV pair %s", kv)
             Conf.set(ConfCli._index, key, val)
