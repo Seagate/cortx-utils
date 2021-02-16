@@ -238,7 +238,7 @@ class KafkaMessageBroker(MessageBroker):
     def get_log_size(self, message_type: str):
         """ Gets size of log across all the partitions """
         total_size = 0
-        cmd = "/opt/kafka/bin/kafka-log-dirs.sh --describe --bootstrap-server "\
+        cmd = "/home/centos/kafka_2.13-2.7.0/bin/kafka-log-dirs.sh --describe --bootstrap-server "\
             + self._servers + " --topic-list " + message_type
         try:
             cmd_proc = SimpleProcess(cmd)
@@ -255,7 +255,7 @@ class KafkaMessageBroker(MessageBroker):
             raise MessageBusError(errno.EINVAL, "Unable to fetch log size for \
                 message type %s. %s" , message_type, e)
 
-    def delete(self, message_type: str):
+    def delete(self, admin_id: str, message_type: str):
         """
         Deletes all the messages from Kafka cluster(s)
 
@@ -263,10 +263,12 @@ class KafkaMessageBroker(MessageBroker):
         message_type    This is essentially equivalent to the
                         queue/topic name. For e.g. "Alert"
         """
+        admin = self._clients['admin'][admin_id]
+
         for tuned_retry in range(self._max_config_retry_count):
             self._resource.set_config('retention.ms', \
                 self._min_msg_retention_period)
-            tuned_params = self._admin.alter_configs([self._resource])
+            tuned_params = admin.alter_configs([self._resource])
             if list(tuned_params.values())[0].result() is not None:
                 if tuned_retry > 1:
                     raise MessageBusError(errno.EINVAL, "Unable to change \
@@ -286,7 +288,7 @@ class KafkaMessageBroker(MessageBroker):
 
         for default_retry in range(self._max_config_retry_count):
             self._resource.set_config('retention.ms', self._saved_retention)
-            default_params = self._admin.alter_configs([self._resource])
+            default_params = admin.alter_configs([self._resource])
             if list(default_params.values())[0].result() is not None:
                 if default_retry > 1:
                     raise MessageBusError(errno.EINVAL, "Unknown configuration \
