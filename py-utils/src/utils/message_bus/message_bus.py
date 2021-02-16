@@ -47,12 +47,12 @@ class MessageBus:
 
     def register_message_type(self, client_id: str, message_types: list, \
         partitions: int):
-        """ Registers a message type in the configured message broker """
+        """ Registers list of message types in the configured message broker """
         self._broker.register_message_type(client_id, message_types, \
             partitions)
 
     def deregister_message_type(self, client_id: str, message_types: list):
-        """ Deregisters a message type in the configured message broker """
+        """ Deregisters list of message types in the configured message broker """
         self._broker.deregister_message_type(client_id, message_types)
 
     def increase_parallelism(self, client_id: str, message_types: list, \

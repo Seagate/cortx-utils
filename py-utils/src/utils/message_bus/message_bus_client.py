@@ -35,11 +35,11 @@ class MessageBusClient:
 
     def register_message_type(self, message_types: list, partitions: int):
         """
-        Registers a Message Type
+        Registers a list of message types
 
         Parameters:
-        message_type     This is essentially equivalent to the queue/topic name.
-                         For e.g. ["Alert"]
+        message_types    This is essentially equivalent to the list of queue/
+                         topic name. For e.g. ["Alert"]
         partitions       Integer that represents number of partitions to be
                          created.
         """
@@ -49,22 +49,22 @@ class MessageBusClient:
 
     def deregister_message_type(self, message_types: list):
         """
-        Deregisters a Message Type
+        Deregisters a list of message types
 
         Parameters:
-        message_type     This is essentially equivalent to the queue/topic name.
-                         For e.g. ["Alert"]
+        message_types    This is essentially equivalent to the list of queue/
+                         topic name. For e.g. ["Alert"]
         """
         client_id = self._get_conf('client_id')
         self._message_bus.deregister_message_type(client_id, message_types)
 
     def increase_parallelism(self, message_types: list, partitions: int):
         """
-        To increase the number of partitions of a Message Type
+        To increase the number of partitions for a list of message types
 
         Parameters:
-        message_type     This is essentially equivalent to the queue/topic name.
-                         For e.g. ["Alert"]
+        message_types    This is essentially equivalent to the list of queue/
+                         topic name. For e.g. ["Alert"]
         partitions       Integer that represents number of partitions to be
                          increased.
         """
@@ -91,7 +91,7 @@ class MessageBusClient:
 
     def receive(self, timeout: float = None) -> list:
         """
-        Receives list of messages from the Message Bus
+        Receives messages from the Message Bus
 
         Parameters:
         timeout     Time in seconds to wait for the message.
@@ -112,16 +112,8 @@ class MessageBusAdmin(MessageBusClient):
         """ Initialize a Message Admin
 
         Parameters:
-        message_bus     An instance of message bus class.
-        consumer_id     A String that represents Consumer client ID.
-        consumer_group  A String that represents Consumer Group ID.
-                        Group of consumers can process messages
-        message_type    This is essentially equivalent to the queue/topic name.
-                        For e.g. ["Alert"]
-        auto_ack        Can be set to "True" or "False"
-        offset          Can be set to "earliest" (default) or "latest".
-                        ("earliest" will cause messages to be read from the
-                        beginning)
+        message_bus    An instance of message bus class.
+        admin_id       A String that represents Admin client ID.
         """
         super().__init__(message_bus, client_type='admin', client_id=admin_id)
 
@@ -137,7 +129,7 @@ class MessageProducer(MessageBusClient):
         message_bus     An instance of message bus class.
         producer_id     A String that represents Producer client ID.
         message_type    This is essentially equivalent to the
-                        queue/topic name. For e.g. ["Alert"]
+                        queue/topic name. For e.g. "Alert"
         """
         super().__init__(message_bus, client_type='producer', \
             client_id=producer_id, message_type=message_type, method=method)
@@ -155,8 +147,8 @@ class MessageConsumer(MessageBusClient):
         consumer_id     A String that represents Consumer client ID.
         consumer_group  A String that represents Consumer Group ID.
                         Group of consumers can process messages
-        message_type    This is essentially equivalent to the queue/topic name.
-                        For e.g. ["Alert"]
+        message_types   This is essentially equivalent to the list of queue/
+                        topic name. For e.g. ["Alert"]
         auto_ack        Can be set to "True" or "False"
         offset          Can be set to "earliest" (default) or "latest".
                         ("earliest" will cause messages to be read from the

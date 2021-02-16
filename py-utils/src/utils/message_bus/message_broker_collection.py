@@ -125,7 +125,16 @@ class KafkaMessageBroker(MessageBroker):
 
     def register_message_type(self, admin_id: str, message_types: list, \
         partitions: int):
-        """ Creates a new message type """
+        """
+        Creates a list of message types.
+
+        Parameters:
+        admin_id        A String that represents Admin client ID.
+        message_types   This is essentially equivalent to the list of
+                        queue/topic name. For e.g. ["Alert"]
+        partitions      Integer that represents number of partitions to be
+                        created.
+        """
         admin = self._clients['admin'][admin_id]
         new_message_type = [NewTopic(each_message_type, \
             num_partitions=partitions) for each_message_type in message_types]
@@ -145,7 +154,14 @@ class KafkaMessageBroker(MessageBroker):
                     break
 
     def deregister_message_type(self, admin_id: str, message_types: list):
-        """ Deletes a message type """
+        """
+        Deletes a list of message types.
+
+        Parameters:
+        admin_id        A String that represents Admin client ID.
+        message_types   This is essentially equivalent to the list of
+                        queue/topic name. For e.g. ["Alert"]
+        """
         admin = self._clients['admin'][admin_id]
         deleted_message_types = admin.delete_topics(message_types)
         self._task_status(deleted_message_types)
@@ -163,7 +179,19 @@ class KafkaMessageBroker(MessageBroker):
 
     def increase_parallelism(self, admin_id: str, message_types: list, \
         partitions: int):
-        """ Increases the partitions for message type """
+        """
+        Increases the partitions for for a list of message types.
+
+        Parameters:
+        admin_id        A String that represents Admin client ID.
+        message_types   This is essentially equivalent to the list of
+                        queue/topic name. For e.g. ["Alert"]
+        partitions      Integer that represents number of partitions to be
+                        increased.
+
+        Note:  Number of partitions for a topic can only be increased, never
+               decreased
+        """
         admin = self._clients['admin'][admin_id]
         new_partition = [NewPartitions(each_message_type, \
             new_total_count=partitions) for each_message_type in message_types]
@@ -185,7 +213,16 @@ class KafkaMessageBroker(MessageBroker):
 
     def send(self, producer_id: str, message_type: str, method: str, \
         messages: list, timeout=0.1):
-        """ Sends list of messages to Kafka cluster(s) """
+        """
+        Sends list of messages to Kafka cluster(s)
+
+        Parameters:
+        producer_id     A String that represents Producer client ID.
+        message_type    This is essentially equivalent to the
+                        queue/topic name. For e.g. "Alert"
+        method          Can be set to "sync" or "async"(default).
+        messages        A list of messages sent to Kafka Message Server
+        """
         producer = self._clients['producer'][producer_id]
         if producer is None:
             raise MessageBusError(errno.EINVAL, "Producer %s is not \
@@ -219,7 +256,13 @@ class KafkaMessageBroker(MessageBroker):
                 message type %s. %s" , message_type, e)
 
     def delete(self, message_type: str):
-        """ Deletes all the messages from Kafka cluster(s) """
+        """
+        Deletes all the messages from Kafka cluster(s)
+
+        Parameters:
+        message_type    This is essentially equivalent to the
+                        queue/topic name. For e.g. "Alert"
+        """
         for tuned_retry in range(self._max_config_retry_count):
             self._resource.set_config('retention.ms', \
                 self._min_msg_retention_period)
