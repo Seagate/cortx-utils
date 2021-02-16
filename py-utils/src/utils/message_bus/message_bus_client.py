@@ -33,7 +33,7 @@ class MessageBusClient:
             raise MessageBusError(errno.EINVAL, "Invalid entry %s", key) 
         return self._client_conf[key]
 
-    def register_message_type(self, message_type: list, partitions: int):
+    def register_message_type(self, message_types: list, partitions: int):
         """
         Registers a Message Type
 
@@ -44,10 +44,10 @@ class MessageBusClient:
                          created.
         """
         client_id = self._get_conf('client_id')
-        self._message_bus.register_message_type(client_id, message_type, \
+        self._message_bus.register_message_type(client_id, message_types, \
             partitions)
 
-    def deregister_message_type(self, message_type: list):
+    def deregister_message_type(self, message_types: list):
         """
         Deregisters a Message Type
 
@@ -56,9 +56,9 @@ class MessageBusClient:
                          For e.g. ["Alert"]
         """
         client_id = self._get_conf('client_id')
-        self._message_bus.deregister_message_type(client_id, message_type)
+        self._message_bus.deregister_message_type(client_id, message_types)
 
-    def increase_parallelism(self, message_type: list, partitions: int):
+    def increase_parallelism(self, message_types: list, partitions: int):
         """
         To increase the number of partitions of a Message Type
 
@@ -69,7 +69,7 @@ class MessageBusClient:
                          increased.
         """
         client_id = self._get_conf('client_id')
-        self._message_bus.increase_parallelism(client_id, message_type, \
+        self._message_bus.increase_parallelism(client_id, message_types, \
             partitions)
 
     def send(self, messages: list):
@@ -147,7 +147,7 @@ class MessageConsumer(MessageBusClient):
     """ A client that consumes messages """
 
     def __init__(self, message_bus: MessageBus, consumer_id: str, \
-        consumer_group: str, message_type: str, auto_ack: str, offset: str):
+        consumer_group: str, message_types: list, auto_ack: str, offset: str):
         """ Initialize a Message Consumer
 
         Parameters:
@@ -164,4 +164,4 @@ class MessageConsumer(MessageBusClient):
         """
         super().__init__(message_bus, client_type='consumer', \
             client_id=consumer_id, consumer_group=consumer_group, \
-            message_type=message_type, auto_ack=auto_ack, offset=offset)
+            message_type=message_types, auto_ack=auto_ack, offset=offset)
