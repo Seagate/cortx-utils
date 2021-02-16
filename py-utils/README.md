@@ -39,7 +39,7 @@ $ sudo yum install libffi-devel
   - Create pip package
     - It will create `cortx_py_utils-1.0.0-py3-none-any.whl`
 ```bash
-$ pip install wheel
+$ pip3 install wheel
 $ python3 setup.py bdist_wheel
 ```
 
