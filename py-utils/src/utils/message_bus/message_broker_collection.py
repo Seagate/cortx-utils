@@ -91,7 +91,7 @@ class KafkaMessageBroker(MessageBroker):
                 int(default_configs['retention.ms'].__dict__['value'])
 
         elif client_type == 'consumer':
-            for entry in ['offset', 'consumer_group', 'message_type', \
+            for entry in ['offset', 'consumer_group', 'message_types', \
                 'auto_ack', 'client_id']:
                 if entry not in client_conf.keys():
                     raise MessageBusError(errno.EINVAL, "Missing conf entry \
@@ -102,7 +102,7 @@ class KafkaMessageBroker(MessageBroker):
             kafka_conf['group.id'] = client_conf['consumer_group']
 
             consumer = Consumer(**kafka_conf)
-            consumer.subscribe(client_conf['message_type'])
+            consumer.subscribe(client_conf['message_types'])
             self._clients[client_type][client_conf['client_id']] = consumer
 
     def _task_status(self, tasks :dict):
