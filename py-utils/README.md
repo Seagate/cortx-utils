@@ -39,13 +39,15 @@ $ sudo yum install libffi-devel
   - Create pip package
     - It will create `cortx_py_utils-1.0.0-py3-none-any.whl`
 ```bash
+$ pip3 install wheel
 $ python3 setup.py bdist_wheel
 ```
 
   - Create RPM Package
-    - It will create `cortx-py-utils-1.0.0-1.noarch.rpm`
+It will create `cortx-py-utils-1.0.0-1.noarch.rpm` by default. One can change the version by passing extra `--version=<version_string>` parameter.
+Below command passes version string as 2.0.0, which creates `cortx-py-utils-2.0.0-1.noarch.rpm`
 ```bash
-$ python3.6 setup.py bdist_rpm --post-install utils-post-install --pre-uninstall utils-pre-uninstall
+$ python3.6 setup.py bdist_rpm --version=2.0.0 --post-install utils-post-install --post-uninstall utils-post-uninstall
 ```
 
 ## Installation
@@ -56,6 +58,8 @@ $ pip3 install cortx_py_utils-1.0.0-py3-none-any.whl
 ```
 
   - Installation with RPM package
+Note : The rpm package installation will not install any dependent python packages.
+Please refer to WIKI (https://github.com/Seagate/cortx-utils/wiki/%22cortx-py-utils%22-single-node-manual-provisioning)
 ```bash
 $ cd dist;
 $ yum install -y cortx-py-utils-1.0.0-1.noarch.rpm
@@ -137,7 +141,19 @@ try:
 except Exception as e:
 	print("one or more services are not running on this machine")
 ```
-Note The second example below shows how to check if gievn services are running on a remote host specified by "remote_hostname".
+Note The second example below shows how to check if given services are running on a remote host specified by "remote_hostname".
 ```python
 	ServiceV().validate('isrunning', ["rabbitmq-server", "sshd"], "remote_hostname")
+```
+  - Path validator: This can be used to check if certain paths and their types are as expected. Use command "exists" to check, pass a list of colon separated types followed by absolute paths. e.g. ["dir:/", "file:/etc/hosts", "device:/dev/loop9"]
+```python
+from cortx.utils.validator.v_path import PathV
+try:
+	PathV().validate('exists', ["dir:/", "file:/etc/hosts", "device:/dev/loop9"])
+except Exception as e:
+	print("one or more path checks failed")
+```
+Note The second example below shows how to check if given paths are ok on a remote host specified by "remote_hostname".
+```python
+	PathV().validate('exists', ["dir:/", "file:/etc/hosts", "device:/dev/loop9"], "remote_hostname")
 ```
