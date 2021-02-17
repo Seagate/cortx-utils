@@ -16,7 +16,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os, errno, sys
-import json, toml, yaml, tarfile
+import tarfile
 import configparser
 from typing import List
 
@@ -53,10 +53,12 @@ class Toml(Doc):
         Doc.__init__(self, file_path)
 
     def _load(self):
+        import toml
         with open(self._source, 'r') as f:
             return toml.load(f, dict)
 
     def _dump(self, data):
+        import toml
         with open(self._source, 'w') as f:
             toml.dump(data, f)
 
@@ -67,10 +69,12 @@ class Json(Doc):
         Doc.__init__(self, file_path)
 
     def _load(self):
+        import json
         with open(self._source, 'r') as f:
             return json.load(f)
 
     def _dump(self, data):
+        import json
         with open(self._source, 'w') as f:
             json.dump(data, f, indent=2)
 
@@ -81,10 +85,12 @@ class Yaml(Doc):
         Doc.__init__(self, file_path)
 
     def _load(self):
+        import yaml
         with open(self._source, 'r') as f:
             return yaml.safe_load(f)
 
     def _dump(self, data):
+        import yaml
         with open(self._source, 'w') as f:
             yaml.dump(data, f)
 
@@ -146,6 +152,7 @@ class JsonMessage(Json):
         Load the json to python interpretable Dictionary Object
         :return: :type: Dict
         """
+        import json
         return json.loads(self._source)
 
     def dump(self, data: dict):
@@ -154,6 +161,7 @@ class JsonMessage(Json):
         :param data: :type: Dict
         :return:
         """
+        import json
         self._source = json.dumps(data)
 
 class Text(Doc):
