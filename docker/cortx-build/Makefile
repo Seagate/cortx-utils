@@ -73,7 +73,7 @@ _cortx-motr_prereq:
 		cp cortx-motr.spec.in cortx-motr.spec && \
 		sed -i 's/@.*@/111/g' cortx-motr.spec && \
 		yum-builddep -y cortx-motr.spec && \
-	popd
+	popd || (echo "ERROR: cortx-motr source code is not available in cortx-workspace. Exiting..."; exit 1)
 
 _cortx-motr_build:
 	
@@ -102,7 +102,7 @@ _s3_prereq:
 	pushd cortx-workspace/cortx-s3server && \
 	  yum localinstall -y ${RPM_DIR}/cortx-motr-[0-9]*.rpm ${RPM_DIR}/cortx-motr-devel-[0-9]*.rpm && \
 		yum clean all;rm -rf /var/cache/yum && \
-	popd
+	popd || (echo "ERROR: cortx-s3server source code is not available in cortx-workspace. Exiting..."; exit 1)
 
 _s3_build:
 	@echo "***************  Building S3 RPMS *********************"
@@ -130,7 +130,7 @@ _cortx-hare_prereq:
 
 	pushd cortx-workspace/cortx-hare && \
 		yum localinstall -y ${RPM_DIR}/cortx-motr-[0-9]*.rpm ${RPM_DIR}/cortx-motr-devel-[0-9]*.rpm && \
-	popd
+	popd || (echo "ERROR: cortx-hare source code is not available in cortx-workspace. Exiting..."; exit 1)
 
 _cortx-hare_build:
 	@echo "***************  Building cortx-hare RPMS *********************"
@@ -158,7 +158,7 @@ _cortx-posix_prereq:
 		yum localinstall -y ${RPM_DIR}/cortx-motr-[0-9]*.rpm ${RPM_DIR}/cortx-motr-devel-[0-9]*.rpm && \
 		yum install libevhtp libevhtp-devel libevent libevent-devel userspace-rcu-devel dbus-devel -y && \
 		sed -i 's/QA_CHECK_RPATHS=1/QA_CHECK_RPATHS=0/g' ~/.rpmmacros && \
-	popd
+	popd || (echo "ERROR: cortx-posix source code is not available in cortx-workspace. Exiting..."; exit 1)
 
 _cortx-posix_build:
 	@echo "***************  Building cortx-posix RPMS *********************"
@@ -184,12 +184,12 @@ _cortx-py-utils_build:
 	@echo "***************  Installing cortx-management-portal Prereqsites *********************"
 	pushd cortx-workspace/cortx-utils/py-utils && \
 		yum install python36-devel -y && \
-		python3.6 setup.py bdist_rpm --version=${RELEASE_VERSION} --post-install utils-post-install --post-uninstall utils-post-uninstall --post-uninstall utils-post-uninstall --release="${BUILD_NUMBER}_$(git rev-parse --short HEAD)" && \
+		python3.6 setup.py bdist_rpm --version=${RELEASE_VERSION} --post-install utils-post-install --post-uninstall utils-post-uninstall --post-uninstall utils-post-uninstall --release="${BUILD_ID}_$(git rev-parse --short HEAD)" && \
 		../statsd-utils/jenkins/build.sh -b ${BUILD_ID} && \
 		mv /cortx-workspace/cortx-utils/statsd-utils/dist/rpmbuild/RPMS/x86_64/*.rpm ${RPM_DIR} && \
 		mv /cortx-workspace/cortx-utils/py-utils/dist/*.rpm ${RPM_DIR} && \
 		createrepo -v ${RPM_DIR} && \
-	popd
+	popd || (echo "ERROR: cortx-utils source code is not available in cortx-workspace. Exiting..."; exit 1)
 
 #***********************************************************************************
 #   Component:  cortx-management-portal
@@ -203,7 +203,7 @@ _cortx-management-portal_prereq:
 	pushd cortx-workspace/cortx-management-portal && \
 		yum localinstall -y ${RPM_DIR}/cortx-py-utils*noarch.rpm ${RPM_DIR}/cortx-prvsnr*.rpm ${RPM_DIR}/python36-cortx-prvsnr*.rpm  && \
         pip3.6 install  pyinstaller==3.5 && \
-	popd
+	popd || (echo "ERROR: cortx-management-portal source code is not available in cortx-workspace. Exiting..."; exit 1)
 
 _cortx-management-portal_build:
 	@echo "***************  Building cortx-management-portal RPMS *********************"
@@ -230,7 +230,7 @@ _cortx-manager_prereq:
 	pushd cortx-workspace/cortx-manager && \
 		yum localinstall -y ${RPM_DIR}/cortx-py-utils*noarch.rpm ${RPM_DIR}/cortx-prvsnr*.rpm ${RPM_DIR}/python36-cortx-prvsnr*.rpm && \
         pip3.6 install  pyinstaller==3.5 && \
-	popd
+	popd || (echo "ERROR: cortx-manager source code is not available in cortx-workspace. Exiting..."; exit 1)
 
 _cortx-manager_build:
 	@echo "***************  Building cortx-manager RPMS *********************"
@@ -238,7 +238,7 @@ _cortx-manager_build:
 	pushd cortx-workspace/cortx-manager && \
 		BUILD=$$(git rev-parse --short HEAD) && \
 		echo "Python:$(python --version)" && \
-		./cicd/build.sh -v ${RELEASE_VERSION} -b "${BUILD_ID}" -t -i && \
+		./cicd/build.sh -v ${RELEASE_VERSION} -b "${BUILD_ID}" && \
 		cp ./dist/rpmbuild/RPMS/x86_64/*.rpm ${RPM_DIR} && \
 		createrepo -v ${RPM_DIR} && \
 	popd
@@ -255,7 +255,7 @@ _prvsnr_prereq:
 
 	pushd cortx-workspace/cortx-prvsnr/ && \
 		yum install -y python && \
-	popd
+	popd || (echo "ERROR: cortx-prvsnr codebase is not available in cortx-workspace.Exiting..."; exit 1)
 
 _prvsnr_build:
 	@echo "***************  Building cortx-prvsnr RPMS *********************"
@@ -281,7 +281,7 @@ _cortx-monitor_prereq:
 	pushd cortx-workspace/cortx-monitor && \
 		yum localinstall -y ${RPM_DIR}/cortx-py-utils*noarch.rpm && \
 		yum install sudo python-Levenshtein libtool doxygen python-pep8 openssl-devel graphviz check-devel -y && \
-	popd
+	popd || (echo "ERROR: cortx-monitor source code is not available in cortx-workspace. Exiting..."; exit 1)
 
 _cortx-monitor_build:
 	@echo "***************  Building sspl RPMS *********************"
@@ -311,7 +311,7 @@ _ha_prereq:
 		yum install cortx-py-utils -y && \
 		bash ./jenkins/cicd/cortx-ha-dep.sh  && \
 		pip3 install numpy && \
-	popd
+	popd || (echo "ERROR: cortx-ha source code is not available in cortx-workspace. Exiting..."; exit 1)
 
 _ha_build:
 	@echo "***************  Building HA RPMS *********************"

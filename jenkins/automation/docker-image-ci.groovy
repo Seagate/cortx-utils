@@ -21,6 +21,7 @@ pipeline {
     parameters {
 
         string(name: 'CORTX_RE_BRANCH', defaultValue: 'main', description: 'Branch or GitHash to build docker image', trim: true)
+        string(name: 'CORTX_RE_REPO', defaultValue: 'https://github.com/Seagate/cortx-re', description: 'Repository to build docker image', trim: true)
 
         choice (
             name: 'OS_VERSION', 
@@ -47,7 +48,7 @@ pipeline {
         stage('Checkout Script') {
             steps {             
                 script {
-                    checkout([$class: 'GitSCM', branches: [[name: '${CORTX_RE_BRANCH}']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: 'https://github.com/shailesh-vaidya/cortx-re/']]])                
+                    checkout([$class: 'GitSCM', branches: [[name: "${CORTX_RE_BRANCH}"]], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: "${CORTX_RE_REPO}"]]])                
                 }
             }
         }
@@ -59,7 +60,7 @@ pipeline {
 				echo -e "Running on $HOST_HOSTNAME"
                 		echo 'y' | docker image prune
 		                if [ $ENVIRONMENT == "internal-ci" ]; then
-                	    	    docker-compose -f docker/cortx-build/docker-compose.yml build --force-rm  --compress --build-arg GIT_HASH="$(git rev-parse --short HEAD)" cortx-build-internal-$OS_VERSION
+                	    	docker-compose -f docker/cortx-build/docker-compose.yml build --force-rm  --compress --build-arg GIT_HASH="$(git rev-parse --short HEAD)" cortx-build-internal-$OS_VERSION
 		                else
                 		    docker-compose -f docker/cortx-build/docker-compose.yml build --force-rm  --compress --build-arg GIT_HASH="$(git rev-parse --short HEAD)" cortx-build-$OS_VERSION
 		                fi
@@ -76,10 +77,12 @@ pipeline {
 
                 sh label: 'Validate Docker image', script: '''
                 if [ $ENVIRONMENT == "internal-ci" ]; then
-                    docker run --rm -v /mnt/docker/tmp/cortx-workspace:/cortx-workspace -v /mnt/docker/tmp/artifacts:/var/artifacts ghcr.io/seagate/cortx-re/cortx-build-internal:$OS_VERSION make clean build -i
+                    docker run --rm -v /mnt/docker/tmp/cortx-workspace:/cortx-workspace -v /mnt/docker/tmp/artifacts:/var/artifacts ghcr.io/seagate/cortx-re/cortx-build-internal:$OS_VERSION make clean build
                 else    
-                    docker run --rm -v /mnt/docker/tmp/cortx-workspace:/cortx-workspace -v /mnt/docker/tmp/artifacts:/var/artifacts ghcr.io/seagate/cortx-build:$OS_VERSION make clean build -i
-                fi    
+                    docker run --rm -v /mnt/docker/tmp/cortx-workspace:/cortx-workspace -v /mnt/docker/tmp/artifacts:/var/artifacts ghcr.io/seagate/cortx-build:$OS_VERSION make clean build
+                fi
+                echo "CORTX Packages generated..."
+                cat /mnt/docker/tmp/artifacts/0/cortx_iso/RELEASE.INFO
                 rm -rf /mnt/docker/tmp/
                 '''
 			}
