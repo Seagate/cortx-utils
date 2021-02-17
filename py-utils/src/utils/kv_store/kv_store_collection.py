@@ -41,6 +41,7 @@ class JsonKvStore(KvStore):
     def load(self) -> KvPayload:
         """ Reads from the file """
         import json
+        from json.decoder import JSONDecodeError
         data = {}
         with open(self._store_path, 'r') as f:
             try:
