@@ -4,7 +4,7 @@ Release: %{_build_number}_%{dist}
 Summary: STATS Tools
 License: Seagate
 Requires: statsd
-URL: http://gitlab.mero.colo.seagate.com/third_party/statsd-utils
+URL: https://github.com/Seagate/cortx-utils
 Source0: statsd-utils-%{version}.tar.gz
 %define debug_package %{nil}
 

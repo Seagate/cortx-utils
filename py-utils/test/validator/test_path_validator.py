@@ -1,7 +1,8 @@
-#!/bin/python3
+#!/usr/bin/env python3
 
 # CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -15,40 +16,23 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-class KvStorage:
-    """
-    This Abstract class will serve as base for key-value storage/db.
-    The classes will extend this and provide their implementation of
-    get, set and delete.
-    """
+import unittest
+from cortx.utils.validator.v_path import PathV
 
-    def __init__(self):
-        pass
+class TestPathValidator(unittest.TestCase):
+	"""Test Path related validations."""
+	paths = ["dir:/", "file:/etc/hosts", "device:/dev/loop9"]
+	host = "localhost"
 
-    def get(self, key):
-        pass
+	def test_path(self):
+		"""Check paths."""
 
-    def set(self, key, value):
-        pass
+		PathV().validate('exists', self.paths)
 
-    def delete(self, key):
-        pass
+	def test_remote_path(self):
+		"""Check paths."""
 
+		PathV().validate('exists', self.paths, self.host)
 
-class KvStore:
-    """
-    This class will take KvStorage implementation as input and be front facing
-    to the consumer.
-    """
-
-    def __init__(self, kvStorage):
-        self._storage = kvStorage
-
-    def get(self, key):
-        return self._storage.get(key)
-
-    def set(self, key, value):
-        return self._storage.set(key, value)
-
-    def delete(self, key):
-        return self._storage.delete(key)
+if __name__ == '__main__':
+    unittest.main()
