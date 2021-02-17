@@ -200,7 +200,7 @@ class JsonMessageKvStore(JsonKvStore):
 
     name = "jsonmessage"
 
-    def __init__(self, store_loc, store_pathit , delim='>'):
+    def __init__(self, store_loc, store_path, delim='>'):
         """
         Represents the Json Without FIle
         :param json_str: Json String to be processed :type: str
