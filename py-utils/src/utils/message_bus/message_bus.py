@@ -30,8 +30,7 @@ class MessageBus:
     def __init__(self):
         """ Initialize a MessageBus and load its configurations """
         try:
-            if Conf._payloads == {}:
-                Conf.load('message_bus', Json(self.conf_file))
+            Conf.load('message_bus', Json(self.conf_file))
             self._broker_conf = Conf.get('message_bus', 'message_broker')
             broker_type = self._broker_conf['type']
 
@@ -46,14 +45,30 @@ class MessageBus:
         """ To create producer/consumer client based on the configurations """
         self._broker.init_client(client_type, **client_conf)
 
-    def send(self, client_id: str, message_type: list, method: str, \
+    def register_message_type(self, client_id: str, message_types: list, \
+        partitions: int):
+        """ Registers list of message types in the configured message broker """
+        self._broker.register_message_type(client_id, message_types, \
+            partitions)
+
+    def deregister_message_type(self, client_id: str, message_types: list):
+        """ Deregisters list of message types in the configured message broker """
+        self._broker.deregister_message_type(client_id, message_types)
+
+    def increase_parallelism(self, client_id: str, message_types: list, \
+        partitions: int):
+        """ Increases partition to achieve parallelism """
+        self._broker.increase_parallelism(client_id, message_types, \
+            partitions)
+
+    def send(self, client_id: str, message_type: str, method: str, \
         messages: list):
         """ Sends list of messages to the configured message broker """
         self._broker.send(client_id, message_type, method, messages)
 
-    def delete(self, message_type: str):
+    def delete(self, client_id: str, message_type: str):
         """ Deletes all the messages from the configured message broker """
-        self._broker.delete(message_type)
+        self._broker.delete(client_id, message_type)
 
     def receive(self, client_id: str, timeout: float = None) -> list:
         """ Receives messages from the configured message broker """

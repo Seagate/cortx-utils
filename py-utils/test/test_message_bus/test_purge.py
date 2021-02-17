@@ -45,7 +45,7 @@ class TestMessage(unittest.TestCase):
         """ Test Receive Message. """
         consumer = MessageConsumer(TestMessage.message_bus, \
             consumer_id='sspl_sensors', consumer_group='sspl', \
-            message_type=['Sel'], auto_ack=False, offset='latest')
+            message_types=['Sel'], auto_ack=False, offset='latest')
 
         self.assertIsNotNone(consumer, "Consumer not found")
         count = 0

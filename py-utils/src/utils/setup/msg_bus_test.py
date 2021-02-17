@@ -19,11 +19,12 @@ import time
 from cortx.utils.setup import SetupError
 from cortx.utils.process import SimpleProcess
 
+
 class MessageBusTest:
     """ Represents Message Bus Test methods """
 
     def __init__(self):
-        from cortx.utils.message_bus import MessageBus, MessageConsumer, MessageProducer
+        from cortx.utils.message_bus import MessageBus
         from cortx.utils.conf_store import Conf
         Conf.load("index", "json:///etc/cortx/message_bus.conf")
         self._server = Conf.get("index",'message_broker>cluster[0]>server')
@@ -40,7 +41,6 @@ class MessageBusTest:
             raise SetupError(errno.EINVAL, \
                              "Unable to test the config, %s", e)
 
-
     def __del__(self):
         # Delete the test topic
         cmd = "/opt/kafka/bin/kafka-topics.sh --delete" + \
@@ -54,21 +54,19 @@ class MessageBusTest:
             raise SetupError(errno.EINVAL, \
                              "Unable to test the config, %s", e)
 
-
     def send_msg(self, message):
         """ Sends a  message """
-        from cortx.utils.message_bus import MessageBus, MessageConsumer, MessageProducer
+        from cortx.utils.message_bus import MessageProducer
         producer = MessageProducer(self._msg_bus, producer_id='setup', \
             message_type='mytest', method='sync')
         producer.send(message)
         time.sleep(1)
 
-
     def receive_msg(self):
         """ Receives a message """
-        from cortx.utils.message_bus import MessageBus, MessageConsumer, MessageProducer
+        from cortx.utils.message_bus import MessageConsumer
         consumer = MessageConsumer(self._msg_bus, consumer_id='setup', \
-            consumer_group='provisioner', message_type=['mytest'], auto_ack=False, \
+            consumer_group='provisioner', message_types=['mytest'], auto_ack=False, \
             offset='earliest')
         while True:
             try:
@@ -79,5 +77,4 @@ class MessageBusTest:
                     return message
             except Exception as e:
                 raise SetupError(errno.EINVAL, \
-                             "Unable to test the config, %s", e)
-
+                             "Unable to test the config. %s", e)

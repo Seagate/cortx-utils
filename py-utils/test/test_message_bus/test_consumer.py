@@ -28,7 +28,7 @@ class TestMessage(unittest.TestCase):
         """ Test Receive Message. """
         message_bus = MessageBus()
         consumer = MessageConsumer(message_bus, consumer_id='sel', \
-            consumer_group='sel', message_type=['Sel'], auto_ack=False, \
+            consumer_group='sel', message_types=['Sel'], auto_ack=False, \
             offset='latest')
 
         self.assertIsNotNone(consumer, "Consumer not found")

@@ -20,7 +20,8 @@ import time
 import json
 import re
 from confluent_kafka import Producer, Consumer
-from confluent_kafka.admin import AdminClient, ConfigResource
+from confluent_kafka.admin import AdminClient, ConfigResource, NewTopic, \
+    NewPartitions
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus.message_broker import MessageBroker
 from cortx.utils.process import SimpleProcess
@@ -38,6 +39,7 @@ class KafkaMessageBroker(MessageBroker):
     # Maximum retry count
     _max_config_retry_count = 3
     _max_purge_retry_count = 5
+    _max_list_message_type_count = 15
 
     # Polling timeout
     _default_timeout = 0.5
@@ -46,10 +48,7 @@ class KafkaMessageBroker(MessageBroker):
         """ Initialize Kafka based Configurations """
         super().__init__(broker_conf)
 
-        kafka_conf = {'bootstrap.servers': self._servers}
-        self._admin = AdminClient(kafka_conf)
-
-        self._clients = {'producer': {}, 'consumer': {}}
+        self._clients = {'admin': {}, 'producer': {}, 'consumer': {}}
 
     def init_client(self, client_type: str, **client_conf: dict):
         """ Obtain Kafka based Producer/Consumer """
@@ -67,12 +66,16 @@ class KafkaMessageBroker(MessageBroker):
         kafka_conf['bootstrap.servers'] = self._servers
         kafka_conf['client.id'] = client_conf['client_id']
 
+        if client_type == 'admin' or self._clients['admin'] == {}:
+            admin = AdminClient(kafka_conf)
+            self._clients['admin'][client_conf['client_id']] = admin
+
         if client_type == 'producer':
             producer = Producer(**kafka_conf)
             self._clients[client_type][client_conf['client_id']] = producer
 
             self._resource = ConfigResource('topic', client_conf['message_type'])
-            conf = self._admin.describe_configs([self._resource])
+            conf = admin.describe_configs([self._resource])
             default_configs = list(conf.values())[0].result()
             for params in ['retention.ms']:
                 if params not in default_configs:
@@ -87,8 +90,8 @@ class KafkaMessageBroker(MessageBroker):
                 self._saved_retention == self._min_msg_retention_period else \
                 int(default_configs['retention.ms'].__dict__['value'])
 
-        else:
-            for entry in ['offset', 'consumer_group', 'message_type', \
+        elif client_type == 'consumer':
+            for entry in ['offset', 'consumer_group', 'message_types', \
                 'auto_ack', 'client_id']:
                 if entry not in client_conf.keys():
                     raise MessageBusError(errno.EINVAL, "Missing conf entry \
@@ -99,12 +102,127 @@ class KafkaMessageBroker(MessageBroker):
             kafka_conf['group.id'] = client_conf['consumer_group']
 
             consumer = Consumer(**kafka_conf)
-            consumer.subscribe(client_conf['message_type'])
+            consumer.subscribe(client_conf['message_types'])
             self._clients[client_type][client_conf['client_id']] = consumer
+
+    def _task_status(self, tasks :dict):
+        """ Check if the task is completed successfully """
+        for message_type, f in tasks.items():
+            try:
+                f.result()  # The result itself is None
+            except Exception as e:
+                raise MessageBusError(errno.EINVAL, "Admin operation fails for \
+                    %s. %s", message_type, e)
+
+    def _get_metadata(self, admin: object):
+        """ To get the metadata information of message type """
+        try:
+            message_type_metadata = admin.list_topics().__dict__
+            return message_type_metadata['topics']
+        except Exception as e:
+            raise MessageBusError(errno.EINVAL, "Unable to list message type. \
+                %s", e)
+
+    def register_message_type(self, admin_id: str, message_types: list, \
+        partitions: int):
+        """
+        Creates a list of message types.
+
+        Parameters:
+        admin_id        A String that represents Admin client ID.
+        message_types   This is essentially equivalent to the list of
+                        queue/topic name. For e.g. ["Alert"]
+        partitions      Integer that represents number of partitions to be
+                        created.
+        """
+        admin = self._clients['admin'][admin_id]
+        new_message_type = [NewTopic(each_message_type, \
+            num_partitions=partitions) for each_message_type in message_types]
+        created_message_types = admin.create_topics(new_message_type)
+        self._task_status(created_message_types)
+
+        for each_message_type in message_types:
+            for list_retry in range(1, self._max_list_message_type_count+2):
+                if each_message_type not in \
+                    list(self._get_metadata(admin).keys()):
+                    if list_retry > self._max_list_message_type_count:
+                        raise MessageBusError(errno.EINVAL, "Maximum retries \
+                            exceeded for creating %s.", each_message_type)
+                    time.sleep(list_retry*1)
+                    continue
+                else:
+                    break
+
+    def deregister_message_type(self, admin_id: str, message_types: list):
+        """
+        Deletes a list of message types.
+
+        Parameters:
+        admin_id        A String that represents Admin client ID.
+        message_types   This is essentially equivalent to the list of
+                        queue/topic name. For e.g. ["Alert"]
+        """
+        admin = self._clients['admin'][admin_id]
+        deleted_message_types = admin.delete_topics(message_types)
+        self._task_status(deleted_message_types)
+
+        for each_message_type in message_types:
+            for list_retry in range(1, self._max_list_message_type_count+2):
+                if each_message_type in list(self._get_metadata(admin).keys()):
+                    if list_retry > self._max_list_message_type_count:
+                        raise MessageBusError(errno.EINVAL, "Maximum retries \
+                            exceeded for deleting %s.", each_message_type)
+                    time.sleep(list_retry*1)
+                    continue
+                else:
+                    break
+
+    def increase_parallelism(self, admin_id: str, message_types: list, \
+        partitions: int):
+        """
+        Increases the partitions for for a list of message types.
+
+        Parameters:
+        admin_id        A String that represents Admin client ID.
+        message_types   This is essentially equivalent to the list of
+                        queue/topic name. For e.g. ["Alert"]
+        partitions      Integer that represents number of partitions to be
+                        increased.
+
+        Note:  Number of partitions for a topic can only be increased, never
+               decreased
+        """
+        admin = self._clients['admin'][admin_id]
+        new_partition = [NewPartitions(each_message_type, \
+            new_total_count=partitions) for each_message_type in message_types]
+        partitions = admin.create_partitions(new_partition)
+        self._task_status(partitions)
+
+        for each_message_type in message_types:
+            for list_retry in range(1, self._max_list_message_type_count+2):
+                if partitions != len(self._get_metadata(admin)\
+                    [each_message_type].__dict__['partitions']):
+                    if list_retry > self._max_list_message_type_count:
+                        raise MessageBusError(errno.EINVAL, "Maximum retries \
+                            exceeded to increase partition for %s.", \
+                            each_message_type)
+                    time.sleep(list_retry*1)
+                    continue
+                else:
+                    break
 
     def send(self, producer_id: str, message_type: str, method: str, \
         messages: list, timeout=0.1):
-        """ Sends list of messages to Kafka cluster(s) """
+        """
+        Sends list of messages to Kafka cluster(s)
+
+        Parameters:
+        producer_id     A String that represents Producer client ID.
+        message_type    This is essentially equivalent to the
+                        queue/topic name. For e.g. "Alert"
+        method          Can be set to "sync" or "async"(default).
+        messages        A list of messages sent to Kafka Message Server
+        """
         producer = self._clients['producer'][producer_id]
         if producer is None:
             raise MessageBusError(errno.EINVAL, "Producer %s is not \
@@ -137,12 +255,20 @@ class KafkaMessageBroker(MessageBroker):
             raise MessageBusError(errno.EINVAL, "Unable to fetch log size for \
                 message type %s. %s" , message_type, e)
 
-    def delete(self, message_type: str):
-        """ Deletes all the messages from Kafka cluster(s) """
+    def delete(self, admin_id: str, message_type: str):
+        """
+        Deletes all the messages from Kafka cluster(s)
+
+        Parameters:
+        message_type    This is essentially equivalent to the
+                        queue/topic name. For e.g. "Alert"
+        """
+        admin = self._clients['admin'][admin_id]
+
         for tuned_retry in range(self._max_config_retry_count):
             self._resource.set_config('retention.ms', \
                 self._min_msg_retention_period)
-            tuned_params = self._admin.alter_configs([self._resource])
+            tuned_params = admin.alter_configs([self._resource])
             if list(tuned_params.values())[0].result() is not None:
                 if tuned_retry > 1:
                     raise MessageBusError(errno.EINVAL, "Unable to change \
@@ -162,7 +288,7 @@ class KafkaMessageBroker(MessageBroker):
 
         for default_retry in range(self._max_config_retry_count):
             self._resource.set_config('retention.ms', self._saved_retention)
-            default_params = self._admin.alter_configs([self._resource])
+            default_params = admin.alter_configs([self._resource])
             if list(default_params.values())[0].result() is not None:
                 if default_retry > 1:
                     raise MessageBusError(errno.EINVAL, "Unknown configuration \
