@@ -28,7 +28,7 @@ class Cmd:
     _index = "setup"
 
     def __init__(self, args: dict):
-        self._url = args.url
+        self._url = args.config
         self._args = args.args
 
     @property
@@ -44,7 +44,7 @@ class Cmd:
         """ Print usage instructions """
 
         sys.stderr.write(
-            f"usage: {prog} [-h] <cmd> <url> <args>...\n"
+            f"usage: {prog} [-h] <cmd> --config <url> <args>...\n"
             f"where:\n"
             f"cmd   post_install, config, init, reset, test\n"
             f"url   Config URL\n")
@@ -69,7 +69,7 @@ class Cmd:
         """ Add Command args for parsing """
 
         parser1 = parser.add_parser(cls.name, help='setup %s' % name)
-        parser1.add_argument('url', help='Conf Store URL')
+        parser1.add_argument('--config', help='Conf Store URL', type=str)
         parser1.add_argument('args', nargs='*', default=[], help='args')
         parser1.set_defaults(command=cls)
 
