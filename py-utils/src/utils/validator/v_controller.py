@@ -24,7 +24,7 @@ from cortx.utils.validator.error import VError
 
 
 class ControllerV:
-    """Controller related validations."""
+    """ Controller related validations. """
 
     def __init__(self):
         self.version_cmd = "show versions"
@@ -62,7 +62,7 @@ class ControllerV:
                 errno.EINVAL, f"Action parameter '{v_type}' is not supported. Refer usage.")
 
     def validate_controller_accessibility(self, ip, username, password):
-        """Check contoller console is accessible to node."""
+        """ Check contoller console is accessible to node. """
         # Check if ssh connection is successful
         try:
             session = SSHChannel(host=ip, username=username, password=password)
@@ -82,7 +82,8 @@ class ControllerV:
             raise VError(errno.EINVAL, msg)
 
     def validate_firmware(self, ip, username, password, mc_expected):
-        """Check expected contoller bundle version found
+        """
+        Check expected contoller bundle version found
         mc_expected: string or list of expected version(s).
         """
         try:
