@@ -24,7 +24,7 @@ from cortx.utils.validator.error import VError
 
 
 class ControllerV:
-    """ Controller related validations. """
+    """ Controller related validations """
 
     def __init__(self):
         self.version_cmd = "show versions"
@@ -39,46 +39,53 @@ class ControllerV:
         """
 
         if not isinstance(args, list):
-            raise VError(errno.EINVAL, f"Invalid parameters {args}")
+            raise VError(errno.EINVAL, "Invalid parameters %s" % args)
 
         if v_type == "accessible":
             if len(args) < 3:
-                raise VError(errno.EINVAL, f"Insufficient parameters. {args}")
+                raise VError(
+                    errno.EINVAL, "Insufficient parameters. %s" % args)
 
             if len(args) > 3:
                 raise VError(errno.EINVAL,
-                        f"Too many parameters '{args}' for 'Controller accessible'. Refer usage.")
+                             "Too many parameters '%s' for 'Controller accessible'.\
+                                 Refer usage." % args)
             self.validate_controller_accessibility(args[0], args[1], args[2])
         elif v_type == "firmware":
             if len(args) < 4:
-                raise VError(errno.EINVAL, f"Insufficient parameters. {args}")
+                raise VError(
+                    errno.EINVAL, "Insufficient parameters. %s" % args)
 
             if len(args) > 4:
                 raise VError(errno.EINVAL,
-                        f"Too many parameters '{args}' for 'Controller firmware'. Refer usage.")
+                             "Too many parameters '%s' for 'Controller firmware'.\
+                                 Refer usage." % args)
             self.validate_firmware(args[0], args[1], args[2], args[3])
         else:
             raise VError(
-                errno.EINVAL, f"Action parameter '{v_type}' is not supported. Refer usage.")
+                errno.EINVAL, "Action parameter '{%s}' is not supported.\
+                    Refer usage." % v_type)
 
     def validate_controller_accessibility(self, ip, username, password):
-        """ Check contoller console is accessible to node. """
+        """ Check contoller console is accessible to node """
         # Check if ssh connection is successful
         try:
-            session = SSHChannel(host=ip, username=username, password=password)
+            session = SSHChannel(
+                host=ip, username=username, password=password)
             session.disconnect()
         except:
-            sshError = traceback.format_exc()
+            err = traceback.format_exc()
             raise VError(
-                errno.EINVAL, f"Failed to create ssh connection to {ip}, '{sshError}'")
+                errno.EINVAL, "Failed to create ssh connection to %s, Error: %s" % (ip, err))
 
         # ping controller IP
-        cmd = f"ping -c 1 -W 1 {ip}"
+        cmd = "ping -c 1 -W 1 %s" % ip
         cmd_proc = SimpleProcess(cmd)
         stdout, stderr, rc = cmd_proc.run()
         if rc != 0:
-            msg = f"Ping failed for IP '{ip}'. Command: '{cmd}', Return Code: '{rc}'."
-            msg += stderr.decode("utf-8").replace('\r','').replace('\n','')
+            msg = "Ping failed for IP '%s'. Command: '%s', Return Code: '%s'." % (
+                ip, cmd, rc)
+            msg += stderr.decode("utf-8").replace('\r', '').replace('\n', '')
             raise VError(errno.EINVAL, msg)
 
     def validate_firmware(self, ip, username, password, mc_expected):
@@ -87,17 +94,19 @@ class ControllerV:
         mc_expected: string or list of expected version(s).
         """
         try:
-            session = SSHChannel(host=ip, username=username, password=password)
+            session = SSHChannel(
+                host=ip, username=username, password=password)
         except:
-            sshError = traceback.format_exc()
+            err = traceback.format_exc()
             raise VError(
-                errno.EINVAL, f"Failed to create ssh connection to {ip}, '{sshError}'")
+                errno.EINVAL, "Failed to create ssh connection to %s, Error: %s'" % (ip, err))
 
         # check firmware version command execution on MC
         rc, output = session.execute(self.version_cmd)
         if (rc != 0) or (self.success_msg not in output):
-            raise VError(
-                errno.EINVAL, f"Command failure on controller, '{self.version_cmd}'")
+            raise VError(errno.EINVAL,
+                         "Controller command failure. Command: %s Output: %s" % (
+                             self.version_cmd, output))
 
         # check expected bundle version is found on MC
         _supported = False
@@ -108,7 +117,7 @@ class ControllerV:
                 _supported = True if mc_expected in output else False
 
         if not _supported:
-            raise VError(errno.EINVAL, f"Unsupported firmware version found on {ip}.\
-                Expected controller bundle version(s): {mc_expected}")
+            raise VError(errno.EINVAL, "Unsupported firmware version found on %s.\
+                Expected controller bundle version(s): %s" % (ip, mc_expected))
 
         session.disconnect()

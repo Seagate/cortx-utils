@@ -30,48 +30,53 @@ sys.path.append(utils_root)
 
 
 class TestControllerV(unittest.TestCase):
-    """ Test storage controller related validations. """
+    """ Test storage controller related validations """
 
     IP = ""
     USERNAME = ""
     PASSWD = ""
 
     def setUp(self):
-        """ Initialize controller validator. """
+        """ Initialize controller validator """
         self.cntrlr_validator = ControllerV()
 
     def test_accessibility_ok(self):
-        """ Check primary & secondary controller are reachable. """
-        self.cntrlr_validator.validate("accessible", [self.IP, self.USERNAME, self.PASSWD])
+        """ Check primary & secondary controller are reachable """
+        self.cntrlr_validator.validate(
+            "accessible", [self.IP, self.USERNAME, self.PASSWD])
 
     def test_firmware_version_ok(self):
-        """ Check controller bundle version. """
+        """ Check controller bundle version """
         mc_expected = ["GN265", "GN280"]
-        self.cntrlr_validator.validate("firmware", [self.IP, self.USERNAME, self.PASSWD, mc_expected])
+        self.cntrlr_validator.validate(
+            "firmware", [self.IP, self.USERNAME, self.PASSWD, mc_expected])
 
     def test_accessibility_no_args_error(self):
-        """ Check 'accessible' validation type for no arguments. """
-        self.assertRaises(VError, self.cntrlr_validator.validate, 'accessible', [])
+        """ Check 'accessible' validation type for no arguments """
+        self.assertRaises(
+            VError, self.cntrlr_validator.validate, 'accessible', [])
 
     def test_incorrect_vtype(self):
-        """ Check incorrect validation type. """
+        """ Check incorrect validation type """
         self.assertRaises(VError, self.cntrlr_validator.validate, 'dummy', [])
 
     def test_accessibility_auth_error(self):
-        """ Check 'accessible' validation type for invalid user access. """
+        """ Check 'accessible' validation type for invalid user access """
         invalid_data = [self.IP, "tester007", "Tester!007"]
-        self.assertRaises(VError, self.cntrlr_validator.validate, 'accessible', invalid_data)
+        self.assertRaises(VError, self.cntrlr_validator.validate,
+                          'accessible', invalid_data)
 
     def test_accessibility_conn_error(self):
-        """ Check 'accessible' validation type for invalid ip. """
+        """ Check 'accessible' validation type for invalid ip """
         invalid_data = ["10.256.256.10", "tester007", "Tester!007"]
-        self.assertRaises(VError, self.cntrlr_validator.validate, 'accessible', invalid_data)
+        self.assertRaises(VError, self.cntrlr_validator.validate,
+                          'accessible', invalid_data)
 
     def test_unsupported_bundle(self):
-        """ Check 'accessible' validation for an unsupported bundle version of controller. """
+        """ Check 'accessible' validation for an unsupported bundle version of controller """
         mc_expected = ["GN000", "280GN"]
-        self.assertRaises(VError, self.cntrlr_validator.validate, "firmware",\
-            [self.IP, self.USERNAME, self.PASSWD, mc_expected])
+        self.assertRaises(VError, self.cntrlr_validator.validate, "firmware", [
+                          self.IP, self.USERNAME, self.PASSWD, mc_expected])
 
     def test_web_service(self):
         # TODO: validate web service availability
@@ -83,7 +88,8 @@ class TestControllerV(unittest.TestCase):
 
 if __name__ == '__main__':
     if len(sys.argv[1:]) < 3:
-        raise Exception("Insufficient arguments. Test requires <ip> <username> <password>")
+        raise Exception(
+            "Insufficient arguments. Test requires <ip> <username> <password>")
     TestControllerV.PASSWD = sys.argv.pop()
     TestControllerV.USERNAME = sys.argv.pop()
     TestControllerV.IP = sys.argv.pop()
