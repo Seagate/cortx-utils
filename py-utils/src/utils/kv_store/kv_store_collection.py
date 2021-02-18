@@ -255,6 +255,9 @@ class PillarKvStore(KvStore):
     
     def load(self, target='*') -> KvPayload:
         """ Loads data from pillar store """
+        ava_target = PillarKvStore.get_available_targets()
+        if target != '*' and target not in ava_target:
+            raise KvError(errno.ENOENT, "Target not present in salt pillar cluster %s.", target)
         cmd = f"salt {target} pillar.items --out=json"
         cmd_proc = SimpleProcess(cmd)
         out, err, rc = cmd_proc.run()
@@ -269,7 +272,22 @@ class PillarKvStore(KvStore):
         except Exception as ex:
             raise KvError(errno.ENOENT, "Cant get data for %s. %s.", key, ex)
         return PillarKvPayload(res, self._delim)
-    
+
+    @staticmethod
+    def get_available_targets() -> dict:
+        cmd_proc = SimpleProcess('salt * test.ping --output=json')
+        out, err, rc = cmd_proc.run()
+        if rc != 0:
+            if rc == 127:
+                err = "salt command not found"
+            raise KvError(rc, "Cant get data for %s. %s.", key, err)
+        try:
+            result = json.loads(out)
+            result = [key for key, value in result.items() if value is True]
+        except Exception as ex:
+            raise KvError(errno.ENOENT, "Cant get data for %s. %s.", key, ex)
+        return result
+
     def dump(self, data, store_path='/tmp/pillar_store.json') -> None:
         """ Saves data onto the file """
         with open(store_path, 'w+') as f:
