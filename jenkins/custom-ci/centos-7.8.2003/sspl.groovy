@@ -34,6 +34,10 @@ pipeline {
 				dir ('cortx-sspl') {
 					checkout([$class: 'GitSCM', branches: [[name: "${SSPL_BRANCH}"]], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'AuthorInChangelog']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: "${SSPL_URL}"]]])
 				}
+				script {
+					version =  sh (script: 'cat ./cortx-sspl/VERSION', returnStdout: true).trim()
+					env.version = version
+				}
 			}
 		}
 		
@@ -41,6 +45,14 @@ pipeline {
 			steps {
 				script { build_stage = env.STAGE_NAME }
 				sh label: '', script: '''
+				echo $version
+				echo ${version}
+				
+				echo "VERSION: $version"
+				if [ "$version" == "1.0.0" ]; then
+					yum-config-manager --disable cortx-C7.7.1908
+				fi	
+					yum clean all && rm -rf /var/chache/yum 
 					yum install sudo python-Levenshtein libtool doxygen python-pep8 openssl-devel graphviz check-devel -y
 				'''
 			}
@@ -56,13 +68,9 @@ pipeline {
 						pushd sspl
 					else
 						pushd cortx-sspl
-					fi	
-					VERSION=$(cat VERSION)
-					export build_number=${BUILD_ID}
-					#Execute build script
-					echo "Executing build script"
-					echo "VERSION:$VERSION"
-					./jenkins/build.sh -l DEBUG
+					fi
+						export build_number=${BUILD_ID}
+						./jenkins/build.sh -v $version -l DEBUG 
 					popd
 				'''	
 			}
