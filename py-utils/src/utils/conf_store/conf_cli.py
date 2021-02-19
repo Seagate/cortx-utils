@@ -38,10 +38,11 @@ class ConfCli:
     @staticmethod
     def set(args):
         """ Set Key Value """
+        kv_delim = '=' if args.kv_delim == None else args.kv_delim
         kv_list = args.args[0].split(';')
         for kv in kv_list:
             try:
-                key, val = kv.split('=')
+                key, val = kv.split(kv_delim, 1)
             except:
                raise ConfError(errno.EINVAL, "Invalid KV pair %s", kv)
             Conf.set(ConfCli._index, key, val)
@@ -109,6 +110,8 @@ class SetCmd:
             "Example command:\n"
             "# conf json:///tmp/csm.conf set 'k1>k2=v1;k3=1'\n\n")
         s_parser.set_defaults(func=ConfCli.set)
+        s_parser.add_argument('-d', dest='kv_delim', 
+            help="Delimiter for k=v (default is '=')")
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 
