@@ -1,7 +1,5 @@
-#!/usr/bin/env python3
-
-# CORTX-Py-Utils: CORTX Python common library.
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# CORTX-PY-UTILS: CORTX common utility code
+# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -15,10 +13,24 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-__title__ = 'message_bus'
+utils:
+    post_install:
+        cmd: /opt/seagate/cortx/utils/bin/utils_setup post_install
+        args: --config $URL
 
-from cortx.utils.message_bus.message_bus import MessageBus
-from cortx.utils.message_bus.message_bus_client import MessageProducer, \
-    MessageConsumer, MessageBusAdmin
-from cortx.utils.message_bus.message_broker import MessageBroker, MessageBrokerFactory
-from cortx.utils.message_bus.error import MessageBusError
+    config:
+        cmd: /opt/seagate/cortx/utils/bin/utils_setup config
+        args: --config $URL
+
+    init:
+        cmd: /opt/seagate/cortx/utils/bin/utils_setup init
+        args: --config $URL
+
+    test:
+        cmd: /opt/seagate/cortx/utils/bin/utils_setup test
+        args: --config $URL
+
+    reset:
+        cmd: /opt/seagate/cortx/utils/bin/utils_setup reset
+        args: --config $URL
+

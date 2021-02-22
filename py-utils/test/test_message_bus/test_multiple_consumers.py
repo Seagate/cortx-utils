@@ -30,7 +30,7 @@ class TestMessage(unittest.TestCase):
         """ Test Receive Message for consumer group 1 """
         consumer = MessageConsumer(TestMessage.message_bus, \
             consumer_id='sspl_sensor', consumer_group='c1', \
-            message_type=['test_type'], auto_ack=False, offset='latest')
+            message_types=['test_type'], auto_ack=False, offset='latest')
 
         self.assertIsNotNone(consumer, "Consumer not found")
         count = 0
@@ -48,7 +48,7 @@ class TestMessage(unittest.TestCase):
         """ Test Receive Message for consumer group 2 """
         consumer = MessageConsumer(TestMessage.message_bus, \
             consumer_id='sspl_sensor1', consumer_group='c3', \
-            message_type=['test_type'], auto_ack=False, offset='latest')
+            message_types=['test_type'], auto_ack=False, offset='latest')
 
         self.assertIsNotNone(consumer, "Consumer not found")
         count = 0
