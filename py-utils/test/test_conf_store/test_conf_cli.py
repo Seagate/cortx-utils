@@ -133,7 +133,7 @@ class TestConfCli(unittest.TestCase):
         set_cmd_proc = SimpleProcess(set_cmd)
         result_data = set_cmd_proc.run()
         self.assertTrue(True if result_data[2]==0 and result_data[0]==b'' else False)
-    
+
     def test_conf_cli_kv_delim_no_value(self):
         """
         Test by trying to set given key with no valu provided
