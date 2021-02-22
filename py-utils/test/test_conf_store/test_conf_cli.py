@@ -89,7 +89,7 @@ class TestConfCli(unittest.TestCase):
         result_data = subprocess.check_output(['conf', 'json:///tmp/file1.json',
                                                'get', 'bridge', '-f', 'yaml'])
         self.assertEqual(result_data, exp_result)
-    
+
     def test_conf_cli_kv_delim_set(self):
         """
         Test by setting a value into given key position with
