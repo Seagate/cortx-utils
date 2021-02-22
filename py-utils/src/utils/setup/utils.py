@@ -71,6 +71,12 @@ def _create_msg_bus_config(kafka_server_list):
     return res_rc
 
 
+def _test_crypto_module():
+    from cryptography.hazmat.backends import default_backend
+    _my_backend = default_backend()
+    return 0
+
+
 class SetupError(Exception):
     """ Generic Exception with error code and output """
 
@@ -131,6 +137,11 @@ class Utils:
     @staticmethod
     def test():
         """ Perform configuration testing """
+        # Test cryptography module loading
+        rc = _test_crypto_module()
+        if rc:
+            raise SetupError(errno.EINVAL, "Unable to test cryptography module")
+        # Message Bus testing
         from cortx.utils.setup import MessageBusTest
         msg_test = MessageBusTest()
         # Send a message
