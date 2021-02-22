@@ -113,6 +113,26 @@ class TestConfCli(unittest.TestCase):
         set_cmd_proc = SimpleProcess(set_cmd)
         result_data = set_cmd_proc.run()
         self.assertTrue( True if result_data[2]==22 else False)
+    
+    def test_conf_cli_invalid_kv_delim(self):
+        """
+        Test by trying to set a value into given key position with
+        invalid kv_delim mentioned
+        """
+        set_cmd = "conf json:///tmp/file1.json set -d { cluster>id}093d"
+        set_cmd_proc = SimpleProcess(set_cmd)
+        result_data = set_cmd_proc.run()
+        self.assertTrue( True if result_data[2]==22 else False)
+    
+    def test_conf_cli_multiple_kv_delim(self):
+        """
+        Test by trying to set a value into given key position with
+        multiple kv_delim argument
+        """
+        set_cmd = "conf json:///tmp/file1.json set -d : : cluster>id:093d"
+        set_cmd_proc = SimpleProcess(set_cmd)
+        result_data = set_cmd_proc.run()
+        self.assertTrue(True if result_data[2]==0 and result_data[0]==b'' else False)
 
 if __name__ == '__main__':
 

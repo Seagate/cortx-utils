@@ -39,6 +39,8 @@ class ConfCli:
     def set(args):
         """ Set Key Value """
         kv_delim = '=' if args.kv_delim == None else args.kv_delim
+        if len(kv_delim) > 1 or kv_delim not in [':', '>', '.', '|', '/']:
+            raise ConfError(errno.EINVAL, "invalid delim %s", kv_delim)
         kv_list = args.args[0].split(';')
         for kv in kv_list:
             try:
