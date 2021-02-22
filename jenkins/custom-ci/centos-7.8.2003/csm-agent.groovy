@@ -1,3 +1,4 @@
+#!/usr/bin/env groovy
 pipeline {
 	agent {
 		node {
@@ -5,25 +6,25 @@ pipeline {
 		}
 	}
 	
-	environment {      
-        env = "dev"
+	environment { 
 		component = "csm-agent"
         branch = "custom-ci" 
         os_version = "centos-7.8.2003"
         release_dir = "/mnt/bigstorage/releases/cortx"
-        build_upload_dir = "$release_dir/components/github/$branch/$os_version/$env/$component/"
+		release_tag = "custom-build-$CUSTOM_CI_BUILD_ID"
+		build_upload_dir = "$release_dir/github/integration-custom-ci/$os_version/$release_tag/cortx_iso"
     }
 
 	options {
 		timeout(time: 60, unit: 'MINUTES')
 		timestamps ()
         ansiColor('xterm')
-        disableConcurrentBuilds()
 	}
 	
 	parameters {  
         string(name: 'CSM_AGENT_URL', defaultValue: 'https://github.com/Seagate/cortx-management.git', description: 'Repository URL for cortx-management build.')
 		string(name: 'CSM_AGENT_BRANCH', defaultValue: 'stable', description: 'Branch for cortx-management build.')
+		string(name: 'CUSTOM_CI_BUILD_ID', defaultValue: '0', description: 'Custom CI Build Number')
 	}	
 
 
@@ -78,7 +79,7 @@ pipeline {
 					echo "Executing build script"
 					echo "VERSION:$VERSION"
 					echo "Python:$(python --version)"
-					./cicd/build.sh -v $VERSION -b $BUILD_NUMBER -t -i -n ldr -l $WORKSPACE/seagate-ldr
+					./cicd/build.sh -v $VERSION -b $CUSTOM_CI_BUILD_ID -t -i -n ldr -l $WORKSPACE/seagate-ldr
 				popd	
 				'''	
 			}
@@ -88,29 +89,9 @@ pipeline {
 			steps {
 				script { build_stage = env.STAGE_NAME }
 				sh label: 'Copy RPMS', script: '''
-					mkdir -p $build_upload_dir/$BUILD_NUMBER
-					cp ./cortx-manager/dist/rpmbuild/RPMS/x86_64/*.rpm $build_upload_dir/$BUILD_NUMBER
-				'''
-				sh label: 'Repo Creation', script: '''pushd $build_upload_dir/$BUILD_NUMBER
-					rpm -qi createrepo || yum install -y createrepo
-					createrepo .
-					popd
-				'''
-				sh label: 'Tag last_successful', script: '''pushd $build_upload_dir/
-					test -d $build_upload_dir/last_successful && rm -f last_successful
-					ln -s $build_upload_dir/$BUILD_NUMBER last_successful
-					popd
-				'''
-			}
-		}
-
-		stage ('Tag last_successful') {
-			steps {
-				script { build_stage = env.STAGE_NAME }
-				sh label: 'Tag last_successful', script: '''pushd $build_upload_dir/
-					test -L $build_upload_dir/last_successful && rm -f last_successful
-					ln -s $build_upload_dir/$BUILD_NUMBER last_successful
-					popd
+					mkdir -p $build_upload_dir
+					cp ./cortx-manager/dist/rpmbuild/RPMS/x86_64/*.rpm $build_upload_dir
+					createrepo -v --update $build_upload_dir
 				'''
 			}
 		}

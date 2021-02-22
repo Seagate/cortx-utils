@@ -1,3 +1,5 @@
+properties([[$class: 'ThrottleJobProperty', categories: [], limitOneJobWithMatchingParams: true, maxConcurrentPerNode: 5, maxConcurrentTotal: 5, paramsToUseForLimit: '', throttleEnabled: true, throttleOption: 'project']])
+
 pipeline {
 
 	agent {
@@ -10,23 +12,21 @@ pipeline {
 		version = "2.0.0"
 		branch = "custom-ci"
 		os_version = "centos-7.8.2003"
-		thrid_party_version = "2.0.0-latest"
 		release_dir = "/mnt/bigstorage/releases/cortx"
-		integration_dir = "$release_dir/github/integration-custom-ci/release/$os_version"
-		components_dir = "$release_dir/components/github/$branch/$os_version"
+		integration_dir = "$release_dir/github/integration-custom-ci/$os_version/"
 		release_tag = "custom-build-$BUILD_ID"
 		passphrase = credentials('rpm-sign-passphrase')
-		// thrid_party_dir = "$release_dir/third-party-deps/centos/centos-7.8.2003-$thrid_party_version/"
 		python_deps = "$release_dir/third-party-deps/python-deps/python-packages-2.0.0-latest"
 		cortx_os_iso = "/mnt/bigstorage/releases/cortx_builds/custom-os-iso/cortx-os-1.0.0-23.iso"
+		third_party_dir = "${THIRD_PARTY_VERSION == 'cortx-2.0' ? "$release_dir/third-party-deps/centos/centos-7.8.2003-2.0.0-latest" : "$release_dir/third-party-deps/centos/centos-7.8.2003-1.0.0-1"}"
 	}
 
 	options {
 		timeout(time: 120, unit: 'MINUTES')
 		timestamps()
-		disableConcurrentBuilds()
 		ansiColor('xterm')
 		parallelsAlwaysFailFast()
+		quietPeriod(60)
 	}
 
 	parameters {
@@ -58,7 +58,18 @@ pipeline {
 
 		stage ("Trigger Component Jobs") {
 			parallel {
-				stage ("Build Mero, Hare and S3Server") {
+
+				stage('Install Dependecies') {
+					steps {
+						script { build_stage = env.STAGE_NAME }
+						sh label: 'Installed Dependecies', script: '''
+							yum install -y expect rpm-sign rng-tools genisoimage
+							systemctl start rngd
+							'''
+						}
+				}
+
+				stage ("Build Motr, Hare and S3Server") {
 					steps {
 						script { build_stage = env.STAGE_NAME }
 						script {
@@ -70,7 +81,8 @@ pipeline {
 														string(name: 'S3_URL', value: "${S3_URL}"),
 														string(name: 'S3_BRANCH', value: "${S3_BRANCH}"),
 														string(name: 'HARE_URL', value: "${HARE_URL}"),
-														string(name: 'HARE_BRANCH', value: "${HARE_BRANCH}")
+														string(name: 'HARE_BRANCH', value: "${HARE_BRANCH}"),
+														string(name: 'CUSTOM_CI_BUILD_ID', value: "${BUILD_NUMBER}")
                                             		]
 							} catch (err) {
 								build_stage = env.STAGE_NAME 			
@@ -87,8 +99,9 @@ pipeline {
                                                         try {
 								def prvsnrbuild = build job: 'prvsnr-custom-build', wait: true,
 								                  parameters: [
-									          	string(name: 'PRVSNR_URL', value: "${PRVSNR_URL}"),
-											string(name: 'PRVSNR_BRANCH', value: "${PRVSNR_BRANCH}")
+									            	string(name: 'PRVSNR_URL', value: "${PRVSNR_URL}"),
+											        string(name: 'PRVSNR_BRANCH', value: "${PRVSNR_BRANCH}"),
+													string(name: 'CUSTOM_CI_BUILD_ID', value: "${BUILD_NUMBER}")
 							        	          ]
 							} catch (err) {
 								build_stage = env.STAGE_NAME
@@ -112,7 +125,8 @@ pipeline {
 								def habuild = build job: 'cortx-ha', wait: true,
 									      parameters: [
 									      	  string(name: 'HA_URL', value: "${HA_URL}"),
-									      	  string(name: 'HA_BRANCH', value: "${HA_BRANCH}")
+									      	  string(name: 'HA_BRANCH', value: "${HA_BRANCH}"),
+											  string(name: 'CUSTOM_CI_BUILD_ID', value: "${BUILD_NUMBER}")	
 									      ]
 							} catch (err) {
 								build_stage = env.STAGE_NAME
@@ -130,7 +144,8 @@ pipeline {
 								def csm_agent_build = build job: 'custom-csm-agent-build', wait: true,
 										      parameters: [
 										      	  	string(name: 'CSM_AGENT_URL', value: "${CSM_AGENT_URL}"),
-						                        	string(name: 'CSM_AGENT_BRANCH', value: "${CSM_AGENT_BRANCH}")
+						                        	string(name: 'CSM_AGENT_BRANCH', value: "${CSM_AGENT_BRANCH}"),
+													string(name: 'CUSTOM_CI_BUILD_ID', value: "${BUILD_NUMBER}")
 										      ]
 							} catch (err) {
 								build_stage = env.STAGE_NAME
@@ -148,7 +163,8 @@ pipeline {
 								def csm_web_build = build job: 'custom-csm-web-build', wait: true,
 										    parameters: [
 										        string(name: 'CSM_WEB_URL', value: "${CSM_WEB_URL}"),
-												string(name: 'CSM_WEB_BRANCH', value: "${CSM_WEB_BRANCH}")
+												string(name: 'CSM_WEB_BRANCH', value: "${CSM_WEB_BRANCH}"),
+												string(name: 'CUSTOM_CI_BUILD_ID', value: "${BUILD_NUMBER}")
 										    ]
 							} catch (err) {
 								build_stage = env.STAGE_NAME
@@ -166,7 +182,8 @@ pipeline {
 								def ssplbuild = build job: 'sspl-custom-build', wait: true,
 										parameters: [
 											string(name: 'SSPL_URL', value: "${SSPL_URL}"),
-											string(name: 'SSPL_BRANCH', value: "${SSPL_BRANCH}")
+											string(name: 'SSPL_BRANCH', value: "${SSPL_BRANCH}"),
+											string(name: 'CUSTOM_CI_BUILD_ID', value: "${BUILD_NUMBER}")
 										]
 							} catch (err) {
 								build_stage = env.STAGE_NAME
@@ -178,15 +195,6 @@ pipeline {
 			}
 		}
 
-		stage('Install Dependecies') {
-			steps {
-				script { build_stage = env.STAGE_NAME }
-				sh label: 'Installed Dependecies', script: '''
-					yum install -y expect rpm-sign rng-tools genisoimage
-					systemctl start rngd
-					'''
-				}
-		}
 
 		stage ('Collect Component RPMS') {
 			steps {
@@ -198,46 +206,20 @@ pipeline {
 						RPM_COPY_PATH="/mnt/bigstorage/releases/cortx/components/github/cortx-1.0/$os_version/dev/"
 					fi		
 
-					if [ "$CSM_BRANCH" == ""Cortx-v1.0.0_Beta"" ]; then
-						CUSTOM_COMPONENT_NAME="motr|s3server|hare|cortx-ha|provisioner|csm|sspl"
-					else
-						CUSTOM_COMPONENT_NAME="motr|s3server|hare|cortx-ha|provisioner|csm-agent|csm-web|sspl"
-					fi
+					CUSTOM_COMPONENT_NAME="motr|s3server|hare|cortx-ha|provisioner|csm-agent|csm-web|sspl"
 
-					for env in "dev" ;
-                    do
-						test -d $integration_dir/$release_tag/cortx_iso/ && rm -rf $integration_dir/$release_tag/cortx_iso/
-						mkdir -p $integration_dir/$release_tag/cortx_iso/
-						pushd $components_dir/$env
-							echo $CUSTOM_COMPONENT_NAME
-							echo $CUSTOM_COMPONENT_NAME | tr "|" "\n"
-							for component in $(echo $CUSTOM_COMPONENT_NAME | tr "|" "\n")
-								do
-								echo -e "Copying RPM's for $component"
-								if ls $component/last_successful/*.rpm 1> /dev/null 2>&1; then
-									mv $component/last_successful/*.rpm $integration_dir/$release_tag/cortx_iso/
-									rm -rf $(readlink $component/last_successful)
-									rm -f $component/last_successful
-								else
-									echo "Packages not available for $component. Exiting"
-								exit 1							   
-								fi
-							done
-						popd
+					pushd $RPM_COPY_PATH
+					for component in `ls -1 | grep -E -v "$CUSTOM_COMPONENT_NAME" | grep -E -v 'luster|halon|mero|motr|csm|cortx-extension|nfs'`
+					do
+						echo -e "Copying RPM's for $component"
+						if ls $component/last_successful/*.rpm 1> /dev/null 2>&1; then
+							cp $component/last_successful/*.rpm $integration_dir/$release_tag/cortx_iso/
+						else
+							echo "Packages not available for $component. Exiting"
+						exit 1	
+						fi
+					done
 
-
-						pushd $RPM_COPY_PATH
-						for component in `ls -1 | grep -E -v "$CUSTOM_COMPONENT_NAME" | grep -E -v 'luster|halon|mero|motr|csm|cortx-extension'`
-						do
-							echo -e "Copying RPM's for $component"
-							if ls $component/last_successful/*.rpm 1> /dev/null 2>&1; then
-								cp $component/last_successful/*.rpm $integration_dir/$release_tag/cortx_iso/
-							else
-								echo "Packages not available for $component. Exiting"
-							exit 1	
-							fi
-						done
-                    done
 				'''
 			}
 		}
@@ -269,12 +251,12 @@ pipeline {
 						fi
                         if [ -z "$mero_dep" ]
                         then
-                            echo "\033[1;33m $component has no dependency to mero - Validation Success \033[0m "
+                            echo "\033[1;33m $component has no dependency to Motr - Validation Success \033[0m "
                         else
                             if [ "$mero_dep" = "$mero_rpm_release_version" ]; then
-                                echo "\033[1;32m $component mero version matches with integration mero rpm($mero_rpm_release_version) Good to Go - Validation Success \033[0m "
+                                echo "\033[1;32m $component Motr version matches with integration mero rpm($mero_rpm_release_version) Good to Go - Validation Success \033[0m "
                             else
-                                echo "\033[1;31m $component mero version mismatchs with integration mero rpm($mero_rpm_release_version) - Validation Failed \033[0m"
+                                echo "\033[1;31m $component Motr version mismatchs with integration mero rpm($mero_rpm_release_version) - Validation Failed \033[0m"
                                 exit 1
                             fi
                         fi
@@ -322,7 +304,7 @@ pipeline {
                 sh label: 'Repo Creation', script: '''
                     pushd $integration_dir/$release_tag/cortx_iso/
                     rpm -qi createrepo || yum install -y createrepo
-                    createrepo .
+                    createrepo -v --update .
                     popd
                 '''
 			}
@@ -332,16 +314,9 @@ pipeline {
 			steps {
                 script { build_stage = env.STAGE_NAME }
                 sh label: 'Tag Release', script: '''
-                    pushd $release_dir/github/integration-custom-ci/release/$os_version/$release_tag
-						if [ "$THIRD_PARTY_VERSION" == "cortx-2.0" ]; then
-							thrid_party_dir=$(find /mnt/bigstorage/releases/cortx/third-party-deps/centos/ -type d  -name "$os_version-2.*" | sort -r | head -1)
-						else
-							thrid_party_dir=$(find /mnt/bigstorage/releases/cortx/third-party-deps/centos/ -type d  -name "$os_version-1.*" | sort -r | head -1)
-						fi
-
-					ln -s $thrid_party_dir 3rd_party
-					ln -s $python_deps python_deps
-					
+                    pushd $integration_dir/$release_tag
+						ln -s $third_party_dir 3rd_party
+						ln -s $python_deps python_deps
                     popd
                 '''
 			}
@@ -388,9 +363,9 @@ pipeline {
 
 				sh label: 'Print Release Build and ISO location', script:'''
 				echo "Custom Release Build and ISO is available at,"
-					echo "http://cortx-storage.colo.seagate.com/releases/cortx/github/integration-custom-ci/release/$os_version/$release_tag/"
-					echo "http://cortx-storage.colo.seagate.com/releases/cortx/github/integration-custom-ci/release/$os_version/$release_tag/iso/$release_tag.iso"
-					echo "http://cortx-storage.colo.seagate.com/releases/cortx/github/integration-custom-ci/release/$os_version/$release_tag/iso/$release_tag-single.iso"
+					echo "http://cortx-storage.colo.seagate.com/releases/cortx/github/integration-custom-ci/$os_version/$release_tag/"
+					echo "http://cortx-storage.colo.seagate.com/releases/cortx/github/integration-custom-ci/$os_version/$release_tag/iso/$release_tag.iso"
+					echo "http://cortx-storage.colo.seagate.com/releases/cortx/github/integration-custom-ci/$os_version/$release_tag/iso/$release_tag-single.iso"
 		        '''
 		    }
 		}
@@ -401,7 +376,7 @@ pipeline {
 		success {
 				sh label: 'Delete Old Builds', script: '''
 				set +x
-				find /mnt/bigstorage/releases/cortx/github/integration-custom-ci/release/centos-7.8.2003/* -maxdepth 0 -mtime +30 -type d -exec rm -rf {} \\;
+				find ${integration_dir}/* -maxdepth 0 -mtime +30 -type d -exec rm -rf {} \\;
 				'''
 		}
 	

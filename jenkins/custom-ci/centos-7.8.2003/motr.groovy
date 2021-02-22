@@ -1,3 +1,4 @@
+#!/usr/bin/env groovy
 pipeline {
     agent {
 		node {
@@ -6,6 +7,7 @@ pipeline {
 	}
 
 	options {
+		timeout(time: 60, unit: 'MINUTES')
 		timestamps()
 	}
 	
@@ -17,6 +19,7 @@ pipeline {
 		string(name: 'S3_BRANCH', defaultValue: 'stable', description: 'Branch for S3Server')
 		string(name: 'HARE_URL', defaultValue: 'https://github.com/Seagate/cortx-hare', description: 'Branch to be used for Hare build.')
 		string(name: 'HARE_BRANCH', defaultValue: 'stable', description: 'Branch to be used for Hare build.')
+		string(name: 'CUSTOM_CI_BUILD_ID', defaultValue: '0', description: 'Custom CI Build Number')
 
 	}	
 
@@ -25,8 +28,8 @@ pipeline {
 		os_version = "centos-7.8.2003"
 		branch = "custom-ci"
 		component = "motr"
-		env = "dev"
-		component_dir = "$release_dir/components/github/$branch/$os_version/$env/$component"
+		release_tag = "custom-build-$CUSTOM_CI_BUILD_ID"
+		build_upload_dir = "$release_dir/github/integration-custom-ci/$os_version/$release_tag/cortx_iso"
     }
 
 	stages {	
@@ -68,7 +71,7 @@ pipeline {
 						KERNEL=/lib/modules/$(yum list installed kernel | tail -n1 | awk '{ print $2 }').x86_64/build
 						./autogen.sh
 						./configure --with-linux=$KERNEL
-						export build_number=${BUILD_ID}
+						export build_number=${CUSTOM_CI_BUILD_ID}
 						make rpms
 					'''
 			}
@@ -78,36 +81,12 @@ pipeline {
 			steps {
 				script { build_stage = env.STAGE_NAME }
 				sh label: 'Copy RPMS', script: '''
-					test -d /$BUILD_NUMBER && rm -rf $component_dir/$BUILD_NUMBER
-					mkdir -p $component_dir/$BUILD_NUMBER
-					cp /root/rpmbuild/RPMS/x86_64/*.rpm $component_dir/$BUILD_NUMBER
+					mkdir -p $build_upload_dir
+					cp /root/rpmbuild/RPMS/x86_64/*.rpm $build_upload_dir
+					createrepo -v --update $build_upload_dir
 				'''
 			}
 		}
-		
-		stage ('Repo Creation') {
-			steps {
-				script { build_stage = env.STAGE_NAME }
-				sh label: 'Repo Creation', script: '''pushd $component_dir/$BUILD_NUMBER
-					rpm -qi createrepo || yum install -y createrepo
-					createrepo .
-					popd
-				'''
-			}
-		}
-		
-		stage ('Set Current Build') {
-			steps {
-				script { build_stage = env.STAGE_NAME }
-				sh label: 'Tag last_successful', script: '''
-					pushd $component_dir
-					test -L $component_dir/current_build && rm -f current_build
-					ln -s $component_dir/$BUILD_NUMBER current_build
-					popd
-				'''
-			}
-		}
-	
 	
 		stage ("Trigger Downstream Jobs") {
 			parallel {
@@ -118,7 +97,8 @@ pipeline {
 						parameters: [
 									string(name: 'S3_BRANCH', value: "${S3_BRANCH}"),
 									string(name: 'MOTR_BRANCH', value: "custom-ci"),
-									string(name: 'S3_URL', value: "${S3_URL}")
+									string(name: 'S3_URL', value: "${S3_URL}"),
+									string(name: 'CUSTOM_CI_BUILD_ID', value: "${CUSTOM_CI_BUILD_ID}")
 								]
 					}
 				}
@@ -130,22 +110,12 @@ pipeline {
 						parameters: [
 									string(name: 'HARE_BRANCH', value: "${HARE_BRANCH}"),
 									string(name: 'MOTR_BRANCH', value: "custom-ci"),
-									string(name: 'HARE_URL', value: "${HARE_URL}")
+									string(name: 'HARE_URL', value: "${HARE_URL}"),
+									string(name: 'CUSTOM_CI_BUILD_ID', value: "${CUSTOM_CI_BUILD_ID}")
 								]
 					}
 				}
 			}	
-		}
-	
-		stage ('Tag last_successful') {
-			steps {
-				script { build_stage = env.STAGE_NAME }
-				sh label: 'Tag last_successful', script: '''pushd $component_dir
-					test -d $component_dir/last_successful && rm -f last_successful
-					ln -s $component_dir/$BUILD_NUMBER last_successful
-					popd
-				'''
-			}
 		}
 	}	
 }

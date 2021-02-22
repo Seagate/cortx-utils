@@ -1,5 +1,5 @@
+#!/usr/bin/env groovy
 pipeline {
-	
     agent {
 		node {
 			label 'docker-io-centos-7.8.2003-node'
@@ -9,6 +9,7 @@ pipeline {
 	parameters {  
 	    string(name: 'HARE_URL', defaultValue: 'https://github.com/Seagate/cortx-hare/', description: 'Repository URL for Hare build')
         string(name: 'HARE_BRANCH', defaultValue: 'stable', description: 'Branch for Hare build')
+		string(name: 'CUSTOM_CI_BUILD_ID', defaultValue: '0', description: 'Custom CI Build Number')
 		
 		choice(
             name: 'MOTR_BRANCH', 
@@ -23,8 +24,8 @@ pipeline {
 		branch = "custom-ci"
 		os_version = "centos-7.8.2003"
 		component = "hare"
-		env = "dev"
-		component_dir = "$release_dir/components/github/$branch/$os_version/$env/$component"
+		release_tag = "custom-build-$CUSTOM_CI_BUILD_ID"
+		build_upload_dir = "$release_dir/github/integration-custom-ci/$os_version/$release_tag/cortx_iso"
     }
 	
 	
@@ -50,16 +51,10 @@ pipeline {
 			steps {
 				script { build_stage = env.STAGE_NAME }
 				sh label: '', script: '''
-				    sed '/baseurl/d' /etc/yum.repos.d/motr_current_build.repo
-					if [ $MOTR_BRANCH == "stable" ]; then
-						echo "baseurl=http://cortx-storage.colo.seagate.com/releases/cortx/components/github/stable/$os_version/dev/motr/current_build/"  >> /etc/yum.repos.d/motr_current_build.repo
-					elif [ $MOTR_BRANCH == "Cortx-v1.0.0_Beta" ]; then 	
-						echo "baseurl=http://cortx-storage.colo.seagate.com/releases/cortx/components/github/Cortx-v1.0.0_Beta/$os_version/dev/mero/current_build/" >> /etc/yum.repos.d/motr_current_build.repo
-				    else
-						echo "baseurl=http://cortx-storage.colo.seagate.com/releases/cortx/components/github/custom-ci/$os_version/dev/motr/current_build/"  >> /etc/yum.repos.d/motr_current_build.repo
-					fi	
-				    yum-config-manager --disable cortx-C7.7.1908
-					yum clean all
+					sed '/baseurl/d' /etc/yum.repos.d/motr_current_build.repo
+					echo "baseurl=http://cortx-storage.colo.seagate.com/releases/cortx/github/integration-custom-ci/$os_version/$release_tag/cortx_iso/"  >> /etc/yum.repos.d/motr_current_build.repo
+					yum-config-manager --disable cortx-C7.7.1908
+					yum clean all;rm -rf /var/cache/yum
 					rm -rf /var/cache/yum
 					
 					if [ "${HARE_BRANCH}" == "Cortx-v1.0.0_Beta" ]; then
@@ -78,7 +73,7 @@ pipeline {
 					set -xe
 					pushd $component
 					echo "Executing build script"
-					export build_number=${BUILD_ID}
+					export build_number=${CUSTOM_CI_BUILD_ID}
 					make rpm
 					popd
 				'''	
@@ -89,34 +84,12 @@ pipeline {
 			steps {
 				script { build_stage = env.STAGE_NAME }
 				sh label: 'Copy RPMS', script: '''
-					test -d /$BUILD_NUMBER && rm -rf $component_dir/$BUILD_NUMBER
-					mkdir -p $component_dir/$BUILD_NUMBER
-					cp /root/rpmbuild/RPMS/x86_64/*.rpm $component_dir/$BUILD_NUMBER
+					mkdir -p $build_upload_dir
+					cp /root/rpmbuild/RPMS/x86_64/*.rpm $build_upload_dir
+					createrepo -v --update $build_upload_dir
 				'''
 			}
 		}
 
-		stage ('Repo Creation') {
-			steps {
-				script { build_stage = env.STAGE_NAME }
-				sh label: 'Repo Creation', script: '''pushd $component_dir/$BUILD_NUMBER
-					rpm -qi createrepo || yum install -y createrepo
-					createrepo .
-					popd
-				'''
-			}
-		}
-			
-	
-		stage ('Tag last_successful') {
-			steps {
-				script { build_stage = env.STAGE_NAME }
-				sh label: 'Tag last_successful', script: '''pushd $component_dir
-					test -L $component_dir/last_successful && rm -f last_successful
-					ln -s $component_dir/$BUILD_NUMBER last_successful
-					popd
-				'''
-			}
-		}
 	}
 }
