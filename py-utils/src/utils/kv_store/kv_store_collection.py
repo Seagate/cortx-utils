@@ -26,7 +26,7 @@ from cortx.utils.process import SimpleProcess
 
 
 class JsonKvStore(KvStore):
-    """  Represents a JSON File Store """
+    """ Represents a JSON File Store """
 
     name = "json"
 
@@ -58,7 +58,7 @@ class JsonKvStore(KvStore):
 
 
 class YamlKvStore(KvStore):
-    """  Represents a YAML File Store """
+    """ Represents a YAML File Store """
 
     name = "yaml"
 
@@ -87,7 +87,7 @@ class YamlKvStore(KvStore):
 
 
 class TomlKvStore(KvStore):
-    """  Represents a TOML File Store """
+    """ Represents a TOML File Store """
 
     name = "toml"
 
@@ -153,7 +153,7 @@ class IniKvPayload(KvPayload):
 
 
 class IniKvStore(KvStore):
-    """  Represents a Ini File Store """
+    """ Represents a Ini File Store """
 
     name = "ini"
 
