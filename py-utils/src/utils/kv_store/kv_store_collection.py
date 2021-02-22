@@ -18,7 +18,6 @@
 import configparser
 import errno
 import os
-from json.decoder import JSONDecodeError
 
 from cortx.utils.kv_store.error import KvError
 from cortx.utils.kv_store.kv_store import KvStore
