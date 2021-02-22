@@ -18,9 +18,6 @@
 import errno
 import sys
 import inspect
-import json
-import yaml
-import toml
 
 
 class FormatError(Exception):
@@ -32,7 +29,7 @@ class FormatError(Exception):
 
     def __str__(self):
         if self._rc == 0: return self._desc
-        return "error(%d): %s" %(self._rc, self._desc)
+        return "error(%d): %s" % (self._rc, self._desc)
 
 
 class Format:
@@ -55,6 +52,7 @@ class JsonFormat(Format):
 
     @staticmethod
     def _dump(data: dict) -> str:
+        import json
         return json.dumps(data)
 
 
@@ -64,13 +62,15 @@ class YamlFormat(Format):
 
     @staticmethod
     def _dump(data: dict) -> str:
+        import yaml
         return yaml.dump(data)
 
 
 class TomlFormat(Format):
-    """ YAML Format Handler """
+    """ TOML Format Handler """
     name = "toml"
 
     @staticmethod
     def _dump(data: dict) -> str:
+        import toml
         return toml.dumps(data)
