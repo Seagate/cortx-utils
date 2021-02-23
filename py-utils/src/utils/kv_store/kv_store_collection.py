@@ -218,23 +218,32 @@ class JsonMessageKvStore(JsonKvStore):
         self._store_path = json.dumps(data.get_data())
 
 
-class TextKvStore(KvStore):
-    """ Represents a TEXT File Store """
+class PropertiesKvStore(KvStore):
+    """ Represents a Properties File Store """
 
-    name = "text"
+    name = "properties"
 
     def __init__(self, store_loc, store_path, delim='>'):
         KvStore.__init__(self, store_loc, store_path, delim)
 
     def load(self) -> KvPayload:
-        """ Loads data from text file """
+        """ Loads data from properties file """
+        data = {}
         with open(self._store_path, 'r') as f:
-            return KvPayload(f.read(), self._delim)
+            try:
+                for line in f.readlines():
+                    key, val = line.rstrip('\n').split('=', 1)
+                    data[key.strip()] = val.strip()
+            except Exception as ex:
+                raise KvError(errno.ENOENT, "Invalid properties store format %s. %s.", line, ex)
+        return KvPayload(data, self._delim)
 
     def dump(self, data) -> None:
         """ Dump the data to desired file or to the source """
+        kv_list = data.get_data()
         with open(self._store_path, 'w') as f:
-            f.write(data.get_data())
+            for key, val in kv_list.items():
+                f.write("%s = %s\n" %(key, val))
 
 
 class PillarStore(KvStore):
