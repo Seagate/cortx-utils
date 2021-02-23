@@ -1,6 +1,6 @@
 {
   "scanSettings": {
-    "configMode": "AUTO",
+    "configMode": "AUTO"
   },
   "checkRunSettings": {
     "displayMode": "diff",
