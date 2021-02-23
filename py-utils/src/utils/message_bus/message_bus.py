@@ -18,7 +18,6 @@
 from cortx.utils.message_bus.message_broker import MessageBrokerFactory
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.conf_store import Conf
-from cortx.utils.schema.payload import *
 import errno
 
 
