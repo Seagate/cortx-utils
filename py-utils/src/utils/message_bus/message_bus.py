@@ -17,7 +17,7 @@
 
 from cortx.utils.message_bus.message_broker import MessageBrokerFactory
 from cortx.utils.message_bus.error import MessageBusError
-from cortx.utils.schema import Conf
+from cortx.utils.conf_store import Conf
 from cortx.utils.schema.payload import *
 import errno
 
@@ -25,12 +25,12 @@ import errno
 class MessageBus:
     """ Message Bus Framework over various types of Message Brokers """
 
-    conf_file = '/etc/cortx/message_bus.conf'
+    conf_file = 'json:///etc/cortx/message_bus.conf'
 
     def __init__(self):
         """ Initialize a MessageBus and load its configurations """
         try:
-            Conf.load('message_bus', Json(self.conf_file))
+            Conf.load('message_bus', self.conf_file)
             self._broker_conf = Conf.get('message_bus', 'message_broker')
             broker_type = self._broker_conf['type']
 
