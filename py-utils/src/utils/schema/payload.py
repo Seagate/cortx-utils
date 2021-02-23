@@ -16,7 +16,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os, errno, sys
-import json, toml, yaml, tarfile
+import tarfile
 import configparser
 from typing import List
 
@@ -31,7 +31,7 @@ class Doc:
         return str(self._source)
 
     def load(self):
-        ''' Loads data from file of given format '''
+        """ Loads data from file of given format """
         if not os.path.exists(self._source):
             return {}
         try:
@@ -40,56 +40,62 @@ class Doc:
             raise Exception('Unable to read file %s. %s' % (self._source, e))
 
     def dump(self, data):
-        ''' Dump the anifest file to desired file or to the source '''
+        """ Dump the anifest file to desired file or to the source """
         dir_path = os.path.dirname(self._source)
         if len(dir_path) > 0 and not os.path.exists(dir_path):
             os.makedirs(dir_path)
         self._dump(data)
 
 class Toml(Doc):
-    ''' Represents a TOML doc '''
+    """ Represents a TOML doc """
 
     def __init__(self, file_path):
         Doc.__init__(self, file_path)
 
     def _load(self):
+        import toml
         with open(self._source, 'r') as f:
             return toml.load(f, dict)
 
     def _dump(self, data):
+        import toml
         with open(self._source, 'w') as f:
             toml.dump(data, f)
 
 class Json(Doc):
-    ''' Represents a JSON doc '''
+    """ Represents a JSON doc """
 
     def __init__(self, file_path):
         Doc.__init__(self, file_path)
 
     def _load(self):
+        import json
         with open(self._source, 'r') as f:
             return json.load(f)
 
     def _dump(self, data):
+        import json
         with open(self._source, 'w') as f:
             json.dump(data, f, indent=2)
 
 class Yaml(Doc):
-    ''' Represents a YAML doc '''
+    """ Represents a YAML doc """
 
     def __init__(self, file_path):
         Doc.__init__(self, file_path)
 
     def _load(self):
+        import yaml
         with open(self._source, 'r') as f:
             return yaml.safe_load(f)
 
     def _dump(self, data):
+        import yaml
         with open(self._source, 'w') as f:
             yaml.dump(data, f)
 
 class Tar(Doc):
-    """Represents Tar File"""
+    """ Represents Tar File """
 
     def __init__(self, file_path):
         Doc.__init__(self, file_path)
@@ -106,7 +112,7 @@ class Tar(Doc):
                     recursive=True)
 
 class Ini(Doc):
-    ''' Represents a YAML doc '''
+    """ Represents a YAML doc """
 
     def __init__(self, file_path):
         self._config = configparser.ConfigParser()
@@ -122,7 +128,7 @@ class Ini(Doc):
             data.write(f)
 
 class Dict(Doc):
-    '''Represents Dictionary Without file'''
+    """Represents Dictionary Without file"""
 
     def __init__(self, data={}):
         Doc.__init__(self, data)
@@ -146,6 +152,7 @@ class JsonMessage(Json):
         Load the json to python interpretable Dictionary Object
         :return: :type: Dict
         """
+        import json
         return json.loads(self._source)
 
     def dump(self, data: dict):
@@ -154,26 +161,27 @@ class JsonMessage(Json):
         :param data: :type: Dict
         :return:
         """
+        import json
         self._source = json.dumps(data)
 
 class Text(Doc):
 
-    '''Represents a TEXT doc'''
+    """Represents a TEXT doc"""
     def __init__(self, file_path):
         Doc.__init__(self, file_path)
 
     def _load(self):
-        '''Loads data from text file'''
+        """Loads data from text file"""
         with open(self._source, 'r') as f:
             return f.read()
 
     def _dump(self, data):
-        '''Dump the data to desired file or to the source'''
+        """Dump the data to desired file or to the source"""
         with open(self._source, 'w') as f:
             f.write(data)
 
 class Payload:
-    ''' implements a Payload in specified format. '''
+    """ implements a Payload in specified format. """
 
     def __init__(self, doc):
         self._dirty = False
@@ -183,16 +191,16 @@ class Payload:
     def load(self):
         if self._dirty:
             raise Exception('%s not synced to disk' % self._doc)
-        self._data = self._doc.load()
+        self._data = self._doc.load
         return self._data
 
     def dump(self):
-        ''' Dump the anifest file to desired file or to the source '''
+        """ Dump the anifest file to desired file or to the source """
         self._doc.dump(self._data)
         self._dirty = False
 
     def _get(self, key, data):
-        ''' Obtain value for the given key '''
+        """ Obtain value for the given key """
         k = key.split('.', 1)
         if k[0] not in data.keys(): return None
         return self._get(k[1], data[k[0]]) if len(k) > 1 else data[k[0]]
@@ -212,7 +220,7 @@ class Payload:
         self._set(k[1], val, data[k[0]])
 
     def set(self, key, val):
-        ''' Sets the value into the DB for the given key '''
+        """ Sets the value into the DB for the given key """
         self._set(key, val, self._data)
         self._dirty = True
 
@@ -265,9 +273,9 @@ class CommonPayload:
             raise Exception(f"Unable to read file {self._source}. {e}")
 
     def load(self):
-        ''' Loads data from file of given format'''
+        """ Loads data from file of given format"""
         return self._doc._load()
 
     def dump(self, data):
-        ''' Dump the data to desired file or to the source '''
+        """ Dump the data to desired file or to the source """
         self._doc._dump(data)

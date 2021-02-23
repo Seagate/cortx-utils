@@ -17,9 +17,7 @@
 
 import configparser
 import errno
-import json
 import os
-from json.decoder import JSONDecodeError
 
 from cortx.utils.kv_store.error import KvError
 from cortx.utils.kv_store.kv_store import KvStore
@@ -28,11 +26,12 @@ from cortx.utils.process import SimpleProcess
 
 
 class JsonKvStore(KvStore):
-    """  Represents a JSON File Store """
+    """ Represents a JSON File Store """
 
     name = "json"
 
     def __init__(self, store_loc, store_path, delim='>'):
+        import json
         KvStore.__init__(self, store_loc, store_path, delim)
         if not os.path.exists(self._store_path):
             with open(self._store_path, 'w+') as f:
@@ -40,6 +39,8 @@ class JsonKvStore(KvStore):
 
     def load(self) -> KvPayload:
         """ Reads from the file """
+        import json
+        from json.decoder import JSONDecodeError
         data = {}
         with open(self._store_path, 'r') as f:
             try:
@@ -51,12 +52,13 @@ class JsonKvStore(KvStore):
 
     def dump(self, data) -> None:
         """ Saves data onto the file """
+        import json
         with open(self._store_path, 'w') as f:
             json.dump(data.get_data(), f, indent=2)
 
 
 class YamlKvStore(KvStore):
-    """  Represents a YAML File Store """
+    """ Represents a YAML File Store """
 
     name = "yaml"
 
@@ -78,13 +80,14 @@ class YamlKvStore(KvStore):
         return KvPayload(data, self._delim)
 
     def dump(self, data) -> None:
+        """ Saves data onto the file """
         import yaml
         with open(self._store_path, 'w') as f:
             yaml.dump(data.get_data(), f, default_flow_style=False)
 
 
 class TomlKvStore(KvStore):
-    """  Represents a TOML File Store """
+    """ Represents a TOML File Store """
 
     name = "toml"
 
@@ -150,7 +153,7 @@ class IniKvPayload(KvPayload):
 
 
 class IniKvStore(KvStore):
-    """  Represents a Ini File Store """
+    """ Represents a Ini File Store """
 
     name = "ini"
 
@@ -206,10 +209,12 @@ class JsonMessageKvStore(JsonKvStore):
 
     def load(self) -> KvPayload:
         """ Load json to python Dictionary Object. Returns Dict """
+        import json
         return KvPayload(json.loads(self._store_path), self._delim)
 
     def dump(self, data: dict) -> None:
         """ Sets data after converting to json """
+        import json
         self._store_path = json.dumps(data.get_data())
 
 
@@ -250,6 +255,7 @@ class PillarStore(KvStore):
 
     def get(self, key):
         """Get pillar data for key."""
+        import json
         cmd = f"salt-call pillar.get {key} --out=json"
         cmd_proc = SimpleProcess(cmd)
         out, err, rc = cmd_proc.run()
