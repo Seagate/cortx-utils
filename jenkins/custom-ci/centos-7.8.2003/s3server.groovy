@@ -48,24 +48,35 @@ pipeline {
 					}
 				
 				
-				stage('Build s3server RPM') {
+				stage('Install Dependencies') {
 					steps {
 						script { build_stage = env.STAGE_NAME }
-								sh label: '', script: '''
-								sed '/baseurl/d' /etc/yum.repos.d/motr_current_build.repo
-								echo "baseurl=http://cortx-storage.colo.seagate.com/releases/cortx/github/integration-custom-ci/$os_version/$release_tag/cortx_iso/"  >> /etc/yum.repos.d/motr_current_build.repo
-							    yum-config-manager --disable cortx-C7.7.1908
+								sh label: 'Configure yum repositories', script: '''
+								set +x
+								yum-config-manager --disable cortx-C7.7.1908 motr_current_build
+								yum-config-manager --add-repo=http://cortx-storage.colo.seagate.com/releases/cortx/github/integration-custom-ci/$os_version/$release_tag/cortx_iso/
+								yum-config-manager --save --setopt=cortx-storage*.gpgcheck=1 cortx-storage* && yum-config-manager --save --setopt=cortx-storage*.gpgcheck=0 cortx-storage*
 								yum clean all;rm -rf /var/cache/yum
+								'''
+
+								sh label: 'Install packages', script: '''
 								export build_number=${CUSTOM_CI_BUILD_ID}
-								
 								if [ "${S3_BRANCH}" == "Cortx-v1.0.0_Beta" ]; then
 									yum erase log4cxx_cortx-devel cortx-motr{,-devel} -y -q
 									yum install eos-core{,-devel} -y
 								else
 									yum install cortx-motr{,-devel} -y
 									yum erase log4cxx_eos-devel -q -y
-								fi	
-								
+								fi
+							'''
+					}
+				}
+
+				stage('Build s3server RPM') {
+					steps {
+						script { build_stage = env.STAGE_NAME }
+								sh label: '', script: '''
+								export build_number=${CUSTOM_CI_BUILD_ID}
 								./rpms/s3/buildrpm.sh -P $PWD
 							'''
 					}

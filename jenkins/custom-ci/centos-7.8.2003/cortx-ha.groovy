@@ -44,10 +44,9 @@ pipeline {
 				script { build_stage = env.STAGE_NAME }
 				sh label: '', script: '''
 					pushd $component
-					yum clean all;rm -rf /var/cache/yum
-					yum erase python36-PyYAML -y
-					bash jenkins/cicd/cortx-ha-dep.sh
-					pip3 install numpy
+						yum erase python36-PyYAML -y
+						bash jenkins/cicd/cortx-ha-dep.sh
+						pip3 install numpy
 					popd
 				'''
 			}
@@ -57,10 +56,9 @@ pipeline {
 			steps {
 				script { build_stage = env.STAGE_NAME }
 				sh label: 'Build', script: '''
-					set -xe
 					pushd $component
-					echo "Executing build script"
-   				   ./jenkins/build.sh -b $CUSTOM_CI_BUILD_ID
+						echo "Executing build script"
+						./jenkins/build.sh -b $CUSTOM_CI_BUILD_ID
 					popd
 				'''	
 			}
@@ -72,8 +70,8 @@ pipeline {
 				sh label: 'Test', script: '''
 					set -xe
 					pushd $component
-					yum localinstall $WORKSPACE/$component/dist/rpmbuild/RPMS/x86_64/cortx-ha-*.rpm -y
-					bash jenkins/cicd/cortx-ha-cicd.sh
+						yum localinstall $WORKSPACE/$component/dist/rpmbuild/RPMS/x86_64/cortx-ha-*.rpm -y
+						bash jenkins/cicd/cortx-ha-cicd.sh
 					popd
 				'''	
 			}
