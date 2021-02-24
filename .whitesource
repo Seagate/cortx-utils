@@ -3,7 +3,7 @@
     "configMode": "AUTO"
   },
   "checkRunSettings": {
-    "displayMode": "diff",
+    "displayMode": "diff"
     "vulnerableCheckRunConclusionLevel": "failure"
   },
   "issueSettings": {
