@@ -16,6 +16,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import re
 import os
 import pwd
 import errno
@@ -60,23 +61,37 @@ class PkgV:
 	def validate_rpms(self, host, pkgs):
 		"""Check if rpm pkg is installed."""
 
+		if host != None:
+			result = self.__search_pkg(f"ssh {host} rpm -qa")
+		else:
+			result = self.__search_pkg("rpm -qa")
+
 		for pkg in pkgs:
-			if host != None:
-				result = self.__search_pkg(f"ssh {host} rpm -qa")
-			else:
-				result = self.__search_pkg("rpm -qa")
 			if result.find(f"{pkg}") == -1:
 				raise VError(errno.EINVAL,
 					     "rpm pkg: %s not found" % pkg)
 
-	def validate_pip3s(self, host, pkgs):
+	def validate_pip3s(self, host, pkgs, skip_version_check=True):
 		"""Check if pip3 pkg is installed."""
 
+		if not isinstance(pkgs, dict):
+			skip_version_check = True
+
+		if host != None:
+			result = self.__search_pkg(f"ssh {host} pip3 list")
+		else:
+			result = self.__search_pkg("pip3 list")
+
 		for pkg in pkgs:
-			if host != None:
-				result = self.__search_pkg(f"ssh {host} pip3 list")
-			else:
-				result = self.__search_pkg("pip3 list")
 			if result.find(f"{pkg}") == -1:
 				raise VError(errno.EINVAL,
-					     "pip3 pkg: %s not found" % pkg)
+							"pip3 pkg: %s not found" % pkg)
+			if not skip_version_check:
+				matched_str = re.search(f"{pkg} \((.*)\)", result)
+				installed_version = matched_str.groups()[0]
+				expected_version = pkgs[pkg]
+				if installed_version != expected_version:
+					err_desc = "pip3 pkg: %s is not having expected version. " + \
+     							"Installed: %s Expected: %s"
+					raise VError(errno.EINVAL,
+								err_desc % (pkg, installed_version, expected_version))
