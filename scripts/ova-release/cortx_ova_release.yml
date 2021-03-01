@@ -1,7 +1,7 @@
 ---
 - name: Revert VM to base snapshot
   hosts: localhost
-  gather_facts: true
+  gather_facts: false
   become: true
   become_user: root
   roles:
@@ -11,7 +11,7 @@
 
 - name: SSH Setup and cortx installation
   hosts: vmware-hosts
-  gather_facts: true
+  gather_facts: false
   become: true
   become_user: root
   roles:
@@ -24,14 +24,30 @@
 
 - name: Build OVA file
   hosts: localhost
-  gather_facts: true
+  gather_facts: false
   become: true
   become_user: root
   roles:
     - role: vm-ovabuild
       tags:
         - ovabuild
- 
-  
 
+- name: Create VM through OVA file  
+  hosts: localhost
+  gather_facts: false
+  become: true
+  become_user: root
+  roles:
+    - role: vm-create
+      tags: 
+        - create-vm
 
+- name: Test OVA generated VM
+  hosts: localhost
+  gather_facts: false
+  become_user: root
+  become: true
+  roles:
+    - role: ova-tester
+      tags:
+        - ova-tester

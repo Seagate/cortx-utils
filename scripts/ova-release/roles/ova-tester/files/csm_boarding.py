@@ -47,7 +47,8 @@ class CSM_boarding(unittest.TestCase):
             ele.click()
             ele = self.get_element(By.ID, loc.Preboarding.userlogin_ip)
             print("Admin user is created")
-        except:
+        except Exception as e:
+            print(e)
             self.assertTrue(False,"ERROR: Failed to create Admin User")
 
     def test_onboarding(self):
@@ -87,7 +88,8 @@ class CSM_boarding(unittest.TestCase):
             ele  = self.get_element(By.ID,loc.Onboarding.finish_btn)
             ele.click()
             print("Onboarding completed!")
-        except :
+        except Exception as e:
+            print(e)
             self.assertTrue(False,"ERROR: Onboarding Failed")
 			
     def get_element(self, by, loc):

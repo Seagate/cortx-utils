@@ -1,0 +1,28 @@
+---
+- name: Gather a virtual machine info
+  vmware_guest_info:
+    hostname: "{{ VSPHERE_HOSTNAME }}"
+    username: "{{ VSPHERE_USERNAME }}"
+    password: "{{ VSPHERE_PASSWORD }}"
+    validate_certs: false
+    datacenter: "{{ VSPHERE_DATACENTER }}"
+    name: "{{ OVA_VM_NAME }}"
+  register: gather_vm_info
+
+- name: Set UUID variable
+  set_fact:
+    VM_UUID: "{{ gather_vm_info.instance.hw_product_uuid }}"
+
+- name: print var
+  debug:
+    msg: "{{ VM_UUID }}"
+
+- name: Get test VM ip address
+  script: "files/pyvm.py {{ VSPHERE_HOSTNAME }} {{ VSPHERE_USERNAME }} {{ VSPHERE_PASSWORD }} {{ VM_UUID }} {{ NODE_USER }} {{ NODE_SSH_PASS }}"
+  args:
+    executable: python
+  register: ip_info
+
+- name: Set ip variable
+  set_fact:
+    ansible_host: "{{ ip_info.stdout_lines[0] }}"

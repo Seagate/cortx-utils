@@ -21,7 +21,7 @@
       - expect
     state: present
 
-- name: Template a config file
+- name: Copy a config file
   template:
     src: config.ini.j2
     dest: ~/config.ini
@@ -29,7 +29,7 @@
     group: root
     mode: '0644'
 
-- name: Template a provisioner script
+- name: Copy a autodeploy execution script
   template:
     src: script.j2
     dest: ~/script
@@ -45,40 +45,65 @@
       group: root
       mode: '0754'
 
+#provisoner fix      
+- name: Add srvnode-1 in hosts
+  lineinfile:
+    dest: /etc/hosts
+    line: "127.0.0.2 srvnode-1"
+
+- name: Check /etc/hosts file data
+  shell: "cat /etc/hosts"
+  register: hostsdata
+  
+- name: Display /etc/hosts file data
+  debug:
+    msg: "{{ hostsdata }}"
+    
 - name: Execute provisioner script
   shell: ./provisioner.sh
   register: command_result
   failed_when: "'ERROR' in command_result.stdout"
 
-- name: Edit config file
+#csm fix
+#- name: CSM fix
+#  shell: "{{ item }}"
+#  with_items:
+#    - "usermod -a -G certs,prvsnrusers csm"
+#    - "mkdir -p /var/lib/uds/.uds"
+#    - "csm_setup post_install"
+#    - "csm_setup config --uds-public-ip {{ ansible_host }}"
+#    - "csm_setup init"
+ 
+#s3server fix
+- name: Edit s3 config file
+  shell: "sed -i 's/S3_MOTR_MAX_UNITS_PER_REQUEST: 32/S3_MOTR_MAX_UNITS_PER_REQUEST: 8/g' /opt/seagate/cortx/s3/conf/s3config.yaml" 
+
+- name: Restart s3 service
+  shell: systemctl restart s3server@0x7200000000000001:0x16
+
+#csm fix
+- name: Edit csm config file
   shell: "sed -i 's/host:.*/host: 127.0.0.1/g' /etc/csm/database.yaml"
 
-- name: Restart csm_sgent
+- name: Restart csm_agent
   shell: systemctl restart csm_agent
 
-- name: Verify cortx cluster status
-  shell: hctl status
-  register: cluster_status
+- name: Install vmware-tools
+  yum: name=open-vm-tools state=present
 
-- name: Print cortx cluster status
-  debug: 
-    msg: "{{ cluster_status.stdout }}"
+- name: Check database.yml file data
+  shell: "cat /etc/csm/database.yaml"
+  register: firstdbresult
 
-- name: Verify salt master setup
-  shell: "{{ item }}"
-  loop:
-    - "salt '*' test.ping"  
-    - "salt '*' service.disable puppet"
-    - "salt '*' pillar.get release"  
-    - "salt '*' grains.get node_id"  
-    - "salt '*' grains.get cluster_id"  
-    - "salt '*' grains.get roles"
-  
-- name: Add srvnode1 in hosts
-  lineinfile:
-    dest: /etc/hosts
-    regexp: '^127\.0\.0\.1'
-    line: "127.0.0.1 localhost localhost.localdomain localhost4 localhost4.localdomain4 srvnode-1"
+- name: Print db data
+  debug:
+    msg: "{{ firstdbresult }}"
+ 
+- include_role:
+    name: vm-service-checker 
+ 
+- name: Change hostname
+  shell: "hostnamectl set-hostname --static --transient --pretty localhost"
 
 - name: Delete horizontal line in hosts file
   lineinfile:
@@ -93,3 +118,37 @@
 
 - name: Clean bash history
   shell: cat /dev/null > /root/.bash_history
+
+- name: Check /etc/hosts file data
+  shell: "cat /etc/hosts"
+  register: sechostsdata
+
+- name: Check database.yml file data
+  shell: "cat /etc/csm/database.yaml"
+  register: dbconfig
+  
+- name: Check ip addresses
+  shell: "ip a"
+  register: ipaddrinfo
+
+- name: Display hosts file contents, db config and ip information
+  debug:
+    msg: "{{ item }}"
+  with_items:
+    - "{{ sechostsdata }}"
+    - "{{ dbconfig }}"
+    - "{{ ipaddrinfo }}"
+
+- name: Remove provisioner setup files
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - "/root/script"
+    - "/root/provisioner.sh"
+
+- name: Remove a new host in hosts file
+  lineinfile:
+    path: /etc/hosts
+    state: absent
+    line: "{{ ansible_default_ipv4.address }} {{ OVA_HOSTNAME }}"

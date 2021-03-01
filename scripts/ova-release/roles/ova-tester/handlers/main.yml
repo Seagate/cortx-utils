@@ -1,6 +1,5 @@
 ---
 - name: Restart network
   service:
-    name: NetworkManager 
+    name: NetworkManager
     state: restarted
-    enabled: yes

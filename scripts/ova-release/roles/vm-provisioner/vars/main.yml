@@ -1,4 +1,4 @@
-OVA_HOSTNAME: "ova-builder.seagate.com"
+OVA_HOSTNAME: "cortx-ova.seagate.com"
 MGMT_ITF: "ens32"
 PBDATA_ITF: "ens33"
 PVDATA_ITF: "ens34"

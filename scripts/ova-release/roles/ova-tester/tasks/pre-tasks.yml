@@ -1,0 +1,75 @@
+---
+- name: Add host to group
+  add_host:
+    name: '{{ ansible_host }}'
+    groups: ova_vm
+    ansible_connection: ssh
+    ansible_user: root
+    ansible_ssh_pass: "{{ NODE_SSH_PASS }}"
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+
+- debug:
+    msg: "{{ ansible_host }}"
+
+- include_role:
+    name: vm-ssh-setup
+    apply:
+      delegate_to: "{{ ansible_host }}"
+
+- name: Validate {{ MGMT_ITF }} interface
+  lineinfile:
+    path: /etc/sysconfig/network-scripts/ifcfg-{{ MGMT_ITF }}
+    state: present
+    regexp: '^ONBOOT='
+    line: 'ONBOOT=yes'
+  when: ansible_{{ MGMT_ITF }}.ipv4.address is not defined
+  notify:
+    - Restart network
+  delegate_to: "{{ ansible_host }}"
+
+- name: Validate {{ PBDATA_ITF }} interface
+  lineinfile:
+    path: /etc/sysconfig/network-scripts/ifcfg-{{ PBDATA_ITF }}
+    state: present
+    regexp: '^ONBOOT='
+    line: 'ONBOOT=yes'
+  when: ansible_{{ PBDATA_ITF }}.ipv4.address is not defined
+  notify:
+    - Restart network
+  delegate_to: "{{ ansible_host }}"
+
+- name: Validate {{ PVDATA_ITF }} interface
+  lineinfile:
+    path: /etc/sysconfig/network-scripts/ifcfg-{{ PVDATA_ITF }}
+    state: present
+    regexp: '^ONBOOT='
+    line: 'ONBOOT=yes'
+  when: ansible_{{ PVDATA_ITF }}.ipv4.address is not defined
+  notify:
+    - Restart network
+  delegate_to: "{{ ansible_host }}"
+
+- name: Refresh network service
+  meta: flush_handlers
+  delegate_to: "{{ ansible_host }}"
+
+- name: Set hostname
+  shell: hostnamectl set-hostname --static --transient --pretty "cortx-ova.seagate.com"
+  delegate_to: "{{ ansible_host }}"
+
+- name: Bootstrap cluster
+  shell: "sh /opt/seagate/cortx/provisioner/cli/virtual_appliance/bootstrap.sh"
+  delegate_to: "{{ ansible_host }}"
+
+- include_role:
+    name: vm-service-checker
+    apply:
+      delegate_to: "{{ ansible_host }}"
+
+- name: open a port
+  shell: "{{ item }}"
+  with_items:
+    - "salt '*' cmd.run 'firewall-cmd --zone=public-data-zone --add-port=80/tcp --permanent'"
+    - "salt '*' cmd.run 'firewall-cmd --zone=public-data-zone --add-port=28100/tcp --permanent'"
+    - "salt '*' cmd.run 'firewall-cmd --reload'"
+  delegate_to: "{{ ansible_host }}"

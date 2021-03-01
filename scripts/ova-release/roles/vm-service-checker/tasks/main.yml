@@ -1,0 +1,83 @@
+- name: Check rabbitmq-server status
+  shell: "systemctl status rabbitmq-server | grep Active | awk -F' ' '{ print $2 }'"
+  register: rabbitmq_server_status
+
+- name: Restart rabbitmq-server if inactive
+  shell: "systemctl restart rabbitmq-server"
+  when: rabbitmq_server_status.stdout != "active"
+  
+- name: Check elasticsearch status
+  shell: "systemctl status elasticsearch | grep Active | awk -F' ' '{ print $2 }'"
+  register: elasticsearch_status
+
+- name: Restart elasticsearch if inactive
+  shell: "systemctl restart elasticsearch"
+  when: elasticsearch_status.stdout != "active"
+  
+- name: Check haproxy status
+  shell: "systemctl status haproxy | grep Active | awk -F' ' '{ print $2 }'"
+  register: haproxy_status
+
+- name: Restart haproxy if inactive
+  shell: "systemctl restart haproxy"
+  when: haproxy_status.stdout != "active"
+  
+- name: Check s3authserver status
+  shell: "systemctl status s3authserver | grep Active | awk -F' ' '{ print $2 }'"
+  register: s3authserver_status
+
+- name: Restart s3authserver if inactive
+  shell: "systemctl restart s3authserver"
+  when: s3authserver_status.stdout != "active"
+  
+- name: Check sspl-ll status
+  shell: "systemctl status sspl-ll | grep Active | awk -F' ' '{ print $2 }'"
+  register: sspl_ll_status
+
+- name: Restart sspl-ll if inactive
+  shell: "{{ item }}"
+  with_items:
+    - "sh /opt/seagate/cortx/sspl/bin/sspl_setup post_install -p SINGLE"
+    - "sh /opt/seagate/cortx/sspl/bin/sspl_setup config -f"
+    - "systemctl start sspl-ll"   
+  when: sspl_ll_status.stdout != "active"
+
+- name: Check csm_agent status
+  shell: "systemctl status csm_agent | grep Active | awk -F' ' '{ print $2 }'"
+  register: csm_agent_status
+
+- name: Restart csm_agent if inactive
+  shell: "systemctl restart csm_agent"
+  when: csm_agent_status.stdout != "active"
+  
+- name: Check csm_web status
+  shell: "systemctl status csm_web | grep Active | awk -F' ' '{ print $2 }'"
+  register: csm_web_status
+
+- name: Restart csm_web if inactive
+  shell: "systemctl restart csm_web"
+  when: csm_web_status.stdout != "active"
+
+- name: Verify cortx cluster status
+  command: "hctl status"
+  register: hctl_status
+  until:
+    - "'[started]  hax' in hctl_status.stdout"
+    - "'[started]  confd' in hctl_status.stdout"
+    - "'[started]  ioservice' in hctl_status.stdout"
+  retries: 20
+  delay: 30
+
+- name: Print cortx cluster status
+  debug:
+    msg: "{{ hctl_status.stdout }}"
+
+- name: Verify salt master setup
+  shell: "{{ item }}"
+  loop:
+    - "salt '*' test.ping"
+    - "salt '*' service.disable puppet"
+    - "salt '*' pillar.get release"
+    - "salt '*' grains.get node_id"
+    - "salt '*' grains.get cluster_id"
+    - "salt '*' grains.get roles"

@@ -1,11 +1,11 @@
 preboarding:
-  url: "https://{{ cortx_cluster_ip }}:28100/#/preboarding/welcome"
+  url: "https://{{ ansible_host }}:28100/#/preboarding/welcome"
   username: "{{ TEST_USER }}"
   password: "{{ TEST_PASS }}"
   email: "admin@seagate.com"
  
 onboarding:
-  url: "https://{{ cortx_cluster_ip }}:28100/#/preboarding/login"
+  url: "https://{{ ansible_host }}:28100/#/preboarding/login"
   username: "{{ TEST_USER }}"
   password: "{{ TEST_PASS }}"
   system: "System"

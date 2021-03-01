@@ -1,4 +1,7 @@
 ---
+- name: Gather facts from db servers
+  setup:
+
 - name: Validate {{ MGMT_ITF }} interface
   lineinfile:
     path: /etc/sysconfig/network-scripts/ifcfg-{{ MGMT_ITF }}
