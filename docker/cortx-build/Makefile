@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 BUILD_ID = 0
 RELEASE_VERSION = "2.0.0"
-RELASE_BUILD = "/var/artifacts/${BUILD_ID}"
+RELEASE_BUILD = "/var/artifacts/${BUILD_ID}"
 RPM_DIR = "/var/artifacts/${BUILD_ID}/cortx_iso"
 THIRD_PARTY_VERSION = "third-party-deps-1.0.0-0"
 
@@ -18,7 +18,7 @@ help : Makefile
 ## clean: remove existing /var/artifacts/0 directory. 
 clean:
 	rm -rf "/root/rpmbuild/"
-	rm -rf ${RELASE_BUILD}
+	rm -rf ${RELEASE_BUILD}
 	mkdir -p ${RPM_DIR}
 
 ## build: generate complete CORTX build including third-party-deps at "/var/artifacts/0"
@@ -336,17 +336,17 @@ release_build:
 		for rpm in `ls -1 *.rpm`; do expect /opt/rpm-signing/rpm-sign.sh $$rpm; done && \
 		createrepo -v . && \
 	popd && \
-	pushd ${RELASE_BUILD} && \
-		sh /opt/release_support/build_release_info.sh -v ${RELEASE_VERSION} -b ${RPM_DIR}  && \
+	pushd ${RELEASE_BUILD} && \
 		githubrelease asset seagate/cortx download ${THIRD_PARTY_VERSION} && \
 		mkdir -p 3rd_party && tar -xvzf *.tar.gz -C 3rd_party --strip-components=1 && \
+		sh /opt/release_support/build_release_info.sh -v ${RELEASE_VERSION} -b ${RPM_DIR} -t ${RELEASE_BUILD}/3rd_party && \
 	popd
 
 ## iso_generation: generate ISO file from release build.
 iso_generation:
 	@echo "***************  Generating ISO file *********************"
 	
-	pushd ${RELASE_BUILD} && \
-		mkdir -p ${RELASE_BUILD}/iso && \
-		genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -publisher Seagate -o ${RELASE_BUILD}/iso/cortx-1.0.0-${BUILD_ID}-single.iso ${RELASE_BUILD} && \
+	pushd ${RELEASE_BUILD} && \
+		mkdir -p ${RELEASE_BUILD}/iso && \
+		genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -publisher Seagate -o ${RELEASE_BUILD}/iso/cortx-1.0.0-${BUILD_ID}-single.iso ${RELEASE_BUILD} && \
 	popd

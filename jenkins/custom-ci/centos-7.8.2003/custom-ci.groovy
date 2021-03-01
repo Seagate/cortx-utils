@@ -328,9 +328,8 @@ pipeline {
 
                 sh label: 'Build MANIFEST', script: """
 					pushd scripts/release_support
-                    sh build_release_info.sh -v $version -b $integration_dir/$release_tag/cortx_iso/
-					sh build-3rdParty-release-info.sh $integration_dir/$release_tag/3rd_party
-					sh build_readme.sh $integration_dir/$release_tag
+						sh build_release_info.sh -v $version -b $integration_dir/$release_tag/cortx_iso/ -t $integration_dir/$release_tag/3rd_party
+						sh build_readme.sh $integration_dir/$release_tag
 					popd
 					
                     cp $integration_dir/$release_tag/README.txt .
