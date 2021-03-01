@@ -55,8 +55,11 @@ def setup_and_generate_sample_files():
 
     with open(r'/tmp/example.properties', 'w+') as file:
         sample_config.update(sample_config['bridge'])
+        file.write("# Comments section test")
         for key, val in sample_config.items():
             file.write("%s = %s\n" %(key, val))
+        # Add empty line at end of the file for testing
+        file.write("    \n  ")
 
 # This function should be executed before testcase class
 setup_and_generate_sample_files()
