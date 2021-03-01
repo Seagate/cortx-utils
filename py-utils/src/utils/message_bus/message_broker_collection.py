@@ -99,7 +99,7 @@ class KafkaMessageBroker(MessageBroker):
 
             kafka_conf['enable.auto.commit'] = client_conf['auto_ack']
             kafka_conf['auto.offset.reset'] = client_conf['offset']
-            kafka_conf['group.id'] = client_conf['consumer_group']
+            self.consumer_group = kafka_conf['group.id'] = client_conf['consumer_group']
 
             consumer = Consumer(**kafka_conf)
             consumer.subscribe(client_conf['message_types'])
@@ -296,6 +296,53 @@ class KafkaMessageBroker(MessageBroker):
                 continue
             else:
                 break
+
+    def get_unread_count(self, client_type: str, consumer_group: str):
+        """
+        Gets the count of unread messages from the Kafka message server
+
+        Parameters:
+        client_type     Type of client, either Producer or Consumer.
+        consumer_group  A String that represents Consumer Group ID.
+        """
+        import io
+        import pandas as pd
+
+        if client_type == 'producer':
+            if consumer_group is None:
+                raise MessageBusError(errno.EINVAL, "Consumer group is not \
+                    provided for %s", client_type)
+        elif client_type == 'consumer':
+            if consumer_group is None:
+                consumer_group = self.consumer_group
+        try:
+            cmd = "/opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server "\
+                + self._servers + " --describe --group " + consumer_group
+            cmd_proc = SimpleProcess(cmd)
+            res_op, res_err, res_rc = cmd_proc.run()
+            if res_rc != 0:
+                raise MessageBusError(errno.EINVAL, "Unable to get the message \
+                    count. %s", res_err)
+            decoded_string = res_op.decode('utf-8')
+            if decoded_string == '':
+                raise MessageBusError(errno.EINVAL, "No active consumers in \
+                    the consumer group, %s", consumer_group)
+            elif 'Error' in decoded_string:
+                raise MessageBusError(errno.EINVAL, "Unable to get the message \
+                    count. %s", decoded_string)
+            else:
+                data_table = io.StringIO(decoded_string)
+                df = pd.read_table(data_table, delim_whitespace=True)
+                unread_count = [int(count) for count in list(df['LAG']) \
+                    if count != '-']
+                if len(unread_count) == 0:
+                    raise MessageBusError(errno.EINVAL, "No active consumers \
+                        in the consumer group, %s", consumer_group)
+            return sum(unread_count)
+
+        except Exception as e:
+            raise MessageBusError(errno.EINVAL, "Unable to get the message \
+                    count. %s", e)
 
     def receive(self, consumer_id: str, timeout: float = None) -> list:
         """

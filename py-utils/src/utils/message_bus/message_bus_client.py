@@ -25,6 +25,7 @@ class MessageBusClient:
         **client_conf: dict):
         self._message_bus = message_bus
         self._message_bus.init_client(client_type, **client_conf)
+        self._client_type = client_type
         self._client_conf = client_conf
 
     def _get_conf(self, key: str):
@@ -38,7 +39,7 @@ class MessageBusClient:
         Registers a list of message types
 
         Parameters:
-        message_types    This is essentially equivalent to the list of queue/
+        message_types    This is essentially equivalent to the list of queue
                          topic name. For e.g. ["Alert"]
         partitions       Integer that represents number of partitions to be
                          created.
@@ -52,7 +53,7 @@ class MessageBusClient:
         Deregisters a list of message types
 
         Parameters:
-        message_types    This is essentially equivalent to the list of queue/
+        message_types    This is essentially equivalent to the list of queue
                          topic name. For e.g. ["Alert"]
         """
         client_id = self._get_conf('client_id')
@@ -63,7 +64,7 @@ class MessageBusClient:
         To increase the number of partitions for a list of message types
 
         Parameters:
-        message_types    This is essentially equivalent to the list of queue/
+        message_types    This is essentially equivalent to the list of queue
                          topic name. For e.g. ["Alert"]
         partitions       Integer that represents number of partitions to be
                          increased.
@@ -89,6 +90,16 @@ class MessageBusClient:
         message_type = self._get_conf('message_type')
         client_id = self._get_conf('client_id')
         self._message_bus.delete(client_id, message_type)
+
+    def get_unread_count(self, consumer_group=None):
+        """
+        Gets the count of unread messages from the Message Bus
+
+        Parameters:
+        consumer_group  A String that represents Consumer Group ID.
+        """
+        return self._message_bus.get_unread_count(self._client_type, \
+            consumer_group)
 
     def receive(self, timeout: float = None) -> list:
         """
@@ -148,7 +159,7 @@ class MessageConsumer(MessageBusClient):
         consumer_id     A String that represents Consumer client ID.
         consumer_group  A String that represents Consumer Group ID.
                         Group of consumers can process messages
-        message_types   This is essentially equivalent to the list of queue/
+        message_types   This is essentially equivalent to the list of queue
                         topic name. For e.g. ["Alert"]
         auto_ack        Can be set to "True" or "False"
         offset          Can be set to "earliest" (default) or "latest".

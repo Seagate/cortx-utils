@@ -17,20 +17,19 @@
 
 from cortx.utils.message_bus.message_broker import MessageBrokerFactory
 from cortx.utils.message_bus.error import MessageBusError
-from cortx.utils.schema import Conf
-from cortx.utils.schema.payload import *
+from cortx.utils.conf_store import Conf
 import errno
 
 
 class MessageBus:
     """ Message Bus Framework over various types of Message Brokers """
 
-    conf_file = '/etc/cortx/message_bus.conf'
+    conf_file = 'json:///etc/cortx/message_bus.conf'
 
     def __init__(self):
         """ Initialize a MessageBus and load its configurations """
         try:
-            Conf.load('message_bus', Json(self.conf_file))
+            Conf.load('message_bus', self.conf_file)
             self._broker_conf = Conf.get('message_bus', 'message_broker')
             broker_type = self._broker_conf['type']
 
@@ -69,6 +68,13 @@ class MessageBus:
     def delete(self, client_id: str, message_type: str):
         """ Deletes all the messages from the configured message broker """
         self._broker.delete(client_id, message_type)
+
+    def get_unread_count(self, client_type: str, consumer_group: str):
+        """
+        Gets the count of unread messages from the configured message
+        broker
+        """
+        return self._broker.get_unread_count(client_type, consumer_group)
 
     def receive(self, client_id: str, timeout: float = None) -> list:
         """ Receives messages from the configured message broker """
