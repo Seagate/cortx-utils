@@ -91,7 +91,7 @@ class MessageBusClient:
         client_id = self._get_conf('client_id')
         self._message_bus.delete(client_id, message_type)
 
-    def get_unread_count(self, consumer_group=None):
+    def get_unread_count(self, consumer_group: str = None):
         """
         Gets the count of unread messages from the Message Bus
 
