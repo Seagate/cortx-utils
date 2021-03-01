@@ -26,7 +26,7 @@ class TestMessage(unittest.TestCase):
 
     message_bus = MessageBus()
 
-    def test_a(self):
+    def test_send(self):
         """ Test Send Message """
         messages = []
         producer = MessageProducer(TestMessage.message_bus, \
@@ -39,7 +39,7 @@ class TestMessage(unittest.TestCase):
         self.assertIsInstance(messages, list)
         producer.send(messages)
 
-    def test_b(self):
+    def test_count(self):
         """ Test Unread Message Count """
         consumer = MessageConsumer(TestMessage.message_bus, \
             consumer_id='sensors', consumer_group='test_group', \
