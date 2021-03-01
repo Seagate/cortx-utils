@@ -217,15 +217,13 @@ pipeline {
                 // Add test result to Jenkins Junit report
                 junit testResults: 'reports/*.xml', testDataPublishers: [[$class: 'AttachmentPublisher']]  
 
-                def mailRecipients = "cortx.nfs@seagate.com, cortx.s3@seagate.com"
+                def mailRecipients = "nilesh.govande@seagate.com, basavaraj.kirunge@seagate.com, rajesh.nambiar@seagate.com, ajinkya.dhumal@seagate.com, amit.kumar@seagate.com, shazia.ahmad@seagate.com"
                     
                 emailext body: '''${SCRIPT, template="s3-comp-test-email.template"}''',
                 mimeType: 'text/html',
                 recipientProviders: [requestor()], 
-                subject: "[Jenkins] : ${currentBuild.fullDisplayName}",
-                to: "${mailRecipients}",
-                replyTo: "${mailRecipients}"
-
+                subject: "[Jenkins] S3Ceph : ${currentBuild.currentResult}, ${JOB_BASE_NAME}#${BUILD_NUMBER}",
+                to: "${mailRecipients}"
             }
         }
     }	

@@ -223,17 +223,15 @@ pipeline {
                 }
 
                 if(currentBuild.rawBuild.getCause(hudson.triggers.SCMTrigger$SCMTriggerCause)){
-                    def toEmail = ""
-                    def recipientProvidersClass = [[$class: 'DevelopersRecipientProvider']]
+                    def toEmail = "nilesh.govande@seagate.com, basavaraj.kirunge@seagate.com, rajesh.nambiar@seagate.com, ajinkya.dhumal@seagate.com, amit.kumar@seagate.com"
+                    def recipientProvidersClass = [[$class: 'DevelopersRecipientProvider'],[$class: 'RequesterRecipientProvider']]
                     if( manager.build.result.toString() == "FAILURE"){
-                        toEmail = "CORTX.s3@seagate.com,shailesh.vaidya@seagate.com"
-                        recipientProvidersClass = [[$class: 'DevelopersRecipientProvider'],[$class: 'RequesterRecipientProvider']]
+                        toEmail = "CORTX.s3@seagate.com"
                     }
-
                     emailext (
                         body: '''${SCRIPT, template="component-email-dev.template"}''',
                         mimeType: 'text/html',
-                        subject: "[Jenkins Build ${currentBuild.currentResult}] : ${env.JOB_NAME}",
+                        subject: "[Jenkins] S3Stable PostMerge : ${currentBuild.currentResult}, ${JOB_BASE_NAME}#${BUILD_NUMBER}",
                         attachLog: true,
                         to: toEmail,
                         recipientProviders: recipientProvidersClass
