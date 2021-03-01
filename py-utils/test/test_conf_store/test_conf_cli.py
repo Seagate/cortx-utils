@@ -163,6 +163,87 @@ class TestConfCli(unittest.TestCase):
             exit_code = 22
             self.assertEqual(err.args[0], exit_code)
 
+    def test_conf_cli_kv_delim_set(self):
+        """
+        Test by setting a value into given key position with
+        mentioned kv_delim
+        """
+        set_cmd = "conf json:///tmp/file1.json set -d : cluster>id:093d"
+        set_cmd_proc = SimpleProcess(set_cmd)
+        set_cmd_proc.run()
+        get_cmd = "conf json:///tmp/file1.json get cluster>id"
+        get_cmd_proc = SimpleProcess(get_cmd)
+        result_data = get_cmd_proc.run()
+        self.assertTrue( True if result_data[2]==0 and
+            result_data[0]==b'["093d"]\n' else False, result_data[1])
+
+    def test_conf_cli_wrong_kv_delim(self):
+        """
+        Test by trying to set a value into given key position with
+        wrong kv_delim mentioned
+        """
+        set_cmd = "conf json:///tmp/file1.json set -d : cluster>id=093d"
+        set_cmd_proc = SimpleProcess(set_cmd)
+        result_data = set_cmd_proc.run()
+        self.assertTrue( True if result_data[2]==22 else False)
+
+    def test_conf_cli_invalid_kv_delim(self):
+        """
+        Test by trying to set a value into given key position with
+        invalid kv_delim mentioned
+        """
+        set_cmd = "conf json:///tmp/file1.json set -d { cluster>id}093d"
+        set_cmd_proc = SimpleProcess(set_cmd)
+        result_data = set_cmd_proc.run()
+        self.assertTrue( True if result_data[2]==22 else False)
+
+    def test_conf_cli_multiple_kv_delim(self):
+        """
+        Test by trying to set a value into given key position with
+        multiple kv_delim argument
+        """
+        set_cmd = "conf json:///tmp/file1.json set -d : : cluster>id:093d"
+        set_cmd_proc = SimpleProcess(set_cmd)
+        result_data = set_cmd_proc.run()
+        self.assertTrue(True if result_data[2]==0 and result_data[0]==b'' else False)
+
+    def test_conf_cli_kv_delim_no_value(self):
+        """
+        Test by trying to set given key with no valu provided
+        """
+        set_cmd = "conf json:///tmp/file1.json set -d : cluster>id093d"
+        set_cmd_proc = SimpleProcess(set_cmd)
+        result_data = set_cmd_proc.run()
+        self.assertTrue(False if result_data[2]>0 and result_data[0]!=b'' else True)
+
+    def test_conf_cli_multiple_value_split_kv_delim(self):
+        """
+        Test by setting a value into given key position with multiple
+        value split kv_delim
+        """
+        set_cmd = "conf json:///tmp/file1.json set -d : cluster>host::localhost"
+        set_cmd_proc = SimpleProcess(set_cmd)
+        set_cmd_proc.run()
+        get_cmd = "conf json:///tmp/file1.json get cluster>host"
+        get_cmd_proc = SimpleProcess(get_cmd)
+        result_data = get_cmd_proc.run()
+        self.assertTrue( True if result_data[2]==0 and
+            result_data[0]==b'[":localhost"]\n' else False, result_data[1])
+
+    def test_conf_cli_with_kv_delim_in_value(self):
+        """
+        Test by setting a value into given key position with value
+        contains kv_delim
+        """
+        set_cmd = "conf json:///tmp/file1.json set -d : cluster>host:localhost:9090"
+        set_cmd_proc = SimpleProcess(set_cmd)
+        set_cmd_proc.run()
+        get_cmd = "conf json:///tmp/file1.json get cluster>host"
+        get_cmd_proc = SimpleProcess(get_cmd)
+        result_data = get_cmd_proc.run()
+        self.assertTrue( True if result_data[2]==0 and
+            result_data[0]==b'["localhost:9090"]\n' else False, result_data[1])
+
 if __name__ == '__main__':
     # create the file and load sample json into it. Start test
     setup_and_generate_sample_files()
