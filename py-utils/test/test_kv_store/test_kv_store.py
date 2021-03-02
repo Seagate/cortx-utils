@@ -55,11 +55,14 @@ def setup_and_generate_sample_files():
 
     with open(r'/tmp/example.properties', 'w+') as file:
         sample_config.update(sample_config['bridge'])
-        file.write("# Comments section test")
         for key, val in sample_config.items():
             file.write("%s = %s\n" %(key, val))
-        # Add empty line at end of the file for testing
-        file.write("    \n  ")
+        # below list contains other scenarios which need be handled
+        lines = ["k=v\n", " #This is second line\n",
+            "# This is sample comment\n", "\n", "k=v1=v2#\n", "k = v1 = v2\n",
+            "#This is another sample comment without EOL", "    #", "   #  "]
+        for each in lines:
+            file.write(each)
 
 # This function should be executed before testcase class
 setup_and_generate_sample_files()
@@ -282,6 +285,22 @@ class TestStore(unittest.TestCase):
             test_current_file('properties:///tmp/sample.yaml')
         except Exception as err:
             self.assertEqual('Invalid properties store format %s. %s.', err.args[1])
+    
+    def test_properties_with_invalid_kv_format_delim(self):
+        """
+        Test kv Properties store by accessing wrong kv format
+        key#value invalid - should be key=value
+        """
+        with open(r'/tmp/example_invalid.properties', 'w+') as file:
+            lines = ["key1#val1"]
+            for each in lines:
+                file.write(each)
+        try:
+            test_current_file('properties:///tmp/example_invalid.properties')
+        except Exception as err:
+            exp_err='Invalid properties store format key1#val1. not enough '\
+            'values to unpack (expected 2, got 1).'
+            self.assertEqual(exp_err, err._desc)
 
 if __name__ == '__main__':
     unittest.main()
