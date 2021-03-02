@@ -261,7 +261,7 @@ class TestConfCli(unittest.TestCase):
         cmd_proc = SimpleProcess(cmd)
         try:
             result_data = cmd_proc.run()
-        except Exception as err:
+        except Exception:
             self.assertEqual(result_data[2], '22')
 
 
