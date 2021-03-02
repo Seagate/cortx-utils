@@ -249,22 +249,21 @@ class TestConfCli(unittest.TestCase):
         result_data = get_cmd_proc.run()
         self.assertTrue( True if result_data[2]==0 and
             result_data[0]==b'["localhost:9090"]\n' else False, result_data[1])
-    
+
     def test_conf_cli_properties_wrong_format_kv(self):
         """
         Test by reading invalid k#V format key value and validate
         the result error message
         """
         with open(r'/tmp/example_invalid.properties', 'w+') as file:
-            lines = ["k=v\n", " #This is second line\n",
-                "# This is sample comment\n", "\n", "k=v1=v2#\n", "k = v1 = v2\n",
-                "#This is another sample comment without EOL", "    #", "   #  ",
-                "key1#val1"]
-            for each in lines:
-                file.write(each)
+            file.write("key1#val1")
         cmd = "conf properties:///tmp/example_invalid.properties get name"
         cmd_proc = SimpleProcess(cmd)
-        result_data = cmd_proc.run()
+        try:
+            result_data = cmd_proc.run()
+        except Exception as err:
+            self.assertEqual(result_data[2], '22')
+
 
 if __name__ == '__main__':
     # create the file and load sample json into it. Start test

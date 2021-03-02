@@ -285,16 +285,14 @@ class TestStore(unittest.TestCase):
             test_current_file('properties:///tmp/sample.yaml')
         except Exception as err:
             self.assertEqual('Invalid properties store format %s. %s.', err.args[1])
-    
+
     def test_properties_with_invalid_kv_format_delim(self):
         """
         Test kv Properties store by accessing wrong kv format
         key#value invalid - should be key=value
         """
         with open(r'/tmp/example_invalid.properties', 'w+') as file:
-            lines = ["key1#val1"]
-            for each in lines:
-                file.write(each)
+            file.write("key1#val1")
         try:
             test_current_file('properties:///tmp/example_invalid.properties')
         except Exception as err:
