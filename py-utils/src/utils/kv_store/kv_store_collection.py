@@ -232,7 +232,10 @@ class PropertiesKvStore(KvStore):
         with open(self._store_path, 'r') as f:
             try:
                 for line in f.readlines():
-                    key, val = line.rstrip('\n').split('=', 1)
+                    line = line.strip()
+                    if not line or line[0] == '#':
+                        continue
+                    key, val = line.split('=', 1)
                     data[key.strip()] = val.strip()
             except Exception as ex:
                 raise KvError(errno.ENOENT, "Invalid properties store format %s. %s.", line, ex)
