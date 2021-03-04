@@ -99,7 +99,7 @@ class KafkaMessageBroker(MessageBroker):
 
             kafka_conf['enable.auto.commit'] = client_conf['auto_ack']
             kafka_conf['auto.offset.reset'] = client_conf['offset']
-            self.consumer_group = kafka_conf['group.id'] = client_conf['consumer_group']
+            kafka_conf['group.id'] = client_conf['consumer_group']
 
             consumer = Consumer(**kafka_conf)
             consumer.subscribe(client_conf['message_types'])
