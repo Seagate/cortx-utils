@@ -221,10 +221,34 @@ class PillarKvPayload(KvPayload):
     def __init__(self, data, delim='>'):
         super().__init__(data, delim)
 
-    def get_bkup(self, key):
+    def get(self, key):
         """Get pillar data for key."""
         key = key.replace(self._delim, ':')
         cmd = f"salt pillar.get {key} --out=json"
+        cmd_proc = SimpleProcess(cmd)
+        out, err, rc = cmd_proc.run()
+
+        if rc != 0:
+            if rc == 127:
+                err = f"salt command not found"
+            raise KvError(rc, f"Cant get data for %s. %s.", key, err)
+
+        res = None
+        try:
+            res = json.loads(out)
+            res = res['local']
+
+        except Exception as ex:
+            raise KvError(errno.ENOENT, f"Cant get data for %s. %s.", key, ex)
+        if res is None:
+            raise KvError(errno.ENOENT, f"Cant get data for %s. %s."
+                                        f"Key not present")
+        return res
+    
+    def set(self, key, value):
+        """set pillar data for key."""
+        key = key.replace(self._delim, ':')
+        cmd = f"salt '*' state.apply {key} {value}"
         cmd_proc = SimpleProcess(cmd)
         out, err, rc = cmd_proc.run()
 
