@@ -91,15 +91,14 @@ class MessageBusClient:
         client_id = self._get_conf('client_id')
         self._message_bus.delete(client_id, message_type)
 
-    def get_unread_count(self, consumer_group: str = None):
+    def get_unread_count(self, consumer_group: str):
         """
         Gets the count of unread messages from the Message Bus
 
         Parameters:
         consumer_group  A String that represents Consumer Group ID.
         """
-        return self._message_bus.get_unread_count(self._client_type, \
-            consumer_group)
+        return self._message_bus.get_unread_count(consumer_group)
 
     def receive(self, timeout: float = None) -> list:
         """
@@ -169,3 +168,13 @@ class MessageConsumer(MessageBusClient):
         super().__init__(message_bus, client_type='consumer', \
             client_id=consumer_id, consumer_group=consumer_group, \
             message_types=message_types, auto_ack=auto_ack, offset=offset)
+
+    def get_unread_count(self):
+        """
+        Gets the count of unread messages from the Message Bus
+
+        Parameters:
+        consumer_group  A String that represents Consumer Group ID.
+        """
+        consumer_group = self._get_conf('consumer_group')
+        return self._message_bus.get_unread_count(consumer_group)

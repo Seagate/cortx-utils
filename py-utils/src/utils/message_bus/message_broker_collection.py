@@ -297,7 +297,7 @@ class KafkaMessageBroker(MessageBroker):
             else:
                 break
 
-    def get_unread_count(self, client_type: str, consumer_group: str):
+    def get_unread_count(self, consumer_group: str):
         """
         Gets the count of unread messages from the Kafka message server
 
@@ -308,13 +308,6 @@ class KafkaMessageBroker(MessageBroker):
         import io
         import pandas as pd
 
-        if client_type == 'producer':
-            if consumer_group is None:
-                raise MessageBusError(errno.EINVAL, "Consumer group is not \
-                    provided for %s", client_type)
-        elif client_type == 'consumer':
-            if consumer_group is None:
-                consumer_group = self.consumer_group
         try:
             cmd = "/opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server "\
                 + self._servers + " --describe --group " + consumer_group
@@ -342,7 +335,7 @@ class KafkaMessageBroker(MessageBroker):
 
         except Exception as e:
             raise MessageBusError(errno.EINVAL, "Unable to get the message \
-                    count. %s", e)
+                count. %s", e)
 
     def receive(self, consumer_id: str, timeout: float = None) -> list:
         """
