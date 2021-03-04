@@ -170,11 +170,6 @@ class MessageConsumer(MessageBusClient):
             message_types=message_types, auto_ack=auto_ack, offset=offset)
 
     def get_unread_count(self):
-        """
-        Gets the count of unread messages from the Message Bus
-
-        Parameters:
-        consumer_group  A String that represents Consumer Group ID.
-        """
+        """ Gets the count of unread messages from the Message Bus """
         consumer_group = self._get_conf('consumer_group')
         return self._message_bus.get_unread_count(consumer_group)

@@ -302,7 +302,6 @@ class KafkaMessageBroker(MessageBroker):
         Gets the count of unread messages from the Kafka message server
 
         Parameters:
-        client_type     Type of client, either Producer or Consumer.
         consumer_group  A String that represents Consumer Group ID.
         """
         import io
