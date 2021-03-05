@@ -51,15 +51,18 @@ class PkgV:
 				[pwd.getpwuid(os.getuid()).pw_name, host])
 
 		if v_type == "rpms":
-			return self.validate_rpms(host, args)
+			return self.validate_rpm_pkgs(host, args)
 		elif v_type == "pip3s":
-			return self.validate_pip3s(host, args)
+			return self.validate_pip3_pkgs(host, args)
 		else:
 			raise VError(errno.EINVAL,
 				     "Action parameter %s not supported" % v_type)
 
-	def validate_rpms(self, host, pkgs):
+	def validate_rpm_pkgs(self, host, pkgs, skip_version_check=True):
 		"""Check if rpm pkg is installed."""
+
+		if not isinstance(pkgs, dict):
+			skip_version_check = True
 
 		if host != None:
 			result = self.__search_pkg(f"ssh {host} rpm -qa")
@@ -70,8 +73,17 @@ class PkgV:
 			if result.find(f"{pkg}") == -1:
 				raise VError(errno.EINVAL,
 					     "rpm pkg: %s not found" % pkg)
+			if not skip_version_check:
+				matched_str = re.search(f"{pkg}-([^-][0-9.]+)-", result)
+				installed_version = matched_str.groups()[0]
+				expected_version = pkgs[pkg]
+				if installed_version != expected_version:
+					err_desc = "rpm pkg: %s is not having expected version. " + \
+     							"Installed: %s Expected: %s"
+					raise VError(errno.EINVAL,
+								err_desc % (pkg, installed_version, expected_version))
 
-	def validate_pip3s(self, host, pkgs, skip_version_check=True):
+	def validate_pip3_pkgs(self, host, pkgs, skip_version_check=True):
 		"""Check if pip3 pkg is installed."""
 
 		if not isinstance(pkgs, dict):
