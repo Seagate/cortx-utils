@@ -69,6 +69,13 @@ class MessageBus:
         """ Deletes all the messages from the configured message broker """
         self._broker.delete(client_id, message_type)
 
+    def get_unread_count(self, consumer_group: str):
+        """
+        Gets the count of unread messages from the configured message
+        broker
+        """
+        return self._broker.get_unread_count(consumer_group)
+
     def receive(self, client_id: str, timeout: float = None) -> list:
         """ Receives messages from the configured message broker """
         return self._broker.receive(client_id, timeout)

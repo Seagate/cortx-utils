@@ -38,7 +38,7 @@ class MessageBusClient:
         Registers a list of message types
 
         Parameters:
-        message_types    This is essentially equivalent to the list of queue/
+        message_types    This is essentially equivalent to the list of queue
                          topic name. For e.g. ["Alert"]
         partitions       Integer that represents number of partitions to be
                          created.
@@ -52,7 +52,7 @@ class MessageBusClient:
         Deregisters a list of message types
 
         Parameters:
-        message_types    This is essentially equivalent to the list of queue/
+        message_types    This is essentially equivalent to the list of queue
                          topic name. For e.g. ["Alert"]
         """
         client_id = self._get_conf('client_id')
@@ -63,7 +63,7 @@ class MessageBusClient:
         To increase the number of partitions for a list of message types
 
         Parameters:
-        message_types    This is essentially equivalent to the list of queue/
+        message_types    This is essentially equivalent to the list of queue
                          topic name. For e.g. ["Alert"]
         partitions       Integer that represents number of partitions to be
                          increased.
@@ -135,6 +135,15 @@ class MessageProducer(MessageBusClient):
         super().__init__(message_bus, client_type='producer', \
             client_id=producer_id, message_type=message_type, method=method)
 
+    def get_unread_count(self, consumer_group: str):
+        """
+        Gets the count of unread messages from the Message Bus
+
+        Parameters:
+        consumer_group  A String that represents Consumer Group ID.
+        """
+        return self._message_bus.get_unread_count(consumer_group)
+
 
 class MessageConsumer(MessageBusClient):
     """ A client that consumes messages """
@@ -148,7 +157,7 @@ class MessageConsumer(MessageBusClient):
         consumer_id     A String that represents Consumer client ID.
         consumer_group  A String that represents Consumer Group ID.
                         Group of consumers can process messages
-        message_types   This is essentially equivalent to the list of queue/
+        message_types   This is essentially equivalent to the list of queue
                         topic name. For e.g. ["Alert"]
         auto_ack        Can be set to "True" or "False"
         offset          Can be set to "earliest" (default) or "latest".
@@ -158,3 +167,8 @@ class MessageConsumer(MessageBusClient):
         super().__init__(message_bus, client_type='consumer', \
             client_id=consumer_id, consumer_group=consumer_group, \
             message_types=message_types, auto_ack=auto_ack, offset=offset)
+
+    def get_unread_count(self):
+        """ Gets the count of unread messages from the Message Bus """
+        consumer_group = self._get_conf('consumer_group')
+        return self._message_bus.get_unread_count(consumer_group)
