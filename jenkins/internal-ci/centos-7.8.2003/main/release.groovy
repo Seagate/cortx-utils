@@ -255,6 +255,15 @@ pipeline {
                 '''
 			}
 		}
+
+        stage ("Deploy") {
+            steps {
+                script { build_stage = env.STAGE_NAME }
+				script {
+                	build job: 'Main Deploy', propagate: false, wait: false,  parameters: [string(name: 'CORTX_BUILD', value: "http://cortx-storage.colo.seagate.com/releases/cortx/github/${branch}/${os_version}/${env.release_tag}/prod"), string(name: 'NOTIFICATION', value: "None")]
+				}
+            }
+        }
 	}
 	
 	post {
