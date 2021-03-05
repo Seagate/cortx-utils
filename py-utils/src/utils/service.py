@@ -20,7 +20,9 @@ import inspect
 import errno
 import sys
 
-
+system_bus = dbus.SystemBus()
+systemd1 = system_bus.get_object('org.freedesktop.systemd1', '/org/freedesktop/systemd1')
+dbus_manager = dbus.Interface(systemd1, 'org.freedesktop.systemd1.Manager')
 class ServiceError(Exception):
     """ Generic Exception with error code and output """
     _module = 'service'
@@ -59,9 +61,6 @@ class DbusServiceHandler:
             raise ServiceError(errno.EINVAL, "Invalid action '%s' for the service %s" \
                 %(action, service_name))
         try:
-            system_bus = dbus.SystemBus()
-            systemd1 = system_bus.get_object('org.freedesktop.systemd1', '/org/freedesktop/systemd1')
-            dbus_manager = dbus.Interface(systemd1, 'org.freedesktop.systemd1.Manager')
             if action == 'disable':
                 dbus_manager.DisableUnitFiles([f'{service_name}'], False)
                 dbus_manager.Reload()
@@ -88,3 +87,28 @@ class Service:
 
     def process(self, action: str, *args):
         self._handler.process(self, action, *args)
+
+    def get_service_information(self, service_name):
+        """Returns service state."""
+        # Possible states:active, inactive, failed, deactivating, activating, reloading.
+        # Possible substates: failed, running, exited.
+        try:
+            unit = system_bus.get_object('org.freedesktop.systemd1',dbus_manager.LoadUnit(service_name))
+            Iunit = dbus.Interface(unit, dbus_interface='org.freedesktop.DBus.Properties')
+            state = str(Iunit.Get('org.freedesktop.systemd1.Unit', 'ActiveState'))
+            substate = str(Iunit.Get('org.freedesktop.systemd1.Unit', 'SubState'))
+            pid = str(Iunit.Get('org.freedesktop.systemd1.Service', 'ExecMainPID'))
+            # Fetch command_line_path with argument(if any)
+            command_line =  list(Iunit.Get('org.freedesktop.systemd1.Service', 'ExecStart'))
+            return state, substate, pid, command_line
+        except dbus.DBusException as err:
+            raise ServiceError(errno.EINVAL,"Can not fetch state and substate for %s"
+                                "service, due to %s." % (service_name, err))
+
+    def check_service_is_enabled(self, service_name):
+        """Returns service status: enable/disable."""
+        try:
+            return str(dbus_manager.GetUnitFileState(service_name))
+        except dbus.DBusException as err:
+            raise ServiceError(errno.EINVAL,"Can not check service status for %s"
+                                "service, due to %s." % (service_name, err))
