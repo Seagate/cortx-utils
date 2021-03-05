@@ -25,7 +25,7 @@ class MessageBusClient:
         **client_conf: dict):
         self._message_bus = message_bus
         self._message_bus.init_client(client_type, **client_conf)
-         self._client_conf = client_conf
+        self._client_conf = client_conf
 
     def _get_conf(self, key: str):
         """ To get the client configurations """
