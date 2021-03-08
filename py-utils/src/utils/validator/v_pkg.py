@@ -65,9 +65,11 @@ class PkgV:
 			skip_version_check = True
 
 		if host != None:
-			result = self.__search_pkg(f"ssh {host} rpm -qa")
+			cmd = "ssh %s rpm -qa" % host
 		else:
-			result = self.__search_pkg("rpm -qa")
+			cmd = "rpm -qa"
+
+		result = self.__search_pkg(cmd)
 
 		for pkg in pkgs:
 			if result.find(f"{pkg}") == -1:
@@ -90,9 +92,11 @@ class PkgV:
 			skip_version_check = True
 
 		if host != None:
-			result = self.__search_pkg(f"ssh {host} pip3 list")
+			cmd = "ssh %s pip3 list" % host
 		else:
-			result = self.__search_pkg("pip3 list")
+			cmd = "pip3 list"
+
+		result = self.__search_pkg(cmd)
 
 		for pkg in pkgs:
 			if result.find(f"{pkg}") == -1:
