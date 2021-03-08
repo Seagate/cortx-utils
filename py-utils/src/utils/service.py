@@ -90,10 +90,11 @@ class Service:
 
     def get_service_information(self, service_name):
         """Returns service state."""
-        # Possible states:active, inactive, failed, deactivating, activating, reloading.
-        # Possible substates: failed, running, exited.
+        # Possible states: active,inactive,failed,deactivating,activating,reloading.
+        # Possible substates: failed,running,exited,stop-sigterm,stop-post,dead,start-pre.
         try:
-            unit = system_bus.get_object('org.freedesktop.systemd1',dbus_manager.LoadUnit(service_name))
+            unit = system_bus.get_object('org.freedesktop.systemd1',\
+                                            dbus_manager.LoadUnit(service_name))
             Iunit = dbus.Interface(unit, dbus_interface='org.freedesktop.DBus.Properties')
             state = str(Iunit.Get('org.freedesktop.systemd1.Unit', 'ActiveState'))
             substate = str(Iunit.Get('org.freedesktop.systemd1.Unit', 'SubState'))
