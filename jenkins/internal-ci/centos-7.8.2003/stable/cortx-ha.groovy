@@ -77,7 +77,7 @@ EOF
 					set -xe
 					pushd $component
 					echo "Executing build script"
-   				   ./jenkins/build.sh -v $version -b $BUILD_NUMBER
+   				   ./jenkins/build.sh -v ${version:0:1} -m ${version:2:1} -r ${version:4:1} -b $BUILD_NUMBER
 					popd
 				'''	
 			}
