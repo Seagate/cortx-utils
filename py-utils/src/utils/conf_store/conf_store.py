@@ -113,9 +113,18 @@ class ConfStore:
 
         self._cache[index].set(key, val)
 
-    def get_keys(self, index: str):
-        """ Obtains list of keys stored in the specific config store """
-        return self._cache[index].get_keys()
+    def get_keys(self, index: str, **filters):
+        """ 
+        Obtains list of keys stored in the specific config store
+        Input Paramters: 
+        Index   - Index for which the list of keys to be obtained
+        Filters - Filters to be applied before the keys to be returned.
+                  List of filters:
+                  * key_index={True|False} (default: True)
+                    when False, returns keys including array index
+                    e.g. In case of "xxx[0],xxx[1]", only "xxx" is returned
+        """
+        return self._cache[index].get_keys(filters)
 
     def get_data(self, index: str):
         """ Obtains entire config for given index """
@@ -148,8 +157,8 @@ class ConfStore:
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 dst_index)
 
-        if key_list is None:
-            key_list = self._cache[src_index].get_keys()
+        if key_list is None)
+            key_list = self._cache[src_index].get_keys(key_index=False)
         for key in key_list:
             self._cache[dst_index].set(key, self._cache[src_index].get(key))
 
@@ -198,6 +207,15 @@ class Conf:
         Conf._conf.save(dst_index)
 
     @staticmethod
-    def get_keys(index: str):
-        """ Obtains list of keys stored in the specific config store """
-        return Conf._conf.get_keys(index)
+    def get_keys(index: str, **filters):
+        """
+        Obtains list of keys stored in the specific config store
+        Input Paramters:
+        Index   - Index for which the list of keys to be obtained
+        Filters - Filters to be applied before the keys to be returned.
+                  List of filters:
+                  * key_index={True|False} (default: True)
+                    when False, returns keys including array index
+                    e.g. In case of "xxx[0],xxx[1]", only "xxx" is returned
+        """
+        return Conf._conf.get_keys(index, filters)
