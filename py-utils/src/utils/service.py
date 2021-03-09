@@ -85,7 +85,7 @@ class DbusServiceHandler:
     def get_service_information(self, service_name):
         """Returns service information: state, substate, pid, command_line_path."""
         # Possible states:active, inactive, failed, deactivating, activating, reloading.
-        # Possible substates: failed, running, exited.
+        # Possible substates: failed, running, exited, stop-sigterm, stop-post, dead, start-pre.
         try:
             system_bus, dbus_manager = self.get_systemd_interface()
             unit = system_bus.get_object('org.freedesktop.systemd1',dbus_manager.LoadUnit(service_name))
