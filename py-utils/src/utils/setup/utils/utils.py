@@ -131,7 +131,7 @@ class Utils:
     @staticmethod
     def test():
         """ Perform configuration testing """
-        from cortx.utils.setup import MessageBusTest
+        from cortx.utils.setup.utils import MessageBusTest
         msg_test = MessageBusTest()
         # Send a message
         msg_test.send_msg(["Test Message"])
