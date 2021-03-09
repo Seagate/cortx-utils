@@ -64,26 +64,19 @@ class PkgV:
 		if not isinstance(pkgs, dict):
 			skip_version_check = True
 
-		if host != None:
-			cmd = "ssh %s rpm -qa" % host
-		else:
-			cmd = "rpm -qa"
-
+		cmd = "ssh %s rpm -qa" % host if host != None else "rpm -qa"
 		result = self.__search_pkg(cmd)
 
 		for pkg in pkgs:
 			if result.find(f"{pkg}") == -1:
-				raise VError(errno.EINVAL,
-					     "rpm pkg: %s not found" % pkg)
+				raise VError(errno.EINVAL, "rpm pkg %s not installed." % pkg)
 			if not skip_version_check:
 				matched_str = re.search(f"{pkg}-([^-][0-9.]+)-", result)
 				installed_version = matched_str.groups()[0]
 				expected_version = pkgs[pkg]
 				if installed_version != expected_version:
-					err_desc = "rpm pkg: %s is not having expected version. " + \
-     							"Installed: %s Expected: %s"
-					raise VError(errno.EINVAL,
-								err_desc % (pkg, installed_version, expected_version))
+					raise VError(errno.EINVAL, "Mismatched version for rpm package %s. " \
+								"Installed %s. Expected %s." %(pkg, installed_version, expected_version))
 
 	def validate_pip3_pkgs(self, host, pkgs, skip_version_check=True):
 		"""Check if pip3 pkg is installed."""
@@ -91,23 +84,16 @@ class PkgV:
 		if not isinstance(pkgs, dict):
 			skip_version_check = True
 
-		if host != None:
-			cmd = "ssh %s pip3 list" % host
-		else:
-			cmd = "pip3 list"
-
+		cmd = "ssh %s pip3 list" % host if host != None else "pip3 list"
 		result = self.__search_pkg(cmd)
 
 		for pkg in pkgs:
 			if result.find(f"{pkg}") == -1:
-				raise VError(errno.EINVAL,
-							"pip3 pkg: %s not found" % pkg)
+				raise VError(errno.EINVAL, "pip3 pkg %s not installed." % pkg)
 			if not skip_version_check:
 				matched_str = re.search(f"{pkg} \((.*)\)", result)
 				installed_version = matched_str.groups()[0]
 				expected_version = pkgs[pkg]
 				if installed_version != expected_version:
-					err_desc = "pip3 pkg: %s is not having expected version. " + \
-     							"Installed: %s Expected: %s"
-					raise VError(errno.EINVAL,
-								err_desc % (pkg, installed_version, expected_version))
+					raise VError(errno.EINVAL, "Mismatched version for pip3 package %s. " \
+								"Installed %s. Expected %s." %(pkg, installed_version, expected_version))
