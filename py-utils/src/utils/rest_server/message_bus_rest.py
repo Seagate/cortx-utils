@@ -31,7 +31,7 @@ def message_bus_rest(message_type: str):
     if request.method == 'POST':
         try:
             messages = request.json['messages']
-            producer = MessageProducer(message_bus, producer_id='sspl_sensor', \
+            producer = MessageProducer(message_bus, producer_id='rest_producer', \
                 message_type=message_type)
 
             producer.send(messages)
@@ -44,7 +44,7 @@ def message_bus_rest(message_type: str):
         try:
             message_types = message_type.split('&')
             consumer_group = request.args.get('consumer_group')
-            consumer = MessageConsumer(message_bus, consumer_id='msys', \
+            consumer = MessageConsumer(message_bus, consumer_id='rest_consumer', \
                 consumer_group=consumer_group, message_types=message_types, \
                 auto_ack=True, offset='latest')
 
