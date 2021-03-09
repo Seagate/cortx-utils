@@ -249,17 +249,46 @@ class PropertiesKvStore(KvStore):
                 f.write("%s = %s\n" %(key, val))
 
 
-class PillarStore(KvStore):
-    """ Salt Pillar based KV Store """
-    name = "salt"
+class PillarKvPayload(KvPayload):
+    """ In memory representation of pillar data """
+    def __init__(self, data, delim='>', target='*'):
+        super().__init__(data, delim)
+        self._target = '*'
 
-    def __init__(self, store_loc, store_path, delim='>'):
-        KvStore.__init__(self, store_loc, store_path, delim)
-
-    def get(self, key):
-        """Get pillar data for key."""
+    def get(self, key:str) -> dict:
+        """
+        Get pillar data for key.
+        arguments:
+        key - string that defines which value need to be retrieved
+        """
         import json
-        cmd = f"salt-call pillar.get {key} --out=json"
+        key = key.replace(self._delim, ':')
+        cmd = f"salt {self._target} pillar.get {key} --out=json"
+        cmd_proc = SimpleProcess(cmd)
+        out, err, rc = cmd_proc.run()
+
+        if rc != 0:
+            if rc == 127:
+                err = f"salt command not found"
+            raise KvError(rc, f"Cant get data for %s. %s.", key, err)
+
+        res = None
+        try:
+            res = json.loads(out)
+            res = res if self._target == '*' else res[self._target]
+
+        except Exception as ex:
+            raise KvError(errno.ENOENT, f"Cant get data for %s. %s.", key, ex)
+        if res is None:
+            raise KvError(errno.ENOENT, f"Cant get data for %s. %s."
+                                        f"Key not present")
+        return res
+    
+    # Todo - set Api- WIP
+    def set(self, key:str, value:str) -> None:
+        """set pillar data for key."""
+        key = key.replace(self._delim, ':')
+        cmd = f"salt '*' state.apply {key} {value}"
         cmd_proc = SimpleProcess(cmd)
         out, err, rc = cmd_proc.run()
 
@@ -280,10 +309,64 @@ class PillarStore(KvStore):
                                         f"Key not present")
         return res
 
-    def set(self, key, value):
-        # TODO: Implement
-        pass
 
-    def delete(self, key):
-        # TODO: Implement
-        pass
+class PillarKvStore(KvStore):
+    """ Salt Pillar based KV Store """
+    name = "pillar"
+
+    def __init__(self, store_loc, store_path, delim='>'):
+        KvStore.__init__(self, store_loc, store_path, delim)
+        self._target = '*'
+    
+    def set_target(self, target:str='*') -> None:
+        """
+        tragents are required to run a slat command.
+        arguments:
+        target - target could be individual node name or * (for all minion)
+        """
+        ava_target = PillarKvStore.get_available_targets()
+        if target != '*' and target not in ava_target:
+            raise KvError(errno.ENOENT, "Target node not present in salt " \
+            "pillar cluster %s.", target)
+        self._target = target
+    
+    def load(self) -> KvPayload:
+        """ Loads data from pillar store """
+        import json
+        cmd = f"salt {self._target} pillar.items --out=json"
+        cmd_proc = SimpleProcess(cmd)
+        out, err, rc = cmd_proc.run()
+        
+        if rc != 0:
+            if rc == 127:
+                err = "salt command not found"
+            raise KvError(rc, "Cant get data for %s. %s.", key, err)
+        
+        try:
+            res = json.loads(out)
+        except Exception as ex:
+            raise KvError(errno.ENOENT, "Cant get data for %s. %s.", key, ex)
+        return PillarKvPayload(res, self._delim, self._target)
+
+    @staticmethod
+    def get_available_targets() -> dict:
+        """ Get all available salt cluster node """
+        import json
+        cmd_proc = SimpleProcess("salt * test.ping --output=json")
+        out, err, rc = cmd_proc.run()
+        if rc != 0:
+            if rc == 127:
+                err = "salt command not found"
+            raise KvError(rc, "Cant get targets for salt. %s.", err)
+        try:
+            result = json.loads(out)
+            result = [key for key, value in result.items() if value is True]
+        except Exception as ex:
+            raise KvError(errno.ENOENT, "Cant get data for %s. %s.", key, ex)
+        return result
+
+    def dump(self, data:dict, store_path:str='/tmp/pillar_store.json') -> None:
+        """ Saves data onto the file """
+        import json
+        with open(store_path, 'w+') as f:
+            json.dump(data.get_data(), f, indent=2)

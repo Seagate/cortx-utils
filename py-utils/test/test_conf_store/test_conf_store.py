@@ -291,6 +291,36 @@ class TestConfStore(unittest.TestCase):
             load_config('pro_local1', 'properties:///tmp/example.properties')
         except Exception as err:
             self.assertEqual('Invalid properties store format %s. %s.', err.args[1])
+    
+    # Pillar
+    def test_conf_store_a_pillar_load_and_get_keys(self):
+        """ Test by loading the given pillar file to conf in-memory """
+        load_config("pillar_local", "pillar://930404:Seagate#123@127.0.0.1")
+        result_data = Conf.get_keys('pillar_local')
+        self.assertTrue(len(result_data))
+
+    def test_conf_store_pillar_get(self):
+        """ Test by loading the given pillar file to conf in-memory """
+        result_keys = Conf.get_keys('pillar_local')
+        if len(result_keys)>0:
+            out = Conf.get("pillar_local", result_keys[0])
+            self.assertTrue(out)
+        else:
+            self.assertTrue(True if len(result_keys)==0 else False)
+
+    def test_conf_store_pillar_copy_api(self):
+        """ 
+        Test by coping the pillar to new index and dumping to a json file 
+        """
+        custom_file_loc = "/tmp/conf_pillar_copy.json"
+        Conf.load('pillar_local_backup', f"json://{custom_file_loc}.bak")
+        Conf.copy('pillar_local', 'pillar_local_backup')
+        Conf.save('pillar_local_backup')
+        pillar_local = Conf.get_keys("pillar_local_backup")
+        Conf.load('pillar_local_backup_loaded', f"json://{custom_file_loc}.bak")
+        bkup_loaded = Conf.get_keys("pillar_local_backup_loaded")
+        self.assertListEqual(bkup_loaded, pillar_local)
+
 
 if __name__ == '__main__':
     """
