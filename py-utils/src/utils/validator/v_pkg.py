@@ -32,9 +32,9 @@ class PkgV:
         handler = SimpleProcess(cmd)
         stdout, stderr, retcode = handler.run()
         if retcode != 0:
-            raise VError(errno.EINVAL,
-                     "cmd: %s failed with error code: %d, stderr: %s"
-                     %(cmd, retcode, stderr))
+            raise VError(
+                errno.EINVAL,
+                "Package dependency check failed. cmd: %s stderr: %s" %(cmd, stderr))
         return stdout.decode("utf-8")
 
     def validate(self, v_type: str, args: list, host: str = None):
@@ -55,8 +55,7 @@ class PkgV:
         elif v_type == "pip3s":
             return self.validate_pip3_pkgs(host, args)
         else:
-            raise VError(errno.EINVAL,
-                     "Action parameter %s not supported" % v_type)
+            raise VError(errno.EINVAL, "Action parameter %s not supported" % v_type)
 
     def validate_rpm_pkgs(self, host, pkgs, skip_version_check=True):
         """Check if rpm pkg is installed."""
@@ -76,7 +75,7 @@ class PkgV:
                 expected_version = pkgs[pkg]
                 if installed_version != expected_version:
                     raise VError(errno.EINVAL, "Mismatched version for rpm package %s. " \
-                            "Installed %s. Expected %s." %(pkg, installed_version, expected_version))
+                        "Installed %s. Expected %s." %(pkg, installed_version, expected_version))
 
     def validate_pip3_pkgs(self, host, pkgs, skip_version_check=True):
         """Check if pip3 pkg is installed."""
@@ -96,4 +95,4 @@ class PkgV:
                 expected_version = pkgs[pkg]
                 if installed_version != expected_version:
                     raise VError(errno.EINVAL, "Mismatched version for pip3 package %s. " \
-                            "Installed %s. Expected %s." %(pkg, installed_version, expected_version))
+                        "Installed %s. Expected %s." %(pkg, installed_version, expected_version))
