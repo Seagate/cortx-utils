@@ -18,7 +18,7 @@ pipeline {
 		passphrase = credentials('rpm-sign-passphrase')
 		python_deps = "$release_dir/third-party-deps/python-deps/python-packages-2.0.0-latest"
 		cortx_os_iso = "/mnt/bigstorage/releases/cortx_builds/custom-os-iso/cortx-os-1.0.0-23.iso"
-		third_party_dir = "${THIRD_PARTY_VERSION == 'cortx-2.0' ? "$release_dir/third-party-deps/centos/centos-7.8.2003-2.0.0-latest" : "$release_dir/third-party-deps/centos/centos-7.8.2003-1.0.0-1"}"
+		third_party_dir = "${THIRD_PARTY_VERSION == 'cortx-2.0' ? "$release_dir/third-party-deps/centos/centos-7.8.2003-2.0.0-latest" : THIRD_PARTY_VERSION == 'cortx-1.0' ?  "$release_dir/third-party-deps/centos/centos-7.8.2003-1.0.0-1" : "$release_dir/third-party-deps/centos/centos-7.8.2003-custom"}"
 	}
 
 	options {
@@ -49,7 +49,7 @@ pipeline {
 
 		choice(
 			name: 'THIRD_PARTY_VERSION',
-			choices: ['cortx-2.0', 'cortx-1.0'],
+			choices: ['cortx-2.0', 'cortx-1.0', 'custom'],
 			description: 'Third Party Version to use.'
 		)
 	}
