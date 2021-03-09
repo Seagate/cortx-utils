@@ -25,75 +25,75 @@ from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.v_network import NetworkV
 
 class PkgV:
-	"""Pkg related validations."""
+    """Pkg related validations."""
 
-	def __search_pkg(self, cmd):
-		# print(f"Running {cmd}")
-		handler = SimpleProcess(cmd)
-		stdout, stderr, retcode = handler.run()
-		if retcode != 0:
-			raise VError(errno.EINVAL,
-				     "cmd: %s failed with error code: %d, stderr: %s"
-				     %(cmd, retcode, stderr))
-		return stdout.decode("utf-8")
+    def __search_pkg(self, cmd):
+        # print(f"Running {cmd}")
+        handler = SimpleProcess(cmd)
+        stdout, stderr, retcode = handler.run()
+        if retcode != 0:
+            raise VError(errno.EINVAL,
+                     "cmd: %s failed with error code: %d, stderr: %s"
+                     %(cmd, retcode, stderr))
+        return stdout.decode("utf-8")
 
-	def validate(self, v_type: str, args: list, host: str = None):
-		"""
-		Process rpm validations.
-		Usage (arguments to be provided):
-		1. pkg validate_rpms host (optional) [packagenames]
-		2. pkg validate_pip3s host (optional) [pip3 packagenames]
-		"""
+    def validate(self, v_type: str, args: list, host: str = None):
+        """
+        Process rpm validations.
+        Usage (arguments to be provided):
+        1. pkg validate_rpms host (optional) [packagenames]
+        2. pkg validate_pip3s host (optional) [pip3 packagenames]
+        """
 
-		# Ensure we can perform passwordless ssh and there are no prompts
-		if host:
-			NetworkV().validate('passwordless',
-				[pwd.getpwuid(os.getuid()).pw_name, host])
+        # Ensure we can perform passwordless ssh and there are no prompts
+        if host:
+            NetworkV().validate('passwordless',
+                [pwd.getpwuid(os.getuid()).pw_name, host])
 
-		if v_type == "rpms":
-			return self.validate_rpm_pkgs(host, args)
-		elif v_type == "pip3s":
-			return self.validate_pip3_pkgs(host, args)
-		else:
-			raise VError(errno.EINVAL,
-				     "Action parameter %s not supported" % v_type)
+        if v_type == "rpms":
+            return self.validate_rpm_pkgs(host, args)
+        elif v_type == "pip3s":
+            return self.validate_pip3_pkgs(host, args)
+        else:
+            raise VError(errno.EINVAL,
+                     "Action parameter %s not supported" % v_type)
 
-	def validate_rpm_pkgs(self, host, pkgs, skip_version_check=True):
-		"""Check if rpm pkg is installed."""
+    def validate_rpm_pkgs(self, host, pkgs, skip_version_check=True):
+        """Check if rpm pkg is installed."""
 
-		if not isinstance(pkgs, dict):
-			skip_version_check = True
+        if not isinstance(pkgs, dict):
+            skip_version_check = True
 
-		cmd = "ssh %s rpm -qa" % host if host != None else "rpm -qa"
-		result = self.__search_pkg(cmd)
+        cmd = "ssh %s rpm -qa" % host if host != None else "rpm -qa"
+        result = self.__search_pkg(cmd)
 
-		for pkg in pkgs:
-			if result.find(f"{pkg}") == -1:
-				raise VError(errno.EINVAL, "rpm pkg %s not installed." % pkg)
-			if not skip_version_check:
-				matched_str = re.search(f"{pkg}-([^-][0-9.]+)-", result)
-				installed_version = matched_str.groups()[0]
-				expected_version = pkgs[pkg]
-				if installed_version != expected_version:
-					raise VError(errno.EINVAL, "Mismatched version for rpm package %s. " \
-								"Installed %s. Expected %s." %(pkg, installed_version, expected_version))
+        for pkg in pkgs:
+            if result.find(f"{pkg}") == -1:
+                raise VError(errno.EINVAL, "rpm pkg %s not installed." % pkg)
+            if not skip_version_check:
+                matched_str = re.search(f"{pkg}-([^-][0-9.]+)-", result)
+                installed_version = matched_str.groups()[0]
+                expected_version = pkgs[pkg]
+                if installed_version != expected_version:
+                    raise VError(errno.EINVAL, "Mismatched version for rpm package %s. " \
+                            "Installed %s. Expected %s." %(pkg, installed_version, expected_version))
 
-	def validate_pip3_pkgs(self, host, pkgs, skip_version_check=True):
-		"""Check if pip3 pkg is installed."""
+    def validate_pip3_pkgs(self, host, pkgs, skip_version_check=True):
+        """Check if pip3 pkg is installed."""
 
-		if not isinstance(pkgs, dict):
-			skip_version_check = True
+        if not isinstance(pkgs, dict):
+            skip_version_check = True
 
-		cmd = "ssh %s pip3 list" % host if host != None else "pip3 list"
-		result = self.__search_pkg(cmd)
+        cmd = "ssh %s pip3 list" % host if host != None else "pip3 list"
+        result = self.__search_pkg(cmd)
 
-		for pkg in pkgs:
-			if result.find(f"{pkg}") == -1:
-				raise VError(errno.EINVAL, "pip3 pkg %s not installed." % pkg)
-			if not skip_version_check:
-				matched_str = re.search(f"{pkg} \((.*)\)", result)
-				installed_version = matched_str.groups()[0]
-				expected_version = pkgs[pkg]
-				if installed_version != expected_version:
-					raise VError(errno.EINVAL, "Mismatched version for pip3 package %s. " \
-								"Installed %s. Expected %s." %(pkg, installed_version, expected_version))
+        for pkg in pkgs:
+            if result.find(f"{pkg}") == -1:
+                raise VError(errno.EINVAL, "pip3 pkg %s not installed." % pkg)
+            if not skip_version_check:
+                matched_str = re.search(f"{pkg} \((.*)\)", result)
+                installed_version = matched_str.groups()[0]
+                expected_version = pkgs[pkg]
+                if installed_version != expected_version:
+                    raise VError(errno.EINVAL, "Mismatched version for pip3 package %s. " \
+                            "Installed %s. Expected %s." %(pkg, installed_version, expected_version))
