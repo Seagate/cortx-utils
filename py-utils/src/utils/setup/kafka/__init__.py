@@ -15,6 +15,5 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.setup.utils.utils import Utils
-from cortx.utils.setup.utils.utils import SetupError
-from cortx.utils.setup.utils.msg_bus_test import MessageBusTest
+from cortx.utils.setup.kafka.kafka import Kafka
+from cortx.utils.setup.kafka.kafka import KafkaSetupError

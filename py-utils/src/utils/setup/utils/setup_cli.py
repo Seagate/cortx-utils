@@ -20,7 +20,7 @@ import argparse
 import inspect
 import traceback
 
-from cortx.utils.setup import Utils
+from cortx.utils.setup.utils import Utils
 
 
 class Cmd:
@@ -85,6 +85,17 @@ class PostInstallCmd(Cmd):
         Utils.validate('post_install')
         rc = Utils.post_install()
         return rc
+
+
+class PrepareCmd(Cmd):
+    """ Prepare Setup Cmd """
+    name = "prepare"
+
+    def __init__(self, args: dict):
+        super().__init__(args)
+
+    def process(self):
+        pass
 
 
 class ConfigCmd(Cmd):

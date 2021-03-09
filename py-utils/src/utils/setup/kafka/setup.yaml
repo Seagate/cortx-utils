@@ -1,6 +1,4 @@
-#!/bin/python3
-
-# CORTX Python common library.
+# CORTX-PY-UTILS: CORTX common utility code
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -15,6 +13,28 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.setup.utils.utils import Utils
-from cortx.utils.setup.utils.utils import SetupError
-from cortx.utils.setup.utils.msg_bus_test import MessageBusTest
+kafka:
+    post_install:
+        cmd: kafka_setup post_install
+        args: --config $URL
+
+    prepare:
+        cmd: kafka_setup prepare
+        args: --config $URL
+
+    config:
+        cmd: kafka_setup config
+        args: --config $URL
+
+    init:
+        cmd: kafka_setup init
+        args: --config $URL
+
+    test:
+        cmd: kafka_setup test
+        args: --config $URL
+
+    reset:
+        cmd: kafka_setup reset
+        args: --config $URL
+
