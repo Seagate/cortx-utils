@@ -19,6 +19,7 @@
 import errno
 from flask import Flask, request, jsonify
 from cortx.utils.message_bus import MessageBus, MessageProducer, MessageConsumer
+from cortx.utils.rest_server.error import RestServerError
 
 app = Flask(__name__)
 message_bus = MessageBus()
