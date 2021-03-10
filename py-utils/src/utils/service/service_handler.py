@@ -52,90 +52,97 @@ class DbusServiceHandler(ServiceHandler):
     """ Handler for Service Control using DBUS interface """
     name = "dbus"
 
+    def __init__(self):
+        self._system_bus, self._dbus_manager = \
+                                DbusServiceHandler._get_systemd_interface()
+
     @classmethod
     def _get_systemd_interface(cls):
         system_bus = dbus.SystemBus()
-        systemd1 = system_bus.get_object('org.freedesktop.systemd1', '/org/freedesktop/systemd1')
-        dbus_manager = dbus.Interface(systemd1, 'org.freedesktop.systemd1.Manager')
+        systemd1 = system_bus.get_object('org.freedesktop.systemd1',
+                                                '/org/freedesktop/systemd1')
+        dbus_manager = dbus.Interface(systemd1,
+                                            'org.freedesktop.systemd1.Manager')
         return system_bus, dbus_manager
 
     def start(self, service_name: str):
+        """Starts systemd service using dbus interface."""
         try:
-            _, dbus_manager = DbusServiceHandler._get_systemd_interface()
-            dbus_manager.StartUnit(f'{service_name}', 'fail')
-            del dbus_manager
+            self._dbus_manager.StartUnit(f'{service_name}', 'fail')
         except dbus.DBusException as err:
-            raise ServiceError(errno.EINVAL, "Failed to start %s due to error. %s" \
-                %(service_name, err))
+            raise ServiceError(errno.EINVAL,
+                    "Failed to start %s due to error. %s" %(service_name, err))
 
     def stop(self, service_name: str):
+        """Stop systemd service using dbus interface."""
         try:
-            _, dbus_manager = DbusServiceHandler._get_systemd_interface()
-            dbus_manager.StopUnit(f'{service_name}', 'fail')
-            del dbus_manager
+            self._dbus_manager.StopUnit(f'{service_name}', 'fail')
         except dbus.DBusException as err:
-            raise ServiceError(errno.EINVAL, "Failed to stop %s due to error. %s"
-                %(service_name, err))
+            raise ServiceError(errno.EINVAL,
+                "Failed to stop %s due to error. %s" %(service_name, err))
 
     def restart(self, service_name: str):
+        """Restart systemd service using dbus interface."""
         try:
-            _, dbus_manager = DbusServiceHandler._get_systemd_interface()
-            dbus_manager.RestartUnit(f'{service_name}', 'fail')
-            del dbus_manager
+            self._dbus_manager.RestartUnit(f'{service_name}', 'fail')
         except dbus.DBusException as err:
-            raise ServiceError(errno.EINVAL, "Failed to restart %s due to error. %s"
-                %(service_name, err))
+            raise ServiceError(errno.EINVAL,
+                "Failed to restart %s due to error. %s" %(service_name, err))
 
     def enable(self, service_name: str):
+        """Enable systemd service using dbus interface."""
         try:
-            _, dbus_manager = DbusServiceHandler._get_systemd_interface()
-            dbus_manager.EnableUnitFiles([f'{service_name}'], False, True)
-            dbus_manager.Reload()
-            del dbus_manager
+            self._dbus_manager.EnableUnitFiles([f'{service_name}'], False, True)
+            self._dbus_manager.Reload()
         except dbus.DBusException as err:
-            raise ServiceError(errno.EINVAL, "Failed to enable %s due to error. %s"
-                %(service_name, err))
+            raise ServiceError(errno.EINVAL,
+                "Failed to enable %s due to error. %s" %(service_name, err))
 
     def disable(self, service_name: str):
+        """Disable systemd service using dbus interface."""
         try:
-            _, dbus_manager = DbusServiceHandler._get_systemd_interface()
-            dbus_manager.DisableUnitFiles([f'{service_name}'], False)
-            dbus_manager.Reload()
-            del dbus_manager
+            self._dbus_manager.DisableUnitFiles([f'{service_name}'], False)
+            self._dbus_manager.Reload()
         except dbus.DBusException as err:
-            raise ServiceError(errno.EINVAL, "Failed to disable %s due to error. %s"
-                %(service_name, err))
+            raise ServiceError(errno.EINVAL,
+                "Failed to disable %s due to error. %s" %(service_name, err))
 
     def get_state(self, service_name):
         """Returns ServiceState of the Service."""
-        system_bus, dbus_manager = DbusServiceHandler._get_systemd_interface()
-        unit = system_bus.get_object('org.freedesktop.systemd1',dbus_manager.LoadUnit(service_name))
-        Iunit = dbus.Interface(unit, dbus_interface='org.freedesktop.DBus.Properties')
+        unit = self._system_bus.get_object('org.freedesktop.systemd1',
+                                        self._dbus_manager.LoadUnit(service_name))
+        Iunit = dbus.Interface(unit,
+                            dbus_interface='org.freedesktop.DBus.Properties')
         pid = str(Iunit.Get('org.freedesktop.systemd1.Service', 'ExecMainPID'))
         state = str(Iunit.Get('org.freedesktop.systemd1.Unit', 'ActiveState'))
         substate = str(Iunit.Get('org.freedesktop.systemd1.Unit', 'SubState'))
-        command_line =  list(Iunit.Get('org.freedesktop.systemd1.Service', 'ExecStart'))
-        service_state = ServiceState()
-        service_state.pid = pid
-        service_state.state = state
-        service_state.substate = substate
-        service_state.command_line_path = command_line
-        del dbus_manager
+        command_line =  list(Iunit.Get('org.freedesktop.systemd1.Service',
+                                                                'ExecStart'))
+        service_state = ServiceState(pid, state, substate, command_line)
         return service_state
 
     def is_enabled(self, service_name):
         """Returns service status: enable/disable."""
         try:
-            _, dbus_manager = DbusServiceHandler._get_systemd_interface()
-            status = str(dbus_manager.GetUnitFileState(service_name))
-            del dbus_manager
+            status = str(self._dbus_manager.GetUnitFileState(service_name))
             return status
         except dbus.DBusException as err:
-            raise ServiceError(errno.EINVAL,"Can not check service status: enable/disable for %s, "
-                                "due to error: %s." % (service_name, err))
+            raise ServiceError(errno.EINVAL,
+                "Can not check service status: enable/disable for %s, "
+                            "due to error: %s." % (service_name, err))
+
+    def __cleanup__(self):
+        del self._dbus_manager
+        del self._system_bus
 
 class ServiceState:
-    """ Return service information: state, substate, pid, command_line_path. """
+    """ Return service information:state, substate, pid, command_line_path. """
+
+    def __init__(self, pid, state, substate, command_line_path):
+        self._pid = pid
+        self._state = state
+        self._substate = substate
+        self._command_line_path = command_line_path
 
     @property
     def pid(self):
@@ -152,22 +159,6 @@ class ServiceState:
     @property
     def command_line_path(self):
         return self._command_line_path
-
-    @pid.setter
-    def pid(self, pid):
-        self._pid = pid
-
-    @state.setter
-    def state(self, state):
-        self._state = state
-
-    @substate.setter
-    def substate(self, substate):
-        self._substate = substate
-
-    @command_line_path.setter
-    def command_line_path(self, command_line_path):
-        self._command_line_path = command_line_path
 
 class Service:
     """ Represents a Service which needs to be controlled """
