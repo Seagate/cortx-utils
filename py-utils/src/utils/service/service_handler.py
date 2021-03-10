@@ -54,15 +54,15 @@ class DbusServiceHandler(ServiceHandler):
 
     def __init__(self):
         self._system_bus, self._dbus_manager = \
-                                DbusServiceHandler._get_systemd_interface()
+            DbusServiceHandler._get_systemd_interface()
 
     @classmethod
     def _get_systemd_interface(cls):
         system_bus = dbus.SystemBus()
         systemd1 = system_bus.get_object('org.freedesktop.systemd1',
-                                                '/org/freedesktop/systemd1')
+            '/org/freedesktop/systemd1')
         dbus_manager = dbus.Interface(systemd1,
-                                            'org.freedesktop.systemd1.Manager')
+            'org.freedesktop.systemd1.Manager')
         return system_bus, dbus_manager
 
     def start(self, service_name: str):
@@ -71,7 +71,7 @@ class DbusServiceHandler(ServiceHandler):
             self._dbus_manager.StartUnit(f'{service_name}', 'fail')
         except dbus.DBusException as err:
             raise ServiceError(errno.EINVAL,
-                    "Failed to start %s due to error. %s" %(service_name, err))
+                "Failed to start %s due to error. %s" %(service_name, err))
 
     def stop(self, service_name: str):
         """Stop systemd service using dbus interface."""
@@ -110,14 +110,14 @@ class DbusServiceHandler(ServiceHandler):
     def get_state(self, service_name):
         """Returns ServiceState of the Service."""
         unit = self._system_bus.get_object('org.freedesktop.systemd1',
-                                        self._dbus_manager.LoadUnit(service_name))
+                    self._dbus_manager.LoadUnit(service_name))
         Iunit = dbus.Interface(unit,
-                            dbus_interface='org.freedesktop.DBus.Properties')
+                    dbus_interface='org.freedesktop.DBus.Properties')
         pid = str(Iunit.Get('org.freedesktop.systemd1.Service', 'ExecMainPID'))
         state = str(Iunit.Get('org.freedesktop.systemd1.Unit', 'ActiveState'))
         substate = str(Iunit.Get('org.freedesktop.systemd1.Unit', 'SubState'))
         command_line =  list(Iunit.Get('org.freedesktop.systemd1.Service',
-                                                                'ExecStart'))
+            'ExecStart'))
         service_state = ServiceState(pid, state, substate, command_line)
         return service_state
 
@@ -129,7 +129,7 @@ class DbusServiceHandler(ServiceHandler):
         except dbus.DBusException as err:
             raise ServiceError(errno.EINVAL,
                 "Can not check service status: enable/disable for %s, "
-                            "due to error: %s." % (service_name, err))
+                "due to error: %s." % (service_name, err))
 
     def __cleanup__(self):
         del self._dbus_manager
