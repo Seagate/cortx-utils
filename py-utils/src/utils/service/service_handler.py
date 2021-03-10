@@ -110,9 +110,9 @@ class DbusServiceHandler(ServiceHandler):
     def get_state(self, service_name):
         """Returns ServiceState of the Service."""
         unit = self._system_bus.get_object('org.freedesktop.systemd1',
-                    self._dbus_manager.LoadUnit(service_name))
+            self._dbus_manager.LoadUnit(service_name))
         Iunit = dbus.Interface(unit,
-                    dbus_interface='org.freedesktop.DBus.Properties')
+            dbus_interface='org.freedesktop.DBus.Properties')
         pid = str(Iunit.Get('org.freedesktop.systemd1.Service', 'ExecMainPID'))
         state = str(Iunit.Get('org.freedesktop.systemd1.Unit', 'ActiveState'))
         substate = str(Iunit.Get('org.freedesktop.systemd1.Unit', 'SubState'))
@@ -163,28 +163,31 @@ class ServiceState:
 class Service:
     """ Represents a Service which needs to be controlled """
 
-    def __init__(self, handler_type: str):
+    def __init__(self, service_name: str, handler_type: str=None):
+        self._service_name = service_name
+        if handler_type is None:
+            handler_type = "dbus"
         self._handler = ServiceHandler.get(handler_type)
 
-    def start(self, service_name):
-        self._handler.start(self, service_name)
+    def start(self):
+        self._handler.start(self, self._service_name)
 
-    def stop(self, service_name):
-        self._handler.stop(self, service_name)
+    def stop(self):
+        self._handler.stop(self, self._service_name)
 
-    def restart(self, service_name):
-        self._handler.restart(self, service_name)
+    def restart(self):
+        self._handler.restart(self, self._service_name)
 
-    def enable(self, service_name):
-        self._handler.enable(self, service_name)
+    def enable(self):
+        self._handler.enable(self, self._service_name)
 
-    def disable(self, service_name):
-        self._handler.disable(self, service_name)
+    def disable(self):
+        self._handler.disable(self, self._service_name)
 
-    def get_state(self, service_name):
-        service_state = self._handler.get_state(self, service_name)
+    def get_state(self):
+        service_state = self._handler.get_state(self, self._service_name)
         return service_state
 
-    def is_enabled(self, service_name):
-        status = self._handler.is_enabled(self, service_name)
+    def is_enabled(self):
+        status = self._handler.is_enabled(self, self._service_name)
         return status
