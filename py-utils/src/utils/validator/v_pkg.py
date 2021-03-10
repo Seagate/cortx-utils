@@ -30,17 +30,16 @@ class PkgV:
     """Pkg related validations."""
 
     def __init__(self):
-        self.passwdless_ssh_enabled = False
+        self.passwdless_ssh_enabled = True
         self.ssh = None
 
     def __execute_cmd(self, cmd):
         """
         Execute command using SSHChannel or SimpleProcees
-        Uses SSHChannel to execute ommand on host if passwordless ssh is not configured.
+        Uses SSHChannel to execute command on host if passwordless ssh is not configured.
         Uses SimpleProcess to execute command if no host is provided in args or
         passwordless ssh is configured on host.
         """
-        # print(f"Running {cmd}")
         if self.ssh:
             retcode, result = self.ssh.execute(cmd)
         else:
@@ -59,20 +58,23 @@ class PkgV:
         Usage (arguments to be provided):
         1. pkg validate_rpms host (optional) [packagenames]
         2. pkg validate_pip3s host (optional) [pip3 packagenames]
+        host should be host url in case passwordless ssh is not configured.
+        host url format - user:passwd@fqdn:port
         """
         if host:
             try:
                 # Ensure we can perform passwordless ssh and there are no prompts
                 NetworkV().validate('passwordless',
                     [pwd.getpwuid(os.getuid()).pw_name, host])
-                self.passwdless_ssh_enabled = True
-            except VError:
+            except:
+                self.passwdless_ssh_enabled = False
+            if not self.passwdless_ssh_enabled:
                 # Create ssh connection in case passwordless ssh is not configured
                 host_details = re.search(r"(\w+):(.+)@(.+):(\d+)", host)
                 if not host_details or len(host_details.groups()) != 4:
                     raise VError(
                         errno.EINVAL,
-                        "Invalid host_url format is given for passwordless ssh not configured host.")
+                        "Invalid host url format is given for passwordless ssh not configured host.")
                 user = host_details.groups()[0]
                 passwd = host_details.groups()[1]
                 host = host_details.groups()[2]
