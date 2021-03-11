@@ -122,7 +122,6 @@ class IniKvPayload(KvPayload):
 
     def _get_keys(self, keys: list, data, pkey: str = None,
         key_index: bool = True):
-        
         for section in self._data.sections():
             for key in [option for option in self._data[section]]:
                 keys.append(f"{section}>{key}")

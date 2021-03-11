@@ -51,7 +51,7 @@ class KvPayload:
                     when False, returns keys including array index
                     e.g. In case of "xxx[0],xxx[1]", only "xxx" is returned
         """
-        if len(filters.items()) == 0: 
+        if len(filters.items()) == 0:
             return self._keys
         keys = []
         self._get_keys(keys, self._data, None, **filters)
@@ -59,6 +59,7 @@ class KvPayload:
 
     def _get_keys(self, keys: list, data, pkey: str = None,
         key_index: bool = True):
+        
         if isinstance(data, list):
             if key_index == True:
                 for i in range(len(data)):
