@@ -304,8 +304,7 @@ class KafkaMessageBroker(MessageBroker):
         Parameters:
         consumer_group  A String that represents Consumer Group ID.
         """
-        import io
-        import pandas as pd
+        table = []
 
         try:
             cmd = "/opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server "\
@@ -323,10 +322,15 @@ class KafkaMessageBroker(MessageBroker):
                 raise MessageBusError(errno.EINVAL, "Unable to get the message \
                     count. %s", decoded_string)
             else:
-                data_table = io.StringIO(decoded_string)
-                df = pd.read_table(data_table, delim_whitespace=True)
-                unread_count = [int(count) for count in list(df['LAG']) \
-                    if count != '-']
+                split_rows = decoded_string.split('\n')
+                rows = [row.split(' ') for row in split_rows if row != '']
+                for each_row in rows:
+                    new_row = [item for item in each_row if item != '']
+                    table.append(new_row)
+                index = table[0].index('LAG')
+                unread_count = [int(lag[index]) for lag in table if lag[index] \
+                    != 'LAG' and lag[index] != '-']
+
                 if len(unread_count) == 0:
                     raise MessageBusError(errno.EINVAL, "No active consumers \
                         in the consumer group, %s", consumer_group)
