@@ -307,7 +307,7 @@ class KafkaMessageBroker(MessageBroker):
         table = []
 
         try:
-            cmd = "/home/centos/kafka_2.13-2.7.0/bin/kafka-consumer-groups.sh --bootstrap-server "\
+            cmd = "/opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server "\
                 + self._servers + " --describe --group " + consumer_group
             cmd_proc = SimpleProcess(cmd)
             res_op, res_err, res_rc = cmd_proc.run()
