@@ -124,7 +124,7 @@ class ConfStore:
                     when False, returns keys including array index
                     e.g. In case of "xxx[0],xxx[1]", only "xxx" is returned
         """
-        return self._cache[index].get_keys(filters)
+        return self._cache[index].get_keys(**filters)
 
     def get_data(self, index: str):
         """ Obtains entire config for given index """
@@ -218,4 +218,4 @@ class Conf:
                     when False, returns keys including array index
                     e.g. In case of "xxx[0],xxx[1]", only "xxx" is returned
         """
-        return Conf._conf.get_keys(index, filters)
+        return Conf._conf.get_keys(index, **filters)

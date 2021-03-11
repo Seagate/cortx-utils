@@ -120,11 +120,12 @@ class IniKvPayload(KvPayload):
     def __init__(self, configparser, delim='>'):
         super().__init__(configparser, delim)
 
-    def refresh_keys(self):
-        self._keys = []
+    def _get_keys(self, keys: list, data, pkey: str = None,
+        key_index: bool = True):
+        
         for section in self._data.sections():
             for key in [option for option in self._data[section]]:
-                self._keys.append(f"{section}>{key}")
+                keys.append(f"{section}>{key}")
 
     def set(self, key, val):
         k = key.split('>', 1)

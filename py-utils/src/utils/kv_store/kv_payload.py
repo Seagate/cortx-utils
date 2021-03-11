@@ -33,7 +33,8 @@ class KvPayload:
         if len(delim) > 1:
             raise KvError(errno.EINVAL, "Invalid delim %s", delim)
         self._delim = delim
-        self._keys = self._get_keys(self._keys, self._data)
+        self._keys = []
+        self._get_keys(self._keys, self._data)
 
     def get_data(self, format_type: str = None):
         if format_type == None:
@@ -50,13 +51,14 @@ class KvPayload:
                     when False, returns keys including array index
                     e.g. In case of "xxx[0],xxx[1]", only "xxx" is returned
         """
-        if len(filters.items) == 0: 
+        if len(filters.items()) == 0: 
             return self._keys
         keys = []
         self._get_keys(keys, self._data, None, **filters)
         return keys
 
-    def _get_keys(self, keys: list, data, pkey: str = None, key_index: bool = True):
+    def _get_keys(self, keys: list, data, pkey: str = None,
+        key_index: bool = True):
         if isinstance(data, list):
             if key_index == True:
                 for i in range(len(data)):
@@ -118,7 +120,7 @@ class KvPayload:
     def set(self, key: str, val: str):
         """ Updates the value for the given key in the dictionary """
         self._set(key, val, self._data)
-        if key not in self._keys():
+        if key not in self._keys:
             self._keys.append(key)
 
     def _get(self, key: str, data: dict) -> str:
@@ -189,6 +191,6 @@ class KvPayload:
         returns True if key existed/deleted. Returns False if key not found.
         """
         rc = self._delete(key, self._data)
-        if rc == True and key in self._keys():
-            del self._keys[key]
+        if rc == True and key in self._keys:
+            del self._keys[self._keys.index(key)]
         return rc
