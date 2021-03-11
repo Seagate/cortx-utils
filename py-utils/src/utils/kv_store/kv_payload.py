@@ -48,7 +48,7 @@ class KvPayload:
         Filters - Filters to be applied before the keys to be returned.
                   List of filters:
                   * key_index={True|False} (default: True)
-                    when False, returns keys including array index
+                    when True, returns keys including array index
                     e.g. In case of "xxx[0],xxx[1]", only "xxx" is returned
         """
         if len(filters.items()) == 0:

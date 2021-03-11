@@ -83,11 +83,11 @@ class ConfCli:
     @staticmethod
     def get_keys(args) -> str:
         """ Returns list of keys present in store """
-        key_index_status = True if (args.key_index == None or
-            args.key_index.lower().strip() == 'true') else False
-        print("*"*25)
-        print(key_index_status)
-        return Conf.get_keys(ConfCli._index, key_index=key_index_status)
+        key_index = 'true' if args.key_index == None else args.key_index.lower().strip()
+        key_index = True if key_index == 'true' else False if key_index == 'false' else None
+        if key_index == None:
+            raise ConfError(errno.EINVAL, "invalid key_index value %s", key_index)
+        return Conf.get_keys(ConfCli._index, key_index=key_index)
 
 
 class GetCmd:
@@ -141,7 +141,7 @@ class DeleteCmd:
         s_parser.set_defaults(func=ConfCli.delete)
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
-class Get_KeysCmd:
+class GetsKeysCmd:
     """ Get keys command structure """
 
     @staticmethod
@@ -151,11 +151,12 @@ class Get_KeysCmd:
             "Example(s): ['k1', 'k1>k2','k3'], ['k4[2]>k5', 'k6>k4[2]>k5']\n\n"
             "Example command:\n"
             "# conf json:///tmp/csm.conf get_keys\n\n"
-            "# conf json:///tmp/csm.conf get_keys -key_index true\n\n")
+            "# conf json:///tmp/csm.conf get_keys -key_index true\n\n"
+            "# conf json:///tmp/csm.conf get_keys -key_index false\n\n")
         s_parser.set_defaults(func=ConfCli.get_keys)
         s_parser.add_argument('-key_index', dest='key_index', help=
             "key_index={True|False} (default: True)\n"
-            "when False, returns keys including array index\n"
+            "when True, returns keys including array index\n"
             "e.g. In case of 'xxx[0],xxx[1]', only 'xxx' is returned\n\n")
 
 def main():
