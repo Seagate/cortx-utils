@@ -327,8 +327,8 @@ class KafkaMessageBroker(MessageBroker):
                 for each_row in rows:
                     new_row = [item for item in each_row if item != '']
                     table.append(new_row)
-                unread_count = [int(lag[5]) for lag in table if lag[5] != 'LAG' and \
-                    lag[5] != '-']
+                unread_count = [int(lag[5]) for lag in table if lag[5] != 'LAG' \
+                    and lag[5] != '-']
 
                 if len(unread_count) == 0:
                     raise MessageBusError(errno.EINVAL, "No active consumers \
