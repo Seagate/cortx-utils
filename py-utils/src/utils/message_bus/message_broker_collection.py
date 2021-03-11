@@ -323,7 +323,7 @@ class KafkaMessageBroker(MessageBroker):
                     count. %s", decoded_string)
             else:
                 split_rows = decoded_string.split('\n')
-                rows = [i.split(' ') for i in split_rows if i != '']
+                rows = [row.split(' ') for row in split_rows if row != '']
                 for each_row in rows:
                     new_row = [item for item in each_row if item != '']
                     table.append(new_row)
