@@ -59,7 +59,6 @@ class KvPayload:
 
     def _get_keys(self, keys: list, data, pkey: str = None,
         key_index: bool = True):
-        
         if isinstance(data, list):
             if key_index == True:
                 for i in range(len(data)):
