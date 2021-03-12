@@ -67,15 +67,16 @@ class KafkaMessageBroker(MessageBroker):
         kafka_conf['client.id'] = client_conf['client_id']
 
         if client_type == 'admin' or self._clients['admin'] == {}:
-            admin = AdminClient(kafka_conf)
-            self._clients['admin'][client_conf['client_id']] = admin
+            if client_type != 'consumer':
+                self.admin = AdminClient(kafka_conf)
+                self._clients['admin'][client_conf['client_id']] = self.admin
 
         if client_type == 'producer':
             producer = Producer(**kafka_conf)
             self._clients[client_type][client_conf['client_id']] = producer
 
             self._resource = ConfigResource('topic', client_conf['message_type'])
-            conf = admin.describe_configs([self._resource])
+            conf = self.admin.describe_configs([self._resource])
             default_configs = list(conf.values())[0].result()
             for params in ['retention.ms']:
                 if params not in default_configs:
