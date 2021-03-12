@@ -114,9 +114,9 @@ class ConfStore:
         self._cache[index].set(key, val)
 
     def get_keys(self, index: str, **filters):
-        """ 
+        """
         Obtains list of keys stored in the specific config store
-        Input Paramters: 
+        Input Paramters:
         Index   - Index for which the list of keys to be obtained
         Filters - Filters to be applied before the keys to be returned.
                   List of filters:
