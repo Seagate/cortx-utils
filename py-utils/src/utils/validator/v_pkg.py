@@ -47,9 +47,8 @@ class PkgV:
             stdout, stderr, retcode = handler.run()
             result = stdout.decode("utf-8") if retcode == 0 else stderr.decode("utf-8")
         if retcode != 0:
-            raise VError(
-                errno.EINVAL, "Command failure. cmd: %s stderr: %s" % (cmd, result)
-            )
+            raise VError(errno.EINVAL,
+                "Command failure. cmd: %s stderr: %s" % (cmd, result))
         return result
 
     def validate(self, v_type: str, args: list, host: str = None):
@@ -71,9 +70,8 @@ class PkgV:
             self.ssh = SSHChannel(host=host, username=user, password=passwd, port=port)
         elif host != socket.getfqdn():
             # Ensure we can perform passwordless ssh and there are no prompts
-            NetworkV().validate(
-                "passwordless", [pwd.getpwuid(os.getuid()).pw_name, host]
-            )
+            NetworkV().validate("passwordless",
+                [pwd.getpwuid(os.getuid()).pw_name, host])
             self.passwdless_ssh_enabled = True
 
         if v_type == "rpms":
@@ -96,19 +94,16 @@ class PkgV:
 
         for pkg in pkgs:
             if result.find("%s" % pkg) == -1:
-                raise VError(
-                    errno.EINVAL, "rpm pkg %s not installed on host %s." % (pkg, host)
-                )
+                raise VError(errno.EINVAL,
+                    "rpm pkg %s not installed on host %s." % (pkg, host))
             if not skip_version_check:
                 matched_str = re.search(r"%s-([^-][0-9.]+)-" % pkg, result)
                 installed_version = matched_str.groups()[0]
                 expected_version = pkgs[pkg]
                 if installed_version != expected_version:
-                    raise VError(
-                        errno.EINVAL,
+                    raise VError(errno.EINVAL,
                         "Mismatched version for rpm package %s on host %s. Installed %s. Expected %s."
-                        % (pkg, host, installed_version, expected_version),
-                    )
+                        % (pkg, host, installed_version, expected_version))
 
     def validate_pip3_pkgs(self, host, pkgs, skip_version_check=True):
         """Check if pip3 pkg is installed."""
@@ -120,16 +115,13 @@ class PkgV:
 
         for pkg in pkgs:
             if result.find("%s" % pkg) == -1:
-                raise VError(
-                    errno.EINVAL, "pip3 pkg %s not installed on host %s." % (pkg, host)
-                )
+                raise VError(errno.EINVAL,
+                    "pip3 pkg %s not installed on host %s." % (pkg, host))
             if not skip_version_check:
                 matched_str = re.search(r"%s \((.*)\)" % pkg, result)
                 installed_version = matched_str.groups()[0]
                 expected_version = pkgs[pkg]
                 if installed_version != expected_version:
-                    raise VError(
-                        errno.EINVAL,
+                    raise VError(errno.EINVAL,
                         "Mismatched version for pip3 package %s on host %s. Installed %s. Expected %s."
-                        % (pkg, host, installed_version, expected_version),
-                    )
+                        % (pkg, host, installed_version, expected_version))
