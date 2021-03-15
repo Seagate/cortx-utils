@@ -41,7 +41,7 @@ if [ -z "$OS_VERSION" ]; then echo "No OS_VERSION provided.."; exit 1; fi
 RPM_LOCATION="http://cortx-storage.colo.seagate.com/releases/cortx/github/$BRANCH/$OS_VERSION"
 
 # Validation Params
-RPM_VERSION_EXPECTED="2.0.0"
+RPM_VERSION_EXPECTED='2.0.[0-9]+'
 RPM_LICENSE_EXPECTED="Seagate"
 
 RPM_NAMING_PATTERN="cortx-[component_name]-[version]-[bld]_[git_tag].[platform].rpm"
@@ -238,13 +238,11 @@ _generate_rpm_validation_report(){
             RPM_NAMING_PATTERN="cortx-[component_name]-[version]-[bld]_[git_tag].[platform].rpm"
 
             rpm_name_expected=$(echo -e "$RPM_NAMING_PATTERN" | sed -e "s/cortx-\[component_name\]/$rpm_name/g;s/\[version\]/$RPM_VERSION_EXPECTED/g; s/\[bld\]_\[git_tag\]/$rpm_release/g; s/\[platform\]/$rpm_arch/g")
-
             name_check="<td $HTML_TD_STYLE><span style='color:green; text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black; font-size: 30px;'>&#10003;</span></td>"
-            if [[ "$rpm" != "$rpm_name_expected" ]]
+            if [[ ! "$rpm" =~ $rpm_name_expected ]]
             then
                 name_check="<td $HTML_TD_STYLE><b>Invalid RPM Name :</b> <br> - <b><i>Expected : </b></i>$rpm_name_expected<br> -  <b><i>Actual : </b></i>$rpm</td>"
             fi
-
             license_check="<td $HTML_TD_STYLE><span style='color:green; text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black; font-size: 30px;'>&#10003;</span></td>"
             if [[ "$rpm_license" != "$RPM_LICENSE_EXPECTED" ]]
             then
