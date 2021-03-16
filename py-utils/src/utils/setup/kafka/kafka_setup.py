@@ -21,6 +21,7 @@ import inspect
 import traceback
 
 from cortx.utils.setup.kafka import Kafka
+from cortx.utils.setup.kafka import KafkaSetupError
 
 
 class Cmd:
