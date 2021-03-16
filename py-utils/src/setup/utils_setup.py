@@ -20,7 +20,7 @@ import argparse
 import inspect
 import traceback
 
-from cortx.utils.setup.utils import Utils
+from cortx.setup import Utils
 
 
 class Cmd:
