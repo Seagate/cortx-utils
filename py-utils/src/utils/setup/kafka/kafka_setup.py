@@ -65,11 +65,17 @@ class Cmd:
         return args.command(args)
 
     @staticmethod
+    def _add_extended_args(parser):
+        """ Override this method to add extended args """
+        pass
+
+    @staticmethod
     def add_args(parser: str, cls: str, name: str):
         """ Add Command args for parsing """
 
         parser1 = parser.add_parser(cls.name, help='setup %s' % name)
         parser1.add_argument('--config', help='Conf Store URL', type=str)
+        cls._add_extended_args(parser1)
         parser1.add_argument('args', nargs='*', default=[], help='args')
         parser1.set_defaults(command=cls)
 
@@ -80,10 +86,14 @@ class PostInstallCmd(Cmd):
 
     def __init__(self, args: dict):
         super().__init__(args)
+        self.kafka = Kafka(args.config)
 
     def process(self):
+        self.kafka.validate("post-install")
+
         # TODO: Add actions here
-        return 0
+        self.kafka.post_install()
+        return rc
 
 
 class PrepareCmd(Cmd):
@@ -92,9 +102,11 @@ class PrepareCmd(Cmd):
 
     def __init__(self, args: dict):
         super().__init__(args)
+        self.kafka = Kafka(args.config)
 
     def process(self):
         # TODO: Add actions here
+        self.kafka.prepare()
         return 0
 
 
@@ -104,9 +116,11 @@ class ConfigCmd(Cmd):
 
     def __init__(self, args):
         super().__init__(args)
+        self.kafka = Kafka(args.config)
 
     def process(self):
         # TODO: Add actions here
+        self.kafka.config()
         return 0
 
 
@@ -116,9 +130,11 @@ class InitCmd(Cmd):
 
     def __init__(self, args):
         super().__init__(args)
+        self.kafka = Kafka(args.config)
 
     def process(self):
         # TODO: Add actions here
+        self.kafka.init()
         return 0
 
 
@@ -126,11 +142,18 @@ class TestCmd(Cmd):
     """ Test Setup Cmd """
     name = "test"
 
+    @staticmethod
+    def _add_extended_args(parser):
+        parser.add_argument('--plan', help='Test Plan', type=str)
+
     def __init__(self, args):
         super().__init__(args)
+        self.kafka = Kafka(args.config)
+        self.test_plan = args.plan
 
     def process(self):
         # TODO: Add actions here
+        self.kafka.test(self.test_plan)
         return 0
 
 
@@ -140,9 +163,11 @@ class ResetCmd(Cmd):
 
     def __init__(self, args):
         super().__init__(args)
+        self.kafka = Kafka(args.config)
 
     def process(self):
         # TODO: Add actions here
+        self.kafka.reset()
         return 0
 
 
@@ -153,6 +178,11 @@ def main(argv: dict):
         rc = command.process()
         if rc != 0:
             raise ValueError(f"Failed to run {argv[1]}")
+
+    except KafkaSetupError as e:
+        sys.stderr.write("%s\n" % str(e))
+        Cmd.usage(argv[0])
+        return e.rc()
 
     except Exception as e:
         sys.stderr.write("error: %s\n\n" % str(e))
