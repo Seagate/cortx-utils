@@ -124,6 +124,21 @@ class KafkaMessageBroker(MessageBroker):
             raise MessageBusError(errno.EINVAL, "Unable to list message type. \
                 %s", e)
 
+    def list_message_types(self, admin_id: str):
+        """
+        Returns a list of existing message types.
+
+        Parameters:
+        admin_id        A String that represents Admin client ID.
+        """
+        m_type_partitions ={}
+        admin = self._clients['admin'][admin_id]
+        message_types_list = self._get_metadata(admin)
+        for m_type, partitions in message_types_list.items():
+            m_type_partitions[m_type] = len(partitions.__dict__['partitions'])
+        return m_type_partitions
+
+
     def register_message_type(self, admin_id: str, message_types: list, \
         partitions: int):
         """
