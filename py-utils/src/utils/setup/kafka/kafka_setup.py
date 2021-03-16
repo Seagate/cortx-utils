@@ -82,7 +82,8 @@ class PostInstallCmd(Cmd):
         super().__init__(args)
 
     def process(self):
-        pass
+        # TODO: Add actions here
+        return 0
 
 
 class PrepareCmd(Cmd):
@@ -93,7 +94,8 @@ class PrepareCmd(Cmd):
         super().__init__(args)
 
     def process(self):
-        pass
+        # TODO: Add actions here
+        return 0
 
 
 class ConfigCmd(Cmd):
@@ -104,7 +106,8 @@ class ConfigCmd(Cmd):
         super().__init__(args)
 
     def process(self):
-        pass
+        # TODO: Add actions here
+        return 0
 
 
 class InitCmd(Cmd):
@@ -115,7 +118,8 @@ class InitCmd(Cmd):
         super().__init__(args)
 
     def process(self):
-        pass
+        # TODO: Add actions here
+        return 0
 
 
 class TestCmd(Cmd):
@@ -126,7 +130,8 @@ class TestCmd(Cmd):
         super().__init__(args)
 
     def process(self):
-        pass
+        # TODO: Add actions here
+        return 0
 
 
 class ResetCmd(Cmd):
@@ -137,7 +142,8 @@ class ResetCmd(Cmd):
         super().__init__(args)
 
     def process(self):
-        pass
+        # TODO: Add actions here
+        return 0
 
 
 def main(argv: dict):
@@ -147,6 +153,7 @@ def main(argv: dict):
         rc = command.process()
         if rc != 0:
             raise ValueError(f"Failed to run {argv[1]}")
+
     except Exception as e:
         sys.stderr.write("error: %s\n\n" % str(e))
         sys.stderr.write("%s\n" % traceback.format_exc())
