@@ -32,8 +32,8 @@ class KafkaSetupError(Exception):
         return "error(%d): %s" %(self._rc, self._desc)
 
 
-class Utils:
-    """ Represents Utils and Performs setup related actions """
+class Kafka:
+    """ Represents Kafka and Performs setup related actions """
 
     @staticmethod
     def validate(phase: str):

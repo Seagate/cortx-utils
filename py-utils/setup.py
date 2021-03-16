@@ -78,13 +78,13 @@ setup(name='cortx-py-utils',
         'console_scripts': [
             'hac = cortx.utils.ha.hac.hac:main',
             'conf = cortx.utils.conf_store.conf_cli:main',
-            'utils_setup = cortx.utils.setup.utils.setup_cli:main'
+            'utils_setup = cortx.setup.utils_setup:main',
             'kafka_setup = cortx.utils.setup.kafka.kafka_setup:main'
         ]
       },
       data_files = [ ('/var/lib/cortx/ha/specs', specs),
                      ('/var/lib/cortx/ha', ['src/utils/ha/hac/args.yaml', 'src/utils/ha/hac/re_build.sh']),
-                     ('/opt/seagate/cortx/utils/conf', ['requirements.txt', 'src/utils/setup/utils/setup.yaml'])],
+                     ('/opt/seagate/cortx/utils/conf', ['requirements.txt', 'src/setup/setup.yaml'])],
       long_description=long_description,
       zip_safe=False,
       python_requires='>=3.6',
