@@ -14,6 +14,8 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import traceback
+
 
 class KafkaSetupError(Exception):
     """ Generic Exception with error code and output """
@@ -24,40 +26,53 @@ class KafkaSetupError(Exception):
 
     def __str__(self):
         if self._rc == 0: return self._desc
-        return "error(%d): %s" %(self._rc, self._desc)
+        return "error(%d): %s\n\n%s" %(self._rc, self._desc,
+            traceback.format_exc())
+
+    @property
+    def rc():
+        return self._rc
 
 
 class Kafka:
     """ Represents Kafka and Performs setup related actions """
+    index = "kafka"
 
-    @staticmethod
-    def validate(phase: str):
-        """ Perform validtions """
+    def __init__(self, conf_url):
+        Conf.load(index, conf_url)
+
+    def validate(self, phase: str):
+        """ Perform validtions. Raises exceptions if validation fails """
 
         # Perform RPM validations
+        return
+
+    def post_install(self):
+        """ Performs post install operations. Raises exception on error """
+
+        # Perform actual operation. Obtain inputs using Conf.get(index, ..)
         return 0
 
-    @staticmethod
-    def post_install():
-        """ Performs post install operations """
+    def init(self):
+        """ Perform initialization. Raises exception on error """
+
+        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
         return 0
 
-    @staticmethod
-    def init():
-        """ Perform initialization """
+    def config(self):
+        """ Performs configurations. Raises exception on error """
+
+        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
         return 0
 
-    @staticmethod
-    def config(conf_url):
-        """ Performs configurations """
+    def test(self, plan):
+        """ Perform configuration testing. Raises exception on error """
+
+        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
         return 0
 
-    @staticmethod
-    def test():
-        """ Perform configuration testing """
-        return 0
+    def reset(self):
+        """ Performs Configuraiton reset. Raises exception on error """
 
-    @staticmethod
-    def reset():
-        """ Performs Configuraiton reset """
+        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
         return 0
