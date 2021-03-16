@@ -46,8 +46,9 @@ class ValidatorCommandFactory:
                         "\t[controller accessible <ip> <username> <password>]\n"
                         "\t[controller firmware <ip> <username> <password> <mc_version>]\n"
                         "\t[pkg <packagenames> <host>]\n"
-                        "\t[service <servicenames> <host>]\n"
-                        "\t[path <type:path> <host>]\n")
+                        "\t[service isrunning <servicenames> <host>]\n"
+                        "\t[path exists <type:path> <host>]\n"
+                        "\t[confkeys exists <index> <key_list>]\n")
         sys.stderr.write(usage_string)
 
     @staticmethod

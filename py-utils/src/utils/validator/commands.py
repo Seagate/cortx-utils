@@ -219,3 +219,20 @@ class PathVCommand(VCommand):
         """Validate Path, file and directory check related status."""
 
         self._path.validate(self.v_path, self.args)
+
+class ConfKeysVCommand(VCommand):
+    """Verify if constore contains the provided keys."""
+
+    name = "ConfKeys"
+
+    def __init__(self, args):
+        super(ConfKeysVCommand, self).__init__(args)
+
+        from v_confkeys import ConfKeysV
+
+        self._confkeys = ConfKeysV()
+
+    def process(self):
+        """Validate if constore contains the provided keys."""
+
+        self._confkeys.validate(self.v_confkeys, self.args)
