@@ -82,6 +82,7 @@ pipeline {
                     docker run --rm -v /mnt/docker/tmp/cortx-workspace:/cortx-workspace -v /mnt/docker/tmp/artifacts:/var/artifacts ghcr.io/seagate/cortx-build:$OS_VERSION make clean build
                 fi
                 echo "CORTX Packages generated..."
+                grep -w "cortx-motr\\|cortx-s3server\\|cortx-hare\\|cortx-csm_agent\\|cortx-csm_web\\|cortx-sspl\\|cortx-s3server\\|cortx-prvsnr" /mnt/docker/tmp/artifacts/0/cortx_iso/RELEASE.INFO
                 cat /mnt/docker/tmp/artifacts/0/cortx_iso/RELEASE.INFO
                 rm -rf /mnt/docker/tmp/
                 '''
