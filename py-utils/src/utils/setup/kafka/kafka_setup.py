@@ -92,7 +92,7 @@ class PostInstallCmd(Cmd):
         self.kafka.validate("post-install")
 
         # TODO: Add actions here
-        self.kafka.post_install()
+        rc = self.kafka.post_install()
         return rc
 
 
@@ -106,8 +106,8 @@ class PrepareCmd(Cmd):
 
     def process(self):
         # TODO: Add actions here
-        self.kafka.prepare()
-        return 0
+        rc = self.kafka.prepare()
+        return rc
 
 
 class ConfigCmd(Cmd):
@@ -120,8 +120,8 @@ class ConfigCmd(Cmd):
 
     def process(self):
         # TODO: Add actions here
-        self.kafka.config()
-        return 0
+        rc = self.kafka.config()
+        return rc
 
 
 class InitCmd(Cmd):
@@ -134,8 +134,8 @@ class InitCmd(Cmd):
 
     def process(self):
         # TODO: Add actions here
-        self.kafka.init()
-        return 0
+        rc = self.kafka.init()
+        return rc
 
 
 class TestCmd(Cmd):
@@ -153,8 +153,8 @@ class TestCmd(Cmd):
 
     def process(self):
         # TODO: Add actions here
-        self.kafka.test(self.test_plan)
-        return 0
+        rc = self.kafka.test(self.test_plan)
+        return rc
 
 
 class ResetCmd(Cmd):
@@ -167,8 +167,8 @@ class ResetCmd(Cmd):
 
     def process(self):
         # TODO: Add actions here
-        self.kafka.reset()
-        return 0
+        rc = self.kafka.reset()
+        return rc
 
 
 def main(argv: dict):

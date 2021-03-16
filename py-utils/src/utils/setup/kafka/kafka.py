@@ -16,6 +16,7 @@
 
 import traceback
 
+from cortx.utils.conf_store import Conf
 
 class KafkaSetupError(Exception):
     """ Generic Exception with error code and output """
@@ -30,7 +31,7 @@ class KafkaSetupError(Exception):
             traceback.format_exc())
 
     @property
-    def rc():
+    def rc(self):
         return self._rc
 
 
