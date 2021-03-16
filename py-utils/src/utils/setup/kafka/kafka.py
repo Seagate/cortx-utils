@@ -14,11 +14,6 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import errno
-import json
-import time
-
-from cortx.utils.process import SimpleProcess
 
 class KafkaSetupError(Exception):
     """ Generic Exception with error code and output """
