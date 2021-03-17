@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # CORTX Python common library.
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -26,18 +26,16 @@ class TestMessage(unittest.TestCase):
 
     message_bus = MessageBus()
 
-    message_type = 'test_topic'
-    partition = 10
-    _input = {message_type: partition}
+    _message_type = 'test_topic'
+    _partition = 1
 
     def test_list_message_type(self):
         """ Test list message type API """
         admin = MessageBusAdmin(TestMessage.message_bus, admin_id='admin')
-        admin.register_message_type(message_types=[TestMessage.message_type], \
-            partitions=TestMessage.partition)
-        m_type_partitions = admin.list_message_types()
-        self.assertTrue(set(TestMessage._input.items()).issubset\
-            (set(m_type_partitions.items())))
+        admin.register_message_type(message_types=[TestMessage._message_type], \
+            partitions=TestMessage._partition)
+        message_type_list = admin.list_message_types()
+        self.assertTrue(TestMessage._message_type in message_type_list)
 
 
 if __name__ == '__main__':

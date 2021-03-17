@@ -33,7 +33,7 @@ class MessageBusClient:
             raise MessageBusError(errno.EINVAL, "Invalid entry %s", key) 
         return self._client_conf[key]
 
-    def list_message_types(self):
+    def list_message_types(self) -> list:
         """ Returns list of available message types """
         client_id = self._get_conf('client_id')
         return self._message_bus.list_message_types(client_id)

@@ -44,7 +44,7 @@ class MessageBus:
         """ To create producer/consumer client based on the configurations """
         self._broker.init_client(client_type, **client_conf)
 
-    def list_message_types(self, client_id: str):
+    def list_message_types(self, client_id: str) -> list:
         """
         Returns list of available message types from the configured message
         broker
