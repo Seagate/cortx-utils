@@ -32,6 +32,7 @@ LABEL maintainer="cortx.opensource@seagate.com" \
       org.opencontainers.image.source="https://github.com/Seagate/cortx/blob/main/doc/Release_Build_Creation.rst"
 
 ENV BASH_ENV "/etc/profile"
+ENV GIT_HASH $GIT_HASH
 ENV PATH="/root/.nvm/versions/node/v12.13.0/bin:${PATH}"
 ENV LANG=en_US.UTF-8 \
     LC_ALL=en_US.UTF-8
@@ -151,6 +152,10 @@ RUN  cat /opt/rpm-signing/gpgoptions >>  ~/.rpmmacros && \
 
 # release helper scripts
 COPY ./scripts/release_support/build_release_info.sh /opt/release_support/
+
+# cortx-prereq package
+
+COPY ./scripts/third-party-rpm/ /opt/third-party-rpm
 
 # Makefile for build
 COPY ./docker/cortx-build/Makefile . 

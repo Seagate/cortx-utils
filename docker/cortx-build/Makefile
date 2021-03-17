@@ -22,7 +22,7 @@ clean:
 	mkdir -p ${RPM_DIR}
 
 ## build: generate complete CORTX build including third-party-deps at "/var/artifacts/0"
-build: io-path control-path release_build
+build: io-path control-path cortx-prereq release_build
 
 ## control-path: generate control-path packages. cortx-provisioner, cortx-monitor, cortx-manager, cortx-management-portal and cortx-ha.
 control-path: cortx-prvsnr cortx-monitor cortx-manager cortx-management-portal cortx-ha
@@ -337,6 +337,15 @@ _ha_build:
 #		release_build - Setup yum repo, Generate RELEASE.INFO, gpg key sigining.
 #
 #***********************************************************************************
+cortx-prereq:
+	@echo "***************  Generating cortx-prereq RPM *********************"
+
+	pushd /opt/third-party-rpm/ && \
+		./build-prerequisite-rpm.sh -v ${RELEASE_VERSION} -r ${BUILD_ID} -g $$GIT_HASH && \
+		rm -rf ${RPM_DIR}/cortx-prereq*.rpm && \
+		mv /root/rpmbuild/RPMS/x86_64/*.rpm ${RPM_DIR} && \
+	popd
+
 release_build:
 	@echo "***************  Generating Release Build *********************"
 
