@@ -221,7 +221,7 @@ class PathVCommand(VCommand):
         self._path.validate(self.v_path, self.args)
 
 class ConfKeysVCommand(VCommand):
-    """Verify if constore contains the provided keys."""
+    """Verify if confstore contains the provided keys."""
 
     name = "ConfKeys"
 
@@ -233,6 +233,6 @@ class ConfKeysVCommand(VCommand):
         self._confkeys = ConfKeysV()
 
     def process(self):
-        """Validate if constore contains the provided keys."""
+        """Validate if confstore contains the provided keys."""
 
         self._confkeys.validate(self.v_confkeys, self.args)
