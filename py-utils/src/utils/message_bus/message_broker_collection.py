@@ -129,6 +129,9 @@ class KafkaMessageBroker(MessageBroker):
 
         Parameters:
         admin_id        A String that represents Admin client ID.
+
+        Return Value:
+        Returns list of message types e.g. ["topic1", "topic2", ...]
         """
         admin = self._clients['admin'][admin_id]
         return list(self._get_metadata(admin).keys())
