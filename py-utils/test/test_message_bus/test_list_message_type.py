@@ -1,7 +1,8 @@
-#!/bin/python3
+#!/usr/bin/env python3
 
 # CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -15,5 +16,27 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.setup.kafka import Kafka
-from cortx.utils.setup.kafka import KafkaSetupError
+
+import unittest
+from cortx.utils.message_bus import MessageBus, MessageBusAdmin
+
+
+class TestMessage(unittest.TestCase):
+    """ Test MessageBus related functionality """
+
+    message_bus = MessageBus()
+
+    _message_type = 'test_topic'
+    _partition = 1
+
+    def test_list_message_type(self):
+        """ Test list message type API """
+        admin = MessageBusAdmin(TestMessage.message_bus, admin_id='admin')
+        admin.register_message_type(message_types=[TestMessage._message_type], \
+            partitions=TestMessage._partition)
+        message_type_list = admin.list_message_types()
+        self.assertTrue(TestMessage._message_type in message_type_list)
+
+
+if __name__ == '__main__':
+    unittest.main()
