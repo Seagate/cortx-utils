@@ -14,3 +14,4 @@ confluent-kafka==1.5.0
 python-crontab==2.5.1
 elasticsearch==6.8.1
 paramiko==2.7.1
+flask==1.1.2
