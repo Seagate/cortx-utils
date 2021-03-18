@@ -1,7 +1,7 @@
 #!/bin/env python3
 
 # CORTX-Py-Utils: CORTX Python common library.
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -46,8 +46,9 @@ class ValidatorCommandFactory:
                         "\t[controller accessible <ip> <username> <password>]\n"
                         "\t[controller firmware <ip> <username> <password> <mc_version>]\n"
                         "\t[pkg <packagenames> <host>]\n"
-                        "\t[service <servicenames> <host>]\n"
-                        "\t[path <type:path> <host>]\n")
+                        "\t[service isrunning <servicenames> <host>]\n"
+                        "\t[path exists <type:path> <host>]\n"
+                        "\t[confkeys exists <index> <key_list>]\n")
         sys.stderr.write(usage_string)
 
     @staticmethod
