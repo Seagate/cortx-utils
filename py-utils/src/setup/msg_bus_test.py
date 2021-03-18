@@ -16,7 +16,7 @@
 
 import errno
 import time
-from cortx.utils.setup import SetupError
+from cortx.setup import SetupError
 from cortx.utils.process import SimpleProcess
 
 

@@ -1,6 +1,7 @@
-#!/bin/bash
-#
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+#!/bin/python3
+
+# CORTX Python common library.
+# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -14,7 +15,5 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-# Copy the setup_cli.py as utils_setup
-/bin/mkdir -p /opt/seagate/cortx/utils/bin
-/bin/cp -f /usr/lib/python3.6/site-packages/cortx/setup/utils_setup.py /opt/seagate/cortx/utils/bin/utils_setup
-/bin/chmod +x /opt/seagate/cortx/utils/bin/utils_setup
+from cortx.utils.setup.kafka.kafka import Kafka
+from cortx.utils.setup.kafka.kafka import KafkaSetupError
