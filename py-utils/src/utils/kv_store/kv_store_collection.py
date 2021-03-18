@@ -273,28 +273,34 @@ class PillarKvPayload(KvPayload):
     
     # Todo - set Api- WIP
     def set(self, key:str, value:str) -> None:
-        """set pillar data for key."""
-        key = key.replace(self._delim, ':')
-        cmd = f"salt '*' state.apply {key} {value}"
-        cmd_proc = SimpleProcess(cmd)
-        out, err, rc = cmd_proc.run()
-
-        if rc != 0:
-            if rc == 127:
-                err = f"salt command not found"
-            raise KvError(rc, f"Cant get data for %s. %s.", key, err)
-
-        res = None
+        """ set pillar data for key. """
         try:
-            res = json.loads(out)
-            res = res['local']
+            self._data = self._client.cmd(self._target, 'pillar.items')
+        except Exception as err:
+            raise KvError(rc, "Cant load data %s.", err)
+        for each_node in self._data:
+            self._set(key, value, self._data[each_node])
+            self._dump_to_sls(key, self._data[each_node])
+        self._refresh_pillar()
+    
+    def _dump_to_sls(self, key, data):
+        """ Dump updated configurations to respected sls pillar file """
+        import yaml
+        key_name = key.split(self._delim, 1)
+        data = Format.dump({key_name[0]:data[key_name[0]]}, "yaml")
+        with open(f"{PillarKvStore._pillar_root}{key_name[0]}.sls", 'w+') as f:
+                    yaml.dump(yaml.safe_load(data), f, default_flow_style=False)
 
-        except Exception as ex:
-            raise KvError(errno.ENOENT, f"Cant get data for %s. %s.", key, ex)
-        if res is None:
-            raise KvError(errno.ENOENT, f"Cant get data for %s. %s."
-                                        f"Key not present")
-        return res
+    def _refresh_pillar(self):
+        """ Refresh pillar to affect current changes"""
+        try:
+            self._client.cmd(self._target, 'saltutil.refresh_pillar')
+        except Exception as err:
+            raise KvError(rc, "Pillar failed to refresh %s.", err)
+
+    def delete(self, key:str) -> None:
+        """ Delete given key from pillar data """
+        self.set(key, "Not_a_value")
 
 
 class PillarKvStore(KvStore):
