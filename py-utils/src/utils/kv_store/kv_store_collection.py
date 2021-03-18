@@ -258,43 +258,23 @@ class PillarKvPayload(KvPayload):
         self._target = target
         self._client = LocalClient()
 
-    def get(self, key:str) -> dict:
-        """
-        Get pillar data for key.
-        arguments:
-        key - string that defines which value need to be retrieved
-        """
-        key = key.replace(self._delim, ':')
-        try:
-            res = self._client.cmd(self._target, 'pillar.get',[key])
-        except Exception as ex:
-            raise KvError(errno.ENOENT, f"Cant get data for %s. %s.", key, ex)
-        return res
-    
-    # Todo - set Api- WIP
     def set(self, key:str, value:str) -> None:
-        """set pillar data for key."""
-        key = key.replace(self._delim, ':')
-        cmd = f"salt '*' state.apply {key} {value}"
-        cmd_proc = SimpleProcess(cmd)
-        out, err, rc = cmd_proc.run()
-
-        if rc != 0:
-            if rc == 127:
-                err = f"salt command not found"
-            raise KvError(rc, f"Cant get data for %s. %s.", key, err)
-
-        res = None
-        try:
-            res = json.loads(out)
-            res = res['local']
-
-        except Exception as ex:
-            raise KvError(errno.ENOENT, f"Cant get data for %s. %s.", key, ex)
-        if res is None:
-            raise KvError(errno.ENOENT, f"Cant get data for %s. %s."
-                                        f"Key not present")
-        return res
+        """ set pillar data for key. """
+        target_nodes = self._client.cmd("*", "test.ping")
+        k = key.split(self._delim, 1)
+        if k[0] not in target_nodes:
+            raise KvError(errno.ENOENT, f"Invalid target {k[0]} failed to "\
+                f"set {key}, {value}")
+        self._set(key, value, self._data)
+    
+    def delete(self, key: str) -> None:
+        """ delete pillar data for given key """
+        target_nodes = self._client.cmd("*", "test.ping")
+        k = key.split(self._delim, 1)
+        if k[0] not in target_nodes:
+            raise KvError(errno.ENOENT, f"Invalid target {k[0]} failed to "\
+                "set {key}, {value}")
+        return self._delete(key, self._data)
 
 
 class PillarKvStore(KvStore):
