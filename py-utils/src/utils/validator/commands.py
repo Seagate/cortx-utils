@@ -218,7 +218,7 @@ class PathVCommand(VCommand):
     def process(self):
         """Validate Path, file and directory check related status."""
 
-        self._path.validate(self.v_path, self.args)
+        self._path.validate(self.v_type, self.args)
 
 class ConfKeysVCommand(VCommand):
     """Verify if confstore contains the provided keys."""
@@ -235,4 +235,4 @@ class ConfKeysVCommand(VCommand):
     def process(self):
         """Validate if confstore contains the provided keys."""
 
-        self._confkeys.validate(self.v_confkeys, self.args)
+        self._confkeys.validate(self.v_type, self.args)
