@@ -295,7 +295,7 @@ class TestConfStore(unittest.TestCase):
     # Pillar
     def test_conf_store_a_pillar_load_and_get_keys(self):
         """ Test by loading the given pillar file to conf in-memory """
-        load_config("pillar_local", "pillar://930404:Seagate#123@127.0.0.1")
+        load_config("pillar_local", "pillar://root:seagate@srvnode-1")
         result_data = Conf.get_keys('pillar_local')
         self.assertTrue(len(result_data))
 

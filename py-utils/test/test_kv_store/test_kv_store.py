@@ -302,19 +302,13 @@ class TestStore(unittest.TestCase):
 
     def test_kv_pillar_support(self):
         """ Test Kv Store with pillar data by loading it to KvStore """
-        kv_store = KvStoreFactory.get_instance("pillar://930404:Seagate#123@127.0.0.1")
+        kv_store = KvStoreFactory.get_instance("pillar://root:seagate@srvnode-1")
         data = kv_store.load()
         self.assertGreaterEqual(len(data.get_keys()), 0)
 
-    def test_kv_pillar_set_target(self):
-        """ Test Kv Store with pillar data by setting targeted minions """
-        kv_store = KvStoreFactory.get_instance("pillar://930404:Seagate#123@127.0.0.1")
-        kv_store.set_target('srvnode-1')
-        self.assertEqual(kv_store._target, 'srvnode-1')
-
     def test_kv_pillar_get_api(self):
         """ Test Kv Store with pillar data by getting value for key """
-        kv_store = KvStoreFactory.get_instance("pillar://930404:Seagate#123@127.0.0.1")
+        kv_store = KvStoreFactory.get_instance("pillar://root:seagate@srvnode-1")
         kv_inst = kv_store.load()
         data = kv_inst.get_data()
         # To get the key for testing dynamically 
@@ -329,32 +323,6 @@ class TestStore(unittest.TestCase):
         else:
             #Consider your pillar has no values
             self.assertTrue(True if len(key2)==0 else False)
-
-    def test_kv_pillar_dump_api_test(self):
-        """ 
-        Test Kv Store with pillar data by dump pillar data into a file 
-        dump file default location
-        /tmp/pillar_store.json
-        """
-        kv_store = KvStoreFactory.get_instance("pillar://930404:Seagate#123@127.0.0.1")
-        data = kv_store.load()
-        kv_store.dump(data)
-        ret_json = test_current_file("json:///tmp/pillar_store.json")
-        result = ret_json[1].get_data()
-        self.assertTrue(result)
-    
-    def test_kv_pillar_dump_api_custom_location_test(self):
-        """ 
-        Test Kv Store with pillar data by dump pillar data into a file 
-        dump file custom location
-        /tmp/cust_pillar_bkup.json
-        """
-        kv_store = KvStoreFactory.get_instance("pillar://930404:Seagate#123@127.0.0.1")
-        data = kv_store.load()
-        kv_store.dump(data, "/tmp/cust_pillar_bkup.json")
-        ret_json = test_current_file("json:///tmp/cust_pillar_bkup.json")
-        result = ret_json[1].get_data()
-        self.assertTrue(result)
 
 if __name__ == '__main__':
     unittest.main()

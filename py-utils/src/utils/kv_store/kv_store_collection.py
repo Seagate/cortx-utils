@@ -23,6 +23,7 @@ from cortx.utils.kv_store.error import KvError
 from cortx.utils.kv_store.kv_store import KvStore
 from cortx.utils.kv_store.kv_payload import KvPayload
 from cortx.utils.process import SimpleProcess
+from cortx.utils.schema import Format
 
 
 class JsonKvStore(KvStore):
@@ -253,7 +254,9 @@ class PillarKvPayload(KvPayload):
     """ In memory representation of pillar data """
     def __init__(self, data, delim='>', target='*'):
         super().__init__(data, delim)
-        self._target = '*'
+        from salt.client import LocalClient
+        self._target = target
+        self._client = LocalClient()
 
     def get(self, key:str) -> dict:
         """
@@ -261,27 +264,11 @@ class PillarKvPayload(KvPayload):
         arguments:
         key - string that defines which value need to be retrieved
         """
-        import json
         key = key.replace(self._delim, ':')
-        cmd = f"salt {self._target} pillar.get {key} --out=json"
-        cmd_proc = SimpleProcess(cmd)
-        out, err, rc = cmd_proc.run()
-
-        if rc != 0:
-            if rc == 127:
-                err = f"salt command not found"
-            raise KvError(rc, f"Cant get data for %s. %s.", key, err)
-
-        res = None
         try:
-            res = json.loads(out)
-            res = res if self._target == '*' else res[self._target]
-
+            res = self._client.cmd(self._target, 'pillar.get',[key])
         except Exception as ex:
             raise KvError(errno.ENOENT, f"Cant get data for %s. %s.", key, ex)
-        if res is None:
-            raise KvError(errno.ENOENT, f"Cant get data for %s. %s."
-                                        f"Key not present")
         return res
     
     # Todo - set Api- WIP
@@ -313,60 +300,42 @@ class PillarKvPayload(KvPayload):
 class PillarKvStore(KvStore):
     """ Salt Pillar based KV Store """
     name = "pillar"
+    _pillar_root="/srv/pillar/"
 
     def __init__(self, store_loc, store_path, delim='>'):
         KvStore.__init__(self, store_loc, store_path, delim)
+        from salt.client import LocalClient
         self._target = '*'
-    
-    def set_target(self, target:str='*') -> None:
+        self._client = LocalClient()
+        self._set_target()
+
+    def _set_target(self) -> None:
         """
-        tragents are required to run a slat command.
-        arguments:
-        target - target could be individual node name or * (for all minion)
+        tragets are required to run a slat command.
         """
-        ava_target = PillarKvStore.get_available_targets()
-        if target != '*' and target not in ava_target:
-            raise KvError(errno.ENOENT, "Target node not present in salt " \
-            "pillar cluster %s.", target)
-        self._target = target
+        loc_arg = self._store_loc.split("@")
+        target = self._client.cmd("*", "test.ping")
+        valid_target = [key for key, value in target.items() if value is True]
+        if len(loc_arg) > 1 and (not loc_arg[1] or loc_arg[1] not in valid_target):
+            raise KvError(errno.ENOENT, "Invalid target node %s.", loc_arg[1])
+        if len(loc_arg) > 1:
+            self._target = loc_arg[1]
     
     def load(self) -> KvPayload:
         """ Loads data from pillar store """
-        import json
-        cmd = f"salt {self._target} pillar.items --out=json"
-        cmd_proc = SimpleProcess(cmd)
-        out, err, rc = cmd_proc.run()
-        
-        if rc != 0:
-            if rc == 127:
-                err = "salt command not found"
-            raise KvError(rc, "Cant get data for %s. %s.", key, err)
-        
         try:
-            res = json.loads(out)
-        except Exception as ex:
-            raise KvError(errno.ENOENT, "Cant get data for %s. %s.", key, ex)
+            res = self._client.cmd(self._target, 'pillar.items')
+        except Exception as err:
+            raise KvError(rc, "Cant load data %s.", err)
         return PillarKvPayload(res, self._delim, self._target)
 
-    @staticmethod
-    def get_available_targets() -> dict:
-        """ Get all available salt cluster node """
-        import json
-        cmd_proc = SimpleProcess("salt * test.ping --output=json")
-        out, err, rc = cmd_proc.run()
-        if rc != 0:
-            if rc == 127:
-                err = "salt command not found"
-            raise KvError(rc, "Cant get targets for salt. %s.", err)
-        try:
-            result = json.loads(out)
-            result = [key for key, value in result.items() if value is True]
-        except Exception as ex:
-            raise KvError(errno.ENOENT, "Cant get data for %s. %s.", key, ex)
-        return result
-
-    def dump(self, data:dict, store_path:str='/tmp/pillar_store.json') -> None:
+    def dump(self, data:dict) -> None:
         """ Saves data onto the file """
-        import json
-        with open(store_path, 'w+') as f:
-            json.dump(data.get_data(), f, indent=2)
+        import yaml
+        raw_data = data.get_data()
+        for each_node in raw_data:
+            sls_data_list = raw_data[each_node]
+            for each_key in sls_data_list:
+                data = Format.dump({each_key:sls_data_list[each_key]}, "yaml")
+                with open(f"{PillarKvStore._pillar_root}{each_key}.sls", 'w+') as f:
+                    yaml.dump(yaml.safe_load(data), f, default_flow_style=False)
