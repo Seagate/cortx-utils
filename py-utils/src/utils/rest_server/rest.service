@@ -4,8 +4,8 @@ After=network.target
 
 [Service]
 User=root
-WorkingDirectory=/usr/lib/python3.6/site-packages/cortx/utils/rest_server
-ExecStart=/usr/bin/python3 /usr/lib/python3.6/site-packages/cortx/utils/rest_server/message_bus_rest.py
+WorkingDirectory=/usr/lib/python3.6/site-packages/cortx/utils
+ExecStart=/usr/lib/python3.6/site-packages/cortx/utils/message_bus/message_bus_server
 Restart=always
 
 [Install]
