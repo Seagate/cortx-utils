@@ -40,7 +40,7 @@ $ sudo yum install libffi-devel
     - It will create `cortx_py_utils-1.0.0-py3-none-any.whl`
 ```bash
 $ pip3 install wheel
-$ python3 setup.py bdist_wheel
+$ python3 py-utils/setup.py bdist_wheel
 ```
 
   - Create RPM Package
@@ -54,7 +54,7 @@ $ ./jenkins/build.sh -v 2.0.0 -b 2
 ## Installation
   - Installation with pip package
 ```bash
-$ cd dist;
+$ cd py-utils/dist;
 $ pip3 install cortx_py_utils-1.0.0-py3-none-any.whl
 ```
 
@@ -62,7 +62,7 @@ $ pip3 install cortx_py_utils-1.0.0-py3-none-any.whl
 Note : The rpm package installation will fail if any dependent python package is not installed.
 Please refer to WIKI (https://github.com/Seagate/cortx-utils/wiki/%22cortx-py-utils%22-single-node-manual-provisioning)
 ```bash
-$ cd dist;
+$ cd py-utils/dist;
 $ yum install -y cortx-py-utils-1.0.0-1.noarch.rpm
 ```
 
