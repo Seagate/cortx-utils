@@ -1,6 +1,6 @@
 <!--
 CORTX-Py-Utils: CORTX Python common library.
-Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published
 by the Free Software Foundation, either version 3 of the License, or
@@ -157,4 +157,14 @@ except Exception as e:
 Note The second example below shows how to check if given paths are ok on a remote host specified by "remote_hostname".
 ```python
 	PathV().validate('exists', ["dir:/", "file:/etc/hosts", "device:/dev/loop9"], "remote_hostname")
+```
+  - Confstore key validator: This can be used to check if an preloaded index on confstore has the requested keys present or not. Use command "exists" to check, pass the preloaded index and a list of 'keys'.
+```python
+from cortx.utils.validator.v_confkeys import ConfKeysV
+try:
+	ConfKeysV().validate('exists', index, ['bridge', 'bridge>namei'])
+except Exception as e:
+	if "key missing" not in f"{e}":
+		raise Exception(f"Unexpected exception: {e}")
+	print("One or more keys are missing.")
 ```
