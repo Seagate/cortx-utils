@@ -58,8 +58,10 @@ class Cmd:
 
         subparsers = parser.add_subparsers()
         cmds = inspect.getmembers(sys.modules[__name__])
-        cmds = [(x, y) for x, y in cmds
-            if x.endswith("Cmd") and x != "Cmd"]
+        cmds = [
+            (x, y) for x, y in cmds
+            if x.endswith("Cmd") and x != "Cmd"
+        ]
         for name, cmd in cmds:
             cmd.add_args(subparsers, cmd, name)
         args = parser.parse_args(argv)
