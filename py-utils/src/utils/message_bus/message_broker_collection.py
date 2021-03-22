@@ -191,7 +191,7 @@ class KafkaMessageBroker(MessageBroker):
                 else:
                     break
 
-    def increase_concurrency(self, admin_id: str, message_type: str, \
+    def add_concurrency(self, admin_id: str, message_type: str, \
         concurrency_count: int):
         """
         Increases the partitions for a message type.

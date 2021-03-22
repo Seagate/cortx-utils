@@ -63,7 +63,7 @@ class MessageBusClient:
         client_id = self._get_conf('client_id')
         self._message_bus.deregister_message_type(client_id, message_types)
 
-    def increase_concurrency(self, message_type: str, concurrency_count: int):
+    def add_concurrency(self, message_type: str, concurrency_count: int):
         """
         To achieve concurrency for a message type
 
@@ -73,7 +73,7 @@ class MessageBusClient:
         concurrency_count    Integer to achieve concurrency among consumers
         """
         client_id = self._get_conf('client_id')
-        self._message_bus.increase_concurrency(client_id, message_type, \
+        self._message_bus.add_concurrency(client_id, message_type, \
             concurrency_count)
 
     def send(self, messages: list):
