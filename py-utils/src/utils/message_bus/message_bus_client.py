@@ -68,8 +68,8 @@ class MessageBusClient:
         To achieve concurrency for a message type
 
         Parameters:
-        message_type         This is essentially equivalent to the list of queue
-                             topic name. For e.g. ["Alert"]
+        message_type         This is essentially equivalent to queue/topic name.
+                             For e.g. "Alert"
         concurrency_count    Integer to achieve concurrency among consumers
         """
         client_id = self._get_conf('client_id')

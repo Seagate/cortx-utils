@@ -198,19 +198,18 @@ class KafkaMessageBroker(MessageBroker):
 
         Parameters:
         admin_id            A String that represents Admin client ID.
-        message_type        This is essentially equivalent to the list of
-                            queue/topic name. For e.g. "Alert"
+        message_type        This is essentially equivalent to queue/topic name.
+                            For e.g. "Alert"
         concurrency_count   Integer that represents number of partitions to be
                             increased.
 
-        Note:  Number of partitions for a topic can only be increased, never
-               decreased
+        Note:  Number of partitions for a message type can only be increased,
+               never decreased
         """
         admin = self._clients['admin'][admin_id]
         new_partition = [NewPartitions(message_type, \
             new_total_count=concurrency_count)]
         partitions = admin.create_partitions(new_partition)
-        print(partitions)
         self._task_status(partitions)
 
         for list_retry in range(1, self._max_list_message_type_count+2):
