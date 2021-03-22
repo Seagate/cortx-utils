@@ -63,19 +63,19 @@ class MessageBusClient:
         client_id = self._get_conf('client_id')
         self._message_bus.deregister_message_type(client_id, message_types)
 
-    def increase_parallelism(self, message_types: list, partitions: int):
+    def increase_concurrency(self, message_type: str, concurrency_count: int):
         """
         To increase the number of partitions for a list of message types
 
         Parameters:
-        message_types    This is essentially equivalent to the list of queue
-                         topic name. For e.g. ["Alert"]
-        partitions       Integer that represents number of partitions to be
-                         increased.
+        message_type         This is essentially equivalent to the list of queue
+                             topic name. For e.g. ["Alert"]
+        concurrency_count    Integer that represents number of partitions to be
+                             increased.
         """
         client_id = self._get_conf('client_id')
-        self._message_bus.increase_parallelism(client_id, message_types, \
-            partitions)
+        self._message_bus.increase_concurrency(client_id, message_type, \
+            concurrency_count)
 
     def send(self, messages: list):
         """

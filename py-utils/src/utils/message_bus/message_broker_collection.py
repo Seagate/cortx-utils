@@ -191,39 +191,39 @@ class KafkaMessageBroker(MessageBroker):
                 else:
                     break
 
-    def increase_parallelism(self, admin_id: str, message_types: list, \
-        partitions: int):
+    def increase_concurrency(self, admin_id: str, message_type: str, \
+        concurrency_count: int):
         """
         Increases the partitions for for a list of message types.
 
         Parameters:
-        admin_id        A String that represents Admin client ID.
-        message_types   This is essentially equivalent to the list of
-                        queue/topic name. For e.g. ["Alert"]
-        partitions      Integer that represents number of partitions to be
-                        increased.
+        admin_id            A String that represents Admin client ID.
+        message_type        This is essentially equivalent to the list of
+                            queue/topic name. For e.g. "Alert"
+        concurrency_count   Integer that represents number of partitions to be
+                            increased.
 
         Note:  Number of partitions for a topic can only be increased, never
                decreased
         """
         admin = self._clients['admin'][admin_id]
-        new_partition = [NewPartitions(each_message_type, \
-            new_total_count=partitions) for each_message_type in message_types]
+        new_partition = [NewPartitions(message_type, \
+            new_total_count=concurrency_count)]
         partitions = admin.create_partitions(new_partition)
+        print(partitions)
         self._task_status(partitions)
 
-        for each_message_type in message_types:
-            for list_retry in range(1, self._max_list_message_type_count+2):
-                if partitions != len(self._get_metadata(admin)\
-                    [each_message_type].__dict__['partitions']):
-                    if list_retry > self._max_list_message_type_count:
-                        raise MessageBusError(errno.EINVAL, "Maximum retries \
-                            exceeded to increase partition for %s.", \
-                            each_message_type)
-                    time.sleep(list_retry*1)
-                    continue
-                else:
-                    break
+        for list_retry in range(1, self._max_list_message_type_count+2):
+            if concurrency_count != len(self._get_metadata(admin)\
+                [message_type].__dict__['partitions']):
+                if list_retry > self._max_list_message_type_count:
+                    raise MessageBusError(errno.EINVAL, "Maximum retries \
+                        exceeded to increase concurrency for %s.", \
+                        message_type)
+                time.sleep(list_retry*1)
+                continue
+            else:
+                break
 
     def send(self, producer_id: str, message_type: str, method: str, \
         messages: list, timeout=0.1):
