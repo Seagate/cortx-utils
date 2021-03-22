@@ -3,3 +3,6 @@
 
 # These owners will be the default owners for everything in the repo.
 *       @shailesh-vaidya
+
+# Added additional code-owners for cortx-prereq package
+/scripts/third-party-rpm/*.txt        @johnbent @ujjwalpl @shailesh-vaidya
