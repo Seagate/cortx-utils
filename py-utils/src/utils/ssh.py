@@ -27,13 +27,14 @@ from cortx.utils.comm import Channel
 class SSHChannel(Channel):
     """Establish SSH connection on remote host"""
 
-    def __init__(self, host, username=None, password=None, port=22, pkey_filename=None, **args):
+    def __init__(self, host, username=None, password=None, port=22, pkey_filename=None, allow_agent=False, **args):
         super().__init__()
         self.host = host
         self.__user = username or getpass.getuser()
         self.__pwd = password
         self.port = port
         self.pkey_filename = pkey_filename
+        self.allow_agent = allow_agent
         self.timeout = 30
         self.client = None
         self.sftp_enabled = False
@@ -57,6 +58,7 @@ class SSHChannel(Channel):
                                 port=self.port,
                                 username=self.__user,
                                 password=self.__pwd,
+                                allow_agent=self.allow_agent,
                                 key_filename=self.pkey_filename,
                                 timeout=self.timeout)
             if self.sftp_enabled:

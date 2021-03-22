@@ -16,5 +16,5 @@
 
 # Copy the setup_cli.py as utils_setup
 /bin/mkdir -p /opt/seagate/cortx/utils/bin
-/bin/cp /usr/lib/python3.6/site-packages/cortx/utils/setup/setup_cli.py /opt/seagate/cortx/utils/bin/utils_setup
+/bin/cp -f /usr/lib/python3.6/site-packages/cortx/setup/utils_setup.py /opt/seagate/cortx/utils/bin/utils_setup
 /bin/chmod +x /opt/seagate/cortx/utils/bin/utils_setup
