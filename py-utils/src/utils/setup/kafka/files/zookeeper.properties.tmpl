@@ -1,0 +1,32 @@
+# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published
+# by the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+# For any questions about this software or licensing,
+# please email opensource@seagate.com or cortx-questions@seagate.com.
+
+dataDir=/var/lib/zookeeper
+# the port at which the clients will connect
+clientPort=2181
+# disable the per-ip limit on the number of connections since this is a non-production config
+#maxClientCnxns=0
+# Disable the adminserver by default to avoid port conflicts.
+# Set the port to something non-conflicting if choosing to enable this
+#admin.enableServer=false
+# admin.serverPort=8080
+tickTime=2000
+initLimit=10
+syncLimit=5
+dataLogDir=/var/log/zookeeper
+{%- for server in servers %}
+server.{{ loop.index }}={{ server }}:2888:3888
+{%- endfor %}
+autopurge.snapRetainCount=3
+autopurge.purgeInterval=24

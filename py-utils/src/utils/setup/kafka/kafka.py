@@ -18,6 +18,9 @@ import traceback
 
 from cortx.utils.conf_store import Conf
 
+from . import kafka_states
+
+
 class KafkaSetupError(Exception):
     """ Generic Exception with error code and output """
 
@@ -39,8 +42,14 @@ class Kafka:
     """ Represents Kafka and Performs setup related actions """
     index = "kafka"
 
-    def __init__(self, conf_url):
-        Conf.load(index, conf_url)
+    def __init__(self, conf_url, index=None):
+        self.conf_url = conf_url
+        if index:
+            self.index = index
+        Conf.load(self.index, conf_url)
+
+    def _conf_get(self, key):
+        return Conf.get(self.index, key)
 
     def validate(self, phase: str):
         """ Perform validtions. Raises exceptions if validation fails """
@@ -51,7 +60,37 @@ class Kafka:
     def post_install(self):
         """ Performs post install operations. Raises exception on error """
 
-        # Perform actual operation. Obtain inputs using Conf.get(index, ..)
+        # TODO check either arbitrary JSON can be expected here
+        #      or we need to use some already defined keys in ConfStore
+        nodes = self._conf_get('nodes')
+        kafka_params = self._conf_get('kafka')
+
+        kafka_servers = [
+            sparams['hostname'] for server, sparams in nodes.items()
+            if server in kafka_params['servers']
+        ]
+        kafka_version = kafka_params['version']
+
+        curr_node_hostname = nodes[self._conf_get('machine_id')]['hostname']
+
+        # TODO is it expected case for clients ???
+        try:
+            kafka_broker_id = str(kafka_servers.index(curr_node_hostname))
+        except ValueError:
+            # current node is not in kafka servers list
+            kafka_broker_id = None
+
+        kafka_states.set_zookeeper_properties(
+            kafka_version, kafka_servers
+        )
+
+        if kafka_broker_id:
+            kafka_states.set_zookeeper_myid(kafka_broker_id)
+
+            kafka_states.set_server_properties(
+                kafka_version, kafka_servers, kafka_broker_id
+            )
+
         return 0
 
     def init(self):

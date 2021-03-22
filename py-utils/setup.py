@@ -69,7 +69,8 @@ setup(name='cortx-py-utils',
                 'cortx.utils.msg_bus','cortx.utils.msg_bus.tcp',
                 'cortx.utils.msg_bus.tcp.kafka', 'cortx.utils.product_features',
                 'cortx.utils.security', 'cortx.utils.schema',
-                'cortx.utils.appliance_info', 'cortx.setup', 'cortx.utils.service'
+                'cortx.utils.appliance_info', 'cortx.setup', 'cortx.utils.service',
+                'cortx.utils.setup', 'cortx.utils.setup.kafka'
                 ],
       package_data={
         'cortx': ['py.typed'],
