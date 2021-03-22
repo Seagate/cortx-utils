@@ -16,6 +16,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import dbus
+from dbus.mainloop.glib import DBusGMainLoop
 import inspect
 import errno
 import sys
@@ -53,6 +54,7 @@ class DbusServiceHandler(ServiceHandler):
     name = "dbus"
 
     def __init__(self):
+        DBusGMainLoop(set_as_default=True)
         self._system_bus, self._dbus_manager = \
             DbusServiceHandler._get_systemd_interface()
 

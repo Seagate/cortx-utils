@@ -67,15 +67,16 @@ class KafkaMessageBroker(MessageBroker):
         kafka_conf['client.id'] = client_conf['client_id']
 
         if client_type == 'admin' or self._clients['admin'] == {}:
-            admin = AdminClient(kafka_conf)
-            self._clients['admin'][client_conf['client_id']] = admin
+            if client_type != 'consumer':
+                self.admin = AdminClient(kafka_conf)
+                self._clients['admin'][client_conf['client_id']] = self.admin
 
         if client_type == 'producer':
             producer = Producer(**kafka_conf)
             self._clients[client_type][client_conf['client_id']] = producer
 
             self._resource = ConfigResource('topic', client_conf['message_type'])
-            conf = admin.describe_configs([self._resource])
+            conf = self.admin.describe_configs([self._resource])
             default_configs = list(conf.values())[0].result()
             for params in ['retention.ms']:
                 if params not in default_configs:
@@ -122,6 +123,19 @@ class KafkaMessageBroker(MessageBroker):
         except Exception as e:
             raise MessageBusError(errno.EINVAL, "Unable to list message type. \
                 %s", e)
+
+    def list_message_types(self, admin_id: str) -> list:
+        """
+        Returns a list of existing message types.
+
+        Parameters:
+        admin_id        A String that represents Admin client ID.
+
+        Return Value:
+        Returns list of message types e.g. ["topic1", "topic2", ...]
+        """
+        admin = self._clients['admin'][admin_id]
+        return list(self._get_metadata(admin).keys())
 
     def register_message_type(self, admin_id: str, message_types: list, \
         partitions: int):
