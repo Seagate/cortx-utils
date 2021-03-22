@@ -1,7 +1,7 @@
 #!/bin/env python3
 
 # CORTX Python common library.
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -218,4 +218,21 @@ class PathVCommand(VCommand):
     def process(self):
         """Validate Path, file and directory check related status."""
 
-        self._path.validate(self.v_path, self.args)
+        self._path.validate(self.v_type, self.args)
+
+class ConfKeysVCommand(VCommand):
+    """Verify if confstore contains the provided keys."""
+
+    name = "ConfKeys"
+
+    def __init__(self, args):
+        super(ConfKeysVCommand, self).__init__(args)
+
+        from v_confkeys import ConfKeysV
+
+        self._confkeys = ConfKeysV()
+
+    def process(self):
+        """Validate if confstore contains the provided keys."""
+
+        self._confkeys.validate(self.v_type, self.args)

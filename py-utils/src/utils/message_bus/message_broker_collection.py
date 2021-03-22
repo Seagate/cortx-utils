@@ -67,15 +67,16 @@ class KafkaMessageBroker(MessageBroker):
         kafka_conf['client.id'] = client_conf['client_id']
 
         if client_type == 'admin' or self._clients['admin'] == {}:
-            admin = AdminClient(kafka_conf)
-            self._clients['admin'][client_conf['client_id']] = admin
+            if client_type != 'consumer':
+                self.admin = AdminClient(kafka_conf)
+                self._clients['admin'][client_conf['client_id']] = self.admin
 
         if client_type == 'producer':
             producer = Producer(**kafka_conf)
             self._clients[client_type][client_conf['client_id']] = producer
 
             self._resource = ConfigResource('topic', client_conf['message_type'])
-            conf = admin.describe_configs([self._resource])
+            conf = self.admin.describe_configs([self._resource])
             default_configs = list(conf.values())[0].result()
             for params in ['retention.ms']:
                 if params not in default_configs:
@@ -122,6 +123,19 @@ class KafkaMessageBroker(MessageBroker):
         except Exception as e:
             raise MessageBusError(errno.EINVAL, "Unable to list message type. \
                 %s", e)
+
+    def list_message_types(self, admin_id: str) -> list:
+        """
+        Returns a list of existing message types.
+
+        Parameters:
+        admin_id        A String that represents Admin client ID.
+
+        Return Value:
+        Returns list of message types e.g. ["topic1", "topic2", ...]
+        """
+        admin = self._clients['admin'][admin_id]
+        return list(self._get_metadata(admin).keys())
 
     def register_message_type(self, admin_id: str, message_types: list, \
         partitions: int):
@@ -304,8 +318,7 @@ class KafkaMessageBroker(MessageBroker):
         Parameters:
         consumer_group  A String that represents Consumer Group ID.
         """
-        import io
-        import pandas as pd
+        table = []
 
         try:
             cmd = "/opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server "\
@@ -323,10 +336,15 @@ class KafkaMessageBroker(MessageBroker):
                 raise MessageBusError(errno.EINVAL, "Unable to get the message \
                     count. %s", decoded_string)
             else:
-                data_table = io.StringIO(decoded_string)
-                df = pd.read_table(data_table, delim_whitespace=True)
-                unread_count = [int(count) for count in list(df['LAG']) \
-                    if count != '-']
+                split_rows = decoded_string.split('\n')
+                rows = [row.split(' ') for row in split_rows if row != '']
+                for each_row in rows:
+                    new_row = [item for item in each_row if item != '']
+                    table.append(new_row)
+                index = table[0].index('LAG')
+                unread_count = [int(lag[index]) for lag in table if lag[index] \
+                    != 'LAG' and lag[index] != '-']
+
                 if len(unread_count) == 0:
                     raise MessageBusError(errno.EINVAL, "No active consumers \
                         in the consumer group, %s", consumer_group)
