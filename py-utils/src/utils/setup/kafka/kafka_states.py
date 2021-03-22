@@ -19,7 +19,8 @@ from jinja2 import Environment, PackageLoader
 import re
 import os
 from pathlib import Path
-
+import subprocess
+import logging
 
 # TODO backup if needed
 # TODO idempotence
@@ -124,3 +125,35 @@ def set_server_properties(kafka_version, servers, server_id):
         properties = os.linesep.join(adds + [''])
 
     server_properties_path.write_text(properties)
+
+def start_kafka_service(kafka_version):
+    """
+    Start Kafka and Zookeper services
+
+    :param kafka_version: version of Kafka installed
+    :return:
+    """
+
+    try:
+        start_zookeeper_server = subprocess.run(
+            "/opt/kafka/kafka_"+kafka_version
+            +"/bin/zookeeper-server-start.sh -daemon config/zookeeper.properties"
+        )
+    except Exception as e:
+        logging.info("Starting of Zookeeper server failed, 
+            please check exception as listed below :- ")
+        logging.exception(e)
+        sys.exit(1)
+
+    try:
+        start_zookeeper_server = subprocess.run(
+            "/opt/kafka/kafka_"+kafka_version
+            +"/bin/kafka-server-start.sh -daemon config/server.properties"
+        )
+    except Exception as e:
+        logging.info("Starting of Kafka server failed,
+            please check exception as listed below :- ")
+        logging.exception(e)
+        sys.exit(1)
+
+
