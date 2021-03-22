@@ -65,13 +65,12 @@ class MessageBusClient:
 
     def increase_concurrency(self, message_type: str, concurrency_count: int):
         """
-        To increase the number of partitions for a list of message types
+        To achieve concurrency for a message type
 
         Parameters:
         message_type         This is essentially equivalent to the list of queue
                              topic name. For e.g. ["Alert"]
-        concurrency_count    Integer that represents number of partitions to be
-                             increased.
+        concurrency_count    Integer to achieve concurrency among consumers
         """
         client_id = self._get_conf('client_id')
         self._message_bus.increase_concurrency(client_id, message_type, \

@@ -63,7 +63,7 @@ class MessageBus:
 
     def increase_concurrency(self, client_id: str, message_type: str, \
         concurrency_count: int):
-        """ Increases partition to achieve concurrency """
+        """ To achieve concurrency among consumers """
         self._broker.increase_concurrency(client_id, message_type, \
             concurrency_count)
 

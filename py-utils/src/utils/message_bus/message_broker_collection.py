@@ -194,7 +194,7 @@ class KafkaMessageBroker(MessageBroker):
     def increase_concurrency(self, admin_id: str, message_type: str, \
         concurrency_count: int):
         """
-        Increases the partitions for for a list of message types.
+        Increases the partitions for a message type.
 
         Parameters:
         admin_id            A String that represents Admin client ID.
