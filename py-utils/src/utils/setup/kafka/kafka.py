@@ -40,10 +40,10 @@ class KafkaSetupError(Exception):
 
 class Kafka:
     """ Represents Kafka and Performs setup related actions """
-    index = "kafka"
 
     def __init__(self, conf_url):
-        Conf.load(index, conf_url)
+        self.index = "kafka"
+        Conf.load(self.index, conf_url)
 
     def validate(self, phase: str):
         """ Perform validtions. Raises exceptions if validation fails """
@@ -62,30 +62,30 @@ class Kafka:
         for elem in src_path.iterdir():
             if '.service' in elem.parts[-1]:
                 shutil.copy(elem, dest_path)
-        # Perform actual operation. Obtain inputs using Conf.get(index, ..)
+        # Perform actual operation. Obtain inputs using Conf.get(self.index, ..)
         return 0
 
     def init(self):
         """ Perform initialization. Raises exception on error """
 
-        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
+        # TODO: Perform actual steps. Obtain inputs using Conf.get(self.index, ..)
         return 0
 
     def config(self):
         """ Performs configurations. Raises exception on error """
 
-        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
+        # TODO: Perform actual steps. Obtain inputs using Conf.get(self.index, ..)
         return 0
 
     def test(self, plan):
         """ Perform configuration testing. Raises exception on error """
 
-        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
+        # TODO: Perform actual steps. Obtain inputs using Conf.get(self.index, ..)
         return 0
 
     def reset(self):
         """ Performs Configuraiton reset. Raises exception on error """
 
-        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
+        # TODO: Perform actual steps. Obtain inputs using Conf.get(self.index, ..)
         return 0
 
