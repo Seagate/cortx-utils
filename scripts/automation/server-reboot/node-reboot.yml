@@ -1,0 +1,52 @@
+---
+- name: Take nodes offline
+  hosts: localhost
+
+  vars:
+    jenkins_host: eos-jenkins.mero.colo.seagate.com
+
+  tasks:
+  - name: Take node offline
+    uri:
+      url: http://{{ jenkins_host }}/computer/{{ item }}/toggleOffline?offlineMessage=Rebooting
+      url_username: "{{ jenkins_user }}"
+      url_password: "{{ jenkins_password }}"
+      method: POST
+      force_basic_auth: yes
+      status_code: 302
+    with_items: "{{ groups['all'] }}"
+    tags: jenkins-offline
+
+- name: reboot servers
+  hosts: all
+  remote_user: root
+
+  tasks:
+  - name: Reboot host and wait for it to restart
+    reboot:
+      msg: "Reboot initiated by Ansible"
+      connect_timeout: 5
+      reboot_timeout: 600
+      pre_reboot_delay: 0
+      post_reboot_delay: 30
+      test_command: whoami
+    tags: reboot
+
+- name: Take nodes online
+  hosts: localhost
+
+  vars:
+    jenkins_host: eos-jenkins.mero.colo.seagate.com
+
+  tasks:
+  - name: Take node online
+    uri:
+      url: http://{{ jenkins_host }}/computer/{{ item }}/toggleOffline
+      url_username: "{{ jenkins_user }}"
+      url_password: "{{ jenkins_password }}"
+      method: POST
+      force_basic_auth: yes
+      status_code: 302
+    with_items: "{{ groups['all'] }}"
+    tags: jenkins-online
+
