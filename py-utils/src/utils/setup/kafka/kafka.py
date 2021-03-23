@@ -54,11 +54,12 @@ class Kafka:
     def post_install(self):
         """ Performs post install operations. Raises exception on error """
 
-        # Copying systemd files from cortx package to /etc/systemd
+        # Copying systemd files from utils/conf dir to /etc/systemd
         src_path = Path('/opt/seagate/cortx/utils/conf/')
         dest_path = Path('/etc/systemd/system/')
         for elem in src_path.iterdir():
-            if '.service' in elem.parts[-1]:
+            file_name = elem.parts[-1]
+            if all(('.service' in file_name, 'kafka' in file_name)):
                 shutil.copy(elem, dest_path)
         # Perform actual operation. Obtain inputs using Conf.get(self.index, ..)
         return 0
