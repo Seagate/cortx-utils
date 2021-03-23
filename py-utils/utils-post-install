@@ -20,6 +20,6 @@
 /bin/cp -f /usr/lib/python3.6/site-packages/cortx/setup/utils_setup.py /opt/seagate/cortx/utils/bin/utils_setup
 /bin/chmod +x /opt/seagate/cortx/utils/bin/utils_setup
 
-# Copy the kafka.service and kafka-zookeeper.service files to /etc/systemd/system dir
+# Copy the kafka_setup.py as kafka_setup
 /bin/cp -f /usr/lib/python3.6/site-packages/cortx/utils/setup/kafka/kafka_setup.py /opt/seagate/cortx/utils/bin/kafka_setup
 /bin/chmod +x /opt/seagate/cortx/utils/bin/kafka_setup
