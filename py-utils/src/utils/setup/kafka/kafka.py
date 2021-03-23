@@ -15,6 +15,9 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import traceback
+import shutil
+import sysconfig
+from pathlib import Path
 
 from cortx.utils.conf_store import Conf
 
@@ -51,6 +54,14 @@ class Kafka:
     def post_install(self):
         """ Performs post install operations. Raises exception on error """
 
+        # Copying systemd files from cortx package to /etc/systemd
+        site_path = sysconfig.get_path('purelib', 'posix_prefix')
+        pckg_path = '/cortx/utils/setup/kafka/'
+        src_path = Path(site_path + pckg_path)
+        dest_path = Path('/etc/systemd/system/')
+        for elem in src_path.iterdir():
+            if '.service' in elem.parts[-1]:
+                shutil.copy(elem, dest_path)
         # Perform actual operation. Obtain inputs using Conf.get(index, ..)
         return 0
 
@@ -77,3 +88,4 @@ class Kafka:
 
         # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
         return 0
+
