@@ -95,7 +95,7 @@ class PrepareCmd(Cmd):
         super().__init__(args)
 
     def process(self):
-        pass
+        return 0
 
 
 class ConfigCmd(Cmd):
@@ -148,6 +148,17 @@ class ResetCmd(Cmd):
         Utils.validate('reset')
         rc = Utils.reset()
         return rc
+
+
+class CleanupCmd(Cmd):
+    """ Cleanup Setup Cmd """
+    name = "cleanup"
+
+    def __init__(self, args: dict):
+        super().__init__(args)
+
+    def process(self):
+        return 0
 
 
 def main(argv: dict):
