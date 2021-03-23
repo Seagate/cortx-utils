@@ -55,9 +55,7 @@ class Kafka:
         """ Performs post install operations. Raises exception on error """
 
         # Copying systemd files from cortx package to /etc/systemd
-        site_path = sysconfig.get_path('purelib', 'posix_prefix')
-        pckg_path = '/cortx/utils/setup/kafka/'
-        src_path = Path(site_path + pckg_path)
+        src_path = Path('/opt/seagate/cortx/utils/conf/')
         dest_path = Path('/etc/systemd/system/')
         for elem in src_path.iterdir():
             if '.service' in elem.parts[-1]:
