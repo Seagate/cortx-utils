@@ -212,6 +212,7 @@ class KafkaMessageBroker(MessageBroker):
         partitions = admin.create_partitions(new_partition)
         self._task_status(partitions)
 
+        # Retries for an amount of time to increase the partition
         for list_retry in range(1, self._max_list_message_type_count+2):
             if concurrency_count != len(self._get_metadata(admin)\
                 [message_type].__dict__['partitions']):
