@@ -21,5 +21,5 @@
 /bin/chmod +x /opt/seagate/cortx/utils/bin/utils_setup
 
 # Copy the kafka_setup.py as kafka_setup
-/bin/cp -f /usr/lib/python3.6/site-packages/cortx/utils/setup/kafka/kafka_setup.py /opt/seagate/cortx/utils/bin/kafka_setup
+/bin/cp -f /usr/lib/python3.6/site-packages/cortx/utils/setup/kafka/kafka_setup.py /opt/seagate/cortx/utils/conf/kafka_setup
 /bin/chmod +x /opt/seagate/cortx/utils/bin/kafka_setup
