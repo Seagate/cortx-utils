@@ -40,12 +40,21 @@ pipeline {
 				dir('seagate-ldr') {
 				    checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'AuthorInChangelog']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: 'https://github.com/Seagate/seagate-ldr.git']]])
 				}
+				dir ('cortx-re') {
+					checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: 'main']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'CloneOption', noTags: true, reference: '', shallow: true]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: 'https://github.com/Seagate/cortx-re']]]
+				}
 			}
 		}
 		
 		stage('Install Dependencies') {
 			steps {
 				script { build_stage = env.STAGE_NAME }
+
+				sh label: 'Install cortx-prereq package', script: """
+					pip3 uninstall pip -y && yum install python3-pip -y && ln -s /usr/bin/pip3 /usr/local/bin/pip3
+					sh ./cortx-re/scripts/third-party-rpm/install-cortx-prereq.sh
+				"""
+
 				sh label: 'Configure yum repositories', script: """
 				if [ "${CSM_AGENT_BRANCH}" == "cortx-1.0" ]; then
 					yum-config-manager --disable cortx-C7.7.1908
@@ -53,7 +62,7 @@ pipeline {
 					yum-config-manager --save --setopt=cortx-storage*.gpgcheck=1 cortx-storage* && yum-config-manager --save --setopt=cortx-storage*.gpgcheck=0 cortx-storage*
 				else
 					yum-config-manager --disable cortx-C7.7.1908,cortx-uploads
-					yum-config-manager --add-repo=http://cortx-storage.colo.seagate.com/releases/cortx/github/stable/$os_version/last_successful/
+					yum-config-manager --add-repo=http://cortx-storage.colo.seagate.com/releases/cortx/github/main/$os_version/last_successful/
 					yum-config-manager --save --setopt=cortx-storage*.gpgcheck=1 cortx-storage* && yum-config-manager --save --setopt=cortx-storage*.gpgcheck=0 cortx-storage*
 				fi	
 				yum clean all && rm -rf /var/cache/yum
@@ -64,7 +73,6 @@ pipeline {
 						yum install -y eos-py-utils
 						pip3.6 install  pyinstaller==3.5
 					else
-						yum install -y cortx-prvsnr
 						pip3.6 install  pyinstaller==3.5
 					fi
 				"""
@@ -82,7 +90,7 @@ pipeline {
 					echo "Executing build script"
 					echo "VERSION:$VERSION"
 					echo "Python:$(python --version)"
-					./cicd/build.sh -v $VERSION -b $CUSTOM_CI_BUILD_ID -t -i -n ldr -l $WORKSPACE/seagate-ldr
+					./cicd/build.sh -v $VERSION -b $CUSTOM_CI_BUILD_ID -t -n ldr -l $WORKSPACE/seagate-ldr
 				popd	
 				'''	
 			}
