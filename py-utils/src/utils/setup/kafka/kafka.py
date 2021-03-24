@@ -15,6 +15,8 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import traceback
+import shutil
+from pathlib import Path
 
 from cortx.utils.conf_store import Conf
 
@@ -37,10 +39,10 @@ class KafkaSetupError(Exception):
 
 class Kafka:
     """ Represents Kafka and Performs setup related actions """
-    index = "kafka"
 
     def __init__(self, conf_url):
-        Conf.load(index, conf_url)
+        self.index = "kafka"
+        Conf.load(self.index, conf_url)
 
     def validate(self, phase: str):
         """ Perform validtions. Raises exceptions if validation fails """
@@ -51,29 +53,37 @@ class Kafka:
     def post_install(self):
         """ Performs post install operations. Raises exception on error """
 
-        # Perform actual operation. Obtain inputs using Conf.get(index, ..)
+        # Copying systemd files from utils/conf dir to /etc/systemd
+        src_path = Path('/opt/seagate/cortx/utils/conf/')
+        dest_path = Path('/etc/systemd/system/')
+        for elem in src_path.iterdir():
+            file_name = elem.parts[-1]
+            if all(('.service' in file_name, 'kafka' in file_name)):
+                shutil.copy(elem, dest_path)
+        # Perform actual operation. Obtain inputs using Conf.get(self.index, ..)
         return 0
 
     def init(self):
         """ Perform initialization. Raises exception on error """
 
-        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
+        # TODO: Perform actual steps. Obtain inputs using Conf.get(self.index, ..)
         return 0
 
     def config(self):
         """ Performs configurations. Raises exception on error """
 
-        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
+        # TODO: Perform actual steps. Obtain inputs using Conf.get(self.index, ..)
         return 0
 
     def test(self, plan):
         """ Perform configuration testing. Raises exception on error """
 
-        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
+        # TODO: Perform actual steps. Obtain inputs using Conf.get(self.index, ..)
         return 0
 
     def reset(self):
         """ Performs Configuraiton reset. Raises exception on error """
 
-        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
+        # TODO: Perform actual steps. Obtain inputs using Conf.get(self.index, ..)
         return 0
+
