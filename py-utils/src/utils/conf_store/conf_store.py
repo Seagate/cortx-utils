@@ -87,6 +87,7 @@ class ConfStore:
         Return Value:
                 Return type will be dict or string based of key
         """
+        import copy
         if index not in self._cache.keys():
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
@@ -94,7 +95,8 @@ class ConfStore:
             raise ConfError(errno.EINVAL, "can't able to find config key "
                                                "%s in loaded config", key)
         val = self._cache[index].get(key)
-        return default_val if val is None else val
+        ret_val = default_val if val is None else val
+        return copy.deepcopy(ret_val)
 
     def set(self, index: str, key: str, val):
         """
