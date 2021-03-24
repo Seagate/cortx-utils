@@ -14,6 +14,9 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+# Create /etc/cortx. This will be used for storing message_bus.conf file
+/bin/mkdir -p /etc/cortx
+
 # Copy the setup_cli.py as utils_setup
 /bin/mkdir -p /opt/seagate/cortx/utils/bin
 /bin/cp -f /usr/lib/python3.6/site-packages/cortx/setup/utils_setup.py /opt/seagate/cortx/utils/bin/utils_setup
