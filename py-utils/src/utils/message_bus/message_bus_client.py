@@ -114,21 +114,22 @@ class MessageBusClient:
 class MessageBusAdmin(MessageBusClient):
     """ A client that do admin jobs """
 
-    def __init__(self, message_bus: MessageBus, admin_id: str):
+    def __init__(self, admin_id: str, message_bus: MessageBus = None):
         """ Initialize a Message Admin
 
         Parameters:
         message_bus    An instance of message bus class.
         admin_id       A String that represents Admin client ID.
         """
+        message_bus = MessageBus() if message_bus is None else message_bus
         super().__init__(message_bus, client_type='admin', client_id=admin_id)
 
 
 class MessageProducer(MessageBusClient):
     """ A client that publishes messages """
 
-    def __init__(self, message_bus: MessageBus, producer_id: str, \
-        message_type: str, method: str = None):
+    def __init__(self, producer_id: str, message_type: str, method: str = None, \
+        message_bus: MessageBus = None):
         """ Initialize a Message Producer
 
         Parameters:
@@ -137,6 +138,7 @@ class MessageProducer(MessageBusClient):
         message_type    This is essentially equivalent to the
                         queue/topic name. For e.g. "Alert"
         """
+        message_bus = MessageBus() if message_bus is None else message_bus
         super().__init__(message_bus, client_type='producer', \
             client_id=producer_id, message_type=message_type, method=method)
 
@@ -153,8 +155,9 @@ class MessageProducer(MessageBusClient):
 class MessageConsumer(MessageBusClient):
     """ A client that consumes messages """
 
-    def __init__(self, message_bus: MessageBus, consumer_id: str, \
-        consumer_group: str, message_types: list, auto_ack: str, offset: str):
+    def __init__(self, consumer_id: str, consumer_group: str, \
+        message_types: list, auto_ack: str, offset: str, \
+        message_bus: MessageBus = None):
         """ Initialize a Message Consumer
 
         Parameters:
@@ -169,6 +172,7 @@ class MessageConsumer(MessageBusClient):
                         ("earliest" will cause messages to be read from the
                         beginning)
         """
+        message_bus = MessageBus() if message_bus is None else message_bus
         super().__init__(message_bus, client_type='consumer', \
             client_id=consumer_id, consumer_group=consumer_group, \
             message_types=message_types, auto_ack=auto_ack, offset=offset)
