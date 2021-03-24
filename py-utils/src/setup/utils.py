@@ -26,35 +26,45 @@ def _get_kafka_server_list(conf_url):
 
     from cortx.utils.conf_store import Conf
     Conf.load("cluster_config", conf_url)
+    msg_bus_type = Conf.get("cluster_config", \
+                            "cortx>software>common>message_bus_type")
+    if msg_bus_type != "kafka":
+        raise SetupError(errno.EINVAL, \
+                         "Message Bus do not support type %s" % msg_bus_type)
     # Read the required keys
-    all_servers = list((Conf.get("cluster_config", \
-                        'cluster>server_nodes')).items())
+    all_servers = Conf.get("cluster_config", \
+                           "cortx>software>kafka>servers")
     no_servers = len(all_servers)
     kafka_server_list = []
-    kafka_servers = 0
+    port_list = []
     for i in range(no_servers):
-        if 'kafka_server' in (Conf.get("cluster_config", \
-                              f'cluster>{all_servers[i][1]}>roles')):
-            kafka_server_list.append(Conf.get("cluster_config", \
-                     f'cluster>{all_servers[i][1]}>network>mgmt>public_ip'))
-            kafka_servers += 1
-    if kafka_servers == 0 or kafka_server_list == None:
-         raise ValueError("Data incorrect")
-    return kafka_server_list
+        # check if port is mentioned
+        rc = all_servers[i].find(':')
+        if rc == -1:
+            port_list.append("9092")
+            kafka_server_list.append(all_servers[i])
+        else:
+            port_list.append(all_servers[i][rc+1:])
+            kafka_server_list.append(all_servers[i][:rc])
+    if len(kafka_server_list) == 0:
+         raise SetupError(errno.EINVAL, \
+                          "No valid Kafka server info provided for Config Key \
+                          'cortx>software>kafka>servers' ")
+    return kafka_server_list, port_list
 
 
-def _create_msg_bus_config(kafka_server_list):
+def _create_msg_bus_config(kafka_server_list, port_list):
     """ Create the config file required for message bus """
 
     from cortx.utils.conf_store import Conf
     with open(r'/etc/cortx/message_bus.conf.new', 'w+') as file:
         json.dump({}, file, indent=2)
     Conf.load("index", "json:///etc/cortx/message_bus.conf.new")
-    Conf.set('index', 'message_broker>type', "kafka")
+    Conf.set("index", "message_broker>type", "kafka")
     for i in range(len(kafka_server_list)):
-        Conf.set('index', f'message_broker>cluster[{i}]', \
-                     {"server": kafka_server_list[i], "port": "9092"})
-    Conf.save('index')
+        Conf.set("index", f"message_broker>cluster[{i}]", \
+                     {"server": kafka_server_list[i], "port": port_list[i]})
+    Conf.save("index")
     # copy this conf file as message_bus.conf
     cmd = "/bin/mv /etc/cortx/message_bus.conf.new" + \
           " /etc/cortx/message_bus.conf"
@@ -99,20 +109,18 @@ class Utils:
     def post_install():
         """ Performs post install operations """
 
-        # Do the python packages installation
-        cmd = "/bin/pip3 install -r " \
-              + "/opt/seagate/cortx/utils/conf/requirements.txt"
-        try:
-            cmd_proc = SimpleProcess(cmd)
-            res_op, res_err, res_rc = cmd_proc.run()
-            if res_rc != 0:
-                raise SetupError(errno.ENOENT, \
-                                 "Python Package installation failed, rc=%d", \
-                                 res_rc)
-        except Exception as e:
-            raise SetupError(errno.ENOENT, \
-                             "Python Package installation failed, %s", e)
-        return res_rc
+        # Check python packages and install if something is missing
+        cmd = "pip3 freeze"
+        cmd_proc = SimpleProcess(cmd)
+        stdout, stderr, retcode = cmd_proc.run()
+        result = stdout.decode("utf-8") if retcode == 0 else stderr.decode("utf-8")
+        with open('/opt/seagate/cortx/utils/conf/requirements.txt') as f:
+            pkgs = f.readlines()
+            # pkgs will have \n in every string. Need to remove that
+            for package in enumerate(pkgs):
+                if result.find(package[1][:-1]) == -1:
+                    raise SetupError(errno.EINVAL, "Required python package %s is missing" % package[1][:-1])
+        return 0
 
     @staticmethod
     def init():
@@ -124,9 +132,10 @@ class Utils:
         """ Performs configurations """
 
         # Message Bus Config
-        kafka_server_list = _get_kafka_server_list(conf_url)
-        rc = _create_msg_bus_config(kafka_server_list)
-        return rc
+        kafka_server_list, port_list = _get_kafka_server_list(conf_url)
+        if kafka_server_list == None:
+            raise SetupError(errno.EINVAL, "No Kafka setup info provided")
+        return  _create_msg_bus_config(kafka_server_list, port_list)
 
     @staticmethod
     def test():
