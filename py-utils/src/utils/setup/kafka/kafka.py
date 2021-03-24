@@ -16,7 +16,6 @@
 
 import traceback
 import shutil
-import sysconfig
 from pathlib import Path
 
 from cortx.utils.conf_store import Conf
