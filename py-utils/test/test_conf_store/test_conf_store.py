@@ -292,6 +292,13 @@ class TestConfStore(unittest.TestCase):
         except Exception as err:
             self.assertEqual('Invalid properties store format %s. %s.', err.args[1])
 
+    def test_conf_store_return_val_ref_test(self):
+        """Test by getting the key from the loaded config"""
+        retrived_list_1 = Conf.get('msg_local', 'bridge>lte_type')
+        retrived_list_1.append(3)
+        retrived_list_2 = Conf.get('msg_local', 'bridge>lte_type')
+        self.assertTrue(True if retrived_list_1 != retrived_list_2 else False)
+
 if __name__ == '__main__':
     """
     Firstly create the file and load sample json into it.
