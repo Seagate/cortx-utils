@@ -36,6 +36,7 @@ class ConfStore:
         self._delim = delim
         self._cache = {}
         self._callbacks = {}
+        self._machine_id = None
 
     def load(self, index: str, kvs_url: str, **kwargs):
         """
@@ -153,6 +154,16 @@ class ConfStore:
         for key in key_list:
             self._cache[dst_index].set(key, self._cache[src_index].get(key))
 
+    def get_machine_id(self):
+        """ Returns the machine id from /etc/machine-id """
+        if self._machine_id is None:
+            from pathlib import Path
+            machine_id_file = Path("/etc/machine-id")
+            if machine_id_file.is_file() and machine_id_file.stat().st_size > 0:
+                with open("/etc/machine-id", 'r') as mc_id_file:
+                    self._machine_id = mc_id_file.read()
+        return self._machine_id
+
 
 class Conf:
     """ Singleton class instance based on conf_store """
@@ -201,3 +212,8 @@ class Conf:
     def get_keys(index: str):
         """ Obtains list of keys stored in the specific config store """
         return Conf._conf.get_keys(index)
+
+    @staticmethod
+    def get_machine_id():
+        """ Returns the machine id from /etc/machine-id """
+        return Conf._conf.get_machine_id()
