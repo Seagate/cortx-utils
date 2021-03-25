@@ -22,8 +22,9 @@ class MessageBusClient:
     """ common infrastructure for producer and consumer """
 
     def __init__(self, client_type: str, **client_conf: dict):
-        self._message_bus = MessageBus() if client_conf['message_bus'] is None \
-            else client_conf['message_bus']
+        self._message_bus = MessageBus() if 'message_bus' not in \
+            client_conf.keys() or client_conf['message_bus'] is None else \
+            client_conf['message_bus']
         self._message_bus.init_client(client_type, **client_conf)
         self._client_conf = client_conf
 
