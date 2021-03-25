@@ -1,0 +1,8 @@
+cortx:
+  software:
+    common:
+      message_bus_type: kafka # kafka is the only supported type
+    kafka:
+      servers:
+      # Value should be in format <FQDN>:<port>. Port is optional
+      - TMPL_KAFKA_SERVER1_FQDN:TMPL_KAFKA_SERVER1_PORT
