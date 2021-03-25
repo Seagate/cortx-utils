@@ -17,7 +17,7 @@ pipeline {
     }
 
     parameters {
-		string(name: 'REPO_URL', defaultValue: 'https://github.com/shailesh-vaidya/cortx-re', description: 'Repository URL to be used for cortx-re.')
+		string(name: 'REPO_URL', defaultValue: 'https://github.com/Seagate/cortx-re', description: 'Repository URL to be used for cortx-re.')
 		string(name: 'REPO_BRANCH', defaultValue: 'main', description: 'Branch to be used for cortx-re repo.')
 		string(name: 'REBOOT_LABEL', defaultValue: 's3-dev-build-7.8.2003', description: 'Node Lable for reboot')
 	}
@@ -47,7 +47,7 @@ pipeline {
                 }	
                 
                 // Move this code to Ansible playbook
-                sh label: 'Install Ansible', returnStatus: true, script: """
+                sh label: 'Install Ansible', script: """
 
                 yum install ansible -y
                   
@@ -68,4 +68,32 @@ pipeline {
             }
 		}
 	}
+
+    post {
+
+		success {
+        	    emailext (
+                    subject: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+                    body: """
+                    <h><span style=color:green>SUCCESSFUL:</span> Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':</h>
+                    <p>Check console output at "<a href="${env.BUILD_URL}">${env.JOB_NAME} [${env.BUILD_NUMBER}]</a>"</p>
+                    <p>Following Nodes are rebooted successfully</p>
+                    <p>${env.NODE_LIST}</p> 
+                    """,
+                    to: 'shailesh.vaidya@seagate.com','nilesh.govande@seagate.com'
+                    recipientProviders: [[$class: 'DevelopersRecipientProvider'], [$class: 'RequesterRecipientProvider']]
+                )
+        	}
+		
+		failure {
+	            emailext (
+                    subject: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+                    body: """
+                    <h><span style=color:red>FAILED:</span> Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':</h>
+                    <p>Check console output at "<a href="${env.BUILD_URL}">${env.JOB_NAME} [${env.BUILD_NUMBER}]</a>"</p>
+                    """,
+                    to: 'CORTX.DevOps.RE@seagate.com',
+                 )
+ 	       }	
+    	}
 }
