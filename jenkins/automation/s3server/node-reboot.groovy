@@ -80,7 +80,7 @@ pipeline {
                     <p>Following Nodes are rebooted successfully</p>
                     <p>${env.NODE_LIST}</p> 
                     """,
-                    to: 'shailesh.vaidya@seagate.com','nilesh.govande@seagate.com'
+                    to: 'shailesh.vaidya@seagate.com,nilesh.govande@seagate.com',
                     recipientProviders: [[$class: 'DevelopersRecipientProvider'], [$class: 'RequesterRecipientProvider']]
                 )
         	}
