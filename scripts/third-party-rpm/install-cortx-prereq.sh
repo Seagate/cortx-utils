@@ -1,20 +1,14 @@
 #!/bin/bash
 
-usage() { echo "Usage: $0 [ -b branch] [ -t third-party-version] [ -p python-deps-version] [ -o os-version ] [ -r RPM location]" 1>&2; exit 1; }
+usage() { echo "Usage: $0 [ -b build_url] [ -r RPM location]" 1>&2; exit 1; }
 
 #Define Default values
-BRANCH=main
-OS_VERSION=centos-7.8.2003
-THIRD_PARTY_VERSION=centos-7.8.2003-2.0.0-latest
-PYTHON_DEPS_VERSION=python-packages-2.0.0-latest
+BUILD_URL="http://cortx-storage.colo.seagate.com/releases/cortx/github/main/centos-7.8.2003/last_successful_prod/"
 RPM_LOCATION=remote
 
-while getopts "t:p:b:o:r:" opt; do
+while getopts "b:r:" opt; do
     case $opt in
-        t ) THIRD_PARTY_VERSION=$OPTARG;;
-        p ) PYTHON_DEPS_VERSION=$OPTARG;;
-        o ) OS_VERSION=$OPTARG;;
-        b ) BRANCH=$OPTARG;;
+        b ) BUILD_URL=$OPTARG;;
         r ) RPM_LOCATION=$OPTARG;;
         h ) usage
         exit 0;;
@@ -24,23 +18,20 @@ while getopts "t:p:b:o:r:" opt; do
 done
 
 echo " Using following values:"
-echo "BRANCH $BRANCH"
-echo "OS_VERSION $OS_VERSION"
-echo "THIRD_PARTY_VERSION $THIRD_PARTY_VERSION"
-echo "PYTHON_DEPS_VERSION $PYTHON_DEPS_VERSION"
-echo "RPM_LOCATION $RPM_LOCATION"
-echo ""
+echo "BUILD URL:"  "$BUILD_URL"
 
 #Setup repositories and install packages
 yum install yum-utils -y
-yum-config-manager --add-repo=http://cortx-storage.colo.seagate.com/releases/cortx/third-party-deps/centos/"$THIRD_PARTY_VERSION"/
-yum-config-manager --add-repo=http://cortx-storage.colo.seagate.com/releases/cortx/github/"$BRANCH"/"$OS_VERSION"/last_successful_prod/cortx_iso/
+
+yum-config-manager --add-repo="$BUILD_URL"/3rd_party/
+yum-config-manager --add-repo="$BUILD_URL"/cortx_iso/
+
 yum-config-manager --save --setopt=cortx-storage*.gpgcheck=1 cortx-storage* && yum-config-manager --save --setopt=cortx-storage*.gpgcheck=0 cortx-storage*
 
 cat <<EOF >/etc/pip.conf
 [global]
 timeout: 60
-index-url: http://cortx-storage.colo.seagate.com/releases/cortx/third-party-deps/python-deps/$PYTHON_DEPS_VERSION/
+index-url: $BUILD_URL/python_deps
 trusted-host: cortx-storage.colo.seagate.com
 EOF
 
