@@ -21,9 +21,9 @@ from cortx.utils.message_bus import MessageBus
 class MessageBusClient:
     """ common infrastructure for producer and consumer """
 
-    def __init__(self, message_bus: MessageBus, client_type: str, \
-        **client_conf: dict):
-        self._message_bus = message_bus
+    def __init__(self, client_type: str, **client_conf: dict):
+        self._message_bus = MessageBus() if client_conf['message_bus'] is None \
+            else client_conf['message_bus']
         self._message_bus.init_client(client_type, **client_conf)
         self._client_conf = client_conf
 
@@ -121,8 +121,8 @@ class MessageBusAdmin(MessageBusClient):
         message_bus    An instance of message bus class.
         admin_id       A String that represents Admin client ID.
         """
-        message_bus = MessageBus() if message_bus is None else message_bus
-        super().__init__(message_bus, client_type='admin', client_id=admin_id)
+        super().__init__(client_type='admin', client_id=admin_id, \
+            message_bus=message_bus)
 
 
 class MessageProducer(MessageBusClient):
@@ -138,9 +138,8 @@ class MessageProducer(MessageBusClient):
         message_type    This is essentially equivalent to the
                         queue/topic name. For e.g. "Alert"
         """
-        message_bus = MessageBus() if message_bus is None else message_bus
-        super().__init__(message_bus, client_type='producer', \
-            client_id=producer_id, message_type=message_type, method=method)
+        super().__init__(client_type='producer', client_id=producer_id, \
+            message_type=message_type, method=method, message_bus=message_bus)
 
     def get_unread_count(self, consumer_group: str):
         """
@@ -172,10 +171,9 @@ class MessageConsumer(MessageBusClient):
                         ("earliest" will cause messages to be read from the
                         beginning)
         """
-        message_bus = MessageBus() if message_bus is None else message_bus
-        super().__init__(message_bus, client_type='consumer', \
-            client_id=consumer_id, consumer_group=consumer_group, \
-            message_types=message_types, auto_ack=auto_ack, offset=offset)
+        super().__init__(client_type='consumer', client_id=consumer_id, \
+            consumer_group=consumer_group, message_types=message_types, \
+            auto_ack=auto_ack, offset=offset, message_bus=message_bus)
 
     def get_unread_count(self):
         """ Gets the count of unread messages from the Message Bus """
