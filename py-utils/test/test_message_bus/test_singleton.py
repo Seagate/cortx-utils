@@ -18,32 +18,40 @@
 
 
 import unittest
-from cortx.utils.message_bus import MessageBus, MessageProducer, MessageConsumer
+from cortx.utils.message_bus import MessageBus, MessageBusAdmin, MessageProducer, MessageConsumer
 
 
 class TestMessage(unittest.TestCase):
     """ Test MessageBus related functionality """
 
-    def test_singleton(self):
+    _msg_type = 'biggg'
+    _msg_count = 10
+
+    def test_same_instance(self):
         """ Test Singleton functionality """
 
         message_bus_1 = MessageBus()
         message_bus_2 = MessageBus()
-
         # Check for same instance
         self.assertEqual(message_bus_1, message_bus_2)
 
-        # Send and receive messages without MessageBus instance
+    def test_no_instance(self):
+        """ Test Clients with no instance """
+
+        admin = MessageBusAdmin(admin_id='admin')
+        self.assertTrue(TestMessage._msg_type in admin.list_message_types())
+
         messages = []
-        producer = MessageProducer(producer_id='p1', message_type='biggg')
+        producer = MessageProducer(producer_id='p1', \
+            message_type=TestMessage._msg_type, method='sync')
         self.assertIsNotNone(producer, "Producer not found")
-        for i in range(0, 10):
+        for i in range(0, TestMessage._msg_count):
             messages.append("This is message" + str(i))
         producer.send(messages)
 
-        consumer = MessageConsumer(consumer_id='msys', consumer_group='connn',
-                                   message_types=['biggg'], auto_ack=True, \
-                                   offset='latest')
+        consumer = MessageConsumer(consumer_id='msys', consumer_group='connn', \
+            message_types=[TestMessage._msg_type], auto_ack=True, \
+            offset='latest')
         count = 0
         while True:
             try:
@@ -52,7 +60,69 @@ class TestMessage(unittest.TestCase):
                     count += 1
                 consumer.ack()
             except Exception:
-                self.assertEqual(count, 10)
+                self.assertEqual(count, TestMessage._msg_count)
+                break
+
+    def test_one_instance(self):
+        """ Test Clients with one instance """
+
+        message_bus = MessageBus()
+        admin = MessageBusAdmin(admin_id='admin', message_bus=message_bus)
+        self.assertTrue(TestMessage._msg_type in admin.list_message_types())
+
+        messages = []
+        producer = MessageProducer(producer_id='p1', \
+            message_type=TestMessage._msg_type, method='sync', \
+            message_bus=message_bus)
+        self.assertIsNotNone(producer, "Producer not found")
+        for i in range(0, TestMessage._msg_count):
+            messages.append("This is message" + str(i))
+        producer.send(messages)
+
+        consumer = MessageConsumer(consumer_id='msys', consumer_group='connn', \
+            message_types=[TestMessage._msg_type], auto_ack=True, \
+            offset='latest', message_bus=message_bus)
+        count = 0
+        while True:
+            try:
+                message = consumer.receive()
+                if isinstance(message, bytes):
+                    count += 1
+                consumer.ack()
+            except Exception:
+                self.assertEqual(count, TestMessage._msg_count)
+                break
+
+    def test_multiple_instance(self):
+        """ Test Clients with no instance """
+
+        message_bus_1 = MessageBus()
+        message_bus_2 = MessageBus()
+        message_bus_3 = MessageBus()
+        admin = MessageBusAdmin(admin_id='admin', message_bus=message_bus_1)
+        self.assertTrue(TestMessage._msg_type in admin.list_message_types())
+
+        messages = []
+        producer = MessageProducer(producer_id='p1', \
+            message_type=TestMessage._msg_type, method='sync', \
+            message_bus=message_bus_2)
+        self.assertIsNotNone(producer, "Producer not found")
+        for i in range(0, TestMessage._msg_count):
+            messages.append("This is message" + str(i))
+        producer.send(messages)
+
+        consumer = MessageConsumer(consumer_id='msys', consumer_group='connn', \
+            message_types=[TestMessage._msg_type], auto_ack=True, \
+            offset='latest', message_bus=message_bus_3)
+        count = 0
+        while True:
+            try:
+                message = consumer.receive()
+                if isinstance(message, bytes):
+                    count += 1
+                consumer.ack()
+            except Exception:
+                self.assertEqual(count, TestMessage._msg_count)
                 break
 
 
