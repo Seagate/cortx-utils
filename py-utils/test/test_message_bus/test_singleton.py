@@ -48,10 +48,10 @@ class TestMessage(unittest.TestCase):
         while True:
             try:
                 message = consumer.receive()
-                if type(message) is bytes:
+                if isinstance(message, bytes):
                     count += 1
                 consumer.ack()
-            except Exception as e:
+            except Exception:
                 self.assertEqual(count, 10)
                 break
 
