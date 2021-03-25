@@ -71,7 +71,7 @@ pipeline {
                     LDR_BUID_PATH=$(sed \'s/http\\:\\/\\/cortx-storage.colo.seagate.com/\\/mnt\\/bigstorage/g\' <<< $LDR_RELEASE_BUILD)
                     mkdir -p $integration_dir/$release_tag/cortx_iso
                     shopt -s extglob
-                    cp $LDR_BUID_PATH/cortx_iso/!(cortx-csm_web*).rpm $integration_dir/$release_tag/cortx_iso
+                    cp $LDR_BUID_PATH/cortx_iso/!(ud*|cortx-csm_web*).rpm $integration_dir/$release_tag/cortx_iso
                     cp $csm_web_dir/last_successful/*.rpm $integration_dir/$release_tag/cortx_iso
                 '''
 			}
