@@ -60,13 +60,15 @@ class Log:
         :param log_level: Log Class Instance :type: Class(Log)
         :return: Logger Object
         """
-        log_format = "%(asctime)s %(name)s %(levelname)s %(message)s"
-        logger_name = f"{file_name}"
         if logger_type == "audit":
-            log_format = " %(asctime)s %(name)s %(message)s"
             logger_name = f"{file_name}_audit"
+            log_format = "%(name)s %(message)s"
+            formatter = logging.Formatter(log_format)
+        else:
+            logger_name = f"{file_name}"
+            log_format = "%(asctime)s %(name)s %(levelname)s %(message)s"
+            formatter = logging.Formatter(log_format,"%Y-%m-%d %H:%M:%S")
         logger = logging.getLogger(logger_name)
-        formatter = logging.Formatter(log_format,"%Y-%m-%d %H:%M:%S")
         if syslog_server and syslog_port:
             log_handler = logging.handlers.SysLogHandler(address =
                                            (syslog_server, syslog_port))
