@@ -16,9 +16,11 @@
 utils:
     post_install:
         cmd: /opt/seagate/cortx/utils/bin/utils_setup post_install
+        args: --config $URL
 
     prepare:
         cmd: /opt/seagate/cortx/utils/bin/utils_setup prepare
+        args: --config $URL
 
     config:
         cmd: /opt/seagate/cortx/utils/bin/utils_setup config
@@ -26,12 +28,16 @@ utils:
 
     init:
         cmd: /opt/seagate/cortx/utils/bin/utils_setup init
+        args: --config $URL
 
     test:
         cmd: /opt/seagate/cortx/utils/bin/utils_setup test
+        args: --config $URL
 
     reset:
         cmd: /opt/seagate/cortx/utils/bin/utils_setup reset
+        args: --config $URL
 
     cleanup:
         cmd: /opt/seagate/cortx/utils/bin/utils_setup cleanup
+        args: --config $URL
