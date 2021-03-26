@@ -15,6 +15,7 @@
 
 import os
 import sys
+import glob
 from typing import List
 from setuptools import setup
 
@@ -32,6 +33,9 @@ specs = []
 for root, directories, filenames in os.walk(_ROOT):
     for filename in filenames:
         specs.append(SPEC_DIR + filename)
+
+# Get the list of template files
+tmpl_files = glob.glob('src/setup/templates/*.*')
 
 with open('LICENSE', 'r') as lf:
     license = lf.read()
@@ -56,20 +60,17 @@ setup(name='cortx-py-utils',
       packages=['cortx', 'cortx.utils',
                 'cortx.template',
                 'cortx.utils.amqp', 'cortx.utils.amqp.rabbitmq',
-                'cortx.utils.cleanup',
-                'cortx.utils.data', 'cortx.utils.data.access', 'cortx.utils.data.db',
-                'cortx.utils.data.db.consul_db', 'cortx.utils.data.db.elasticsearch_db',
-                'cortx.utils.ha.hac',
+                'cortx.utils.cleanup', 'cortx.utils.data',
+                'cortx.utils.data.access', 'cortx.utils.data.db',
+                'cortx.utils.data.db.consul_db',
+                'cortx.utils.data.db.elasticsearch_db', 'cortx.utils.ha.hac',
                 'cortx.utils.ha.dm', 'cortx.utils.ha.dm.models',
-                'cortx.utils.ha.dm.repository',
-                'cortx.utils.ha',
-                'cortx.utils.validator',
-                'cortx.utils.kv_store',
-                'cortx.utils.conf_store',
-                'cortx.utils.message_bus',
-                'cortx.utils.product_features',
-                'cortx.utils.security', 'cortx.utils.schema',
-                'cortx.utils.appliance_info', 'cortx.setup', 'cortx.utils.service',
+                'cortx.utils.ha.dm.repository', 'cortx.utils.ha',
+                'cortx.utils.validator', 'cortx.utils.kv_store',
+                'cortx.utils.conf_store', 'cortx.utils.message_bus',
+                'cortx.utils.product_features', 'cortx.utils.security',
+                'cortx.utils.schema', 'cortx.utils.appliance_info',
+                'cortx.setup', 'cortx.utils.service',
 		'cortx.utils.setup', 'cortx.utils.setup.kafka'
                 ],
       package_data={
@@ -84,8 +85,11 @@ setup(name='cortx-py-utils',
         ]
       },
       data_files = [ ('/var/lib/cortx/ha/specs', specs),
-                     ('/var/lib/cortx/ha', ['src/utils/ha/hac/args.yaml', 'src/utils/ha/hac/re_build.sh']),
-                     ('/opt/seagate/cortx/utils/conf', ['requirements.txt', 'src/setup/setup.yaml', 'src/setup/utils.config.tmpl'])],
+                     ('/var/lib/cortx/ha', ['src/utils/ha/hac/args.yaml',
+                                            'src/utils/ha/hac/re_build.sh']),
+                     ('/opt/seagate/cortx/utils/conf',
+                          ['requirements.txt', 'src/setup/setup.yaml']),
+                     ('/opt/seagate/cortx/utils/conf', tmpl_files)],
       long_description=long_description,
       zip_safe=False,
       python_requires='>=3.6',
