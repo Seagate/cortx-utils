@@ -4,7 +4,7 @@ python-consul==1.1.0
 schematics==2.1.0
 toml==0.10.0
 cryptography==2.8
-PyYAML==5.1.2
+PyYAML==5.4
 configparser==4.0.2
 networkx==2.4
 numpy==1.19.2
