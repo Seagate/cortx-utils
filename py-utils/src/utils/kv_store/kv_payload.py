@@ -41,7 +41,7 @@ class KvPayload:
             return self._data
         return Format.dump(self._data, format_type)
 
-    def get_keys(self, **filters):
+    def get_keys(self, **filters) -> list:
         """
         Obtains list of keys stored in the payload
         Input Paramters:
@@ -58,7 +58,7 @@ class KvPayload:
         return keys
 
     def _get_keys(self, keys: list, data, pkey: str = None,
-        key_index: bool = True):
+        key_index: bool = True) -> None:
         if isinstance(data, list):
             if key_index == True:
                 for i in range(len(data)):
@@ -184,7 +184,7 @@ class KvPayload:
         else:
             return self._delete(k[1], data[k[0]])
 
-    def delete(self, key):
+    def delete(self, key) -> bool:
         """
         Deletes given set of keys from the dictionary
         Return Value:

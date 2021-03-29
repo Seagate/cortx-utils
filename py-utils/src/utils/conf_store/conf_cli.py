@@ -81,7 +81,7 @@ class ConfCli:
             Conf.save(ConfCli._index)
 
     @staticmethod
-    def get_keys(args) -> str:
+    def get_keys(args) -> list:
         """ Returns list of keys present in store """
         key_index = 'true' if args.key_index == None else args.key_index.lower().strip()
         key_index = True if key_index == 'true' else False if key_index == 'false' else None

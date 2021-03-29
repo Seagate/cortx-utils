@@ -113,7 +113,7 @@ class ConfStore:
 
         self._cache[index].set(key, val)
 
-    def get_keys(self, index: str, **filters):
+    def get_keys(self, index: str, **filters) -> list:
         """
         Obtains list of keys stored in the specific config store
         Input Paramters:
@@ -207,7 +207,7 @@ class Conf:
         Conf._conf.save(dst_index)
 
     @staticmethod
-    def get_keys(index: str, **filters):
+    def get_keys(index: str, **filters) -> list:
         """
         Obtains list of keys stored in the specific config store
         Input Paramters:

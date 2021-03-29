@@ -121,7 +121,7 @@ class IniKvPayload(KvPayload):
         super().__init__(configparser, delim)
 
     def _get_keys(self, keys: list, data, pkey: str = None,
-        key_index: bool = True):
+        key_index: bool = True) -> None:
         for section in self._data.sections():
             for key in [option for option in self._data[section]]:
                 keys.append(f"{section}{self._delim}{key}")
