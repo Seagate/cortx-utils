@@ -250,33 +250,6 @@ class PropertiesKvStore(KvStore):
                 f.write("%s = %s\n" %(key, val))
 
 
-class PillarKvPayload(KvPayload):
-    """ In memory representation of pillar data """
-    def __init__(self, data, delim='>', target='*'):
-        super().__init__(data, delim)
-        from salt.client import LocalClient
-        self._target = target
-        self._client = LocalClient()
-
-    def set(self, key:str, value:str) -> None:
-        """ set pillar data for key. """
-        target_nodes = self._client.cmd("*", "test.ping")
-        k = key.split(self._delim, 1)
-        if k[0] not in target_nodes:
-            raise KvError(errno.ENOENT, f"Invalid target {k[0]} failed to "\
-                f"set {key}, {value}")
-        self._set(key, value, self._data)
-    
-    def delete(self, key: str) -> None:
-        """ delete pillar data for given key """
-        target_nodes = self._client.cmd("*", "test.ping")
-        k = key.split(self._delim, 1)
-        if k[0] not in target_nodes:
-            raise KvError(errno.ENOENT, f"Invalid target {k[0]} failed to "\
-                "set {key}, {value}")
-        return self._delete(key, self._data)
-
-
 class PillarKvStore(KvStore):
     """ Salt Pillar based KV Store """
     name = "pillar"
@@ -288,6 +261,7 @@ class PillarKvStore(KvStore):
         self._target = '*'
         self._client = LocalClient()
         self._set_target()
+        self._delim = delim
 
     def _set_target(self) -> None:
         """
@@ -307,15 +281,17 @@ class PillarKvStore(KvStore):
             res = self._client.cmd(self._target, 'pillar.items')
         except Exception as err:
             raise KvError(rc, "Cant load data %s.", err)
-        return PillarKvPayload(res, self._delim, self._target)
+        return KvPayload(res, self._delim)
 
     def dump(self, data:dict) -> None:
         """ Saves data onto the file """
         import yaml
         raw_data = data.get_data()
+        target_nodes = self._client.cmd("*", "test.ping")
         for each_node in raw_data:
-            sls_data_list = raw_data[each_node]
-            for each_key in sls_data_list:
-                data = Format.dump({each_key:sls_data_list[each_key]}, "yaml")
-                with open(f"{PillarKvStore._pillar_root}{each_key}.sls", 'w+') as f:
-                    yaml.dump(yaml.safe_load(data), f, default_flow_style=False)
+            if each_node in target_nodes:
+                sls_data_list = raw_data[each_node]
+                for each_key in sls_data_list:
+                    data = Format.dump({each_key:sls_data_list[each_key]}, "yaml")
+                    with open(f"{PillarKvStore._pillar_root}{each_key}.sls", 'w+') as f:
+                        yaml.dump(yaml.safe_load(data), f, default_flow_style=False)
