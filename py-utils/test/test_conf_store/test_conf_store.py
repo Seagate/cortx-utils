@@ -321,6 +321,39 @@ class TestConfStore(unittest.TestCase):
         bkup_loaded = Conf.get_keys("pillar_local_backup_loaded")
         self.assertListEqual(bkup_loaded, pillar_local)
 
+    def test_conf_store_pillar_a_set(self):
+        """
+        Test by setting the given key, value to conf pillar store in-memory
+        """
+        Conf.set('pillar_local', "srvnode-1>network>ip", "192.168.10.1")
+        out = Conf.get("pillar_local", "srvnode-1>network>ip")
+        self.assertEqual(out, "192.168.10.1")
+
+    def test_conf_store_pillar_b_delete(self):
+        """
+        Test by removing the given key's value from conf pillar store in-memory
+        """
+        Conf.delete('pillar_local', "srvnode-1>network>ip")
+        out = Conf.get("pillar_local", "srvnode-1>network>ip")
+        self.assertEqual(out, None)
+    
+    def test_conf_store_pillar_c_delete_non_existing_key(self):
+        """
+        Test by removing the given key's value from conf pillar store in-memory
+        """
+        Conf.delete('pillar_local', "srvnode-1>network>ip")
+        out = Conf.get("pillar_local", "srvnode-1>network>ip")
+        self.assertEqual(out, None)
+
+    def test_conf_store_pillar_c_delete_non_existing_key(self):
+        """
+        Test by removing the given key's value from conf pillar store in-memory
+        """
+        Conf.set('pillar_local', "srvnode-1>cluster>ip", "192.168.10.1")
+        Conf.save('pillar_local')
+        load_config("pillar_reload", "pillar://root:seagate@srvnode-1")
+        out = Conf.get("pillar_reload", "srvnode-1>cluster>ip")
+        self.assertEqual(out, "192.168.10.1")
 
 if __name__ == '__main__':
     """
