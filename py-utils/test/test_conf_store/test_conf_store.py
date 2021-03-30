@@ -291,7 +291,7 @@ class TestConfStore(unittest.TestCase):
             load_config('pro_local1', 'properties:///tmp/example.properties')
         except Exception as err:
             self.assertEqual('Invalid properties store format %s. %s.', err.args[1])
-    
+
     # Pillar
     def test_conf_store_a_pillar_load_and_get_keys(self):
         """ Test by loading the given pillar file to conf in-memory """
@@ -309,8 +309,8 @@ class TestConfStore(unittest.TestCase):
             self.assertTrue(True if len(result_keys)==0 else False)
 
     def test_conf_store_pillar_copy_api(self):
-        """ 
-        Test by coping the pillar to new index and dumping to a json file 
+        """
+        Test by coping the pillar to new index and dumping to a json file
         """
         custom_file_loc = "/tmp/conf_pillar_copy.json"
         Conf.load('pillar_local_backup', f"json://{custom_file_loc}.bak")
@@ -345,9 +345,9 @@ class TestConfStore(unittest.TestCase):
         out = Conf.get("pillar_local", "srvnode-1>network>ip")
         self.assertEqual(out, None)
 
-    def test_conf_store_pillar_c_delete_non_existing_key(self):
+    def test_conf_store_pillar_d_save_changes(self):
         """
-        Test by removing the given key's value from conf pillar store in-memory
+        Test by saving the config key, value from store in-memory to pillar
         """
         Conf.set('pillar_local', "srvnode-1>cluster>ip", "192.168.10.1")
         Conf.save('pillar_local')

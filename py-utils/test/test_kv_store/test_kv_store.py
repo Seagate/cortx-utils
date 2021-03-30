@@ -311,18 +311,17 @@ class TestStore(unittest.TestCase):
         kv_store = KvStoreFactory.get_instance("pillar://root:seagate@srvnode-1")
         kv_inst = kv_store.load()
         data = kv_inst.get_data()
-        # To get the key for testing dynamically 
+        # To get the key for testing dynamically
         # since pillar store data unknown on other system
         key1 = list(data.keys())[0]
         key2_list = list(data[key1].keys())
         if len(key2_list) > 0:
-            out = kv_inst.get(key2_list[0])
-            out = list(out.values())
+            out = kv_store.get([f"{key1}>{key2_list[0]}"])
             result = data[key1][key2_list[0]]
             self.assertEqual(out[0], result)
         else:
             #Consider your pillar has no values
-            self.assertTrue(True if len(key2)==0 else False)
+            self.assertTrue(True if len(key2_list)==0 else False)
 
 if __name__ == '__main__':
     unittest.main()

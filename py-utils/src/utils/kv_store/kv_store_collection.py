@@ -274,13 +274,13 @@ class PillarKvStore(KvStore):
             raise KvError(errno.ENOENT, "Invalid target node %s.", loc_arg[1])
         if len(loc_arg) > 1:
             self._target = loc_arg[1]
-    
+
     def load(self) -> KvPayload:
         """ Loads data from pillar store """
         try:
             res = self._client.cmd(self._target, 'pillar.items')
         except Exception as err:
-            raise KvError(rc, "Cant load data %s.", err)
+            raise KvError(errno.ENOENT, "Cant load data %s.", err)
         return KvPayload(res, self._delim)
 
     def dump(self, data:dict) -> None:
