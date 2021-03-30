@@ -10,7 +10,7 @@ pipeline {
 		version = "2.0.0"
         env = "dev"
 		component = "cortx-prereq"
-        branch = "main"
+        branch = "stable"
         os_version = "centos-7.8.2003"
         release_dir = "/mnt/bigstorage/releases/cortx"
         build_upload_dir = "$release_dir/components/github/$branch/$os_version/$env/$component"
@@ -99,7 +99,7 @@ pipeline {
 				set +x
 				rm -rf /etc/yum.repos.d/cortx-storage.colo.seagate.com* /etc/pip.conf /root/rpmbuild/RPMS/x86_64/*.rpm
                 if [ -f /opt/seagate/cortx/python-deps/python-requirements.txt ]; then
-                    pip3 uninstall -r /opt/seagate/cortx/python-deps/python-requirements.txt -y
+                        pip3 uninstall -r /opt/seagate/cortx/python-deps/python-requirements.txt -y
                 fi
 				yum erase cortx-prereq -y
 				'''
