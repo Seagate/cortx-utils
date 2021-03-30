@@ -336,7 +336,7 @@ class TestConfStore(unittest.TestCase):
         Conf.delete('pillar_local', "srvnode-1>network>ip")
         out = Conf.get("pillar_local", "srvnode-1>network>ip")
         self.assertEqual(out, None)
-    
+
     def test_conf_store_pillar_c_delete_non_existing_key(self):
         """
         Test by removing the given key's value from conf pillar store in-memory
