@@ -4,6 +4,7 @@ RELEASE_VERSION = "2.0.0"
 RELEASE_BUILD = "/var/artifacts/${BUILD_ID}"
 RPM_DIR = "/var/artifacts/${BUILD_ID}/cortx_iso"
 THIRD_PARTY_VERSION = "1.0.0-0"
+BRANCH = "main"
 
 .PHONY: help
 ## help: print this help message.
@@ -360,7 +361,7 @@ release_build:
 		mkdir -p python_deps && tar -xvzf python-deps-${THIRD_PARTY_VERSION}.tar.gz -C python_deps --strip-components=1 && \
 		cortx_prvsnr_preq=$$(ls /var/artifacts/0/cortx_iso/python36-cortx-prvsnr* | awk -F'_' '{split($$(NF-1), A ,"."); gsub("git", "", A[1]); print A[1]}') && \
 		wget -O cortx-prep-${RELEASE_VERSION}-${BUILD_ID}.sh https://raw.githubusercontent.com/Seagate/cortx-prvsnr/$$cortx_prvsnr_preq/cli/src/cortx_prep.sh && \
- 		sh /opt/release_support/build_release_info.sh -v ${RELEASE_VERSION} -b ${RPM_DIR} -t ${RELEASE_BUILD}/3rd_party && \
+ 		sh /opt/release_support/build_release_info.sh -b ${BRANCH} -v ${RELEASE_VERSION} -l ${RPM_DIR} -t ${RELEASE_BUILD}/3rd_party && \
 	popd
 
 ## iso_generation: generate ISO file from release build.
