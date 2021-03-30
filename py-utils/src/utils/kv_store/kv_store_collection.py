@@ -253,27 +253,33 @@ class PropertiesKvStore(KvStore):
 class PillarKvStore(KvStore):
     """ Salt Pillar based KV Store """
     name = "pillar"
-    _pillar_root="/srv/pillar/"
 
     def __init__(self, store_loc, store_path, delim='>'):
         KvStore.__init__(self, store_loc, store_path, delim)
         from salt.client import LocalClient
         self._target = '*'
+        self._pillar_root = "/srv/pillar/"
         self._client = LocalClient()
-        self._set_target()
+        self._set_pillar_target_and_location()
         self._delim = delim
 
-    def _set_target(self) -> None:
+    def _set_pillar_target_and_location(self) -> None:
         """
-        tragets are required to run a slat command.
+        self._tragets are required to run a slat command.
+        self._pillar_root is pillar location from where the kvstore generated
+        sls files need to be stored
         """
-        loc_arg = self._store_loc.split("@")
+        loc_arg = self._store_path.split("@")
         target = self._client.cmd("*", "test.ping")
         valid_target = [key for key, value in target.items() if value is True]
         if len(loc_arg) > 1 and (not loc_arg[1] or loc_arg[1] not in valid_target):
             raise KvError(errno.ENOENT, "Invalid target node %s.", loc_arg[1])
         if len(loc_arg) > 1:
             self._target = loc_arg[1]
+        # Set pillar root so that kvstore generated files will be kept there
+        if not os.path.exists(loc_arg[0]):
+            raise KvError(errno.ENOENT, "Invalid pillar path %s", self._store_loc)
+        self._pillar_root = loc_arg[1]
 
     def load(self) -> KvPayload:
         """ Loads data from pillar store """
@@ -293,5 +299,5 @@ class PillarKvStore(KvStore):
                 sls_data_list = raw_data[each_node]
                 for each_key in sls_data_list:
                     data = Format.dump({each_key:sls_data_list[each_key]}, "yaml")
-                    with open(f"{PillarKvStore._pillar_root}{each_key}.sls", 'w+') as f:
+                    with open(f"{self._pillar_root}{each_key}.sls", 'w+') as f:
                         yaml.dump(yaml.safe_load(data), f, default_flow_style=False)
