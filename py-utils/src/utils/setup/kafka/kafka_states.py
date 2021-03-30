@@ -140,8 +140,7 @@ def start_kafka_service(kafka_version):
             +"/bin/zookeeper-server-start.sh -daemon config/zookeeper.properties"
         )
     except Exception as e:
-        logging.info("Starting of Zookeeper server failed, 
-            please check exception as listed below :- ")
+        logging.info("Starting of Zookeeper server failed, please check exception as listed below :- ")
         logging.exception(e)
         sys.exit(1)
 
@@ -151,8 +150,7 @@ def start_kafka_service(kafka_version):
             +"/bin/kafka-server-start.sh -daemon config/server.properties"
         )
     except Exception as e:
-        logging.info("Starting of Kafka server failed,
-            please check exception as listed below :- ")
+        logging.info("Starting of Kafka server failed, please check exception as listed below :- ")
         logging.exception(e)
         sys.exit(1)
 
