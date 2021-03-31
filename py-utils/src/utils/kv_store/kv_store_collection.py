@@ -279,7 +279,7 @@ class PillarKvStore(KvStore):
         # Set pillar root so that kvstore generated files will be kept there
         if not os.path.exists(loc_arg[0]):
             raise KvError(errno.ENOENT, "Invalid pillar path %s", self._store_loc)
-        self._pillar_root = loc_arg[1]
+        self._pillar_root = loc_arg[0]
 
     def load(self) -> KvPayload:
         """ Loads data from pillar store """
@@ -299,5 +299,5 @@ class PillarKvStore(KvStore):
                 sls_data_list = raw_data[each_node]
                 for each_key in sls_data_list:
                     data = Format.dump({each_key:sls_data_list[each_key]}, "yaml")
-                    with open(f"{self._pillar_root}{each_key}.sls", 'w+') as f:
+                    with open(f"{self._pillar_root}/{each_key}.sls", 'w+') as f:
                         yaml.dump(yaml.safe_load(data), f, default_flow_style=False)

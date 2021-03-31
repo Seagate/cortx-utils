@@ -300,13 +300,13 @@ class TestStore(unittest.TestCase):
             'values to unpack (expected 2, got 1).'
             self.assertEqual(exp_err, err._desc)
 
-    def test_kv_pillar_support(self):
+    def test_kv_pillar_b_support(self):
         """ Test Kv Store with pillar data by loading it to KvStore """
         kv_store = KvStoreFactory.get_instance("pillar:///srv/pillar@srvnode-1")
         data = kv_store.load()
         self.assertGreaterEqual(len(data.get_keys()), 0)
 
-    def test_kv_pillar_get_api(self):
+    def test_kv_pillar_c_get_api(self):
         """ Test Kv Store with pillar data by getting value for key """
         kv_store = KvStoreFactory.get_instance("pillar:///srv/pillar@srvnode-1")
         kv_inst = kv_store.load()
@@ -322,6 +322,45 @@ class TestStore(unittest.TestCase):
         else:
             #Consider your pillar has no values
             self.assertTrue(True if len(key2_list)==0 else False)
+
+    def test_kv_pillar_d_set_api(self):
+        """ Test Kv Store with pillar data by setting given key value """
+        kv_store = KvStoreFactory.get_instance("pillar:///srv/pillar@srvnode-1")
+        kv_inst = kv_store.load()
+        kv_store.set(["srvnode-1>cluster>kv_set"], ["X2349"])
+        result = kv_store.get(["srvnode-1>cluster>kv_set"])
+        self.assertEqual(result[0], "X2349")
+
+    def test_kv_pillar_e_set_empty_value(self):
+        """ Test Kv Store with pillar data by setting given key value """
+        kv_store = KvStoreFactory.get_instance("pillar:///srv/pillar@srvnode-1")
+        kv_inst = kv_store.load()
+        kv_store.set(["srvnode-1>cluster>kv_set_empty"], [""])
+        result = kv_store.get(["srvnode-1>cluster>kv_set_empty"])
+        self.assertEqual(result[0], "")
+
+    def test_kv_pillar_f_set_modified_value(self):
+        """ Test Kv Store with pillar data by modified given key value """
+        kv_store = KvStoreFactory.get_instance("pillar:///srv/pillar@srvnode-1")
+        kv_inst = kv_store.load()
+        kv_store.set(["srvnode-1>cluster>kv_set_empty"], ["true value"])
+        result = kv_store.get(["srvnode-1>cluster>kv_set_empty"])
+        self.assertEqual(result[0], "true value")
+
+    def test_kv_pillar_g_invalid_url(self):
+        """ Test Kv Store with non exist pillar url """
+        try:
+            kv_store = KvStoreFactory.get_instance("pillar://@srvnode-1")
+            kv_inst = kv_store.load()
+        except Exception as err:
+            exp_err='Invalid pillar path @srvnode-1'
+            self.assertEqual(exp_err, err._desc)
+
+    def test_kv_pillar_h_without_target(self):
+        """ Test Kv Store pillar without target mentioned """
+        kv_store = KvStoreFactory.get_instance("pillar:///srv/pillar")
+        kv_inst = kv_store.load()
+        self.assertTrue(True if kv_inst else False)
 
 if __name__ == '__main__':
     unittest.main()
