@@ -302,13 +302,13 @@ class TestStore(unittest.TestCase):
 
     def test_kv_pillar_support(self):
         """ Test Kv Store with pillar data by loading it to KvStore """
-        kv_store = KvStoreFactory.get_instance("pillar://root:seagate@srvnode-1")
+        kv_store = KvStoreFactory.get_instance("pillar:///srv/pillar@srvnode-1")
         data = kv_store.load()
         self.assertGreaterEqual(len(data.get_keys()), 0)
 
     def test_kv_pillar_get_api(self):
         """ Test Kv Store with pillar data by getting value for key """
-        kv_store = KvStoreFactory.get_instance("pillar://root:seagate@srvnode-1")
+        kv_store = KvStoreFactory.get_instance("pillar:///srv/pillar@srvnode-1")
         kv_inst = kv_store.load()
         data = kv_inst.get_data()
         # To get the key for testing dynamically
