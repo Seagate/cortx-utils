@@ -1,0 +1,12 @@
+[Unit]
+Description=cortx rest server
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/usr/lib/python3.6/site-packages/cortx/utils
+ExecStart=/usr/lib/python3.6/site-packages/cortx/utils/message_bus/message_bus_server
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
