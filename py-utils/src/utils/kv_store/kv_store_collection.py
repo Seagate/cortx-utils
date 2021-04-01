@@ -269,17 +269,17 @@ class PillarKvStore(KvStore):
         self._pillar_root is pillar location from where the kvstore generated
         sls files need to be stored
         """
-        loc_arg = self._store_path.split("@")
+        node_name = self._store_loc.split("@")
         target = self._client.cmd("*", "test.ping")
         valid_target = [key for key, value in target.items() if value is True]
-        if len(loc_arg) > 1 and (not loc_arg[1] or loc_arg[1] not in valid_target):
+        valid_target.append("*")
+        if len(node_name[0]) > 1 and (not node_name[0] or node_name[0] not in valid_target):
             raise KvError(errno.ENOENT, "Invalid target node %s.", loc_arg[1])
-        if len(loc_arg) > 1:
-            self._target = loc_arg[1]
+        if len(node_name) > 1:
+            self._target = node_name[0]
         # Set pillar root so that kvstore generated files will be kept there
-        if not os.path.exists(loc_arg[0]):
-            raise KvError(errno.ENOENT, "Invalid pillar path %s", self._store_loc)
-        self._pillar_root = loc_arg[0]
+        if not os.path.exists(self._store_path):
+            raise KvError(errno.ENOENT, "Invalid pillar path %s", self._store_path)
 
     def load(self) -> KvPayload:
         """ Loads data from pillar store """
@@ -299,5 +299,10 @@ class PillarKvStore(KvStore):
                 sls_data_list = raw_data[each_node]
                 for each_key in sls_data_list:
                     data = Format.dump({each_key:sls_data_list[each_key]}, "yaml")
-                    with open(f"{self._pillar_root}/{each_key}.sls", 'w+') as f:
+                    path = f"{self._store_path}/{each_key}.sls"
+                    if not os.path.exists(f"{self._store_path}/{each_key}.sls"):
+                        path = f"{self._store_path}/conf/{each_key}.sls"
+                    if not os.path.exists(f"{self._store_path}/conf/"):
+                        os.mkdir(f"{self._store_path}/conf/")
+                    with open(path, 'w+') as f:
                         yaml.dump(yaml.safe_load(data), f, default_flow_style=False)
