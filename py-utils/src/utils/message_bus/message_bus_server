@@ -15,20 +15,24 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.message_bus import MessageConsumer, MessageProducer
+from cortx.utils.message_bus import MessageConsumer, MessageProducer, MessageBus
+from cortx.utils.rest_server import RestServer
 from aiohttp import web
 import json
 
 routes = web.RouteTableDef()
 
 
-class MessageBusRestServer:
+class MessageBusRestServer(RestServer):
     """ Rest interface of message bus """
 
+    _message_bus_ip = '127.0.0.1'
+    _message_bus_port = 28300
+    _msg_bus = MessageBus()
+
     def __init__(self):
-        app = web.Application()
-        app.add_routes(routes)
-        web.run_app(app)
+        super().__init__(web, routes, self._message_bus_ip, \
+            self._message_bus_port)
 
     @staticmethod
     @routes.get('/MessageBus/{message_type}')
@@ -40,7 +44,7 @@ class MessageBusRestServer:
                 payload = await request.json()
                 messages = payload['messages']
                 producer = MessageProducer(producer_id='rest_producer', \
-                    message_type=message_type)
+                    message_type=message_type, method='sync')
                 producer.send(messages)
 
                 response_obj = {'status': 'success'}
