@@ -39,11 +39,11 @@
 
 - name: Copy provisioner script
   copy:
-      src: files/provisioner.sh
-      dest: provisioner.sh
-      owner: root
-      group: root
-      mode: '0754'
+    src: files/provisioner.sh
+    dest: provisioner.sh
+    owner: root
+    group: root
+    mode: '0754'
 
 #provisoner fix      
 - name: Add srvnode-1 in hosts
@@ -60,9 +60,26 @@
     msg: "{{ hostsdata }}"
     
 - name: Execute provisioner script
-  shell: ./provisioner.sh
+  script: "files/provisioner.sh {{ BUILD_URL }}"
   register: command_result
   failed_when: "'ERROR' in command_result.stdout"
+
+#provisioner fix for sms1 only
+- name: Edit csm config file
+  shell: "sed -i 's/host:.*/host: 127.0.0.1/g' /etc/csm/database.yaml"
+
+- name: Restart csm_agent
+  shell: systemctl restart csm_agent
+
+- name: Close port on management interface
+  shell: firewall-cmd --zone=public --remove-port=443/tcp --permanent
+
+- name: open port on management interface
+  shell: "{{ item }}"
+  with_items:
+    - "salt '*' cmd.run 'firewall-cmd --zone=public-data-zone --add-port=80/tcp --permanent'"
+    - "salt '*' cmd.run 'firewall-cmd --zone=public-data-zone --add-port=28100/tcp --permanent'"
+    - "salt '*' cmd.run 'firewall-cmd --reload'"
 
 #csm fix
 #- name: CSM fix
@@ -81,9 +98,11 @@
 - name: Restart s3 service
   shell: systemctl restart s3server@0x7200000000000001:0x16
 
-#csm fix
-- name: Edit csm config file
-  shell: "sed -i 's/host:.*/host: 127.0.0.1/g' /etc/csm/database.yaml"
+- name: Remove stale cert alerts
+  shell: "{{ item }}"
+  with_items:
+    - "curl -X DELETE 'localhost:9200/alerts?pretty'"
+    - "curl -X DELETE 'localhost:9200/alerts-history?pretty'"
 
 - name: Restart csm_agent
   shell: systemctl restart csm_agent

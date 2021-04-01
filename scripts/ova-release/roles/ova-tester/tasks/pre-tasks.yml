@@ -70,6 +70,5 @@
   shell: "{{ item }}"
   with_items:
     - "salt '*' cmd.run 'firewall-cmd --zone=public-data-zone --add-port=80/tcp --permanent'"
-    - "salt '*' cmd.run 'firewall-cmd --zone=public-data-zone --add-port=28100/tcp --permanent'"
     - "salt '*' cmd.run 'firewall-cmd --reload'"
   delegate_to: "{{ ansible_host }}"
