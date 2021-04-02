@@ -35,8 +35,8 @@ class ConfCache:
     def get_data(self):
         return self._data
 
-    def get_keys(self):
-        return self._data.get_keys()
+    def get_keys(self, **filters):
+        return self._data.get_keys(**filters)
 
     def load(self):
         """ Loads the configuration from the KV backend """
