@@ -61,11 +61,10 @@ class MessageBus:
         """ Deregisters list of message types in the configured message broker """
         self._broker.deregister_message_type(client_id, message_types)
 
-    def increase_parallelism(self, client_id: str, message_types: list, \
-        partitions: int):
-        """ Increases partition to achieve parallelism """
-        self._broker.increase_parallelism(client_id, message_types, \
-            partitions)
+    def add_concurrency(self, client_id: str, message_type: str, \
+        concurrency_count: int):
+        """ To achieve concurrency among consumers """
+        self._broker.add_concurrency(client_id, message_type, concurrency_count)
 
     def send(self, client_id: str, message_type: str, method: str, \
         messages: list):
