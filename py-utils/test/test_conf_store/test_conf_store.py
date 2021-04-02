@@ -292,6 +292,22 @@ class TestConfStore(unittest.TestCase):
         except Exception as err:
             self.assertEqual('Invalid properties store format %s. %s.', err.args[1])
 
+    def test_conf_store_get_machin_id_none(self):
+        """ Test get_machine_id None value """
+        from cortx.utils.conf_store import ConfStore
+        # rename /etc/machine-id
+        os.rename("/etc/machine-id", "/etc/machine-id.old")
+        cs_inst = ConfStore(delim=Conf._delim)
+        mc_id = cs_inst.machine_id
+        # restore /etc/machine-id
+        os.rename("/etc/machine-id.old", "/etc/machine-id")
+        self.assertEqual(mc_id, None)
+
+    def test_conf_store_get_machin_id(self):
+        """ Test get_machine_id """
+        mc_id = Conf.get_machine_id()
+        self.assertTrue(mc_id)
+
 if __name__ == '__main__':
     """
     Firstly create the file and load sample json into it.
