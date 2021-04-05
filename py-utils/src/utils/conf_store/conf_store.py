@@ -168,21 +168,31 @@ class ConfStore:
             self._cache[dst_index].set(key, self._cache[src_index].get(key))
 
 
+class ClassProperty(property):
+
+    def __get__(self, cls, owner):
+        return self.fget.__get__(None, owner)()
+
+
 class Conf:
     """ Singleton class instance based on conf_store """
     _conf = None
     _delim = '>'
+    _machine_id = None
 
     @staticmethod
     def init(**kwargs):
         for key, val in kwargs.items():
             setattr(Conf, f"_{key}", val)
+        Conf._conf = ConfStore()
+        Conf._machine_id = Conf._conf.machine_id
 
     @staticmethod
     def load(index: str, url: str):
         """ Loads Config from the given URL """
         if Conf._conf is None:
             Conf._conf = ConfStore(delim=Conf._delim)
+            Conf._machine_id = Conf._conf.machine_id
         Conf._conf.load(index, url)
 
     @staticmethod
@@ -216,7 +226,10 @@ class Conf:
         """ Obtains list of keys stored in the specific config store """
         return Conf._conf.get_keys(index)
 
-    @staticmethod
-    def get_machine_id():
+    @ClassProperty
+    @classmethod
+    def machine_id(self):
         """ Returns the machine id from /etc/machine-id """
-        return Conf._conf.machine_id
+        if Conf._conf == None:
+            Conf.init()
+        return self._machine_id

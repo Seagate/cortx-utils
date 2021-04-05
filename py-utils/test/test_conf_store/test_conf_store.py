@@ -305,7 +305,7 @@ class TestConfStore(unittest.TestCase):
 
     def test_conf_store_get_machin_id(self):
         """ Test get_machine_id """
-        mc_id = Conf.get_machine_id()
+        mc_id = Conf.machine_id
         self.assertTrue(mc_id)
 
 if __name__ == '__main__':
