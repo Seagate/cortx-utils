@@ -18,10 +18,11 @@
 from cortx.utils.message_bus.message_broker import MessageBrokerFactory
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.conf_store import Conf
+from cortx.template import Singleton
 import errno
 
 
-class MessageBus:
+class MessageBus(metaclass=Singleton):
     """ Message Bus Framework over various types of Message Brokers """
 
     conf_file = 'json:///etc/cortx/message_bus.conf'
