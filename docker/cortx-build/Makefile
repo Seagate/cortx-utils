@@ -38,7 +38,7 @@ cortx-motr: _cortx-motr_prereq _cortx-motr_build
 cortx-s3server: cortx-motr _s3_prereq _s3_build
 
 ## cortx-hare: generate cortx-hare packages.
-cortx-hare: cortx-motr _cortx-hare_prereq _cortx-hare_build
+cortx-hare: cortx-motr _cortx-py-utils_build _cortx-hare_prereq _cortx-hare_build
 
 ## cortx-ha: generate cortx-ha packages.
 cortx-ha: _cortx-py-utils_build _ha_prereq _ha_build
@@ -132,7 +132,7 @@ _cortx-hare_prereq:
 	@echo "***************  Installing cortx-hare Prereqsites *********************"
 
 	pushd cortx-workspace/cortx-hare && \
-		yum localinstall -y ${RPM_DIR}/cortx-motr-[0-9]*.rpm ${RPM_DIR}/cortx-motr-devel-[0-9]*.rpm && \
+		yum localinstall -y ${RPM_DIR}/cortx-py-utils*noarch.rpm ${RPM_DIR}/cortx-motr-[0-9]*.rpm ${RPM_DIR}/cortx-motr-devel-[0-9]*.rpm && \
 	popd || (echo "ERROR: cortx-hare source code is not available in cortx-workspace. Exiting..."; exit 1)
 
 _cortx-hare_build:

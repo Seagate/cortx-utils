@@ -62,7 +62,7 @@ pipeline {
 					if [ "${HARE_BRANCH}" == "Cortx-v1.0.0_Beta" ]; then
 						yum install eos-core{,-devel} -y
 					else
-						yum install cortx-motr{,-devel} -y
+						yum install cortx-py-utils cortx-motr{,-devel} -y
 					fi
 				'''
 			}

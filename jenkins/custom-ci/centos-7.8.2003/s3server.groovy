@@ -99,8 +99,8 @@ pipeline {
 								export build_number=${CUSTOM_CI_BUILD_ID}
 								
 								#Build Test rpm
-								if [ -f ./rpms/s3testrpm/buildrpm.sh ]; then
-									./rpms/s3testrpm//buildrpm.sh -P $PWD
+								if [ -f ./rpms/s3test/buildrpm.sh ]; then
+									./rpms/s3test/buildrpm.sh -P $PWD
 								else
 								   echo "No s3test rpm build script found. Skipping..."	
 								fi	
