@@ -1,6 +1,0 @@
-[epel]
-gpgcheck=0
-enabled=1
-baseurl=http://cortx-storage.colo.seagate.com/prvsnr/vendor/centos/epel/
-name=epel
-
