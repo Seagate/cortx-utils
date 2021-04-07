@@ -176,10 +176,12 @@ class Conf:
 
     @staticmethod
     def init(**kwargs):
-        for key, val in kwargs.items():
-            setattr(Conf, f"_{key}", val)
-        Conf._conf = ConfStore(delim=Conf._delim)
-        Conf._machine_id = Conf._conf.machine_id
+        """ static init for initialising and setting attributes """
+        if Conf._conf is None:
+            for key, val in kwargs.items():
+                setattr(Conf, f"_{key}", val)
+            Conf._conf = ConfStore(delim=Conf._delim)
+            Conf._machine_id = Conf._conf.machine_id
 
     @staticmethod
     def load(index: str, url: str):
@@ -230,4 +232,4 @@ class Conf:
         """ Returns the machine id from /etc/machine-id """
         if Conf._conf is None:
             Conf.init()
-        return self._machine_id
+        return self._machine_id.strip()

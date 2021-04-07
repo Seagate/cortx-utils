@@ -308,7 +308,7 @@ class TestConfStore(unittest.TestCase):
         mc_id = Conf.machine_id
         with open("/etc/machine-id", 'r') as mc_id_file:
                 actual_id = mc_id_file.read()
-        self.assertEqual(mc_id, actual_id)
+        self.assertEqual(mc_id, actual_id.strip())
 
 if __name__ == '__main__':
     """
