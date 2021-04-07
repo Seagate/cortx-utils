@@ -120,14 +120,14 @@ class IniKvPayload(KvPayload):
     def __init__(self, configparser, delim='>'):
         super().__init__(configparser, delim)
 
-    def refresh_keys(self):
-        self._keys = []
+    def _get_keys(self, keys: list, data, pkey: str = None,
+        key_index: bool = True) -> None:
         for section in self._data.sections():
             for key in [option for option in self._data[section]]:
-                self._keys.append(f"{section}>{key}")
+                keys.append(f"{section}{self._delim}{key}")
 
     def set(self, key, val):
-        k = key.split('>', 1)
+        k = key.split(self._delim, 1)
         if len(k) <= 1:
             raise KvError(errno.EINVAL, "Missing section in key %s", \
                 key)
@@ -137,14 +137,14 @@ class IniKvPayload(KvPayload):
             self._keys.append(key)
 
     def get(self, key):
-        k = key.split('>', 1)
+        k = key.split(self._delim, 1)
         if len(k) <= 1:
             raise KvError(errno.EINVAL, "Missing section in key %s", \
                 key)
         return self._data[k[0]][k[1]]
 
     def delete(self, key):
-        k = key.split('>', 1)
+        k = key.split(self._delim, 1)
         if len(k) == 1:
             self._data.remove_section(k[0])
         elif len(k) == 2:

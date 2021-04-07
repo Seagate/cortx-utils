@@ -21,9 +21,10 @@ from cortx.utils.message_bus import MessageBus
 class MessageBusClient:
     """ common infrastructure for producer and consumer """
 
-    def __init__(self, message_bus: MessageBus, client_type: str, \
-        **client_conf: dict):
-        self._message_bus = message_bus
+    def __init__(self, client_type: str, **client_conf: dict):
+        self._message_bus = MessageBus() if 'message_bus' not in \
+            client_conf.keys() or client_conf['message_bus'] is None else \
+            client_conf['message_bus']
         self._message_bus.init_client(client_type, **client_conf)
         self._client_conf = client_conf
 
@@ -63,19 +64,18 @@ class MessageBusClient:
         client_id = self._get_conf('client_id')
         self._message_bus.deregister_message_type(client_id, message_types)
 
-    def increase_parallelism(self, message_types: list, partitions: int):
+    def add_concurrency(self, message_type: str, concurrency_count: int):
         """
-        To increase the number of partitions for a list of message types
+        To achieve concurrency for a message type
 
         Parameters:
-        message_types    This is essentially equivalent to the list of queue
-                         topic name. For e.g. ["Alert"]
-        partitions       Integer that represents number of partitions to be
-                         increased.
+        message_type         This is essentially equivalent to queue/topic name.
+                             For e.g. "Alert"
+        concurrency_count    Integer to achieve concurrency among consumers
         """
         client_id = self._get_conf('client_id')
-        self._message_bus.increase_parallelism(client_id, message_types, \
-            partitions)
+        self._message_bus.add_concurrency(client_id, message_type, \
+            concurrency_count)
 
     def send(self, messages: list):
         """
@@ -114,21 +114,22 @@ class MessageBusClient:
 class MessageBusAdmin(MessageBusClient):
     """ A client that do admin jobs """
 
-    def __init__(self, message_bus: MessageBus, admin_id: str):
+    def __init__(self, admin_id: str, message_bus: MessageBus = None):
         """ Initialize a Message Admin
 
         Parameters:
         message_bus    An instance of message bus class.
         admin_id       A String that represents Admin client ID.
         """
-        super().__init__(message_bus, client_type='admin', client_id=admin_id)
+        super().__init__(client_type='admin', client_id=admin_id, \
+            message_bus=message_bus)
 
 
 class MessageProducer(MessageBusClient):
     """ A client that publishes messages """
 
-    def __init__(self, message_bus: MessageBus, producer_id: str, \
-        message_type: str, method: str = None):
+    def __init__(self, producer_id: str, message_type: str, method: str = None, \
+        message_bus: MessageBus = None):
         """ Initialize a Message Producer
 
         Parameters:
@@ -137,8 +138,8 @@ class MessageProducer(MessageBusClient):
         message_type    This is essentially equivalent to the
                         queue/topic name. For e.g. "Alert"
         """
-        super().__init__(message_bus, client_type='producer', \
-            client_id=producer_id, message_type=message_type, method=method)
+        super().__init__(client_type='producer', client_id=producer_id, \
+            message_type=message_type, method=method, message_bus=message_bus)
 
     def get_unread_count(self, consumer_group: str):
         """
@@ -153,8 +154,9 @@ class MessageProducer(MessageBusClient):
 class MessageConsumer(MessageBusClient):
     """ A client that consumes messages """
 
-    def __init__(self, message_bus: MessageBus, consumer_id: str, \
-        consumer_group: str, message_types: list, auto_ack: str, offset: str):
+    def __init__(self, consumer_id: str, consumer_group: str, \
+        message_types: list, auto_ack: str, offset: str, \
+        message_bus: MessageBus = None):
         """ Initialize a Message Consumer
 
         Parameters:
@@ -169,9 +171,9 @@ class MessageConsumer(MessageBusClient):
                         ("earliest" will cause messages to be read from the
                         beginning)
         """
-        super().__init__(message_bus, client_type='consumer', \
-            client_id=consumer_id, consumer_group=consumer_group, \
-            message_types=message_types, auto_ack=auto_ack, offset=offset)
+        super().__init__(client_type='consumer', client_id=consumer_id, \
+            consumer_group=consumer_group, message_types=message_types, \
+            auto_ack=auto_ack, offset=offset, message_bus=message_bus)
 
     def get_unread_count(self):
         """ Gets the count of unread messages from the Message Bus """

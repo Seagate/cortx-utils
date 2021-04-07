@@ -34,32 +34,45 @@ class KvPayload:
             raise KvError(errno.EINVAL, "Invalid delim %s", delim)
         self._delim = delim
         self._keys = []
-        self.refresh_keys()
+        self._get_keys(self._keys, self._data)
 
     def get_data(self, format_type: str = None):
         if format_type == None:
             return self._data
         return Format.dump(self._data, format_type)
 
-    def get_keys(self):
-        return self._keys
+    def get_keys(self, **filters) -> list:
+        """
+        Obtains list of keys stored in the payload
+        Input Paramters:
+        Filters - Filters to be applied before the keys to be returned.
+                  List of filters:
+                  * key_index={True|False} (default: True)
+                    when True, returns keys including array index
+                    e.g. In case of "xxx[0],xxx[1]", only "xxx" is returned
+        """
+        if len(filters.items()) == 0:
+            return self._keys
+        keys = []
+        self._get_keys(keys, self._data, None, **filters)
+        return keys
 
-    def refresh_keys(self):
-        """ Refresh keys. Caller can overrite this """
-        self._refresh_keys(self._data)
-
-    def _refresh_keys(self, data, pkey: str = None):
+    def _get_keys(self, keys: list, data, pkey: str = None,
+        key_index: bool = True) -> None:
         if isinstance(data, list):
-            for i in range(len(data)):
-                self._keys.append("%s[%d]" % (pkey, i))
+            if key_index == True:
+                for i in range(len(data)):
+                    keys.append("%s[%d]" % (pkey, i))
+            else:
+                keys.append(pkey)
         elif isinstance(data, dict):
             for key in data.keys():
                 nkey = key if pkey is None else "%s%s%s" % (pkey, self._delim,
                                                             key)
                 if not isinstance(data[key], (dict, list)):
-                    self._keys.append(nkey)
+                    keys.append(nkey)
                 else:
-                    self._refresh_keys(data[key], nkey)
+                    self._get_keys(keys, data[key], nkey, key_index)
         else:
             raise KvError(errno.ENOSYS, "Cant handle type %s", type(data))
 
@@ -106,7 +119,9 @@ class KvPayload:
 
     def set(self, key: str, val: str):
         """ Updates the value for the given key in the dictionary """
-        return self._set(key, val, self._data)
+        self._set(key, val, self._data)
+        if key not in self._keys:
+            self._keys.append(key)
 
     def _get(self, key: str, data: dict) -> str:
         k = key.split(self._delim, 1)
@@ -169,6 +184,13 @@ class KvPayload:
         else:
             return self._delete(k[1], data[k[0]])
 
-    def delete(self, key):
-        """ Deletes given set of keys from the dictionary """
-        return self._delete(key, self._data)
+    def delete(self, key) -> bool:
+        """
+        Deletes given set of keys from the dictionary
+        Return Value:
+        returns True if key existed/deleted. Returns False if key not found.
+        """
+        rc = self._delete(key, self._data)
+        if rc == True and key in self._keys:
+            del self._keys[self._keys.index(key)]
+        return rc
