@@ -113,8 +113,8 @@ _s3_build:
 		yum clean all;rm -rf /var/cache/yum && \
 		export build_number=${BUILD_ID} && \
 		./rpms/s3/buildrpm.sh -S ${RELEASE_VERSION} -G $$(git rev-parse --short HEAD) && \
-		export build_number=${BUILD_ID} && \
-	    ./rpms/s3iamcli/buildrpm.sh -S ${RELEASE_VERSION} -G $$(git rev-parse --short HEAD) && \
+		./rpms/s3iamcli/buildrpm.sh -S ${RELEASE_VERSION} -G $$(git rev-parse --short HEAD) && \
+		./rpms/s3test/buildrpm.sh -P $PWD && \
 		rm -rf {RPM_DIR}/cortx-s3*.rpm && \
 		mv /root/rpmbuild/RPMS/x86_64/*.rpm ${RPM_DIR} && \
        	mv /root/rpmbuild/RPMS/noarch/*.rpm ${RPM_DIR} && \

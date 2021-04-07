@@ -86,6 +86,11 @@ pipeline {
                         export build_number=${BUILD_ID}
                         ./rpms/s3iamcli/buildrpm.sh -S $version -P $PWD
                     '''
+
+                    sh label: 'Build s3test RPM', script: '''
+                        export build_number=${BUILD_ID}
+                        ./rpms/s3test/buildrpm.sh -P $PWD
+                    '''
                 }			
             }
         }

@@ -76,6 +76,7 @@ pipeline {
                     pushd $integration_dir/$release_tag/prod
                         rm -f *-debuginfo-*.rpm
                         rm -f cortx-s3iamcli*.rpm
+                        rm -f cortx-s3-test*.rpm
                     popd
                 '''
 			}
