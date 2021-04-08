@@ -127,9 +127,18 @@ class ConfStore:
 
         self._cache[index].set(key, val)
 
-    def get_keys(self, index: str):
-        """ Obtains list of keys stored in the specific config store """
-        return self._cache[index].get_keys()
+    def get_keys(self, index: str, **filters) -> list:
+        """
+        Obtains list of keys stored in the specific config store
+        Input Paramters:
+        Index   - Index for which the list of keys to be obtained
+        Filters - Filters to be applied before the keys to be returned.
+                  List of filters:
+                  * key_index={True|False} (default: True)
+                    when False, returns keys including array index
+                    e.g. In case of "xxx[0],xxx[1]", only "xxx" is returned
+        """
+        return self._cache[index].get_keys(**filters)
 
     def get_data(self, index: str):
         """ Obtains entire config for given index """
@@ -163,7 +172,7 @@ class ConfStore:
                 dst_index)
 
         if key_list is None:
-            key_list = self._cache[src_index].get_keys()
+            key_list = self._cache[src_index].get_keys(key_index=False)
         for key in key_list:
             self._cache[dst_index].set(key, self._cache[src_index].get(key))
 
@@ -216,11 +225,6 @@ class Conf:
         Conf._conf.copy(src_index, dst_index, key_list)
         Conf._conf.save(dst_index)
 
-    @staticmethod
-    def get_keys(index: str):
-        """ Obtains list of keys stored in the specific config store """
-        return Conf._conf.get_keys(index)
-
     class ClassProperty(property):
         """ Subclass property for classmethod properties """
         def __get__(self, cls, owner):
@@ -233,3 +237,16 @@ class Conf:
         if Conf._conf is None:
             Conf.init()
         return self._machine_id.strip()
+
+    def get_keys(index: str, **filters) -> list:
+        """
+        Obtains list of keys stored in the specific config store
+        Input Paramters:
+        Index   - Index for which the list of keys to be obtained
+        Filters - Filters to be applied before the keys to be returned.
+                  List of filters:
+                  * key_index={True|False} (default: True)
+                    when False, returns keys including array index
+                    e.g. In case of "xxx[0],xxx[1]", only "xxx" is returned
+        """
+        return Conf._conf.get_keys(index, **filters)
