@@ -36,6 +36,10 @@ pipeline {
 				dir ('cortx-ha') {
 					checkout([$class: 'GitSCM', branches: [[name: "$HA_BRANCH"]], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: false, recursiveSubmodules: true, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: "$HA_URL"]]])
 				}
+				script {
+					version =  sh (script: 'cat ./cortx-ha/VERSION', returnStdout: true).trim()
+					env.version = version
+				}
 			}
 		}
 	
@@ -45,8 +49,10 @@ pipeline {
 			steps {
         	    script { build_stage = env.STAGE_NAME }
 				sh label: '', script: '''
+				echo "VERSION: $version"
+				if [ "$version" != "1.0.0" ]; then
 					yum erase python36-PyYAML -y
-					cat <<EOF >>/etc/pip.conf
+				cat <<EOF >>/etc/pip.conf
 [global]
 timeout: 60
 index-url: http://cortx-storage.colo.seagate.com/releases/cortx/third-party-deps/python-deps/python-packages-2.0.0-latest/
@@ -54,6 +60,7 @@ trusted-host: cortx-storage.colo.seagate.com
 EOF
 					pip3 install -r https://raw.githubusercontent.com/Seagate/cortx-utils/main/py-utils/requirements.txt
 					rm -rf /etc/pip.conf
+				fi	
 			'''		
 			}
 		}
@@ -63,6 +70,14 @@ EOF
 			steps {
 				script { build_stage = env.STAGE_NAME }
 				sh label: '', script: '''
+					if [ "$version" == "1.0.0" ]; then
+						yum-config-manager --disable cortx-C7.7.1908
+						yum-config-manager --add-repo=http://cortx-storage.colo.seagate.com/releases/cortx/github/cortx-1.0/$os_version/last_successful/
+					fi	
+
+					yum-config-manager --add-repo=http://cortx-storage.colo.seagate.com/releases/cortx/github/integration-custom-ci/$os_version/$release_tag/cortx_iso/
+					yum-config-manager --save --setopt=cortx-storage*.gpgcheck=1 cortx-storage* && yum-config-manager --save --setopt=cortx-storage*.gpgcheck=0 cortx-storage*
+					
 					pushd $component
 						yum erase python36-PyYAML -y
 						bash jenkins/cicd/cortx-ha-dep.sh
