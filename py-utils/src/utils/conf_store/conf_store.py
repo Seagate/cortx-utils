@@ -236,7 +236,7 @@ class Conf:
         """ Returns the machine id from /etc/machine-id """
         if Conf._conf is None:
             Conf.init()
-        return self._machine_id.strip()
+        return self._machine_id.strip() if self._machine_id else None
 
     def get_keys(index: str, **filters) -> list:
         """
