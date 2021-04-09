@@ -19,66 +19,8 @@ import json
 import time
 
 from cortx.utils.process import SimpleProcess
+from cortx.utils.validator.v_confkeys import ConfKeysV
 
-
-def _get_kafka_server_list(conf_url):
-    """ Reads the ConfStore and derives keys related to message bus """
-
-    from cortx.utils.conf_store import Conf
-    Conf.load("cluster_config", conf_url)
-    msg_bus_type = Conf.get("cluster_config", \
-                            "cortx>software>common>message_bus_type")
-    if msg_bus_type != "kafka":
-        raise SetupError(errno.EINVAL, \
-                         "Message Bus do not support type %s" % msg_bus_type)
-    # Read the required keys
-    all_servers = Conf.get("cluster_config", \
-                           "cortx>software>kafka>servers")
-    no_servers = len(all_servers)
-    kafka_server_list = []
-    port_list = []
-    for i in range(no_servers):
-        # check if port is mentioned
-        rc = all_servers[i].find(':')
-        if rc == -1:
-            port_list.append("9092")
-            kafka_server_list.append(all_servers[i])
-        else:
-            port_list.append(all_servers[i][rc+1:])
-            kafka_server_list.append(all_servers[i][:rc])
-    if len(kafka_server_list) == 0:
-         raise SetupError(errno.EINVAL, \
-                          "No valid Kafka server info provided for Config Key \
-                          'cortx>software>kafka>servers' ")
-    return kafka_server_list, port_list
-
-
-def _create_msg_bus_config(kafka_server_list, port_list):
-    """ Create the config file required for message bus """
-
-    from cortx.utils.conf_store import Conf
-    with open(r'/etc/cortx/message_bus.conf.new', 'w+') as file:
-        json.dump({}, file, indent=2)
-    Conf.load("index", "json:///etc/cortx/message_bus.conf.new")
-    Conf.set("index", "message_broker>type", "kafka")
-    for i in range(len(kafka_server_list)):
-        Conf.set("index", f"message_broker>cluster[{i}]", \
-                     {"server": kafka_server_list[i], "port": port_list[i]})
-    Conf.save("index")
-    # copy this conf file as message_bus.conf
-    cmd = "/bin/mv /etc/cortx/message_bus.conf.new" + \
-          " /etc/cortx/message_bus.conf"
-    try:
-        cmd_proc = SimpleProcess(cmd)
-        res_op, res_err, res_rc = cmd_proc.run()
-        if res_rc != 0:
-            raise SetupError(errno.EIO, \
-                       "/etc/cortx/message_bus.conf file creation failed, \
-                        rc = %d", res_rc)
-    except Exception as e:
-        raise SetupError(errno.EIO, \
-                  "/etc/cortx/message_bus.conf file creation failed, %s", e)
-    return res_rc
 
 
 class SetupError(Exception):
@@ -93,10 +35,73 @@ class SetupError(Exception):
         return "error(%d): %s" %(self._rc, self._desc)
 
 
-
-
 class Utils:
     """ Represents Utils and Performs setup related actions """
+
+    @staticmethod
+    def _create_msg_bus_config(kafka_server_list, port_list):
+        """ Create the config file required for message bus """
+
+        from cortx.utils.conf_store import Conf
+        with open(r'/etc/cortx/message_bus.conf.new', 'w+') as file:
+            json.dump({}, file, indent=2)
+        Conf.load("index", "json:///etc/cortx/message_bus.conf.new")
+        Conf.set("index", "message_broker>type", "kafka")
+        for i in range(len(kafka_server_list)):
+            Conf.set("index", f"message_broker>cluster[{i}]", \
+                     {"server": kafka_server_list[i], "port": port_list[i]})
+        Conf.save("index")
+        # copy this conf file as message_bus.conf
+        cmd = "/bin/mv /etc/cortx/message_bus.conf.new" + \
+              " /etc/cortx/message_bus.conf"
+        try:
+            cmd_proc = SimpleProcess(cmd)
+            res_op, res_err, res_rc = cmd_proc.run()
+            if res_rc != 0:
+                raise SetupError(errno.EIO, \
+                                 "/etc/cortx/message_bus.conf file creation failed, \
+                                  rc = %d", res_rc)
+        except Exception as e:
+            raise SetupError(errno.EIO, \
+                             "/etc/cortx/message_bus.conf file creation failed, %s", e)
+        return res_rc
+
+    @staticmethod
+    def _get_kafka_server_list(conf_url):
+        """ Reads the ConfStore and derives keys related to message bus """
+
+        from cortx.utils.conf_store import Conf
+        Conf.load("cluster_config", conf_url)
+
+        keylist = ["cortx>software>common>message_bus_type",
+                   "cortx>software>kafka>servers"]
+        ConfKeysV().validate("exists", "cluster_config", keylist)
+
+        msg_bus_type = Conf.get("cluster_config", \
+                                "cortx>software>common>message_bus_type")
+        if msg_bus_type != "kafka":
+            raise SetupError(errno.EINVAL, \
+                             "Message Bus do not support type %s" % msg_bus_type)
+        # Read the required keys
+        all_servers = Conf.get("cluster_config", \
+                               "cortx>software>kafka>servers")
+        no_servers = len(all_servers)
+        kafka_server_list = []
+        port_list = []
+        for i in range(no_servers):
+            # check if port is mentioned
+            rc = all_servers[i].find(':')
+            if rc == -1:
+                port_list.append("9092")
+                kafka_server_list.append(all_servers[i])
+            else:
+                port_list.append(all_servers[i][rc + 1:])
+                kafka_server_list.append(all_servers[i][:rc])
+        if len(kafka_server_list) == 0:
+            raise SetupError(errno.EINVAL, \
+                             "No valid Kafka server info provided for Config Key \
+                             'cortx>software>kafka>servers' ")
+        return kafka_server_list, port_list
 
     @staticmethod
     def validate(phase: str):
@@ -132,10 +137,10 @@ class Utils:
         """ Performs configurations """
 
         # Message Bus Config
-        kafka_server_list, port_list = _get_kafka_server_list(conf_url)
+        kafka_server_list, port_list = Utils._get_kafka_server_list(conf_url)
         if kafka_server_list == None:
             raise SetupError(errno.EINVAL, "No Kafka setup info provided")
-        return  _create_msg_bus_config(kafka_server_list, port_list)
+        return Utils._create_msg_bus_config(kafka_server_list, port_list)
 
     @staticmethod
     def test():
