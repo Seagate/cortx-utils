@@ -14,43 +14,18 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
-from aiohttp import web
 
-class MessageBusError(Exception):
-    """ Generic Exception with error code and output """
+from collections import defaultdict
 
-    def __init__(self, rc, message, *args):
-        self._rc = rc
-        self._desc = message % (args)
+class RestServerError(Exception):
+    def __init__(self, e):
+        self._e = e
 
-    @property
-    def rc(self):
-        return self._rc
+    def http_error(self):
+        return self._http_error(self._e)
 
-    @property
-    def desc(self):
-        return self._desc
-
-    def __str__(self):
-        if self._rc == 0:
-            return self._desc
-        return "error(%d): %s" %(self._rc, self._desc)
-
-class MessageServerError(Exception):
-    """ Generic Exception with error code and output """
-
-    def __init__(self, rc, message, *args):
-        self._rc = rc
-        self._desc = message % (args)
-
-    @property
-    def rc(self):
-        return self._rc
-
-    @property
-    def desc(self):
-        return self._desc
-
-    def __str__(self):
-        if self._rc == 0: return self._desc
-        return "error(%d): %s" %(self._rc, self._desc)
+    def _http_error(self, e):
+        ret_code_map = defaultdict(lambda: 500)
+        ret_code_map['KeyError'] = 418 # 400 client error because client is asking for wrong key
+        ret_code_map['KafkaException'] = 514
+        return ret_code_map[type(e).__name__]
