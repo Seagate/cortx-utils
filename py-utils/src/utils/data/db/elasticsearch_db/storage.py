@@ -510,7 +510,7 @@ class ElasticSearchDB(GenericDataBase):
         ubq = ubq.query(filter_by)
 
         source = dict_to_source(_to_update)
-        ubq = ubq.script(inline=source, lang=ESWords.PAINLESS)
+        ubq = ubq.script(source=source, lang=ESWords.PAINLESS)
 
         result = await self._loop.run_in_executor(self._tread_pool_exec, _update, ubq)
 
