@@ -280,6 +280,25 @@ class PillarKvStore(KvStore):
         # Set pillar root so that kvstore generated files will be kept there
         if not os.path.exists(self._store_path):
             raise KvError(errno.ENOENT, "Invalid pillar path %s", self._store_path)
+        
+        self.update_master_pillar_root()
+
+    def update_master_pillar_root(self) -> None:
+        from cortx.utils.schema.payload import Yaml
+        master_file_loc = "/etc/salt/master"
+        master_config = Yaml(master_file_loc).load()
+
+        # update pillar_root
+        if "pillar_roots" in master_config and \
+            "base" in master_config["pillar_roots"] and \
+            master_config["pillar_roots"]["base"] is not None:
+            master_config["pillar_roots"].setdefault("base", ['/srv/pillar'])
+        else:
+            master_config["pillar_roots"] = {'base': ['/srv/pillar']}
+        
+        if not self._store_path in master_config["pillar_roots"]["base"]:
+            master_config["pillar_roots"]["base"].append(self._store_path)
+        Yaml(master_file_loc).dump(master_config)
 
     def load(self) -> KvPayload:
         """ Loads data from pillar store """

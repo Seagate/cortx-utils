@@ -295,7 +295,7 @@ class TestConfStore(unittest.TestCase):
     # Pillar
     def test_conf_store_a_pillar_load_and_get_keys(self):
         """ Test by loading the given pillar file to conf in-memory """
-        load_config("pillar_local", "pillar:///srv/pillar@srvnode-1")
+        load_config("pillar_local", "pillar://srvnode-1@/srv/pillar")
         result_data = Conf.get_keys('pillar_local')
         self.assertTrue(len(result_data))
 
@@ -351,8 +351,18 @@ class TestConfStore(unittest.TestCase):
         """
         Conf.set('pillar_local', "srvnode-1>cluster>ip", "192.168.10.1")
         Conf.save('pillar_local')
-        load_config("pillar_reload", "pillar:///srv/pillar@srvnode-1")
+        load_config("pillar_reload", "pillar://srvnode-1@/srv/pillar")
         out = Conf.get("pillar_reload", "srvnode-1>cluster>ip")
+        self.assertEqual(out, "192.168.10.1")
+    
+    def test_conf_store_pillar_e_custom_pillar_url(self):
+        """
+        Test by saving the config key, value from store in-memory to pillar
+        """
+        load_config("pillar_cust", "pillar://srvnode-1@/srv/utils/pillar")
+        Conf.set('pillar_cust', "srvnode-1>cluster>ip", "192.168.10.1")
+        out = Conf.get("pillar_cust", "srvnode-1>cluster>ip")
+        Conf.save("pillar_cust")
         self.assertEqual(out, "192.168.10.1")
 
 if __name__ == '__main__':
