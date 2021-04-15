@@ -31,7 +31,8 @@ import cortx.utils.data.db as db_module
 from cortx.utils.synchronization import ThreadSafeEvent
 
 
-DEFAULT_HOST = "127.0.0.1"
+DEFAULT_HOST = ["127.0.0.1"]
+
 
 
 class ServiceStatus(Enum):
@@ -44,8 +45,7 @@ class DBSettings(Model):
     """
     Settings for database server
     """
-
-    host = StringType(required=True, default=DEFAULT_HOST)
+    hosts = ListType(StringType, required=True, default=DEFAULT_HOST)
     port = IntType(required=True, default=None)
     login = StringType()
     password = StringType()
