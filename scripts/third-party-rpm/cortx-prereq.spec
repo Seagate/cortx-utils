@@ -8,9 +8,16 @@ Requires:  third-party-deps
 Source:    %{name}-%{version}-%{_git_hash}.tgz
 
 %description
-CORTX Depenedecny Package
+CORTX Depenedecny Package. Installs RPM and Python packages required for CORTX deployment.
 
 %global debug_package %{nil}
+
+%pre
+if ! grep -q 'index-url.*python_deps' /etc/pip.conf; then
+   echo "ERROR:/etc/pip.conf is not configured with custom python repo. Exiting.."
+   echo "Please follow steps mentioned at https://github.com/Seagate/cortx-prvsnr/wiki/Deploy-VM-Hosted-Repo#production-environment"
+   exit 1
+fi
 
 %prep
 %setup -n %{name}-%{version}-%{_git_hash}

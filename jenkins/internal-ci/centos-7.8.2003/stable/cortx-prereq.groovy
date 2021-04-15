@@ -22,6 +22,10 @@ pipeline {
         ansiColor('xterm') 
         disableConcurrentBuilds()   
     }
+
+    triggers {
+        pollSCM '*/5 * * * *'
+    }
     
     stages {
 	
@@ -38,7 +42,7 @@ pipeline {
         stage('Checkout') {
             steps {
 				script { build_stage = env.STAGE_NAME }
-                checkout([$class: 'GitSCM', branches: [[name: "${branch}"]], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: 'https://github.com/Seagate/cortx-re']]])
+                checkout([$class: 'GitSCM', branches: [[name: "${branch}"]], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'PathRestriction', excludedRegions: '', includedRegions: 'scripts/third-party-rpm/.*']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: 'https://github.com/Seagate/cortx-re']]])
             }
         }
 
