@@ -201,7 +201,6 @@ class ElasticSearchDataMapper:
         :param Type[BaseModel] model: model for constructing data mapping for index in ElasticSearch
         """
         self._model = model
-       
         self._mapping = {
             ESWords.MAPPINGS: {
                     ESWords.PROPERTIES: {
