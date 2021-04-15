@@ -274,7 +274,7 @@ class PillarKvStore(KvStore):
         valid_target = [key for key, value in target.items() if value is True]
         valid_target.append("*")
         if len(node_name[0]) > 1 and (not node_name[0] or node_name[0] not in valid_target):
-            raise KvError(errno.ENOENT, "Invalid target node %s.", loc_arg[1])
+            raise KvError(errno.ENOENT, "Invalid target node %s.", node_name[0])
         if len(node_name) > 1:
             self._target = node_name[0]
         # Set pillar root so that kvstore generated files will be kept there
