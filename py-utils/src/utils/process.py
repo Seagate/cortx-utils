@@ -16,6 +16,8 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import subprocess
+from subprocess import Popen, PIPE
+
 
 class Process:
     def __init__(self, cmd):
@@ -65,7 +67,24 @@ class PipedProcess(Process):
     ''' Execute process with pipe and provide output '''
     def __init__(self, cmd):
         super(PipedProcess, self).__init__(cmd)
+        self.universal_newlines=None
 
     def run(self, **args):
-        #TODO
-        pass
+        cmd = self._cmd
+        try:
+            list_cmds = [x.split() for x in cmd.split(' | ')]
+            for i in range(len(list_cmds)):
+                if i == 0:
+                    ps = Popen(list_cmds[0], stdout=PIPE,universal_newlines=self.universal_newlines)
+                else:
+                    ps = Popen(list_cmds[i], stdin=ps.stdout, stdout=PIPE,
+                               stderr=PIPE,universal_newlines=self.universal_newlines)
+            output = ps.communicate()
+            self._output = output[0].strip()
+            self._err = output[1].strip()
+            self._returncode = ps.returncode
+        except Exception as err:
+            self._err = "SubProcess Error: " + str(err)
+            self._output = ""
+            self._returncode = -1
+        return self._output, self._err, self._returncode

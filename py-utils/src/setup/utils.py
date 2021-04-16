@@ -17,9 +17,11 @@
 import errno
 import json
 import time
+import subprocess
 
-from cortx.utils.process import SimpleProcess
+from cortx.utils.process import SimpleProcess, PipedProcess
 from cortx.utils.validator.v_confkeys import ConfKeysV
+from cortx.utils.validator.error import VError
 
 
 
@@ -111,8 +113,24 @@ class Utils:
         pass
 
     @staticmethod
+    def validate_kafka_zookeeper_servers(cmds):
+        for cmd in cmds:
+            cmd_to_execute = f"ps -ef | grep {cmd}.properties | grep -v grep | wc -l"
+            pp = PipedProcess(cmd_to_execute)
+            stdout, stderr, retcode = pp.run()
+            if int(stdout) == 0:
+                err_msg = "Kafka service is not running!" if cmd == "server" else "zookeeper service is not running!"
+                raise VError(errno.EINVAL,
+                             err_msg)
+            if stderr:
+                raise VError(retcode,stderr)
+
+    @staticmethod
     def post_install():
         """ Performs post install operations """
+
+        # check status of zookeeper and kafka are running
+        Utils.validate_kafka_zookeeper_servers(["zookeeper", "server"])
 
         # Check python packages and install if something is missing
         cmd = "pip3 freeze"
