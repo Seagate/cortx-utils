@@ -27,17 +27,19 @@ class Process:
     def run(self):
         pass
 
+
 class SimpleProcess(Process):
     ''' Execute process and provide output '''
+
     def __init__(self, cmd):
         super(SimpleProcess, self).__init__(cmd)
-        self.shell=False
-        self.stdout=subprocess.PIPE
-        self.realtime_output=False
-        self.cwd=None
-        self.timeout=None
-        self.env=None
-        self.universal_newlines=None
+        self.shell = False
+        self.stdout = subprocess.PIPE
+        self.realtime_output = False
+        self.cwd = None
+        self.timeout = None
+        self.env = None
+        self.universal_newlines = None
 
     def run(self, **args):
         ''' This will can run simple process '''
@@ -47,11 +49,11 @@ class SimpleProcess(Process):
         try:
             cmd = self._cmd.split() if type(self._cmd) is str else self._cmd
             if getattr(self, 'realtime_output'):
-                self.stdout=None
+                self.stdout = None
             self._cp = subprocess.run(cmd, stdout=self.stdout,
-                    stderr=subprocess.PIPE, shell=self.shell, cwd=self.cwd,
-                    timeout=self.timeout, env=self.env,
-                    universal_newlines=self.universal_newlines)
+                                      stderr=subprocess.PIPE, shell=self.shell, cwd=self.cwd,
+                                      timeout=self.timeout, env=self.env,
+                                      universal_newlines=self.universal_newlines)
 
             self._output = self._cp.stdout
             self._err = self._cp.stderr
@@ -64,21 +66,25 @@ class SimpleProcess(Process):
 
 
 class PipedProcess(Process):
-    ''' Execute process with pipe and provide output '''
+    """ Execute process with pipe and provide output """
+
     def __init__(self, cmd):
         super(PipedProcess, self).__init__(cmd)
-        self.universal_newlines=None
+        self.universal_newlines = None
 
     def run(self, **args):
         cmd = self._cmd
         try:
             list_cmds = [x.split() for x in cmd.split(' | ')]
-            for i in range(len(list_cmds)):
-                if i == 0:
-                    ps = Popen(list_cmds[0], stdout=PIPE,universal_newlines=self.universal_newlines)
+            ps = None
+            for index, cmd in enumerate(list_cmds):
+                if index == 0:
+                    ps = Popen(cmd, stdout=PIPE, universal_newlines=self.universal_newlines)
                 else:
-                    ps = Popen(list_cmds[i], stdin=ps.stdout, stdout=PIPE,
-                               stderr=PIPE,universal_newlines=self.universal_newlines)
+                    ps = Popen(cmd, stdin=ps.stdout, stdout=PIPE,
+                               stderr=PIPE, universal_newlines=self.universal_newlines)
+            if ps is None:
+                raise ValueError("No commands given!")
             output = ps.communicate()
             self._output = output[0].strip()
             self._err = output[1].strip()

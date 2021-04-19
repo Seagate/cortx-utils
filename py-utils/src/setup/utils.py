@@ -16,13 +16,10 @@
 
 import errno
 import json
-import time
-import subprocess
 
 from cortx.utils.process import SimpleProcess, PipedProcess
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.validator.error import VError
-
 
 
 class SetupError(Exception):
@@ -123,7 +120,7 @@ class Utils:
                 raise VError(errno.EINVAL,
                              err_msg)
             if stderr:
-                raise VError(retcode,stderr)
+                raise VError(retcode, stderr)
 
     @staticmethod
     def post_install():
