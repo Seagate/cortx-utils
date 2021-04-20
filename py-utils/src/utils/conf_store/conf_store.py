@@ -36,6 +36,20 @@ class ConfStore:
         self._delim = delim
         self._cache = {}
         self._callbacks = {}
+        self._machine_id = self._get_machine_id()
+
+    @property
+    def machine_id(self):
+        return self._machine_id
+
+    def _get_machine_id(self):
+        """ Returns the machine id from /etc/machine-id """
+        from pathlib import Path
+        machine_id_file = Path("/etc/machine-id")
+        if machine_id_file.is_file() and machine_id_file.stat().st_size > 0:
+            with open("/etc/machine-id", 'r') as mc_id_file:
+                machine_id = mc_id_file.read()
+            return machine_id
 
     def load(self, index: str, kvs_url: str, **kwargs):
         """
@@ -167,17 +181,22 @@ class Conf:
     """ Singleton class instance based on conf_store """
     _conf = None
     _delim = '>'
+    _machine_id = None
 
     @staticmethod
     def init(**kwargs):
-        for key, val in kwargs.items():
-            setattr(Conf, f"_{key}", val)
+        """ static init for initialising and setting attributes """
+        if Conf._conf is None:
+            for key, val in kwargs.items():
+                setattr(Conf, f"_{key}", val)
+            Conf._conf = ConfStore(delim=Conf._delim)
+            Conf._machine_id = Conf._conf.machine_id
 
     @staticmethod
     def load(index: str, url: str):
         """ Loads Config from the given URL """
         if Conf._conf is None:
-            Conf._conf = ConfStore(delim=Conf._delim)
+            Conf.init()
         Conf._conf.load(index, url)
 
     @staticmethod
@@ -206,7 +225,19 @@ class Conf:
         Conf._conf.copy(src_index, dst_index, key_list)
         Conf._conf.save(dst_index)
 
-    @staticmethod
+    class ClassProperty(property):
+        """ Subclass property for classmethod properties """
+        def __get__(self, cls, owner):
+            return self.fget.__get__(None, owner)()
+
+    @ClassProperty
+    @classmethod
+    def machine_id(self):
+        """ Returns the machine id from /etc/machine-id """
+        if Conf._conf is None:
+            Conf.init()
+        return self._machine_id.strip() if self._machine_id else None
+
     def get_keys(index: str, **filters) -> list:
         """
         Obtains list of keys stored in the specific config store
