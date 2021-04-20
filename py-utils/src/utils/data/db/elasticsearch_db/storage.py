@@ -246,11 +246,10 @@ class ElasticSearchQueryService:
     """Query service-helper for Elasticsearch"""
 
     def __init__(self, index: str, es_client: Elasticsearch,
-                 query_converter: ElasticSearchQueryConverter):        
+                 query_converter: ElasticSearchQueryConverter):
         self._index = index
         self._es_client = es_client
-        self._query_converter = query_converter
-        
+        self._query_converter = query_converter    
     def search_by_query(self, query: Query) -> Search:
         """
         Get Elasticsearch Search instance by given query object
