@@ -133,7 +133,8 @@ class KafkaMessageBroker(MessageBroker):
     def _error_cb(err):
         """ Callback to check if all brokers are down """
         if err.code() == KafkaError._ALL_BROKERS_DOWN:
-            raise MessageBusError(err.code(), "All Brokers are down. %s", err)
+            raise MessageBusError(err.code(), "Kafka Broker(s) are down. %s", \
+                err)
 
     def list_message_types(self, admin_id: str) -> list:
         """
