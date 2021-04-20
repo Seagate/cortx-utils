@@ -15,6 +15,13 @@ help : Makefile
 	@echo
 	@echo targets:
 	@sed -n 's/^##/   /p' $<
+	
+## checkout: checkout specified branch/tag code
+checkout:
+	@echo "*************** checkout code *********************"
+	pushd cortx-workspace && \
+		for component in $$(ls -1d cortx-* | grep -Evx 'cortx-experiments||cortx-posix'); do pushd $$component; git pull -p --all; git checkout $$BRANCH || exit 1; popd ; done  && \
+	popd || (echo "ERROR: Failed to checkout specified branch/tag Exiting..."; exit 1)
 
 ## clean: remove existing /var/artifacts/0 directory. 
 clean:
