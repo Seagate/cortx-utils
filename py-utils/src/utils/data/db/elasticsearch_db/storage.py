@@ -217,7 +217,6 @@ class ElasticSearchDataMapper:
         :return:
         """
         properties = self._mapping[ESWords.MAPPINGS][ESWords.PROPERTIES]
-        
         if name in properties:
             raise InternalError(f"Repeated property name in model: {name}")
 
@@ -247,13 +246,11 @@ class ElasticSearchQueryService:
     """Query service-helper for Elasticsearch"""
 
     def __init__(self, index: str, es_client: Elasticsearch,
-                 query_converter: ElasticSearchQueryConverter):
-                
+                 query_converter: ElasticSearchQueryConverter):        
         self._index = index
         self._es_client = es_client
         self._query_converter = query_converter
         
-
     def search_by_query(self, query: Query) -> Search:
         """
         Get Elasticsearch Search instance by given query object
@@ -267,7 +264,6 @@ class ElasticSearchQueryService:
         extra_params = dict()
         sort_by = dict()
         search = Search(index=self._index, using=self._es_client)
-       
         q = query.data
 
         if q.filter_by is not None:
@@ -360,7 +356,6 @@ class ElasticSearchDB(GenericDataBase):
                 sniff_on_connection_fail=True,  # refresh nodes after a node fails to respond
                 sniff_timeout=10,
                 sniffer_timeout=60)  # and also every 60 seconds
-
             cls.pool = ThreadPoolExecutor(max_workers=multiprocessing.cpu_count())
             cls.loop = asyncio.get_event_loop()
 
@@ -516,7 +511,6 @@ class ElasticSearchDB(GenericDataBase):
         await super().update(filter_obj, _to_update)  # Call the generic code
 
         ubq = UpdateByQuery(index=self._index, using=self._es_client)
-        
         filter_by = self._query_converter.build(filter_obj)
         ubq = ubq.query(filter_by)
 

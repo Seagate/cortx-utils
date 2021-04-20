@@ -34,7 +34,6 @@ from cortx.utils.synchronization import ThreadSafeEvent
 DEFAULT_HOST = ["127.0.0.1"]
 
 
-
 class ServiceStatus(Enum):
     NOT_CREATED = "Not created"
     IN_PROGRESS = "In progress"
