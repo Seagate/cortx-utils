@@ -19,7 +19,7 @@ import errno
 import time
 import json
 import re
-from confluent_kafka import Producer, Consumer
+from confluent_kafka import Producer, Consumer, KafkaError
 from confluent_kafka.admin import AdminClient, ConfigResource, NewTopic, \
     NewPartitions
 from cortx.utils.message_bus.error import MessageBusError
@@ -44,6 +44,9 @@ class KafkaMessageBroker(MessageBroker):
     # Polling timeout
     _default_timeout = 0.5
 
+    # Socket timeout
+    _kafka_socket_timeout = 15000
+
     def __init__(self, broker_conf: dict):
         """ Initialize Kafka based Configurations """
         super().__init__(broker_conf)
@@ -65,9 +68,11 @@ class KafkaMessageBroker(MessageBroker):
         kafka_conf = {}
         kafka_conf['bootstrap.servers'] = self._servers
         kafka_conf['client.id'] = client_conf['client_id']
+        kafka_conf['error_cb'] = self._error_cb
 
         if client_type == 'admin' or self._clients['admin'] == {}:
             if client_type != 'consumer':
+                kafka_conf['socket.timeout.ms'] = self._kafka_socket_timeout
                 self.admin = AdminClient(kafka_conf)
                 self._clients['admin'][client_conf['client_id']] = self.admin
 
@@ -123,6 +128,13 @@ class KafkaMessageBroker(MessageBroker):
         except Exception as e:
             raise MessageBusError(errno.EINVAL, "Unable to list message type. \
                 %s", e)
+
+    @staticmethod
+    def _error_cb(err):
+        """ Callback to check if all brokers are down """
+        if err.code() == KafkaError._ALL_BROKERS_DOWN:
+            raise MessageBusError(err.code(), "Kafka Broker(s) are down. %s", \
+                err)
 
     def list_message_types(self, admin_id: str) -> list:
         """
