@@ -70,7 +70,6 @@ class MessageBusTest:
             try:
                 time.sleep(1)
                 message = consumer.receive()
-                consumer.ack()
                 if message != None:
                     return message
             except Exception as e:
