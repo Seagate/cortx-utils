@@ -62,6 +62,13 @@ class TaskCli:
         Task.start(task)
 
     @staticmethod
+    def show(args):
+        """ Deletes given set of keys from the Taskig """
+        task_id = args.args[0]
+        task = Task.get(task_id)
+        return task.payload.get_data('json')
+
+    @staticmethod
     def finish(args):
         """ Returns list of keys present in store """
         task_id = args.args[0]
@@ -114,6 +121,17 @@ class UpdateCmd:
             "Updates the given Task complete. Example command:\n"
             "# task update '123>1>2>3>222.222 50 'reading...''\n\n")
         s_parser.set_defaults(func=TaskCli.update)
+        s_parser.add_argument('args', nargs='+', default=[], help='args')
+
+class ShowCmd:
+    """ Updarte Cmd Structure """
+
+    @staticmethod
+    def add_args(sub_parser) -> None:
+        s_parser = sub_parser.add_parser('show', help=
+            "Shows the Task information. Example command:\n"
+            "# task show '123>1>2>3>222.222'\n\n")
+        s_parser.set_defaults(func=TaskCli.show)
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 
