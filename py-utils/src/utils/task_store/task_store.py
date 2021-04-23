@@ -59,16 +59,16 @@ class TaskEntry:
         self._payload[attr] = val
 
     def set_status(self, pct_complete: int, status: str):
-        self._payload['{self._id}>pct_complete'] = pct_complete
-        self._payload['{self._id}>status'] = status
+        self._payload['pct_complete'] = pct_complete
+        self._payload['status'] = status
 
     def start(self):
-        self._payload['{self._id}>start_time'] = time.time()
+        self._payload['start_time'] = time.time()
 
     def finish(self, status: str = ""):
-        self._payload['{self._id}>pct_complete'] = 100
-        self._payload['f{self._id}>finish_time'] = time.time()
-        self._payload['{self._id}>status'] = status
+        self._payload['pct_complete'] = 100
+        self._payload['finish_time'] = time.time()
+        self._payload['status'] = status
 
 
 class Task:
@@ -81,23 +81,25 @@ class Task:
     @staticmethod
     def create(resource_path: str, description: str):
         task = TaskEntry(resource_path=resource_path, description=description)
-        Task._kv_store.set([task.id], [task.payload.get_data('json')])
+        Task._kv_store.set([task.id], [task.payload.json])
         return task
 
     @staticmethod
     def start(task: TaskEntry):
+        if not isinstance(task, TaskEntry):
+            raise TaskError(errno.EINVAL, "start(): Invalid arg %s", task)
         task.start()
-        Task._kv_store.set([task.id], [task.payload.get_data('json')])
+        Task._kv_store.set([task.id], [task.payload.json])
 
     @staticmethod
     def finish(task: TaskEntry):
         task.finish()
-        Task._kv_store.set([task.id], [task.payload.get_data('json')])
+        Task._kv_store.set([task.id], [task.payload.json])
 
     @staticmethod
     def update(task: TaskEntry, pct_complete: int, status: str):
         task.set_status(pct_complete, status)
-        Task._kv_store.set([task.id], [task.payload.get_data('json')])
+        Task._kv_store.set([task.id], [task.payload.json])
 
     @staticmethod
     def list(resource_path: str):
@@ -106,7 +108,7 @@ class Task:
     @staticmethod
     def get(task_id: str):
         val = Task._kv_store.get([task_id])       
-        if val is None: 
-            return val
+        if len(val) == 0 or val[0] is None: 
+            raise TaskError(errno.EINVAL, "get(): invalid task id %s", task_id)
         data = json.loads(val[0])
         return TaskEntry(**data)

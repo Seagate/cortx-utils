@@ -66,14 +66,14 @@ class TaskCli:
         """ Deletes given set of keys from the Taskig """
         task_id = args.args[0]
         task = Task.get(task_id)
-        return task.payload.get_data('json')
+        return task.payload.json
 
     @staticmethod
     def finish(args):
         """ Returns list of keys present in store """
         task_id = args.args[0]
         task = Task.get(task_id)
-        task.finish()
+        Task.finish(task)
 
 
 class CreateCmd:
@@ -141,7 +141,7 @@ def main():
         formatter_class=RawTextHelpFormatter)
     parser.add_argument('url', help='URL for the TaskStore backend')
     sub_parser = parser.add_subparsers(title='command',
-        help="represents the action from: create, start, update, finish", 
+        help="represents the action e.g. create, start, update, finish", 
             dest='command')
 
     # Add Command Parsers

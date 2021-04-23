@@ -36,6 +36,10 @@ class KvPayload:
         self._keys = []
         self._get_keys(self._keys, self._data)
 
+    @property
+    def json(self):
+        return Format.dump(self._data, 'json')
+
     def get_data(self, format_type: str = None):
         if format_type == None:
             return self._data
