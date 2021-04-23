@@ -18,7 +18,9 @@
 import errno
 import time
 import json
+import re
 
+from cortx.template import Singleton
 from cortx.utils.task_store.error import TaskError
 from cortx.utils.kv_store.kv_store import KvStoreFactory
 from cortx.utils.kv_store import KvPayload
@@ -71,21 +73,25 @@ class TaskEntry:
         self._payload['status'] = status
 
 
-class Task:
+class Task(metaclass=Singleton):
+    """ Represent Task Framework. Singleton Class """
     _kv_store = None
 
     @staticmethod
     def init(backend_url):
+        """ Initializes the backend for the Task Store """
         Task._kv_store = KvStoreFactory.get_instance(backend_url)
 
     @staticmethod
     def create(resource_path: str, description: str):
+        """ Creates a task for the given resource """
         task = TaskEntry(resource_path=resource_path, description=description)
         Task._kv_store.set([task.id], [task.payload.json])
         return task
 
     @staticmethod
     def start(task: TaskEntry):
+        """ Start the task. Records the current time as the start time """
         if not isinstance(task, TaskEntry):
             raise TaskError(errno.EINVAL, "start(): Invalid arg %s", task)
         task.start()
@@ -93,18 +99,38 @@ class Task:
 
     @staticmethod
     def finish(task: TaskEntry):
+        """ Completes a task. Records current time as the completion time """
         task.finish()
         Task._kv_store.set([task.id], [task.payload.json])
 
     @staticmethod
     def update(task: TaskEntry, pct_complete: int, status: str):
+        """ Updates the task progress """
         task.set_status(pct_complete, status)
         Task._kv_store.set([task.id], [task.payload.json])
 
     @staticmethod
-    def list(resource_path: str):
-        return Task._kv_store.get_keys(resource_path)
-
+    def search(resource_path: str, filters: list):
+        """ Searches for a task as per given criteria """
+        task_list = Task._kv_store.get_keys(resource_path)
+        out_list = []
+        for task_id in task_list:
+            val = Task._kv_store.get([task_id])
+            data = json.loads(val[0])
+            matched = True
+            for f in filters:
+                key_spec = re.split("[^a-zA-Z_]", f)
+                if key_spec[0] not in data.keys():
+                    matched = False
+                    break
+                vars()[key_spec[0]] = data[key_spec[0]]
+                if not eval(f):
+                    matched = False
+                    break
+            if matched:
+                out_list.append(task_id)
+        return out_list
+                
     @staticmethod
     def get(task_id: str):
         val = Task._kv_store.get([task_id])       

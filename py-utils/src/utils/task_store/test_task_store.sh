@@ -35,3 +35,7 @@ echo "Finishing Task"
 # Show Task
 echo "Task Information"
 ./task_cli.py "dir:///tmp" show "$task_id"
+
+# Search Task
+echo "Searching for completed task"
+./task_cli.py "dir:///tmp" search "123>1>3" "pct_complete==100"
