@@ -161,4 +161,36 @@ class Utils:
     @staticmethod
     def reset():
         """ Performs Configuraiton reset """
+
+        # stop kafka services
+        for service in ["kafka-zookeeper", "kafka"]:
+            cmd = f"systemctl stop {service}"
+            cmd_proc = SimpleProcess(cmd)
+            stdout, stderr, retcode = cmd_proc.run()
+            if retcode != 0:
+                raise SetupError(errno.EIO, f"Error while stopping {service} server")
+
+        # delete topics created and kafka logs
+        cmd = "rm -rf /tmp/kafka-logs /tmp/zookeeper /etc/cortx/message_bus.conf"
+        cmd_proc = SimpleProcess(cmd)
+        stdout, stderr, retcode = cmd_proc.run()
+        if retcode != 0:
+            raise SetupError(errno.EIO,
+                             "Error while deleting topics and kafka logs")
+
+        # remove mini-provisioning temp files
+        cmd = "rm -rf  /tmp/utils.post_install.* /tmp/utils.config.* /tmp/utils.test.*"
+        cmd_proc = SimpleProcess(cmd)
+        stdout, stderr, retcode = cmd_proc.run()
+        if retcode != 0:
+            raise SetupError(errno.EIO,
+                             "Error while deleting mini-provisioning temp files")
+
+        # start kafka services
+        for service in ["kafka-zookeeper", "kafka"]:
+            cmd = f"systemctl start {service}"
+            cmd_proc = SimpleProcess(cmd)
+            stdout, stderr, retcode = cmd_proc.run()
+            if retcode != 0:
+                raise SetupError(errno.EIO, f"Error while starting {service} server")
         return 0
