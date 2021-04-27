@@ -325,6 +325,27 @@ class TestConfStore(unittest.TestCase):
                 actual_id = mc_id_file.read()
         self.assertEqual(mc_id, actual_id.strip())
 
+    # Dir
+    def test_conf_dir_store_a_set_and_get(self):
+        """ Test confstore directory store by setting Key value """
+        load_config('dir_index1', 'dir:///tmp/conf_store_test')
+        Conf.set("dir_index1", "message_broker", "zeroMq")
+        out = Conf.get("dir_index1", "message_broker")
+        self.assertEqual("zeroMq", out)
+
+    def test_conf_dir_store_b_set_nested_keys(self):
+        """ Test confstore directory store by setting Key value """
+        Conf.set("dir_index1", "zeromq>message_limit", "10")
+        out = Conf.get("dir_index1", "zeromq>message_limit")
+        self.assertEqual("10", out)
+
+    def test_conf_dir_store_c_get_keys(self):
+        """
+        get_key() will return all available keys
+        """
+        out = Conf.get_keys("dir_index1")
+        self.assertEqual(['message_broker', 'zeromq>message_limit'], out)
+
 if __name__ == '__main__':
     """
     Firstly create the file and load sample json into it.
