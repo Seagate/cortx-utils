@@ -66,7 +66,7 @@ do
         echo "Component:$component"
         echo "Repo:${COMPONENT_LIST[$component]}"
          dir=$(echo ${COMPONENT_LIST[$component]} |  awk -F'/' '{print $NF}')
-         git clone --branch dev ${COMPONENT_LIST[$component]} $dir
+         git clone --branch main ${COMPONENT_LIST[$component]} $dir
       	 rc=$?
           if [ $rc -ne 0 ]; then 
           echo "ERROR:git clone failed for $component"
