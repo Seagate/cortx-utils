@@ -51,14 +51,14 @@ class MessageBusRestServer(RestServer):
                 producer.send(messages)
             except Exception as e:
                 exception_key = type(e).__name__
-                response_obj = {'status': 'failed', 'exception': [exception_key, {'err_message' : str(e)}]}
-                status = RestServerError(e).http_error()
-                raise MessageServerError(status, str(e)) from e
+                status_code = RestServerError(exception_key).http_error()
+                response_obj = {'status_code': status_code, 'exception': [exception_key, {'message' : str(e)}]}
+                raise MessageServerError(status_code, str(e)) from e
             else:
-                response_obj = {'status': 'success'}
-                status = 200 # No exception, Success
+                status_code = 200 # No exception, Success
+                response_obj = {'status_code': status_code, 'status': 'success'}
             finally:
-                return web.Response(text=json.dumps(response_obj) , status=status)
+                return web.Response(text=json.dumps(response_obj) , status=status_code)
 
         if request.method == 'GET':
             try:
@@ -71,14 +71,15 @@ class MessageBusRestServer(RestServer):
                 message = consumer.receive()
             except Exception as e:
                 exception_key = type(e).__name__
-                response_obj = {'status': 'failed', 'exception': [exception_key, {'err_message' : str(e)}]}
-                status = RestServerError(e).http_error()
+                status_code = RestServerError(exception_key).http_error()
+                response_obj = {'status_code': status_code, 'exception': [exception_key, {'message' : str(e)}]}
                 raise MessageServerError(status, str(e)) from e
             else:
-                response_obj = {"message": str(message)}
-                status = 200  # No exception, Success
+                status_code = 200  # No exception, Success
+                response_obj = {'messages': str(message)}
             finally:
-                return web.Response(text=json.dumps(response_obj), status=status)
+                return web.Response(text=json.dumps(response_obj), status=status_code)
 
 if __name__ == '__main__':
     MessageBusRestServer()
+

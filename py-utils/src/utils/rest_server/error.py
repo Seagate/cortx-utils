@@ -23,9 +23,11 @@ class RestServerError(Exception):
 
     def http_error(self):
         return self._http_error(self._e)
-
-    def _http_error(self, e):
+    
+    @staticmethod
+    def _http_error(except_name):
         ret_code_map = defaultdict(lambda: 500)
-        ret_code_map['KeyError'] = 418 # 400 client error because client is asking for wrong key
+        ret_code_map['KeyError'] = 418 # wrong key from client
         ret_code_map['KafkaException'] = 514
-        return ret_code_map[type(e).__name__]
+        return ret_code_map[except_name]
+

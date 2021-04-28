@@ -23,3 +23,4 @@ class RestServer:
         app = web.Application()
         app.add_routes(routes)
         web.run_app(app, host=host, port=port)
+
