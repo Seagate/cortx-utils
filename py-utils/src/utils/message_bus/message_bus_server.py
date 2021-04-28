@@ -37,8 +37,8 @@ class MessageBusRestServer(RestServer):
             self._message_bus_port)
 
     @staticmethod
-    @routes.get('/MessageBus/{message_type}')
-    @routes.post('/MessageBus/{message_type}')
+    @routes.get('/MessageBus/receive/{message_type}')
+    @routes.post('/MessageBus/send/{message_type}')
     async def message_bus_rest(request):
         if request.method == 'POST':
             try:
@@ -73,7 +73,7 @@ class MessageBusRestServer(RestServer):
                 exception_key = type(e).__name__
                 status_code = RestServerError(exception_key).http_error()
                 response_obj = {'status_code': status_code, 'exception': [exception_key, {'message' : str(e)}]}
-                raise MessageServerError(status, str(e)) from e
+                raise MessageServerError(status_code, str(e)) from e
             else:
                 status_code = 200  # No exception, Success
                 response_obj = {'messages': str(message)}

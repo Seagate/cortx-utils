@@ -31,18 +31,19 @@ class TestMessage(unittest.TestCase):
 
     def test_post(self):
         """ Test send message. """
-        url = self._base_url + self._message_type
-        data = json.dumps({"messages": ["hello", "how are you"]})
-        headers = {"content-type": "application/json"}
-        response = requests.put(url=url, data=data, headers=headers)
+        url = self._base_url +'send/' + self._message_type
+        data = json.dumps({'messages': ['hello', 'how are you']})
+        headers = {'content-type': 'application/json'}
+        response = requests.post(url=url, data=data, headers=headers)
         self.assertEqual(response.json()['status'], 'success')
         self.assertEqual(response.status_code, 200)
 
     def test_get(self):
         """ Test receive message. """
-        response = requests.get(self._base_url + self._message_type + \
-            '?consumer_group=' + self._consumer_group)
+        response = requests.get(self._base_url + 'receive/' + self._message_type
+                                + '?consumer_group=' + self._consumer_group)
         self.assertEqual(response.status_code, 200)
+
 
 
 if __name__ == '__main__':
