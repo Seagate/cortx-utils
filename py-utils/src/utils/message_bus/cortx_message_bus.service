@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 User=root
-ExecStart=/opt/seagate/cortx/utils/message_bus/message_bus_server
+ExecStart=/opt/seagate/cortx/utils/bin/message_bus_server
 Restart=always
 
 [Install]
