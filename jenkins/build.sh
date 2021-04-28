@@ -57,6 +57,7 @@ echo "#!/bin/bash" > utils-pre-install
 echo ""  >> utils-pre-install
 echo "PACKAGE_LIST=\""  >> utils-pre-install
 /bin/cat requirements.txt >> utils-pre-install
+/bin/cat requirements.ext.txt >> utils-pre-install
 echo "\""  >> utils-pre-install
 echo "rc=0
 for package in \$PACKAGE_LIST

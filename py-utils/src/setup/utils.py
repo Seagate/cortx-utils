@@ -122,12 +122,13 @@ class Utils:
         cmd_proc = SimpleProcess(cmd)
         stdout, stderr, retcode = cmd_proc.run()
         result = stdout.decode("utf-8") if retcode == 0 else stderr.decode("utf-8")
-        with open('/opt/seagate/cortx/utils/conf/requirements.txt') as f:
-            pkgs = f.readlines()
-            # pkgs will have \n in every string. Need to remove that
-            for package in enumerate(pkgs):
-                if result.find(package[1][:-1]) == -1:
-                    raise SetupError(errno.EINVAL, "Required python package %s is missing" % package[1][:-1])
+        with open('/opt/seagate/cortx/utils/conf/requirements.txt') as file, \
+            open('/opt/seagate/cortx/utils/conf/requirements.ext.txt') as extfile :
+            req_pack = [pack.strip() for pack in file.readlines()] + \
+        [pack.strip() for pack in extfile.readlines()]
+        for package in req_pack:
+            if package not in result:
+                raise SetupError(errno.EINVAL, "Required python package %s is missing" % package)
         return 0
 
     @staticmethod
