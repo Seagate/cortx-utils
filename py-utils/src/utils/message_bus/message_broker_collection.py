@@ -328,6 +328,8 @@ class KafkaMessageBroker(MessageBroker):
         Gets the count of unread messages from the Kafka message server
 
         Parameters:
+        message_type    This is essentially equivalent to the
+                        queue/topic name. For e.g. "Alert"
         consumer_group  A String that represents Consumer Group ID.
         """
         table = []
