@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # CORTX-Py-Utils: CORTX Python common library.
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -18,16 +18,18 @@
 from collections import defaultdict
 
 class RestServerError(Exception):
+    """ Error class for cortx rest server """
+
     def __init__(self, e):
         self._e = e
 
     def http_error(self):
         return self._http_error(self._e)
-    
+
     @staticmethod
     def _http_error(except_name):
         ret_code_map = defaultdict(lambda: 500)
-        ret_code_map['KeyError'] = 418 # wrong key from client
-        ret_code_map['KafkaException'] = 514
+        ret_code_map['KeyError'] = (418, "Wrong Key in payload!") # wrong key from client
+        ret_code_map['KafkaException'] = (514, "MessageBus backend error!")
         return ret_code_map[except_name]
 

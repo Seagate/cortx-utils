@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # CORTX-Py-Utils: CORTX Python common library.
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -17,7 +17,7 @@
 
 
 class RestServer:
-    """ Common infrastructure for Rest Server implementation """
+    """ Base class for Cortx Rest Server implementation """
 
     def __init__(self, web, routes, host: str, port: int):
         app = web.Application()
