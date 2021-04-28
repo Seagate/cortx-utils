@@ -16,6 +16,7 @@
 import os
 import sys
 import glob
+from fnmatch import fnmatch
 from typing import List
 from setuptools import setup
 
@@ -44,10 +45,19 @@ with open('README.md', 'r') as rf:
     long_description = rf.read()
 
 def get_install_requirements() -> list:
-    install_requires = []
-    with open('requirements.txt') as r:
-        install_requires = [line.strip() for line in r]
+    with open('python_requirements.txt') as req:
+        install_requires = [line.strip() for line in req]
+    try:
+        with open('python_requirements.ext.txt') as extreq:
+            install_requires = install_requires + [line.strip() for line in extreq]
+    except FileNotFoundError:
+        pass  ## log it!
     return install_requires
+
+def get_requirements_files() -> list:
+    req_file_list = [req_file for req_file in os.listdir(".") \
+        if fnmatch(req_file, "python_requirements.*txt")]
+    return req_file_list
 
 setup(name='cortx-py-utils',
       version=utils_version,
@@ -87,9 +97,9 @@ setup(name='cortx-py-utils',
       data_files = [ ('/var/lib/cortx/ha/specs', specs),
                      ('/var/lib/cortx/ha', ['src/utils/ha/hac/args.yaml',
                                             'src/utils/ha/hac/re_build.sh']),
-                     ('/opt/seagate/cortx/utils/conf',
-                          ['requirements.txt', 'src/setup/setup.yaml']),
-                     ('/opt/seagate/cortx/utils/conf', tmpl_files)],
+                     ('/opt/seagate/cortx/utils/conf', ['src/setup/setup.yaml']),
+                     ('/opt/seagate/cortx/utils/conf', tmpl_files),
+                     ('/opt/seagate/cortx/utils/conf', get_requirements_files()),],
       long_description=long_description,
       zip_safe=False,
       python_requires='>=3.6',

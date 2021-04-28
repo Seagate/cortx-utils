@@ -56,7 +56,10 @@ echo "Creating cortx-py-utils RPM with version $VER, release $REL"
 echo "#!/bin/bash" > utils-pre-install
 echo ""  >> utils-pre-install
 echo "PACKAGE_LIST=\""  >> utils-pre-install
-/bin/cat requirements.txt >> utils-pre-install
+/bin/cat python_requirements.txt >> utils-pre-install
+if [ -f "python_requirements.ext.txt" ]; then
+    /bin/cat python_requirements.ext.txt >> utils-pre-install
+fi
 echo "\""  >> utils-pre-install
 echo "rc=0
 for package in \$PACKAGE_LIST

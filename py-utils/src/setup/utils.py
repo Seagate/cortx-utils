@@ -16,7 +16,6 @@
 
 import errno
 import json
-import time
 
 from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.v_confkeys import ConfKeysV
@@ -37,6 +36,8 @@ class SetupError(Exception):
 
 class Utils:
     """ Represents Utils and Performs setup related actions """
+
+    utils_install_dir = "/opt/seagate/cortx/utils/"
 
     @staticmethod
     def _create_msg_bus_config(kafka_server_list, port_list):
@@ -122,12 +123,16 @@ class Utils:
         cmd_proc = SimpleProcess(cmd)
         stdout, stderr, retcode = cmd_proc.run()
         result = stdout.decode("utf-8") if retcode == 0 else stderr.decode("utf-8")
-        with open('/opt/seagate/cortx/utils/conf/requirements.txt') as f:
-            pkgs = f.readlines()
-            # pkgs will have \n in every string. Need to remove that
-            for package in enumerate(pkgs):
-                if result.find(package[1][:-1]) == -1:
-                    raise SetupError(errno.EINVAL, "Required python package %s is missing" % package[1][:-1])
+        with open(Utils.utils_install_dir + "conf/python_requirements.txt") as file:
+            req_pack = [pack.strip() for pack in file.readlines()]
+        try:
+            with open(Utils.utils_install_dir + "/conf/python_requirements.ext.txt") as extfile :
+             req_pack = req_pack + [pack.strip() for pack in extfile.readlines()]
+        except FileNotFoundError:
+            pass   ## log it!
+        for package in req_pack:
+            if package not in result:
+                raise SetupError(errno.EINVAL, "Required python package %s is missing" % package)
         return 0
 
     @staticmethod
