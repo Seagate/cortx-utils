@@ -148,7 +148,8 @@ class MessageProducer(MessageBusClient):
         Parameters:
         consumer_group  A String that represents Consumer Group ID.
         """
-        return self._message_bus.get_unread_count(consumer_group)
+        message_type = self._get_conf('message_type')
+        return self._message_bus.get_unread_count(message_type, consumer_group)
 
 
 class MessageConsumer(MessageBusClient):
@@ -175,7 +176,7 @@ class MessageConsumer(MessageBusClient):
             consumer_group=consumer_group, message_types=message_types, \
             auto_ack=auto_ack, offset=offset, message_bus=message_bus)
 
-    def get_unread_count(self):
+    def get_unread_count(self, message_type: str):
         """ Gets the count of unread messages from the Message Bus """
         consumer_group = self._get_conf('consumer_group')
-        return self._message_bus.get_unread_count(consumer_group)
+        return self._message_bus.get_unread_count(message_type, consumer_group)
