@@ -26,3 +26,4 @@
 /bin/mkdir -p /opt/seagate/cortx/utils/message_bus/
 /bin/cp -f /usr/lib/python3.6/site-packages/cortx/utils/message_bus/message_bus_server.py /opt/seagate/cortx/utils/message_bus/message_bus_server
 /bin/chmod +x /opt/seagate/cortx/utils/message_bus/message_bus_server
+
