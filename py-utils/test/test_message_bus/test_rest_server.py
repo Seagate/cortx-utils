@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # CORTX Python common library.
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -25,24 +25,25 @@ import json
 class TestMessage(unittest.TestCase):
     """ Test MessageBus rest server functionality. """
 
-    _base_url = 'http://127.0.0.1:28300/MessageBus/'
-    _message_type = 'biggg'
+    _base_url = 'http://127.0.0.1:28300/MessageBus/message/'
+    _message_type = 'big'
     _consumer_group = 'connn'
 
     def test_post(self):
         """ Test send message. """
         url = self._base_url + self._message_type
-        data = json.dumps({"messages": ["hello", "how are you"]})
-        headers = {"content-type": "application/json"}
-        response = requests.put(url=url, data=data, headers=headers)
+        data = json.dumps({'messages': ['hello', 'how are you']})
+        headers = {'content-type': 'application/json'}
+        response = requests.post(url=url, data=data, headers=headers)
         self.assertEqual(response.json()['status'], 'success')
         self.assertEqual(response.status_code, 200)
 
     def test_get(self):
         """ Test receive message. """
-        response = requests.get(self._base_url + self._message_type + \
-            '?consumer_group=' + self._consumer_group)
+        response = requests.get(self._base_url + self._message_type
+                                + '?consumer_group=' + self._consumer_group)
         self.assertEqual(response.status_code, 200)
+
 
 
 if __name__ == '__main__':

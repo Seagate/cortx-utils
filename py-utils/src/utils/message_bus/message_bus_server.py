@@ -15,15 +15,15 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.message_bus import MessageConsumer, MessageProducer, MessageBus
+from cortx.utils.message_bus import MessageConsumer, MessageProducer
+from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.rest_server import RestServer
 from aiohttp import web
 import json
 
 routes = web.RouteTableDef()
 
-
-class MessageBusRestServer(RestServer):
+class MessageBusRestHandler(RestServer):
     """ Rest interface of message bus """
 
     _message_bus_ip = '127.0.0.1'
@@ -35,8 +35,8 @@ class MessageBusRestServer(RestServer):
             self._message_bus_port)
 
     @staticmethod
-    @routes.get('/MessageBus/{message_type}')
-    @routes.put('/MessageBus/{message_type}')
+    @routes.get('/MessageBus/message/{message_type}')
+    @routes.post('/MessageBus/message/{message_type}')
     async def message_bus_rest(request):
         if request.method == 'PUT':
             try:
@@ -46,12 +46,22 @@ class MessageBusRestServer(RestServer):
                 producer = MessageProducer(producer_id='rest_producer', \
                     message_type=message_type, method='sync')
                 producer.send(messages)
-
-                response_obj = {'status': 'success'}
-                return web.Response(text=json.dumps(response_obj), status=200)
+            except MessageBusError as e:
+                status_code = e.rc
+                error_message = e.desc
+                response_obj = {'error_code': status_code, 'exception': ["MessageBusError", {'message' : error_message}]}
             except Exception as e:
-                response_obj = {'status': 'failed', 'exception': str(e)}
-                return web.Response(text=json.dumps(response_obj), status=500)
+                exception_key = type(e).__name__
+                exception = RestServerError(exception_key).http_error()
+                status_code = exception[0]
+                error_message = exception[1]
+                response_obj = {'error_code': status_code, 'exception': [exception_key, {'message' : error_message}]}
+                raise MessageBusError(status_code, error_message) from e
+            else:
+                status_code = 200 # No exception, Success
+                response_obj = {'status_code': status_code, 'status': 'success'}
+            finally:
+                return web.Response(text=json.dumps(response_obj) , status=status_code)
 
         if request.method == 'GET':
             try:
@@ -62,12 +72,22 @@ class MessageBusRestServer(RestServer):
                     auto_ack=True, offset='latest')
 
                 message = consumer.receive()
-                response_obj = {"message": str(message)}
-                return web.Response(text=json.dumps(response_obj), status=200)
+            except MessageBusError as e:
+                status_code = e.rc
+                error_message = e.desc
+                response_obj = {'error_code': status_code, 'exception': ["MessageBusError", {'message' : error_message}]}
             except Exception as e:
-                response_obj = {'status': 'failed', 'exception': str(e)}
-                return web.Response(text=json.dumps(response_obj), status=500)
-
+                exception_key = type(e).__name__
+                exception = RestServerError(exception_key).http_error()
+                status_code = exception[0]
+                error_message = exception[1]
+                response_obj = {'error_code': status_code, 'exception': [exception_key, {'message' : error_message}]}
+                raise MessageBusError(status_code, error_message) from e
+            else:
+                status_code = 200  # No exception, Success
+                response_obj = {'messages': str(message)}
+            finally:
+                return web.Response(text=json.dumps(response_obj), status=status_code)
 
 if __name__ == '__main__':
-    MessageBusRestServer()
+    MessageBusRestHandler()
