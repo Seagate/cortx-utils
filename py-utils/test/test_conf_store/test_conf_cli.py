@@ -264,54 +264,6 @@ class TestConfCli(unittest.TestCase):
         except Exception:
             self.assertEqual(result_data[2], '22')
 
-    # Dir Store
-    def test_conf_cli_by_a_get_DirKv(self):
-        """ Test by retrieving a value using DirkvStore get api """
-        cmd = "conf dir:///tmp/conf_cli_test get bridge>name"
-        cmd_proc = SimpleProcess(cmd)
-        result_data = cmd_proc.run()
-        self.assertTrue(True if result_data[2] == 0 and
-            result_data[0] == b'[null]\n' else False, result_data[1])
-
-    def test_conf_cli_by_b_set_DirKv(self):
-        """ Test by setting a value into given key using DirKvStore set api """
-        cmd_1 = "conf dir:///tmp/conf_cli_test set bridge>cli_name='client'"
-        cmd_proc_1 = SimpleProcess(cmd_1)
-        cmd_proc_1.run()
-        cmd_2 = "conf dir:///tmp/conf_cli_test get bridge>cli_name"
-        cmd_proc_2 = SimpleProcess(cmd_2)
-        result_data = cmd_proc_2.run()
-        self.assertTrue(True if result_data[2]==0 and
-            result_data[0]==b'["\'client\'"]\n' else False, result_data[1])
-
-    def test_conf_cli_by_c_set_list_of_value_DirKv(self):
-        """
-        Test by setting list of k,v seperated by ';' semicolon into conf
-        DirKvStore
-        """
-        cmd_1 = "conf dir:///tmp/conf_cli_test set bridge>cli_name='client';" \
-                "bridge>has_internet='no'"
-        cmd_proc_1 = SimpleProcess(cmd_1)
-        cmd_proc_1.run()
-        cmd_2 = "conf dir:///tmp/conf_cli_test get bridge>cli_name;" \
-                "bridge>has_internet"
-        cmd_proc_2 = SimpleProcess(cmd_2)
-        result_data = cmd_proc_2.run()
-        self.assertTrue(True if result_data[2] == 0 and
-            result_data[0] == b'["\'client\'", "\'no\'"]\n'
-            else False, result_data[1])
-
-    def test_conf_cli_by_d_delete_DirKv(self):
-        """ Test by deleting a value from the conf """
-        cmd_1 = "conf dir:///tmp/conf_cli_test delete 'bridge>port'"
-        cmd_proc_1 = SimpleProcess(cmd_1)
-        cmd_proc_1.run()
-        cmd_2 = "conf dir:///tmp/conf_cli_test get 'bridge>port'"
-        cmd_proc_2 = SimpleProcess(cmd_2)
-        result_data = cmd_proc_2.run()
-        self.assertTrue(True if result_data[2] == 0 and
-            result_data[0]==b'[null]\n' else False, result_data[1])
-
 
 if __name__ == '__main__':
     # create the file and load sample json into it. Start test
