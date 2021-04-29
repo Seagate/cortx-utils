@@ -148,7 +148,7 @@ class MessageProducer(MessageBusClient):
         Parameters:
         consumer_group  A String that represents Consumer Group ID.
         """
-        message_type = self._get_conf('message_type')
+        message_type = self._get_conf("message_type")
         return self._message_bus.get_unread_count(message_type, consumer_group)
 
 
@@ -184,5 +184,5 @@ class MessageConsumer(MessageBusClient):
         message_type    This is essentially equivalent to the
                         queue/topic name. For e.g. "Alert"
         """
-        consumer_group = self._get_conf('consumer_group')
+        consumer_group = self._get_conf("consumer_group")
         return self._message_bus.get_unread_count(message_type, consumer_group)

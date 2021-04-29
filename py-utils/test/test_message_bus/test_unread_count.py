@@ -24,14 +24,15 @@ from cortx.utils.message_bus import MessageProducer, MessageConsumer
 class TestMessage(unittest.TestCase):
     """ Test MessageBus related functionality """
 
-    _msg_type = 'biggg'
-    _consumer_group = 'connn'
+    _msg_type = "biggg"
+    _consumer_group = "connn"
     _msg_count = 100
     _receive_limit = 10
 
     def test_delete_count(self):
-        producer = MessageProducer(producer_id='p1', \
-            message_type=TestMessage._msg_type, method='sync')
+        """ Test Delete """
+        producer = MessageProducer(producer_id="p1", \
+            message_type=TestMessage._msg_type, method="sync")
         producer.delete()
         unread_count = producer.get_unread_count \
             (consumer_group=TestMessage._consumer_group)
@@ -40,8 +41,8 @@ class TestMessage(unittest.TestCase):
 
     def test_send_count(self):
         """ Test Send Message """
-        producer = MessageProducer(producer_id='p1', \
-            message_type=TestMessage._msg_type, method='sync')
+        producer = MessageProducer(producer_id="p1", \
+            message_type=TestMessage._msg_type, method="sync")
         messages = []
         for i in range(0, TestMessage._msg_count):
             messages.append("This is message" + str(i))
@@ -56,10 +57,10 @@ class TestMessage(unittest.TestCase):
     def test_receive_count(self):
         """ Test Unread Message Count """
         read_count = 0
-        consumer = MessageConsumer(consumer_id='c1', \
+        consumer = MessageConsumer(consumer_id="c1", \
             consumer_group=TestMessage._consumer_group, \
             message_types=[TestMessage._msg_type], auto_ack=True, \
-            offset='latest')
+            offset="latest")
 
         while True:
             message = consumer.receive(timeout=0)
@@ -76,7 +77,7 @@ class TestMessage(unittest.TestCase):
         self.assertNotEqual(unread_count, TestMessage._msg_count)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     suite = unittest.TestSuite()
     suite.addTest(TestMessage("test_delete_count"))
     suite.addTest(TestMessage("test_send_count"))
