@@ -334,6 +334,7 @@ class KafkaMessageBroker(MessageBroker):
         """
         table = []
 
+        # Update the offsets if purge is called
         if self.get_log_size(message_type) == 0:
             try:
                 cmd = "/opt/kafka/bin/kafka-consumer-groups.sh \
