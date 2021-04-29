@@ -346,6 +346,13 @@ class TestConfStore(unittest.TestCase):
         out = Conf.get_keys("dir_index1")
         self.assertEqual(['message_broker', 'zeromq>message_limit'], out)
 
+    def test_conf_dir_store_d_non_exist_dir(self):
+        """ Test confstore by accessing non exist directory """
+        try:
+            load_config('dir_index2', 'dir:///non_exist_dir/conf_store_test')
+        except Exception as err:
+            self.assertEqual('No such file or directory', err.args[1])
+
 if __name__ == '__main__':
     """
     Firstly create the file and load sample json into it.

@@ -104,7 +104,7 @@ class DirKvStore(KvStore):
         keys = payload.get_keys()
         vals = []
         for key in keys:
-            vals.append(payload[key])
+            vals.append(payload.get(key))
         self.set(keys, vals)
 
     def get_keys(self, key_prefix: str):
