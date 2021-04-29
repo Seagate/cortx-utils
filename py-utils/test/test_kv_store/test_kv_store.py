@@ -326,6 +326,12 @@ class TestStore(unittest.TestCase):
         out = TestStore.loaded_dir[0].get(['kafka>message_type'])
         self.assertEqual('receive', out[0])
 
+    def test_dir_store_e_by_delete_multiple_kv(self):
+        """ Test Kv Directory store by removing given key using delete api """
+        TestStore.loaded_dir[0].delete(['cloud>cloud_type'])
+        out = TestStore.loaded_dir[0].get(['cloud>cloud_type'])
+        self.assertEqual([], out)
+
 # loaded_dir
 if __name__ == '__main__':
     unittest.main()

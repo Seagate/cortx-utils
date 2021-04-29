@@ -353,6 +353,12 @@ class TestConfStore(unittest.TestCase):
         except Exception as err:
             self.assertEqual('No such file or directory', err.args[1])
 
+    def test_conf_dir_store_e_delete_nested_keys(self):
+        """ Test confstore directory store by removing a Key value """
+        Conf.delete("dir_index1", "zeromq>message_limit")
+        out = Conf.get("dir_index1", "zeromq>message_limit")
+        self.assertEqual(None, out)
+
 if __name__ == '__main__':
     """
     Firstly create the file and load sample json into it.
