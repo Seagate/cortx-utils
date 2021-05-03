@@ -66,8 +66,7 @@ class KafkaMessageBroker(MessageBroker):
                 client = self._clients[client_type][client_conf["client_id"]]
                 available_message_types = client.list_topics().topics.keys()
                 if client_type == "producer":
-                    if client_conf[
-                        "message_type"] not in available_message_types:
+                    if client_conf["message_type"] not in available_message_types:
                         raise KafkaException(KafkaError(3))
                 elif client_type == "consumer":
                     if not any(each_message_type in available_message_types for \
