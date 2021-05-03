@@ -29,7 +29,7 @@ class TestMessage(unittest.TestCase):
     _msg_count = 100
     _receive_limit = 10
 
-    def test_delete_count(self):
+    def test_delete_messages(self):
         """ Test Delete """
         producer = MessageProducer(producer_id="p1", \
             message_type=TestMessage._msg_type, method="sync")
@@ -39,8 +39,8 @@ class TestMessage(unittest.TestCase):
         self.assertEqual(unread_count, 0)
         self.assertFalse(unread_count > 0)
 
-    def test_send_count(self):
-        """ Test Send Message """
+    def test_producer_unread_count(self):
+        """ Test unread message count from producer side """
         producer = MessageProducer(producer_id="p1", \
             message_type=TestMessage._msg_type, method="sync")
         messages = []
@@ -54,8 +54,8 @@ class TestMessage(unittest.TestCase):
         self.assertEqual(unread_count, TestMessage._msg_count)
         self.assertFalse(unread_count != 100)
 
-    def test_receive_count(self):
-        """ Test Unread Message Count """
+    def test_consumer_unread_count(self):
+        """ Test unread message count from consumer side """
         read_count = 0
         consumer = MessageConsumer(consumer_id="c1", \
             consumer_group=TestMessage._consumer_group, \
@@ -79,9 +79,9 @@ class TestMessage(unittest.TestCase):
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
-    suite.addTest(TestMessage("test_delete_count"))
-    suite.addTest(TestMessage("test_send_count"))
-    suite.addTest(TestMessage("test_receive_count"))
+    suite.addTest(TestMessage("test_delete_messages"))
+    suite.addTest(TestMessage("test_producer_unread_count"))
+    suite.addTest(TestMessage("test_consumer_unread_count"))
 
     runner = unittest.TextTestRunner()
     runner.run(suite)
