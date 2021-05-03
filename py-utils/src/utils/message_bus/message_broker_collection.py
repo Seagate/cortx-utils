@@ -323,14 +323,35 @@ class KafkaMessageBroker(MessageBroker):
             else:
                 break
 
-    def get_unread_count(self, consumer_group: str):
+    def get_unread_count(self, message_type: str, consumer_group: str):
         """
         Gets the count of unread messages from the Kafka message server
 
         Parameters:
+        message_type    This is essentially equivalent to the
+                        queue/topic name. For e.g. "Alert"
         consumer_group  A String that represents Consumer Group ID.
         """
         table = []
+
+        # Update the offsets if purge was called
+        if self.get_log_size(message_type) == 0:
+            try:
+                cmd = "/opt/kafka/bin/kafka-consumer-groups.sh \
+                    --bootstrap-server " + self._servers + " --group " \
+                    + consumer_group + " --topic " + message_type + \
+                    " --reset-offsets --to-latest --execute"
+                cmd_proc = SimpleProcess(cmd)
+                res_op, res_err, res_rc = cmd_proc.run()
+                if res_rc != 0:
+                    raise MessageBusError(errno.ENODATA, "Unable to reset the \
+                        offsets. %s", res_err)
+                decoded_string = res_op.decode("utf-8")
+                if "Error" in decoded_string:
+                    raise MessageBusError(errno.ENODATA, "Unable to reset the \
+                        offsets. %s", decoded_string)
+            except Exception as e:
+                raise MessageBusError(errno.ENODATA, str(e))
 
         try:
             cmd = "/opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server "\
@@ -340,22 +361,24 @@ class KafkaMessageBroker(MessageBroker):
             if res_rc != 0:
                 raise MessageBusError(errno.EINVAL, "Unable to get the message \
                     count. %s", res_err)
-            decoded_string = res_op.decode('utf-8')
-            if decoded_string == '':
+            decoded_string = res_op.decode("utf-8")
+            if decoded_string == "":
                 raise MessageBusError(errno.EINVAL, "No active consumers in \
                     the consumer group, %s", consumer_group)
-            elif 'Error' in decoded_string:
+            elif "Error" in decoded_string:
                 raise MessageBusError(errno.EINVAL, "Unable to get the message \
                     count. %s", decoded_string)
             else:
-                split_rows = decoded_string.split('\n')
-                rows = [row.split(' ') for row in split_rows if row != '']
+                split_rows = decoded_string.split("\n")
+                rows = [row.split(" ") for row in split_rows if row != ""]
                 for each_row in rows:
-                    new_row = [item for item in each_row if item != '']
+                    new_row = [item for item in each_row if item != ""]
                     table.append(new_row)
-                index = table[0].index('LAG')
-                unread_count = [int(lag[index]) for lag in table if lag[index] \
-                    != 'LAG' and lag[index] != '-']
+                message_type_index = table[0].index("TOPIC")
+                lag_index = table[0].index("LAG")
+                unread_count = [int(lag[lag_index]) for lag in table if \
+                    lag[lag_index] != "LAG" and lag[lag_index] != "-" and \
+                    lag[message_type_index] == message_type]
 
                 if len(unread_count) == 0:
                     raise MessageBusError(errno.EINVAL, "No active consumers \
