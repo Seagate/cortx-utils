@@ -63,6 +63,7 @@ class KafkaMessageBroker(MessageBroker):
 
         if client_conf["client_id"] in self._clients[client_type].keys():
             if self._clients[client_type][client_conf["client_id"]] != {}:
+                # Check if message_type exists to send/receive
                 client = self._clients[client_type][client_conf["client_id"]]
                 available_message_types = client.list_topics().topics.keys()
                 if client_type == "producer":
