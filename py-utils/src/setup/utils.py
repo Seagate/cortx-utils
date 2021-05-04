@@ -22,7 +22,6 @@ from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.validator.v_service import ServiceV
 
-
 class SetupError(Exception):
     """ Generic Exception with error code and output """
 
@@ -160,37 +159,44 @@ class Utils:
 
     @staticmethod
     def reset():
-        """ Performs Configuraiton reset """
+        """ Reset all the data that was created after post install """
 
-        # stop kafka services
-        for service in ["kafka-zookeeper", "kafka"]:
-            cmd = f"systemctl stop {service}"
+        from cortx.utils.conf_store import Conf
+        Conf.load("index", "json:///etc/cortx/message_bus.conf")
+        server = Conf.get("index", 'message_broker>cluster[0]>server')
+        if not server:
+            import sys
+            print("Reset/Cleanup already done or config file not found!")
+            sys.exit(0)
+
+        # list all topics created
+        topic_list_cmd = f"/opt/kafka/bin/kafka-topics.sh --list --bootstrap-server {server}:9092"
+        cmd_proc = SimpleProcess(topic_list_cmd)
+        res_op, res_err, res_rc = cmd_proc.run()
+        if res_rc != 0:
+            raise SetupError(errno.EINVAL, f"Unable to list topics created. Make sure that kafka servers are running!")
+        topics = ",".join([x for x in res_op.decode("utf-8").split('\n') if x])
+
+        # delete topics
+        if topics:
+            cmd = f"/opt/kafka/bin/kafka-topics.sh --delete --topic {topics} --bootstrap-server {server}:9092"
             cmd_proc = SimpleProcess(cmd)
-            stdout, stderr, retcode = cmd_proc.run()
-            if retcode != 0:
-                raise SetupError(errno.EIO, f"Error while stopping {service} server")
+            res_op, res_err, res_rc = cmd_proc.run()
+            if res_rc != 0:
+                raise SetupError(errno.EIO, f"Error while deleting topic!")
+        print("Reset completed successfully!")
+        return 0
 
-        # delete topics created and kafka logs
-        cmd = "rm -rf /tmp/kafka-logs /tmp/zookeeper /etc/cortx/message_bus.conf"
+    @staticmethod
+    def cleanup():
+        """ Cleanup message bus config and logs. """
+
+        # delete data/config stored
+        cmd = "rm -rf /etc/cortx/message_bus.conf"
         cmd_proc = SimpleProcess(cmd)
         stdout, stderr, retcode = cmd_proc.run()
         if retcode != 0:
             raise SetupError(errno.EIO,
-                             "Error while deleting topics and kafka logs")
-
-        # remove mini-provisioning temp files
-        cmd = "rm -rf  /tmp/utils.post_install.* /tmp/utils.config.* /tmp/utils.test.*"
-        cmd_proc = SimpleProcess(cmd)
-        stdout, stderr, retcode = cmd_proc.run()
-        if retcode != 0:
-            raise SetupError(errno.EIO,
-                             "Error while deleting mini-provisioning temp files")
-
-        # start kafka services
-        for service in ["kafka-zookeeper", "kafka"]:
-            cmd = f"systemctl start {service}"
-            cmd_proc = SimpleProcess(cmd)
-            stdout, stderr, retcode = cmd_proc.run()
-            if retcode != 0:
-                raise SetupError(errno.EIO, f"Error while starting {service} server")
+                             "Error while deleting config file")
+        print("Cleanup completed successfully!")
         return 0
