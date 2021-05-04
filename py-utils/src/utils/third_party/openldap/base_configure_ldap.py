@@ -63,6 +63,11 @@ try:
     os.remove(module1File)
 except:
     print('Error while deleting ' + module1File)
+module2File = '/etc/openldap/slapd.d/cn=config/cn=module{2}.ldif'
+try:
+    os.remove(module2File)
+except:
+    print('Error while deleting ' + module2File)
 mdbDirectory = '/etc/openldap/slapd.d/cn=config/olcDatabase={2}mdb'
 try:
     files = glob.glob('/etc/openldap/slapd.d/cn=config/olcDatabase={2}mdb/*')
