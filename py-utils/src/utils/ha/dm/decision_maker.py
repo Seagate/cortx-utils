@@ -86,6 +86,8 @@ class RuleEngine(object):
                 (const.SPECIFIC_INFO_COMPONENT)
             module_var = sensor_response.get(const.SPECIFIC_INFO).get\
                 (const.SPECIFIC_INFO_MODULE)
+            event_var = sensor_response.get(const.SPECIFIC_INFO).get\
+                (const.SPECIFIC_INFO_EVENT)
         res_type_data = self._rules_schema[res_type]
         if res_type_data is not None:
             for item in res_type_data:
@@ -93,7 +95,8 @@ class RuleEngine(object):
                     severity == item[const.SEVERITY]:
                     if res_type == const.IEM:
                         if component_var == item[const.COMPONENT_ID] and \
-                            module_var == item[const.MODULE_ID]:
+                            module_var.lower() == item[const.MODULE_ID] and \
+                            event_var.lower() == item[const.EVENT_ID]:
                             action = item[const.ACTION]
                     else:
                         action = item[const.ACTION]
