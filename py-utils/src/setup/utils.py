@@ -165,16 +165,14 @@ class Utils:
         Conf.load("index", "json:///etc/cortx/message_bus.conf")
         server = Conf.get("index", 'message_broker>cluster[0]>server')
         if not server:
-            import sys
-            print("Reset/Cleanup already done or config file not found!")
-            sys.exit(0)
+            raise SetupError(errno.EINVAL, "Reset/Cleanup already done or config file not found!")
 
         # list all topics created
         topic_list_cmd = f"/opt/kafka/bin/kafka-topics.sh --list --bootstrap-server {server}:9092"
         cmd_proc = SimpleProcess(topic_list_cmd)
         res_op, res_err, res_rc = cmd_proc.run()
         if res_rc != 0:
-            raise SetupError(errno.EINVAL, f"Unable to list topics created. Make sure that kafka servers are running!")
+            raise SetupError(errno.EINVAL, "Unable to list topics created. Make sure that kafka servers are running!")
         topics = ",".join([x for x in res_op.decode("utf-8").split('\n') if x])
 
         # delete topics
@@ -183,8 +181,7 @@ class Utils:
             cmd_proc = SimpleProcess(cmd)
             res_op, res_err, res_rc = cmd_proc.run()
             if res_rc != 0:
-                raise SetupError(errno.EIO, f"Error while deleting topic!")
-        print("Reset completed successfully!")
+                raise SetupError(errno.EIO, "Error while deleting topic!")
         return 0
 
     @staticmethod
@@ -194,9 +191,8 @@ class Utils:
         # delete data/config stored
         cmd = "rm -rf /etc/cortx/message_bus.conf"
         cmd_proc = SimpleProcess(cmd)
-        stdout, stderr, retcode = cmd_proc.run()
-        if retcode != 0:
+        res = cmd_proc.run()
+        if res[2] != 0:
             raise SetupError(errno.EIO,
                              "Error while deleting config file")
-        print("Cleanup completed successfully!")
         return 0
