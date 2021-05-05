@@ -24,12 +24,15 @@ from cortx.utils.validator.v_service import ServiceV
 
 class SetupError(Exception):
     """ Generic Exception with error code and output """
-
+    TIMEOUT = 5
+    UNKNOWNTPOIC = 3
     def __init__(self, rc, message, *args):
         self._rc = rc
         self._desc = message % (args)
 
     def __str__(self):
+        if "TIMEOUT" in self._desc:
+            return "error(%d): %s" %(self.TIMEOUT, self._desc)
         if self._rc == 0: return self._desc
         return "error(%d): %s" %(self._rc, self._desc)
 
@@ -160,31 +163,31 @@ class Utils:
     @staticmethod
     def reset():
         """ Remove/Delete all the data that was created after post install """
+
         from cortx.utils.conf_store import Conf
         Conf.load("index", "json:///etc/cortx/message_bus.conf")
         servers = Conf.get("index", 'message_broker>cluster')
         if not servers:
             raise SetupError(errno.EINVAL, "Reset/Cleanup already done or config file not found!")
 
-        for server in servers:
-            # list all topics created
-            topic_list_cmd = f"/opt/kafka/bin/kafka-topics.sh --list --bootstrap-server " \
-                             f"{server.get('server')}:{server.get('port')}"
-            cmd_proc = SimpleProcess(topic_list_cmd)
-            res_op, res_err, res_rc = cmd_proc.run()
-            if res_rc != 0:
-                raise SetupError(errno.EINVAL,
-                                 "Unable to list topics created. Make sure that message servers are running!")
-            topics = ",".join([x for x in res_op.decode("utf-8").split('\n') if x])
+        servers = ','.join([x['server'] + ':' + x['port'] for x in servers])
+        # list all message-types created
+        topic_list_cmd = f"/opt/kafka/bin/kafka-topics.sh --list --bootstrap-server {servers}"
+        cmd_proc = SimpleProcess(topic_list_cmd)
+        res_op, res_err, res_rc = cmd_proc.run()
+        if res_rc != 0:
+            raise SetupError(errno.EINVAL,
+                             "Unable to list message-types created. Make sure that MessageBus "
+                             "servers are running! %s" % res_err)
+        topics = ",".join([x for x in res_op.decode("utf-8").split('\n') if x])
 
-            # delete topics
-            if topics:
-                cmd = f"/opt/kafka/bin/kafka-topics.sh --delete --topic {topics} " \
-                      f"--bootstrap-server {server.get('server')}:{server.get('port')}"
-                cmd_proc = SimpleProcess(cmd)
-                res_op, res_err, res_rc = cmd_proc.run()
-                if res_rc != 0:
-                    raise SetupError(errno.EIO, "Error while deleting topic!")
+        # delete message-types
+        if topics:
+            cmd = f"/opt/kafka/bin/kafka-topics.sh --delete --topic {topics} --bootstrap-server {servers}"
+            cmd_proc = SimpleProcess(cmd)
+            _, res_err, res_rc = cmd_proc.run()
+            if res_rc != 0:
+                raise SetupError(errno.EIO, "Error while deleting message-types! %s" % res_err)
         return 0
 
     @staticmethod
