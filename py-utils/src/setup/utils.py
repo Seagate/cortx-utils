@@ -24,15 +24,12 @@ from cortx.utils.validator.v_service import ServiceV
 
 class SetupError(Exception):
     """ Generic Exception with error code and output """
-    TIMEOUT = 5
-    UNKNOWNTPOIC = 3
+
     def __init__(self, rc, message, *args):
         self._rc = rc
         self._desc = message % (args)
 
     def __str__(self):
-        if "TIMEOUT" in self._desc:
-            return "error(%d): %s" %(self.TIMEOUT, self._desc)
         if self._rc == 0: return self._desc
         return "error(%d): %s" %(self._rc, self._desc)
 
@@ -176,7 +173,7 @@ class Utils:
         cmd_proc = SimpleProcess(topic_list_cmd)
         res_op, res_err, res_rc = cmd_proc.run()
         if res_rc != 0:
-            raise SetupError(errno.EINVAL,
+            raise SetupError(errno.ETIMEDOUT,
                              "Unable to list message-types created. Make sure that MessageBus "
                              "servers are running! %s" % res_err)
         topics = ",".join([x for x in res_op.decode("utf-8").split('\n') if x])
