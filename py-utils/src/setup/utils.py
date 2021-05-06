@@ -197,8 +197,8 @@ class Utils:
         # delete data/config stored
         cmd = "rm -rf /etc/cortx/message_bus.conf"
         cmd_proc = SimpleProcess(cmd)
-        res = cmd_proc.run()
-        if res[2] != 0:
+        _, res_err, res_rc = cmd_proc.run()
+        if res_rc != 0:
             raise SetupError(errno.EIO,
-                             "Error while deleting config file")
+                             "Error while deleting config file %s" % res_err)
         return 0
