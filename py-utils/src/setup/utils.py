@@ -170,7 +170,7 @@ class Utils:
         if not servers:
             raise SetupError(errno.EINVAL, "Reset/Cleanup already done or config file not found!")
 
-        servers = ','.join([x['server'] + ':' + x['port'] for x in servers])
+        servers = ",".join([x["server"] + ":" + x["port"] for x in servers])
         # list all message-types created
         topic_list_cmd = f"/opt/kafka/bin/kafka-topics.sh --list --bootstrap-server {servers}"
         cmd_proc = SimpleProcess(topic_list_cmd)
