@@ -73,6 +73,9 @@ set(UTILS_FAULT utils-fault)
 add_subdirectory(log)
 set(UTILS_LOG utils-log)
 
+add_subdirectory(m0_log)
+set(UTIL_M0_LOG log)
+
 # Build log dir
 add_subdirectory(common)
 set(UTILS_COMMON utils-common)
@@ -108,6 +111,7 @@ add_library(${UTILS_LIB} SHARED
 		$<TARGET_OBJECTS:${UTILS_TSDB}>
 		$<TARGET_OBJECTS:${UTILS_FAULT}>
 		$<TARGET_OBJECTS:${UTILS_LOG}>
+		$<TARGET_OBJECTS:${UTIL_M0_LOG}>
 		$<TARGET_OBJECTS:${UTILS_CORTX}>
 		$<TARGET_OBJECTS:${UTILS_COMMON}>
 		$<TARGET_OBJECTS:${UTILS_UT}>
