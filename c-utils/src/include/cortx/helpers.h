@@ -58,6 +58,17 @@ struct m0kvs_key_iter {
 	bool initialized;
 };
 
+struct m0kvs_key_iter_v1 {
+	struct m0_bufvec key;
+	struct m0_bufvec val;
+	struct m0_op *op;
+	struct m0_idx *index;
+	int32_t *rcs;
+	bool initialized;
+	int16_t rcs_len;
+	int16_t  idx_to_read;
+};
+
 typedef bool (*get_list_cb)(char *k, void *arg);
 
 int m0init(struct collection_item *cfg_items);
@@ -129,6 +140,11 @@ int m0kvs_key_iter_find(const void* prefix, size_t prefix_len,
 
 /* Find the next record and set iter to it. */
 int m0kvs_key_iter_next(struct m0kvs_key_iter *priv);
+
+int m0kvs_key_iter_find_v1(const void* prefix, size_t prefix_len,
+			   struct m0kvs_key_iter_v1 *priv, int batch_size);
+void m0kvs_key_iter_get_kv_v1(struct m0kvs_key_iter_v1 *priv, void **key,
+			      size_t *klen, void **val, size_t *vlen);
 
 /**
  * Get pointer to key data.
