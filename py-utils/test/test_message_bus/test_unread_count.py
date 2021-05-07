@@ -18,37 +18,70 @@
 
 
 import unittest
-from cortx.utils.message_bus import MessageBus, MessageProducer, MessageConsumer
+from cortx.utils.message_bus import MessageProducer, MessageConsumer
 
 
 class TestMessage(unittest.TestCase):
     """ Test MessageBus related functionality """
 
-    message_bus = MessageBus()
+    _msg_type = "biggg"
+    _consumer_group = "connn"
+    _msg_count = 100
+    _receive_limit = 10
 
-    def test_send(self):
-        """ Test Send Message """
+    def test_delete_messages(self):
+        """ Test Delete """
+        producer = MessageProducer(producer_id="p1", \
+            message_type=TestMessage._msg_type, method="sync")
+        producer.delete()
+        unread_count = producer.get_unread_count \
+            (consumer_group=TestMessage._consumer_group)
+        self.assertEqual(unread_count, 0)
+        self.assertFalse(unread_count > 0)
+
+    def test_producer_unread_count(self):
+        """ Test unread message count from producer side """
+        producer = MessageProducer(producer_id="p1", \
+            message_type=TestMessage._msg_type, method="sync")
         messages = []
-        producer = MessageProducer(TestMessage.message_bus, \
-            producer_id='p1', message_type='big')
-
-        self.assertIsNotNone(producer, "Producer not found")
-        for i in range(0, 100):
+        for i in range(0, TestMessage._msg_count):
             messages.append("This is message" + str(i))
-        self.assertEqual(len(messages), 100)
+        self.assertEqual(len(messages), TestMessage._msg_count)
         self.assertIsInstance(messages, list)
         producer.send(messages)
+        unread_count = producer.get_unread_count(
+            consumer_group=TestMessage._consumer_group)
+        self.assertEqual(unread_count, TestMessage._msg_count)
+        self.assertFalse(unread_count != 100)
 
-    def test_count(self):
-        """ Test Unread Message Count """
-        consumer = MessageConsumer(TestMessage.message_bus, \
-            consumer_id='sensors', consumer_group='test_group', \
-            message_types=['big'], auto_ack=True, offset='latest')
+    def test_consumer_unread_count(self):
+        """ Test unread message count from consumer side """
+        read_count = 0
+        consumer = MessageConsumer(consumer_id="c1", \
+            consumer_group=TestMessage._consumer_group, \
+            message_types=[TestMessage._msg_type], auto_ack=True, \
+            offset="latest")
 
-        self.assertIsNotNone(consumer, "Consumer not found")
-        unread_count = consumer.get_unread_count()
-        self.assertEqual(unread_count, 100)
+        while True:
+            message = consumer.receive(timeout=0)
+            if message is not None:
+                read_count += 1
+                consumer.ack()
+            if read_count == TestMessage._receive_limit:
+                break
+
+        unread_count = consumer.get_unread_count \
+            (message_type=TestMessage._msg_type)
+        self.assertEqual(unread_count, (TestMessage._msg_count - \
+                                        TestMessage._receive_limit))
+        self.assertNotEqual(unread_count, TestMessage._msg_count)
 
 
-if __name__ == '__main__':
-    unittest.main()
+if __name__ == "__main__":
+    suite = unittest.TestSuite()
+    suite.addTest(TestMessage("test_delete_messages"))
+    suite.addTest(TestMessage("test_producer_unread_count"))
+    suite.addTest(TestMessage("test_consumer_unread_count"))
+
+    runner = unittest.TextTestRunner()
+    runner.run(suite)

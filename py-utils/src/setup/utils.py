@@ -20,7 +20,7 @@ import time
 
 from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.v_confkeys import ConfKeysV
-
+from cortx.utils.validator.v_service import ServiceV
 
 
 class SetupError(Exception):
@@ -113,6 +113,9 @@ class Utils:
     @staticmethod
     def post_install():
         """ Performs post install operations """
+
+        # check whether zookeeper and kafka are running
+        ServiceV().validate("isrunning", ["kafka-zookeeper.service", "kafka.service"])
 
         # Check python packages and install if something is missing
         cmd = "pip3 freeze"
