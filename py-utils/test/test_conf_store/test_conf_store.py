@@ -325,6 +325,79 @@ class TestConfStore(unittest.TestCase):
                 actual_id = mc_id_file.read()
         self.assertEqual(mc_id, actual_id.strip())
 
+    # Pillar
+    def test_conf_store_a_pillar_load_and_get_keys(self):
+        """ Test by loading the given pillar file to conf in-memory """
+        load_config("pillar_local", "pillar://srvnode-1@/srv/pillar")
+        result_data = Conf.get_keys('pillar_local')
+        self.assertTrue(len(result_data))
+
+    def test_conf_store_pillar_get(self):
+        """ Test by loading the given pillar file to conf in-memory """
+        result_keys = Conf.get_keys('pillar_local')
+        if len(result_keys)>0:
+            out = Conf.get("pillar_local", result_keys[0])
+            self.assertTrue(out)
+        else:
+            self.assertTrue(True if len(result_keys)==0 else False)
+
+    def test_conf_store_pillar_copy_api(self):
+        """
+        Test by coping the pillar to new index and dumping to a json file
+        """
+        custom_file_loc = "/tmp/conf_pillar_copy.json"
+        Conf.load('pillar_local_backup', f"json://{custom_file_loc}.bak")
+        Conf.copy('pillar_local', 'pillar_local_backup')
+        Conf.save('pillar_local_backup')
+        pillar_local = Conf.get_keys("pillar_local_backup")
+        Conf.load('pillar_local_backup_loaded', f"json://{custom_file_loc}.bak")
+        bkup_loaded = Conf.get_keys("pillar_local_backup_loaded")
+        self.assertListEqual(bkup_loaded, pillar_local)
+
+    def test_conf_store_pillar_a_set(self):
+        """
+        Test by setting the given key, value to conf pillar store in-memory
+        """
+        Conf.set('pillar_local', "srvnode-1>network>ip", "192.168.10.1")
+        out = Conf.get("pillar_local", "srvnode-1>network>ip")
+        self.assertEqual(out, "192.168.10.1")
+
+    def test_conf_store_pillar_b_delete(self):
+        """
+        Test by removing the given key's value from conf pillar store in-memory
+        """
+        Conf.delete('pillar_local', "srvnode-1>network>ip")
+        out = Conf.get("pillar_local", "srvnode-1>network>ip")
+        self.assertEqual(out, None)
+
+    def test_conf_store_pillar_c_delete_non_existing_key(self):
+        """
+        Test by removing the given key's value from conf pillar store in-memory
+        """
+        Conf.delete('pillar_local', "srvnode-1>network>ip")
+        out = Conf.get("pillar_local", "srvnode-1>network>ip")
+        self.assertEqual(out, None)
+
+    def test_conf_store_pillar_d_save_changes(self):
+        """
+        Test by saving the config key, value from store in-memory to pillar
+        """
+        Conf.set('pillar_local', "srvnode-1>cluster>ip", "192.168.10.1")
+        Conf.save('pillar_local')
+        load_config("pillar_reload", "pillar://srvnode-1@/srv/pillar")
+        out = Conf.get("pillar_reload", "srvnode-1>cluster>ip")
+        self.assertEqual(out, "192.168.10.1")
+    
+    def test_conf_store_pillar_e_custom_pillar_url(self):
+        """
+        Test by saving the config key, value from store in-memory to pillar
+        """
+        load_config("pillar_cust", "pillar://srvnode-1@/srv/utils/pillar")
+        Conf.set('pillar_cust', "srvnode-1>cluster>ip", "192.168.10.1")
+        out = Conf.get("pillar_cust", "srvnode-1>cluster>ip")
+        Conf.save("pillar_cust")
+        self.assertEqual(out, "192.168.10.1")
+
 if __name__ == '__main__':
     """
     Firstly create the file and load sample json into it.

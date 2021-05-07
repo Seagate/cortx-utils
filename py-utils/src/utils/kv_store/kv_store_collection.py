@@ -23,6 +23,7 @@ from cortx.utils.kv_store.error import KvError
 from cortx.utils.kv_store.kv_store import KvStore
 from cortx.utils.kv_store.kv_payload import KvPayload
 from cortx.utils.process import SimpleProcess
+from cortx.utils.schema import Format
 
 
 class JsonKvStore(KvStore):
@@ -249,41 +250,78 @@ class PropertiesKvStore(KvStore):
                 f.write("%s = %s\n" %(key, val))
 
 
-class PillarStore(KvStore):
+class PillarKvStore(KvStore):
     """ Salt Pillar based KV Store """
-    name = "salt"
+    name = "pillar"
 
     def __init__(self, store_loc, store_path, delim='>'):
         KvStore.__init__(self, store_loc, store_path, delim)
+        from salt.client import LocalClient
+        self._target = '*'
+        self._pillar_root = "/srv/pillar/"
+        self._client = LocalClient()
+        self._set_pillar_target_and_location()
+        self._delim = delim
 
-    def get(self, key):
-        """Get pillar data for key."""
-        import json
-        cmd = f"salt-call pillar.get {key} --out=json"
-        cmd_proc = SimpleProcess(cmd)
-        out, err, rc = cmd_proc.run()
+    def _set_pillar_target_and_location(self) -> None:
+        """
+        self._tragets are required to run a slat command.
+        self._pillar_root is pillar location from where the kvstore generated
+        sls files need to be stored
+        """
+        node_name = self._store_loc.split("@")
+        target = self._client.cmd("*", "test.ping")
+        valid_target = [key for key, value in target.items() if value is True]
+        valid_target.append("*")
+        if len(node_name[0]) > 1 and (not node_name[0] or node_name[0] not in valid_target):
+            raise KvError(errno.ENOENT, "Invalid target node %s.", node_name[0])
+        if len(node_name) > 1:
+            self._target = node_name[0]
+        # Set pillar root so that kvstore generated files will be kept there
+        if not os.path.exists(self._store_path):
+            raise KvError(errno.ENOENT, "Invalid pillar path %s", self._store_path)
+        
+        self.update_master_pillar_root()
 
-        if rc != 0:
-            if rc == 127:
-                err = f"salt command not found"
-            raise KvError(rc, f"Cant get data for %s. %s.", key, err)
+    def update_master_pillar_root(self) -> None:
+        from cortx.utils.schema.payload import Yaml
+        master_file_loc = "/etc/salt/master"
+        master_config = Yaml(master_file_loc).load()
 
-        res = None
+        # update pillar_root
+        if "pillar_roots" in master_config and \
+            "base" in master_config["pillar_roots"] and \
+            master_config["pillar_roots"]["base"] is not None:
+            master_config["pillar_roots"].setdefault("base", ['/srv/pillar'])
+        else:
+            master_config["pillar_roots"] = {'base': ['/srv/pillar']}
+        
+        if not self._store_path in master_config["pillar_roots"]["base"]:
+            master_config["pillar_roots"]["base"].append(self._store_path)
+        Yaml(master_file_loc).dump(master_config)
+
+    def load(self) -> KvPayload:
+        """ Loads data from pillar store """
         try:
-            res = json.loads(out)
-            res = res['local']
+            res = self._client.cmd(self._target, 'pillar.items')
+        except Exception as err:
+            raise KvError(errno.ENOENT, "Cant load data %s.", err)
+        return KvPayload(res, self._delim)
 
-        except Exception as ex:
-            raise KvError(errno.ENOENT, f"Cant get data for %s. %s.", key, ex)
-        if res is None:
-            raise KvError(errno.ENOENT, f"Cant get data for %s. %s."
-                                        f"Key not present")
-        return res
-
-    def set(self, key, value):
-        # TODO: Implement
-        pass
-
-    def delete(self, key):
-        # TODO: Implement
-        pass
+    def dump(self, data:dict) -> None:
+        """ Saves data onto the file """
+        import yaml
+        raw_data = data.get_data()
+        target_nodes = self._client.cmd("*", "test.ping")
+        for each_node in raw_data:
+            if each_node in target_nodes:
+                sls_data_list = raw_data[each_node]
+                for each_key in sls_data_list:
+                    data = Format.dump({each_key:sls_data_list[each_key]}, "yaml")
+                    path = f"{self._store_path}/{each_key}.sls"
+                    if not os.path.exists(f"{self._store_path}/{each_key}.sls"):
+                        path = f"{self._store_path}/conf/{each_key}.sls"
+                    if not os.path.exists(f"{self._store_path}/conf/"):
+                        os.mkdir(f"{self._store_path}/conf/")
+                    with open(path, 'w+') as f:
+                        yaml.dump(yaml.safe_load(data), f, default_flow_style=False)
