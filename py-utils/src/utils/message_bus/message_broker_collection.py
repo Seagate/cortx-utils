@@ -19,7 +19,7 @@ import errno
 import time
 import json
 import re
-from confluent_kafka import Producer, Consumer, KafkaError
+from confluent_kafka import Producer, Consumer, KafkaError, KafkaException
 from confluent_kafka.admin import AdminClient, ConfigResource, NewTopic, \
     NewPartitions
 from cortx.utils.message_bus.error import MessageBusError
@@ -61,8 +61,19 @@ class KafkaMessageBroker(MessageBroker):
             raise MessageBusError(errno.EINVAL, "Invalid client type %s", \
                 client_type)
 
-        if client_conf['client_id'] in self._clients[client_type].keys():
-            if self._clients[client_type][client_conf['client_id']] != {}:
+        if client_conf["client_id"] in self._clients[client_type].keys():
+            if self._clients[client_type][client_conf["client_id"]] != {}:
+                # Check if message_type exists to send/receive
+                client = self._clients[client_type][client_conf["client_id"]]
+                available_message_types = client.list_topics().topics.keys()
+                if client_type == "producer":
+                    if client_conf["message_type"] not in available_message_types:
+                        raise KafkaException(KafkaError(3))
+                elif client_type == "consumer":
+                    if not any(each_message_type in available_message_types for \
+                               each_message_type in
+                               client_conf["message_types"]):
+                        raise KafkaException(KafkaError(3))
                 return
 
         kafka_conf = {}
