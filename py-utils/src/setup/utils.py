@@ -163,7 +163,7 @@ class Utils:
 
         from cortx.utils.conf_store import Conf
         Conf.load("index", "json:///etc/cortx/message_bus.conf")
-        servers = Conf.get("index", 'message_broker>cluster')
+        servers = Conf.get("index", "message_broker>cluster")
         if not servers:
             raise SetupError(errno.EINVAL, "Reset/Cleanup already done or config file not found!")
 
@@ -173,18 +173,17 @@ class Utils:
         cmd_proc = SimpleProcess(topic_list_cmd)
         res_op, res_err, res_rc = cmd_proc.run()
         if res_rc != 0:
-            raise SetupError(errno.ETIMEDOUT,
-                             "Unable to list message-types created. Make sure that MessageBus "
-                             "servers are running! %s" % res_err)
-        topics = ",".join([x for x in res_op.decode("utf-8").split('\n') if x])
-
+            raise SetupError(errno.ETIMEDOUT, \
+                             "Unable to list message_types created. " + \
+                             "Make sure that MessageBus servers are running! %s", res_err)
+        topics = ",".join([x for x in res_op.decode("utf-8").split("\n") if x])
         # delete message-types
         if topics:
             cmd = f"/opt/kafka/bin/kafka-topics.sh --delete --topic {topics} --bootstrap-server {servers}"
             cmd_proc = SimpleProcess(cmd)
             _, res_err, res_rc = cmd_proc.run()
             if res_rc != 0:
-                raise SetupError(errno.EIO, "Error while deleting message-types! %s" % res_err)
+                raise SetupError(errno.EIO, "Error while deleting message_types! %s", res_err)
         return 0
 
     @staticmethod
@@ -196,6 +195,5 @@ class Utils:
         cmd_proc = SimpleProcess(cmd)
         _, res_err, res_rc = cmd_proc.run()
         if res_rc != 0:
-            raise SetupError(errno.EIO,
-                             "Error while deleting config file %s" % res_err)
+            raise SetupError(errno.EIO, "Error while deleting config file %s", res_err)
         return 0
