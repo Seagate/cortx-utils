@@ -15,11 +15,8 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-__title__ = 'message_bus'
+__title__ = 'rest_server'
 
-from cortx.utils.message_bus.message_bus import MessageBus
-from cortx.utils.message_bus.message_bus_client import MessageProducer, \
-    MessageConsumer, MessageBusAdmin
-from cortx.utils.message_bus.message_broker import MessageBroker, MessageBrokerFactory
-from cortx.utils.message_bus.error import MessageBusError, MessageServerError
+from cortx.utils.rest_server.rest_server import RestServer
+from cortx.utils.rest_server.error import RestServerError
 

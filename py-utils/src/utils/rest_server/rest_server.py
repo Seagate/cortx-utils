@@ -15,11 +15,12 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-__title__ = 'message_bus'
 
-from cortx.utils.message_bus.message_bus import MessageBus
-from cortx.utils.message_bus.message_bus_client import MessageProducer, \
-    MessageConsumer, MessageBusAdmin
-from cortx.utils.message_bus.message_broker import MessageBroker, MessageBrokerFactory
-from cortx.utils.message_bus.error import MessageBusError, MessageServerError
+class RestServer:
+    """ Common infrastructure for Rest Server implementation """
+
+    def __init__(self, web, routes, host: str, port: int):
+        app = web.Application()
+        app.add_routes(routes)
+        web.run_app(app, host=host, port=port)
 

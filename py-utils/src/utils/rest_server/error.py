@@ -15,11 +15,20 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-__title__ = 'message_bus'
+from collections import defaultdict
 
-from cortx.utils.message_bus.message_bus import MessageBus
-from cortx.utils.message_bus.message_bus_client import MessageProducer, \
-    MessageConsumer, MessageBusAdmin
-from cortx.utils.message_bus.message_broker import MessageBroker, MessageBrokerFactory
-from cortx.utils.message_bus.error import MessageBusError, MessageServerError
+class RestServerError(Exception):
+    """ Error class for cortx rest server """
+    def __init__(self, e):
+        self._e = e
+
+    def http_error(self):
+        return self._http_error(self._e)
+    
+    @staticmethod
+    def _http_error(except_name):
+        ret_code_map = defaultdict(lambda: 500)
+        ret_code_map['KeyError'] = 418 # wrong key from client
+        ret_code_map['KafkaException'] = 514
+        return ret_code_map[except_name]
 

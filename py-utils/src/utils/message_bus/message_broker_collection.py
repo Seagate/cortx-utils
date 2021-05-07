@@ -425,7 +425,7 @@ class KafkaMessageBroker(MessageBroker):
                     if timeout > 0:
                         return None
                 elif msg.error():
-                    raise MessageBusError(errno.ECONN, "Cant receive. %s", \
+                    raise MessageBusError(errno.ECONNRESET, "Cant receive. %s", \
                         msg.error())
                 else:
                     return msg.value()
