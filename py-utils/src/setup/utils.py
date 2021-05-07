@@ -168,7 +168,7 @@ class Utils:
             raise SetupError(errno.EINVAL, "Reset/Cleanup already done or config file not found!")
 
         servers = ",".join([x["server"] + ":" + x["port"] for x in servers])
-        # list all message-types created
+        # list all message_types created
         topic_list_cmd = f"/opt/kafka/bin/kafka-topics.sh --list --bootstrap-server {servers}"
         cmd_proc = SimpleProcess(topic_list_cmd)
         res_op, res_err, res_rc = cmd_proc.run()
@@ -177,7 +177,7 @@ class Utils:
                              "Unable to list message_types created. " + \
                              "Make sure that MessageBus servers are running! %s", res_err)
         topics = ",".join([x for x in res_op.decode("utf-8").split("\n") if x])
-        # delete message-types
+        # delete message_types
         if topics:
             cmd = f"/opt/kafka/bin/kafka-topics.sh --delete --topic {topics} --bootstrap-server {servers}"
             cmd_proc = SimpleProcess(cmd)
@@ -189,11 +189,13 @@ class Utils:
     @staticmethod
     def cleanup():
         """ Cleanup message bus config and logs. """
-
-        # delete data/config stored
-        cmd = "rm -rf /etc/cortx/message_bus.conf"
-        cmd_proc = SimpleProcess(cmd)
-        _, res_err, res_rc = cmd_proc.run()
-        if res_rc != 0:
-            raise SetupError(errno.EIO, "Error while deleting config file %s", res_err)
+        import os
+        config_file = "/etc/cortx/message_bus.conf"
+        if os.path.exists(config_file):
+            # delete data/config stored
+            cmd = f"rm -rf {config_file}"
+            cmd_proc = SimpleProcess(cmd)
+            _, res_err, res_rc = cmd_proc.run()
+            if res_rc != 0:
+                raise SetupError(errno.EIO, "Error while deleting config file %s", res_err)
         return 0
