@@ -22,6 +22,7 @@ from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.validator.v_service import ServiceV
 
+
 class SetupError(Exception):
     """ Generic Exception with error code and output """
 
@@ -159,43 +160,5 @@ class Utils:
 
     @staticmethod
     def reset():
-        """ Remove/Delete all the data that was created after post install """
-
-        from cortx.utils.conf_store import Conf
-        Conf.load("index", "json:///etc/cortx/message_bus.conf")
-        servers = Conf.get("index", "message_broker>cluster")
-        if not servers:
-            raise SetupError(errno.EINVAL, "Reset/Cleanup already done or config file not found!")
-
-        servers = ",".join([x["server"] + ":" + x["port"] for x in servers])
-        # list all message_types created
-        topic_list_cmd = f"/opt/kafka/bin/kafka-topics.sh --list --bootstrap-server {servers}"
-        cmd_proc = SimpleProcess(topic_list_cmd)
-        res_op, res_err, res_rc = cmd_proc.run()
-        if res_rc != 0:
-            raise SetupError(errno.ETIMEDOUT, \
-                             "Unable to list message_types created. " + \
-                             "Make sure that MessageBus servers are running! %s", res_err)
-        topics = ",".join([x for x in res_op.decode("utf-8").split("\n") if x])
-        # delete message_types
-        if topics:
-            cmd = f"/opt/kafka/bin/kafka-topics.sh --delete --topic {topics} --bootstrap-server {servers}"
-            cmd_proc = SimpleProcess(cmd)
-            _, res_err, res_rc = cmd_proc.run()
-            if res_rc != 0:
-                raise SetupError(errno.EIO, "Error while deleting message_types! %s", res_err)
-        return 0
-
-    @staticmethod
-    def cleanup():
-        """ Cleanup message bus config and logs. """
-        import os
-        config_file = "/etc/cortx/message_bus.conf"
-        if os.path.exists(config_file):
-            # delete data/config stored
-            cmd = f"rm -rf {config_file}"
-            cmd_proc = SimpleProcess(cmd)
-            _, res_err, res_rc = cmd_proc.run()
-            if res_rc != 0:
-                raise SetupError(errno.EIO, "Error while deleting config file %s", res_err)
+        """ Performs Configuraiton reset """
         return 0
