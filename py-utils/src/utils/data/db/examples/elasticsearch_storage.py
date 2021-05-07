@@ -142,7 +142,7 @@ async def example():
             "es_db": {
                 "import_path": "ElasticSearchDB",
                 "config": {
-                    "host": "localhost",
+                    "hosts": ["localhost"],
                     "port": 9200,
                     "login": "",
                     "password": ""

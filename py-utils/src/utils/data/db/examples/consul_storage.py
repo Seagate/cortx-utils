@@ -142,7 +142,7 @@ async def example():
             "es_db": {
                 "import_path": "ElasticSearchDB",
                 "config": {
-                    "host": "localhost",
+                    "hosts": ["localhost"],
                     "port": 9200,
                     "login": "",
                     "password": ""
@@ -153,7 +153,7 @@ async def example():
                     "import_path": "ConsulDB",
                     "config":
                         {
-                            "host": "127.0.0.1",
+                            "hosts": ["127.0.0.1"],
                             "port": 8500,  # HTTP API Port
                             "login": "",
                             "password": ""

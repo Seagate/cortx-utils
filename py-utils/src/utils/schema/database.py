@@ -20,7 +20,7 @@ DATABASE = {
         "consul_db": {
             "import_path": "ConsulDB",
             "config": {
-                "host": "localhost",
+                "hosts": ["127.0.0.1"],
                 "port": 8500,
                 "login": "",
                 "password": ""
@@ -29,7 +29,7 @@ DATABASE = {
         "es_db": {
             "import_path": "ElasticSearchDB",
             "config": {
-                "host": "localhost",
+                "hosts": ["127.0.0.1"],
                 "port": 9200,
                 "login": "",
                 "password": "",
