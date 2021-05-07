@@ -44,9 +44,10 @@ with open('README.md', 'r') as rf:
     long_description = rf.read()
 
 def get_install_requirements() -> list:
-    install_requires = []
-    with open('requirements.txt') as r:
-        install_requires = [line.strip() for line in r]
+    with open('requirements.txt') as req, \
+         open('requirements.ext.txt') as extreq:
+        install_requires = [line.strip() for line in req] + \
+                           [line.strip() for line in extreq]
     return install_requires
 
 setup(name='cortx-py-utils',
@@ -88,7 +89,7 @@ setup(name='cortx-py-utils',
                      ('/var/lib/cortx/ha', ['src/utils/ha/hac/args.yaml',
                                             'src/utils/ha/hac/re_build.sh']),
                      ('/opt/seagate/cortx/utils/conf',
-                          ['requirements.txt', 'src/setup/setup.yaml']),
+                          ['requirements.txt', 'requirements.ext.txt', 'src/setup/setup.yaml']),
                      ('/opt/seagate/cortx/utils/conf', tmpl_files)],
       long_description=long_description,
       zip_safe=False,
