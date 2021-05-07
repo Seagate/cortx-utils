@@ -24,7 +24,7 @@ from cortx.utils.schema import Format
 class KvPayload:
     """ Dict based in memory representation of Key Value data """
 
-    def __init__(self, data, delim='>'):
+    def __init__(self, data: dict = None, delim='>'):
         """
         kvstore will be initialized at the time of load
         delim is used to split key into hierarchy, e.g. "k1>2" or "k1.k2"
@@ -35,6 +35,10 @@ class KvPayload:
         self._delim = delim
         self._keys = []
         self._get_keys(self._keys, self._data)
+
+    @property
+    def json(self):
+        return Format.dump(self._data, 'json')
 
     def get_data(self, format_type: str = None):
         if format_type == None:
@@ -123,6 +127,10 @@ class KvPayload:
         if key not in self._keys:
             self._keys.append(key)
 
+    def __setitem__(self, key: str, val: str):
+        """ set operator for KV payload, i.e. kv['xxx'] = 'yyy' """
+        self.set(key, val)
+
     def _get(self, key: str, data: dict) -> str:
         k = key.split(self._delim, 1)
 
@@ -155,6 +163,10 @@ class KvPayload:
     def get(self, key: str) -> str:
         """ Obtain value for the given key """
         return self._get(key, self._data)
+
+    def __getitem__(self, key: str, val: str):
+        """ read operator for KV payload, i.e. kv['xxx'] """
+        return self.get(key)
 
     def _delete(self, key: str, data: dict):
         k = key.split(self._delim, 1)
