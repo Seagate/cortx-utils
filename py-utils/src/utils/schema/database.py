@@ -15,7 +15,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-DATABASE = {
+DATABASE_DRIVERS = {
     "databases": {
         "consul_db": {
             "import_path": "ConsulDB",
@@ -36,6 +36,9 @@ DATABASE = {
                 "replication": 1}
             },
         },
+    }
+}
+DATABASE_MODELS = {
     "models": [
         {
             "import_path": "cortx.utils.ha.dm.models.decisiondb.DecisionModel",
