@@ -21,6 +21,7 @@
 #define _LOG_H
 
 #include <stdio.h>
+#include <stdbool.h>
 
 #define ATTR_FORMAT(_fmt, _va) __attribute__((format(printf, _fmt, _va)))
 
@@ -35,6 +36,7 @@ typedef enum {
     LEVEL_INFO,
     LEVEL_TRACE,
     LEVEL_DEBUG,
+    LEVEL_TEST,
 } log_level_t;
 
 #define log_fatal(...) LOG(LEVEL_FATAL, ##__VA_ARGS__)
@@ -42,6 +44,7 @@ typedef enum {
 #define log_warn(...) LOG(LEVEL_WARN, ##__VA_ARGS__)
 #define log_info(...) LOG(LEVEL_INFO, ##__VA_ARGS__)
 #define log_trace(...) LOG(LEVEL_TRACE, ##__VA_ARGS__)
+#define log_test(...) LOG(LEVEL_TEST, ##__VA_ARGS__)
 
 #define log_debug(...) LOG(LEVEL_DEBUG, ##__VA_ARGS__)
 
