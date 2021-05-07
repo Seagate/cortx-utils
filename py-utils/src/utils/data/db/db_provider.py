@@ -24,6 +24,7 @@ from schematics import Model
 from schematics.types import DictType, StringType, ListType, ModelType, IntType
 
 from cortx.utils.data.access import BaseModel
+from cortx.utils.log import Log
 from cortx.utils.errors import MalformedConfigurationError, DataAccessInternalError, DataAccessError
 from cortx.utils.data.access import AbstractDataBaseProvider
 
@@ -146,6 +147,7 @@ class AsyncDataBase:
         self._model = model
         self._model_settings = model_config.config.get(model_config.database)
         self._db_config = db_config.databases.get(model_config.database)
+        Log.info(f'Connect to DB {self._db_config.config.host}:{self._db_config.config.port}')
         self._database_status = ServiceStatus.NOT_CREATED
         self._database_module = getattr(db_module, self._db_config.import_path)
         self._database = None

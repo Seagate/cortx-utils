@@ -20,6 +20,7 @@ from cortx.utils.data.access import Query
 from cortx.utils.data.access.filters import Compare, And
 from cortx.utils.data.db.db_provider import DataBaseProvider, GeneralConfig
 from cortx.utils import const
+from cortx.utils.ha.hac import const as constha
 from cortx.utils.log import Log
 from cortx.utils.schema import database
 from cortx.utils.schema.payload import Json
@@ -28,7 +29,12 @@ from cortx.utils.product_features.model import UnsupportedFeaturesModel
 class UnsupportedFeaturesDB:
     def __init__(self) -> None:
         """Init load consul db for storing key in db."""
-        conf = GeneralConfig(database.DATABASE)
+        if os.path.exists(os.path.join(constha.CONF_PATH, constha.HA_DATABADE_SCHEMA)):
+            schema = Json(os.path.join(constha.CONF_PATH,
+                          constha.HA_DATABADE_SCHEMA)).load()
+            conf = GeneralConfig(schema)
+        else:
+            conf = GeneralConfig(database.DATABASE)
         self.storage = DataBaseProvider(conf)
 
     async def store_unsupported_feature(self, component_name, feature_name):
