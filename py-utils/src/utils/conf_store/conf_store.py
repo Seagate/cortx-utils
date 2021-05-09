@@ -36,6 +36,20 @@ class ConfStore:
         self._delim = delim
         self._cache = {}
         self._callbacks = {}
+        self._machine_id = self._get_machine_id()
+
+    @property
+    def machine_id(self):
+        return self._machine_id
+
+    def _get_machine_id(self):
+        """ Returns the machine id from /etc/machine-id """
+        from pathlib import Path
+        machine_id_file = Path("/etc/machine-id")
+        if machine_id_file.is_file() and machine_id_file.stat().st_size > 0:
+            with open("/etc/machine-id", 'r') as mc_id_file:
+                machine_id = mc_id_file.read()
+            return machine_id
 
     def load(self, index: str, kvs_url: str, **kwargs):
         """
@@ -113,9 +127,18 @@ class ConfStore:
 
         self._cache[index].set(key, val)
 
-    def get_keys(self, index: str):
-        """ Obtains list of keys stored in the specific config store """
-        return self._cache[index].get_keys()
+    def get_keys(self, index: str, **filters) -> list:
+        """
+        Obtains list of keys stored in the specific config store
+        Input Paramters:
+        Index   - Index for which the list of keys to be obtained
+        Filters - Filters to be applied before the keys to be returned.
+                  List of filters:
+                  * key_index={True|False} (default: True)
+                    when False, returns keys including array index
+                    e.g. In case of "xxx[0],xxx[1]", only "xxx" is returned
+        """
+        return self._cache[index].get_keys(**filters)
 
     def get_data(self, index: str):
         """ Obtains entire config for given index """
@@ -149,7 +172,7 @@ class ConfStore:
                 dst_index)
 
         if key_list is None:
-            key_list = self._cache[src_index].get_keys()
+            key_list = self._cache[src_index].get_keys(key_index=False)
         for key in key_list:
             self._cache[dst_index].set(key, self._cache[src_index].get(key))
 
@@ -158,17 +181,22 @@ class Conf:
     """ Singleton class instance based on conf_store """
     _conf = None
     _delim = '>'
+    _machine_id = None
 
     @staticmethod
     def init(**kwargs):
-        for key, val in kwargs.items():
-            setattr(Conf, f"_{key}", val)
+        """ static init for initialising and setting attributes """
+        if Conf._conf is None:
+            for key, val in kwargs.items():
+                setattr(Conf, f"_{key}", val)
+            Conf._conf = ConfStore(delim=Conf._delim)
+            Conf._machine_id = Conf._conf.machine_id
 
     @staticmethod
     def load(index: str, url: str):
         """ Loads Config from the given URL """
         if Conf._conf is None:
-            Conf._conf = ConfStore(delim=Conf._delim)
+            Conf.init()
         Conf._conf.load(index, url)
 
     @staticmethod
@@ -197,7 +225,28 @@ class Conf:
         Conf._conf.copy(src_index, dst_index, key_list)
         Conf._conf.save(dst_index)
 
-    @staticmethod
-    def get_keys(index: str):
-        """ Obtains list of keys stored in the specific config store """
-        return Conf._conf.get_keys(index)
+    class ClassProperty(property):
+        """ Subclass property for classmethod properties """
+        def __get__(self, cls, owner):
+            return self.fget.__get__(None, owner)()
+
+    @ClassProperty
+    @classmethod
+    def machine_id(self):
+        """ Returns the machine id from /etc/machine-id """
+        if Conf._conf is None:
+            Conf.init()
+        return self._machine_id.strip() if self._machine_id else None
+
+    def get_keys(index: str, **filters) -> list:
+        """
+        Obtains list of keys stored in the specific config store
+        Input Paramters:
+        Index   - Index for which the list of keys to be obtained
+        Filters - Filters to be applied before the keys to be returned.
+                  List of filters:
+                  * key_index={True|False} (default: True)
+                    when False, returns keys including array index
+                    e.g. In case of "xxx[0],xxx[1]", only "xxx" is returned
+        """
+        return Conf._conf.get_keys(index, **filters)

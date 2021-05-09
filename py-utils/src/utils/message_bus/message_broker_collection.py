@@ -19,7 +19,7 @@ import errno
 import time
 import json
 import re
-from confluent_kafka import Producer, Consumer
+from confluent_kafka import Producer, Consumer, KafkaError, KafkaException
 from confluent_kafka.admin import AdminClient, ConfigResource, NewTopic, \
     NewPartitions
 from cortx.utils.message_bus.error import MessageBusError
@@ -44,6 +44,9 @@ class KafkaMessageBroker(MessageBroker):
     # Polling timeout
     _default_timeout = 0.5
 
+    # Socket timeout
+    _kafka_socket_timeout = 15000
+
     def __init__(self, broker_conf: dict):
         """ Initialize Kafka based Configurations """
         super().__init__(broker_conf)
@@ -58,16 +61,29 @@ class KafkaMessageBroker(MessageBroker):
             raise MessageBusError(errno.EINVAL, "Invalid client type %s", \
                 client_type)
 
-        if client_conf['client_id'] in self._clients[client_type].keys():
-            if self._clients[client_type][client_conf['client_id']] != {}:
+        if client_conf["client_id"] in self._clients[client_type].keys():
+            if self._clients[client_type][client_conf["client_id"]] != {}:
+                # Check if message_type exists to send/receive
+                client = self._clients[client_type][client_conf["client_id"]]
+                available_message_types = client.list_topics().topics.keys()
+                if client_type == "producer":
+                    if client_conf["message_type"] not in available_message_types:
+                        raise KafkaException(KafkaError(3))
+                elif client_type == "consumer":
+                    if not any(each_message_type in available_message_types for \
+                               each_message_type in
+                               client_conf["message_types"]):
+                        raise KafkaException(KafkaError(3))
                 return
 
         kafka_conf = {}
         kafka_conf['bootstrap.servers'] = self._servers
         kafka_conf['client.id'] = client_conf['client_id']
+        kafka_conf['error_cb'] = self._error_cb
 
         if client_type == 'admin' or self._clients['admin'] == {}:
             if client_type != 'consumer':
+                kafka_conf['socket.timeout.ms'] = self._kafka_socket_timeout
                 self.admin = AdminClient(kafka_conf)
                 self._clients['admin'][client_conf['client_id']] = self.admin
 
@@ -123,6 +139,13 @@ class KafkaMessageBroker(MessageBroker):
         except Exception as e:
             raise MessageBusError(errno.EINVAL, "Unable to list message type. \
                 %s", e)
+
+    @staticmethod
+    def _error_cb(err):
+        """ Callback to check if all brokers are down """
+        if err.code() == KafkaError._ALL_BROKERS_DOWN:
+            raise MessageBusError(err.code(), "Kafka Broker(s) are down. %s", \
+                err)
 
     def list_message_types(self, admin_id: str) -> list:
         """
@@ -191,39 +214,39 @@ class KafkaMessageBroker(MessageBroker):
                 else:
                     break
 
-    def increase_parallelism(self, admin_id: str, message_types: list, \
-        partitions: int):
+    def add_concurrency(self, admin_id: str, message_type: str, \
+        concurrency_count: int):
         """
-        Increases the partitions for for a list of message types.
+        Increases the partitions for a message type.
 
         Parameters:
-        admin_id        A String that represents Admin client ID.
-        message_types   This is essentially equivalent to the list of
-                        queue/topic name. For e.g. ["Alert"]
-        partitions      Integer that represents number of partitions to be
-                        increased.
+        admin_id            A String that represents Admin client ID.
+        message_type        This is essentially equivalent to queue/topic name.
+                            For e.g. "Alert"
+        concurrency_count   Integer that represents number of partitions to be
+                            increased.
 
-        Note:  Number of partitions for a topic can only be increased, never
-               decreased
+        Note:  Number of partitions for a message type can only be increased,
+               never decreased
         """
         admin = self._clients['admin'][admin_id]
-        new_partition = [NewPartitions(each_message_type, \
-            new_total_count=partitions) for each_message_type in message_types]
+        new_partition = [NewPartitions(message_type, \
+            new_total_count=concurrency_count)]
         partitions = admin.create_partitions(new_partition)
         self._task_status(partitions)
 
-        for each_message_type in message_types:
-            for list_retry in range(1, self._max_list_message_type_count+2):
-                if partitions != len(self._get_metadata(admin)\
-                    [each_message_type].__dict__['partitions']):
-                    if list_retry > self._max_list_message_type_count:
-                        raise MessageBusError(errno.EINVAL, "Maximum retries \
-                            exceeded to increase partition for %s.", \
-                            each_message_type)
-                    time.sleep(list_retry*1)
-                    continue
-                else:
-                    break
+        # Waiting for few seconds to complete the partition addition process
+        for list_retry in range(1, self._max_list_message_type_count+2):
+            if concurrency_count != len(self._get_metadata(admin)\
+                [message_type].__dict__['partitions']):
+                if list_retry > self._max_list_message_type_count:
+                    raise MessageBusError(errno.EINVAL, "Maximum retries \
+                        exceeded to increase concurrency for %s.", \
+                        message_type)
+                time.sleep(list_retry*1)
+                continue
+            else:
+                break
 
     def send(self, producer_id: str, message_type: str, method: str, \
         messages: list, timeout=0.1):
@@ -311,14 +334,35 @@ class KafkaMessageBroker(MessageBroker):
             else:
                 break
 
-    def get_unread_count(self, consumer_group: str):
+    def get_unread_count(self, message_type: str, consumer_group: str):
         """
         Gets the count of unread messages from the Kafka message server
 
         Parameters:
+        message_type    This is essentially equivalent to the
+                        queue/topic name. For e.g. "Alert"
         consumer_group  A String that represents Consumer Group ID.
         """
         table = []
+
+        # Update the offsets if purge was called
+        if self.get_log_size(message_type) == 0:
+            try:
+                cmd = "/opt/kafka/bin/kafka-consumer-groups.sh \
+                    --bootstrap-server " + self._servers + " --group " \
+                    + consumer_group + " --topic " + message_type + \
+                    " --reset-offsets --to-latest --execute"
+                cmd_proc = SimpleProcess(cmd)
+                res_op, res_err, res_rc = cmd_proc.run()
+                if res_rc != 0:
+                    raise MessageBusError(errno.ENODATA, "Unable to reset the \
+                        offsets. %s", res_err)
+                decoded_string = res_op.decode("utf-8")
+                if "Error" in decoded_string:
+                    raise MessageBusError(errno.ENODATA, "Unable to reset the \
+                        offsets. %s", decoded_string)
+            except Exception as e:
+                raise MessageBusError(errno.ENODATA, str(e))
 
         try:
             cmd = "/opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server "\
@@ -328,22 +372,24 @@ class KafkaMessageBroker(MessageBroker):
             if res_rc != 0:
                 raise MessageBusError(errno.EINVAL, "Unable to get the message \
                     count. %s", res_err)
-            decoded_string = res_op.decode('utf-8')
-            if decoded_string == '':
+            decoded_string = res_op.decode("utf-8")
+            if decoded_string == "":
                 raise MessageBusError(errno.EINVAL, "No active consumers in \
                     the consumer group, %s", consumer_group)
-            elif 'Error' in decoded_string:
+            elif "Error" in decoded_string:
                 raise MessageBusError(errno.EINVAL, "Unable to get the message \
                     count. %s", decoded_string)
             else:
-                split_rows = decoded_string.split('\n')
-                rows = [row.split(' ') for row in split_rows if row != '']
+                split_rows = decoded_string.split("\n")
+                rows = [row.split(" ") for row in split_rows if row != ""]
                 for each_row in rows:
-                    new_row = [item for item in each_row if item != '']
+                    new_row = [item for item in each_row if item != ""]
                     table.append(new_row)
-                index = table[0].index('LAG')
-                unread_count = [int(lag[index]) for lag in table if lag[index] \
-                    != 'LAG' and lag[index] != '-']
+                message_type_index = table[0].index("TOPIC")
+                lag_index = table[0].index("LAG")
+                unread_count = [int(lag[lag_index]) for lag in table if \
+                    lag[lag_index] != "LAG" and lag[lag_index] != "-" and \
+                    lag[message_type_index] == message_type]
 
                 if len(unread_count) == 0:
                     raise MessageBusError(errno.EINVAL, "No active consumers \

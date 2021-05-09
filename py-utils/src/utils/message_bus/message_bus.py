@@ -18,10 +18,11 @@
 from cortx.utils.message_bus.message_broker import MessageBrokerFactory
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.conf_store import Conf
+from cortx.template import Singleton
 import errno
 
 
-class MessageBus:
+class MessageBus(metaclass=Singleton):
     """ Message Bus Framework over various types of Message Brokers """
 
     conf_file = 'json:///etc/cortx/message_bus.conf'
@@ -61,11 +62,10 @@ class MessageBus:
         """ Deregisters list of message types in the configured message broker """
         self._broker.deregister_message_type(client_id, message_types)
 
-    def increase_parallelism(self, client_id: str, message_types: list, \
-        partitions: int):
-        """ Increases partition to achieve parallelism """
-        self._broker.increase_parallelism(client_id, message_types, \
-            partitions)
+    def add_concurrency(self, client_id: str, message_type: str, \
+        concurrency_count: int):
+        """ To achieve concurrency among consumers """
+        self._broker.add_concurrency(client_id, message_type, concurrency_count)
 
     def send(self, client_id: str, message_type: str, method: str, \
         messages: list):
@@ -76,12 +76,12 @@ class MessageBus:
         """ Deletes all the messages from the configured message broker """
         self._broker.delete(client_id, message_type)
 
-    def get_unread_count(self, consumer_group: str):
+    def get_unread_count(self, message_type: str, consumer_group: str):
         """
         Gets the count of unread messages from the configured message
         broker
         """
-        return self._broker.get_unread_count(consumer_group)
+        return self._broker.get_unread_count(message_type, consumer_group)
 
     def receive(self, client_id: str, timeout: float = None) -> list:
         """ Receives messages from the configured message broker """

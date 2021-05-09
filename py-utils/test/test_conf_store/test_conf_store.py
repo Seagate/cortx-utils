@@ -100,20 +100,16 @@ class TestConfStore(unittest.TestCase):
         result_data = Conf.get('delete_local', 'bridge>proxy')
         self.assertEqual(result_data, None)
 
-    def test_conf_store_backup_and_save_a_copy(self):
+    def test_conf_store_a_backup_and_save_a_copy(self):
         """Test by creating a backup file and copying then saving it back."""
         conf_file = 'json:/tmp/file1.json'
         load_config('csm_local', conf_file)
         Conf.load('backup', f"{conf_file}.bak")
         Conf.copy('csm_local', 'backup')
         Conf.save('backup')
-        result_data = Conf.get_keys('backup')
+        result_data = Conf.get_keys('backup', key_index=True)
         # Expected list should match the result_data list output
-        expected_list = [
-            'bridge>name', 'bridge>username', 'bridge>manufacturer',
-            'bridge>model', 'bridge>pin', 'bridge>port',
-            'bridge>lte_type[0]', 'bridge>lte_type[1]'
-        ]
+        expected_list = Conf.get_keys('csm_local')
         self.assertListEqual(expected_list, result_data)
 
     def test_conf_load_invalid_arguments(self):
@@ -291,6 +287,43 @@ class TestConfStore(unittest.TestCase):
             load_config('pro_local1', 'properties:///tmp/example.properties')
         except Exception as err:
             self.assertEqual('Invalid properties store format %s. %s.', err.args[1])
+    # Get_keys API
+    def test_conf_key_index_a_True(self):
+        """
+        Test confStore get_key api with key_index argument as True
+        Default key_index will be True
+        """
+        load_config('getKeys_local', 'json:///tmp/file1.json')
+        key_lst = Conf.get_keys("getKeys_local", key_index=True)
+        expected_list = ['bridge>name', 'bridge>username',
+            'bridge>manufacturer', 'bridge>model', 'bridge>pin',
+            'bridge>port', 'bridge>lte_type[0]', 'bridge>lte_type[1]']
+        self.assertListEqual(key_lst, expected_list)
+
+    def test_conf_key_index_b_False(self):
+        """ Test confStore get_key api with key_index argument as False """
+        key_lst = Conf.get_keys("getKeys_local", key_index=False)
+        expected_list=['bridge>name', 'bridge>username', 'bridge>manufacturer',
+            'bridge>model', 'bridge>pin', 'bridge>port', 'bridge>lte_type']
+        self.assertListEqual(key_lst, expected_list)
+
+    def test_conf_store_get_machin_id_none(self):
+        """ Test get_machine_id None value """
+        from cortx.utils.conf_store import ConfStore
+        # rename /etc/machine-id
+        os.rename("/etc/machine-id", "/etc/machine-id.old")
+        cs_inst = ConfStore(delim=Conf._delim)
+        mc_id = cs_inst.machine_id
+        # restore /etc/machine-id
+        os.rename("/etc/machine-id.old", "/etc/machine-id")
+        self.assertEqual(mc_id, None)
+
+    def test_conf_store_get_machin_id(self):
+        """ Test get_machine_id """
+        mc_id = Conf.machine_id
+        with open("/etc/machine-id", 'r') as mc_id_file:
+                actual_id = mc_id_file.read()
+        self.assertEqual(mc_id, actual_id.strip())
 
 if __name__ == '__main__':
     """

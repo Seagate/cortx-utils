@@ -24,11 +24,9 @@ class MessageBusTest:
     """ Represents Message Bus Test methods """
 
     def __init__(self):
-        from cortx.utils.message_bus import MessageBus
         from cortx.utils.conf_store import Conf
         Conf.load("index", "json:///etc/cortx/message_bus.conf")
         self._server = Conf.get("index",'message_broker>cluster[0]>server')
-        self._msg_bus = MessageBus()
         # Create a test topic
         cmd = "/opt/kafka/bin/kafka-topics.sh --create" + \
               " --topic mytest --bootstrap-server " + self._server + ":9092"
@@ -57,7 +55,7 @@ class MessageBusTest:
     def send_msg(self, message):
         """ Sends a  message """
         from cortx.utils.message_bus import MessageProducer
-        producer = MessageProducer(self._msg_bus, producer_id='setup', \
+        producer = MessageProducer(producer_id='setup', \
             message_type='mytest', method='sync')
         producer.send(message)
         time.sleep(1)
@@ -65,14 +63,13 @@ class MessageBusTest:
     def receive_msg(self):
         """ Receives a message """
         from cortx.utils.message_bus import MessageConsumer
-        consumer = MessageConsumer(self._msg_bus, consumer_id='setup', \
+        consumer = MessageConsumer(consumer_id='setup', \
             consumer_group='provisioner', message_types=['mytest'], auto_ack=False, \
             offset='earliest')
         while True:
             try:
                 time.sleep(1)
                 message = consumer.receive()
-                consumer.ack()
                 if message != None:
                     return message
             except Exception as e:

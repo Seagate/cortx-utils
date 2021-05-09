@@ -49,7 +49,7 @@ class Log:
                        "system", getattr(Log, level), log_path, backup_count, max_bytes)
 
     @staticmethod
-    def _get_logger(syslog_server: str, syslog_port: str, file_name: str, logger_type, 
+    def _get_logger(syslog_server: str, syslog_port: str, file_name: str, logger_type,
                         log_level, log_path: str, backup_count: int, max_bytes: int):
         """
         This Function Creates the Logger for Log Files.
@@ -62,11 +62,12 @@ class Log:
         """
         log_format = "%(asctime)s %(name)s %(levelname)s %(message)s"
         logger_name = f"{file_name}"
+        formatter = logging.Formatter(log_format, "%Y-%m-%d %H:%M:%S")
         if logger_type == "audit":
-            log_format = " %(asctime)s %(name)s %(message)s"
+            log_format = "%(name)s %(message)s"
             logger_name = f"{file_name}_audit"
+            formatter = logging.Formatter(log_format)
         logger = logging.getLogger(logger_name)
-        formatter = logging.Formatter(log_format,"%Y-%m-%d %H:%M:%S")
         if syslog_server and syslog_port:
             log_handler = logging.handlers.SysLogHandler(address =
                                            (syslog_server, syslog_port))
