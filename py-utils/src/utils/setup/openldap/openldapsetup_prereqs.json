@@ -1,0 +1,16 @@
+{
+  "post_install": {
+  },
+  "prepare": {
+  },
+  "config": {
+  },
+  "init": {
+  },
+  "test" : {
+  }
+  "reset": {
+  },
+  "cleanup": {
+  },
+}

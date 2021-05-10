@@ -71,7 +71,8 @@ setup(name='cortx-py-utils',
                 'cortx.utils.product_features', 'cortx.utils.security',
                 'cortx.utils.schema', 'cortx.utils.appliance_info',
                 'cortx.setup', 'cortx.utils.service',
-		'cortx.utils.setup', 'cortx.utils.setup.kafka'
+		'cortx.utils.setup', 'cortx.utils.setup.kafka',
+                'cortx.utils.setup.openldap'
                 ],
       package_data={
         'cortx': ['py.typed'],
@@ -82,6 +83,7 @@ setup(name='cortx-py-utils',
             'conf = cortx.utils.conf_store.conf_cli:main',
             'utils_setup = cortx.setup.utils_setup:main',
             'kafka_setup = cortx.utils.setup.kafka.kafka_setup:main'
+            'openldap_setup = cortx.utils.setup.openldap.openldap_setup:main'
         ]
       },
       data_files = [ ('/var/lib/cortx/ha/specs', specs),
