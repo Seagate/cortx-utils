@@ -110,7 +110,7 @@ class Task(metaclass=Singleton):
         Task._kv_store.set([task.id], [task.payload.json])
 
     @staticmethod
-    def search(resource_path: str, filters: list):
+    def search(resource_path: str, filters: list) -> list:
         """ Searches for a task as per given criteria """
         task_list = Task._kv_store.get_keys(resource_path)
         out_list = []
