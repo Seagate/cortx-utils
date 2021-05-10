@@ -20,8 +20,9 @@
 POST_INSTALL:
 PREPARE:
 CONFIG:
-  CONFSTORE_ADMIN_PASSWD: ""
-  CONFSTORE_HOSTNAMES: ""
+  CONFSTORE_ROOTDN_PASSWD_KEY: "cortx>software>openldap>root>secret"
+  CONFSTORE_STORAGE_SET_COUNT_KEY: "cluster>cluster-id>site>storage_set_count"
+  CONFSTORE_STORAGE_SET_SERVER_NODES_KEY: "cluster>cluster-id>storage_set[storage-set-count]>server_nodes"
 INIT:
 TEST:
 RESET:
