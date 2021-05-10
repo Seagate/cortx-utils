@@ -80,8 +80,7 @@ setup(name='cortx-py-utils',
       description='Common Python utilities for CORTX',
       package_dir={'cortx': 'src'},
       packages=['cortx', 'cortx.utils',
-                'cortx.template', 'cortx.support',
-                'cortx.test_framework',
+                'cortx.template',
                 'cortx.utils.amqp', 'cortx.utils.amqp.rabbitmq',
                 'cortx.utils.cleanup', 'cortx.utils.data',
                 'cortx.utils.data.access', 'cortx.utils.data.db',
@@ -97,7 +96,8 @@ setup(name='cortx-py-utils',
                 'cortx.utils.setup', 'cortx.utils.setup.kafka',
                 'cortx.utils.support', 'cortx.utils.cli_framework',
                 'cortx.utils.utils_server', 'cortx.utils.iem_framework',
-                'cortx.utils.discovery', 'cortx.utils.common'
+                'cortx.utils.discovery', 'cortx.utils.discovery.mocked_health_gen'
+                'cortx.utils.setup.openldap'
                 ],
       package_data={
         'cortx': ['py.typed'],
@@ -107,9 +107,8 @@ setup(name='cortx-py-utils',
             'hac = cortx.utils.ha.hac.hac:main',
             'conf = cortx.utils.conf_store.conf_cli:main',
             'utils_setup = cortx.setup.utils_setup:main',
-            'iem = cortx.utils.iem_framework.iem_cli:main',
             'kafka_setup = cortx.utils.setup.kafka.kafka_setup:main',
-            'utils_support_bundle = cortx.support.utils_support_bundle:main'
+            'openldap_setup = cortx.utils.setup.openldap.openldap_setup:main'
         ]
       },
       data_files = [ ('/var/lib/cortx/ha/specs', specs),
