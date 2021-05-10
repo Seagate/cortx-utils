@@ -20,7 +20,7 @@ from cortx.utils.iem.error import IemError
 
 
 class Iem:
-    """ IEM Framework over Message Bus """
+    """ IEM framework to generate alerts """
 
     _check_none_values = True
 
