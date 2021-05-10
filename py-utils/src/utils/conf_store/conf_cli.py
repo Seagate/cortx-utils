@@ -24,11 +24,13 @@ from argparse import RawTextHelpFormatter
 from cortx.utils.conf_store import Conf
 from cortx.utils.conf_store.error import ConfError
 from cortx.utils.schema import Format
+from cortx.utils.security import Cipher
 
 
 class ConfCli:
     """ CLI for the Conf Store """
     _index = "conf_cli"
+    _delim = ';'
 
     @staticmethod
     def init(url: str):
@@ -41,30 +43,34 @@ class ConfCli:
         kv_delim = '=' if args.kv_delim == None else args.kv_delim
         if len(kv_delim) > 1 or kv_delim not in [':', '>', '.', '|', '/', '=']:
             raise ConfError(errno.EINVAL, "invalid delim %s", kv_delim)
-        kv_list = args.args[0].split(';')
+        kv_list = args.args[0].split(ConfCli._delim)
+        enc_key = Cipher.gen_key(*args.enc_key.split(ConfCli._delim)) \
+            if args.enc_key != None else None
         for kv in kv_list:
             try:
                 key, val = kv.split(kv_delim, 1)
             except:
                raise ConfError(errno.EINVAL, "Invalid KV pair %s", kv)
-            Conf.set(ConfCli._index, key, val)
+            Conf.set(ConfCli._index, key, val, enc_key)
         Conf.save(ConfCli._index)
 
     @staticmethod
     def get(args) -> str:
         """ Obtain value for the given keys """
         params = args.args
-        key_list = params[0].split(';')
+        key_list = params[0].split(ConfCli._delim)
         n_keys = len(key_list)
         def_val_list = list(None for i in range(0, n_keys))
         if len(params) > 1:
-            def_val_list = params[1].split(';')
+            def_val_list = params[1].split(ConfCli._delim)
             if len(def_val_list) != n_keys:
                 raise ConfError(errno.EINVAL,
                     "No. of default values, dont match no. of keys")
         val_list = []
+        enc_key = Cipher.gen_key(*args.enc_key.split(ConfCli._delim)) \
+            if args.enc_key != None else None
         for i in range(0, n_keys):
-            val = Conf.get(ConfCli._index, key_list[i], def_val_list[i])
+            val = Conf.get(ConfCli._index, key_list[i], def_val_list[i], enc_key)
             val_list.append(val)
         format_type = 'json' if args.format == None else args.format
         return Format.dump(val_list, format_type)
@@ -72,7 +78,7 @@ class ConfCli:
     @staticmethod
     def delete(args):
         """ Deletes given set of keys from the config """
-        key_list = args.args[0].split(';')
+        key_list = args.args[0].split(ConfCli._delim)
         is_deleted = []
         for key in key_list:
             status = Conf.delete(ConfCli._index, key)
@@ -104,6 +110,7 @@ class GetCmd:
         s_parser.set_defaults(func=ConfCli.get)
         s_parser.add_argument('-f', dest='format', help=
                 'Output Format json(default), yaml or toml')
+        s_parser.add_argument('-k', dest='enc_key', help="Key to decrypt val") 
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 
@@ -121,6 +128,7 @@ class SetCmd:
             "Example command:\n"
             "# conf json:///tmp/csm.conf set 'k1>k2=v1;k3=1'\n\n")
         s_parser.set_defaults(func=ConfCli.set)
+        s_parser.add_argument('-k', dest='enc_key', help="Key to encrypt val") 
         s_parser.add_argument('-d', dest='kv_delim',
             help="Delimiter for k=v (default is '=')")
         s_parser.add_argument('args', nargs='+', default=[], help='args')

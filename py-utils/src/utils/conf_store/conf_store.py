@@ -20,7 +20,7 @@ import errno
 from cortx.utils.conf_store.error import ConfError
 from cortx.utils.conf_store.conf_cache import ConfCache
 from cortx.utils.kv_store.kv_store import KvStoreFactory
-
+from cortx.utils.security import Cipher
 
 class ConfStore:
     """ Configuration Store based on the KvStore """
@@ -86,7 +86,7 @@ class ConfStore:
 
         self._cache[index].dump()
 
-    def get(self, index: str, key: str, default_val: str = None):
+    def get(self, index: str, key: str, default_val: str = None, enc_key: str = None):
         """
         Obtain value for the given configuration
 
@@ -107,10 +107,13 @@ class ConfStore:
         if key is None:
             raise ConfError(errno.EINVAL, "can't able to find config key "
                                                "%s in loaded config", key)
+
         val = self._cache[index].get(key)
+        if type(val) == str and enc_key != None:
+            val = Cipher.decrypt(enc_key, bytes(val, 'utf-8')).decode('utf-8')
         return default_val if val is None else val
 
-    def set(self, index: str, key: str, val):
+    def set(self, index: str, key: str, val, enc_key: bytes = None):
         """
         Sets the value into the DB for the given index, key
 
@@ -125,6 +128,11 @@ class ConfStore:
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
 
+        if enc_key != None:
+            if type(val) != str:
+                raise ConfError(errno.EINVAL, "val: expected type str, actual %s", 
+                    type(val))
+            val = Cipher.encrypt(enc_key, bytes(val, 'utf-8')).decode('utf-8')
         self._cache[index].set(key, val)
 
     def get_keys(self, index: str, **filters) -> list:
@@ -205,14 +213,14 @@ class Conf:
         Conf._conf.save(index)
 
     @staticmethod
-    def set(index: str, key: str, val):
+    def set(index: str, key: str, val, enc_key: str = None):
         """ Sets config value for the given key """
-        Conf._conf.set(index, key, val)
+        Conf._conf.set(index, key, val, enc_key)
 
     @staticmethod
-    def get(index: str, key: str, default_val: str = None):
+    def get(index: str, key: str, default_val: str = None, enc_key: str = None):
         """ Obtains config value for the given key """
-        return Conf._conf.get(index, key, default_val)
+        return Conf._conf.get(index, key, default_val, enc_key)
 
     @staticmethod
     def delete(index: str, key: str):
