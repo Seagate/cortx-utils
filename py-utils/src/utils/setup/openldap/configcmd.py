@@ -44,9 +44,9 @@ class ConfigCmd(SetupCmd):
 
   def process(self):
     """Main processing function."""
-    sys.stdout.write(f"Processing {self.name} {self.url}\n")
-    self.phase_prereqs_validate(self.name)
-    self.phase_keys_validate(self.url, self.name)
+    #sys.stdout.write(f"Processing {self.name} {self.url}\n")
+    #self.phase_prereqs_validate(self.name)
+    #self.phase_keys_validate(self.url, self.name)
 
     try:
       self.create_auth_jks_password()
@@ -59,9 +59,10 @@ class ConfigCmd(SetupCmd):
     # 2. Enable slapd logging in rsyslog config
     # 3. Set openldap-replication
     # 4. Check number of nodes in the cluster
-
+    Conf.load("index1","json://") #Mention path of json file here
+    rootdn_passwd = Conf.get("index1","CONFIG>CONFSTORE_ROOTDN_PASSWD_KEY")
     # Perform base configuration
-    os.system('python3 ./../../third_party/openldap/base_configure_ldap.py --forceclean True --rootdnpasswd ' + self.rootdn_passwd)
+    os.system('python3 ./../../third_party/openldap/base_configure_ldap.py --forceclean True --rootdnpasswd ' + rootdn_passwd)
 
     if os.path.isfile("/opt/seagate/cortx/s3/install/ldap/rsyslog.d/slapdlog.conf"):
       try:
