@@ -58,14 +58,13 @@ pipeline {
                 //sh 'VERBOSE=true WAIT_TIMEOUT=40 jenkins/vm-reset'
                 script {
                     def remote = getTestMachine(VM_FQDN)
-                    def commandResult = sshCommand remote: remote, command: """
-                        echo "Clean up VM before use"                         
-                        yum remove cortx-hare cortx-motr{,-devel} cortx-py-utils consul -y 
+                    def commandResult = sshCommand remote: remote, sudo: true, command: """
+                        echo "Clean up VM before use"
+                        losetup -D                         
+                        yum remove cortx-hare cortx-motr{,-devel} cortx-py-utils consul -y                         
                         rm -rf /var/crash/* /var/log/seagate/* /var/log/hare/* /var/log/motr/* /var/lib/hare/* /var/motr/* /etc/motr/*
                         rm -rf /root/.cache/dhall* /root/rpmbuild
-                        rm -rf /etc/yum.repos.d/motr_last_successful.repo /etc/yum.repos.d/motr_uploads.repo /etc/yum.repos.d/lustre_release.repo
-                        loop_devices=$(losetup -a | grep -o "/dev/loop[0-9]*")
-                        [[ ! -z "$loop_devices" ]] && losetup -d $loop_devices
+                        rm -rf /etc/yum.repos.d/motr_last_successful.repo /etc/yum.repos.d/motr_uploads.repo /etc/yum.repos.d/lustre_release.repo                        
                         """
                         echo "Result: " + commandResult
                 }    
@@ -141,7 +140,7 @@ pipeline {
         }
         stage('Bootstrap singlenode') {
             options {
-                timeout(time: 2, unit: 'MINUTES')
+                timeout(time: 10, unit: 'MINUTES')
             }
             steps {
                 script {
@@ -185,7 +184,7 @@ pipeline {
         }
         stage('I/O test with m0crate') {
             options {
-                timeout(time: 15, unit: 'MINUTES')
+                timeout(time: 20, unit: 'MINUTES')
             }
             steps {
                 script {
@@ -204,6 +203,12 @@ pipeline {
     post {
         always {
             script {
+                def remote = getTestMachine(VM_FQDN)
+                def commandResult = sshCommand remote: remote, command: """
+                    cluster_status=\$(( hctl status ) 2>&1)
+                    if [ "\$cluster_status" != "Cluster is not running" ]; then hctl shutdown; fi
+                    """
+                echo "Result: " + commandResult                
                 echo 'Cleanup Workspace.'
                 cleanWs() /* clean up workspace */
             }
