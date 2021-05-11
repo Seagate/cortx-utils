@@ -1,0 +1,7 @@
+# Reference : https://github.com/Seagate/cortx-monitor/wiki/Cortx-monitor-single-node-VM-provisioning-manual:-Manual#Start SSPL
+
+- name: "[Start SSPL]  : Start SSPL-ll"
+  ansible.builtin.service:
+    name: sspl-ll
+    state: started
+

@@ -1,0 +1,12 @@
+# Reference : https://github.com/Seagate/cortx-utils/wiki/%22cortx-py-utils%22-single-node-manual-provisioning#utils Mini Provisioning
+
+- name: "[UTILS Mini Provisioning] : Post"
+  shell: |
+    /opt/seagate/cortx/utils/bin/utils_setup post_install --config yaml:///opt/seagate/cortx/utils/conf/utils.post_install.tmpl.1-node
+  register: utils_mini_post_install
+
+- name: "[UTILS Mini Provisioning] : Config"
+  shell: |
+    /opt/seagate/cortx/utils/bin/utils_setup config --config yaml:///opt/seagate/cortx/utils/conf/utils.config.tmpl.1-node
+  register: utils_mini_config_install
+

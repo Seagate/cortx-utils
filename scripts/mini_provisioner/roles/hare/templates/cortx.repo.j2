@@ -1,0 +1,23 @@
+[cortx-rpm]
+gpgcheck=0
+enabled=1
+baseurl={{ CORTX_BUILD }}/cortx_iso
+name=cortx-rpm
+
+[3rd-party]
+gpgcheck=0
+enabled=1
+baseurl={{ CORTX_BUILD }}/3rd_party
+name=cortx-rpm
+
+[luster-pkg]
+gpgcheck=0
+enabled=1
+baseurl={{ CORTX_BUILD }}/3rd_party/lustre/custom/tcp
+name=luster-pkg
+
+[s3server-uploads]
+gpgcheck=0
+enabled=1
+baseurl=http://cortx-storage.colo.seagate.com/releases/cortx/uploads/centos/centos-7.8.2003/s3server_uploads/
+name=s3server-uploads

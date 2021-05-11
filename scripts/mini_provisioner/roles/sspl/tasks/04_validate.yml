@@ -1,0 +1,5 @@
+# Reference : https://github.com/Seagate/cortx-monitor/wiki/Cortx-monitor-single-node-VM-provisioning-manual:-Manual#sspltest
+
+- name: "[ Validate ] : SSPL Sanity Test" 
+  shell: /opt/seagate/cortx/sspl/bin/sspl_setup test --config "yaml:///etc/sspl_global_config_copy.yaml" --plan sanity
+  register: sspl_mini_test

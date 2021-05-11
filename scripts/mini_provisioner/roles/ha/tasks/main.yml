@@ -1,0 +1,97 @@
+# #######################################################################################
+# Description:
+#-------------
+#         This tasks starts ha deployment
+# Reference:
+#----------- 
+#         https://github.com/Seagate/cortx-ha/wiki/HA-provisioning-on-single-node-VM-cluster:-Manual
+# Steps:
+#--------
+#      1. Pre-Requisites Installation
+#      2. Install cortx-ha
+#      3. Confstore for cortx-ha single node mini-provisioning
+#      4. cortx-ha mini-provisioning
+##########################################################################################
+
+- name: "[mini_provisioning] : Validate the required input arguments for this playbook"
+  fail: msg="Variable '{{ item }}' is not defined"
+  when: item not in vars
+  with_items: "{{ REQUIRED_VARS }}"
+
+# Add yum repositories
+- name: "[mini_provisioning] : Install EPEL Repository, corosync, pacemaker and pcsd."
+  shell: "yum -y install epel-release corosync pacemaker pcs"
+  
+- name: "[install_prereq] : Start/Enable rabitmq server"
+  service:
+    name: pcsd
+    state: started
+    enabled: yes
+
+- name: "[install_prereq] : Start/Enable rabitmq server"
+  service:
+    name: corosync
+    enabled: yes
+
+- name: "[install_prereq] : Start/Enable rabitmq server"
+  service:
+    name: pacemaker
+    enabled: yes
+
+# Get Machine ID
+- name: "[mini_provisioning] : Get Machine ID" 
+  shell: cat /etc/machine-id
+  register: machineid_out
+
+#  Generate random password
+- name: "[mini_provisioning] : Generate random password "
+  shell: cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 10 | head -n 1
+  register: ha_cluster_pass_out
+
+- set_fact:
+    MACHINE_ID: "{{ machineid_out.stdout }}"
+    HA_CLUSTER_PASS: "{{ ha_cluster_pass_out.stdout }}"
+
+#  Configure a password for the 'hacluster' user
+- name: "[mini_provisioning] :  Configure a password for the 'hacluster' user" 
+  shell: "{{ HA_CLUSTER_PASS }} | passwd --stdin hacluster"
+
+
+# Install "cortx-ha"
+- name: "[mini_provisioning] : Install cortx-ha"
+  yum: 
+    name: ["cortx-ha"]
+    state: present
+
+# Update machine-id
+- name: "[mini_provisioning] : Update machine id" 
+  shell: "sed -i 's/machine_id/{{ MACHINE_ID }}/g' /opt/seagate/cortx/csm/templates/csm_setup_conf_template.json"
+
+# Execute CSM:Post_Install
+- name: "[mini_provisioning] : Post Install" 
+  shell: /opt/seagate/cortx/csm/bin/csm_setup post_install --config json:///opt/seagate/cortx/csm/templates/csm_setup_conf_template.json
+
+# Execute CSM:Config
+- name: "[mini_provisioning] : CSM Config" 
+  shell: /opt/seagate/cortx/csm/bin/csm_setup config --config json:///opt/seagate/cortx/csm/templates/csm_setup_conf_template.json
+
+# Execute CSM:Init
+- name: "[mini_provisioning] : CSM Init" 
+  shell: /opt/seagate/cortx/csm/bin/csm_setup init --config json:///opt/seagate/cortx/csm/templates/csm_setup_conf_template.json
+
+# Start CSM Agent
+- name: "[mini_provisioning] : Start csm_agent"
+  shell: systemctl start csm_agent
+  register: csm_agent_out
+  ignore_errors: true
+
+# Console Journalctl log
+- name: "[mini_provisioning] : Journalctl log" 
+  shell: journalctl --unit=csm_agent.service | tail -n 100
+  when: csm_agent_out.rc != 0
+
+# Run CSM Sanity Test
+- name: "[mini_provisioning] : Run Sanity Test"
+  shell: csm_setup test -t /opt/seagate/cortx/csm/test/plans/self_test.pln -f /opt/seagate/cortx/csm/test/test_data/args.yaml -l /tmp/csm_test -o /root/sanity_test.log
+  register: csm_test_out
+  failed_when: '"PASS" not in csm_test_out.stdout'

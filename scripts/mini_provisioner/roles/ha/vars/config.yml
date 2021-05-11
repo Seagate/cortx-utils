@@ -1,0 +1,5 @@
+
+REQUIRED_VARS:
+  - NODE1
+  - CORTX_BUILD
+

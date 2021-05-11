@@ -1,0 +1,7 @@
+METADATA_DEVICE: /dev/sdb
+DATA_DEVICE: /dev/sdc
+
+REQUIRED_VARS:
+  - NODE1
+  - CORTX_BUILD
+

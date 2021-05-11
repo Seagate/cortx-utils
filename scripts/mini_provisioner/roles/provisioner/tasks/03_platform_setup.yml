@@ -1,0 +1,7 @@
+---
+
+- name: "[Platform setup] : Platform Setup"
+  shell: provisioner deploy_vm --states system --setup-type single
+
+- name: "[Platform setup] : 3rd Party Software Deployment"
+  shell: provisioner deploy_vm --states prereq --setup-type single

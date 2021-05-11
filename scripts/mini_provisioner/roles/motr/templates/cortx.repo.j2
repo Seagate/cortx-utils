@@ -1,0 +1,17 @@
+[cortx-rpm]
+gpgcheck=0
+enabled=1
+baseurl={{ CORTX_BUILD }}/cortx_iso
+name=cortx-rpm
+
+[3rd-party]
+gpgcheck=0
+enabled=1
+baseurl={{ CORTX_BUILD }}/3rd_party
+name=cortx-3rd_party
+
+[luster-pkg]
+gpgcheck=0
+enabled=1
+baseurl={{ CORTX_BUILD }}/3rd_party/lustre/custom/tcp
+name=luster-pkg

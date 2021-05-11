@@ -1,0 +1,119 @@
+# Reference : https://github.com/Seagate/cortx-s3server/wiki/S3server-provisioning-on-single-node-VM-cluster:-Manual#pre-requisites
+
+- name: "[Pre-Requisites] : Validate input arguments"
+  fail: msg="Variable '{{ item }}' is not defined"
+  when: item not in vars
+  with_items: "{{ REQUIRED_VARS }}"
+
+- name: "[Pre-Requisites] : Setup yum repository"
+  template:
+    src: cortx.repo.j2
+    dest: /etc/yum.repos.d/cortx.repo
+
+- name: "[Pre-Requisites] :1. Install third-party packages" 
+  shell: curl -s http://cortx-storage.colo.seagate.com/releases/cortx/third-party-deps/rpm/install-cortx-prereq.sh | bash -s -- -b {{ CORTX_BUILD }}
+
+- name: "[Pre-Requisites] : 3. S3 Server rpm" 
+  shell: yum install -y --nogpgcheck cortx-s3server
+
+- name: "[Pre-Requisites] : 4. Machine-ID of the VM" 
+  shell: cat /etc/machine-id
+  register: machineid
+
+- name: "[Pre-Requisites] : 5. FQDN of the VM" 
+  shell: hostname
+  register: hostname
+
+- name: "[Pre-Requisites] : 6. Cluster-ID" 
+  shell:  cat /opt/seagate/cortx/s3/s3backgrounddelete/s3_cluster.yaml | grep 'cluster_id:' | cut -d '"' -f2
+  register: cluster_id
+
+- name: "[Pre-Requisites] : 7. (i) Openldap credentials" 
+  shell:  s3cipher generate_key --const_key 'cortx'
+  register: s3cipher_key
+
+- name: "[Pre-Requisites] : 7. (ii) Openldap credentials" 
+  shell:  s3cipher encrypt --data "{{ TEST_DATA_OPEN_LDAP_PASS_ROOT }}" --key '{{ s3cipher_key.stdout }}'
+  register: s3cipher_encrypted_root
+
+- name: "[Pre-Requisites] : 7. (iii) Openldap credentials" 
+  shell:  s3cipher encrypt --data "{{ TEST_DATA_OPEN_LDAP_PASS_SGIAM }}" --key '{{ s3cipher_key.stdout }}'
+  register: s3cipher_encrypted_sgiam
+
+- set_fact:
+    TMPL_ROOT_SECRET_KEY: "{{ s3cipher_encrypted_root.stdout }}"
+    TMPL_SGIAM_SECRET_KEY: "{{ s3cipher_encrypted_sgiam.stdout }}"
+    TMPL_HOSTNAME: "{{ hostname.stdout }}"
+    TMPL_CLUSTER_ID: "{{ cluster_id.stdout }}"
+    TMPL_MACHINE_ID: "{{ machineid.stdout }}"
+
+- name: "[Pre-Requisites] : 8. Update s3server confstore template files" 
+  shell:  |
+    sed -i "s/TMPL_ROOT_SECRET_KEY/{{ TMPL_ROOT_SECRET_KEY }}/g;  \
+        s/TMPL_SGIAM_SECRET_KEY/{{ TMPL_SGIAM_SECRET_KEY }}/g;  \
+        s/TMPL_HOSTNAME/{{ TMPL_HOSTNAME }}/g; \
+        s/TMPL_CLUSTER_ID/{{ TMPL_CLUSTER_ID }}/g; \
+        s/TMPL_MACHINE_ID/{{ TMPL_MACHINE_ID }}/g;" /opt/seagate/cortx/s3/conf/s3.config.tmpl.1-node
+    
+    sed -i "s/TMPL_ROOT_SECRET_KEY/{{ TMPL_ROOT_SECRET_KEY }}/g;  \
+        s/TMPL_SGIAM_SECRET_KEY/{{ TMPL_SGIAM_SECRET_KEY }}/g; \
+        s/TMPL_HOSTNAME/{{ TMPL_HOSTNAME }}/g; \
+        s/TMPL_CLUSTER_ID/{{ TMPL_CLUSTER_ID }}/g; \
+        s/TMPL_MACHINE_ID/{{ TMPL_MACHINE_ID }}/g;" /opt/seagate/cortx/s3/conf/s3.init.tmpl.1-node
+
+    sed -i "s/TMPL_SGIAM_SECRET_KEY/{{ TMPL_SGIAM_SECRET_KEY }}/g; \
+          s/TMPL_SGIAM_PLAINTEXT_PASSWORD/{{ TEST_DATA_OPEN_LDAP_PASS_SGIAM }}/g;" /opt/seagate/cortx/s3/conf/s3.test.tmpl.1-node
+
+- name: "[Pre-Requisites] : Update host entry" 
+  shell:  |
+    PUBLIC_IP=$(ifconfig eth1 | grep -o "inet [0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*")
+    PRIVATE_IP=$(ifconfig eth3 | grep -o "inet [0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*")
+    
+    echo "${PUBLIC_IP} srvnode-1.data.public" >> /etc/hosts
+    echo "${PRIVATE_IP} srvnode-1.data.private" >> /etc/hosts
+
+- name: "[Pre-Requisites] : Update ha proxy config" 
+  shell:  |
+    sed -e '/PROFILE=SYSTEM/ s/^#*/#/' -i /etc/haproxy/haproxy.cfg
+
+- name: "[Pre-Requisites] : Ensures /etc/ssl/stx dir exists"
+  file: path=/etc/ssl/stx state=directory
+  
+- name: "[Pre-Requisites] : Download stx pem file"
+  get_url:
+    url: "{{ STX_PEM }}"
+    dest: /etc/ssl/stx/stx.pem
+    mode: '400'
+
+- name: "[Pre-Requisites] : Install gcc & python3-devel"
+  shell: yum install -y gcc python3-devel
+    
+- name: "[install_prereq] :  Install Kafka"
+  shell: yum install kafka -y
+
+- name: "[install_prereq] : Updated Kafka Server Config"
+  lineinfile:
+    path: "/opt/kafka/config/server.properties"
+    line: "{{ item }}"
+    insertbefore: BOF
+  with_items:
+    - "log.flush.offset.checkpoint.interval.ms=1"
+    - "log.retention.check.interval.ms=1"
+    - "log.delete.delay.ms=1"
+    - "listeners=PLAINTEXT://{{ NODE1 }}:9092"
+
+- name: "[install_prereq] : Enable and start Kafka Service"
+  shell: |
+    systemctl enable kafka-zookeeper
+    systemctl enable kafka
+    systemctl start kafka-zookeeper
+    sleep 5
+    systemctl start kafka
+    sleep 10
+    systemctl status kafka-zookeeper.service
+    systemctl status kafka.service
+
+- name: "[Pre-Requisites] : Generate cortx-py-utils config json file "
+  template:
+    src: utils_confstore.json.j2
+    dest: /tmp/cortx-config-new

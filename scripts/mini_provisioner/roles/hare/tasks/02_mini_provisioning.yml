@@ -1,0 +1,17 @@
+# Reference : https://github.com/Seagate/cortx-hare/wiki/Hare-provisioning-for-single-node-deployment#provisioning
+
+# Execute Hare:Post_Install
+- name: "[mini_provisioning] : Hare Post Install" 
+  shell: /opt/seagate/cortx/hare/bin/hare_setup post_install --config 'json:///opt/seagate/cortx/hare/conf/hare.post_install.conf.tmpl.1-node'
+
+# Execute Hare:Config
+- name: "[mini_provisioning] : Hare Prepare" 
+  shell: /opt/seagate/cortx/hare/bin/hare_setup prepare --config 'json:///opt/seagate/cortx/hare/conf/hare.prepare.conf.tmpl.1-node'
+
+# Execute Hare:Config
+- name: "[mini_provisioning] : Hare Config" 
+  shell: /opt/seagate/cortx/hare/bin/hare_setup config --config 'json:///opt/seagate/cortx/hare/conf/hare.config.conf.tmpl.1-node' --file '/var/lib/hare/cluster.yaml'
+
+# Execute Hare:Init
+- name: "[mini_provisioning] : Hare Init" 
+  shell: /opt/seagate/cortx/hare/bin/hare_setup init --config 'json:///opt/seagate/cortx/hare/conf/hare.init.conf.tmpl.1-node' --file '/var/lib/hare/cluster.yaml'

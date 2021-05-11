@@ -1,0 +1,16 @@
+---
+
+- name: Prepare Environment
+  hosts: localhost
+  become: true
+  gather_facts: True
+  roles:
+    - role: 00_prepare_environment
+    
+- name: Deploy CSM
+  hosts: srvnode-1
+  become: true
+  vars_files: roles/csm/vars/config.yml 
+  roles:
+    - role: csm
+      tags: ['01_DEPLOY']

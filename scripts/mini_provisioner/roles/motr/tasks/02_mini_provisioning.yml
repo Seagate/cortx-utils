@@ -1,0 +1,19 @@
+# Reference : https://github.com/Seagate/cortx-motr/wiki/Motr-deployment-using-motr_setup-on-singlenode-VM#motr-provisioner-steps
+
+- name: "[Motr Provisioner Steps] : Motr:Post_Install" 
+  shell: |
+    /opt/seagate/cortx/motr/bin/motr_setup post_install --config yaml:///opt/seagate/cortx/motr/conf/motr.post_install.tmpl
+  register: motr_mini_post_install
+  failed_when: '"SUCCESS" not in motr_mini_post_install.stdout'
+
+- name: "[Motr Provisioner Steps] : Motr:Prepare" 
+  shell: |
+    /opt/seagate/cortx/motr/bin/motr_setup prepare --config yaml:///opt/seagate/cortx/motr/conf/motr.prepare.tmpl
+  register: motr_mini_prepare
+  failed_when: '"SUCCESS" not in motr_mini_prepare.stdout'
+
+- name: "[Motr Provisioner Steps] : Motr:Config" 
+  shell: |
+    /opt/seagate/cortx/motr/bin/motr_setup config --config yaml:///opt/seagate/cortx/motr/conf/motr.config.tmpl
+  register: motr_mini_config
+  failed_when: '"SUCCESS" not in motr_mini_config.stdout'

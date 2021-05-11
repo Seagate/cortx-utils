@@ -1,0 +1,26 @@
+# #######################################################################################
+# Description:
+#-------------
+#         This tasks starts s3server deployment
+# Reference:
+#----------- 
+#         https://github.com/Seagate/cortx-s3server/wiki/S3server-provisioning-on-single-node-cluster:-Manual
+# Steps:
+#--------
+#      1. Install S3server
+#      2. Execute Mini Provisioning
+#      3. Start S3 Server
+#      4. Validate Deployment
+##########################################################################################
+
+- include: 01_install_prerequisites.yml
+  tags: ['01_PREREQ']
+
+- include: 02_mini_provisioning.yml
+  tags: ['02_MINI_PROV']
+
+- include: 03_start_s3server.yml
+  tags: ['03_START_S3SERVER']
+
+- include: 04_validate.yml
+  tags: ['04_VALIDATE']

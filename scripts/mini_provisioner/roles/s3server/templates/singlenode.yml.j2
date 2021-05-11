@@ -1,0 +1,23 @@
+nodes:
+ - hostname: {{ NODE1 }}
+   data_iface: eth0
+   data_iface_type: tcp
+   m0_servers:
+    - runs_confd: true
+      io_disks:
+       data: []
+    - io_disks:
+       data:
+        - /dev/loop1
+        - /dev/loop2
+        - /dev/loop3
+        - /dev/loop4
+   m0_clients:
+    s3: 1
+    other: 2
+pools:
+ - name: cortx_s3_pool
+   type: sns
+   data_units: 2
+   parity_units: 1
+

@@ -1,0 +1,96 @@
+---
+- name: "Validate the required input arguments for this playbook"
+  fail: msg="Variable '{{ item }}' is not defined"
+  when: item not in vars
+  with_items: "{{ REQUIRED_VARS }}"
+
+- name: Teardown Cortx Stack
+  shell: /opt/seagate/cortx/provisioner/cli/destroy-vm --ctrlpath-states --iopath-states --prereq-states --system-states --ha-states || true
+
+- name: Stop Salt services
+  shell: "{{ item }}"
+  with_items:
+    - "systemctl status glustersharedstorage >/dev/null && systemctl stop glustersharedstorage || true"
+    - "systemctl status glusterfsd >/dev/null && systemctl stop glusterfsd || true"
+    - "systemctl status glusterd >/dev/null && systemctl stop glusterd || true"
+    - "systemctl status salt-minion >/dev/null && systemctl stop salt-minion || true"
+    - "systemctl status salt-master >/dev/null && systemctl stop salt-master || true"
+
+- name: Remove provisioner and salt packages
+  yum:
+    name:
+      - cortx-prvsnr
+      - cortx-prvsnr-cli
+      - gluster-fuse
+      - gluster-server
+      - salt-minion
+      - salt-master
+      - salt-api
+      - python36-m2crypto
+      - python36-cortx-prvsnr
+      - uds-pyi
+    state: absent
+
+- name: Remove cortx rpm packages
+  yum: 
+    name: "*cortx*"
+    state: absent
+
+- name: Clear leaf packages and yum cache
+  command: "{{ item }}"
+  with_items:
+    - "yum autoremove -y"
+    - "yum clean all"
+    - "rm -rf /var/cache/yum"
+
+- name: Cleanup pip packages
+  shell: "{{ item }}"
+  with_items:
+    - "pip3 uninstall -y cortx-py-utils || true"
+    - "pip3 freeze|xargs pip3 uninstall -y || true"
+    - "test -e /etc/pip.conf && rm -f /etc/pip.conf || true"
+    - "rm -rf ~/.cache/pip || true"
+
+- name: Cleanup directories
+  shell: "{{ item }}"
+  with_items:
+    - "rm -rf /opt/seagate/cortx"
+    - "rm -rf /opt/seagate/cortx_configs"
+    - "rm -rf /opt/seagate"
+    - "rm -rf /root/*.*"
+    - "rm -rf /etc/yum.repos.d/*"
+    - "rm -rf /etc/hosts"
+
+- name: Cleanup directories if exists
+  shell: "test -e {{ item }} && rm -rf {{ item }} || true"
+  with_items:  
+    - "/var/lib/seagate"
+    - "/srv/glusterfs"
+    - "/var/cache/salt"
+    - "/etc/salt"
+    - "/opt/isos"
+    - "/root/.provisioner"
+    - "/etc/yum.repos.d/RELEASE_FACTORY.INFO"
+    - "/root/.ssh"
+    - "/var/motr"
+    - "/var/cortx"
+    - "/var/lib/cortx"
+    - "/var/lib/uds"
+    - "/var/lib/zookeeper"
+    - "/var/log/seagate"
+    - "/opt/consul"
+    - "/opt/kafka"
+    - "/opt/uds-pyi"
+    - "/etc/cortx"
+    - "/etc/csm"
+    - "/etc/lustre"
+    - "/etc/pacemaker"
+    - "/etc/sspl_global_config_copy.yaml"
+
+- name: Reset hosts file
+  copy:
+    dest: /etc/hosts
+    content: |
+      127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+      ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+    mode: 0644

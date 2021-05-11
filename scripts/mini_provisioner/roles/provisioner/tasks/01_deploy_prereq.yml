@@ -1,0 +1,13 @@
+---
+
+- name: "[deploy-prereq] : Copy config file"
+  template:
+    src: config.ini.j2
+    dest: /root/config.ini
+    mode: '0754'
+
+- name: "[deploy-prereq] : Install Git on Primary Node"
+  yum:
+    name: [ 'git' ]
+    state: latest
+    update_cache: yes   

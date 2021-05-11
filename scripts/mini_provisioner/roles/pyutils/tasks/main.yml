@@ -1,0 +1,23 @@
+# #######################################################################################
+# Description:
+#-------------
+#         This tasks starts Utils deployment
+# Reference:
+#-----------
+#         https://github.com/Seagate/cortx-utils/wiki/%22cortx-py-utils%22-single-node-manual-provisioning
+# Steps:
+#--------
+#      1. Install Utils
+#      2. Execute Mini Provisioning
+#      3. Validate Deployment
+##########################################################################################
+
+- include: 01_install_prerequisites.yml
+  tags: ['01_PREREQ']
+
+- include: 02_mini_provisioning.yml
+  tags: ['02_MINI_PROV']
+
+- include: 04_validate.yml
+  tags: ['04_VALIDATE']
+

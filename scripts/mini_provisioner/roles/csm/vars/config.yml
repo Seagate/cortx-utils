@@ -1,0 +1,8 @@
+---
+SERVER_NAME: "srvnode-1"
+CLUSTER_ID: "bae4b468-565d-49df-9495-a43a5d89babc"
+
+REQUIRED_VARS:
+  - NODE1
+  - CORTX_BUILD
+

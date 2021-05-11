@@ -1,0 +1,29 @@
+# Reference : https://github.com/Seagate/cortx-monitor/wiki/Cortx-monitor-single-node-VM-provisioning-manual:-Manual#SSPL Mini Provisioning
+
+- name: "[SSPL Mini Provisioning] : Post"
+  shell: |
+    /opt/seagate/cortx/utils/bin/utils_setup post_install --config yaml:///opt/seagate/cortx/sspl/conf/utils.post_install.tmpl.1-node
+    /opt/seagate/cortx/sspl/bin/sspl_setup post_install --config yaml:///opt/seagate/cortx/sspl/conf/sspl.post-install.tmpl.1-node
+  register: sspl_mini_post_install
+#  failed_when: '"post_install successful" not in sspl_mini_post_install.stdout'
+
+- name: Print sspl_mini_post_install
+  debug:
+    msg: "SSPL Mini Post Install O/p: {{ sspl_mini_post_install.stdout }}"
+
+- name: "[SSPL Mini Provisioning] : SSPL:Prepare" 
+  shell: /opt/seagate/cortx/sspl/bin/sspl_setup prepare --config yaml:///opt/seagate/cortx/sspl/conf/sspl.prepare.tmpl.1-node
+  register: sspl_mini_prepare
+ # failed_when: '"prepare successful" not in sspl_mini_prepare.stdout' 
+ 
+- name: "[SSPL Mini Provisioning] : Config" 
+  shell: |
+    /opt/seagate/cortx/utils/bin/utils_setup config --config yaml:///opt/seagate/cortx/sspl/conf/utils.config.tmpl.1-node
+    /opt/seagate/cortx/sspl/bin/sspl_setup config --config yaml:///opt/seagate/cortx/sspl/conf/sspl.config.tmpl.1-node
+  register: sspl_mini_config_install
+ # failed_when: '"config successful" not in sspl_mini_config_install.stdout'
+    
+- name: "[SSPL Mini Provisioning] : SSPL:Init" 
+  shell: /opt/seagate/cortx/sspl/bin/sspl_setup init --config yaml:///opt/seagate/cortx/sspl/conf/sspl.init.tmpl.1-node
+  register: sspl_mini_init
+ # failed_when: '"init successful" not in sspl_mini_init.stdout'

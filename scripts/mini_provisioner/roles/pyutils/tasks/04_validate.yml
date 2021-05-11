@@ -1,0 +1,5 @@
+# Reference : https://github.com/Seagate/cortx-utils/wiki/%22cortx-py-utils%22-single-node-manual-provisioning#utilsTest
+
+- name: "[UTILS Mini Provisioning] : Test"
+  shell: /opt/seagate/cortx/utils/bin/utils_setup test --config yaml:///opt/seagate/cortx/utils/conf/utils.test.tmpl.1-node
+  register: utils_mini_test

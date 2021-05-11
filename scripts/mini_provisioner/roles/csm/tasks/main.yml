@@ -1,0 +1,27 @@
+# #######################################################################################
+# Description:
+#-------------
+#         This tasks starts csm deployment
+# Reference:
+#----------- 
+#         https://github.com/Seagate/cortx-manager/wiki/CORTX-Manager-Single-Node-Deployment-on-VM
+# Steps:
+#--------
+#      1. Pre-Requisites Installation
+#      2. Install Cortx-Manager
+#      3. Cortx-manager mini Provisioning
+#      4. Start CORTX manager
+##########################################################################################
+
+- include: 01_install_prerequisites.yml
+  tags: ['01_PREREQ']
+
+- include: 02_mini_provisioning.yml
+  tags: ['02_MINI_PROV']
+
+- include: 03_start_csm.yml
+  tags: ['03_START_CSM']  
+
+- include: 04_validate.yml
+  tags: ['04_VALIDATE'] 
+

@@ -1,0 +1,6 @@
+---
+
+required_vars:
+  - NODE1
+  - BUILD_URL
+  - CLUSTER_PASS

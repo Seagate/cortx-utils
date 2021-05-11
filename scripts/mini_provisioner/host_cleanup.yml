@@ -1,0 +1,14 @@
+---
+- name: Prepare Environment
+  hosts: localhost
+  become: true
+  gather_facts: True
+  roles:
+    - role: 00_prepare_environment
+
+- name: Host Cleanup
+  hosts: srvnode-1
+  become: true
+  vars_files: roles/host_cleanup/vars/config.yml 
+  roles:
+    - role: host_cleanup

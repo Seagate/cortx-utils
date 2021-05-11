@@ -1,0 +1,43 @@
+# Reference : https://github.com/Seagate/cortx-s3server/wiki/S3server-provisioning-on-single-node-VM-cluster:-Manual#s3test
+
+- name: "[ Validate ] : Get service facts"
+  service_facts:
+  no_log: True
+
+- name: "[ Validate ] :  Validate  all the expected services [slapd, haproxy, s3authserver] are up & running"
+  fail: msg="Service '{{ item }}' not running"
+  when: ansible_facts.services['{{ item }}'].state != "running"
+  with_items:
+    - slapd.service
+    - haproxy.service
+    - s3authserver.service
+
+- name: "[ Validate ] : Wait for service to start"
+  command: "hctl status"
+  register: hctl_status
+  until:
+    - "'[started]  hax' in hctl_status.stdout"
+    - "'[started]  confd' in hctl_status.stdout"
+    - "'[started]  ioservice' in hctl_status.stdout"
+    - "'[started]  s3server' in hctl_status.stdout"
+  retries: 20
+  delay: 30
+
+- name: "[ Validate ] : hctl status"
+  shell: hctl status 2>&1 | tee -a /root/hctl_status.log
+
+- name: "[ Validate ] : Install s3iamcli RPM"
+  shell: |
+    if [[  "$(yum list available | grep cortx-s3iamcli)" ]]; then
+      echo "Installing cortx-s3iamcli cortx-s3-test rpm from build repo"
+      yum install -y --nogpgcheck cortx-s3iamcli cortx-s3-test
+    else
+      echo "Installing cortx-s3iamcli rpm from last successful main repo"
+      yum install -y --nogpgcheck {{ S3_IAM_CLI_LOCATION }}/$(curl -s {{ S3_IAM_CLI_LOCATION }} | grep cortx-s3iamcli | grep -v cortx-s3iamcli-devel | cut -d'"' -f2)
+      yum install -y --nogpgcheck {{ S3_IAM_CLI_LOCATION }}/$(curl -s {{ S3_IAM_CLI_LOCATION }} | grep cortx-s3-test | cut -d'"' -f2)
+    fi
+
+- name: "[ Validate ] : S3 Sanity Test" 
+  shell: /opt/seagate/cortx/s3/bin/s3_setup test --config "yaml:///opt/seagate/cortx/s3/conf/s3.test.tmpl.1-node"
+  register: s3_mini_test
+  failed_when: '"PASS: S3-Sanity test passed" not in s3_mini_test.stdout'

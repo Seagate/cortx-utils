@@ -1,0 +1,21 @@
+---
+#- name: "[deploy] : Copy deploy script to primary node"
+#  copy:
+#      src: files/cortx_deploy.sh
+#      dest: /root/cortx_deploy.sh
+#      owner: root
+#      group: root
+#      mode: '0754'
+
+- name: "[deploy] : Deploy Cluster on Primary Node"
+  script: "files/setup_provisioner.sh {{ BUILD_URL }} {{ NODE1 }} {{ CLUSTER_PASS }}"
+
+- name: "[deploy] : Validate bootstrap provisioner"
+  shell: "{{ item }}"
+  loop:
+    - "salt '*' test.ping"  
+    - "salt '*' service.disable puppet"
+    - "salt '*' pillar.get release"  
+    - "salt '*' grains.get node_id"  
+    - "salt '*' grains.get cluster_id"  
+    - "salt '*' grains.get roles"

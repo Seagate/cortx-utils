@@ -1,0 +1,26 @@
+# Cluster Description File (CDF).
+nodes:
+  - hostname: {{ HOSTNAME }} # [user@]hostname
+    data_iface: eth1        # name of data network interface
+    m0_servers:
+      - runs_confd: true
+        io_disks:
+          data: []
+      - io_disks:
+          meta_data: /dev/vg_srvnode-1_md1/lv_raw_md1
+          data:
+            - /dev/sdc
+            - /dev/sdd
+      - io_disks:
+          meta_data: /dev/vg_srvnode-1_md2/lv_raw_md2
+          data:
+            - /dev/sdf
+            - /dev/sdg
+    m0_clients:
+      s3: 0         # number of S3 servers to start
+      other: 2      # max quantity of other Motr clients this host may have
+pools:
+  - name: the pool
+    type: sns  # optional; supported values: "sns" (default), "dix", "md"
+    data_units: 1
+    parity_units: 0

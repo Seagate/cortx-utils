@@ -1,0 +1,20 @@
+# Reference : https://github.com/Seagate/cortx-motr/wiki/Motr-deployment-using-motr_setup-on-singlenode-VM#create-cdf-file
+
+# Get Hostname
+- name: "[bootstrap_cluster] : Get hostname" 
+  shell: hostname
+  register: hostname_out
+  become: true
+
+- set_fact:
+    HOSTNAME: "{{ hostname_out.stdout }}"
+
+# Create CDF file: /root/singlenode.yml
+- name: "[bootstrap_cluster] : Copy cdf file"
+  template:
+    src: singlenode.yml.j2
+    dest: /root/singlenode.yml
+
+# Bootstrap hctl
+- name: "[bootstrap_cluster] : Bootstrap hctl"
+  shell:  hctl bootstrap --mkfs /root/singlenode.yml

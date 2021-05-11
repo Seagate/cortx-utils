@@ -1,0 +1,7 @@
+# Prepare Environment [ tools instrallation, passwordless ssh]
+- include: 01_prepare_env.yml
+  tags: ['00_PREP_ENV']
+
+# Reimage deployment host [ reimage, passwordless ssh, ssh validation]
+- include: 02_reimage.yml
+  tags: ['00_REIMAGE']

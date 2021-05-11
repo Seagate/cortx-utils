@@ -1,0 +1,5 @@
+# Reference : https://github.com/Seagate/cortx-hare/wiki/Hare-provisioning-for-single-node-deployment#test
+
+# Execute Hare:Test
+- name: "[mini_provisioning] : Hare Test" 
+  shell: /opt/seagate/cortx/hare/bin/hare_setup test --config 'json:///opt/seagate/cortx/hare/conf/hare.test.conf.tmpl.1-node'

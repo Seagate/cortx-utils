@@ -1,0 +1,16 @@
+---
+- name: "[mini_provisioning] : Enable csm_agent"
+  shell: systemctl enable csm_agent
+
+- name: "[mini_provisioning] : Start csm_agent"
+  shell: systemctl start csm_agent
+  register: csm_agent_out
+  ignore_errors: true
+
+- name: "[mini_provisioning] : Journalctl log" 
+  shell: journalctl --unit=csm_agent.service | tail -n 100
+  when: csm_agent_out.rc != 0
+
+- name: "[mini_provisioning] : csm_agent service failure"
+  fail: msg="Failed to start csm_agent service"
+  when: csm_agent_out.rc != 0

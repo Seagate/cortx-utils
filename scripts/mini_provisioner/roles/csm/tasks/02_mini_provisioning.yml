@@ -1,0 +1,35 @@
+---
+- name: "[mini_provisioning] : Execute CSM scripts"
+  block:
+    - name: "[mini_provisioning] : CSM Post Install" 
+      shell: "{{ item }}" 
+      with_items:
+        - "/opt/seagate/cortx/utils/bin/utils_setup post_install --config json:///opt/seagate/cortx/utils/conf/utils.post_install.tmpl.1-node"
+        - "/opt/seagate/cortx/csm/bin/csm_setup post_install --config json:///opt/seagate/cortx/csm/conf/csm.post_install.tmpl.1-node"
+      
+    - name: "[mini_provisioning] : CSM Prepare"
+      shell: /opt/seagate/cortx/csm/bin/csm_setup prepare --config json:///opt/seagate/cortx/csm/conf/csm.prepare.tmpl.1-node
+      
+    - name: "[mini_provisioning] : CSM Config" 
+      shell: "{{ item }}"
+      with_items:
+        - "/opt/seagate/cortx/utils/bin/utils_setup config --config json:///opt/seagate/cortx/utils/conf/utils.config.tmpl.1-node"
+        - "/opt/seagate/cortx/csm/bin/csm_setup config --config json:///opt/seagate/cortx/csm/conf/csm.config.tmpl.1-node"
+
+    - name: "[mini_provisioning] : CSM Init" 
+      shell: /opt/seagate/cortx/csm/bin/csm_setup init --config json:///opt/seagate/cortx/csm/conf/csm.init.tmpl.1-node
+  rescue:
+    - name: display config templates
+      debug: var=item
+      with_file:
+        - "/opt/seagate/cortx/csm/conf/csm.post_install.tmpl.1-node"
+        - "/opt/seagate/cortx/csm/conf/csm.prepare.tmpl.1-node"
+        - "/opt/seagate/cortx/csm/conf/csm.config.tmpl.1-node"
+        - "/opt/seagate/cortx/csm/conf/csm.init.tmpl.1-node"
+
+    - name: Display logs
+      shell: cat /tmp/csm_setup.log
+      register: csm_log_out      
+ 
+    - name: Print CSM logs to console
+      debug: msg = "{{ csm_log_out.stdout }}"

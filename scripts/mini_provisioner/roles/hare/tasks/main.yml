@@ -1,0 +1,23 @@
+# #######################################################################################
+# Description:
+#-------------
+#         This tasks starts hare deployment
+# Reference:
+#----------- 
+#         https://github.com/Seagate/cortx-hare/wiki/Hare-provisioning
+# Steps:
+#--------
+#      1. Install Prereq
+#      2. Execute Mini Provisioning
+#      3. Bootstrap Cluster
+#      4. Validate Deployment
+##########################################################################################
+
+- include: 01_install_prerequisites.yml
+  tags: ['01_PREREQ']
+
+- include: 02_mini_provisioning.yml
+  tags: ['02_MINI_PROV']
+
+- include: 04_validate.yml
+  tags: ['04_VALIDATE']

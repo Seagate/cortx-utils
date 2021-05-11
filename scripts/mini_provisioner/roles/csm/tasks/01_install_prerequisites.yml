@@ -1,0 +1,170 @@
+---
+- name: Gather facts
+  setup:
+
+# Validate input args
+- name: "[install_prereq] : Validate the required input arguments for this playbook"
+  fail: msg="Variable '{{ item }}' is not defined"
+  when: item not in vars
+  with_items: "{{ REQUIRED_VARS }}"
+
+# Add yum repositories
+- name: "[install_prereq] : Copy yum repo"
+  template:
+    src: cortx.repo.j2
+    dest: /etc/yum.repos.d/cortx.repo
+  
+# Refresh yum repo
+- name: "[install_prereq] : Refresh yum repos"
+  shell: yum clean all
+
+# Execute pre-requisites installation script
+- name: "[install_prereq] : Install RE pre-req"
+  shell: "curl -s -L http://cortx-storage.colo.seagate.com/releases/cortx/third-party-deps/rpm/install-cortx-prereq.sh | bash"
+
+# Start and enable elasticsearch
+- name: "[install_prereq] : Start elasticsearch"
+  shell: systemctl restart elasticsearch
+  register: elasticsearch_status
+  ignore_errors: true
+
+# Console Elasticsearch Journalctl log
+- name: "[install_prereq] : Elasticsearch journalctl log" 
+  shell: journalctl --unit=elasticsearch.service | tail -n 100
+  when: elasticsearch_status.rc != 0
+
+- name: "[install_prereq] : Elasticsearch service failure"
+  fail: msg="Failed to start elasticsearch service"
+  when: elasticsearch_status.rc != 0  
+
+# Update service file 
+- name: "[install_prereq] : Update consul service file"
+  ansible.builtin.lineinfile:
+    path: /usr/lib/systemd/system/consul.service
+    regexp: '^ExecStart='
+    line: ExecStart=/usr/bin/consul agent -dev
+
+- name: "[install_prereq] : Reload daemon process"
+  command: systemctl daemon-reload
+
+# Restart and enable consul
+- name: "[install_prereq] : Restart Consul"
+  shell: systemctl restart consul
+  register: consul_status
+  ignore_errors: true
+
+# Console Consul Journalctl log
+- name: "[install_prereq] : Consul journalctl log" 
+  shell: journalctl --unit=consul.service | tail -n 100
+  when: consul_status.rc != 0
+
+- name: "[install_prereq] : Consul service failure"
+  fail: msg="Failed to start consul service"
+  when: consul_status.rc != 0  
+
+- name: "[install_prereq] :  Install Kafka"
+  shell: yum install kafka -y
+
+- name: "[install_prereq] : Updated Kafka Server Config"
+  lineinfile:
+    path: "/opt/kafka/config/server.properties"
+    line: "{{ item }}"
+    insertbefore: BOF
+  with_items:
+    - "log.flush.offset.checkpoint.interval.ms=1"
+    - "log.retention.check.interval.ms=1"
+    - "log.delete.delay.ms=1"
+    - "listeners=PLAINTEXT://{{ NODE1 }}:9092"
+
+- name: "[install_prereq] : Enable and start Kafka Service"
+  shell: |
+    systemctl enable kafka-zookeeper
+    systemctl enable kafka
+    systemctl start kafka-zookeeper
+    sleep 5
+    systemctl start kafka
+    sleep 10
+    systemctl status kafka-zookeeper.service
+    systemctl status kafka.service
+
+- name: "[install_prereq] : Install csm agent, csm web, cortx-py-utils, python36-cortx-prvsnr and cli"
+  yum: 
+    name: ["cortx-cli", "cortx-csm_agent", "cortx-csm_web", "cortx-py-utils", "python36-cortx-prvsnr"]
+    state: present
+
+- name: "[install_prereq] : Create a cortx directory if does not exist"
+  ansible.builtin.file:
+    path: /etc/cortx
+    state: directory
+    mode: '0755'
+
+- name: "[install_prereq] : Copy utils post install config"
+  ansible.builtin.template:
+    src: utils_config.j2
+    dest: /opt/seagate/cortx/utils/conf/utils.post_install.tmpl.1-node
+    mode: '0774'    
+
+- name: "[install_prereq] : Copy utils config"
+  ansible.builtin.template:
+    src: utils_config.j2
+    dest: /opt/seagate/cortx/utils/conf/utils.config.tmpl.1-node
+    mode: '0774'
+
+- name: "[install_cortx_manager] : Get Machine ID" 
+  shell: cat /etc/machine-id
+  register: machineid_out
+
+- set_fact:
+    MACHINE_ID: "{{ machineid_out.stdout }}"
+
+- name: "[install_cortx_manager] : Get Secret Key" 
+  shell: python3 -W "ignore" -c "from cortx.utils.security.cipher import Cipher; key = Cipher.generate_key('bae4b468-565d-49df-9495-a43a5d89babc','cortx');print((Cipher.encrypt(key, b'Seagate@1')).decode('utf-8'))"
+  register: secretkey_out
+
+- set_fact:
+    SECRET_KEY: "{{ secretkey_out.stdout }}"
+
+- name: "[install_cortx_manager] : Update post_install configuration template"
+  ansible.builtin.replace:
+    path: /opt/seagate/cortx/csm/conf/csm.post_install.tmpl.1-node
+    regexp: 'TMPL_MACHINE_ID'
+    replace: "{{ MACHINE_ID }}"
+
+- name: "[install_cortx_manager] : Update prepare configuration template"
+  ansible.builtin.replace:
+    path: /opt/seagate/cortx/csm/conf/csm.prepare.tmpl.1-node
+    regexp: "{{ item.tempval }}"
+    replace: "{{ item.val }}"
+  with_items:
+    - { tempval: "TMPL_MACHINE_ID", val: "{{ MACHINE_ID }}" }
+    - { tempval: "TMPL_SERVER_NAME", val: "{{ SERVER_NAME }}" }
+    - { tempval: "TMPL_SERVER_HOSTNAME", val: "{{ ansible_nodename }}" }
+    - { tempval: "TMPL_CLUSTER_ID", val: "{{ CLUSTER_ID }}" }
+    - { tempval: "TMPL_CSM_SECRET_KEY", val: "{{ SECRET_KEY }}" }
+    - { tempval: "TMPL_SGIAM_SECRET_KEY", val: "{{ SECRET_KEY }}" }  
+
+- name: "[install_cortx_manager] : Update config configuration template"
+  ansible.builtin.replace:
+    path: /opt/seagate/cortx/csm/conf/csm.config.tmpl.1-node
+    regexp: "{{ item.tempval }}"
+    replace: "{{ item.val }}"
+  with_items:  
+    - { tempval: "TMPL_MACHINE_ID", val: "{{ MACHINE_ID }}" }
+    - { tempval: "TMPL_SERVER_NAME", val: "{{ SERVER_NAME }}" }
+    - { tempval: "TMPL_SERVER_HOSTNAME", val: "{{ ansible_nodename }}" }
+    - { tempval: "TMPL_CLUSTER_ID", val: "{{ CLUSTER_ID }}" }
+    - { tempval: "TMPL_CSM_SECRET_KEY", val: "{{ SECRET_KEY }}" }
+    - { tempval: "TMPL_SGIAM_SECRET_KEY", val: "{{ SECRET_KEY }}" }  
+
+- name: "[install_cortx_manager] : Update init configuration template"
+  ansible.builtin.replace:
+    path: /opt/seagate/cortx/csm/conf/csm.init.tmpl.1-node
+    regexp: "{{ item.tempval }}"
+    replace: "{{ item.val }}"
+  with_items:
+    - { tempval: "TMPL_MACHINE_ID", val: "{{ MACHINE_ID }}" }
+    - { tempval: "TMPL_SERVER_NAME", val: "{{ SERVER_NAME }}" }
+    - { tempval: "TMPL_SERVER_HOSTNAME", val: "{{ ansible_nodename }}" }
+    - { tempval: "TMPL_CLUSTER_ID", val: "{{ CLUSTER_ID }}" }
+    - { tempval: "TMPL_CSM_SECRET_KEY", val: "{{ SECRET_KEY }}" }
+    - { tempval: "TMPL_SGIAM_SECRET_KEY", val: "{{ SECRET_KEY }}" }    

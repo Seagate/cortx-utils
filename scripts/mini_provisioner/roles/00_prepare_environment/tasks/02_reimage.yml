@@ -1,0 +1,31 @@
+# #######################################################################################
+# Description:
+#-------------
+#         This tasks reimages the deployment host and validates the host access on post reimage
+# Steps:
+#--------
+#      1. Reimages deployment host
+#      2. Validates the Host access
+#      3. Enables Passwordless authentication
+##########################################################################################
+
+# Execute reimage using cloudform api 
+- name: "[prepare] : Re-Image nodes {{ NODE1 }} using satellite API" 
+  script: files/reimage.sh -h {{ NODE1 }} -x '{{ CLOUDFORM_API_CRED }}'
+
+# Wait for SSH service to be up and running
+- name: "[prepare] : Wait for server to restart"
+  wait_for:
+      host={{ hostvars[item]['ansible_host'] }}
+      port=22
+      delay=15
+      timeout=1800
+  become: false
+  ignore_errors: true
+  with_items: "{{ groups['nodes'] }}"
+  
+# Refresh inventory for host identity changes
+- meta: refresh_inventory
+
+# Enable passwordless authentication on fresh host
+- include: passwordless_authentication.yml

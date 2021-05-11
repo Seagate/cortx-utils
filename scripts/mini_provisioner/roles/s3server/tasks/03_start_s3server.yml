@@ -1,0 +1,61 @@
+# Reference : https://github.com/Seagate/cortx-s3server/wiki/S3server-provisioning-on-single-node-VM-cluster:-Manual#start-s3server-and-motr-for-io
+
+- name: "[Start s3server and motr for I/O] : Install hare"
+  yum: 
+    name: cortx-hare
+    state: present
+
+- name: "[Start s3server and motr for I/O] : Set nodename"
+  shell: hostname > /var/lib/hare/node-name
+
+- name: "[Start s3server and motr for I/O] : Create virtual devices"
+  shell: m0setup
+
+- name: "[Start s3server and motr for I/O] : Copy lnet conf"
+  copy:
+      src: files/lnet.conf
+      dest: /etc/modprobe.d/lnet.conf
+      owner: root
+      group: root
+      mode: '0755'
+
+- name: "[Start s3server and motr for I/O] : Start lnet"
+  ansible.builtin.service:
+    name: lnet
+    state: started
+
+- name: "[Start s3server and motr for I/O] : Get hostname" 
+  shell: hostname
+  register: hostname_out
+  become: true
+
+- set_fact:
+    HOSTNAME: "{{ hostname_out.stdout }}"
+
+- name: "[Start s3server and motr for I/O] : Create CDF file: /tmp/singlenode.yaml"
+  template:
+    src: singlenode.yml.j2
+    dest: /tmp/singlenode.yml
+
+- name: "[Start s3server and motr for I/O] : Bootstrap hctl"
+  shell: hctl bootstrap --mkfs /tmp/singlenode.yml
+
+- name: "[Start s3server and motr for I/O] : Restart s3authserver"
+  ansible.builtin.service:
+    name: s3authserver
+    state: restarted
+
+- name: "[Start s3server and motr for I/O] : Start s3backgroundproducer"
+  ansible.builtin.service:
+    name: s3backgroundproducer
+    state: started
+
+- name: "[Start s3server and motr for I/O] : Start s3backgroundconsumer"
+  ansible.builtin.service:
+    name: s3backgroundconsumer
+    state: started
+
+- name: "[Start s3server and motr for I/O] : Update host entry" 
+  shell:  |
+    PUBLIC_IP=$(ifconfig eth1 | grep -o "inet [0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" | grep -o "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*")
+    sed -i "/^${PUBLIC_IP}/s/$/ iam.seagate.com s3.seagate.com/" /etc/hosts

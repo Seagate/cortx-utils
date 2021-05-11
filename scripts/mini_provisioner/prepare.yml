@@ -1,0 +1,7 @@
+---
+- name: Prepare Environment
+  hosts: localhost
+  become: true
+  gather_facts: True
+  roles:
+    - role: 00_prepare_environment

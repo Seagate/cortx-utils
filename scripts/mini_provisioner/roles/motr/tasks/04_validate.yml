@@ -1,0 +1,35 @@
+# Reference : https://github.com/Seagate/cortx-motr/wiki/Motr-deployment-using-motr_setup-on-singlenode-VM#test-the-system
+
+
+- name: "[Test] : Motr:Test" 
+  shell: |
+    /opt/seagate/cortx/motr/bin/motr_setup test --config yaml:///opt/seagate/cortx/motr/conf/motr.test.tmpl
+  register: motr_mini_test
+  #failed_when: '"test successful" not in motr_mini_test.stdout'
+
+
+# Log all service facts using ansible module ( this will store service info in ansible_facts.services)
+- name: "[Test] : Get service facts"
+  service_facts:
+  no_log: True
+
+# Wait for services to start
+- name: "[Test] : Wait for service to start"
+  command: "hctl status"
+  register: hctl_status
+  until:
+    - "'[started]  hax' in hctl_status.stdout"
+    - "'[started]  confd' in hctl_status.stdout"
+    - "'[started]  ioservice' in hctl_status.stdout"
+  retries: 20
+  delay: 30
+
+# Check hctl status
+- name: "[Test] : hctl status"
+  shell: hctl status 2>&1 | tee -a /root/hctl_status.log
+
+# Check hctl status
+- name: "[Test] : Run IO Tests"
+  script: files/run_io_tests.sh 2>&1 | tee -a /root/test_motr.log
+  register: sanity_test_out
+  failed_when: '"IO Test : PASSED" not in sanity_test_out.stdout'

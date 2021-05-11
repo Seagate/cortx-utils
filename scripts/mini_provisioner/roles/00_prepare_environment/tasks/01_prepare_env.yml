@@ -1,0 +1,26 @@
+# #######################################################################################
+# Description:
+#-------------
+#         This tasks performs all prerequisites steps required for deployment
+# Steps:
+#--------
+#      1. Install required tools for the deployment 
+#      2. Wnable passwordless ssh between deployment node and deployment controller node
+##########################################################################################
+
+# Install required tools
+- name: "[prepare] : Install tools [expect, curl, bc, jq] on localhost"
+  yum:
+    name: [ 'expect', 'ipmitool', 'curl', 'bc', 'jq']
+    state: latest
+    update_cache: yes
+
+# Update hostfile with node hostname (dynamic host)
+- name: "[prepare] : Update host files for node connect"
+  script: files/update_hosts.sh {{ NODE1 }}
+
+# Refresh inventory for hostfile changes
+- meta: refresh_inventory
+
+# Enable passwordless authentication between deployment and localhost
+- include: passwordless_authentication.yml

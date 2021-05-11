@@ -1,0 +1,26 @@
+# #######################################################################################
+# Description:
+#-------------
+#         This tasks starts motr deployment
+# Reference:
+#----------- 
+#         https://github.com/Seagate/cortx-motr/wiki/Motr-deployment-using-motr_setup-on-singlenode-VM
+# Steps:
+#--------
+#      1. Install Prereq
+#      2. Execute Mini Provisioning
+#      3. Bootstrap Cluster
+#      4. Validate Deployment
+##########################################################################################
+
+- include: 01_install_prerequisites.yml
+  tags: ['01_PREREQ']
+
+- include: 02_mini_provisioning.yml
+  tags: ['02_MINI_PROV']
+
+- include: 03_bootstrap_cluster..yml
+  tags: ['03_BOOTSTRAP_CLUSTER']
+
+- include: 04_validate.yml
+  tags: ['04_VALIDATE']

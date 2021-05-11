@@ -1,0 +1,75 @@
+# Reference : https://github.com/Seagate/cortx-motr/wiki/Motr-deployment-using-motr_setup-on-singlenode-VM#pre-requisites
+
+- name: "[Pre requisites] : Validate the required input arguments for this playbook"
+  fail: msg="Variable '{{ item }}' is not defined"
+  when: item not in vars
+  with_items: "{{ REQUIRED_VARS }}"
+  
+# Add yum repositories
+- name: "[Pre requisites] : Copy yum repo"
+  template:
+    src: cortx.repo.j2
+    dest: /etc/yum.repos.d/cortx.repo
+  
+# Install py-utils req
+- name: "[Pre-Requisites] :1. Install third-party packages" 
+  shell: curl -s http://cortx-storage.colo.seagate.com/releases/cortx/third-party-deps/rpm/install-cortx-prereq.sh | bash -s -- -b {{ CORTX_BUILD }}
+
+# Install cortx-py-utils
+- name: "[Pre requisites] : Install dependent rpm, cortx-py-utils, cortx-motr and cortx-hare"
+  yum: 
+    name: [ "cortx-motr", "cortx-hare", "cortx-py-utils"]
+    state: present
+
+# Create machine-id
+- name: "[Pre requisites] : Create machine-id"
+  script: files/reset_machineid.sh
+
+# Get Hostname
+- name: "[Pre requisites] : Get Hostname" 
+  shell: hostname
+  register: hostname_out
+
+- name: "[Pre-Requisites] : Update motr confstore template files" 
+  shell:  |
+    MACHINEID1=`cat /etc/machine-id`
+    CLUSTER_ID=5c427765-ecf5-4387-bfa4-d6d53494b159
+    HOSTNAME1=`hostname`
+    nr_grp="2"
+    data="1"
+    parity="0"
+    spare="0"
+
+    sed -i "s#TMPL_MACHINE_ID#$MACHINEID1#" /opt/seagate/cortx/motr/conf/motr.post_install.tmpl
+    sed -i "s#TMPL_NAME#srvnode-1#" /opt/seagate/cortx/motr/conf/motr.post_install.tmpl
+    sed -i "s#TMPL_DATADEVICE_00#/dev/sdc#" /opt/seagate/cortx/motr/conf/motr.post_install.tmpl
+    sed -i "s#TMPL_DATADEVICE_01#/dev/sdd#" /opt/seagate/cortx/motr/conf/motr.post_install.tmpl
+    sed -i "s#TMPL_METADATADEVICE_00#/dev/sdb#" /opt/seagate/cortx/motr/conf/motr.post_install.tmpl
+    sed -i "s#TMPL_DATADEVICE_10#/dev/sdf#" /opt/seagate/cortx/motr/conf/motr.post_install.tmpl
+    sed -i "s#TMPL_DATADEVICE_11#/dev/sdg#" /opt/seagate/cortx/motr/conf/motr.post_install.tmpl
+    sed -i "s#TMPL_METADATADEVICE_10#/dev/sde#" /opt/seagate/cortx/motr/conf/motr.post_install.tmpl
+    sed -i "s#TMPL_CVG_NR_GROUP#'$nr_grp'#" /opt/seagate/cortx/motr/conf/motr.post_install.tmpl
+    sed -i "s#TMPL_CLUSTER_ID#$CLUSTER_ID#" /opt/seagate/cortx/motr/conf/motr.post_install.tmpl
+    sed -i "s#TMPL_POOL_DATA#$data#" /opt/seagate/cortx/motr/conf/motr.post_install.tmpl
+    sed -i "s#TMPL_POOL_PARITY#$parity#" /opt/seagate/cortx/motr/conf/motr.post_install.tmpl
+    sed -i "s#TMPL_POOL_SPARE#$spare#" /opt/seagate/cortx/motr/conf/motr.post_install.tmpl
+
+    sed -i "s#TMPL_MACHINE_ID#$MACHINEID1#" /opt/seagate/cortx/motr/conf/motr.prepare.tmpl
+    sed -i "s#TMPL_DATADEVICE_00#/dev/sdc#" /opt/seagate/cortx/motr/conf/motr.prepare.tmpl
+    sed -i "s#TMPL_DATADEVICE_01#/dev/sdd#" /opt/seagate/cortx/motr/conf/motr.prepare.tmpl
+    sed -i "s#TMPL_DATADEVICE_10#/dev/sdf#" /opt/seagate/cortx/motr/conf/motr.prepare.tmpl
+    sed -i "s#TMPL_DATADEVICE_11#/dev/sdg#" /opt/seagate/cortx/motr/conf/motr.prepare.tmpl
+    sed -i "s#TMPL_CVG_NR_GROUP#'$nr_grp'#" /opt/seagate/cortx/motr/conf/motr.prepare.tmpl
+    sed -i "s#TMPL_IFACE_TYPE#tcp#" /opt/seagate/cortx/motr/conf/motr.prepare.tmpl
+    sed -i "s#TMPL_INTERFACE#eth1#" /opt/seagate/cortx/motr/conf/motr.prepare.tmpl
+    sed -i "s#TMPL_XPORT_TYPE#lnet#" /opt/seagate/cortx/motr/conf/motr.prepare.tmpl
+    sed -i "s#TMPL_CLUSTER_ID#$CLUSTER_ID#" /opt/seagate/cortx/motr/conf/motr.prepare.tmpl
+    sed -i "s#TMPL_POOL_DATA#'$data'#" /opt/seagate/cortx/motr/conf/motr.prepare.tmpl
+    sed -i "s#TMPL_POOL_PARITY#'$parity'#" /opt/seagate/cortx/motr/conf/motr.prepare.tmpl
+    sed -i "s#TMPL_POOL_SPARE#'$spare'#" /opt/seagate/cortx/motr/conf/motr.prepare.tmpl
+
+    sed -i "s#TMPL_MACHINE_ID#$MACHINEID1#" /opt/seagate/cortx/motr/conf/motr.config.tmpl
+    sed -i "s#TMPL_TYPE#VM#" /opt/seagate/cortx/motr/conf/motr.config.tmpl
+
+    sed -i "s#TMPL_MACHINE_ID#$MACHINEID1#" /opt/seagate/cortx/motr/conf/motr.test.tmpl
+    sed -i "s#TMPL_HOSTNAME#$HOSTNAME1#" /opt/seagate/cortx/motr/conf/motr.test.tmpl

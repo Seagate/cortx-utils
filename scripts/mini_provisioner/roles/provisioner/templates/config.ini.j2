@@ -1,0 +1,18 @@
+[srvnode_default]
+network.data.private_interfaces=eth3,eth4
+network.data.public_interfaces=eth1,eth2
+network.mgmt.interfaces=eth0
+bmc.user=None
+bmc.secret=None
+storage.cvg.0.data_devices=/dev/sdc
+storage.cvg.0.metadata_devices=/dev/sdb
+network.data.private_ip=None
+
+[srvnode-1]
+hostname={{ NODE1 }}
+roles=primary,openldap_server
+
+[enclosure_default]
+type=virtual
+
+[enclosure-1]

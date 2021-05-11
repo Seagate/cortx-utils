@@ -11,8 +11,11 @@ pipeline {
 	}
 
 	options {
-		timestamps() 
-	}
+        timeout(time: 120, unit: 'MINUTES')
+        timestamps()
+        ansiColor('xterm') 
+        buildDiscarder(logRotator(numToKeepStr: "30"))
+    }
 
     triggers {
         // Scheduled to run on daily ~ 1-2 AM IST
