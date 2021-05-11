@@ -23,12 +23,12 @@ from typing import Dict, Any
 from copy import deepcopy
 from dict2xml import dict2xml
 from prettytable import PrettyTable
+from importlib import import_module
+
 # from csm.common.errors import CSM_OPERATION_SUCESSFUL
-from cortx.utils.cli.terminal import Terminal
 from cortx.utils.cli import const
 from cortx.utils.cli.errors import ArgumentError
 from cortx.utils.log import Log
-# from csm.core.controllers.validators import BucketNameValidator
 from cortx.utils.schema.payload import CommonPayload
 
 class Command:
@@ -83,50 +83,6 @@ class Command:
         return output_obj.dump(out, err, **self._output,
                                output_type=self._options.get('format',
                                                              "success"))
-
-
-# class Validatiors:
-
-#     """CLI Validatiors Class"""
-#     @staticmethod
-#     def positive_int(value):
-#         try:
-#             if int(value) > -1:
-#                 return int(value)
-#             raise ArgumentError(errno.EINVAL, "Value Must be Positive Integer")
-#         except ValueError:
-#             raise ArgumentError(errno.EINVAL,"Value Must be Positive Integer")
-
-#     @staticmethod
-#     def file_parser(value):
-#         try:
-#             return CommonPayload(value).load()
-#         except ValueError as ve:
-#             Log.error(f"File parsing failed. {value}: {ve}")
-#             raise ArgumentError(errno.EINVAL,
-#                 ("File operations failed. "
-#                  "Please check if the file is valid or not"))
-#         except FileNotFoundError as err:
-#             Log.error(f"No such file present. {value}: {err}")
-#             raise ArgumentError(errno.ENOENT,
-#                 ("File operation failed. "
-#                  "Please check if the file exists."))
-#         except KeyError as err:
-#             Log.error(f"Check file type. {value}: {err}")
-#             raise ArgumentError(errno.ENOENT,
-#                 ("File operation failed. "
-#                  "Please check if the file exists and its type."))
-
-#     @staticmethod
-#     def bucket_name(value):
-#         validator = BucketNameValidator()
-#         if not validator.is_value_valid(value):
-#             raise ArgumentError(errno.EINVAL,
-#                 ("Bucket Name should be between 4-56 Characters long. "
-#                  "Should contain either lowercase, numeric or '-' characters. "
-#                  "Not starting or ending with '-'"))
-#         return str(value)
-
 
 class CommandParser:
     """
@@ -214,7 +170,11 @@ class CommandParser:
             self._communication_obj['json'] = {}
             for each_args in sub_command["args"]:
                 if each_args.get("type", None):
-                    each_args["type"] = eval(each_args["type"])
+                    if each_args.get("type_target"):
+                        module_obj = import_module(each_args.pop("type_target"))
+                        each_args["type"] = eval(f'module_obj.{each_args["type"]}')
+                    else:
+                        each_args["type"] = eval(each_args["type"])
                 if each_args.get("suppress_help", False):
                     each_args.pop("suppress_help")
                     each_args['help'] = argparse.SUPPRESS

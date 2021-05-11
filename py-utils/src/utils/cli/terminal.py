@@ -2,6 +2,8 @@ import sys
 import traceback
 from cortx.utils.log import Log
 from cortx.utils.cli.errors import ArgumentError
+from getpass import getpass
+import errno
 
 class Terminal:
     

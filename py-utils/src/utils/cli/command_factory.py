@@ -4,7 +4,7 @@ import os
 from cortx.utils.schema.payload import Json
 from cortx.utils.cli import const
 from cortx.utils.log import Log
-from csm.cli.command import CommandParser
+from cortx.utils.cli.command import CommandParser
 
 
 class ArgumentParser(argparse.ArgumentParser):
