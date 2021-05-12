@@ -3,6 +3,7 @@ attr
 compat-lua-libs
 consul >= 1.7.0, consul < 1.10.0
 corosync
+elasticsearch-oss == 6.8.8
 facter
 fence-agents-ipmilan
 findutils
@@ -15,6 +16,7 @@ hdparm == 9.43
 hiredis
 ipmitool == 1.8.18
 jq
+kibana-oss == 6.8.8
 libaio
 libedit
 libxml2
@@ -22,8 +24,6 @@ libyaml
 log4cxx_cortx
 log4cxx_cortx-devel
 lshw == B.02.18
-opendistroforelasticsearch == 1.12.0
-opendistroforelasticsearch-kibana == 1.12.0
 openldap-clients
 openldap-servers
 openssl
