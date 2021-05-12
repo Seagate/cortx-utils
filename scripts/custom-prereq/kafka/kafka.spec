@@ -27,7 +27,7 @@ rm -f libs/{kafka_*-javadoc.jar,kafka_*-scaladoc.jar,kafka_*-sources.jar,*.asc}
 
 %install
 mkdir -p $RPM_BUILD_ROOT%{_prefix}/kafka
-mkdir $RPM_BUILD_ROOT%{_prefix}/kafka/bin
+mkdir -p $RPM_BUILD_ROOT%{_prefix}/kafka/{bin,config,logs}
 cp bin/*.sh $RPM_BUILD_ROOT%{_prefix}/kafka/bin/
 cp -r libs $RPM_BUILD_ROOT%{_prefix}/kafka/
 cp -r config $RPM_BUILD_ROOT%{_prefix}/kafka/
@@ -43,6 +43,7 @@ rm -rf $RPM_BUILD_ROOT
 %pre
 /usr/bin/getent group kafka >/dev/null || /usr/sbin/groupadd -r kafka
 if ! /usr/bin/getent passwd kafka >/dev/null ; then
+    mkdir -p %{_prefix}/kafka
     /usr/sbin/useradd -r -g kafka -m -d %{_prefix}/kafka -s /sbin/nologin -c "Kafka" kafka
 fi
 
@@ -51,6 +52,7 @@ fi
 %attr(0755,kafka,kafka) %dir /opt/kafka
 %attr(0755,kafka,kafka) /opt/kafka/bin
 %attr(0755,kafka,kafka) /opt/kafka/libs
+%attr (0775,root,kafka) /opt/kafka/logs
 %config(noreplace) %attr(755,kafka,kafka) /opt/kafka/config
 %attr(0755,kafka,kafka) %dir /var/log/kafka
 %attr(0775,root,kafka) /etc/systemd/system/kafka.service
