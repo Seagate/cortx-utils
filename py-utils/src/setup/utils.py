@@ -22,7 +22,6 @@ from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.validator.v_service import ServiceV
 
-
 class SetupError(Exception):
     """ Generic Exception with error code and output """
 
@@ -160,5 +159,31 @@ class Utils:
 
     @staticmethod
     def reset():
-        """ Performs Configuraiton reset """
+        """ Remove/Delete all the data that was created after post install """
+
+        import os
+        conf_file = "/etc/cortx/message_bus.conf"
+        if not os.path.exists(conf_file):
+            raise SetupError(errno.ENOENT, "Reset/Cleanup has already done or config file not found! ")
+
+        # delete message_types
+        from cortx.utils.message_bus.message_bus_client import MessageBusAdmin
+        mb = MessageBusAdmin("reset_admin_id")
+        message_types_list = mb.list_message_types()
+        if message_types_list:
+            mb.deregister_message_type(message_types_list)
+        return 0
+
+    @staticmethod
+    def cleanup():
+        """ Cleanup message bus config and logs. """
+        import os
+        config_file = "/etc/cortx/message_bus.conf"
+        if not os.path.exists(config_file):
+            raise SetupError(errno.ENOENT, "Cleanup has already done or config file not found! ")
+        # delete data/config stored
+        try:
+            os.remove(config_file)
+        except OSError as err:
+            raise SetupError(errno.EINTR, "Error deleting config file %s, %s", config_file, err)
         return 0
