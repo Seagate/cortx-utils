@@ -18,12 +18,14 @@
 import json
 import time
 import errno
-from cortx.utils.iem_framework.error import IemError
+from cortx.utils.iem_framework.error import EventMessageError
+from cortx.utils.message_bus import MessageProducer, MessageConsumer
+from cortx.template import Singleton
 
 
 class EventMessage:
-    """ IEM framework to generate alerts """
-
+    """ Event Message framework to generate alerts """
+    __metaclass__ = Singleton
     # RANGE/VALID VALUES for IEC Components
     # NOTE: RANGE VALUES are in hex number system.
     _SEVERITY_LEVELS = ['A', 'X', 'E', 'W', 'N', 'C', 'I', 'D', 'B']
@@ -34,8 +36,8 @@ class EventMessage:
     _MODULE_ID_MAX = '100'
     _EVENT_ID_MAX = '2710'
 
-    def __init__(self, component_id: str, source_id: str):
-
+    def init(self, component_id: str, source_id: str):
+        """ Set the Event Message context"""
         self._none_values = []
         self._component_id = component_id
         self._source_id = source_id
@@ -47,7 +49,7 @@ class EventMessage:
 
 
     @staticmethod
-    def validate(obj: object, min_id: int, attributes: list, max_ids: list):
+    def _validate(obj: object, min_id: int, attributes: list, max_ids: list):
         """ Validate IEC attributes """
         # Convert components from hex to int for comparison
         from collections import OrderedDict
@@ -56,12 +58,12 @@ class EventMessage:
             try:
                 validate_attributes[ids] = int(getattr(obj, ids), obj._HEX_BASE)
             except Exception as e:
-                raise IemError(errno.EINVAL, 'Invalid hex value. %s', e)
+                raise EventMessageError(errno.EINVAL, 'Invalid hex value. %s', e)
 
         # Check if values are out of range
         for keys, max_values in zip(validate_attributes.keys(), max_ids):
             if validate_attributes[keys] not in range(min_id, max_values + 1):
-                raise IemError(errno.EINVAL, '%s %s is not in range ', \
+                raise EventMessageError(errno.EINVAL, '%s %s is not in range ', \
                     keys, getattr(obj, keys))
 
     def send(self, module_id: str, event_id: str, severity: str, message: str, \
@@ -80,14 +82,14 @@ class EventMessage:
                 None else self._none_values.append(getattr(self, attributes))
 
         if any(values is None for values in self._none_values):
-            raise IemError(errno.EINVAL, 'Some IEM attributes are missing')
+            raise EventMessageError(errno.EINVAL, 'Some IEM attributes are missing')
 
         if self._severity not in self._SEVERITY_LEVELS:
-            raise IemError(errno.EINVAL, 'Invalid severity level. %s: ', \
+            raise EventMessageError(errno.EINVAL, 'Invalid severity level. %s: ', \
                 self._severity)
 
         if self._source_id not in self._SOURCE_IDS:
-            raise IemError(errno.EINVAL, 'Invalid source_id type. %s: ', \
+            raise EventMessageError(errno.EINVAL, 'Invalid source_id type. %s: ', \
                 self._source_id)
 
         # Convert min and max range from hex to int
@@ -96,7 +98,7 @@ class EventMessage:
         max_module_id = int(self._MODULE_ID_MAX, self._HEX_BASE)
         max_event_id = int(self._EVENT_ID_MAX, self._HEX_BASE)
 
-        self.validate(self, min_id, ['_component_id', '_module_id', \
+        self._validate(self, min_id, ['_component_id', '_module_id', \
             '_event_id'], [max_component_id, max_module_id, max_event_id])
 
         alert = json.dumps({
@@ -111,8 +113,16 @@ class EventMessage:
                    self._module_id + self._event_id
         })
 
-        #TODO : producer.send(alert)
+        producer = MessageProducer(producer_id='event_producer', \
+            message_type='IEM', method='sync')
+        producer.send([alert])
 
-    def receive(self, consumer_id: str, consumer_group: str):
+    def receive(self):
         """ Receive IEM alert message """
-        #TODO : consumer.receive()
+        consumer = MessageConsumer(consumer_id='event_consumer', \
+            consumer_group='EventMessage', message_types=['IEM'], \
+            auto_ack=False, offset='latest')
+        alert = consumer.receive()
+        if alert is not None:
+            return json.loads(alert.decode('utf-8'))
+        return alert
