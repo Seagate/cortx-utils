@@ -82,7 +82,7 @@ setup(name='cortx-py-utils',
             'hac = cortx.utils.ha.hac.hac:main',
             'conf = cortx.utils.conf_store.conf_cli:main',
             'utils_setup = cortx.setup.utils_setup:main',
-            'kafka_setup = cortx.utils.setup.kafka.kafka_setup:main'
+            'kafka_setup = cortx.utils.setup.kafka.kafka_setup:main',
             'openldap_setup = cortx.utils.setup.openldap.openldap_setup:main'
         ]
       },
