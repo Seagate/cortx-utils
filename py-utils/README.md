@@ -23,14 +23,7 @@ A common utils framework which includes common modules across components
 
 ## Prerequisites for build
 ```bash
-$ sudo yum install gcc
-$ sudo yum install rpm-build
-$ sudo yum install python36
-$ sudo yum install python36-pip
-$ sudo yum install python36-devel
-$ sudo yum install python36-setuptools
-$ sudo yum install openssl-devel
-$ sudo yum install libffi-devel
+sudo yum install gcc rpm-build python36 python36-pip python36-devel python36-setuptools openssl-devel install libffi-devel
 ```
 
 ## Clone
@@ -59,7 +52,7 @@ $ ./jenkins/build.sh -v 2.0.0 -b 2
 ## Installation
   - Installation with pip package
 ```bash
-$ cd ./py-utils/dist
+$ cd dist
 $ pip3 install cortx_py_utils-1.0.0-py3-none-any.whl
 ```
 
@@ -91,6 +84,9 @@ $ yum remove cortx-py-utils
 
 ## Usage
 After cortx package is installed, it can be used the common way as any other Python module, E.g.:
+
+**Note:** Use python3, python will result in an error.
+
 ```python
 from cortx.utils.security.cipher import Cipher
 ```
