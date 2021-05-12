@@ -17,5 +17,5 @@
 
 __title__ = 'iem'
 
-from cortx.utils.iem.iem import Iem
-from cortx.utils.iem.error import IemError
+from cortx.utils.iem_framework.event_message import EventMessage
+from cortx.utils.iem_framework.error import IemError
