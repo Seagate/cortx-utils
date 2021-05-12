@@ -14,22 +14,15 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import argparse
-import getpass
 import json
 import io
 import re
-import errno
 from typing import Dict, Any
 from copy import deepcopy
 from dict2xml import dict2xml
 from prettytable import PrettyTable
 from importlib import import_module
-
-# from csm.common.errors import CSM_OPERATION_SUCESSFUL
 from cortx.utils.cli import const
-from cortx.utils.cli.errors import ArgumentError
-from cortx.utils.log import Log
-from cortx.utils.schema.payload import CommonPayload
 
 class Command:
     """CLI Command Base Class"""

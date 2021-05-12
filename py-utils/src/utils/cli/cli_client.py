@@ -13,12 +13,6 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import json
-import pprint
-import sys
-import time
-import errno
-from typing import ClassVar, Dict, Any, Tuple
 from importlib import import_module
 import aiohttp
 
