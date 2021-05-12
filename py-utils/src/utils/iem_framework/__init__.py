@@ -15,7 +15,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-__title__ = 'iem'
+__title__ = 'iem_framework'
 
 from cortx.utils.iem_framework.event_message import EventMessage
 from cortx.utils.iem_framework.error import IemError

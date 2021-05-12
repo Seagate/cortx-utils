@@ -26,13 +26,13 @@ class EventMessage:
 
     # RANGE/VALID VALUES for IEC Components
     # NOTE: RANGE VALUES are in hex number system.
-    _SEVERITY_LEVELS = ["A", "X", "E", "W", "N", "C", "I", "D", "B"]
-    _SOURCE_IDS = ["S", "H", "F", "O"]
+    _SEVERITY_LEVELS = ['A', 'X', 'E', 'W', 'N', 'C', 'I', 'D', 'B']
+    _SOURCE_IDS = ['S', 'H', 'F', 'O']
     _HEX_BASE = 16
-    _ID_MIN = "1"
-    _COMPONENT_ID_MAX = "100"
-    _MODULE_ID_MAX = "100"
-    _EVENT_ID_MAX = "2710"
+    _ID_MIN = '1'
+    _COMPONENT_ID_MAX = '100'
+    _MODULE_ID_MAX = '100'
+    _EVENT_ID_MAX = '2710'
 
     def __init__(self, component_id: str, source_id: str):
 
@@ -56,12 +56,12 @@ class EventMessage:
             try:
                 validate_attributes[ids] = int(getattr(obj, ids), obj._HEX_BASE)
             except Exception as e:
-                raise IemError(errno.EINVAL, "Invalid hex value. %s", e)
+                raise IemError(errno.EINVAL, 'Invalid hex value. %s', e)
 
         # Check if values are out of range
         for keys, max_values in zip(validate_attributes.keys(), max_ids):
             if validate_attributes[keys] not in range(min_id, max_values + 1):
-                raise IemError(errno.EINVAL, "%s %s is not in range ", \
+                raise IemError(errno.EINVAL, '%s %s is not in range ', \
                     keys, getattr(obj, keys))
 
     def send(self, module_id: str, event_id: str, severity: str, message: str, \
@@ -80,14 +80,14 @@ class EventMessage:
                 None else self._none_values.append(getattr(self, attributes))
 
         if any(values is None for values in self._none_values):
-            raise IemError(errno.EINVAL, "Some IEM attributes are missing")
+            raise IemError(errno.EINVAL, 'Some IEM attributes are missing')
 
         if self._severity not in self._SEVERITY_LEVELS:
-            raise IemError(errno.EINVAL, "Invalid severity level. %s: ", \
+            raise IemError(errno.EINVAL, 'Invalid severity level. %s: ', \
                 self._severity)
 
         if self._source_id not in self._SOURCE_IDS:
-            raise IemError(errno.EINVAL, "Invalid source_id type. %s: ", \
+            raise IemError(errno.EINVAL, 'Invalid source_id type. %s: ', \
                 self._source_id)
 
         # Convert min and max range from hex to int
@@ -113,6 +113,6 @@ class EventMessage:
 
         #TODO : producer.send(alert)
 
-    def receive(self, consumer_id, consumer_group):
+    def receive(self, consumer_id: str, consumer_group: str):
         """ Receive IEM alert message """
         #TODO : consumer.receive()
