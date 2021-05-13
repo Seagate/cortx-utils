@@ -6,7 +6,7 @@ from getpass import getpass
 import errno
 
 class Terminal:
-    
+
     EMPTY_PASS_FIELD = "Password field can't be empty."
     @staticmethod
     def get_quest_answer(name: str) -> bool:

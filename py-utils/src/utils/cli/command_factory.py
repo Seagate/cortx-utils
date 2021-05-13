@@ -3,7 +3,6 @@ import sys
 import os
 from cortx.utils.schema.payload import Json
 from cortx.utils.cli import const
-from cortx.utils.log import Log
 from cortx.utils.cli.command import CommandParser
 
 

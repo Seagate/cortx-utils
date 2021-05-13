@@ -15,8 +15,6 @@
 
 import argparse
 import json
-import io
-import re
 from typing import Dict, Any
 from copy import deepcopy
 from dict2xml import dict2xml
