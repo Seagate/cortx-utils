@@ -163,15 +163,17 @@ class Utils:
 
         import os
         conf_file = "/etc/cortx/message_bus.conf"
-        if not os.path.exists(conf_file):
-            raise SetupError(errno.ENOENT, "Reset/Cleanup has already done or config file not found! ")
-
-        # delete message_types
-        from cortx.utils.message_bus.message_bus_client import MessageBusAdmin
-        mb = MessageBusAdmin("reset_admin_id")
-        message_types_list = mb.list_message_types()
-        if message_types_list:
-            mb.deregister_message_type(message_types_list)
+        if os.path.exists(conf_file):
+            # delete message_types
+            from cortx.utils.message_bus.message_bus_client import MessageBusAdmin
+            from cortx.utils.message_bus.error import MessageBusError
+            try:
+                mb = MessageBusAdmin("reset_admin_id")
+                message_types_list = mb.list_message_types()
+                if message_types_list:
+                    mb.deregister_message_type(message_types_list)
+            except Exception as err:
+                raise MessageBusError(errno.ETIMEDOUT, "Error while resetting! %s", err)
         return 0
 
     @staticmethod
@@ -179,11 +181,10 @@ class Utils:
         """ Cleanup message bus config and logs. """
         import os
         config_file = "/etc/cortx/message_bus.conf"
-        if not os.path.exists(config_file):
-            raise SetupError(errno.ENOENT, "Cleanup has already done or config file not found! ")
-        # delete data/config stored
-        try:
-            os.remove(config_file)
-        except OSError as err:
-            raise SetupError(errno.EINTR, "Error deleting config file %s, %s", config_file, err)
+        if os.path.exists(config_file):
+            # delete data/config stored
+            try:
+                os.remove(config_file)
+            except OSError as err:
+                raise SetupError(errno.EINTR, "Error deleting config file %s, %s", config_file, err)
         return 0
