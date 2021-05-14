@@ -24,13 +24,13 @@ class TestMessage(unittest.TestCase):
     """Test EventMessage send and receive functionality."""
 
     def test_alert_send(self):
-        """Test Send Message."""
+        """ Test send alerts """
         EventMessage.init(component='cmp', source='H')
-        EventMessage.send(severity='B', module='mod', \
-            event_id='500', message='This is message')
+        EventMessage.send(severity='B', module='mod', event_id='500', \
+            message='This is message')
 
     def test_receive(self):
-        """Test Send Message."""
+        """ Test receive alerts """
         EventMessage.init(component='cmp', source='H', receiver=True)
         alert = EventMessage.receive()
         self.assertIs(type(alert), dict)
@@ -49,14 +49,10 @@ class TestMessage(unittest.TestCase):
                 message='This is message')
 
     def test_receive_without_send(self):
-        """ Receive message with receiver as False """
+        """ Receive message without send """
         EventMessage.init(component='cmp', source='H', receiver=True)
         alert = EventMessage.receive()
         self.assertIsNone(alert)
-
-    def test_receive_without_send(self):
-        """ Receive message with receiver as False """
-        alert = EventMessage.receive()
 
 
 if __name__ == '__main__':

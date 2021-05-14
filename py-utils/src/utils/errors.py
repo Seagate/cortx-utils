@@ -20,7 +20,7 @@ INTERNAL_ERROR = 0x1005
 
 
 class UtilsError(Exception):
-    """ Generic Exception with error code and output """
+    """ Parent class for utils error classes with error code and output """
 
     def __init__(self, rc, message, *args):
         self._rc = rc
