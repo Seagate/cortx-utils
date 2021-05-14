@@ -18,110 +18,114 @@
 import json
 import time
 import errno
+from cortx.template import Singleton
+from cortx.utils.conf_store import Conf
 from cortx.utils.iem_framework.error import EventMessageError
 from cortx.utils.message_bus import MessageProducer, MessageConsumer
-from cortx.template import Singleton
 
 
-class EventMessage:
+class EventMessage(metaclass=Singleton):
     """ Event Message framework to generate alerts """
-    __metaclass__ = Singleton
-    # RANGE/VALID VALUES for IEC Components
-    # NOTE: RANGE VALUES are in hex number system.
-    _SEVERITY_LEVELS = ['A', 'X', 'E', 'W', 'N', 'C', 'I', 'D', 'B']
-    _SOURCE_IDS = ['S', 'H', 'F', 'O']
-    _HEX_BASE = 16
-    _ID_MIN = '1'
-    _COMPONENT_ID_MAX = '100'
-    _MODULE_ID_MAX = '100'
-    _EVENT_ID_MAX = '2710'
 
-    def init(self, component_id: str, source_id: str):
-        """ Set the Event Message context"""
-        self._none_values = []
-        self._component_id = component_id
-        self._source_id = source_id
-        self._event_time = None
-        self._severity = None
-        self._module_id = None
-        self._event_id = None
-        self._message = None
+    _conf_file = 'json:///etc/cortx.conf'
 
+    # VALID VALUES for IEC Components
+    _SEVERITY_LEVELS = {
+        'A': 'alert',
+        'X': 'critical',
+        'E': 'error',
+        'W': 'warning',
+        'N': 'notice',
+        'C': 'configuration',
+        'I': 'informational',
+        'D': 'detail',
+        'B': 'debug'
+    }
+    _SOURCE = {
+        'H': 'Hardware',
+        'S': 'Software',
+        'F': 'Firmware',
+        'O': 'OS'
+    }
 
-    @staticmethod
-    def _validate(obj: object, min_id: int, attributes: list, max_ids: list):
-        """ Validate IEC attributes """
-        # Convert components from hex to int for comparison
-        from collections import OrderedDict
-        validate_attributes = OrderedDict()
-        for ids in attributes:
-            try:
-                validate_attributes[ids] = int(getattr(obj, ids), obj._HEX_BASE)
-            except Exception as e:
-                raise EventMessageError(errno.EINVAL, 'Invalid hex value. %s', e)
+    @classmethod
+    def init(cls, component: str, source: str):
+        """ Set the Event Message context """
+        cls._component = component
+        cls._source = source
+        try:
+            Conf.load('iem', cls._conf_file)
+            ids = Conf.get('iem', 'ids')
+            cls._site_id = int(ids['site_id'])
+            cls._rack_id = int(ids['rack_id'])
+            cls._node_id = int(ids['node_id'])
+        except Exception as e:
+            raise EventMessageError(errno.EINVAL, "Invalid config in %s. %s", \
+                cls._conf_file, e)
 
-        # Check if values are out of range
-        for keys, max_values in zip(validate_attributes.keys(), max_ids):
-            if validate_attributes[keys] not in range(min_id, max_values + 1):
-                raise EventMessageError(errno.EINVAL, '%s %s is not in range ', \
-                    keys, getattr(obj, keys))
+        if cls._component is None:
+            raise EventMessageError(errno.EINVAL, 'Invalid component type: %s', \
+                cls._component)
 
-    def send(self, module_id: str, event_id: str, severity: str, message: str, \
+        if cls._source not in cls._SOURCE.keys():
+            raise EventMessageError(errno.EINVAL, 'Invalid source type: %s', \
+                cls._source)
+
+        for key, validate_id in ids.items():
+            if validate_id is None:
+                raise EventMessageError(errno.EINVAL, 'Invalid %s id: %s', \
+                    key, validate_id)
+
+    @classmethod
+    def send(cls, module: str, event_id: str, severity: str, message: str, \
         *params):
         """ Sends IEM alert message """
-        self._event_time = time.time()
-        self._severity = severity
-        self._module_id = module_id
-        self._event_id = event_id
-        self._message = message % (params)
 
         # Validate attributes before sending
-        for attributes in ['_severity', '_source_id', '_component_id', \
-            '_module_id', '_event_id', '_message']:
-            self._none_values.append(None) if getattr(self, attributes) is \
-                None else self._none_values.append(getattr(self, attributes))
+        for attributes in ['severity', 'module', 'event_id', 'message']:
+            if attributes is None:
+                raise EventMessageError(errno.EINVAL, 'Invalid IEM attributes \
+                    %s', attributes)
 
-        if any(values is None for values in self._none_values):
-            raise EventMessageError(errno.EINVAL, 'Some IEM attributes are missing')
-
-        if self._severity not in self._SEVERITY_LEVELS:
-            raise EventMessageError(errno.EINVAL, 'Invalid severity level. %s: ', \
-                self._severity)
-
-        if self._source_id not in self._SOURCE_IDS:
-            raise EventMessageError(errno.EINVAL, 'Invalid source_id type. %s: ', \
-                self._source_id)
-
-        # Convert min and max range from hex to int
-        min_id = int(self._ID_MIN, self._HEX_BASE)
-        max_component_id = int(self._COMPONENT_ID_MAX, self._HEX_BASE)
-        max_module_id = int(self._MODULE_ID_MAX, self._HEX_BASE)
-        max_event_id = int(self._EVENT_ID_MAX, self._HEX_BASE)
-
-        self._validate(self, min_id, ['_component_id', '_module_id', \
-            '_event_id'], [max_component_id, max_module_id, max_event_id])
+        if severity not in cls._SEVERITY_LEVELS:
+            raise EventMessageError(errno.EINVAL, 'Invalid severity level: %s' \
+                , severity)
 
         alert = json.dumps({
-            'event_time': self._event_time,
-            'severity': self._severity,
-            'source': self._source_id,
-            'component': self._component_id,
-            'module': self._module_id,
-            'event': self._event_id,
-            'description': self._message,
-            'IEC': self._severity + self._source_id + self._component_id + \
-                   self._module_id + self._event_id
+            'message': {
+                'sensor_response_type': {
+                    'info': {
+                        'event_time': time.time(),
+                        'resource_id': 'iem',
+                        'site_id': cls._site_id,
+                        'node_id': cls._node_id,
+                        'rack_id': cls._rack_id,
+                        'resource_type': 'iem',
+                        'description': message % (params)
+                    },
+                    'severity': cls._SEVERITY_LEVELS[severity],
+                    'specific_info': {
+                        'source': cls._SOURCE[cls._source],
+                        'component': cls._component,
+                        'module': module,
+                        'event': event_id,
+                        'IEC': severity + cls._source + cls._component + module \
+                               + event_id
+                    }
+                }
+            }
         })
 
         producer = MessageProducer(producer_id='event_producer', \
             message_type='IEM', method='sync')
         producer.send([alert])
 
-    def receive(self):
+    @classmethod
+    def receive(cls):
         """ Receive IEM alert message """
         consumer = MessageConsumer(consumer_id='event_consumer', \
-            consumer_group='EventMessage', message_types=['IEM'], \
-            auto_ack=False, offset='latest')
+            consumer_group=cls._component, message_types=['IEM'], \
+            auto_ack=True, offset='earliest')
         alert = consumer.receive()
         if alert is not None:
             return json.loads(alert.decode('utf-8'))
