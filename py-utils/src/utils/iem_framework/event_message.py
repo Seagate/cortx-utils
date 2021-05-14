@@ -60,7 +60,7 @@ class EventMessage(metaclass=Singleton):
             cls._rack_id = int(ids['rack_id'])
             cls._node_id = int(ids['node_id'])
         except Exception as e:
-            raise EventMessageError(errno.EINVAL, "Invalid config in %s. %s", \
+            raise EventMessageError(errno.EINVAL, 'Invalid config in %s. %s', \
                 cls._conf_file, e)
 
         if cls._component is None:
