@@ -27,19 +27,19 @@ from cortx.utils.message_bus import MessageProducer, MessageConsumer
 class EventMessage(metaclass=Singleton):
     """ Event Message framework to generate alerts """
 
-    _conf_file = 'json:///etc/cortx.conf'
+    _conf_file = "json:///etc/cortx/cluster.conf"
 
     # VALID VALUES for IEC Components
     _SEVERITY_LEVELS = {
-        'A': 'alert',
-        'X': 'critical',
-        'E': 'error',
-        'W': 'warning',
-        'N': 'notice',
-        'C': 'configuration',
-        'I': 'informational',
-        'D': 'detail',
-        'B': 'debug'
+        'A': 'Alert',
+        'X': 'Critical',
+        'E': 'Error',
+        'W': 'Warning',
+        'N': 'Notice',
+        'C': 'Configuration',
+        'I': 'Informational',
+        'D': 'Detail',
+        'B': 'Debug'
     }
     _SOURCE = {
         'H': 'Hardware',
@@ -49,27 +49,30 @@ class EventMessage(metaclass=Singleton):
     }
 
     @classmethod
-    def init(cls, component: str, source: str, receiver: bool = False):
-        """ Set the Event Message context """
-        cls._component = component
-        cls._source = source
-
+    def __init__(cls):
         try:
-            Conf.load('iem', cls._conf_file)
-            ids = Conf.get('iem', 'server_node')
+            Conf.load('cluster', cls._conf_file)
+            ids = Conf.get('cluster', 'server_node')
             cls._site_id = int(ids['site_id'])
             cls._rack_id = int(ids['rack_id'])
             cls._node_id = int(ids['node_id'])
         except Exception as e:
-            raise EventMessageError(errno.EINVAL, 'Invalid config in %s. %s', \
+            raise EventMessageError(errno.EINVAL, "Invalid config in %s. %s", \
                 cls._conf_file, e)
 
+    @classmethod
+    def init(cls, component: str, source: str, receiver: bool = False):
+        """ Set the Event Message context """
+        cls._component = component
+        cls._source = source
+        cls()
+
         if cls._component is None:
-            raise EventMessageError(errno.EINVAL, 'Invalid component type: %s', \
+            raise EventMessageError(errno.EINVAL, "Invalid component type: %s", \
                 cls._component)
 
         if cls._source not in cls._SOURCE.keys():
-            raise EventMessageError(errno.EINVAL, 'Invalid source type: %s', \
+            raise EventMessageError(errno.EINVAL, "Invalid source type: %s", \
                 cls._source)
 
         if receiver:
@@ -86,36 +89,34 @@ class EventMessage(metaclass=Singleton):
         """ Sends IEM alert message """
 
         # Validate attributes before sending
-        for attributes in ['module', 'event_id', 'message']:
-            if attributes is None:
-                raise EventMessageError(errno.EINVAL, 'Invalid IEM attributes \
-                    %s', attributes)
+        for attribute in ['module', 'event_id', 'message']:
+            if attribute is None:
+                raise EventMessageError(errno.EINVAL, "Invalid IEM attributes \
+                    %s", attribute)
 
         if severity not in cls._SEVERITY_LEVELS:
-            raise EventMessageError(errno.EINVAL, 'Invalid severity level: %s' \
+            raise EventMessageError(errno.EINVAL, "Invalid severity level: %s" \
                 , severity)
 
         alert = json.dumps({
             'message': {
-                'sensor_response_type': {
-                    'info': {
-                        'event_time': time.time(),
-                        'resource_id': 'iem',
-                        'site_id': cls._site_id,
-                        'node_id': cls._node_id,
-                        'rack_id': cls._rack_id,
-                        'resource_type': 'iem',
-                        'description': message % (params)
-                    },
-                    'severity': cls._SEVERITY_LEVELS[severity],
-                    'specific_info': {
-                        'source': cls._SOURCE[cls._source],
-                        'component': cls._component,
-                        'module': module,
-                        'event': event_id,
-                        'IEC': severity + cls._source + cls._component + module \
-                               + event_id
-                    }
+                'info': {
+                    'event_time': time.time(),
+                    'resource_id': 'iem',
+                    'site_id': cls._site_id,
+                    'node_id': cls._node_id,
+                    'rack_id': cls._rack_id,
+                    'resource_type': 'iem',
+                    'description': message % (params)
+                },
+                'severity': cls._SEVERITY_LEVELS[severity],
+                'iec_info': {
+                    'source': cls._SOURCE[cls._source],
+                    'component': cls._component,
+                    'module': module,
+                    'event': event_id,
+                    'IEC': severity + cls._source + cls._component + module \
+                           + event_id
                 }
             }
         })
@@ -127,5 +128,9 @@ class EventMessage(metaclass=Singleton):
         """ Receive IEM alert message """
         alert = cls._client.receive()
         if alert is not None:
-            return json.loads(alert.decode('utf-8'))
+            try:
+                return json.loads(alert.decode('utf-8'))
+            except Exception as e:
+                raise EventMessageError(errno.EPERM, "Unable to load the json. \
+                    %s", e)
         return alert
