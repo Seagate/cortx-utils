@@ -72,11 +72,6 @@ class EventMessage(metaclass=Singleton):
             raise EventMessageError(errno.EINVAL, 'Invalid source type: %s', \
                 cls._source)
 
-        for key, validate_id in ids.items():
-            if validate_id is None:
-                raise EventMessageError(errno.EINVAL, 'Invalid %s id: %s', \
-                    key, validate_id)
-
         if receiver:
             cls._client = MessageConsumer(consumer_id='event_consumer', \
                 consumer_group=cls._component, message_types=['IEM'], \
