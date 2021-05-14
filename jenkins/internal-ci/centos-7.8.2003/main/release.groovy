@@ -213,15 +213,20 @@ pipeline {
 		        sh label: 'Generate ISO Image', script:'''
 		        rpm -q genisoimage || yum install genisoimage -y
 
+                mkdir -p $cortx_build_dir/$release_tag/sw_upgrade/{3rd_party,cortx_iso,python_deps}
+		pushd $cortx_build_dir/$release_tag/sw_upgrade/cortx_iso
+		cp -r $integration_dir/$release_tag/prod/* .
+				
                 mkdir -p $cortx_build_dir/$release_tag/cortx_iso
-                pushd $cortx_build_dir/$release_tag/cortx_iso
-                  mv $integration_dir/$release_tag/prod/* .
+		pushd $cortx_build_dir/$release_tag/cortx_iso
+                mv $integration_dir/$release_tag/prod/* . 
+				
                 popd
 
                 mkdir -p $integration_dir/$release_tag/prod/iso
                 pushd $integration_dir/$release_tag/prod/iso
                
-                    genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -publisher Seagate -o cortx-$version-$BUILD_NUMBER.iso $cortx_build_dir/$release_tag/cortx_iso
+                    genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -publisher Seagate -o cortx-$version-$BUILD_NUMBER.iso $cortx_build_dir/$release_tag/sw-upgrade
                     
                     genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -publisher Seagate -o cortx-$version-$BUILD_NUMBER-single.iso $cortx_build_dir/$release_tag
                                     
