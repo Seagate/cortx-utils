@@ -49,13 +49,14 @@ class EventMessage(metaclass=Singleton):
     }
 
     @classmethod
-    def init(cls, component: str, source: str):
+    def init(cls, component: str, source: str, receiver: bool = False):
         """ Set the Event Message context """
         cls._component = component
         cls._source = source
+
         try:
             Conf.load('iem', cls._conf_file)
-            ids = Conf.get('iem', 'ids')
+            ids = Conf.get('iem', 'server_node')
             cls._site_id = int(ids['site_id'])
             cls._rack_id = int(ids['rack_id'])
             cls._node_id = int(ids['node_id'])
@@ -76,13 +77,21 @@ class EventMessage(metaclass=Singleton):
                 raise EventMessageError(errno.EINVAL, 'Invalid %s id: %s', \
                     key, validate_id)
 
+        if receiver:
+            cls._client = MessageConsumer(consumer_id='event_consumer', \
+                consumer_group=cls._component, message_types=['IEM'], \
+                auto_ack=True, offset='earliest')
+        else:
+            cls._client = MessageProducer(producer_id='event_producer', \
+                message_type='IEM', method='sync')
+
     @classmethod
     def send(cls, module: str, event_id: str, severity: str, message: str, \
         *params):
         """ Sends IEM alert message """
 
         # Validate attributes before sending
-        for attributes in ['severity', 'module', 'event_id', 'message']:
+        for attributes in ['module', 'event_id', 'message']:
             if attributes is None:
                 raise EventMessageError(errno.EINVAL, 'Invalid IEM attributes \
                     %s', attributes)
@@ -116,17 +125,12 @@ class EventMessage(metaclass=Singleton):
             }
         })
 
-        producer = MessageProducer(producer_id='event_producer', \
-            message_type='IEM', method='sync')
-        producer.send([alert])
+        cls._client.send([alert])
 
     @classmethod
     def receive(cls):
         """ Receive IEM alert message """
-        consumer = MessageConsumer(consumer_id='event_consumer', \
-            consumer_group=cls._component, message_types=['IEM'], \
-            auto_ack=True, offset='earliest')
-        alert = consumer.receive()
+        alert = cls._client.receive()
         if alert is not None:
             return json.loads(alert.decode('utf-8'))
         return alert
