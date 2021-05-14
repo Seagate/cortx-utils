@@ -226,7 +226,7 @@ pipeline {
                 mkdir -p $integration_dir/$release_tag/prod/iso
                 pushd $integration_dir/$release_tag/prod/iso
                
-                    genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -publisher Seagate -o cortx-$version-$BUILD_NUMBER.iso $cortx_build_dir/$release_tag/sw-upgrade
+                    genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -publisher Seagate -o cortx-$version-$BUILD_NUMBER.iso $cortx_build_dir/$release_tag/sw_upgrade
                     
                     genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -publisher Seagate -o cortx-$version-$BUILD_NUMBER-single.iso $cortx_build_dir/$release_tag
                                     
