@@ -1,0 +1,100 @@
+---
+
+- name: "[ Pre-Validation ] : Check node SSH connection status"
+  shell: "echo '{{ item }} : SSH Connection Ok'"
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+
+- set_fact:
+    REQUIRED_HOST: "{% if SETUP_TYPE=='single' %}1{% elif SETUP_TYPE=='3_node'%}3{% else %}1{% endif %}"
+    REQUIRED_DEVICES:  "{% if SETUP_TYPE=='single' %}2{% elif SETUP_TYPE=='3_node'%}8{% else %}2{% endif %}"
+
+- name: "[ Pre-Validation ] : Validate the input arguments"
+  fail: msg="Provided Host count not matching with setup type"
+  when: "REQUIRED_HOST|int !=  HOST.count(',') + 1" 
+
+- name: "[ Pre-Validation ] : Check VM has required number of disks"
+  shell: "test {{ REQUIRED_DEVICES }} -le $(lsblk -nd -o NAME -e 11|grep -v sda|wc -l)"
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+
+- name: "[ Pre-Validation ] : Check node provided in clean state"
+  shell: |
+    for folder in "/var/log/seagate" "/opt/seagate";
+    do
+        if [[ ! -d "${folder}" ]]; then
+            echo "OK - Folder does not exists ( ${folder} )";
+        else 
+            echo "NOT_OK - Folder exists ${folder}";
+            exit 1
+        fi
+    done
+    if [[ ! $(yum list installed | grep "cortx") ]]; then
+        echo "OK - System in clean state no cortx component installed";
+    else
+        echo "NOT_OK - Cortx component already installed";
+        exit 1
+    fi 
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+  
+- name: "[ Deploy Prerequisite ] : Create Deployment log/script/config Dir"
+  shell: |
+    rm -rf "{{ CORXT_DEPLOYMENT_PATH }}"
+    mkdir -p "{{ CORXT_DEPLOYMENT_LOG_PATH }}"
+    mkdir -p "{{ CORXT_DEPLOYMENT_CONFIG_PATH }}"
+    mkdir -p "{{ CORXT_DEPLOYMENT_SCRIPT_PATH }}"
+    touch {{ CORXT_DEPLOYMENT_LOG_PATH }}/deploymet_latest.log
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+
+- name: "[ Deploy Prerequisite ] : Get available VM devices"
+  shell: "lsblk -nd -o NAME -e 11|grep -v sda|sed 's|sd|/dev/sd|g'|paste -s -d, -"
+  register: available_devices
+
+- set_fact:
+    VM_DEVICES: "{{ available_devices.stdout }}"
+    
+- set_fact:
+    DATA_DEVICES: "{{ ','.join(VM_DEVICES.split(',')[1:REQUIRED_DEVICES|int]) }}"
+    METADATA_DEVICES: "{{ VM_DEVICES.split(',')[0] }}"
+
+- name: "[ Deploy Prerequisite ] : Create provisioner config file & bootstrap script on primary node"
+  template:
+    src: "{{ item.source_tmpl }}"
+    dest: "{{ item. dest_file }}"
+    mode: '0754'
+  with_items:
+    - { source_tmpl: "config.ini.j2", dest_file: "{{ CORXT_DEPLOYMENT_CONFIG_PATH }}/config.ini" }
+    - { source_tmpl: "provisioner_bootsrap.sh.j2", dest_file: "{{ CORXT_DEPLOYMENT_SCRIPT_PATH }}/provisioner_bootsrap.sh" }
+
+- name: "[ Deploy Prerequisite ] : Copy deployment validation script to primary node"
+  copy:
+    src: validate_deployment.sh
+    dest: "{{ CORXT_DEPLOYMENT_SCRIPT_PATH }}/validate_deployment.sh"
+
+- name: "[ Deploy Prerequisite ] : Create provisioner prereq script on all node"
+  template:
+    src: "cortx_deploy_prereq.sh.j2"
+    dest: "{{ CORXT_DEPLOYMENT_SCRIPT_PATH }}/cortx_deploy_prereq.sh"
+    mode: '0754'
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+
+- name: "[ Deploy Prerequisite ] : Install Prereq tools & Provisioner API (Async)"
+  shell: "bash {{ CORXT_DEPLOYMENT_SCRIPT_PATH }}/cortx_deploy_prereq.sh 2>&1 | tee -a {{ CORXT_DEPLOYMENT_LOG_PATH }}/00_cortx_deploy_prereq.log"
+  async: 1800
+  poll: 0
+  register: cortx_deploy_prereq_async
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+
+- name: "[ Deploy Prerequisite ] : Wait for Async job to complete"
+  async_status:
+    jid: "{{  cortx_deploy_prereq_async['results'][item.0]['ansible_job_id'] }}"
+  register: job_result
+  until: job_result.finished
+  retries: 60
+  delay: 30
+  delegate_to: "{{ item.1 }}"
+  with_indexed_items: "{{ groups['srvnodes'] }}"

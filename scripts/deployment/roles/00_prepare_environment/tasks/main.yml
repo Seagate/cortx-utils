@@ -1,0 +1,37 @@
+# #######################################################################################
+# Description:
+#-------------
+#         This tasks performs all prerequisites steps required for deployment
+# Steps:
+#--------
+#      1. Install required tools for the deployment 
+#      2. Wnable passwordless ssh between deployment node and deployment controller node
+##########################################################################################
+
+# Install required tools
+- name: "[ Prepare ] : Install tools [expect, curl, bc, jq] on localhost"
+  yum:
+    name: [ 'expect', 'ipmitool', 'curl', 'bc', 'jq']
+    state: latest
+    update_cache: yes
+
+- name: "[ Prepare ] : Generate host file"
+  template:
+    src: hosts_srvnode.j2
+    dest: inventories/vm_deployment/hosts_srvnodes
+    mode: '0754'
+
+# Refresh inventory for hostfile changes
+- meta: refresh_inventory
+
+# Refresh known hosts
+- name: "[ Prepare ] : Refreshing 'known hosts'"
+  command: sed -i "/{{ hostvars[item]['ansible_host'] }}/d" /root/.ssh/known_hosts
+  with_items: "{{ groups['srvnodes'] }}"
+  ignore_unreachable: True
+
+# Execute passwordless ssh script to copy ket to destination host
+- name: "[ Prepare ] : Enable passwordless authentication for ansible->node connection"
+  script: files/passwordless_ssh.sh {{ hostvars[item]['ansible_user'] }} {{ hostvars[item]['ansible_host'] }} '{{ CLUSTER_PASS }}'
+  with_items: "{{ groups['srvnodes'] }}"
+  ignore_unreachable: True

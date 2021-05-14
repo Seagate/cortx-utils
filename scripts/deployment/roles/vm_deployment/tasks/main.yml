@@ -1,0 +1,8 @@
+
+- include: 01_deploy_prereq.yml 
+  tags: ['01_DEPLOY_PREREQ']
+
+- include: 02_deploy.yml
+
+- include: 03_validate.yml
+  tags: ['03_VALIDATE']

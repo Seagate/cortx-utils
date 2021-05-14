@@ -267,16 +267,16 @@ pipeline {
                         MESSAGE = "Cortx Stack Deployment Success"
                         ICON = "accept.gif"
                         STATUS = "SUCCESS"
-                    }else if (pcs_status.contains("Failed Resource") || pcs_status.contains("Stopped")) {
+                    } else if (pcs_status.contains("Failed Resource") || pcs_status.contains("Stopped")) {
                         manager.buildFailure()
                         MESSAGE = "Cortx Stack Deployment Failed"
                         ICON = "error.gif"
                         STATUS = "FAILURE"
-                    }else if (pcs_status.contains("71 resources configured") && pcs_status.contains("2 nodes configured")) {
+                    } else if (pcs_status.contains("71 resources configured") && pcs_status.contains("2 nodes configured")) {
                         MESSAGE = "Cortx Stack Deployment Success"
                         ICON = "accept.gif"
                         STATUS = "SUCCESS"
-                    }else {
+                    } else {
                         manager.buildFailure()
                         MESSAGE = "Cortx Stack Deployment Failed"
                         ICON = "error.gif"

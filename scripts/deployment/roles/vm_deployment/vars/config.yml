@@ -1,0 +1,13 @@
+---
+
+CORXT_DEPLOYMENT_PATH: "/root/cortx_deployment"
+CORXT_DEPLOYMENT_LOG_PATH: "/root/cortx_deployment/log"
+CORXT_DEPLOYMENT_SCRIPT_PATH: "/root/cortx_deployment/script"
+CORXT_DEPLOYMENT_CONFIG_PATH: "/root/cortx_deployment/config"
+MGMT_VIP: ""
+
+required_vars:
+  - NODE
+  - CORTX_BUILD
+  - CLUSTER_PASS
+  - SETUP_TYPE

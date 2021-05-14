@@ -1,0 +1,26 @@
+---
+#-----------------------------------------------------------------------------------
+# This playbook used to perform single node vm depoyment on provided host
+#    - localhost - Acts as a execution controller for vm deployment
+#    - Required environment variables for this playbook can be found in
+#      'roles/vm_deployment_1node/vars/config.yml'
+#------------------------------------------------------------------------------------
+
+- name: Prepare Environment
+  hosts: localhost
+  gather_facts: True
+  roles:
+    - role: 00_prepare_environment
+      tags: ['00_PREPARE']
+
+- name: Prepare Environment 
+  hosts: srvnode-1 # Assuming 00_PREPARE creates host entries
+  gather_facts: yes
+  vars_files:
+    - roles/vm_deployment/vars/config.yml 
+  roles:
+    - vm_deployment
+
+
+
+     

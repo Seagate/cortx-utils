@@ -1,0 +1,91 @@
+---
+
+- name: "[ Deploy Cortx Stack ] : Start Deployment"
+  block:
+    - name: "[ Deploy Cortx Stack ] : 1. Provisioner Bootstrap" 
+      shell: "bash {{ CORXT_DEPLOYMENT_SCRIPT_PATH }}/provisioner_bootsrap.sh 2>&1 | tee -a {{ CORXT_DEPLOYMENT_LOG_PATH }}/01_provisioner_bootstrap.log"
+      register: deploy_vm
+      failed_when: "\"Success: Node Validation done\" not in deploy_vm.stdout and \"Confstore copied across all nodes of cluster\" not in deploy_vm.stdout"
+      tags: ['02_1_PRVSNR_BOOTSTRAP']
+
+    - name: "[ Deploy Cortx Stack ] : Validate Provisioner Bootstrap" 
+      shell: "{{ item }} 2>&1 | tee -a {{ CORXT_DEPLOYMENT_LOG_PATH }}/01_provisioner_bootstrap_validation.log"
+      with_items:
+        - salt '*' test.ping
+        - salt "*" service.stop puppet
+        - salt "*" service.disable puppet
+        - salt '*' pillar.get release
+        - salt '*' grains.get node_id
+        - salt '*' grains.get cluster_id
+        - salt '*' grains.get roles
+      tags: ['02_1_PRVSNR_BOOTSTRAP']
+
+    - name: "[ Deploy Cortx Stack ] : 2. Platform setup" 
+      shell: "provisioner deploy_vm --states system --setup-type {{ SETUP_TYPE }} 2>&1 | tee -a {{ CORXT_DEPLOYMENT_LOG_PATH }}/02_system_state.log"
+      register: deploy_vm
+      failed_when: "\"Deploy VM - Done\" not in deploy_vm.stdout"
+      tags: ['02_2_PLATFORM_SETUP']
+
+    - name: "[ Deploy Cortx Stack ] : 3. 3rd Party Software Deployment" 
+      shell: "provisioner deploy_vm --states prereq --setup-type {{ SETUP_TYPE }} 2>&1 | tee -a {{ CORXT_DEPLOYMENT_LOG_PATH }}/03_prereq_state.log"
+      register: deploy_vm
+      failed_when: "\"Deploy VM - Done\" not in deploy_vm.stdout"
+      tags: ['02_3_PREREQ']
+
+    - name: "[ Deploy Cortx Stack ] : 4. Foundation Deployment" 
+      shell: "provisioner deploy_vm --states utils --setup-type {{ SETUP_TYPE }} 2>&1 | tee -a {{ CORXT_DEPLOYMENT_LOG_PATH }}/04_utils_state.log"
+      register: deploy_vm
+      failed_when: "\"Deploy VM - Done\" not in deploy_vm.stdout"
+      tags: ['02_4_UTILS']
+
+    - name: "[ Deploy Cortx Stack ] : 5. Data Path States Deployment" 
+      shell: "provisioner deploy_vm --states iopath --setup-type {{ SETUP_TYPE }} 2>&1 | tee -a {{ CORXT_DEPLOYMENT_LOG_PATH }}/05_iopath_state.log"
+      register: deploy_vm
+      failed_when: "\"Deploy VM - Done\" not in deploy_vm.stdout"
+      tags: ['02_5_IO_PATH']
+
+    - name: "[ Deploy Cortx Stack ] : 6. Control Stack States Deployment" 
+      shell: "provisioner deploy_vm --states controlpath --setup-type {{ SETUP_TYPE }} 2>&1 | tee -a {{ CORXT_DEPLOYMENT_LOG_PATH }}/06_controlpath_state.log"
+      register: deploy_vm
+      failed_when: "\"Deploy VM - Done\" not in deploy_vm.stdout"
+      tags: ['02_6_CONTROL_PATH']
+
+    - name: "[ Deploy Cortx Stack ] : 7. HA States Deployment" 
+      shell: "provisioner deploy_vm --states ha --setup-type {{ SETUP_TYPE }} 2>&1 | tee -a {{ CORXT_DEPLOYMENT_LOG_PATH }}/07_ha_state.log"
+      register: deploy_vm
+      failed_when: "\"Deploy VM - Done\" not in deploy_vm.stdout"
+      tags: ['02_7_HA']
+      
+  rescue:    
+
+    - name: "[ Validate Deployment ] : Get journalctl Log" 
+      shell: "journalctl 2>&1 > {{ CORXT_DEPLOYMENT_LOG_PATH }}/journalctl.log"
+      ignore_errors: true
+      tags: ['02_DEPLOY_VALIDATE']
+
+    - name: "[ Validate Deployment ] : Get installed rpm package info"
+      shell: yum list installed | grep 'cortx' 2>&1 > {{ CORXT_DEPLOYMENT_LOG_PATH }}/installed_cortx_rpm_list.log
+      ignore_errors: true
+      tags: ['02_DEPLOY_VALIDATE']
+
+    - name: "[ Validate Deployment ] : Get installed pip package info"
+      shell: pip3 freeze 2>&1 > {{ CORXT_DEPLOYMENT_LOG_PATH }}/installed_pip_packages_list.log
+      ignore_errors: true
+      tags: ['02_DEPLOY_VALIDATE']
+
+    - name: "[ Validate Deployment ] : Write Latest Deployment log to file" 
+      lineinfile:
+        dest: "{{ CORXT_DEPLOYMENT_LOG_PATH }}/deploymet_latest.log"
+        line: "{{ item }}"
+        insertafter: EOF
+      with_items:
+        - "{{ deploy_vm.stdout }}"
+        - "{{ deploy_vm.stderr }}"
+      tags: ['02_DEPLOY_VALIDATE']
+
+    - name: "[ Validate Deployment ] : Validate Deployment" 
+      shell: "bash {{ CORXT_DEPLOYMENT_SCRIPT_PATH }}/validate_deployment.sh {{ CORXT_DEPLOYMENT_LOG_PATH }}/deploymet_latest.log"
+      failed_when: "\"Deploy VM - Done\" not in deploy_vm.stdout"
+      tags: ['02_DEPLOY_VALIDATE']
+
+

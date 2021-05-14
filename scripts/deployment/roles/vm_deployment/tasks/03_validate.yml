@@ -1,0 +1,60 @@
+- name: "[ Validate Deployment ] : Get journalctl Log" 
+  shell: "journalctl 2>&1 > {{ CORXT_DEPLOYMENT_LOG_PATH }}/journalctl.log"
+  ignore_errors: true
+
+- name: "[ Validate Deployment ] : Get installed rpm package info"
+  shell: yum list installed | grep 'cortx' 2>&1 > {{ CORXT_DEPLOYMENT_LOG_PATH }}/installed_cortx_rpm_list.log
+  ignore_errors: true
+
+- name: "[ Validate Deployment ] : Get installed pip package info"
+  shell: pip3 freeze 2>&1 > {{ CORXT_DEPLOYMENT_LOG_PATH }}/installed_pip_packages_list.log
+  ignore_errors: true
+
+- name: "[ Validate Deployment ] : Validate Deployment" 
+  shell: "bash {{ CORXT_DEPLOYMENT_SCRIPT_PATH }}/validate_deployment.sh {{ CORXT_DEPLOYMENT_LOG_PATH }}/07_ha_state.log"
+  register: deployment_status_out
+  failed_when: "\"Cortx Stack VM Deployment 'Success'\" not in deployment_status_out.stdout"
+
+- pause:
+    seconds: 20
+
+- name: "[ Validate Deployment ] : Start cluster"
+  command: cortx cluster start
+
+# Wait for services to start
+- name: "[ Validate Deployment ] : Check cluster status"
+  command: "hctl status"
+  register: hctl_status
+  until:
+    - "'[started]  hax' in hctl_status.stdout"
+    - "'[started]  confd' in hctl_status.stdout"
+    - "'[started]  ioservice' in hctl_status.stdout"
+    - "'[started]  s3server' in hctl_status.stdout"
+  retries: 5
+  delay: 30
+  ignore_errors: true
+
+- name: "[ Validate Deployment ] : hctl status check"
+  shell: "hctl status > {{ CORXT_DEPLOYMENT_LOG_PATH }}/hctl_status.log"
+
+- name: "[ Validate Deployment ] : Update Deployment status"
+  shell: echo -e "Cortx Stack VM Deployment 'Failed' in hctl status check. \n \t {{ hctl_status.stdout }}" > "{{ CORXT_DEPLOYMENT_LOG_PATH }}/deployment_status.log"
+  when: "\"[started]  ioservice\" not in hctl_status.stdout"
+
+- name: "[ Validate Deployment ] : Validate Deployment - hctl status"
+  fail: msg="Deployment failed. 'hctl status' returns unhealthy response"
+  when: "\"[started]  ioservice\" not in hctl_status.stdout"
+
+- name: "[ Validate Deployment ] : Check service status"
+  shell: "{{ item }} 2>&1 | tee -a {{ CORXT_DEPLOYMENT_LOG_PATH }}/service_status.log"
+  register: service_status
+  with_items:
+    - systemctl status rabbitmq-server
+    - systemctl status elasticsearch
+    - systemctl status haproxy
+    - systemctl status s3authserver
+    - systemctl status sspl-ll
+    - systemctl status csm_agent
+    - systemctl status csm_web
+  ignore_errors: true
+ 

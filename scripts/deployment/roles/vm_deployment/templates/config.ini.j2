@@ -1,0 +1,36 @@
+{% if REQUIRED_HOST != 1 %}
+[cluster]
+mgmt_vip={{ MGMT_VIP }}
+{% endif %}
+[srvnode_default]
+network.data.private_interfaces=eth3,eth4
+network.data.public_interfaces=eth1,eth2
+network.mgmt.interfaces=eth0
+bmc.user=None
+bmc.secret=None
+storage.cvg.0.data_devices= {{ DATA_DEVICES }}
+storage.cvg.0.metadata_devices={{ METADATA_DEVICES }}
+network.data.private_ip=None
+
+{% set node_count = 1 %}
+{% for node in HOST.split(',') %}
+[srvnode-{{ node_count }}]
+hostname={{ node }}
+{% if node_count == 1 %}
+roles=primary,openldap_server,kafka_server
+{% else %}
+roles=secondary,openldap_server,kafka_server
+{% endif %}
+
+{% set node_count = node_count + 1 %}
+{% endfor %}
+[enclosure_default]
+type=virtual
+controller.type=virtual
+
+{% set node_count = 1 %}
+{% for node in  HOST.split(',') %}
+[enclosure-{{ node_count }}]
+
+{% set node_count = node_count + 1 %}
+{% endfor %}
