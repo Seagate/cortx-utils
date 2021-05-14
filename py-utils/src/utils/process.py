@@ -62,10 +62,33 @@ class SimpleProcess(Process):
 
 
 class PipedProcess(Process):
-    ''' Execute process with pipe and provide output '''
+    """ Execute process with pipe and provide output """
+
     def __init__(self, cmd):
         super(PipedProcess, self).__init__(cmd)
+        self.universal_newlines = None
 
     def run(self, **args):
-        #TODO
-        pass
+        from subprocess import PIPE, Popen
+
+        cmd = self._cmd
+        try:
+            list_cmds = [x.split() for x in cmd.split(' | ')]
+            ps = None
+            for index, cmd in enumerate(list_cmds):
+                if index == 0:
+                    ps = Popen(cmd, stdout=PIPE, universal_newlines=self.universal_newlines)
+                else:
+                    ps = Popen(cmd, stdin=ps.stdout, stdout=PIPE,
+                               stderr=PIPE, universal_newlines=self.universal_newlines)
+            if ps is None:
+                raise ValueError("No commands given!")
+            output = ps.communicate()
+            self._output = output[0].strip()
+            self._err = output[1].strip()
+            self._returncode = ps.returncode
+        except Exception as err:
+            self._err = "SubProcess Error: " + str(err)
+            self._output = ""
+            self._returncode = -1
+        return self._output, self._err, self._returncode
