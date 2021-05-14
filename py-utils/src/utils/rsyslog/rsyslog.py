@@ -19,7 +19,5 @@ class RsyslogService:
                 _proc.run(universal_newlines=True)
                 RsyslogService._validate_service()
                 break
-            except Exception as e_:
+            except Exception:
                 time.sleep(2**count)
-        
-
