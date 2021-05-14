@@ -7,7 +7,7 @@ pipeline {
     }
 
     parameters {
-        string(name: 'MOTR_URL', defaultValue: 'https://github.com/gowthamchinna/cortx-motr', description: 'Repo for Motr')
+        string(name: 'MOTR_URL', defaultValue: 'https://github.com/Seagate/cortx-motr', description: 'Repo for Motr')
         string(name: 'MOTR_BRANCH', defaultValue: 'main', description: 'Branch for Motr')  
     }
 
@@ -83,7 +83,7 @@ pipeline {
                     publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: 'html', reportFiles: 'index.html', reportName: 'CppCheck Report', reportTitles: ''])
                     //githubNotify context: 'premerge-test', description: "Build finished", targetUrl: "${BUILD_URL}/testReport",  status: 'SUCCESS'
                     
-                    githubNotify account: 'gowthamchinna', context: 'premerge-test', credentialsId: 'gowthamchinna',
+                    githubNotify account: 'cortxadmin', context: 'premerge-test', credentialsId: 'cortxadmin',
                                 description: 'This is an example', repo: 'acceptance-test-harness', sha: "${sha}"
                                 , status: 'SUCCESS', targetUrl: '${BUILD_URL}/testReport'
                 }
