@@ -17,6 +17,7 @@ import inspect
 
 OPERATION_SUCESSFUL = 0x0000
 INTERNAL_ERROR = 0x1005
+OP_FAILED = 200
 
 
 class BaseError(Exception):
