@@ -192,4 +192,4 @@ class Service:
 
     def is_enabled(self):
         status = self._handler.is_enabled(self._service_name)
-        return status == 'enabled' 
+        return status == 'enabled'
