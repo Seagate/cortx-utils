@@ -60,7 +60,7 @@ class TestSystemHandler(unittest.TestCase):
 
     def test_get_state(self):
         return self.service_obj.get_state()
-    
+
     def test_is_enabled(self):
         return self.service_obj.is_enabled()
 
