@@ -21,6 +21,8 @@ import time
 from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.validator.v_service import ServiceV
+from cortx.utils import errors
+
 
 class SetupError(Exception):
     """ Generic Exception with error code and output """
@@ -166,14 +168,13 @@ class Utils:
         if os.path.exists(conf_file):
             # delete message_types
             from cortx.utils.message_bus.message_bus_client import MessageBusAdmin
-            from cortx.utils.message_bus.error import MessageBusError
             try:
                 mb = MessageBusAdmin("reset_admin_id")
                 message_types_list = mb.list_message_types()
                 if message_types_list:
                     mb.deregister_message_type(message_types_list)
-            except Exception as err:
-                raise MessageBusError(errno.ETIMEDOUT, "Error while resetting! %s", err)
+            except Exception as e:
+                raise SetupError(errors.OP_FAILED, "Cant not reset Message Bus. %s", e)
         return 0
 
     @staticmethod
@@ -185,6 +186,6 @@ class Utils:
             # delete data/config stored
             try:
                 os.remove(config_file)
-            except OSError as err:
-                raise SetupError(errno.EINTR, "Error deleting config file %s, %s", config_file, err)
+            except OSError as e:
+                raise SetupError(e.errno, "Error deleting config file %s, %s", config_file, e)
         return 0

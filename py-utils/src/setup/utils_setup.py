@@ -158,6 +158,7 @@ class CleanupCmd(Cmd):
         super().__init__(args)
 
     def process(self):
+        Utils.validate('cleanup')
         rc = Utils.cleanup()
         return rc
 
