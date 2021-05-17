@@ -41,7 +41,7 @@ class TestMessage(unittest.TestCase):
         EventMessage.init(component='cmp', source='H')
         for alert_count in range(0, 1000):
             EventMessage.send(module='mod', event_id='500', severity='B', \
-                message='This is message')
+                message='This is message' + str(alert_count))
 
     def test_bulk_verify_receive(self):
         """ Test bulk receive alerts """
