@@ -93,12 +93,13 @@ class TestMessage(unittest.TestCase):
                 message=None)
 
     def test_json_alert_send(self):
+        """ Test send json as message description """
         EventMessage.init(component='cmp', source='H')
         EventMessage.send(module='mod', event_id='500', severity='B', \
             message={'input': 'This is message'})
 
     def test_json_verify_receive(self):
-        """ Test receive alerts """
+        """ Test receive json as message description """
         EventMessage.init(component='cmp', source='H', receiver=True)
         alert = EventMessage.receive()
         self.assertIs(type(alert), dict)
