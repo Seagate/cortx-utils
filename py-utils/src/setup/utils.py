@@ -21,6 +21,8 @@ import time
 from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.validator.v_service import ServiceV
+from cortx.utils.message_bus.error import MessageBusError
+from cortx.utils import errors
 
 
 class SetupError(Exception):
@@ -160,5 +162,33 @@ class Utils:
 
     @staticmethod
     def reset():
-        """ Performs Configuraiton reset """
+        """ Remove/Delete all the data that was created after post install """
+
+        import os
+        conf_file = "/etc/cortx/message_bus.conf"
+        if os.path.exists(conf_file):
+            # delete message_types
+            from cortx.utils.message_bus.message_bus_client import MessageBusAdmin
+            try:
+                mb = MessageBusAdmin("reset_admin_id")
+                message_types_list = mb.list_message_types()
+                if message_types_list:
+                    mb.deregister_message_type(message_types_list)
+            except MessageBusError as e:
+                raise SetupError(e.rc, "Can not reset Message Bus. %s", e)
+            except Exception as e:
+                raise SetupError(errors.OP_FAILED, "Cant not reset Message Bus. %s", e)
+        return 0
+
+    @staticmethod
+    def cleanup():
+        """ Cleanup message bus config and logs. """
+        import os
+        config_file = "/etc/cortx/message_bus.conf"
+        if os.path.exists(config_file):
+            # delete data/config stored
+            try:
+                os.remove(config_file)
+            except OSError as e:
+                raise SetupError(e.errno, "Error deleting config file %s, %s", config_file, e)
         return 0
