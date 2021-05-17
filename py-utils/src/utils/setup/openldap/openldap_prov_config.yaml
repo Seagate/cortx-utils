@@ -28,3 +28,5 @@ INIT:
 TEST:
 RESET:
 CLEANUP:
+# Unsolicited Keys should be added to the bottom.
+CONFSTORE_OPENLDAP_CONST_KEY: "cortx"
