@@ -89,7 +89,7 @@ class EventMessage(metaclass=Singleton):
         """ Sends IEM alert message """
 
         # Validate attributes before sending
-        for attribute in ['module', 'event_id', 'message']:
+        for attribute in [module, event_id, message]:
             if attribute is None:
                 raise EventMessageError(errno.EINVAL, "Invalid IEM attributes \
                     %s", attribute)
@@ -99,24 +99,26 @@ class EventMessage(metaclass=Singleton):
                 , severity)
 
         alert = json.dumps({
-            'message': {
+            'IEM': {
+                'version': '1',
                 'info': {
-                    'event_time': time.time(),
-                    'resource_id': 'iem',
+                    'severity': cls._SEVERITY_LEVELS[severity],
+                    'type': cls._SOURCE[cls._source],
+                    'event_time': time.time()
+                    },
+                'Location': {
                     'site_id': cls._site_id,
                     'node_id': cls._node_id,
-                    'rack_id': cls._rack_id,
-                    'resource_type': 'iem',
-                    'description': message % (params)
-                },
-                'severity': cls._SEVERITY_LEVELS[severity],
-                'iec_info': {
-                    'source': cls._SOURCE[cls._source],
+                    'rack_id': cls._rack_id
+                    },
+                'Source': {
                     'component': cls._component,
-                    'module': module,
+                    'module': module
+                    },
+                'Contents': {
                     'event': event_id,
-                    'IEC': severity + cls._source + cls._component + module \
-                           + event_id
+                    'message': message,
+                    'params': params,
                 }
             }
         })

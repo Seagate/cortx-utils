@@ -19,27 +19,6 @@ OPERATION_SUCESSFUL = 0x0000
 INTERNAL_ERROR = 0x1005
 
 
-class UtilsError(Exception):
-    """ Parent class for utils error classes with error code and output """
-
-    def __init__(self, rc, message, *args):
-        self._rc = rc
-        self._desc = message % (args)
-
-    @property
-    def rc(self):
-        return self._rc
-
-    @property
-    def desc(self):
-        return self._desc
-
-    def __str__(self):
-        if self._rc == 0:
-            return self._desc
-        return "error(%d): %s" %(self._rc, self._desc)
-
-
 class BaseError(Exception):
     """ Parent class for the cli error classes """
 

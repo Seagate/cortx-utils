@@ -18,6 +18,7 @@
 
 import unittest
 from cortx.utils.iem_framework import EventMessage
+from cortx.utils.iem_framework.error import EventMessageError
 
 
 class TestMessage(unittest.TestCase):
@@ -26,14 +27,31 @@ class TestMessage(unittest.TestCase):
     def test_alert_send(self):
         """ Test send alerts """
         EventMessage.init(component='cmp', source='H')
-        EventMessage.send(severity='B', module='mod', event_id='500', \
+        EventMessage.send(module='mod', event_id='500', severity='B', \
             message='This is message')
 
-    def test_receive(self):
+    def test_alert_verify_receive(self):
         """ Test receive alerts """
         EventMessage.init(component='cmp', source='H', receiver=True)
         alert = EventMessage.receive()
         self.assertIs(type(alert), dict)
+
+    def test_bulk_alert_send(self):
+        """ Test bulk send alerts """
+        EventMessage.init(component='cmp', source='H')
+        for alert_count in range(0, 1000):
+            EventMessage.send(module='mod', event_id='500', severity='B', \
+                message='This is message')
+
+    def test_bulk_verify_receive(self):
+        """ Test bulk receive alerts """
+        EventMessage.init(component='cmp', source='H', receiver=True)
+        count = 0
+        for alert_count in range(0, 1000):
+            alert = EventMessage.receive()
+            self.assertIs(type(alert), dict)
+            count += 1
+        self.assertEqual(count, 1000)
 
     def test_receive_fail(self):
         """ Receive message with receiver as False """
@@ -45,7 +63,7 @@ class TestMessage(unittest.TestCase):
         """ Send message with receiver as True """
         EventMessage.init(component='cmp', source='H', receiver=True)
         with self.assertRaises(NameError):
-            EventMessage.send(severity='B', module='mod', event_id='500', \
+            EventMessage.send(module='mod', event_id='500', severity='B', \
                 message='This is message')
 
     def test_receive_without_send(self):
@@ -53,6 +71,35 @@ class TestMessage(unittest.TestCase):
         EventMessage.init(component='cmp', source='H', receiver=True)
         alert = EventMessage.receive()
         self.assertIsNone(alert)
+
+    def test_init_validation(self):
+        """ Validate init attributes """
+        with self.assertRaises(EventMessageError):
+            EventMessage.init(component=None, source='H')
+            EventMessage.init(component='cmp', source='I')
+
+    def test_send_validation(self):
+        """ Validate send attributes """
+        with self.assertRaises(EventMessageError):
+            EventMessage.send(module=None, event_id='500', severity='B', \
+                message='This is message')
+            EventMessage.send(module='mod', event_id=None, severity='B', \
+                message='This is message')
+            EventMessage.send(module='mod', event_id='500', severity='Z', \
+                message='This is message')
+            EventMessage.send(module='mod', event_id='500', severity='Z', \
+                message=None)
+
+    def test_json_alert_send(self):
+        EventMessage.init(component='cmp', source='H')
+        EventMessage.send(module='mod', event_id='500', severity='B', \
+            message={'input': 'This is message'})
+
+    def test_json_verify_receive(self):
+        """ Test receive alerts """
+        EventMessage.init(component='cmp', source='H', receiver=True)
+        alert = EventMessage.receive()
+        self.assertIs(type(alert), dict)
 
 
 if __name__ == '__main__':
