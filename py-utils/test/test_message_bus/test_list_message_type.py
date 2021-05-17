@@ -24,14 +24,12 @@ from cortx.utils.message_bus import MessageBus, MessageBusAdmin
 class TestMessage(unittest.TestCase):
     """ Test MessageBus related functionality """
 
-    message_bus = MessageBus()
-
     _message_type = 'test_topic'
     _partition = 1
 
     def test_list_message_type(self):
         """ Test list message type API """
-        admin = MessageBusAdmin(TestMessage.message_bus, admin_id='admin')
+        admin = MessageBusAdmin(admin_id='admin')
         admin.register_message_type(message_types=[TestMessage._message_type], \
             partitions=TestMessage._partition)
         message_type_list = admin.list_message_types()
