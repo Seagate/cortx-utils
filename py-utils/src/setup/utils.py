@@ -175,9 +175,9 @@ class Utils:
                 if message_types_list:
                     mb.deregister_message_type(message_types_list)
             except MessageBusError as e:
-                raise SetupError(errors.ERR_OP_FAILED, "Cant not reset Message Bus. %s", e)
+                raise SetupError(errno.ETIMEDOUT, "Can not reset Message Bus. %s", e)
             except Exception as e:
-                raise SetupError(errors.ERR_OP_FAILED, "Cant not reset Message Bus. %s", e)
+                raise SetupError(errors.OP_FAILED, "Cant not reset Message Bus. %s", e)
         return 0
 
     @staticmethod
