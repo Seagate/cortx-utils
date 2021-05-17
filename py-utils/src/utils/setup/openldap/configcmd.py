@@ -24,8 +24,9 @@ import errno
 import shutil
 from  ast import literal_eval
 
-from setupcmd import SetupCmd, S3PROVError
+from setupcmd import SetupCmd, OpenldapPROVError
 from cortx.utils.process import SimpleProcess
+from base_configure_ldap import ConfigLdap
 
 class ConfigCmd(SetupCmd):
   """Config Setup Cmd."""
@@ -40,7 +41,7 @@ class ConfigCmd(SetupCmd):
       self.read_ldap_credentials()
 
     except Exception as e:
-      raise S3PROVError(f'exception: {e}\n')
+      raise OpenldapPROVError(f'exception: {e}\n')
 
   def process(self):
     """Main processing function."""
@@ -49,7 +50,6 @@ class ConfigCmd(SetupCmd):
     #self.phase_keys_validate(self.url, self.name)
 
     try:
-      self.create_auth_jks_password()
       self.configure_openldap()
 
 
@@ -59,17 +59,16 @@ class ConfigCmd(SetupCmd):
     # 2. Enable slapd logging in rsyslog config
     # 3. Set openldap-replication
     # 4. Check number of nodes in the cluster
-    Conf.load("index1","json://") #Mention path of json file here
-    rootdn_passwd = Conf.get("index1","CONFIG>CONFSTORE_ROOTDN_PASSWD_KEY")
     # Perform base configuration
-    os.system('python3 ./../../third_party/openldap/base_configure_ldap.py --forceclean True --rootdnpasswd ' + rootdn_passwd)
-
+    #Put below inside a class  and method and then import it and call
+    #os.system('python3 ./../../third_party/openldap/base_configure_ldap.py --forceclean True --rootdnpasswd ' + self.rootdn_passwd)
+    self.base_configure(self.rootdn_passwd,'True')
     if os.path.isfile("/opt/seagate/cortx/s3/install/ldap/rsyslog.d/slapdlog.conf"):
       try:
         os.makedirs("/etc/rsyslog.d")
       except OSError as e:
         if e.errno != errno.EEXIST:
-          raise S3PROVError(f"mkdir /etc/rsyslog.d failed with errno: {e.errno}, exception: {e}\n")
+          raise OpenldapPROVError(f"mkdir /etc/rsyslog.d failed with errno: {e.errno}, exception: {e}\n")
       shutil.copy('/opt/seagate/cortx/s3/install/ldap/rsyslog.d/slapdlog.conf',
                   '/etc/rsyslog.d/slapdlog.conf')
 
@@ -121,16 +120,6 @@ class ConfigCmd(SetupCmd):
         #os.remove("hosts_list_file.txt")
 
         #if retcode != 0:
-        #  raise S3PROVError(f"{cmd} failed with err: {stderr}, out: {stdout}, ret: {retcode}\n")
+        #  raise OpenldapPROVError(f"{cmd} failed with err: {stderr}, out: {stdout}, ret: {retcode}\n")
       index += 1
 
-  def create_auth_jks_password():
-    """Create random password for auth jks keystore."""
-    cmd = ['sh',
-      '/opt/seagate/cortx/auth/scripts/create_auth_jks_password.sh']
-    handler = SimpleProcess(cmd)
-    stdout, stderr, retcode = handler.run()
-    if retcode != 0:
-      raise S3PROVError(f"{cmd} failed with err: {stderr}, out: {stdout}, ret: {retcode}\n")
-    else:
-      sys.stdout.write('INFO: Successfully set auth JKS keystore password.\n')
