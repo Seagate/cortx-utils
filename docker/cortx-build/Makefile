@@ -193,10 +193,10 @@ _cortx-posix_build:
 
 _cortx-py-utils_build:
 	@echo "***************  Installing cortx-management-portal Prereqsites *********************"
-	pushd cortx-workspace/cortx-utils/py-utils && \
+	pushd cortx-workspace/cortx-utils/ && \
 		yum install python36-devel -y && \
-		python3.6 setup.py bdist_rpm --version=${RELEASE_VERSION} --post-install utils-post-install --post-uninstall utils-post-uninstall --post-uninstall utils-post-uninstall --release="${BUILD_ID}_$$(git rev-parse --short HEAD)" && \
-		../statsd-utils/jenkins/build.sh -b ${BUILD_ID} && \
+		./jenkins/build.sh -v $$VERSION -b ${BUILD_ID} && \
+		./statsd-utils/jenkins/build.sh -b ${BUILD_ID} && \
 		mv /cortx-workspace/cortx-utils/statsd-utils/dist/rpmbuild/RPMS/x86_64/*.rpm ${RPM_DIR} && \
 		mv /cortx-workspace/cortx-utils/py-utils/dist/*.rpm ${RPM_DIR} && \
 		createrepo -v ${RPM_DIR} && \

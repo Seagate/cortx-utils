@@ -83,10 +83,7 @@ pipeline {
 
                     sh label: 'Build', script: '''
                         yum install python36-devel -y
-                        pushd py-utils
-                            python3.6 setup.py bdist_rpm --version=$VERSION --post-install utils-post-install --post-uninstall utils-post-uninstall --post-uninstall utils-post-uninstall --release="${BUILD_NUMBER}_$(git rev-parse --short HEAD)"
-                        popd
-                        
+                        ./jenkins/build.sh -v $VERSION -b $BUILD_NUMBER
                         ./statsd-utils/jenkins/build.sh -v $VERSION -b $BUILD_NUMBER
                     '''
                 }
