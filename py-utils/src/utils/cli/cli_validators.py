@@ -24,7 +24,6 @@ class CommonValidators:
     """
     @staticmethod
     def positive_int(value):
-        print("===================================================")
         try:
             if int(value) > -1:
                 return int(value)
