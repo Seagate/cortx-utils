@@ -15,12 +15,53 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+from cortx.utils import errors
+
+# common message_bus error codes
+ERR_MB_BROKER_NOT_AVAILABLE = 0x2001
+ERR_MB_LEADER_NOT_AVAILABLE = 0x2002
+ERR_MB_CLIENT_NOT_FOUND = 0x2003
+ERR_MB_INVALID_CLIENT_TYPE = 0x2004
+ERR_MB_INVALID_BROKER_TYPE = 0x2005
+
+# message_type related
+ERR_MB_MESSAGE_TOO_LARGE = 0x2051
+ERR_MB_MESSAGE_TYPE_ALREADY_EXISTS = 0x2052
+ERR_MB_UNKNOWN_MESSAGE_TYPE_OR_PART = 0x2053
+ERR_MB_MAX_RETRIES_CREATE_MESSAGE_TYPE = 0x2054
+ERR_MB_MAX_RETRIES_DELETE_MESSAGE_TYPE = 0x2055
+ERR_MB_MAX_RETRIES_INCREASE_CONCURRENCY = 0x2056
+ERR_MB_UNABLE_TO_CHANGE_RETENTION = 0x2057
+ERR_MB_UNABLE_DELETE_MESSAGES = 0x2058
+ERR_MB_UNABLE_TO_GET_MSG_COUNT = 0x2059
+ERR_MB_UNABLE_TO_RESET_OFFSET = 0x2060
+ERR_MB_UNABLE_TO_FETCH_LOG_SIZE = 0x2061
+
+# default
+ERR_MB_DEFAULT_ERROR_CODE = 0x2199
+
 
 class MessageBusError(Exception):
     """ Generic Exception with error code and output """
 
     def __init__(self, rc, message, *args):
         self._rc = rc
+        if rc == ERR_MB_DEFAULT_ERROR_CODE and args:
+            error_codes = {errors.ERR_REQUEST_TIMED_OUT: ["_TIMED_OUT"],
+                           ERR_MB_MESSAGE_TYPE_ALREADY_EXISTS: ["TOPIC_ALREADY_EXISTS"],
+                           ERR_MB_BROKER_NOT_AVAILABLE: ["BROKER_NOT_AVAILABLE"],
+                           ERR_MB_LEADER_NOT_AVAILABLE: ["LEADER_NOT_AVAILABLE"],
+                           ERR_MB_MESSAGE_TOO_LARGE: ["MESSAGE_TOO_LARGE"],
+                           errors.ERR_UNSUPPORTED_VERSION: ["UNSUPPORTED_VERSION"],
+                           errors.ERR_NETWORK_EXCEPTION: ["NETWORK_EXCEPTION"],
+                           ERR_MB_UNKNOWN_MESSAGE_TYPE_OR_PART: ["UNKNOWN_TOPIC_OR_PART"],
+                           errors.ERR_INVALID_CONFIG: ["INVALID_CONFIG"],
+                           errors.ERR_NOENTRY: ["NOENTRY"],
+                           }
+            for key, value in error_codes.items():
+                return_code = [key for val in value if val in str(args)]
+                if return_code:
+                    self._rc = key
         self._desc = message % (args)
 
     @property
@@ -32,6 +73,6 @@ class MessageBusError(Exception):
         return self._desc
 
     def __str__(self):
-        if self._rc == 0:
+        if self._rc == ERR_MB_DEFAULT_ERROR_CODE:
             return self._desc
-        return "error(%d): %s" %(self._rc, self._desc)
+        return "error(%d): %s" % (self._rc, self._desc)

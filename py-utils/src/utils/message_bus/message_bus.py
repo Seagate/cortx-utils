@@ -19,7 +19,7 @@ from cortx.utils.message_bus.message_broker import MessageBrokerFactory
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.conf_store import Conf
 from cortx.template import Singleton
-import errno
+from cortx.utils import errors
 
 
 class MessageBus(metaclass=Singleton):
@@ -35,8 +35,8 @@ class MessageBus(metaclass=Singleton):
             broker_type = self._broker_conf['type']
 
         except Exception as e:
-            raise MessageBusError(errno.EINVAL, "Invalid conf in %s. %s", \
-                self.conf_file, e)
+            raise MessageBusError(errors.ERR_INVALID_CONFIG, \
+                "Invalid conf in %s. %s ", self.conf_file, e)
 
         self._broker = MessageBrokerFactory.get_instance(broker_type, \
                 self._broker_conf)
