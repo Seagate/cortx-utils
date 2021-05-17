@@ -47,8 +47,10 @@ class TestMessage(unittest.TestCase):
         """ Test bulk receive alerts """
         EventMessage.init(component='cmp', source='H', receiver=True)
         count = 0
-        for alert_count in range(0, 1000):
+        while True:
             alert = EventMessage.receive()
+            if alert is None:
+                break
             self.assertIs(type(alert), dict)
             count += 1
         self.assertEqual(count, 1000)
