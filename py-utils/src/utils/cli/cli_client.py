@@ -29,7 +29,7 @@ class CliClient:
         pass
 
 class DirectClient(CliClient):
-    """Class Handles Direct Calls for CSM CLI"""
+    """Class Handles Direct Calls for CLI"""
     def __init__(self):
         super(DirectClient, self).__init__(None)
 
@@ -43,3 +43,13 @@ class DirectClient(CliClient):
         else:
             target = module_obj
         return await getattr(target, command.comm.get("method"))(command)
+
+class RestClient(CliClient):
+    """ Class handles REST call for cli"""
+    # TODO: Implement RestClient as per the use case.
+    def __init__(self):
+        super(DirectClient, self).__init__(None)
+    
+    def process_request(self, session, cmd, action, options, args, method):
+        #TODO: Implement to create rest request.
+        pass
