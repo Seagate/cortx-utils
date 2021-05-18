@@ -197,7 +197,7 @@ class Output:
         """Dump the Output on CLI"""
         # Todo: Need to fetch the response messages from a file for localization.
         # TODO: Check 201 response code also for creation requests.
-        if self.rc not in  (200, 201, const.CSM_OPERATION_SUCESSFUL) :
+        if self.rc not in  (200, 201, const.OPERATION_SUCESSFUL) :
             if isinstance(self.output, str):
                 errstr = Output.error(self.rc, self.output)
             else:

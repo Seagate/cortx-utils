@@ -16,7 +16,7 @@
 import sys
 import traceback
 from cortx.utils.log import Log
-from cortx.utils.cli_framework.errors import ArgumentError
+from cortx.utils.cli_framework.errors import CliError
 from getpass import getpass
 import errno
 
@@ -62,7 +62,7 @@ class Terminal:
         """
         value = value or getpass(prompt="Current Password: ")
         if not value:
-            raise ArgumentError(errno.EINVAL,
+            raise CliError(errno.EINVAL,
                                 f"Current {Terminal.EMPTY_PASS_FIELD}")
         return value
 
@@ -77,12 +77,12 @@ class Terminal:
                           "characters.\n"))
         value = value or getpass(prompt="Password: ")
         if not value:
-            raise ArgumentError(errno.EINVAL, Terminal.EMPTY_PASS_FIELD)
+            raise CliError(errno.EINVAL, Terminal.EMPTY_PASS_FIELD)
         if confirm_pass_flag:
             confirm_password = getpass(prompt="Confirm Password: ")
             if not confirm_password:
-                raise ArgumentError(errno.EINVAL,
+                raise CliError(errno.EINVAL,
                                     f"Confirm {Terminal.EMPTY_PASS_FIELD}")
             if not confirm_password == value:
-                raise ArgumentError(errno.EINVAL, "Password do not match.")
+                raise CliError(errno.EINVAL, "Password do not match.")
         return value
