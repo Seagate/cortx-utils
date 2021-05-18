@@ -99,23 +99,23 @@ class EventMessage(metaclass=Singleton):
                 , severity)
 
         alert = json.dumps({
-            'IEM': {
+            'iem': {
                 'version': '1',
                 'info': {
                     'severity': cls._SEVERITY_LEVELS[severity],
                     'type': cls._SOURCE[cls._source],
                     'event_time': time.time()
                     },
-                'Location': {
+                'location': {
                     'site_id': cls._site_id,
                     'node_id': cls._node_id,
                     'rack_id': cls._rack_id
                     },
-                'Source': {
+                'source': {
                     'component': cls._component,
                     'module': module
                     },
-                'Contents': {
+                'contents': {
                     'event': event_id,
                     'message': message,
                     'params': params,
