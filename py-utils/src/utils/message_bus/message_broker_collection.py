@@ -59,7 +59,7 @@ class KafkaMessageBroker(MessageBroker):
 
         """ Validate and return if client already exists """
         if client_type not in self._clients.keys():
-            raise MessageBusError(error.ERR_MB_INVALID_CLIENT_TYPE, \
+            raise MessageBusError(error.ERR_INVALID_CLIENT_TYPE, \
                 "Invalid client type %s", client_type)
 
         if client_conf["client_id"] in self._clients[client_type].keys():
@@ -129,7 +129,7 @@ class KafkaMessageBroker(MessageBroker):
             try:
                 f.result()  # The result itself is None
             except Exception as e:
-                raise MessageBusError(error.ERR_MB_DEFAULT_ERROR_CODE, \
+                raise MessageBusError(error.ERR_DEFAULT_ERROR_CODE, \
                     "Admin operation fails for %s. %s", message_type, e)
 
     def _get_metadata(self, admin: object):
@@ -138,14 +138,14 @@ class KafkaMessageBroker(MessageBroker):
             message_type_metadata = admin.list_topics().__dict__
             return message_type_metadata['topics']
         except Exception as e:
-            raise MessageBusError(error.ERR_MB_DEFAULT_ERROR_CODE, \
+            raise MessageBusError(error.ERR_DEFAULT_ERROR_CODE, \
                 'Unable to list message type. %s', e)
 
     @staticmethod
     def _error_cb(err):
         """ Callback to check if all brokers are down """
         if err.code() == KafkaError._ALL_BROKERS_DOWN:
-            raise MessageBusError(error.ERR_MB_DEFAULT_ERROR_CODE, \
+            raise MessageBusError(error.ERR_DEFAULT_ERROR_CODE, \
                 "Kafka Broker(s) are down. %s", err)
 
     def list_message_types(self, admin_id: str) -> list:
@@ -184,7 +184,7 @@ class KafkaMessageBroker(MessageBroker):
                 if each_message_type not in \
                     list(self._get_metadata(admin).keys()):
                     if list_retry > self._max_list_message_type_count:
-                        raise MessageBusError(error.ERR_MB_MAX_RETRIES_CREATE_MESSAGE_TYPE, \
+                        raise MessageBusError(error.ERR_MAX_RETRIES_CREATE_MESSAGE_TYPE, \
                             'Maximum retries exceeded for creating %s.', each_message_type)
                     time.sleep(list_retry*1)
                     continue
@@ -208,7 +208,7 @@ class KafkaMessageBroker(MessageBroker):
             for list_retry in range(1, self._max_list_message_type_count+2):
                 if each_message_type in list(self._get_metadata(admin).keys()):
                     if list_retry > self._max_list_message_type_count:
-                        raise MessageBusError(error.ERR_MB_MAX_RETRIES_DELETE_MESSAGE_TYPE, \
+                        raise MessageBusError(error.ERR_MAX_RETRIES_DELETE_MESSAGE_TYPE, \
                             'Maximum retries exceeded for deleting %s.', each_message_type)
                     time.sleep(list_retry*1)
                     continue
@@ -241,7 +241,7 @@ class KafkaMessageBroker(MessageBroker):
             if concurrency_count != len(self._get_metadata(admin)\
                 [message_type].__dict__['partitions']):
                 if list_retry > self._max_list_message_type_count:
-                    raise MessageBusError(error.ERR_MB_MAX_RETRIES_INCREASE_CONCURRENCY, \
+                    raise MessageBusError(error.ERR_MAX_RETRIES_INCREASE_CONCURRENCY, \
                         'Maximum retries exceeded to increase concurrency for %s.', message_type)
                 time.sleep(list_retry*1)
                 continue
@@ -262,7 +262,7 @@ class KafkaMessageBroker(MessageBroker):
         """
         producer = self._clients['producer'][producer_id]
         if producer is None:
-            raise MessageBusError(error.ERR_MB_CLIENT_NOT_FOUND, \
+            raise MessageBusError(error.ERR_CLIENT_NOT_FOUND, \
                 'Producer %s is not initialized', producer_id)
 
         for message in messages:
@@ -289,7 +289,7 @@ class KafkaMessageBroker(MessageBroker):
                     total_size += each_partition['size']
             return total_size
         except Exception as e:
-            raise MessageBusError(error.ERR_MB_UNABLE_TO_FETCH_LOG_SIZE, \
+            raise MessageBusError(error.ERR_UNABLE_TO_FETCH_LOG_SIZE, \
                 'Unable to fetch log size for message type %s. %s' , message_type, e)
 
     def delete(self, admin_id: str, message_type: str):
@@ -308,7 +308,7 @@ class KafkaMessageBroker(MessageBroker):
             tuned_params = admin.alter_configs([self._resource])
             if list(tuned_params.values())[0].result() is not None:
                 if tuned_retry > 1:
-                    raise MessageBusError(error.ERR_MB_UNABLE_TO_CHANGE_RETENTION, \
+                    raise MessageBusError(error.ERR_UNABLE_TO_CHANGE_RETENTION, \
                         'Unable to change retention for %s.', message_type)
                 continue
             else:
@@ -316,7 +316,7 @@ class KafkaMessageBroker(MessageBroker):
 
         for retry_count in range(1, (self._max_purge_retry_count + 2)):
             if retry_count > self._max_purge_retry_count:
-                raise MessageBusError(error.ERR_MB_UNABLE_DELETE_MESSAGES, \
+                raise MessageBusError(error.ERR_UNABLE_DELETE_MESSAGES, \
                     'Unable to delete messages for %s.', message_type)
             time.sleep(0.1*retry_count)
             log_size = self.get_log_size(message_type)
@@ -355,14 +355,14 @@ class KafkaMessageBroker(MessageBroker):
                 cmd_proc = SimpleProcess(cmd)
                 res_op, res_err, res_rc = cmd_proc.run()
                 if res_rc != 0:
-                    raise MessageBusError(error.ERR_MB_UNABLE_TO_RESET_OFFSET, \
+                    raise MessageBusError(error.ERR_UNABLE_TO_RESET_OFFSET, \
                         "Unable to reset the offsets. %s.", res_err)
                 decoded_string = res_op.decode("utf-8")
                 if "Error" in decoded_string:
-                    raise MessageBusError(error.ERR_MB_UNABLE_TO_RESET_OFFSET, \
+                    raise MessageBusError(error.ERR_UNABLE_TO_RESET_OFFSET, \
                         "Unable to reset the offsets. %s.", decoded_string)
             except Exception as e:
-                raise MessageBusError(error.ERR_MB_DEFAULT_ERROR_CODE, "%s", str(e))
+                raise MessageBusError(error.ERR_DEFAULT_ERROR_CODE, "%s", str(e))
 
         try:
             cmd = "/opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server "\
@@ -370,14 +370,14 @@ class KafkaMessageBroker(MessageBroker):
             cmd_proc = SimpleProcess(cmd)
             res_op, res_err, res_rc = cmd_proc.run()
             if res_rc != 0:
-                raise MessageBusError(error.ERR_MB_UNABLE_TO_GET_MSG_COUNT, \
+                raise MessageBusError(error.ERR_UNABLE_TO_GET_MSG_COUNT, \
                     "Unable to get the message count. %s.", res_err)
             decoded_string = res_op.decode("utf-8")
             if decoded_string == "":
-                raise MessageBusError(error.ERR_MB_CLIENT_NOT_FOUND, \
+                raise MessageBusError(error.ERR_CLIENT_NOT_FOUND, \
                     "No active consumers in the consumer group, %s.", consumer_group)
             elif "Error" in decoded_string:
-                raise MessageBusError(error.ERR_MB_UNABLE_TO_GET_MSG_COUNT, \
+                raise MessageBusError(error.ERR_UNABLE_TO_GET_MSG_COUNT, \
                     "Unable to get the message count. %s.", decoded_string)
             else:
                 split_rows = decoded_string.split("\n")
@@ -392,12 +392,12 @@ class KafkaMessageBroker(MessageBroker):
                     lag[message_type_index] == message_type]
 
                 if len(unread_count) == 0:
-                    raise MessageBusError(error.ERR_MB_CLIENT_NOT_FOUND, \
+                    raise MessageBusError(error.ERR_CLIENT_NOT_FOUND, \
                         "No active consumers in the consumer group, %s.", consumer_group)
             return sum(unread_count)
 
         except Exception as e:
-            raise MessageBusError(error.ERR_MB_DEFAULT_ERROR_CODE, \
+            raise MessageBusError(error.ERR_DEFAULT_ERROR_CODE, \
                 "Unable to get the message count. %s.", e)
 
     def receive(self, consumer_id: str, timeout: float = None) -> list:
@@ -411,7 +411,7 @@ class KafkaMessageBroker(MessageBroker):
         """
         consumer = self._clients['consumer'][consumer_id]
         if consumer is None:
-            raise MessageBusError(error.ERR_MB_CLIENT_NOT_FOUND, \
+            raise MessageBusError(error.ERR_CLIENT_NOT_FOUND, \
                 'Consumer %s is not initialized.', consumer_id)
 
         if timeout is None:
@@ -425,18 +425,18 @@ class KafkaMessageBroker(MessageBroker):
                     if timeout > 0:
                         return None
                 elif msg.error():
-                    raise MessageBusError(error.ERR_MB_DEFAULT_ERROR_CODE, \
+                    raise MessageBusError(error.ERR_DEFAULT_ERROR_CODE, \
                         'Cant receive. %s', msg.error())
                 else:
                     return msg.value()
         except KeyboardInterrupt:
-            raise MessageBusError(error.ERR_MB_DEFAULT_ERROR_CODE, \
+            raise MessageBusError(error.ERR_DEFAULT_ERROR_CODE, \
                 'Cant Receive - KeyboardInterrupt')
 
     def ack(self, consumer_id: str):
         """ To manually commit offset """
         consumer = self._clients['consumer'][consumer_id]
         if consumer is None:
-            raise MessageBusError(error.ERR_MB_CLIENT_NOT_FOUND, \
+            raise MessageBusError(error.ERR_CLIENT_NOT_FOUND, \
                 'Consumer %s is not initialized.', consumer_id)
         consumer.commit(async=False)

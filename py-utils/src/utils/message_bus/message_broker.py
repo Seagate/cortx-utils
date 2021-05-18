@@ -39,7 +39,7 @@ class MessageBrokerFactory:
                     MessageBrokerFactory._brokers[broker_type] = message_broker
                     return message_broker
 
-        raise MessageBusError(error.ERR_MB_INVALID_BROKER_TYPE, \
+        raise MessageBusError(error.ERR_INVALID_BROKER_TYPE, \
             'Invalid broker type %s.', broker_type)
 
 
