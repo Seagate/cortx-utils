@@ -27,15 +27,15 @@ class Command:
     """CLI Command Base Class"""
 
     def __init__(self, name, options, args):
-        self._method = options['comm']['method']
-        self._target = options['comm']['target']
-        self._comm = options['comm']
+        self._method = options["comm"]["method"]
+        self._target = options["comm"]["target"]
+        self._comm = options["comm"]
         self._options = options
         self._args = args
         self._name = name
         self._output = options["output"]
-        self._need_confirmation = options['need_confirmation']
-        self._sub_command_name = options['sub_command_name']
+        self._need_confirmation = options["need_confirmation"]
+        self._sub_command_name = options["sub_command_name"]
 
     @property
     def name(self):
@@ -73,7 +73,7 @@ class Command:
         """Process Response as per display method in format else normal display"""
         output_obj = Output(self, response)
         return output_obj.dump(out, err, **self._output,
-                               output_type=self._options.get('format',
+                               output_type=self._options.get("format",
                                                              "success"))
 
 class CommandParser:
@@ -110,10 +110,10 @@ class CommandParser:
         :return: None
         """
         if add_parser_flag:
-             sub_parser = sub_parser.add_parser(data['name'],
-                                           help=data['description'])
+             sub_parser = sub_parser.add_parser(data["name"],
+                                           help=data["description"])
         parser = sub_parser.add_subparsers()
-        for each_data in data['sub_commands']:
+        for each_data in data["sub_commands"]:
             self.add_args(each_data, parser, name)
 
     def check_permissions(self, sub_command):
@@ -135,12 +135,12 @@ class CommandParser:
         """
         if each_args.get("params", False):
             each_args.pop("params")
-            self._communication_obj['params'][
-                each_args.get('dest', None) or each_args.get('flag')] = ""
+            self._communication_obj["params"][
+                each_args.get("dest", None) or each_args.get("flag")] = ""
         if each_args.get("json", False):
             each_args.pop("json")
-            self._communication_obj['json'][
-                each_args.get('dest', None) or each_args.get('flag')] = ""
+            self._communication_obj["json"][
+                each_args.get("dest", None) or each_args.get("flag")] = ""
 
     def add_args(self, sub_command: Dict, parser: Any, name):
         """
@@ -157,28 +157,28 @@ class CommandParser:
                                        help=sub_command["description"])
         # Check if the command has any arguments.
         if "args" in sub_command:
-            self._communication_obj.update(sub_command['comm'])
-            self._communication_obj['params'] = {}
-            self._communication_obj['json'] = {}
+            self._communication_obj.update(sub_command["comm"])
+            self._communication_obj["params"] = {}
+            self._communication_obj["json"] = {}
             for each_args in sub_command["args"]:
                 if each_args.get("type", None):
                     if each_args.get("type_target"):
                         module_obj = import_module(each_args.pop("type_target"))
-                        each_args["type"] = eval(f'module_obj.{each_args["type"]}')
+                        each_args["type"] = eval(f"module_obj.{each_args['type']}")
                     else:
                         each_args["type"] = eval(each_args["type"])
                 if each_args.get("suppress_help", False):
                     each_args.pop("suppress_help")
-                    each_args['help'] = argparse.SUPPRESS
+                    each_args["help"] = argparse.SUPPRESS
                 self.handle_comm(each_args)
                 flag = each_args.pop("flag")
                 sub_parser.add_argument(flag, **each_args)
             sub_parser.set_defaults(command=Command,
                                     action=deepcopy(name),
                                     comm=deepcopy(self._communication_obj),
-                                    output=deepcopy(sub_command.get('output', {})),
-                                    need_confirmation=sub_command.get('need_confirmation', False),
-                                    sub_command_name=sub_command.get('name'))
+                                    output=deepcopy(sub_command.get("output", {})),
+                                    need_confirmation=sub_command.get("need_confirmation", False),
+                                    sub_command_name=sub_command.get("name"))
 
         # Check if the command has any Commands.
         elif "sub_commands" in sub_command:
@@ -204,7 +204,7 @@ class Output:
             err.write(f"{errstr}\n" or "")
             return None
         elif output_type:
-            output = getattr(Output, f'dump_{output_type}')(self.output,
+            output = getattr(Output, f"dump_{output_type}")(self.output,
                                                             **kwargs)
             out.write(f"{output}\n")
 
@@ -291,7 +291,7 @@ class Output:
             new_data = data[each_key]
             new_data.extend(padding_length * [table.get("padding_element", " ")])
             # Add Padded List to the Column.
-            table_obj.add_column(table['headers'][each_key], new_data)
+            table_obj.add_column(table["headers"][each_key], new_data)
 
     @staticmethod
     def dump_table(data: Any, table: Dict, **kwargs: Dict) -> str:

@@ -48,10 +48,10 @@ class Terminal:
     @staticmethod
     def logout_alert(is_logged_out: bool):
         if is_logged_out:
-            sys.stdout.write('Successfully logged out\n')
+            sys.stdout.write("Successfully logged out\n")
         else:
             Log.error(traceback.format_exc())
-            sys.stderr('Logout failed\n')
+            sys.stderr("Logout failed\n")
 
     @staticmethod
     def get_current_password(value):

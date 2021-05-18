@@ -55,7 +55,7 @@ class CommandFactory(object):
         if permissions:
             # common commands both in commands and permissions key list
             commands = [command for command in commands if command in permissions.keys()]
-        parser = ArgumentParser(description='Cortx cli commands')
+        parser = ArgumentParser(description="Cortx cli commands")
         hidden_cmds.extend(const.HIDDEN_COMMANDS)
         metavar = set(commands).difference(set(hidden_cmds))
         subparsers = parser.add_subparsers(metavar=metavar)
@@ -73,7 +73,7 @@ class CommandFactory(object):
         CommandFactory.edit_arguments(namespace)
 
         sys_module = sys.modules[__name__]
-        for attr in ['command', 'action', 'args']:
+        for attr in ["command", "action", "args"]:
             setattr(sys_module, attr, getattr(namespace, attr))
             delattr(namespace, attr)
         return command(action, vars(namespace), args)
@@ -82,5 +82,5 @@ class CommandFactory(object):
     def edit_arguments(namespace):
         # temporary solution till user create api is not fixed
         # remove when fixed
-        if namespace.action == 'users' and namespace.sub_command_name == 'create':
+        if namespace.action == "users" and namespace.sub_command_name == "create":
             namespace.roles = [namespace.roles]
