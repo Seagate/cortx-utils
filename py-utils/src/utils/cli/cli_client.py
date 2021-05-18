@@ -48,7 +48,7 @@ class RestClient(CliClient):
     """ Class handles REST call for cli"""
     # TODO: Implement RestClient as per the use case.
     def __init__(self):
-        super(DirectClient, self).__init__(None)
+        super(RestClient, self).__init__(None)
     
     def process_request(self, session, cmd, action, options, args, method):
         #TODO: Implement to create rest request.
