@@ -57,7 +57,6 @@
       tags: ['02_7_HA']
       
   rescue:    
-
     - name: "[ Validate Deployment ] : Get journalctl Log" 
       shell: "journalctl 2>&1 > {{ CORXT_DEPLOYMENT_LOG_PATH }}/journalctl.log"
       ignore_errors: true
@@ -82,6 +81,19 @@
         - "{{ deploy_vm.stdout }}"
         - "{{ deploy_vm.stderr }}"
       tags: ['02_DEPLOY_VALIDATE']
+
+    - name: "[ Validate Deployment ] : Create Support Bundles"
+      shell: "{{ item }}" 
+      with_items:
+        - "/usr/bin/sspl_bundle_generate support_bundle {{ CORXT_DEPLOYMENT_LOG_PATH }} || true"
+        - "sh /opt/seagate/cortx/s3/scripts/s3_bundle_generate.sh support_bundle {{ CORXT_DEPLOYMENT_LOG_PATH }} || true"
+        - "/opt/seagate/cortx/motr/libexec/m0reportbug-bundler support_bundle {{ CORXT_DEPLOYMENT_LOG_PATH }} || true"
+        - "/opt/seagate/cortx/hare/bin/hare_setup support_bundle support_bundle {{ CORXT_DEPLOYMENT_LOG_PATH }} || true"
+        - "/opt/seagate/cortx/provisioner/cli/provisioner-bundler support_bundle {{ CORXT_DEPLOYMENT_LOG_PATH }} || true"
+        - "cortx support_bundle create support_bundle {{ CORXT_DEPLOYMENT_LOG_PATH }} || true"
+        - "/usr/bin/manifest_support_bundle support_bundle {{ CORXT_DEPLOYMENT_LOG_PATH }} || true"
+        - "cortxcli csm_bundle_generate csm support_bundle {{ CORXT_DEPLOYMENT_LOG_PATH }} || true"
+      tags: ['02_DEPLOY_VALIDATE']   
 
     - name: "[ Validate Deployment ] : Validate Deployment" 
       shell: "bash {{ CORXT_DEPLOYMENT_SCRIPT_PATH }}/validate_deployment.sh {{ CORXT_DEPLOYMENT_LOG_PATH }}/deploymet_latest.log"
