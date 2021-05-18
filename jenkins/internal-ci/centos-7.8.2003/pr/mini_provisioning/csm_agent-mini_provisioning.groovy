@@ -70,10 +70,15 @@ pipeline {
                     checkout([$class: 'GitSCM', branches: [[name: "${CSM_BRANCH}"]], doGenerateSubmoduleConfigurations: false,  extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: true, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: "${CSM_URL}",  name: 'origin', refspec: "${CSM_PR_REFSEPEC}"]]])
 
                     sh label: '', script: '''
-                        sed -i 's/gpgcheck=1/gpgcheck=0/' /etc/yum.conf
-                        yum-config-manager --add http://cortx-storage.colo.seagate.com/releases/cortx/github/$BRANCH/$OS_VERSION/last_successful/
-                        yum-config-manager --add http://cortx-storage.colo.seagate.com/releases/cortx/components/github/$BRANCH/$OS_VERSION/dev/cortx-utils/last_successful/
+                        # Use main branch for cortx-py-utils
+                        sed -i 's/stable/main/'  /etc/yum.repos.d/cortx.repo
                         yum clean all && rm -rf /var/cache/yum
+
+                        # Install cortx-prereq package
+                        pip3 uninstall pip -y && yum install python3-pip -y && ln -s /usr/bin/pip3 /usr/local/bin/pip3
+                        sh ./cortx-re/scripts/third-party-rpm/install-cortx-prereq.sh
+
+                        # Install pyinstaller	
                         pip3.6 install  pyinstaller==3.5
                     '''
 
