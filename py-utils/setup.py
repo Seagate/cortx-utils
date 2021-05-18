@@ -75,7 +75,7 @@ setup(name='cortx-py-utils',
                 'cortx.utils.schema', 'cortx.utils.appliance_info',
                 'cortx.setup', 'cortx.utils.service',
 		        'cortx.utils.setup', 'cortx.utils.setup.kafka', 
-                'cortx.utils.cli'
+                'cortx.utils.cli_framework'
                 ],
       package_data={
         'cortx': ['py.typed'],

@@ -16,14 +16,14 @@
 import errno
 from cortx.utils.schema import payload
 from cortx.utils.log import Log
-from cortx.utils.cli.errors import ArgumentError
+from cortx.utils.cli_framework.errors import ArgumentError
 
 class CommonValidators:
     """
     Common Validators used for CLI
     """
     @staticmethod
-    def positive_int(value):
+    def _positive_int(value):
         try:
             if int(value) > -1:
                 return int(value)
@@ -32,7 +32,7 @@ class CommonValidators:
             raise ArgumentError(errno.EINVAL,"Value Must be Positive Integer")
 
     @staticmethod
-    def file_parser(value):
+    def _file_parser(value):
         try:
             return payload.CommonPayload(value).load()
         except ValueError as ve:

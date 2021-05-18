@@ -21,7 +21,7 @@ from copy import deepcopy
 from dict2xml import dict2xml
 from prettytable import PrettyTable
 from importlib import import_module
-from cortx.utils.cli import const
+from cortx.utils.cli_framework import const
 
 class Command:
     """CLI Command Base Class"""
@@ -75,6 +75,7 @@ class Command:
         return output_obj.dump(out, err, **self._output,
                                output_type=self._options.get("format",
                                                              "success"))
+
 
 class CommandParser:
     """
@@ -183,6 +184,7 @@ class CommandParser:
         # Check if the command has any Commands.
         elif "sub_commands" in sub_command:
             self.handle_subparsers(sub_parser, sub_command, name, False)
+
 
 class Output:
     """CLI Response Display Class"""
