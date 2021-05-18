@@ -15,28 +15,29 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import errno
 from cortx.utils import errors
 
 # common message_bus error codes
-ERR_LEADER_NOT_AVAILABLE = 0x2001
-ERR_CLIENT_NOT_FOUND = 0x2002
-ERR_INVALID_CLIENT_TYPE = 0x2003
-ERR_INVALID_BROKER_TYPE = 0x2004
+ERR_LEADER_NOT_AVAILABLE = 0x1601
+ERR_CLIENT_NOT_FOUND = 0x1602
+ERR_INVALID_CLIENT_TYPE = 0x1603
+ERR_INVALID_BROKER_TYPE = 0x1604
 
 # message_type related
-ERR_UNABLE_TO_FETCH_LOG_SIZE = 0x2051
-ERR_MESSAGE_TYPE_ALREADY_EXISTS = 0x2052
-ERR_UNKNOWN_MESSAGE_TYPE_OR_PART = 0x2053
-ERR_MAX_RETRIES_CREATE_MESSAGE_TYPE = 0x2054
-ERR_MAX_RETRIES_DELETE_MESSAGE_TYPE = 0x2055
-ERR_MAX_RETRIES_INCREASE_CONCURRENCY = 0x2056
-ERR_UNABLE_TO_CHANGE_RETENTION = 0x2057
-ERR_UNABLE_DELETE_MESSAGES = 0x2058
-ERR_UNABLE_TO_GET_MSG_COUNT = 0x2059
-ERR_UNABLE_TO_RESET_OFFSET = 0x2060
+ERR_UNABLE_TO_FETCH_LOG_SIZE = 0x1651
+ERR_MESSAGE_TYPE_ALREADY_EXISTS = 0x1651
+ERR_UNKNOWN_MESSAGE_TYPE_OR_PART = 0x1651
+ERR_MAX_RETRIES_CREATE_MESSAGE_TYPE = 0x1651
+ERR_MAX_RETRIES_DELETE_MESSAGE_TYPE = 0x1651
+ERR_MAX_RETRIES_INCREASE_CONCURRENCY = 0x1651
+ERR_UNABLE_TO_CHANGE_RETENTION = 0x1651
+ERR_UNABLE_DELETE_MESSAGES = 0x1651
+ERR_UNABLE_TO_GET_MSG_COUNT = 0x1651
+ERR_UNABLE_TO_RESET_OFFSET = 0x1651
 
-# default
-ERR_DEFAULT_ERROR_CODE = 0x2199
+# default error code to get specific error code
+ERR_DEFAULT_ERROR_CODE = 0x1699
 
 
 class MessageBusError(Exception):
@@ -45,16 +46,17 @@ class MessageBusError(Exception):
     def __init__(self, rc, message, *args):
         self._rc = rc
         if rc == ERR_DEFAULT_ERROR_CODE and args:
-            error_codes = {errors.ERR_REQUEST_TIMED_OUT: ["_TIMED_OUT"],
+            error_codes = {errno.ETIMEDOUT: ["_TIMED_OUT"],
                            ERR_MESSAGE_TYPE_ALREADY_EXISTS: ["TOPIC_ALREADY_EXISTS"],
                            errors.ERR_SERVICE_NOT_AVAILABLE: ["BROKER_NOT_AVAILABLE"],
                            ERR_LEADER_NOT_AVAILABLE: ["LEADER_NOT_AVAILABLE"],
-                           errors.ERR_MESSAGE_TOO_LARGE: ["MESSAGE_TOO_LARGE"],
+                           errno.EMSGSIZE: ["MESSAGE_TOO_LARGE"],
                            errors.ERR_UNSUPPORTED_VERSION: ["UNSUPPORTED_VERSION"],
-                           errors.ERR_NETWORK_EXCEPTION: ["NETWORK_EXCEPTION"],
+                           errno.ENETUNREACH: ["NETWORK_EXCEPTION"],
                            ERR_UNKNOWN_MESSAGE_TYPE_OR_PART: ["UNKNOWN_TOPIC_OR_PART"],
                            errors.ERR_INVALID_CONFIG: ["INVALID_CONFIG"],
-                           errors.ERR_NOENTRY: ["NOENTRY"],
+                           errno.ENOENT: ["NOENTRY"],
+                           errno.EINVAL: ["_INVALID_ARG"],
                            }
             for key, value in error_codes.items():
                 return_code = [key for val in value if val in str(args)]

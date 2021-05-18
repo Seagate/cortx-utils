@@ -24,12 +24,6 @@ ERR_UNSUPPORTED_VERSION = 0x1504
 ERR_MISSING_CONFIG_ENTRY = 0x1505
 ERR_MISSING_CONFIG_PARAMS = 0x1506
 
-# mapped from errno module
-ERR_NOENTRY = 0x0002
-ERR_REQUEST_TIMED_OUT = 0x006E
-ERR_NETWORK_EXCEPTION = 0x0065
-ERR_MESSAGE_TOO_LARGE = 0x005A
-
 
 class BaseError(Exception):
     """ Parent class for the cli error classes """

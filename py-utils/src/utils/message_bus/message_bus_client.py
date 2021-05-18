@@ -15,9 +15,9 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import errno
 from cortx.utils.message_bus import MessageBus
 from cortx.utils.message_bus.error import MessageBusError
-from cortx.utils import errors
 
 
 class MessageBusClient:
@@ -33,7 +33,7 @@ class MessageBusClient:
     def _get_conf(self, key: str):
         """ To get the client configurations """
         if key not in self._client_conf.keys():
-            raise MessageBusError(errors.ERR_NOENTRY, \
+            raise MessageBusError(errno.ENOENT, \
                 "Invalid entry %s.", key)
         return self._client_conf[key]
 
