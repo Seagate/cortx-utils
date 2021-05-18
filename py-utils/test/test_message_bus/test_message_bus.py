@@ -24,13 +24,13 @@ from cortx.utils.message_bus import MessageBus, MessageProducer, MessageConsumer
 class TestMessage(unittest.TestCase):
     """Test MessageBus related functionality."""
 
-    message_bus = MessageBus()
-
     def test_send(self):
         """Test Send Message."""
         messages = []
-        producer = MessageProducer(TestMessage.message_bus, \
-            producer_id='sspl_sensor', message_type='Alert')
+        producer = MessageProducer(
+            producer_id='sspl_sensor',
+            message_type='Alert'
+        )
 
         self.assertIsNotNone(producer, "Producer not found")
         for i in range(0, 1000):
@@ -41,9 +41,13 @@ class TestMessage(unittest.TestCase):
 
     def test_receive(self):
         """Test Receive Message."""
-        consumer = MessageConsumer(TestMessage.message_bus, \
-            consumer_id='sspl_sensors', consumer_group='sspl', \
-            message_types=['Alert'], auto_ack=False, offset='latest')
+        consumer = MessageConsumer(
+            consumer_id='sspl_sensors',
+            consumer_group='sspl',
+            message_types=['Alert'],
+            auto_ack=False,
+            offset='latest'
+        )
 
         self.assertIsNotNone(consumer, "Consumer not found")
         count = 0

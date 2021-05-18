@@ -18,23 +18,34 @@
 
 
 import unittest
-from cortx.utils.message_bus import MessageBus, MessageBusAdmin
+import requests
+import json
 
 
 class TestMessage(unittest.TestCase):
-    """ Test MessageBus related functionality """
+    """ Test MessageBus rest server functionality. """
 
-    _message_type = 'test_topic'
-    _partition = 1
+    _base_url = 'http://127.0.0.1:28300/MessageBus/message/'
+    _message_type = 'big'
+    _consumer_group = 'connn'
 
-    def test_list_message_type(self):
-        """ Test list message type API """
-        admin = MessageBusAdmin(admin_id='admin')
-        admin.register_message_type(message_types=[TestMessage._message_type], \
-            partitions=TestMessage._partition)
-        message_type_list = admin.list_message_types()
-        self.assertTrue(TestMessage._message_type in message_type_list)
+    def test_post(self):
+        """ Test send message. """
+        url = self._base_url + self._message_type
+        data = json.dumps({'messages': ['hello', 'how are you']})
+        headers = {'content-type': 'application/json'}
+        response = requests.post(url=url, data=data, headers=headers)
+        self.assertEqual(response.json()['status'], 'success')
+        self.assertEqual(response.status_code, 200)
+
+    def test_get(self):
+        """ Test receive message. """
+        response = requests.get(self._base_url + self._message_type
+                                + '?consumer_group=' + self._consumer_group)
+        self.assertEqual(response.status_code, 200)
+
 
 
 if __name__ == '__main__':
     unittest.main()
+

@@ -1,0 +1,11 @@
+[Unit]
+Description=cortx rest server
+After=network.target
+
+[Service]
+User=root
+ExecStart=/opt/seagate/cortx/utils/bin/message_bus_server
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
