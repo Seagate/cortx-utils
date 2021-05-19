@@ -22,7 +22,7 @@ class Request(object):
     def __init__(self, action, args, options=None):
         self._action = action
         self._args = args
-        self.options = options
+        self._options = options
 
     def action(self):
         return self._action
@@ -31,7 +31,7 @@ class Request(object):
         return self._args
 
     def options(self):
-        return self.options
+        return self._options
 
 
 class Response(object):
