@@ -34,7 +34,7 @@ pipeline {
         //////////////////////////////// BUILD VARS //////////////////////////////////////////////////
 
         COMPONENT_NAME = "csm-agent".trim()
-        BRANCH = "${ghprbTargetBranch != null ? ghprbTargetBranch : 'stable'}"
+        BRANCH = "${ghprbTargetBranch != null ? ghprbTargetBranch : 'main'}"
         OS_VERSION = "centos-7.8.2003"
         THIRD_PARTY_VERSION = "centos-7.8.2003-2.0.0-latest"
         VERSION = "2.0.0"
@@ -67,26 +67,26 @@ pipeline {
 				script { build_stage = env.STAGE_NAME }
                 script { manager.addHtmlBadge("&emsp;<b>Target Branch : ${BRANCH}</b>&emsp;<br />") } 
 
-                sh """
-                    set +x
-                    echo "--------------BUILD PARAMETERS -------------------"
-                    echo "CSM_URL              = ${CSM_URL}"
-                    echo "CSM_BRANCH           = ${CSM_BRANCH}"
-                    echo "CSM_PR_REFSEPEC      = ${CSM_PR_REFSEPEC}"
-                    echo "-----------------------------------------------------------"
-                """
+                dir ('cortx-re') {
+					checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: 'main']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'CloneOption', noTags: true, reference: '', shallow: true]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: 'https://github.com/Seagate/cortx-re']]]
+				}
+
+                sh label: '', script: '''
+                    #Use main branch for cortx-py-utils
+                    sed -i 's/stable/main/'  /etc/yum.repos.d/cortx.repo
+                    yum clean all && rm -rf /var/cache/yum
+
+                    # Install cortx-prereq package
+                    pip3 uninstall pip -y && yum install python3-pip -y && ln -s /usr/bin/pip3 /usr/local/bin/pip3
+                    sh ./cortx-re/scripts/third-party-rpm/install-cortx-prereq.sh
+
+                    # Install pyinstaller	
+                    pip3.6 install  pyinstaller==3.5
+                '''
                  
                 dir("csm") {
 
                     checkout([$class: 'GitSCM', branches: [[name: "${CSM_BRANCH}"]], doGenerateSubmoduleConfigurations: false,  extensions: [[$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: true, reference: '', trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: "${CSM_URL}",  name: 'origin', refspec: "${CSM_PR_REFSEPEC}"]]])
-
-                    sh label: '', script: '''
-                        sed -i 's/gpgcheck=1/gpgcheck=0/' /etc/yum.conf
-                        yum-config-manager --add http://cortx-storage.colo.seagate.com/releases/cortx/github/$BRANCH/$OS_VERSION/last_successful/
-                        yum-config-manager --add http://cortx-storage.colo.seagate.com/releases/cortx/components/github/$BRANCH/$OS_VERSION/dev/cortx-utils/last_successful/
-                        yum clean all && rm -rf /var/cache/yum
-                        pip3.6 install  pyinstaller==3.5
-                    '''
 
                     // Exclude return code check for csm_setup and csm_test
                     sh label: 'Build', returnStatus: true, script: '''
@@ -117,6 +117,11 @@ pipeline {
 
         // Release cortx deployment stack
         stage('Release') {
+            agent {
+                node {
+                    label 'docker-cp-centos-7.8.2003-node'
+                }
+            }
             steps {
 				script { build_stage = env.STAGE_NAME }
 
