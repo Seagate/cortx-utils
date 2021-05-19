@@ -55,8 +55,10 @@ class SimpleProcess(Process):
             self._err = self._cp.stderr
             self._returncode = self._cp.returncode
         except Exception as err:
-            self._err = "SubProcess Error: " + str(err)
-            self._output = ""
+            # in case of exception return whatever
+            # is there in stdout and stderr(along with Exception) as it is
+            self._err = str(self._cp.stderr) + "SubProcess Error: " + str(err)
+            self._output = self._cp.stdout
             self._returncode = -1
         return self._output, self._err, self._returncode
 
