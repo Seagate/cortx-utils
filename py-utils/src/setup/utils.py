@@ -136,7 +136,7 @@ class Utils:
                 raise SetupError(errno.EIO, "/etc/cortx/cluster.conf file \
                     creation failed, rc = %d", res_rc)
         except Exception as e:
-            raise SetupError(errno.EIO, "/etc/cortx/message_bus.conf file \
+            raise SetupError(errno.EIO, "/etc/cortx/cluster.conf file \
                 creation failed. %s", e)
         return res_rc
 
