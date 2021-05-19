@@ -40,14 +40,14 @@ class TestCliFramework(unittest.TestCase):
         self.assertTrue(self.command.name,"users")
         self.assertTrue(self.command.sub_command_name,"show")
         self.assertTrue(self.command.options.get("offset"), 10)
-    
+
     def test_output(self):
         self.command = CommandFactory.get_command(self.cli_command, self.permissions, self.directory_path)
         response = Response(output=self.cmd_response)
         op = Output(self.command, response)
         with open(self.obtained_output_file,"w") as obtained_output:
-            op.dump(out=obtained_output, err=sys.stderr,response=response, 
-                        output_type=self.command.options.get("format"), 
+            op.dump(out=obtained_output, err=sys.stderr,response=response,
+                        output_type=self.command.options.get("format"),
                         **self.command.options.get("output"))
 
         with open(self.expected_output_file) as expected_output:
