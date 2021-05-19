@@ -83,6 +83,18 @@ pipeline {
 
                     checkout([$class: 'GitSCM', branches: [[name: "${HARE_BRANCH}"]], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'CloneOption', depth: 0, noTags: false, reference: '', shallow: false, timeout: 15], [$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: true, recursiveSubmodules: true, reference: '', trackingSubmodules: false, timeout: 15]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: "${HARE_URL}",  name: 'origin', refspec: "${HARE_PR_REFSPEC}"]]])
 
+                    sh label: '', script: '''
+					yum erase python36-PyYAML -y
+                    cat <<EOF >>/etc/pip.conf
+[global]
+timeout: 60
+index-url: http://cortx-storage.colo.seagate.com/releases/cortx/third-party-deps/python-deps/python-packages-2.0.0-latest/
+trusted-host: cortx-storage.colo.seagate.com
+EOF
+					pip3 install -r https://raw.githubusercontent.com/Seagate/cortx-utils/$BRANCH/py-utils/requirements.txt
+					rm -rf /etc/pip.conf
+                    '''
+
                     sh label: 'prepare build env', script: """
                         sed '/baseurl/d' /etc/yum.repos.d/motr_current_build.repo
                         echo "baseurl=http://cortx-storage.colo.seagate.com/releases/cortx/components/github/${BRANCH}/${OS_VERSION}/dev/motr/current_build/"  >> /etc/yum.repos.d/motr_current_build.repo
