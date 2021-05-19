@@ -233,13 +233,15 @@ class Utils:
 
     @staticmethod
     def cleanup():
-        """ Cleanup message bus config and logs. """
+        """ Cleanup all the configs and logs. """
         import os
-        config_file = "/etc/cortx/message_bus.conf"
-        if os.path.exists(config_file):
-            # delete data/config stored
-            try:
-                os.remove(config_file)
-            except OSError as e:
-                raise SetupError(e.errno, "Error deleting config file %s, %s", config_file, e)
+        config_files = ['/etc/cortx/message_bus.conf', '/etc/cortx/cluster.conf']
+        for each_file in config_files:
+            if os.path.exists(each_file):
+                # delete data/config stored
+                try:
+                    os.remove(each_file)
+                except OSError as e:
+                    raise SetupError(e.errno, "Error deleting config file %s, \
+                        %s", each_file, e)
         return 0
