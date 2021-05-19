@@ -24,6 +24,9 @@ class CommonValidators:
     """
     @staticmethod
     def _positive_int(value):
+        """
+        Checks for positive int else raise Clierror
+        """
         try:
             if int(value) > -1:
                 return int(value)

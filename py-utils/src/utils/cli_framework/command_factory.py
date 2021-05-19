@@ -42,7 +42,6 @@ class CommandFactory(object):
         Parse the command line as per the syntax and retuns
         returns command representing the command line.
         """
-        #TODO: Validate component_cmd_dir exists else raise error
         if len(argv) <= 1:
             argv.append("-h")
         default_commands = os.listdir(const.COMMAND_DIRECTORY)
