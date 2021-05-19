@@ -29,7 +29,7 @@
             exit 1
         fi
     done
-    if [[ ! $(yum list installed | grep "cortx") ]]; then
+    if [[ ! $(yum list installed | grep "cortx" | grep -v "compat-lua-libs") ]]; then
         echo "OK - System in clean state no cortx component installed";
     else
         echo "NOT_OK - Cortx component already installed";
