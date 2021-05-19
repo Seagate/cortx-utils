@@ -1,0 +1,36 @@
+pipeline {
+    agent {
+        // Defining the Jenkins node where to run this Job
+        node {
+            label 'pun-artifact-sync-node-ssc-vm-3421'
+        }
+    }
+    parameters {
+        	string(
+                defaultValue: '',
+                name: 'build_no',
+                description: 'Build number to sync pune server',
+                trim: true
+            )
+			string(
+                defaultValue: 'centos-7.8.2003',
+                name: 'os_version',
+                description: 'OS version of the build',
+                trim: true
+            )
+			string(
+                defaultValue: 'cortx-1.0',
+                name: 'branch_name',
+                description: 'Branch name of the build',
+                trim: true
+            )
+    }
+    stages {
+		stage('Syncing the folder'){
+		    steps {
+		        sh "/mnt/source_code/cortx-re/scripts/env_setup/sync_build.sh -s /mnt/cortx/cortx_builds/${os_version}/${build_no} -d /mnt/pune/cortx_builds/${os_version}"
+		        sh "/mnt/source_code/cortx-re/scripts/env_setup/sync_build.sh -s /mnt/cortx/cortx/github/${branch_name}/${os_version}/${build_no} -d /mnt/pune/cortx/github/${branch_name}/${os_version}"
+		    }
+		}
+	}
+}
