@@ -16,8 +16,6 @@
 
 import errno
 import json
-import time
-
 from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.validator.v_service import ServiceV
@@ -106,6 +104,43 @@ class Utils:
         return kafka_server_list, port_list
 
     @staticmethod
+    def _get_server_info(conf_url: str, machine_id: str) -> dict:
+        """ Reads the ConfStore and derives keys related to Event Message """
+
+        from cortx.utils.conf_store import Conf
+        Conf.load('server_info', conf_url)
+
+        key_list = [f'server_node>{machine_id}']
+        ConfKeysV().validate('exists', 'server_info', key_list)
+        server_info = Conf.get('server_info', f'server_node>{machine_id}')
+        return server_info
+
+    @staticmethod
+    def _create_cluster_config(server_info: dict):
+        """ Create the config file required for Event Message """
+
+        from cortx.utils.conf_store import Conf
+        with open(r'/etc/cortx/cluster.conf.new', 'w+') as file:
+            json.dump({}, file, indent=2)
+        Conf.load('cluster', 'json:///etc/cortx/cluster.conf.new')
+        for key, value in server_info.items():
+            Conf.set('cluster', f'server_node>{key}', value)
+        Conf.save('cluster')
+        # copy this conf file as cluster.conf
+        cmd = "/bin/mv /etc/cortx/cluster.conf.new" + \
+              " /etc/cortx/cluster.conf"
+        try:
+            cmd_proc = SimpleProcess(cmd)
+            res_op, res_err, res_rc = cmd_proc.run()
+            if res_rc != 0:
+                raise SetupError(errno.EIO, "/etc/cortx/cluster.conf file \
+                    creation failed, rc = %d", res_rc)
+        except Exception as e:
+            raise SetupError(errno.EIO, "/etc/cortx/message_bus.conf file \
+                creation failed. %s", e)
+        return res_rc
+
+    @staticmethod
     def validate(phase: str):
         """ Perform validtions """
 
@@ -135,6 +170,14 @@ class Utils:
     @staticmethod
     def init():
         """ Perform initialization """
+
+        # Create message_type for Event Message
+        from cortx.utils.message_bus import MessageBusAdmin
+        try:
+            admin = MessageBusAdmin(admin_id='create_message_type')
+            admin.register_message_type(message_types=['IEM'], partitions=1)
+        except MessageBusError as e:
+            raise SetupError(e.rc, "Unable to create message_type. %s", e)
         return 0
 
     @staticmethod
@@ -143,9 +186,17 @@ class Utils:
 
         # Message Bus Config
         kafka_server_list, port_list = Utils._get_kafka_server_list(conf_url)
-        if kafka_server_list == None:
+        if kafka_server_list is None:
             raise SetupError(errno.EINVAL, "No Kafka setup info provided")
-        return Utils._create_msg_bus_config(kafka_server_list, port_list)
+        Utils._create_msg_bus_config(kafka_server_list, port_list)
+
+        # Cluster config
+        from cortx.utils.conf_store import Conf
+        server_info = Utils._get_server_info(conf_url, Conf.machine_id)
+        if server_info is None:
+            raise SetupError(errno.EINVAL, "No server info provided")
+        Utils._create_cluster_config(server_info)
+        return 0
 
     @staticmethod
     def test():
