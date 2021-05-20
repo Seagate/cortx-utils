@@ -16,7 +16,7 @@
 from importlib import import_module
 import aiohttp
 
-class CliClient:
+class Client:
     """ Base class for invoking business logic functionality """
 
     def __init__(self, url):
@@ -28,7 +28,7 @@ class CliClient:
     def process_request(self, session, cmd, action, options, args, method):
         pass
 
-class DirectClient(CliClient):
+class DirectClient(Client):
     """Class Handles Direct Calls for CLI"""
     def __init__(self):
         super(DirectClient, self).__init__(None)
@@ -45,7 +45,7 @@ class DirectClient(CliClient):
         return await getattr(target, command.comm.get("method"))(command)
 
 
-class RestClient(CliClient):
+class RestClient(Client):
     """ Class handles REST call for cli"""
     # TODO: Implement RestClient as per the use case.
     def __init__(self):
