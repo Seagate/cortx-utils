@@ -1,4 +1,5 @@
 # CORTX-Py-Utils: CORTX Python common library.
+# CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -73,8 +74,7 @@ class Command:
         """Process Response as per display method in format else normal display"""
         output_obj = Output(self, response)
         return output_obj.dump(out, err, **self._output,
-                               output_type=self._options.get("format",
-                                                             "success"))
+                        output_type=self._options.get("format","success"))
 
 
 class CommandParser:
@@ -112,7 +112,7 @@ class CommandParser:
         """
         if add_parser_flag:
              sub_parser = sub_parser.add_parser(data["name"],
-                                           help=data["description"])
+                        help=data["description"])
         parser = sub_parser.add_subparsers()
         for each_data in data["sub_commands"]:
             self.add_args(each_data, parser, name)
