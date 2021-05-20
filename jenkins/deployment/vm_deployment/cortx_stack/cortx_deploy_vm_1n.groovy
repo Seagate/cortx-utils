@@ -277,9 +277,9 @@ pipeline {
                 }
                 
                 if ( "FAILURE".equals(currentBuild.currentResult) && params.AUTOMATED && env.component_email ) {
-                    toEmail = "${env.component_email}, priyank.p.dalal@seagate.com, gowthaman.chinnathambi@seagate.com"
+                    toEmail = "${env.component_email}, priyank.p.dalal@seagate.com, gowthaman.chinnathambi@seagate.com, gaurav.chaudhari@seagate.com"
                 } else {
-                    toEmail = "gowthaman.chinnathambi@seagate.com"
+                    toEmail = "gowthaman.chinnathambi@seagate.com, gaurav.chaudhari@seagate.com"
                 }
                 
                 emailext (
