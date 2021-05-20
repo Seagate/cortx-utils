@@ -50,6 +50,18 @@ pipeline {
 		stage('Install Dependencies') {
 			steps {
 				script { build_stage = env.STAGE_NAME }
+
+				sh label: 'Install cortx-prereq', script: '''
+					yum erase python36-PyYAML -y
+                    cat <<EOF >>/etc/pip.conf
+[global]
+timeout: 60
+index-url: http://cortx-storage.colo.seagate.com/releases/cortx/third-party-deps/python-deps/python-packages-2.0.0-latest/
+trusted-host: cortx-storage.colo.seagate.com
+EOF
+					pip3 install -r https://raw.githubusercontent.com/Seagate/cortx-utils/main/py-utils/requirements.txt
+					rm -rf /etc/pip.conf
+                '''
 				sh label: 'Configure yum repositories', script: '''
 					set +x
 					yum-config-manager --disable cortx-C7.7.1908 motr_current_build
@@ -57,7 +69,6 @@ pipeline {
 					yum-config-manager --save --setopt=cortx-storage*.gpgcheck=1 cortx-storage* && yum-config-manager --save --setopt=cortx-storage*.gpgcheck=0 cortx-storage*
 					yum clean all;rm -rf /var/cache/yum
 				'''	
-
 				sh label: 'Install packages', script: '''	
 					if [ "${HARE_BRANCH}" == "Cortx-v1.0.0_Beta" ]; then
 						yum install eos-core{,-devel} -y
