@@ -86,6 +86,108 @@ class YamlKvStore(KvStore):
             yaml.dump(data.get_data(), f, default_flow_style=False)
 
 
+class DirKvStore(KvStore):
+    """ Organizes Key Values in a dir structure """
+    name = "dir"
+
+    def __init__(self, store_loc, store_path, delim='>'):
+        super().__init__(store_loc, store_path, delim)
+        if not os.path.exists(self._store_path):
+            os.mkdir(self._store_path)
+
+    def load(self):
+        """ Return Empty Set. Cant read dir structure. Not supported """
+        return KvPayload()
+
+    def dump(self, payload: dict):
+        """ Stores payload onto the store """
+        keys = payload.get_keys()
+        vals = []
+        for key in keys:
+            vals.append(payload[key])
+        self.set(keys, vals)
+
+    def get_keys(self, key_prefix: str=None):
+        """ Returns the list of keys starting with given prefix """
+        key_dir, key_file = self._get_key_path(key_prefix)
+        if os.path.isfile(key_file): 
+            return [key_file.split("/").join(self._delim)]
+        keys = []
+        if key_prefix is None:
+            key_prefix = ""
+        else:
+            key_prefix = "%s%s" %(key_prefix, self._delim)
+        for root, dirs, file_names in os.walk(key_file): 
+            path = ""
+            if root != key_file:
+                path = root.replace(key_file+'/', '') + self._delim
+            for file_name in file_names:
+                key = f'{key_prefix}{path}{file_name}'
+                keys.append(key)
+        return keys
+
+    def get_data(self, format_type: str = None) -> dict:
+        keys = self.get_keys()
+        kv = {}
+        for key in keys: kv[key] = self.get(key)
+        return kv
+
+    def set_data(self, payload: KvPayload):
+        self.dump(payload)
+
+    def _get_key_path(self, key):
+        """ breaks key into dir path e.g. a>b>c to /root/a/b/c """
+        if key is None:
+            return self._store_path, self._store_path
+        
+        key_list = key.split(self._delim)
+        key_dir = os.path.join(self._store_path, *key_list[0:-1])
+        key_file = os.path.join(key_dir, key_list[-1]) 
+        return key_dir, key_file
+
+    def set(self, keys: list, vals: list):
+        """ stores given keys and values into the store """
+        if len(keys) != len(vals):
+            raise KvError(errno.EINVAL, "Mismatched keys & values %s:%s",
+                          keys, vals)
+
+        for key, val in zip(keys, vals):
+            key_dir, key_file = self._get_key_path(key)
+            try:
+                os.makedirs(key_dir, exist_ok = True)
+            except exception as e:
+                raise KvError(errno.EACCESS, "Cant set key %s. %s", key, e)
+                
+            if os.path.exists(key_file) and not os.path.isfile(key_file):
+                raise KvError(errno.EINVAL, "Invalid Key %s" %key)
+            try:
+                with open(key_file, 'w') as f:
+                    f.write(val)
+            except:
+                pass
+
+    def get(self, keys: list):
+        """ Obtains values corresponding to the keys from the store """
+        vals = []
+        for key in keys:
+            key_dir, key_file = self._get_key_path(key)
+            try:
+                with open(key_file, 'r') as f:
+                    vals.append(f.read())
+            except:
+                pass
+        return vals
+
+    def delete(self, keys: list):
+        """ Deletes given set of keys from the store """
+        for key in keys:
+            key_dir, key_file = self._get_key_path(key)
+            try:
+                os.remove(key_file)
+            except:
+                pass
+
+
 class TomlKvStore(KvStore):
     """ Represents a TOML File Store """
 

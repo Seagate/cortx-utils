@@ -20,6 +20,7 @@ import inspect
 from urllib.parse import urlparse
 
 from cortx.utils.kv_store.error import KvError
+from cortx.utils.kv_store.kv_payload import KvPayload
 
 
 class KvStore:
@@ -48,9 +49,21 @@ class KvStore:
     def delim(self):
         return self._delim
 
-    def get_data(self, format_type: str = None) -> str:
+    def get_keys(self, key_prefix: str):
+        """ returns list of keys starting with given prefix """
+        payload = self.load()
+        return filter(lambda x: x.startswith(key_prefix), payload.get_keys())
+
+    def get_data(self, format_type: str = None) -> dict:
         payload = self.load()
         return payload.get_data(format_type)
+
+    def set_data(self, payload: KvPayload):
+        """ Updates input payload and writes into backend """
+        p_payload = self.load()
+        for key in payload.get_keys():
+            p_payload.set(key, payload.get[key])
+        self.dump(p_payload)
 
     def get(self, keys: list) -> list:
         """ Obtains values of keys. Return list of values. """
