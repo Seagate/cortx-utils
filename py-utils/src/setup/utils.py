@@ -41,7 +41,7 @@ class Utils:
     """ Represents Utils and Performs setup related actions """
 
     @staticmethod
-    def _create_msg_bus_config(kafka_server_list, port_list):
+    def _create_msg_bus_config(kafka_server_list: list, port_list: list):
         """ Create the config file required for message bus """
 
         with open(r'/etc/cortx/message_bus.conf.sample', 'w+') as file:
@@ -61,7 +61,7 @@ class Utils:
                 /etc/cortx/message_bus.conf %s", e)
 
     @staticmethod
-    def _get_kafka_server_list(conf_url):
+    def _get_kafka_server_list(conf_url: str):
         """ Reads the ConfStore and derives keys related to message bus """
 
         Conf.load('cluster_config', conf_url)
@@ -166,7 +166,7 @@ class Utils:
         return 0
 
     @staticmethod
-    def config(conf_url):
+    def config(conf_url: str):
         """ Performs configurations """
 
         # Message Bus Config
