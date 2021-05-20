@@ -63,7 +63,7 @@ class Terminal:
         value = value or getpass(prompt="Current Password: ")
         if not value:
             raise CliError(errno.EINVAL,
-                                f"Current {Terminal.EMPTY_PASS_FIELD}")
+                            "Could not obtain current password")
         return value
 
     @staticmethod
@@ -82,7 +82,7 @@ class Terminal:
             confirm_password = getpass(prompt="Confirm Password: ")
             if not confirm_password:
                 raise CliError(errno.EINVAL,
-                                    f"Confirm {Terminal.EMPTY_PASS_FIELD}")
+                                    "Could not obtain confirm password")
             if not confirm_password == value:
                 raise CliError(errno.EINVAL, "Password do not match.")
         return value
