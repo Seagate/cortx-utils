@@ -17,6 +17,19 @@ pipeline {
     parameters {  
 	    string(name: 'S3_URL', defaultValue: 'https://github.com/Seagate/cortx-s3server', description: 'Repo for S3Server')
         string(name: 'S3_BRANCH', defaultValue: 'main', description: 'Branch for S3Server')
+        choice(name: 'MINI_PROV_END_STEP', choices: ["Cleanup", "Reset", "Test", "Start", "Init", "Config", "Prepare", "Post_Install", "Pre_Requisites" ], description: '''<pre>
+
+Cleanup         -> <a href="https://github.com/Seagate/cortx-s3server/wiki/S3server-provisioning-on-single-node-VM-cluster:-Manual#s3cleanup">S3server-provisioning-on-single-node-VM-cluster:-Manual#s3cleanup</a>
+Reset           -> <a href="https://github.com/Seagate/cortx-s3server/wiki/S3server-provisioning-on-single-node-VM-cluster:-Manual#s3reset">S3server-provisioning-on-single-node-VM-cluster:-Manual#s3reset</a>
+Test            -> <a href="https://github.com/Seagate/cortx-s3server/wiki/S3server-provisioning-on-single-node-VM-cluster:-Manual#s3test">S3server-provisioning-on-single-node-VM-cluster:-Manual#s3test</a>
+Start           -> <a href="https://github.com/Seagate/cortx-s3server/wiki/S3server-provisioning-on-single-node-VM-cluster:-Manual#start-s3server-and-motr-for-io">S3server-provisioning-on-single-node-VM-cluster:-Manual#start-s3server-and-motr-for-io</a>
+Init            -> <a href="https://github.com/Seagate/cortx-s3server/wiki/S3server-provisioning-on-single-node-VM-cluster:-Manual#s3init">S3server-provisioning-on-single-node-VM-cluster:-Manual#s3init</a>
+Config          -> <a href="https://github.com/Seagate/cortx-s3server/wiki/S3server-provisioning-on-single-node-VM-cluster:-Manual#s3config">S3server-provisioning-on-single-node-VM-cluster:-Manual#s3config</a>
+Prepare         -> <a href="https://github.com/Seagate/cortx-s3server/wiki/S3server-provisioning-on-single-node-VM-cluster:-Manual#s3prepare">S3server-provisioning-on-single-node-VM-cluster:-Manual#s3prepare</a>
+Post_Install    -> <a href="https://github.com/Seagate/cortx-s3server/wiki/S3server-provisioning-on-single-node-VM-cluster:-Manual#s3post_install">S3server-provisioning-on-single-node-VM-cluster:-Manual#s3post_install</a>
+Pre_Requisites  -> <a href="https://github.com/Seagate/cortx-s3server/wiki/S3server-provisioning-on-single-node-VM-cluster:-Manual#pre-requisites">S3server-provisioning-on-single-node-VM-cluster:-Manual#pre-requisites</a>
+
+</pre>''')
         choice(name: 'DEBUG', choices: ["no", "yes" ], description: '''<pre>
 NOTE : Only applicable when 'HOST' parameter is provided
 
@@ -24,8 +37,6 @@ no -> Cleanup the vm on post deployment
 yes -> Preserve host for troublshooting [ WARNING ! Automated Deployment May be queued/blocked if more number of vm used for debuging ]  
 </pre>''')
         string(name: 'HOST', defaultValue: '-', description: '''<pre>
-When Host is provided the job will run till s3init step  - https://github.com/Seagate/cortx-s3server/wiki/S3server-provisioning-on-single-node-VM-cluster:-Manual#s3init
-
 FQDN of ssc-vm
 
 Recommended VM specification:
@@ -208,8 +219,7 @@ Recommended VM specification:
         }
 
         // Deploy s3 mini provisioner 
-        stage('Deploy') {
-            when { expression { env.STAGE_DEPLOY == "yes" } }
+        stage('Deploy =>') {
             agent {
                 node {
                     // Run deployment on mini_provisioner nodes (vm deployment nodes)
@@ -224,70 +234,176 @@ Recommended VM specification:
                 NODE1_HOST = "${HOST == '-' ? NODE1_HOST : HOST }"
                 NODE_PASS = "${HOST_PASS == '-' ? NODE_DEFAULT_SSH_CRED_PSW : HOST_PASS}"
             }
-            steps {
-                script { build_stage = env.STAGE_NAME }
-                script {
+            stages {
+                stage ('Prerequisite') {
+                    steps {
+                        script { build_stage = env.STAGE_NAME }
+                        script {
+                            
+                            // Add badget to jenkins build
+                            manager.addHtmlBadge("&emsp;<b>Build :</b> <a href=\"${CORTX_BUILD}\"><b>${build_id}</b></a> <br /> &emsp;<b>Deployment Host :</b><a href='${JENKINS_URL}/computer/${env.NODE_NAME}'> ${NODE1_HOST}</a>&emsp;")
 
-                    // Cleanup Workspace
-                    cleanWs()
+                            sh """
+                                set +x
+                                echo "--------------HW DEPLOYMENT PARAMETERS -------------------"
+                                echo "NODE1             = ${NODE1_HOST}"
+                                echo "CORTX_BUILD       = ${CORTX_BUILD}"
+                                echo "-----------------------------------------------------------"
+                            """
 
-                    if ( "${HOST}" == "-" ) {
-                        markNodeforCleanup()
-                    }
-
-                    manager.addHtmlBadge("&emsp;<b>Deployment Host :</b><a href='${JENKINS_URL}/computer/${env.NODE_NAME}'> ${NODE1_HOST}</a>&emsp;")
-
-                    // Run Deployment
-                    catchError {
-                        
-                        dir('cortx-re') {
-                            checkout([$class: 'GitSCM', branches: [[name: '*/main']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'CloneOption', depth: 1, honorRefspec: true, noTags: true, reference: '', shallow: true], [$class: 'AuthorInChangelog']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: 'https://github.com/Seagate/cortx-re']]])
-                        }
-
-                        if ( "${HOST}" == "-" ) {
-                            runAnsible("00_PREP_ENV, 01_PREREQ, 02_MINI_PROV, 03_START_S3SERVER, 04_VALIDATE")
-
-                        } else {
-                            runAnsible("00_PREP_ENV, 01_PREREQ, 02_MINI_PROV")
-                        }
-                        
-                    }
-
-                    // Collect logs from test node
-                    catchError {
-
-                            // Download deployment log files from deployment node
-                            try {
-                                sh label: 'download_log_files', returnStdout: true, script: """ 
-                                    mkdir -p artifacts
-                                    sshpass -p '${NODE_PASS}' scp -r -o StrictHostKeyChecking=no ${NODE_USER}@${NODE1_HOST}:/root/*.log artifacts/ || true
-                                    sshpass -p '${NODE_PASS}' scp -r -o StrictHostKeyChecking=no ${NODE_USER}@${NODE1_HOST}:/etc/haproxy/haproxy.cfg artifacts/ || true
-                                    sshpass -p '${NODE_PASS}' scp -r -o StrictHostKeyChecking=no ${NODE_USER}@${NODE1_HOST}:/opt/seagate/cortx/s3/conf/*1-node artifacts/ || true
-                                    sshpass -p '${NODE_PASS}' scp -r -o StrictHostKeyChecking=no ${NODE_USER}@${NODE1_HOST}:/opt/seagate/cortx/s3/s3backgrounddelete/config.yaml artifacts/s3backgrounddelete_config.yaml || true
-                                    sshpass -p '${NODE_PASS}' scp -r -o StrictHostKeyChecking=no ${NODE_USER}@${NODE1_HOST}:/tmp/cortx-config-new artifacts/ || true
-                                    sshpass -p '${NODE_PASS}' scp -r -o StrictHostKeyChecking=no ${NODE_USER}@${NODE1_HOST}:/etc/hosts artifacts/ || true
-                                    sshpass -p '${NODE_PASS}' scp -r -o StrictHostKeyChecking=no ${NODE_USER}@${NODE1_HOST}:/opt/seagate/cortx/s3/mini-prov/*.json artifacts/ || true
-                                """
-                            } catch (err) {
-                                echo err.getMessage()
+                            // Clone cortx-re repo
+                            dir('cortx-re') {
+                                checkout([$class: 'GitSCM', branches: [[name: '*/main']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: 'https://github.com/Seagate/cortx-re']]])                
                             }
-
-                            archiveArtifacts artifacts: "artifacts/*", onlyIfSuccessful: false, allowEmptyArchive: true 
+                            
+                            if ( "${HOST}" == "-" ) {
+                                markNodeforCleanup()
+                            }
+                        }
                     }
+                }
 
-                    if ( "${HOST}" == "-" ) {
-                        if ( "${DEBUG}" == "yes" ) {  
-                            markNodeOffline("S3 Debug Mode Enabled on This Host  - ${BUILD_URL}")
-                        } else {
-                            build job: 'Cortx-Automation/Deployment/VM-Cleanup', wait: false, parameters: [string(name: 'NODE_LABEL', value: "${env.NODE_NAME}")]                    
+                stage('00. Prepare Environment') {
+                    steps {
+                        script { build_stage = env.STAGE_NAME }
+                        script {
+                            
+                            runAnsible("00_PREP_ENV")
+                        }
+                    }
+                }
+
+                stage('01. Pre_Requisites') {
+                    when { expression { params.MINI_PROV_END_STEP ==~ /Pre_Requisites|Post_Install|Prepare|Config|Init|Start|Test|Reset|Cleanup/ } }
+                    steps {
+                        script { build_stage = env.STAGE_NAME }
+                        script {
+                            
+                            runAnsible("01_PREREQ")
+
+                        }
+                    } 
+                }
+
+                stage('02.1 : Post_Install') {
+                    when { expression { params.MINI_PROV_END_STEP ==~ /Post_Install|Prepare|Config|Init|Start|Test|Reset|Cleanup/ } }
+                    steps {
+                        script { build_stage = env.STAGE_NAME }
+                        script {
+                            
+                            runAnsible("02_MINI_PROV_POST_INSTALL")
+                        }
+                    } 
+                }
+
+                stage('02.2 : Prepare') {
+                    when { expression { params.MINI_PROV_END_STEP ==~ /Prepare|Config|Init|Start|Test|Reset|Cleanup/ } }
+                    steps {
+                        script { build_stage = env.STAGE_NAME }
+                        script {
+                            
+                            runAnsible("02_MINI_PROV_PREPARE")
+
+                        }
+                    } 
+                }
+
+                stage('02.3 : Config') {
+                    when { expression { params.MINI_PROV_END_STEP ==~ /Config|Init|Start|Test|Reset|Cleanup/ } }
+                    steps {
+                        script { build_stage = env.STAGE_NAME }
+                        script {
+                            
+                            runAnsible("02_MINI_PROV_CONFIG")
+
+                        }
+                    } 
+                }
+
+                stage('02.4 : Init') {
+                    when { expression { params.MINI_PROV_END_STEP ==~ /Init|Start|Test|Reset|Cleanup/ } }
+                    steps {
+                        script { build_stage = env.STAGE_NAME }
+                        script {
+                            
+                            runAnsible("02_MINI_PROV_INIT")
+
+                        }
+                    } 
+                }
+
+                stage('03 : Start') {
+                    when { expression { params.MINI_PROV_END_STEP ==~ /Start|Test|Reset|Cleanup/ } }
+                    steps {
+                        script { build_stage = env.STAGE_NAME }
+                        script {
+                            
+                            runAnsible("03_START_S3SERVER")
+
+                        }
+                    } 
+                }
+
+                stage('04 : Test') {
+                    when { expression { params.MINI_PROV_END_STEP ==~ /Test|Reset|Cleanup/ } }
+                    steps {
+                        script { build_stage = env.STAGE_NAME }
+                        script {
+
+                            runAnsible("04_VALIDATE")
+
+                        }
+                    } 
+                }
+            }
+            post { 
+                always {
+                    script {
+
+                        runAnsible("SUPPORT_BUNDLE")
+
+                        // Download deployment log files from deployment node
+                        try {
+                            sh label: 'download_log_files', returnStdout: true, script: """ 
+                                mkdir -p artifacts
+                                sshpass -p '${NODE_PASS}' scp -r -o StrictHostKeyChecking=no ${NODE_USER}@${NODE1_HOST}:/root/*.log artifacts/ || true
+                                sshpass -p '${NODE_PASS}' scp -r -o StrictHostKeyChecking=no ${NODE_USER}@${NODE1_HOST}:/root/support_bundle artifacts/ || true
+                                sshpass -p '${NODE_PASS}' scp -r -o StrictHostKeyChecking=no ${NODE_USER}@${NODE1_HOST}:/etc/haproxy/haproxy.cfg artifacts/ || true
+                                sshpass -p '${NODE_PASS}' scp -r -o StrictHostKeyChecking=no ${NODE_USER}@${NODE1_HOST}:/opt/seagate/cortx/s3/conf/*1-node artifacts/ || true
+                                sshpass -p '${NODE_PASS}' scp -r -o StrictHostKeyChecking=no ${NODE_USER}@${NODE1_HOST}:/opt/seagate/cortx/s3/s3backgrounddelete/config.yaml artifacts/s3backgrounddelete_config.yaml || true
+                                sshpass -p '${NODE_PASS}' scp -r -o StrictHostKeyChecking=no ${NODE_USER}@${NODE1_HOST}:/tmp/cortx-config-new artifacts/ || true
+                                sshpass -p '${NODE_PASS}' scp -r -o StrictHostKeyChecking=no ${NODE_USER}@${NODE1_HOST}:/etc/hosts artifacts/ || true
+                                sshpass -p '${NODE_PASS}' scp -r -o StrictHostKeyChecking=no ${NODE_USER}@${NODE1_HOST}:/opt/seagate/cortx/s3/mini-prov/*.json artifacts/ || true
+                            """
+                        } catch (err) {
+                            echo err.getMessage()
                         }
 
-                        // Create Summary
-                        addSummary()
+                        archiveArtifacts artifacts: "artifacts/**/*.*", onlyIfSuccessful: false, allowEmptyArchive: true                           
                     }
-                    
-                    // Cleanup Workspace
-                    cleanWs()
+                }
+                cleanup {
+                    script {
+
+                        if ( params.MINI_PROV_END_STEP == "Reset" ||  params.MINI_PROV_END_STEP == "Cleanup") {
+                            runAnsible("05_MINI_PROV_RESET")
+                        } 
+
+                        if ( params.MINI_PROV_END_STEP == "Cleanup" ) {
+                            runAnsible("05_MINI_PROV_CLEANUP")
+                        } 
+                        
+                        if ( "${HOST}" == "-" ) {
+
+                            if ( "${DEBUG}" == "yes" ) {  
+                                markNodeOffline("S3 Debug Mode Enabled on This Host  - ${BUILD_URL}")
+                            } else {
+                                build job: 'Cortx-Automation/Deployment/VM-Cleanup', wait: false, parameters: [string(name: 'NODE_LABEL', value: "${env.NODE_NAME}")]                    
+                            }
+                        } 
+
+                    } 
+
                 }
             }
         }
@@ -310,7 +426,7 @@ Recommended VM specification:
                 }
                 env.build_stage = "${build_stage}"
                 
-                def mailRecipients = "nilesh.govande@seagate.com, basavaraj.kirunge@seagate.com, rajesh.nambiar@seagate.com, ajinkya.dhumal@seagate.com, amit.kumar@seagate.com"
+                def mailRecipients = "nilesh.govande@seagate.com, basavaraj.kirunge@seagate.com, rajesh.nambiar@seagate.com, amit.kumar@seagate.com"
                 emailext body: '''${SCRIPT, template="mini_prov-email.template"}''',
                 mimeType: 'text/html',
                 recipientProviders: [requestor()], 

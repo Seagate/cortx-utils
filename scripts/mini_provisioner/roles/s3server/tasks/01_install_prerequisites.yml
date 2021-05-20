@@ -62,7 +62,12 @@
         s/TMPL_MACHINE_ID/{{ TMPL_MACHINE_ID }}/g;" /opt/seagate/cortx/s3/conf/s3.init.tmpl.1-node
 
     sed -i "s/TMPL_SGIAM_SECRET_KEY/{{ TMPL_SGIAM_SECRET_KEY }}/g; \
-          s/TMPL_SGIAM_PLAINTEXT_PASSWORD/{{ TEST_DATA_OPEN_LDAP_PASS_SGIAM }}/g;" /opt/seagate/cortx/s3/conf/s3.test.tmpl.1-node
+        s/TMPL_SGIAM_PLAINTEXT_PASSWORD/{{ TEST_DATA_OPEN_LDAP_PASS_SGIAM }}/g;" /opt/seagate/cortx/s3/conf/s3.test.tmpl.1-node
+
+    sed -i "s/TMPL_SGIAM_SECRET_KEY/{{ TMPL_SGIAM_SECRET_KEY }}/g; \
+        s/TMPL_ROOT_SECRET_KEY/{{ TMPL_ROOT_SECRET_KEY }}/g;" /opt/seagate/cortx/s3/conf/s3.reset.tmpl.1-node
+
+    sed -i "s/TMPL_SGIAM_SECRET_KEY/{{ TMPL_SGIAM_SECRET_KEY }}/g;" /opt/seagate/cortx/s3/conf/s3.cleanup.tmpl.1-node
 
 - name: "[Pre-Requisites] : Update host entry" 
   shell:  |

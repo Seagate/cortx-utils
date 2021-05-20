@@ -6,6 +6,7 @@
     /opt/seagate/cortx/s3/bin/s3_setup post_install --config "yaml:///opt/seagate/cortx/s3/conf/s3.post_install.tmpl.1-node"
   register: s3_mini_post_install
   failed_when: '"post_install successful" not in s3_mini_post_install.stdout'
+  tags: ['02_MINI_PROV_POST_INSTALL']
 
 - name: "[S3server Mini Provisioning] : S3:Prepare" 
   shell: |
@@ -13,9 +14,11 @@
     /opt/seagate/cortx/s3/bin/s3_setup prepare --config "yaml:///opt/seagate/cortx/s3/conf/s3.prepare.tmpl.1-node"
   register: s3_mini_prepare
   failed_when: '"prepare successful" not in s3_mini_prepare.stdout'
+  tags: ['02_MINI_PROV_PREPARE']
 
 - name: "[S3server Mini Provisioning] : S3:Config - Start Services" 
   script: files/start_service.sh haproxy slapd rsyslog sshd
+  tags: ['02_MINI_PROV_CONFIG']
 
 - name: "[S3server Mini Provisioning] : S3:Config" 
   shell: |
@@ -23,6 +26,7 @@
     /opt/seagate/cortx/s3/bin/s3_setup config --config "yaml:///opt/seagate/cortx/s3/conf/s3.config.tmpl.1-node"
   register: s3_mini_config
   failed_when: '"config successful" not in s3_mini_config.stdout'
+  tags: ['02_MINI_PROV_CONFIG']
 
 - name: "[S3server Mini Provisioning] : S3:Init" 
   shell: |
@@ -30,3 +34,4 @@
     /opt/seagate/cortx/s3/bin/s3_setup init --config "yaml:///opt/seagate/cortx/s3/conf/s3.init.tmpl.1-node"
   register: s3_mini_init
   failed_when: '"init successful" not in s3_mini_init.stdout'
+  tags: ['02_MINI_PROV_INIT']
