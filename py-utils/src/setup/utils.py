@@ -50,7 +50,7 @@ class Utils:
         Conf.set('index', 'message_broker>type', 'kafka')
         for i in range(len(kafka_server_list)):
             Conf.set('index', f'message_broker>cluster[{i}]', \
-                     {'server': kafka_server_list[i], 'port': port_list[i]})
+                {'server': kafka_server_list[i], 'port': port_list[i]})
         Conf.save('index')
         # copy this conf file as message_bus.conf
         try:
@@ -70,13 +70,12 @@ class Utils:
                     'cortx>software>kafka>servers']
         ConfKeysV().validate('exists', 'cluster_config', key_list)
 
-        msg_bus_type = Conf.get('cluster_config', \
-                                'cortx>software>common>message_bus_type')
+        msg_bus_type = Conf.get('cluster_config', key_list[0])
         if msg_bus_type != 'kafka':
             raise SetupError(errno.EINVAL, "Message Bus do not support type \
                 %s", msg_bus_type)
         # Read the required keys
-        all_servers = Conf.get('cluster_config', 'cortx>software>kafka>servers')
+        all_servers = Conf.get('cluster_config', key_list[1])
         no_servers = len(all_servers)
         kafka_server_list = []
         port_list = []
@@ -91,7 +90,7 @@ class Utils:
                 kafka_server_list.append(all_servers[i][:rc])
         if len(kafka_server_list) == 0:
             raise SetupError(errno.EINVAL, "No valid Kafka server info \
-                provided for config key cortx>software>kafka>servers")
+                provided for config key: %s", key_list[1])
         return kafka_server_list, port_list
 
     @staticmethod
@@ -102,7 +101,7 @@ class Utils:
 
         key_list = [f'server_node>{machine_id}']
         ConfKeysV().validate('exists', 'server_info', key_list)
-        server_info = Conf.get('server_info', f'server_node>{machine_id}')
+        server_info = Conf.get('server_info', key_list[0])
         return server_info
 
     @staticmethod
@@ -135,19 +134,19 @@ class Utils:
         """ Performs post install operations """
 
         # check whether zookeeper and kafka are running
-        ServiceV().validate('isrunning',
-                            ['kafka-zookeeper.service', 'kafka.service'])
+        ServiceV().validate('isrunning', ['kafka-zookeeper.service', \
+            'kafka.service'])
 
         # Check python packages and install if something is missing
         cmd = "pip3 freeze"
         cmd_proc = SimpleProcess(cmd)
-        stdout, stderr, retcode = cmd_proc.run()
-        result = stdout.decode('utf-8') if retcode == 0 else stderr.decode(
-            'utf-8')
+        stdout, stderr, rc = cmd_proc.run()
+        result = stdout.decode('utf-8') if rc == 0 else \
+            stderr.decode('utf-8')
         with open('/opt/seagate/cortx/utils/conf/requirements.txt') as f:
-            pkgs = f.readlines()
-            # pkgs will have \n in every string. Need to remove that
-            for package in enumerate(pkgs):
+            packages = f.readlines()
+            # packages will have \n in every string. Need to remove that
+            for package in enumerate(packages):
                 if result.find(package[1][:-1]) == -1:
                     raise SetupError(errno.EINVAL, "Required python package %s \
                         is missing", package[1][:-1])
@@ -194,8 +193,9 @@ class Utils:
         msg_test.send_msg(["Test Message"])
         # Recieve the same & validate
         msg = msg_test.receive_msg()
-        if str(msg.decode("utf-8")) != "Test Message":
-            raise SetupError(errno.EINVAL, "Unable to test the config")
+        if str(msg.decode('utf-8')) != "Test Message":
+            raise SetupError(errno.EINVAL, "Unable to test the config. Received \
+                message is %s", msg)
         return 0
 
     @staticmethod
@@ -214,7 +214,8 @@ class Utils:
             except MessageBusError as e:
                 raise SetupError(e.rc, "Can not reset Message Bus. %s", e)
             except Exception as e:
-                raise SetupError(errors.OP_FAILED, "Cant not reset Message Bus. %s", e)
+                raise SetupError(errors.OP_FAILED, "Can not reset Message Bus. \
+                    %s", e)
         return 0
 
     @staticmethod
