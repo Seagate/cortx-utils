@@ -89,6 +89,15 @@ class ConfCli:
             raise ConfError(errno.EINVAL, "invalid key_index value %s", key_index)
         return Conf.get_keys(ConfCli._index, key_index=key_index)
 
+    @staticmethod
+    def get_kv(args) -> list:
+        """ Returns list of keys present in store """
+        key_index = 'true' if args.key_index == None else args.key_index.lower().strip()
+        key_index = True if key_index == 'true' else False if key_index == 'false' else None
+        if key_index == None:
+            raise ConfError(errno.EINVAL, "invalid key_index value %s", key_index)
+        return Conf.get_kv(ConfCli._index, key_index=key_index)
+
 
 class GetCmd:
     """ Get Cmd Structure """
@@ -159,6 +168,23 @@ class GetsKeysCmd:
             "when True, returns keys including array index\n"
             "e.g. In case of 'xxx[0],xxx[1]', only 'xxx' is returned\n\n")
 
+class GetsKvCmd:
+    """ Get keys command structure """
+
+    @staticmethod
+    def add_args(sub_parser) -> None:
+        s_parser = sub_parser.add_parser('get_kv', help=
+            "Retrieves the list of keys and values\n."
+            "Example command:\n"
+            "# conf json:///tmp/csm.conf get_kv\n\n"
+            "# conf json:///tmp/csm.conf get_kv -key_index true\n\n"
+            "# conf json:///tmp/csm.conf get_kv -key_index false\n\n")
+        s_parser.set_defaults(func=ConfCli.get_kv)
+        s_parser.add_argument('-key_index', dest='key_index', help=
+            "key_index={True|False} (default: True)\n"
+            "when True, returns keys including array index\n"
+            "e.g. In case of 'xxx[0],xxx[1]', only 'xxx' is returned\n\n")
+
 def main():
     # Setup Parser
     parser = argparse.ArgumentParser(description='Conf Store CLI',
@@ -179,7 +205,11 @@ def main():
         ConfCli.init(args.url)
         out = args.func(args)
         if out is not None and len(out) > 0:
-            print(out)
+            if type(out) == dict:
+                for key, val in out.items():
+                    print(key, "=", val) 
+            else:
+                print(out)
         return 0
 
     except Exception as e:

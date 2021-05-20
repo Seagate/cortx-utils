@@ -140,6 +140,13 @@ class ConfStore:
         """
         return self._cache[index].get_keys(**filters)
 
+    def get_kv(self, index: str, **filters) -> dict:
+        kv = {}
+        for key in self.get_keys(index):
+            kv[key] = self.get(index, key)
+        return kv
+
+
     def get_data(self, index: str):
         """ Obtains entire config for given index """
         if index not in self._cache.keys():
@@ -250,3 +257,16 @@ class Conf:
                     e.g. In case of "xxx[0],xxx[1]", only "xxx" is returned
         """
         return Conf._conf.get_keys(index, **filters)
+
+    def get_kv(index: str, **filters) -> dict:
+        """
+        Obtains list of keys stored in the specific config store
+        Input Paramters:
+        Index   - Index for which the list of keys to be obtained
+        Filters - Filters to be applied before the keys to be returned.
+                  List of filters:
+                  * key_index={True|False} (default: True)
+                    when False, returns keys including array index
+                    e.g. In case of "xxx[0],xxx[1]", only "xxx" is returned
+        """
+        return Conf._conf.get_kv(index, **filters)
