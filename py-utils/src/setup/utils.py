@@ -221,9 +221,7 @@ class Utils:
     @staticmethod
     def cleanup():
         """ Cleanup configs and logs. """
-        _config_dir = '/etc/cortx/'
-        config_files = [_config_dir + conf_file for conf_file in \
-            os.listdir(_config_dir) if conf_file.endswith('.conf')]
+        config_files = ['/etc/cortx/message_bus.conf', '/etc/cortx/cluster.conf']
         for each_file in config_files:
             if os.path.exists(each_file):
                 # delete data/config stored
