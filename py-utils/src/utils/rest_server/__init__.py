@@ -1,5 +1,6 @@
-#!/bin/bash
-#
+#!/usr/bin/env python3
+
+# CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -14,14 +15,8 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-# Create /etc/cortx. This will be used for storing message_bus.conf file
-/bin/mkdir -p /etc/cortx
+__title__ = 'rest_server'
 
-# Copy the setup_cli.py as utils_setup
-/bin/mkdir -p /opt/seagate/cortx/utils/bin
-/bin/cp -f /usr/lib/python3.6/site-packages/cortx/setup/utils_setup.py /opt/seagate/cortx/utils/bin/utils_setup
-/bin/chmod +x /opt/seagate/cortx/utils/bin/utils_setup
+from cortx.utils.rest_server.rest_server import RestServer
+from cortx.utils.rest_server.error import RestServerError
 
-# Copy the message_bus_server.py as message_bus_server
-/bin/cp -f /usr/lib/python3.6/site-packages/cortx/utils/message_bus/message_bus_server.py /opt/seagate/cortx/utils/bin/message_bus_server
-/bin/chmod +x /opt/seagate/cortx/utils/bin/message_bus_server
