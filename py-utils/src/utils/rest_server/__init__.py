@@ -18,3 +18,4 @@
 __title__ = 'rest_server'
 
 from cortx.utils.rest_server.rest_server import RestServer
+from cortx.utils.rest_server.error import RestServerError

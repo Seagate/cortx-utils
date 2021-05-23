@@ -18,6 +18,8 @@
 from cortx.utils.message_bus import MessageConsumer, MessageProducer
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.rest_server import RestServer
+from cortx.utils.rest_server.error import RestServerError
+
 from aiohttp import web
 import json
 
@@ -28,7 +30,6 @@ class MessageBusRestHandler(RestServer):
 
     _message_bus_ip = '127.0.0.1'
     _message_bus_port = 28300
-    _msg_bus = MessageBus()
 
     def __init__(self):
         super().__init__(web, routes, self._message_bus_ip, \
@@ -38,7 +39,7 @@ class MessageBusRestHandler(RestServer):
     @routes.get('/MessageBus/message/{message_type}')
     @routes.post('/MessageBus/message/{message_type}')
     async def message_bus_rest(request):
-        if request.method == 'PUT':
+        if request.method == 'POST':
             try:
                 message_type = request.match_info['message_type']
                 payload = await request.json()
