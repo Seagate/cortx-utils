@@ -20,28 +20,42 @@ INTERNAL_ERROR = 0x1005
 ERR_OP_FAILED = 0x1100
 
 
-class UtilsError(Exception):
-    """ Generic Exception with error code and output """
+class BaseError(Exception):
+    """ Parent class for the cli error classes """
 
-    def __init__(self, rc, message, *args):
-        self._rc = rc
-        self._desc = message % (args)
+    _rc = OPERATION_SUCESSFUL
+    _desc = 'Operation Successful'
+    _caller = ''
 
-    @property
+    def __init__(self, rc=0, desc=None, message_id=None, message_args=None):
+        super(BaseError, self).__init__()
+        self._caller = inspect.stack()[1][3]
+        if rc is not None:
+            self._rc = str(rc)
+        self._desc = desc or self._desc
+        self._message_id = message_id
+        self._message_args = message_args
+
+    def message_id(self):
+        return self._message_id
+
+    def message_args(self):
+        return self._message_args
+
     def rc(self):
         return self._rc
 
-    @property
-    def desc(self):
+    def error(self):
         return self._desc
 
+    def caller(self):
+        return self._caller
+
     def __str__(self):
-        if self._rc == 0:
-            return self._desc
-        return "error(%d): %s" %(self._rc, self._desc)
+        return "error(%s): %s" % (self._rc, self._desc)
 
 
-class InternalError(Exception):
+class InternalError(BaseError):
     """
     This error is raised by CLI for all unknown internal errors
     """

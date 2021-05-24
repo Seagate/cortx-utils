@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # CORTX-Py-Utils: CORTX Python common library.
-# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
+# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -425,7 +425,7 @@ class KafkaMessageBroker(MessageBroker):
                     if timeout > 0:
                         return None
                 elif msg.error():
-                    raise MessageBusError(errno.ECONNRESET, "Cant receive. %s", \
+                    raise MessageBusError(errno.ECONN, "Cant receive. %s", \
                         msg.error())
                 else:
                     return msg.value()
