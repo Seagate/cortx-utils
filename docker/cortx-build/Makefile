@@ -20,7 +20,7 @@ help : Makefile
 checkout:
 	@echo "*************** checkout code *********************"
 	pushd cortx-workspace && \
-		for component in $$(ls -1d cortx-* | grep -Evx 'cortx-experiments||cortx-posix'); do pushd $$component; git pull -p --all; git checkout $$BRANCH || exit 1; popd ; done  && \
+		for component in $$(ls -1d cortx-* | grep -Evx 'cortx-experiments||cortx-posix||cortx-multisite'); do pushd $$component; git pull -p --all; git checkout $$BRANCH || exit 1; popd ; done  && \
 	popd || (echo "ERROR: Failed to checkout specified branch/tag Exiting..."; exit 1)
 
 ## clean: remove existing /var/artifacts/0 directory. 
@@ -45,19 +45,19 @@ cortx-motr: _cortx-motr_prereq _cortx-motr_build
 cortx-s3server: cortx-motr _s3_prereq _s3_build
 
 ## cortx-hare: generate cortx-hare packages.
-cortx-hare: cortx-motr _cortx-py-utils_build _cortx-hare_prereq _cortx-hare_build
+cortx-hare: cortx-motr _cortx-py-utils_build _cortx-py-utils_install _cortx-hare_prereq _cortx-hare_build
 
 ## cortx-ha: generate cortx-ha packages.
-cortx-ha: _cortx-py-utils_build _ha_prereq _ha_build
+cortx-ha: _cortx-py-utils_build _cortx-py-utils_install _ha_prereq _ha_build
 
 ## cortx-management-portal: generate cortx-management-portal packages.
-cortx-management-portal: _cortx-py-utils_build cortx-prvsnr _cortx-management-portal_prereq _cortx-management-portal_build
+cortx-management-portal: _cortx-py-utils_build _cortx-py-utils_install cortx-prvsnr _cortx-management-portal_prereq _cortx-management-portal_build
 
 ## cortx-manager: generate cortx-manager packages.
-cortx-manager: _cortx-py-utils_build cortx-prvsnr _cortx-manager_prereq _cortx-manager_build
+cortx-manager: _cortx-py-utils_build _cortx-py-utils_install cortx-prvsnr _cortx-manager_prereq _cortx-manager_build
 
 ## cortx-monitor: generate cortx-monitor packages.
-cortx-monitor: _cortx-py-utils_build _cortx-monitor_prereq _cortx-monitor_build
+cortx-monitor: _cortx-py-utils_build _cortx-py-utils_install _cortx-monitor_prereq _cortx-monitor_build
 
 ## cortx-posix: generate cortx-posix (NFS) packages.
 cortx-posix: _cortx-posix_prereq _cortx-posix_build
@@ -192,15 +192,25 @@ _cortx-posix_build:
 #***********************************************************************************
 
 _cortx-py-utils_build:
-	@echo "***************  Installing cortx-management-portal Prereqsites *********************"
+	@echo "***************  Building cortx-py-utils package *********************"
 	pushd cortx-workspace/cortx-utils/ && \
 		yum install python36-devel -y && \
-		./jenkins/build.sh -v $$VERSION -b ${BUILD_ID} && \
+		./jenkins/build.sh -v ${RELEASE_VERSION} -b ${BUILD_ID} && \
 		./statsd-utils/jenkins/build.sh -b ${BUILD_ID} && \
+		rm -rf ${RPM_DIR}/cortx-py-utils*.rpm && \
 		mv /cortx-workspace/cortx-utils/statsd-utils/dist/rpmbuild/RPMS/x86_64/*.rpm ${RPM_DIR} && \
 		mv /cortx-workspace/cortx-utils/py-utils/dist/*.rpm ${RPM_DIR} && \
 		createrepo -v ${RPM_DIR} && \
 	popd || (echo "ERROR: cortx-utils source code is not available in cortx-workspace. Exiting..."; exit 1)
+
+_cortx-py-utils_install:
+	@echo "***************  Installing cortx-py-utils package *********************"
+	pushd cortx-workspace/cortx-utils/py-utils && \
+		yum install python3-pip gcc python3-devel -y && \
+		yum erase python36-PyYAML -y && \
+		pip3 install -r requirements.txt && \
+		yum localinstall -y ${RPM_DIR}/cortx-py-utils*noarch.rpm && \
+	popd || (echo "ERROR: Failed to install cortx-utils package. Exiting..."; exit 1) 	
 
 #***********************************************************************************
 #   Component:  cortx-management-portal
@@ -212,8 +222,8 @@ _cortx-py-utils_build:
 _cortx-management-portal_prereq:
 	@echo "***************  Installing cortx-management-portal Prereqsites *********************"
 	pushd cortx-workspace/cortx-management-portal && \
-		yum localinstall -y ${RPM_DIR}/cortx-py-utils*noarch.rpm ${RPM_DIR}/cortx-prvsnr*.rpm ${RPM_DIR}/python36-cortx-prvsnr*.rpm  && \
-        pip3.6 install  pyinstaller==3.5 && \
+		yum localinstall ${RPM_DIR}/cortx-prvsnr*.rpm ${RPM_DIR}/python36-cortx-prvsnr*.rpm  && \
+        pip3.6 install pyinstaller==3.5 && \
 	popd || (echo "ERROR: cortx-management-portal source code is not available in cortx-workspace. Exiting..."; exit 1)
 
 _cortx-management-portal_build:
@@ -240,8 +250,8 @@ _cortx-manager_prereq:
 	@echo "***************  Installing cortx-manager Prereqsites *********************"
 
 	pushd cortx-workspace/cortx-manager && \
-		yum localinstall -y ${RPM_DIR}/cortx-py-utils*noarch.rpm ${RPM_DIR}/cortx-prvsnr*.rpm ${RPM_DIR}/python36-cortx-prvsnr*.rpm && \
-        pip3.6 install  pyinstaller==3.5 && \
+		yum localinstall -y ${RPM_DIR}/cortx-prvsnr*.rpm ${RPM_DIR}/python36-cortx-prvsnr*.rpm && \
+        pip3.6 install pyinstaller==3.5 && \
 	popd || (echo "ERROR: cortx-manager source code is not available in cortx-workspace. Exiting..."; exit 1)
 
 _cortx-manager_build:
