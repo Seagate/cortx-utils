@@ -45,7 +45,7 @@ class CommandFactory(object):
         """
         if len(argv) <= 1:
             argv.append("-h")
-        
+
         Conf.load("conf_index", "json:///etc/cortx/cluster.conf")
         cmd_dir = os.path.join(Conf.get("conf_index", "install_path"),'utils/cli/schema')
         default_commands = os.listdir(cmd_dir)

@@ -22,7 +22,7 @@ import errno
 
 class Terminal:
     """
-    Class to show prompts on consol for purpose of information, 
+    Class to show prompts on consol for purpose of information,
     waring or to get inputs from user or confirmation messages
     """
 
