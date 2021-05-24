@@ -21,6 +21,7 @@ from cortx.utils.cli_framework import const
 from cortx.utils.cli_framework.command import CommandParser
 from cortx.utils.conf_store import Conf
 
+Conf.load("conf_index", "json:///etc/cortx/cluster.conf")
 
 class ArgumentParser(argparse.ArgumentParser):
     """Overwritten ArgumentParser class for internal purposes"""
@@ -46,8 +47,7 @@ class CommandFactory(object):
         if len(argv) <= 1:
             argv.append("-h")
 
-        Conf.load("conf_index", "json:///etc/cortx/cluster.conf")
-        cmd_dir = os.path.join(Conf.get("conf_index", "install_path"),'utils/cli/schema')
+        cmd_dir = os.path.join(Conf.get("conf_index", "install_path"),'cortx/utils/cli/schema')
         default_commands = os.listdir(cmd_dir)
         commands_files = os.listdir(component_cmd_dir)
         commands_files.extend(default_commands)
@@ -63,7 +63,7 @@ class CommandFactory(object):
         metavar = set(commands).difference(set(hidden_cmds))
         subparsers = parser.add_subparsers(metavar=metavar)
         filter_cmd_dir_obj = filter(lambda dir: f"{argv[0]}.json" in os.listdir(dir) ,
-                                        [component_cmd_dir, const.COMMAND_DIRECTORY])
+                                        [component_cmd_dir, cmd_dir])
         filter_cmd_dir=list(filter_cmd_dir_obj)
         if filter_cmd_dir:
             # get command json file and filter only allowed first level sub_command
