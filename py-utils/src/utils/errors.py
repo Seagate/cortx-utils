@@ -40,7 +40,42 @@ class UtilsError(Exception):
         return "error(%d): %s" %(self._rc, self._desc)
 
 
-class InternalError(Exception):
+class BaseError(Exception):
+    """ Parent class for the cli error classes """
+
+    _rc = OPERATION_SUCESSFUL
+    _desc = 'Operation Successful'
+    _caller = ''
+
+    def __init__(self, rc=0, desc=None, message_id=None, message_args=None):
+        super(BaseError, self).__init__()
+        self._caller = inspect.stack()[1][3]
+        if rc is not None:
+            self._rc = str(rc)
+        self._desc = desc or self._desc
+        self._message_id = message_id
+        self._message_args = message_args
+
+    def message_id(self):
+        return self._message_id
+
+    def message_args(self):
+        return self._message_args
+
+    def rc(self):
+        return self._rc
+
+    def error(self):
+        return self._desc
+
+    def caller(self):
+        return self._caller
+
+    def __str__(self):
+        return "error(%s): %s" % (self._rc, self._desc)
+
+
+class InternalError(BaseError):
     """
     This error is raised by CLI for all unknown internal errors
     """
