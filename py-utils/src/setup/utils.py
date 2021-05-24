@@ -47,7 +47,7 @@ class Utils:
             json.dump({}, file, indent=2)
         Conf.load("conf_index", "json:///etc/cortx/cluster.conf")
         Conf.set("conf_index", "install_path", "/opt/seagate/")
-        Conf.save()
+        Conf.save("conf_index")
 
     @staticmethod
     def _create_msg_bus_config(kafka_server_list, port_list):
