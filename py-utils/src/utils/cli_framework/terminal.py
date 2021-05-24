@@ -21,6 +21,10 @@ from getpass import getpass
 import errno
 
 class Terminal:
+    """
+    Class to show prompts on consol for purpose of information, 
+    waring or to get inputs from user or confirmation messages
+    """
 
     EMPTY_PASS_FIELD = "Password field can't be empty."
     @staticmethod
