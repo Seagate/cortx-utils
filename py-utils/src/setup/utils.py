@@ -23,6 +23,7 @@ from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.validator.v_service import ServiceV
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils import errors
+from cortx.utils.conf_store import Conf
 
 
 class SetupError(Exception):
@@ -41,10 +42,17 @@ class Utils:
     """ Represents Utils and Performs setup related actions """
 
     @staticmethod
+    def _configure_utils_install_path():
+        with open(r'/etc/cortx/cluster.conf', 'w+') as file:
+            json.dump({}, file, indent=2)
+        Conf.load("conf_index", "json:///etc/cortx/cluster.conf")
+        Conf.set("conf_index", "install_path", "/opt/seagate/")
+        Conf.save()
+
+    @staticmethod
     def _create_msg_bus_config(kafka_server_list, port_list):
         """ Create the config file required for message bus """
 
-        from cortx.utils.conf_store import Conf
         with open(r'/etc/cortx/message_bus.conf.new', 'w+') as file:
             json.dump({}, file, indent=2)
         Conf.load("index", "json:///etc/cortx/message_bus.conf.new")
@@ -140,6 +148,9 @@ class Utils:
     @staticmethod
     def config(conf_url):
         """ Performs configurations """
+
+        # Configure cortx utils setup path.
+        Utils._configure_utils_install_path()
 
         # Message Bus Config
         kafka_server_list, port_list = Utils._get_kafka_server_list(conf_url)

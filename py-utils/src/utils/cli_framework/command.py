@@ -74,7 +74,7 @@ class Command:
         """Process Response as per display method in format else normal display"""
         output_obj = Output(self, response)
         return output_obj.dump(out, err, **self._output,
-                        output_type=self._options.get("format","success"))
+            output_type=self._options.get("format","success"))
 
 
 class CommandParser:

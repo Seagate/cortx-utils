@@ -19,6 +19,7 @@ import os
 from cortx.utils.schema.payload import Json
 from cortx.utils.cli_framework import const
 from cortx.utils.cli_framework.command import CommandParser
+from cortx.utils.conf_store import Conf
 
 
 class ArgumentParser(argparse.ArgumentParser):
@@ -44,7 +45,10 @@ class CommandFactory(object):
         """
         if len(argv) <= 1:
             argv.append("-h")
-        default_commands = os.listdir(const.COMMAND_DIRECTORY)
+        
+        Conf.load("conf_index", "json:///etc/cortx/cluster.conf")
+        cmd_dir = os.path.join(Conf.get("conf_index", "install_path"),'utils/cli/schema')
+        default_commands = os.listdir(cmd_dir)
         commands_files = os.listdir(component_cmd_dir)
         commands_files.extend(default_commands)
         excluded_cmds.extend(const.EXCLUDED_COMMANDS)

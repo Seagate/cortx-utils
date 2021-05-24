@@ -13,9 +13,6 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-BASE_DIR = "/opt/seagate/cortx"
-UTILS_DIR = f"{BASE_DIR}/utils"
-COMMAND_DIRECTORY = f"{UTILS_DIR}/cli/schema"
 SUB_COMMANDS_PERMISSIONS = "permissions_tag"
 EXCLUDED_COMMANDS=[]
 HIDDEN_COMMANDS = []

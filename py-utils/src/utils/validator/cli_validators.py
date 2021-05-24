@@ -18,9 +18,9 @@ from cortx.utils.schema import payload
 from cortx.utils.log import Log
 from cortx.utils.cli_framework.errors import CliError
 
-class CommonValidators:
+class CliValidators:
     """
-    Common Validators used for CLI
+    Validators used for CLI
     """
     @staticmethod
     def _positive_int(value):

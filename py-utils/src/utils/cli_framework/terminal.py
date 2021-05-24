@@ -82,7 +82,7 @@ class Terminal:
             confirm_password = getpass(prompt="Confirm Password: ")
             if not confirm_password:
                 raise CliError(errno.EINVAL,
-                                    "Could not obtain confirm password")
+                            "Could not obtain confirm password")
             if not confirm_password == value:
                 raise CliError(errno.EINVAL, "Password do not match.")
         return value
