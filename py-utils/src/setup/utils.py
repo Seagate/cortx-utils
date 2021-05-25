@@ -15,14 +15,15 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
-import errno
 import json
+import errno
+
+from cortx.utils import errors
 from cortx.utils.conf_store import Conf
 from cortx.utils.process import SimpleProcess
-from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.validator.v_service import ServiceV
+from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.message_bus.error import MessageBusError
-from cortx.utils import errors
 
 
 class SetupError(Exception):
@@ -39,6 +40,21 @@ class SetupError(Exception):
 
 class Utils:
     """ Represents Utils and Performs setup related actions """
+
+    # Utils private methods
+    @staticmethod
+    def _get_utils_path() -> str:
+        """ Gets install path from cortx.conf and returns utils path """
+
+        config_file_path = "/etc/cortx/cortx.conf"
+        Conf.load('config_file', f'yaml:///{config_file_path}')
+        install_path = Conf.get(index='config_file', key='install_path')
+
+        if not install_path:
+            error_msg = f"install_path not found in {config_file_path}"
+            raise SetupError(errno.EINVAL, error_msg)
+        else:
+            return install_path + "/cortx/utils"
 
     @staticmethod
     def _create_msg_bus_config(kafka_server_list: list, port_list: list):
@@ -143,7 +159,9 @@ class Utils:
         stdout, stderr, rc = cmd_proc.run()
         result = stdout.decode('utf-8') if rc == 0 else \
             stderr.decode('utf-8')
-        with open('/opt/seagate/cortx/utils/conf/requirements.txt') as f:
+
+        utils_path = Utils._get_utils_path()
+        with open(f'{utils_path}/conf/requirements.txt') as f:
             packages = f.readlines()
             # packages will have \n in every string. Need to remove that
             for package in enumerate(packages):
@@ -187,11 +205,12 @@ class Utils:
     @staticmethod
     def test():
         """ Perform configuration testing """
+
         from cortx.setup import MessageBusTest
         msg_test = MessageBusTest()
         # Send a message
         msg_test.send_msg(["Test Message"])
-        # Recieve the same & validate
+        # Receive the same & validate
         msg = msg_test.receive_msg()
         if str(msg.decode('utf-8')) != "Test Message":
             raise SetupError(errno.EINVAL, "Unable to test the config. Received \
