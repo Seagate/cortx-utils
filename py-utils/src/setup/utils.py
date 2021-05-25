@@ -166,13 +166,13 @@ class Utils:
 
         # Start MessageBus rest service
         try:
-            rc = os.system("service cortx_message_bus start")
+            rc = os.system("systemctl start cortx_message_bus")
         except OSError as e:
             raise SetupError(e.errno, "Unable to start MessageBus rest service. \
                 %s", e)
-        if rc != 0:
+        if (rc >> 8) != 0:
             raise SetupError(errno.EINVAL, "Unable to start MessageBus rest \
-                service. return code: %d", rc)
+                service. return code: %d", (rc >> 8))
 
         return 0
 
@@ -230,13 +230,13 @@ class Utils:
 
         # Stop MessageBus rest service
         try:
-            rc = os.system("service cortx_message_bus stop")
+            rc = os.system("systemctl stop cortx_message_bus")
         except OSError as e:
             raise SetupError(e.errno, "Unable to stop MessageBus rest service. \
                 %s", e)
-        if rc != 0:
+        if (rc >> 8) != 0:
             raise SetupError(errno.EINVAL, "Unable to stop MessageBus rest \
-                service. return code: %d", rc)
+                service. return code: %d", (rc >> 8))
 
         return 0
 
