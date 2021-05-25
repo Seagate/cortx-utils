@@ -163,6 +163,17 @@ class Utils:
             admin.register_message_type(message_types=['IEM'], partitions=1)
         except MessageBusError as e:
             raise SetupError(e.rc, "Unable to create message_type. %s", e)
+
+        # Start MessageBus rest service
+        try:
+            rc = os.system("service cortx_message_bus start")
+        except OSError as e:
+            raise SetupError(e.errno, "Unable to start MessageBus rest service. \
+                %s", e)
+        if rc != 0:
+            raise SetupError(errno.EINVAL, "Unable to start MessageBus rest \
+                service. return code: %d", rc)
+
         return 0
 
     @staticmethod
@@ -216,6 +227,17 @@ class Utils:
             except Exception as e:
                 raise SetupError(errors.OP_FAILED, "Can not reset Message Bus. \
                     %s", e)
+
+        # Stop MessageBus rest service
+        try:
+            rc = os.system("service cortx_message_bus stop")
+        except OSError as e:
+            raise SetupError(e.errno, "Unable to stop MessageBus rest service. \
+                %s", e)
+        if rc != 0:
+            raise SetupError(errno.EINVAL, "Unable to stop MessageBus rest \
+                service. return code: %d", rc)
+
         return 0
 
     @staticmethod
