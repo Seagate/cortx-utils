@@ -1,5 +1,6 @@
 # CORTX-Py-Utils: CORTX Python common library.
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# CORTX-Py-Utils: CORTX Python common library.
+# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -72,7 +73,8 @@ setup(name='cortx-py-utils',
                 'cortx.utils.schema', 'cortx.utils.appliance_info',
                 'cortx.setup', 'cortx.utils.service',
                 'cortx.utils.setup', 'cortx.utils.setup.kafka',
-                'cortx.utils.cli_framework'
+                'cortx.utils.cli_framework',
+                'cortx.utils.rest_server'
                 ],
       package_data={
         'cortx': ['py.typed'],
@@ -90,8 +92,10 @@ setup(name='cortx-py-utils',
                                             'src/utils/ha/hac/re_build.sh']),
                      ('/opt/seagate/cortx/utils/conf',
                           ['requirements.txt', 'src/setup/setup.yaml']),
-                     ('/opt/seagate/cortx/utils/conf', tmpl_files)],
+                     ('/opt/seagate/cortx/utils/conf', tmpl_files),
+                     ('/etc/systemd/system', ['src/utils/message_bus/cortx_message_bus.service'])],
       long_description=long_description,
       zip_safe=False,
       python_requires='>=3.6',
       install_requires=get_install_requirements())
+
