@@ -21,7 +21,6 @@ from cortx.utils.cli_framework import const
 from cortx.utils.cli_framework.command import CommandParser
 from cortx.utils.conf_store import Conf
 
-Conf.load("conf_index", "json:///etc/cortx/cluster.conf")
 
 class ArgumentParser(argparse.ArgumentParser):
     """Overwritten ArgumentParser class for internal purposes"""
