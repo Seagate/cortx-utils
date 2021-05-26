@@ -18,6 +18,10 @@ import inspect
 OPERATION_SUCESSFUL = 0x0000
 INTERNAL_ERROR = 0x1005
 ERR_OP_FAILED = 0x1100
+ERR_INVALID_CLIENT_TYPE = 0x1501
+ERR_INVALID_SERVICE_NAME = 0x1502
+ERR_SERVICE_UNAVAILABLE = 0x1503
+ERR_SERVICE_NOT_INITIALIZED = 0x1504
 
 
 class BaseError(Exception):
@@ -94,6 +98,7 @@ class MalformedConfigurationError(DataAccessError):
 class StorageNotFoundError(DataAccessError):
 
     """Model object is not associated with any storage"""
+
 
 class AmqpConnectionError(Exception):
 
