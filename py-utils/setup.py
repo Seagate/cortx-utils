@@ -37,9 +37,6 @@ for root, directories, filenames in os.walk(_ROOT):
 # Get the list of template files
 tmpl_files = glob.glob('src/setup/templates/*.*')
 
-# Get the cli schema files
-cli_schema_files = glob.glob('src/utils/cli_framework/schema/*.*')
-
 with open('LICENSE', 'r') as lf:
     license = lf.read()
 
@@ -93,8 +90,7 @@ setup(name='cortx-py-utils',
                                             'src/utils/ha/hac/re_build.sh']),
                      ('/opt/seagate/cortx/utils/conf',
                           ['requirements.txt', 'src/setup/setup.yaml']),
-                     ('/opt/seagate/cortx/utils/conf', tmpl_files),
-                     ('/opt/seagate/cortx/utils/cli/schema/', cli_schema_files)],
+                     ('/opt/seagate/cortx/utils/conf', tmpl_files)],
       long_description=long_description,
       zip_safe=False,
       python_requires='>=3.6',

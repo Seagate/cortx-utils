@@ -47,10 +47,7 @@ class CommandFactory(object):
         if len(argv) <= 1:
             argv.append("-h")
 
-        cmd_dir = os.path.join(Conf.get("conf_index", "install_path"),'cortx/utils/cli/schema')
-        default_commands = os.listdir(cmd_dir)
         commands_files = os.listdir(component_cmd_dir)
-        commands_files.extend(default_commands)
         excluded_cmds.extend(const.EXCLUDED_COMMANDS)
 
         commands = [command.split(".json")[0] for command in commands_files
@@ -62,13 +59,11 @@ class CommandFactory(object):
         hidden_cmds.extend(const.HIDDEN_COMMANDS)
         metavar = set(commands).difference(set(hidden_cmds))
         subparsers = parser.add_subparsers(metavar=metavar)
-        filter_cmd_dir_obj = filter(lambda dir: f"{argv[0]}.json" in os.listdir(dir) ,
-                                        [component_cmd_dir, cmd_dir])
-        filter_cmd_dir=list(filter_cmd_dir_obj)
-        if filter_cmd_dir:
+
+        if  argv[0] in commands:
             # get command json file and filter only allowed first level sub_command
             # create filter_permission_json
-            cmd_from_file = Json(os.path.join(filter_cmd_dir[0], f"{argv[0]}.json")).load()
+            cmd_from_file = Json(os.path.join(component_cmd_dir, f"{argv[0]}.json")).load()
             cmd_obj = CommandParser(cmd_from_file, permissions.get(argv[0], {}))
             cmd_obj.handle_main_parse(subparsers)
         namespace = parser.parse_args(argv)
