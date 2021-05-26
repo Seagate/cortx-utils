@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
-# CORTX Python common library.
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
-#
+# CORTX-Py-Utils: CORTX Python common library.
+# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -16,29 +15,21 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+from collections import defaultdict
 
-import unittest
-from cortx.utils.message_bus import MessageBus, MessageProducer
+class RestServerError(Exception):
+    """ Error class for cortx rest server """
 
+    def __init__(self, e):
+        self._e = e
 
-class TestMessage(unittest.TestCase):
-    """ Test MessageBus related functionality. """
+    def http_error(self):
+        return self._http_error(self._e)
 
-    def test_send(self):
-        """ Test Send Message. """
-        messages = []
-        producer = MessageProducer(
-            producer_id='sel',
-            message_type='Sel',
-            method='async'
-        )
+    @staticmethod
+    def _http_error(except_name):
+        ret_code_map = defaultdict(lambda: 500)
+        ret_code_map['KeyError'] = (418, "Wrong Key in payload!") # wrong key from client
+        ret_code_map['KafkaException'] = (514, "MessageBus backend error!")
+        return ret_code_map[except_name]
 
-        self.assertIsNotNone(producer, "Producer not found")
-        for i in range(0, 10):
-            messages.append("This is message" + str(i))
-        self.assertIsInstance(messages, list)
-        producer.send(messages)
-
-
-if __name__ == '__main__':
-    unittest.main()
