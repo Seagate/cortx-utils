@@ -1,4 +1,5 @@
 #!/bin/env python3
+#!/bin/env python3
 
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
@@ -23,7 +24,6 @@ from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.validator.v_service import ServiceV
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils import errors
-from cortx.utils.conf_store import Conf
 
 
 class SetupError(Exception):
@@ -45,6 +45,7 @@ class Utils:
     def _create_msg_bus_config(kafka_server_list, port_list):
         """ Create the config file required for message bus """
 
+        from cortx.utils.conf_store import Conf
         with open(r'/etc/cortx/message_bus.conf.new', 'w+') as file:
             json.dump({}, file, indent=2)
         Conf.load("index", "json:///etc/cortx/message_bus.conf.new")
@@ -140,6 +141,7 @@ class Utils:
     @staticmethod
     def config(conf_url):
         """ Performs configurations """
+
         # Message Bus Config
         kafka_server_list, port_list = Utils._get_kafka_server_list(conf_url)
         if kafka_server_list == None:
