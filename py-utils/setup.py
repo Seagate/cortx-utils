@@ -19,6 +19,10 @@ import glob
 from typing import List
 from setuptools import setup
 
+# Set install path and related directories
+install_path = "/opt/seagate"
+conf_dir = "%s/cortx/utils/conf" % (install_path)
+
 # Get the version string from command line
 utils_version = "1.0.0"    #default version
 for argument in sys.argv:
@@ -27,6 +31,7 @@ for argument in sys.argv:
         # remove the argument as it is not recognized argument for setup
         sys.argv.remove(argument)
 
+#fetch ha specs
 SPEC_DIR = "src/utils/ha/hac/specs/"
 _ROOT = os.path.abspath(os.path.dirname(__file__)) + "/" + SPEC_DIR
 specs = []
@@ -71,7 +76,7 @@ setup(name='cortx-py-utils',
                 'cortx.utils.product_features', 'cortx.utils.security',
                 'cortx.utils.schema', 'cortx.utils.appliance_info',
                 'cortx.setup', 'cortx.utils.service',
-		'cortx.utils.setup', 'cortx.utils.setup.kafka'
+                'cortx.utils.setup', 'cortx.utils.setup.kafka'
                 ],
       package_data={
         'cortx': ['py.typed'],
@@ -87,9 +92,8 @@ setup(name='cortx-py-utils',
       data_files = [ ('/var/lib/cortx/ha/specs', specs),
                      ('/var/lib/cortx/ha', ['src/utils/ha/hac/args.yaml',
                                             'src/utils/ha/hac/re_build.sh']),
-                     ('/opt/seagate/cortx/utils/conf',
-                          ['requirements.txt', 'src/setup/setup.yaml']),
-                     ('/opt/seagate/cortx/utils/conf', tmpl_files)],
+                     (conf_dir, ['requirements.txt', 'src/setup/setup.yaml']),
+                     (conf_dir, tmpl_files)],
       long_description=long_description,
       zip_safe=False,
       python_requires='>=3.6',

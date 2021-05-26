@@ -231,3 +231,10 @@ class Utils:
                     raise SetupError(e.errno, "Error deleting config file %s, \
                         %s", each_file, e)
         return 0
+
+    @staticmethod
+    def upgrade():
+        """ Peform all upgrade reated tasks """
+
+        #todo - update cortx.conf from cortx.conf.sample
+        pass
