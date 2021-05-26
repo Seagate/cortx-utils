@@ -166,13 +166,16 @@ class Utils:
 
         # Start MessageBus rest service
         try:
-            rc = os.system("systemctl start cortx_message_bus")
-        except OSError as e:
-            raise SetupError(e.errno, "Unable to start MessageBus rest service. \
-                %s", e)
-        if (rc >> 8) != 0:
-            raise SetupError(errno.EINVAL, "Unable to start MessageBus rest \
-                service. return code: %d", (rc >> 8))
+            cmd = "systemctl start cortx_message_bus"
+            cmd_proc = SimpleProcess(cmd)
+            _, res_err, res_rc = cmd_proc.run()
+
+            if res_rc != 0:
+                raise SetupError(res_rc, "Unable to start MessageBus rest \
+                    service. %s", res_err.decode('utf-8'))
+        except Exception as e:
+            raise SetupError(errors.ERR_OP_FAILED, "Unable to start MessageBus \
+                rest service. %s", e)
 
         return 0
 
@@ -230,13 +233,16 @@ class Utils:
 
         # Stop MessageBus rest service
         try:
-            rc = os.system("systemctl stop cortx_message_bus")
-        except OSError as e:
-            raise SetupError(e.errno, "Unable to stop MessageBus rest service. \
-                %s", e)
-        if (rc >> 8) != 0:
-            raise SetupError(errno.EINVAL, "Unable to stop MessageBus rest \
-                service. return code: %d", (rc >> 8))
+            cmd = "systemctl stop cortx_message_bus"
+            cmd_proc = SimpleProcess(cmd)
+            _, res_err, res_rc = cmd_proc.run()
+
+            if res_rc != 0:
+                raise SetupError(res_rc, "Unable to stop MessageBus rest \
+                    service. %s", res_err.decode('utf-8'))
+        except Exception as e:
+            raise SetupError(errors.ERR_OP_FAILED, "Unable to stop MessageBus \
+                rest service. %s", e)
 
         return 0
 
