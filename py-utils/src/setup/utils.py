@@ -165,17 +165,12 @@ class Utils:
             raise SetupError(e.rc, "Unable to create message_type. %s", e)
 
         # Start MessageBus rest service
-        try:
-            cmd = "systemctl start cortx_message_bus"
-            cmd_proc = SimpleProcess(cmd)
-            _, res_err, res_rc = cmd_proc.run()
+        cmd = SimpleProcess("systemctl start cortx_message_bus")
+        _, stderr, res_rc = cmd.run()
 
-            if res_rc != 0:
-                raise SetupError(res_rc, "Unable to start MessageBus rest \
-                    service. %s", res_err.decode('utf-8'))
-        except Exception as e:
-            raise SetupError(errors.ERR_OP_FAILED, "Unable to start MessageBus \
-                rest service. %s", e)
+        if res_rc != 0:
+            raise SetupError(res_rc, "Unable to start MessageBus Service \
+                %s", stderr.decode('utf-8'))
 
         return 0
 
@@ -232,17 +227,12 @@ class Utils:
                     %s", e)
 
         # Stop MessageBus rest service
-        try:
-            cmd = "systemctl stop cortx_message_bus"
-            cmd_proc = SimpleProcess(cmd)
-            _, res_err, res_rc = cmd_proc.run()
+        cmd = SimpleProcess("systemctl stop cortx_message_bus")
+        _, stderr, res_rc = cmd.run()
 
-            if res_rc != 0:
-                raise SetupError(res_rc, "Unable to stop MessageBus rest \
-                    service. %s", res_err.decode('utf-8'))
-        except Exception as e:
-            raise SetupError(errors.ERR_OP_FAILED, "Unable to stop MessageBus \
-                rest service. %s", e)
+        if res_rc != 0:
+            raise SetupError(res_rc, "Unable to stop MessageBus Service. \
+                %s", stderr.decode('utf-8'))
 
         return 0
 

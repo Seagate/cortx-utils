@@ -14,13 +14,14 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import os
 import sys
 import errno
 import argparse
 import inspect
 import traceback
 
-from cortx.setup import Utils
+from cortx.setup import Utils, SetupError
 
 
 class Cmd:
@@ -28,6 +29,8 @@ class Cmd:
     _index = "setup"
 
     def __init__(self, args: dict):
+        if os.geteuid() != 0:
+            raise SetupError()
         self._url = args.config
         self._args = args.args
 
