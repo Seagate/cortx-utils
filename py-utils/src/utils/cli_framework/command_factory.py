@@ -19,7 +19,6 @@ import os
 from cortx.utils.schema.payload import Json
 from cortx.utils.cli_framework import const
 from cortx.utils.cli_framework.command import CommandParser
-from cortx.utils.conf_store import Conf
 
 
 class ArgumentParser(argparse.ArgumentParser):
