@@ -1,5 +1,4 @@
 # CORTX-Py-Utils: CORTX Python common library.
-# CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -74,7 +73,8 @@ setup(name='cortx-py-utils',
                 'cortx.setup', 'cortx.utils.service',
                 'cortx.utils.setup', 'cortx.utils.setup.kafka',
                 'cortx.utils.cli_framework',
-                'cortx.utils.rest_server'
+                'cortx.utils.rest_server', 'cortx.utils.iem_framework'
+
                 ],
       package_data={
         'cortx': ['py.typed'],
