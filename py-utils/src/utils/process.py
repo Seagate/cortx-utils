@@ -15,6 +15,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import errno
 import subprocess
 from subprocess import TimeoutExpired, CalledProcessError
 
@@ -65,7 +66,7 @@ class SimpleProcess(Process):
         except CalledProcessError as e:
             self._err = str(e)
             self._output = ''
-            self._returncode = errno.ETIMEDOUT
+            self._returncode = e.returncode
 
         except Exception as err:
             self._err = "SubProcess Error: " + str(err)
