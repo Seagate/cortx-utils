@@ -233,7 +233,7 @@ class Utils:
             except MessageBusError as e:
                 raise SetupError(e.rc, "Can not reset Message Bus. %s", e)
             except Exception as e:
-                raise SetupError(errors.OP_FAILED, "Can not reset Message Bus. \
+                raise SetupError(errors.ERR_OP_FAILED, "Can not reset Message Bus. \
                     %s", e)
         return 0
 
