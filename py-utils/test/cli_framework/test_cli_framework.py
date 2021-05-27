@@ -22,7 +22,7 @@ import sys
 from cortx.utils.cli_framework.command_factory import CommandFactory
 from cortx.utils.cli_framework.command import Output
 from cortx.utils.schema import payload
-from cortx.utils.providers import  Response
+from cortx.utils.schema.providers import  Response
 
 class TestCliFramework(unittest.TestCase):
     def setUp(self):
