@@ -1,5 +1,6 @@
-#!/bin/bash
-#
+#!/usr/bin/env python3
+
+# CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -14,24 +15,11 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-# Install_path
-install_path="/opt/seagate"
+from cortx.utils.errors import UtilsError
 
-# Create /etc/cortx. This will be used for storing message_bus.conf file
-/bin/mkdir -p /etc/cortx
 
-# Copy the setup_cli.py as utils_setup
+class EventMessageError(UtilsError):
+    """ Generic Exception with error code and output """
 
-/bin/mkdir -p $install_path/cortx/utils/bin
-/bin/cp -f /usr/lib/python3.6/site-packages/cortx/setup/utils_setup.py $install_path/cortx/utils/bin/utils_setup
-/bin/chmod +x $install_path/cortx/utils/bin/utils_setup
-
-# Copy the message_bus_server.py as message_bus_server
-/bin/cp -f /usr/lib/python3.6/site-packages/cortx/utils/message_bus/message_bus_server.py /opt/seagate/cortx/utils/bin/message_bus_server
-/bin/chmod +x /opt/seagate/cortx/utils/bin/message_bus_server
-
-# Copy cortx.conf.sample as cortx.conf
-if [ ! -f /etc/cortx/cortx.conf ]; then
-  cp ./cortx.conf.sample /etc/cortx/cortx.conf
-fi
-
+    def __init__(self, rc, message, *args):
+        super().__init__(rc, message, *args)

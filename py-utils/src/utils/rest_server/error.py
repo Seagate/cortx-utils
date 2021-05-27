@@ -1,5 +1,6 @@
-#!/bin/bash
-#
+#!/usr/bin/env python3
+
+# CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -14,24 +15,21 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-# Install_path
-install_path="/opt/seagate"
+from collections import defaultdict
 
-# Create /etc/cortx. This will be used for storing message_bus.conf file
-/bin/mkdir -p /etc/cortx
+class RestServerError(Exception):
+    """ Error class for cortx rest server """
 
-# Copy the setup_cli.py as utils_setup
+    def __init__(self, e):
+        self._e = e
 
-/bin/mkdir -p $install_path/cortx/utils/bin
-/bin/cp -f /usr/lib/python3.6/site-packages/cortx/setup/utils_setup.py $install_path/cortx/utils/bin/utils_setup
-/bin/chmod +x $install_path/cortx/utils/bin/utils_setup
+    def http_error(self):
+        return self._http_error(self._e)
 
-# Copy the message_bus_server.py as message_bus_server
-/bin/cp -f /usr/lib/python3.6/site-packages/cortx/utils/message_bus/message_bus_server.py /opt/seagate/cortx/utils/bin/message_bus_server
-/bin/chmod +x /opt/seagate/cortx/utils/bin/message_bus_server
-
-# Copy cortx.conf.sample as cortx.conf
-if [ ! -f /etc/cortx/cortx.conf ]; then
-  cp ./cortx.conf.sample /etc/cortx/cortx.conf
-fi
+    @staticmethod
+    def _http_error(except_name):
+        ret_code_map = defaultdict(lambda: 500)
+        ret_code_map['KeyError'] = (418, "Wrong Key in payload!") # wrong key from client
+        ret_code_map['KafkaException'] = (514, "MessageBus backend error!")
+        return ret_code_map[except_name]
 
