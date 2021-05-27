@@ -15,7 +15,9 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import errno
 from cortx.utils.message_bus import MessageBus
+from cortx.utils.message_bus.error import MessageBusError
 
 
 class MessageBusClient:
@@ -31,7 +33,8 @@ class MessageBusClient:
     def _get_conf(self, key: str):
         """ To get the client configurations """
         if key not in self._client_conf.keys():
-            raise MessageBusError(errno.EINVAL, "Invalid entry %s", key) 
+            raise MessageBusError(errno.ENOENT, "Could not find key %s in " +\
+                "conf file %s", key, self._message_bus.conf_file)
         return self._client_conf[key]
 
     def list_message_types(self) -> list:
