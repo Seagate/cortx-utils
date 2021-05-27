@@ -166,7 +166,7 @@ class Utils:
 
         # Start MessageBus rest service
         try:
-            cmd = "sudo systemctl start cortx_message_bus"
+            cmd = "systemctl start cortx_message_bus"
             cmd_proc = SimpleProcess(cmd)
             _, res_err, res_rc = cmd_proc.run()
 
@@ -233,7 +233,7 @@ class Utils:
 
         # Stop MessageBus rest service
         try:
-            cmd = "sudo systemctl stop cortx_message_bus"
+            cmd = "systemctl stop cortx_message_bus"
             cmd_proc = SimpleProcess(cmd)
             _, res_err, res_rc = cmd_proc.run()
 
