@@ -19,9 +19,9 @@
 #
 
 set PASSPHRASE [lindex $argv 0]
-set RPM [lindex $argv 1]
+set FILE [lindex $argv 1]
 
-spawn rpm --addsign {*}${RPM}
-expect -exact "Enter pass phrase: "
+spawn gpg --output {*}${FILE}.sig  --detach-sig {*}${FILE}
+expect -exact "Please enter the passphrase to unlock the secret key for the OpenPGP"
 send -- "${PASSPHRASE}\r"
 expect eof

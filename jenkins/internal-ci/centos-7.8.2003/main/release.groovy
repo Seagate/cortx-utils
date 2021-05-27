@@ -18,7 +18,6 @@ pipeline {
         release_tag = "$BUILD_NUMBER"
         BUILD_TO_DELETE = ""
         passphrase = credentials('rpm-sign-passphrase')
-        token = credentials('shailesh-github-token')
         ARTIFACT_LOCATION = "http://cortx-storage.colo.seagate.com/releases/cortx/github/$branch/$os_version"
         thrid_party_dir = "$release_dir/third-party-deps/centos/centos-7.8.2003-$thrid_party_version/"
 		python_deps = "$release_dir/third-party-deps/python-deps/python-packages-2.0.0-latest"
@@ -208,41 +207,47 @@ pipeline {
 			}
 		}
 		
-		stage ('Generate ISO Image') {
+
+		stage ('Generate Release ISO') {
 		    steps {
-		        sh label: 'Generate ISO Image', script:'''
-		        rpm -q genisoimage || yum install genisoimage -y
 
-                mkdir -p $cortx_build_dir/$release_tag/sw_upgrade/{3rd_party,cortx_iso,python_deps}
-		pushd $cortx_build_dir/$release_tag/sw_upgrade/cortx_iso
-		cp -r $integration_dir/$release_tag/prod/* .
-				
-                mkdir -p $cortx_build_dir/$release_tag/cortx_iso
-		pushd $cortx_build_dir/$release_tag/cortx_iso
-                mv $integration_dir/$release_tag/prod/* . 
-				
-                popd
-
+                sh label: 'Release ISO', script: '''
+				mkdir -p $cortx_build_dir/$release_tag/cortx_iso
+		        mv $integration_dir/$release_tag/prod/* $cortx_build_dir/$release_tag/cortx_iso
                 mkdir -p $integration_dir/$release_tag/prod/iso
-                pushd $integration_dir/$release_tag/prod/iso
-               
-                    genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -publisher Seagate -o cortx-$version-$BUILD_NUMBER.iso $cortx_build_dir/$release_tag/sw_upgrade
-                    
-                    genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -publisher Seagate -o cortx-$version-$BUILD_NUMBER-single.iso $cortx_build_dir/$release_tag
-                                    
-                    cortx_prvsnr_preq=$(ls "$cortx_build_dir/$release_tag/cortx_iso" | grep "python36-cortx-prvsnr" | cut -d- -f5 | cut -d_ -f2 | cut -d. -f1 | sed s/"git"//)
-                    
-                    wget -O cortx-prep-$version-$BUILD_NUMBER.sh https://raw.githubusercontent.com/Seagate/cortx-prvsnr/$cortx_prvsnr_preq/cli/src/cortx_prep.sh
-
-                    ln -s $cortx_os_iso $(basename $cortx_os_iso)
-
-                popd
-                           
                 
+                genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -publisher Seagate -o $integration_dir/$release_tag/prod/iso/cortx-$version-$BUILD_NUMBER-single.iso $cortx_build_dir/$release_tag
+                '''
+
+                sh label: 'Upgrade ISO', script: '''
+                mkdir -p $cortx_build_dir/$release_tag/sw_upgrade/{3rd_party,cortx_iso,python_deps}
+                createrepo -v $cortx_build_dir/$release_tag/sw_upgrade/3rd_party/
+                find $cortx_build_dir/$release_tag/3rd_party/ -not -path '*repodata*' -type d  -printf '%P\n' | xargs -t -I % sh -c '{ mkdir -p $cortx_build_dir/$release_tag/sw_upgrade/3rd_party/%; createrepo -v $cortx_build_dir/$release_tag/sw_upgrade/3rd_party/%; }'
+		        cp -r $cortx_build_dir/$release_tag/cortx_iso/* $cortx_build_dir/$release_tag/sw_upgrade/cortx_iso
+                cp $cortx_build_dir/$release_tag/3rd_party/THIRD_PARTY_RELEASE.INFO $cortx_build_dir/$release_tag/sw_upgrade/3rd_party
+                
+                genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -publisher Seagate -o $integration_dir/$release_tag/prod/iso/cortx-$version-$BUILD_NUMBER-upgrade.iso $cortx_build_dir/$release_tag/sw_upgrade
+                rm -rf $cortx_build_dir/$release_tag/sw_upgrade
+                
+                '''
+                sh label: "Sign ISO files", script: '''
+                pushd scripts/rpm-signing
+                    ./file-sign.sh ${passphrase} $integration_dir/$release_tag/prod/iso/cortx-$version-$BUILD_NUMBER-upgrade.iso
+                    pkill gpg-agent
+                    ./file-sign.sh ${passphrase} $integration_dir/$release_tag/prod/iso/cortx-$version-$BUILD_NUMBER-single.iso 
+                popd
+                '''
+
+		        sh label: 'Additional Files', script:'''
+                cortx_prvsnr_preq=$(ls "$cortx_build_dir/$release_tag/cortx_iso" | grep "python36-cortx-prvsnr" | cut -d- -f5 | cut -d_ -f2 | cut -d. -f1 | sed s/"git"//)
+                    
+                wget -O $integration_dir/$release_tag/prod/iso/cortx-prep-$version-$BUILD_NUMBER.sh https://raw.githubusercontent.com/Seagate/cortx-prvsnr/$cortx_prvsnr_preq/cli/src/cortx_prep.sh
+
+                ln -s $cortx_os_iso $integration_dir/$release_tag/prod/iso/$(basename $cortx_os_iso)
+ 
                 mv $cortx_build_dir/$release_tag/* $integration_dir/$release_tag/prod
-                cp $integration_dir/$release_tag/prod/3rd_party/THIRD_PARTY_RELEASE.INFO $integration_dir/$release_tag/prod
-                cp $integration_dir/$release_tag/prod/cortx_iso/RELEASE.INFO $integration_dir/$release_tag/prod
-                				
+                cp $integration_dir/$release_tag/prod/*/*.INFO $integration_dir/$release_tag/prod
+                		
                 rm -rf "$cortx_build_dir/$release_tag"
 		        '''
 		    }
