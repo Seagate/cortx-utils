@@ -164,7 +164,7 @@ class Utils:
         except MessageBusError as e:
             raise SetupError(e.rc, "Unable to create message_type. %s", e)
 
-        # Start MessageBus rest service
+        # Start MessageBus Service
         cmd = SimpleProcess("systemctl start cortx_message_bus")
         _, stderr, res_rc = cmd.run()
 
@@ -226,7 +226,7 @@ class Utils:
                 raise SetupError(errors.OP_FAILED, "Can not reset Message Bus. \
                     %s", e)
 
-        # Stop MessageBus rest service
+        # Stop MessageBus Service
         cmd = SimpleProcess("systemctl stop cortx_message_bus")
         _, stderr, res_rc = cmd.run()
 
