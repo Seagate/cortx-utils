@@ -16,8 +16,8 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import inspect
-import errno
 from cortx.utils.message_bus.error import MessageBusError
+from cortx.utils import errors
 
 
 class MessageBrokerFactory:
@@ -39,8 +39,8 @@ class MessageBrokerFactory:
                     MessageBrokerFactory._brokers[broker_type] = message_broker
                     return message_broker
 
-        raise MessageBusError(errno.EINVAL, "Invalid broker type %s.", \
-            broker_type)
+        raise MessageBusError(errors.ERR_INVALID_SERVICE_NAME, \
+            "Invalid service name %s.", broker_type)
 
 
 class MessageBroker:
