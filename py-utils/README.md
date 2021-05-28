@@ -34,7 +34,9 @@ $ sudo yum install libffi-devel
 ```
 
 ## Clone
-$ git clone --recursive https://github.com/Seagate/cortx-utils -b main
+```
+git clone --recursive https://github.com/Seagate/cortx-utils -b main
+```
 
 
 ## Build
