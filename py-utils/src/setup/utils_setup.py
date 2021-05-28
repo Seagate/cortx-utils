@@ -15,17 +15,21 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import sys
-import errno
-import argparse
 import inspect
+import argparse
 import traceback
 
 from cortx.setup import Utils
+from cortx.utils.log import Log
+from cortx.setup.utils import SetupError
+
+Log.init('utils_setup', '/var/log/cortx/utils', level='INFO', backup_count=5,\
+         file_size_in_mb=5)
 
 
 class Cmd:
     """ Setup Command """
-    _index = "setup"
+    _index = 'setup'
 
     def __init__(self, args: dict):
         self._url = args.config
@@ -42,7 +46,6 @@ class Cmd:
     @staticmethod
     def usage(prog: str):
         """ Print usage instructions """
-
         sys.stderr.write(
             f"usage: {prog} [-h] <cmd> --config <url> <args>...\n"
             f"where:\n"
@@ -54,11 +57,10 @@ class Cmd:
         """ Return the Command after parsing the command line. """
 
         parser = argparse.ArgumentParser(desc)
-
         subparsers = parser.add_subparsers()
         cmds = inspect.getmembers(sys.modules[__name__])
         cmds = [(x, y) for x, y in cmds
-            if x.endswith("Cmd") and x != "Cmd"]
+            if x.endswith('Cmd') and x != 'Cmd']
         for name, cmd in cmds:
             cmd.add_args(subparsers, cmd, name)
         args = parser.parse_args(argv)
@@ -76,7 +78,7 @@ class Cmd:
 
 class PostInstallCmd(Cmd):
     """ PostInstall Setup Cmd """
-    name = "post_install"
+    name = 'post_install'
 
     def __init__(self, args: dict):
         super().__init__(args)
@@ -89,7 +91,7 @@ class PostInstallCmd(Cmd):
 
 class PrepareCmd(Cmd):
     """ Prepare Setup Cmd """
-    name = "prepare"
+    name = 'prepare'
 
     def __init__(self, args: dict):
         super().__init__(args)
@@ -100,7 +102,7 @@ class PrepareCmd(Cmd):
 
 class ConfigCmd(Cmd):
     """ Setup Config Cmd """
-    name = "config"
+    name = 'config'
 
     def __init__(self, args):
         super().__init__(args)
@@ -113,7 +115,7 @@ class ConfigCmd(Cmd):
 
 class InitCmd(Cmd):
     """ Init Setup Cmd """
-    name = "init"
+    name = 'init'
 
     def __init__(self, args):
         super().__init__(args)
@@ -126,7 +128,7 @@ class InitCmd(Cmd):
 
 class TestCmd(Cmd):
     """ Test Setup Cmd """
-    name = "test"
+    name = 'test'
 
     def __init__(self, args):
         super().__init__(args)
@@ -139,7 +141,7 @@ class TestCmd(Cmd):
 
 class ResetCmd(Cmd):
     """ Reset Setup Cmd """
-    name = "reset"
+    name = 'reset'
 
     def __init__(self, args):
         super().__init__(args)
@@ -152,7 +154,7 @@ class ResetCmd(Cmd):
 
 class CleanupCmd(Cmd):
     """ Cleanup Setup Cmd """
-    name = "cleanup"
+    name = 'cleanup'
 
     def __init__(self, args: dict):
         super().__init__(args)
@@ -166,15 +168,22 @@ class CleanupCmd(Cmd):
 def main(argv: dict):
     try:
         desc = "CORTX Utils Setup command"
+        Log.info(f"Starting utils_setup {argv[1]} ")
         command = Cmd.get_command(desc, argv[1:])
         rc = command.process()
         if rc != 0:
-            raise ValueError(f"Failed to run {argv[1]}")
-    except Exception as e:
+            Log.info(f"Command {command} {argv[1]} finished with exit " \
+                f"code {rc}")
+            sys.exit(rc)
+        Log.info(f"Command {command} {argv[1]} finished with exit " \
+            f"code {rc}")
+    except SetupError as e:
         sys.stderr.write("error: %s\n\n" % str(e))
         sys.stderr.write("%s\n" % traceback.format_exc())
         Cmd.usage(argv[0])
-        return errno.EINVAL
+    except Exception as e:
+        sys.stderr.write("error: %s\n\n" % str(e))
+        sys.stderr.write("%s\n" % traceback.format_exc())
 
 
 if __name__ == '__main__':

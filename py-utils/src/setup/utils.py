@@ -15,14 +15,19 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
-import errno
 import json
-from cortx.utils.conf_store import Conf
-from cortx.utils.process import SimpleProcess
-from cortx.utils.validator.v_confkeys import ConfKeysV
-from cortx.utils.validator.v_service import ServiceV
-from cortx.utils.message_bus.error import MessageBusError
+import errno
 from cortx.utils import errors
+from cortx.utils.log import Log
+from cortx.utils.conf_store import Conf
+from cortx.utils.conf_store.error import ConfError
+from cortx.utils.validator.v_service import ServiceV
+from cortx.utils.validator.v_confkeys import ConfKeysV
+from cortx.utils.message_bus.error import MessageBusError
+
+
+Log.init('utils_setup', '/var/log/cortx/utils', level='INFO', backup_count=5,\
+         file_size_in_mb=5)
 
 
 class SetupError(Exception):
@@ -33,8 +38,9 @@ class SetupError(Exception):
         self._desc = message % (args)
 
     def __str__(self):
-        if self._rc == 0: return self._desc
-        return "error(%d): %s" %(self._rc, self._desc)
+        if self._rc == 0:
+            return self._desc
+        return "error(%d): %s" % (self._rc, self._desc)
 
 
 class Utils:
@@ -44,36 +50,46 @@ class Utils:
     def _create_msg_bus_config(kafka_server_list: list, port_list: list):
         """ Create the config file required for message bus """
 
-        with open(r'/etc/cortx/message_bus.conf.sample', 'w+') as file:
+        conf_file = '/etc/cortx/message_bus.conf'
+        with open(f'{conf_file}.sample', 'w+') as file:
             json.dump({}, file, indent=2)
-        Conf.load('index', 'json:///etc/cortx/message_bus.conf.sample')
-        Conf.set('index', 'message_broker>type', 'kafka')
-        for i in range(len(kafka_server_list)):
-            Conf.set('index', f'message_broker>cluster[{i}]', \
-                {'server': kafka_server_list[i], 'port': port_list[i]})
-        Conf.save('index')
+        try:
+            Conf.load('pre_index', f'json://{conf_file}')
+            Conf.load('index', f'json://{conf_file}.sample')
+            pre_servers = Conf.get('pre_index', 'message_broker>cluster')
+            Conf.set('index', 'message_broker>type', 'kafka')
+            servers = [{'server': kafka_server_list[i], 'port': port_list[i]}
+                       for i in range(len(kafka_server_list)) if
+                       {'server': kafka_server_list[i],
+                        'port': port_list[i]} not in pre_servers]
+            servers.extend(pre_servers)
+            Conf.set('index', 'message_broker>cluster', servers)
+            Conf.save('index')
+        except ConfError as e:
+            SetupError(e.rc, "Unable to load servers from config file %s %s",\
+                conf_file, e)
+        except Exception as e:
+            SetupError(errors.ERR_OP_FAILED, "Unable to load servers from "\
+                "config file %s %s", conf_file, e)
         # copy this conf file as message_bus.conf
         try:
-            os.rename('/etc/cortx/message_bus.conf.sample', \
-                      '/etc/cortx/message_bus.conf')
+            os.rename(f'{conf_file}.sample', conf_file)
         except OSError as e:
-            raise SetupError(e.errno, "Failed to create \
-                /etc/cortx/message_bus.conf %s", e)
+            raise SetupError(e.errno, "Failed to create %s %s", conf_file, e)
 
     @staticmethod
     def _get_kafka_server_list(conf_url: str):
         """ Reads the ConfStore and derives keys related to message bus """
-
         Conf.load('cluster_config', conf_url)
-
-        key_list = ['cortx>software>common>message_bus_type', \
-                    'cortx>software>kafka>servers']
+        key_list = ['cortx>software>common>message_bus_type',
+                   'cortx>software>kafka>servers']
         ConfKeysV().validate('exists', 'cluster_config', key_list)
-
         msg_bus_type = Conf.get('cluster_config', key_list[0])
         if msg_bus_type != 'kafka':
-            raise SetupError(errno.EINVAL, "Message Bus do not support type \
-                %s", msg_bus_type)
+            Log.error(f"Message bus type {msg_bus_type} does not support" \
+                      f" message bus ")
+            raise SetupError(errno.EINVAL, "Message Bus do not support " +\
+                "type %s" % msg_bus_type)
         # Read the required keys
         all_servers = Conf.get('cluster_config', key_list[1])
         no_servers = len(all_servers)
@@ -89,8 +105,10 @@ class Utils:
                 port_list.append(all_servers[i][rc + 1:])
                 kafka_server_list.append(all_servers[i][:rc])
         if len(kafka_server_list) == 0:
-            raise SetupError(errno.EINVAL, "No valid Kafka server info \
-                provided for config key: %s", key_list[1])
+            Log.error(f"Missing config entry {key_list} in config file "\
+                f"{conf_url}")
+            raise SetupError(errno.EINVAL, "Missing config entry %s in config"
+                " file %s", key_list, conf_url)
         return kafka_server_list, port_list
 
     @staticmethod
@@ -98,7 +116,6 @@ class Utils:
         """ Reads the ConfStore and derives keys related to Event Message """
 
         Conf.load('server_info', conf_url)
-
         key_list = [f'server_node>{machine_id}']
         ConfKeysV().validate('exists', 'server_info', key_list)
         server_info = Conf.get('server_info', key_list[0])
@@ -108,19 +125,18 @@ class Utils:
     def _create_cluster_config(server_info: dict):
         """ Create the config file required for Event Message """
 
-        with open(r'/etc/cortx/cluster.conf.sample', 'w+') as file:
+        conf_file = '/etc/cortx/cluster.conf'
+        with open(f'{conf_file}.sample', 'w+') as file:
             json.dump({}, file, indent=2)
-        Conf.load('cluster', 'json:///etc/cortx/cluster.conf.sample')
+        Conf.load('cluster', f'json://{conf_file}.sample')
         for key, value in server_info.items():
             Conf.set('cluster', f'server_node>{key}', value)
         Conf.save('cluster')
         # copy this conf file as cluster.conf
         try:
-            os.rename('/etc/cortx/cluster.conf.sample', \
-                '/etc/cortx/cluster.conf')
+            os.rename(f'{conf_file}.sample', conf_file)
         except OSError as e:
-            raise SetupError(e.errno, "Failed to create /etc/cortx/cluster.conf\
-                %s", e)
+            raise SetupError(e.errno, "Failed to create %s %s", conf_file, e)
 
     @staticmethod
     def validate(phase: str):
@@ -136,20 +152,14 @@ class Utils:
         # check whether zookeeper and kafka are running
         ServiceV().validate('isrunning', ['kafka-zookeeper.service', \
             'kafka.service'])
-
-        # Check python packages and install if something is missing
-        cmd = "pip3 freeze"
-        cmd_proc = SimpleProcess(cmd)
-        stdout, stderr, rc = cmd_proc.run()
-        result = stdout.decode('utf-8') if rc == 0 else \
-            stderr.decode('utf-8')
+        # Check python packages installed
         with open('/opt/seagate/cortx/utils/conf/requirements.txt') as f:
             packages = f.readlines()
-            # packages will have \n in every string. Need to remove that
-            for package in enumerate(packages):
-                if result.find(package[1][:-1]) == -1:
-                    raise SetupError(errno.EINVAL, "Required python package %s \
-                        is missing", package[1][:-1])
+            packages = [
+                f"{pkg.strip().split('==')[0]} ({pkg.strip().split('==')[1]})"
+                for pkg in packages]
+            from cortx.utils.validator.v_pkg import PkgV
+            PkgV().validate(v_type='pip3s', args=packages)
         return 0
 
     @staticmethod
@@ -168,19 +178,19 @@ class Utils:
     @staticmethod
     def config(conf_url: str):
         """ Performs configurations """
-
         # Message Bus Config
         kafka_server_list, port_list = Utils._get_kafka_server_list(conf_url)
         if kafka_server_list is None:
-            raise SetupError(errno.EINVAL, "Could not find kafka server \
-                information in %s", conf_url)
+            Log.error(f"Could not get kafka server info. from {conf_url}")
+            raise SetupError(errno.EINVAL, "Could not find kafka server " +\
+                "information in %s", conf_url)
         Utils._create_msg_bus_config(kafka_server_list, port_list)
-
-        # Populate /etc/cortx/cluster.conf
+        # Cluster config
         server_info = Utils._get_server_info(conf_url, Conf.machine_id)
         if server_info is None:
-            raise SetupError(errno.EINVAL, "Could not find server information \
-                in %s", conf_url)
+            Log.error(f"Could not get server information from {conf_url}")
+            raise SetupError(errno.EINVAL, "Could not find server " +\
+                "information in %s", conf_url)
         Utils._create_cluster_config(server_info)
         return 0
 
@@ -194,14 +204,15 @@ class Utils:
         # Recieve the same & validate
         msg = msg_test.receive_msg()
         if str(msg.decode('utf-8')) != "Test Message":
-            raise SetupError(errno.EINVAL, "Unable to test the config. Received \
+            Log.error("Could not test utils config, fails in matching sent " +\
+                "and received message.")
+            raise SetupError(errno.EINVAL, "Unable to test the config. Received\
                 message is %s", msg)
         return 0
 
     @staticmethod
     def reset():
         """ Remove/Delete all the data that was created after post install """
-
         conf_file = '/etc/cortx/message_bus.conf'
         if os.path.exists(conf_file):
             # delete message_types
@@ -214,14 +225,15 @@ class Utils:
             except MessageBusError as e:
                 raise SetupError(e.rc, "Can not reset Message Bus. %s", e)
             except Exception as e:
-                raise SetupError(errors.ERR_OP_FAILED, "Can not reset Message Bus. \
-                    %s", e)
+                raise SetupError(errors.ERR_OP_FAILED, "Can not reset Message  \
+                    Bus. %s", e)
         return 0
 
     @staticmethod
     def cleanup():
         """ Cleanup configs and logs. """
-        config_files = ['/etc/cortx/message_bus.conf', '/etc/cortx/cluster.conf']
+        config_files = ['/etc/cortx/message_bus.conf', \
+            '/etc/cortx/cluster.conf']
         for each_file in config_files:
             if os.path.exists(each_file):
                 # delete data/config stored
