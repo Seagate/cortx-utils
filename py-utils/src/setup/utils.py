@@ -176,7 +176,7 @@ class Utils:
                 information in %s", conf_url)
         Utils._create_msg_bus_config(kafka_server_list, port_list)
 
-        # Cluster config
+        # Populate /etc/cortx/cluster.conf
         server_info = Utils._get_server_info(conf_url, Conf.machine_id)
         if server_info is None:
             raise SetupError(errno.EINVAL, "Could not find server information \
