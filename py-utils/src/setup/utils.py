@@ -176,7 +176,7 @@ class Utils:
                 information in %s", conf_url)
         Utils._create_msg_bus_config(kafka_server_list, port_list)
 
-        # Cluster config
+        # Populate /etc/cortx/cluster.conf
         server_info = Utils._get_server_info(conf_url, Conf.machine_id)
         if server_info is None:
             raise SetupError(errno.EINVAL, "Could not find server information \
@@ -214,7 +214,7 @@ class Utils:
             except MessageBusError as e:
                 raise SetupError(e.rc, "Can not reset Message Bus. %s", e)
             except Exception as e:
-                raise SetupError(errors.OP_FAILED, "Can not reset Message Bus. \
+                raise SetupError(errors.ERR_OP_FAILED, "Can not reset Message Bus. \
                     %s", e)
         return 0
 

@@ -15,11 +15,12 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import errno
 from cortx.utils.message_bus.message_broker import MessageBrokerFactory
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.conf_store import Conf
+from cortx.utils.conf_store.error import ConfError
 from cortx.template import Singleton
-import errno
 
 
 class MessageBus(metaclass=Singleton):
@@ -33,10 +34,12 @@ class MessageBus(metaclass=Singleton):
             Conf.load('message_bus', self.conf_file)
             self._broker_conf = Conf.get('message_bus', 'message_broker')
             broker_type = self._broker_conf['type']
-
+        except ConfError as e:
+            raise MessageBusError(e.rc, "Error while parsing " +\
+                "configuration file %s. %s.", self.conf_file, e)
         except Exception as e:
-            raise MessageBusError(errno.EINVAL, "Invalid conf in %s. %s", \
-                self.conf_file, e)
+            raise MessageBusError(errno.ENOENT, "Error while parsing " +\
+                "configuration file %s. %s.", self.conf_file, e)
 
         self._broker = MessageBrokerFactory.get_instance(broker_type, \
                 self._broker_conf)
