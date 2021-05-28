@@ -19,6 +19,7 @@ import errno
 import argparse
 import inspect
 import sys
+import subprocess
 import traceback
 from argparse import RawTextHelpFormatter
 from cortx.utils.conf_store import Conf
@@ -70,6 +71,20 @@ class ConfCli:
         return Format.dump(val_list, format_type)
 
     @staticmethod
+    def get_diff(args) -> str:
+        """ Compare two diffenent string value for the given keys """
+        string_1 = ConfCli.get(args).replace('"', '\\"')
+        ConfCli._index = "string_diff"
+        args.url = args.diff
+        ConfCli.init(args.url)
+        string_2 = ConfCli.get(args).replace('"', '\\"')
+
+        cmd = """bash -c 'diff <( printf "%s\n" ) <( printf "%s\n" )'""" %(string_1, string_2)
+        ps = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        output = str(ps.communicate()[0], 'utf-8')
+        return output
+
+    @staticmethod
     def delete(args):
         """ Deletes given set of keys from the config """
         key_list = args.args[0].split(';')
@@ -102,6 +117,25 @@ class GetCmd:
             "Example command:\n"
             "# conf json:///tmp/csm.conf get 'k6>k4[2]>k5'\n\n")
         s_parser.set_defaults(func=ConfCli.get)
+        s_parser.add_argument('-f', dest='format', help=
+                'Output Format json(default), yaml or toml')
+        s_parser.add_argument('args', nargs='+', default=[], help='args')
+
+
+class GetDiffCmd:
+    """ Get Diff Cmd Structure """
+
+    @staticmethod
+    def add_args(sub_parser) -> None:
+        s_parser = sub_parser.add_parser('get_diff', help=
+            "Retrieves and compare the values for one or more keys\n."
+            "Multiple keys are separated using ';'.\n"
+            "Example(s): 'k1', 'k1>k2;k3', 'k4[2]>k5', 'k6>k4[2]>k5'\n\n"
+            "Example command:\n"
+            "# conf yaml:///tmp/csm.conf yaml:///tmp/csm.conf diff 'k6'\n\n")
+        s_parser.set_defaults(func=ConfCli.get_diff)
+        s_parser.add_argument('-i', dest='diff', help=
+                'Compare file', required=True)
         s_parser.add_argument('-f', dest='format', help=
                 'Output Format json(default), yaml or toml')
         s_parser.add_argument('args', nargs='+', default=[], help='args')
