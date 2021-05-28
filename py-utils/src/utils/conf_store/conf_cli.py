@@ -81,8 +81,8 @@ class ConfCli:
 
         cmd = """bash -c 'diff <( printf "%s\n" ) <( printf "%s\n" )'""" %(string_1, string_2)
         ps = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        output = str(ps.communicate()[0], 'utf-8')
-        return output
+        difference = str(ps.communicate()[0], 'utf-8')
+        return difference
 
     @staticmethod
     def delete(args):
@@ -132,7 +132,7 @@ class GetDiffCmd:
             "Multiple keys are separated using ';'.\n"
             "Example(s): 'k1', 'k1>k2;k3', 'k4[2]>k5', 'k6>k4[2]>k5'\n\n"
             "Example command:\n"
-            "# conf yaml:///tmp/csm.conf yaml:///tmp/csm.conf diff 'k6'\n\n")
+            "# conf yaml:///tmp/csm.conf get_diff 'k6' -i yaml:///tmp/csm.conf \n\n")
         s_parser.set_defaults(func=ConfCli.get_diff)
         s_parser.add_argument('-i', dest='diff', help=
                 'Compare file', required=True)
