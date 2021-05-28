@@ -27,7 +27,9 @@ sudo yum install gcc rpm-build python36 python36-pip python36-devel python36-set
 ```
 
 ## Clone
-$ git clone --recursive https://github.com/Seagate/cortx-utils -b main
+```
+git clone --recursive https://github.com/Seagate/cortx-utils -b main
+```
 
 
 ## Build
