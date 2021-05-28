@@ -17,7 +17,7 @@
 
 import errno
 import subprocess
-from subprocess import TimeoutExpired, CalledProcessError
+from subprocess import TimeoutExpired, CalledProcessError  # nosec
 
 class Process:
     def __init__(self, cmd):
