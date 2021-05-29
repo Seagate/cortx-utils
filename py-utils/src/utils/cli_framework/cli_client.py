@@ -16,6 +16,7 @@
 from importlib import import_module
 import aiohttp
 
+
 class Client:
     """ Base class for invoking business logic functionality """
 
@@ -27,6 +28,7 @@ class Client:
 
     def process_request(self, session, cmd, action, options, args, method):
         pass
+
 
 class DirectClient(Client):
     """Class Handles Direct Calls for CLI"""
