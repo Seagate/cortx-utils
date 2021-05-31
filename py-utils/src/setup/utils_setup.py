@@ -171,10 +171,6 @@ def main(argv: dict):
         Log.info(f"Starting utils_setup {argv[1]} ")
         command = Cmd.get_command(desc, argv[1:])
         rc = command.process()
-        if rc != 0:
-            Log.info(f"Command {command} {argv[1]} finished with exit " \
-                f"code {rc}")
-            sys.exit(rc)
     except SetupError as e:
         sys.stderr.write("error: %s\n\n" % str(e))
         sys.stderr.write("%s\n" % traceback.format_exc())

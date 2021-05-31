@@ -68,11 +68,11 @@ class Utils:
             Conf.set('index', 'message_broker>cluster', servers)
             Conf.save('index')
         except ConfError as e:
-            SetupError(e.rc, "Unable to load servers from config file %s %s",\
-                conf_file, e)
+            raise SetupError(e.rc, "Unable to load servers from config file"\
+                " %s %s", conf_file, e)
         except Exception as e:
-            SetupError(errors.ERR_OP_FAILED, "Unable to load servers from "\
-                "config file %s %s", conf_file, e)
+            raise SetupError(errors.ERR_OP_FAILED, "Unable to load servers "\
+                "from config file %s %s", conf_file, e)
         # copy this conf file as message_bus.conf
         try:
             os.rename(f'{conf_file}.sample', conf_file)
@@ -88,10 +88,10 @@ class Utils:
         ConfKeysV().validate('exists', 'cluster_config', key_list)
         msg_bus_type = Conf.get('cluster_config', key_list[0])
         if msg_bus_type != 'kafka':
-            Log.error(f"Message bus type {msg_bus_type} does not support" \
-                      f" message bus ")
+            Log.error(f"Message Bus do not support message bus type "\
+                f"{msg_bus_type}")
             raise SetupError(errno.EINVAL, "Message Bus do not support " +\
-                "type %s" % msg_bus_type)
+                "message bus type %s" % msg_bus_type)
         # Read the required keys
         all_servers = Conf.get('cluster_config', key_list[1])
         no_servers = len(all_servers)
@@ -191,14 +191,14 @@ class Utils:
         # Message Bus Config
         kafka_server_list, port_list = Utils._get_kafka_server_list(conf_url)
         if kafka_server_list is None:
-            Log.error(f"Could not get kafka server info. from {conf_url}")
+            Log.error(f"Could not find kafka server information in {conf_url}")
             raise SetupError(errno.EINVAL, "Could not find kafka server " +\
                 "information in %s", conf_url)
         Utils._create_msg_bus_config(kafka_server_list, port_list)
         # Cluster config
         server_info = Utils._get_server_info(conf_url, Conf.machine_id)
         if server_info is None:
-            Log.error(f"Could not get server information from {conf_url}")
+            Log.error(f"Could not find server information in {conf_url}")
             raise SetupError(errno.EINVAL, "Could not find server " +\
                 "information in %s", conf_url)
         Utils._create_cluster_config(server_info)
@@ -214,8 +214,7 @@ class Utils:
         # Recieve the same & validate
         msg = msg_test.receive_msg()
         if str(msg.decode('utf-8')) != "Test Message":
-            Log.error("Could not test utils config, fails in matching sent " +\
-                "and received message.")
+            Log.error(f"Unable to test the config. Received message is {msg}")
             raise SetupError(errno.EINVAL, "Unable to test the config. Received\
                 message is %s", msg)
         return 0
