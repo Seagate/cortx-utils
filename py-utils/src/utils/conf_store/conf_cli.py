@@ -130,12 +130,12 @@ class GetDiffCmd:
 
     @staticmethod
     def add_args(sub_parser) -> None:
-        s_parser = sub_parser.add_parser('get_diff', help=
+        s_parser = sub_parser.add_parser('diff', help=
             "Retrieves and compare the values for one or more keys\n."
             "Multiple keys are separated using ';'.\n"
             "Example(s): 'k1', 'k1>k2;k3', 'k4[2]>k5', 'k6>k4[2]>k5'\n\n"
             "Example command:\n"
-            "# conf yaml:///tmp/csm.conf get_diff 'k6' -i yaml:///tmp/csm.conf \n\n")
+            "# conf yaml:///tmp/old_release.info diff 'version' -i yaml:///tmp/new_release.conf \n\n")
         s_parser.set_defaults(func=ConfCli.get_diff)
         s_parser.add_argument('-i', dest='diff', help=
                 'Compare file', required=True)
