@@ -19,7 +19,7 @@ import errno
 import argparse
 import inspect
 import sys
-import subprocess
+import os
 import traceback
 from argparse import RawTextHelpFormatter
 from cortx.utils.conf_store import Conf
@@ -80,9 +80,8 @@ class ConfCli:
         string_2 = ConfCli.get(args).replace('"', '\\"')
 
         cmd = """bash -c 'diff <( printf "%s\n" ) <( printf "%s\n" )'""" %(string_1, string_2)
-        ps = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        difference = str(ps.communicate()[0], 'utf-8')
-        return difference
+        output = os.popen(cmd).read()
+        return output
 
     @staticmethod
     def delete(args):
