@@ -60,21 +60,22 @@ class KvPayload:
     def _get_keys(self, keys: list, data, pkey: str = None,
         key_index: bool = True) -> None:
         if isinstance(data, list):
-            if key_index == True:
-                for i in range(len(data)):
-                    keys.append("%s[%d]" % (pkey, i))
-            else:
-                keys.append(pkey)
-        elif isinstance(data, dict):
-            for key in data.keys():
-                nkey = key if pkey is None else "%s%s%s" % (pkey, self._delim,
-                                                            key)
-                if not isinstance(data[key], (dict, list)):
-                    keys.append(nkey)
-                else:
-                    self._get_keys(keys, data[key], nkey, key_index)
-        else:
-            raise KvError(errno.ENOSYS, "Cant handle type %s", type(data))
+            for index, d in enumerate(data):
+                if isinstance(d, dict):
+                    index_suffix = f"[{index}]" if key_index else ""
+                    newkey = None if not pkey else "%s%s" % (pkey, index_suffix)
+                    self._get_keys(keys, d, newkey, key_index)
+                elif isinstance(d, str):
+                    if pkey not in keys:
+                        keys.append(pkey)
+        elif isinstance(data,  dict):
+            for key, val in data.items():
+                newkey = key if pkey is None else "%s%s%s" % (pkey, self._delim, key)
+                if isinstance(val, (list, dict)):
+                    self._get_keys(keys, val, newkey, key_index)
+                elif isinstance(val, str):
+                    if newkey not in keys:
+                        keys.append(newkey)
 
     def _set(self, key: str, val: str, data: dict):
         k = key.split(self._delim, 1)
