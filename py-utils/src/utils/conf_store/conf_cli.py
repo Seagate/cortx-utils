@@ -19,8 +19,8 @@ import errno
 import argparse
 import inspect
 import sys
-import os
 import traceback
+from cortx.utils.process import SimpleProcess
 from argparse import RawTextHelpFormatter
 from cortx.utils.conf_store import Conf
 from cortx.utils.conf_store.error import ConfError
@@ -73,14 +73,18 @@ class ConfCli:
     @staticmethod
     def get_diff(args) -> str:
         """ Compare two diffenent string value for the given keys """
-        string_1 = ConfCli.get(args).replace('"', '\\"')
+        string_1 = ConfCli.get(args).replace('"', '\"')
         ConfCli._index = "string_diff"
         args.url = args.diff
         ConfCli.init(args.url)
-        string_2 = ConfCli.get(args).replace('"', '\\"')
+        string_2 = ConfCli.get(args).replace('"', '\"')
 
-        cmd = """bash -c 'diff <( printf "%s\n" ) <( printf "%s\n" )'""" %(string_1, string_2)
-        output = os.popen(cmd).read()
+        cmd = """ bash -c "diff <(echo "%s") <(echo "%s")" """ %(string_1, string_2)
+        cmd_proc = SimpleProcess([cmd])
+        cmd_proc.shell = True
+        stdout, stderr, rc = cmd_proc.run()
+        output = stdout.decode('utf-8') if rc == 1 else \
+            stderr.decode('utf-8')
         return output
 
     @staticmethod
