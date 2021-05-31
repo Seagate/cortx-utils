@@ -1,0 +1,267 @@
+{
+  "nodes": [
+    {
+      "uid": "cortx_node_1",
+      "last_fetched": "Wed May 19 16:53:02 2021",
+      "compute": [
+        {
+          "node_type": "server",
+          "uid": "sm_001",
+          "make": "supermicro",
+          "model": "6019u-trt",
+          "OS": "CentOS Linux release 7.8.2003 (Core)",
+          "last_fetched": "Wed May 19 16:53:02 2021",
+          "hw": {
+            "disks": {},
+            "psus": [
+              {
+                "uid": "psu_001",
+                "location": "slot-from-left:001",
+                "fru": "true",
+                "last_fetched": "Wed May 19 16:53:02 2021",
+                "health": {
+                  "status": "OK",
+                  "description": "PSU is in good health",
+                  "recommendation": "None",
+                  "specifics": {
+                    "PowerCable": {
+                      "connection": "OK"
+                    }
+                  }
+                }
+              }
+            ],
+            "platform_sensors": {
+              "temperature_sensors": [
+                {
+                  "uid": "CPU1_Temp",
+                  "location": "slot-from-left:003",
+                  "fru": "false",
+                  "last_fetched": "Wed May 19 16:53:02 2021",
+                  "health": {
+                    "status": "OK",
+                    "description": "CPU1_Temp is in good health",
+                    "recommendation": "None",
+                    "specifics": {
+                      "current_rpm": 20.0,
+                      "lower critical threshold": 5.0,
+                      "upper_critical_threshold": "98.000"
+                    }
+                  }
+                }
+              ],
+              "voltage_sensors": [
+                {
+                  "uid": "12V",
+                  "location": "slot-from-left:003",
+                  "fru": "false",
+                  "last_fetched": "Wed May 19 16:53:02 2021",
+                  "health": {
+                    "status": "OK",
+                    "description": "12V is in good health",
+                    "recommendation": "None",
+                    "specifics": {
+                      "current_rpm": 20.0,
+                      "lower critical threshold": 5.0,
+                      "upper_critical_threshold": 98.0
+                    }
+                  }
+                }
+              ]
+            },
+            "nw_ports": [
+              {}
+            ]
+          },
+          "sw": {
+            "cortx_sw": [
+              {
+                "uid": "sspl",
+                "location": "/opt/seagate/cortx/sspl",
+                "fru": "false",
+                "last_fetched": "Wed May 19 16:53:02 2021",
+                "health": {
+                  "status": "OK",
+                  "description": "NA",
+                  "recommendation": "NA",
+                  "specifics": {
+                    "installed": "true",
+                    "service_status": "active",
+                    "version": "1.0"
+                  }
+                }
+              },
+              {
+                "uid": "csm",
+                "location": "/opt/seagate/cortx/csm",
+                "fru": "false",
+                "last_fetched": "Wed May 19 16:53:02 2021",
+                "health": {
+                  "status": "OK",
+                  "description": "NA",
+                  "recommendation": "NA",
+                  "specifics": {
+                    "installed": "true",
+                    "service_status": "active",
+                    "version": "1.0"
+                  }
+                }
+              }
+            ],
+            "os": {
+              "system_disks": [
+                {
+                  "uid": "system_disk001",
+                  "location": "NA",
+                  "fru": "true",
+                  "last_fetched": "Wed May 19 16:53:02 2021",
+                  "health": {
+                    "status": "NA",
+                    "description": "NA",
+                    "recommendation": "NA",
+                    "specifics": {
+                      "uid": "ST1000NM000A-2J3100-WJB08FQA",
+                      "health": "OK",
+                      "serial-number": "WJB08FQA",
+                      "vendor": "",
+                      "model": "ST1000NM000A-2J3100"
+                    }
+                  }
+                },
+                {
+                  "uid": "system_disk002",
+                  "location": "NA",
+                  "fru": "true",
+                  "last_fetched": "Wed May 19 16:53:02 2021",
+                  "health": {
+                    "status": "NA",
+                    "description": "NA",
+                    "recommendation": "NA",
+                    "specifics": {
+                      "uid": "ST1000NM000A-2J3100-WJB08F5Q",
+                      "health": "OK",
+                      "serial-number": "WJB08F5Q",
+                      "vendor": "",
+                      "model": "ST1000NM000A-2J3100"
+                    }
+                  }
+                }
+              ],
+              "md_raid": [
+                {
+                  "uid": "/dev/md0:/dev/sda1",
+                  "location": "/dev/md0:/dev/sda1",
+                  "fru": "true",
+                  "last_fetched": "Wed May 19 16:53:02 2021",
+                  "health": {
+                    "status": "FAULT",
+                    "description": "NA",
+                    "recommendation": "NA",
+                    "specifics": {
+                      "device": "/dev/md0",
+                      "drives": [
+                        {
+                          "status": "Down",
+                          "identity": {
+                            "path": "/dev/sda1",
+                            "serialNumber": "None"
+                          }
+                        },
+                        {
+                          "status": "UP",
+                          "dentity": {
+                            "path": "/dev/sdb1",
+                            "serialNumber": "None"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "storage": [
+        {
+          "node_type": "storage_enclosure:rbod",
+          "uid": "rss_5u84_001",
+          "make": "seagate",
+          "model": "5u84",
+          "last_fetched": "Wed May 19 16:53:02 2021",
+          "hw": {},
+          "fw": {
+            "logical_volumes": [
+              {
+                "uid": "logical_volume-dg01_v0003",
+                "location": "slot-from-right:001",
+                "fru": "false",
+                "last_fetched": "Wed May 19 16:53:02 2021",
+                "status": "OK",
+                "health": "OK",
+                "description": "logical_volume-dg01_v0003 is in good health",
+                "recommendation": "None",
+                "specifics": {
+                  "virtual-disk-serial": "00c0ff27ca8d00005d8e965e00000000",
+                  "virtual-disk-name": "dg01",
+                  "wwn": "600C0FF00027CA8DCC7FE95E04000000"
+                }
+              },
+              {
+                "uid": "logical_volume-dg01_v0004",
+                "location": "slot-from-right:001",
+                "fru": "false",
+                "last_fetched": "Wed May 19 16:53:02 2021",
+                "status": "OK",
+                "health": "OK",
+                "description": "logical_volume-dg01_v0004 is in good health",
+                "recommendation": "None",
+                "specifics": {
+                  "virtual-disk-serial": "00c0ff3c577c00006c8f965e00000000",
+                  "virtual-disk-name": "dg02",
+                  "wwn": "600C0FF00027CA8DCC7FE95E05000000"
+                }
+              }
+            ],
+            "disk_groups": [
+              {
+                "uid": "diskgroup-dg01",
+                "location": "not-applicable",
+                "fru": "false",
+                "last_fetched": "Wed May 19 16:53:02 2021",
+                "status": "OK",
+                "health": "OK",
+                "description": "diskgroup-dg01 is in good health",
+                "recommendation": "None",
+                "specifics": {
+                  "pool-serial-number": "00c0ff27ca8d00005d8e965e00000000",
+                  "diskcount": 14,
+                  "size": "153.4TB",
+                  "freespace": "601.2GB"
+                }
+              },
+              {
+                "uid": "diskgroup-dg02",
+                "location": "not-applicable",
+                "fru": "false",
+                "last_fetched": "Wed May 19 16:53:02 2021",
+                "status": "DEGRADED",
+                "health": "DEGRADED",
+                "description": "diskgroup-dg02 is in degraded health",
+                "recommendation": "Affected disk may need replacement",
+                "specifics": {
+                  "pool-serial-number": "00c0ff3c577c00006c8f965e00000000",
+                  "diskcount": 14,
+                  "health": "OK",
+                  "size": "153.4TB",
+                  "freespace": "601.2GB"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

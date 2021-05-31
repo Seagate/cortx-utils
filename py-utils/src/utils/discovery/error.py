@@ -1,7 +1,7 @@
 #!/bin/env python3
 
 # CORTX Python common library.
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -16,9 +16,10 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 class DiscoveryError(Exception):
-    """ Generic Exception with error code and output """
+    """Generic Exception with error code and output."""
 
     def __init__(self, rc, message, *args):
+        """Initialize DiscoveryError"""
         self._rc = rc
         self._desc = message % (args)
 
