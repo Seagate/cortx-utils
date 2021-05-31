@@ -54,9 +54,11 @@ class Utils:
         with open(f'{conf_file}.sample', 'w+') as file:
             json.dump({}, file, indent=2)
         try:
-            Conf.load('pre_index', f'json://{conf_file}')
+            pre_servers = []
+            if os.path.exists(conf_file):
+                Conf.load('pre_index', f'json://{conf_file}')
+                pre_servers = Conf.get('pre_index', 'message_broker>cluster')
             Conf.load('index', f'json://{conf_file}.sample')
-            pre_servers = Conf.get('pre_index', 'message_broker>cluster')
             Conf.set('index', 'message_broker>type', 'kafka')
             servers = [{'server': kafka_server_list[i], 'port': port_list[i]}
                        for i in range(len(kafka_server_list)) if
@@ -126,17 +128,25 @@ class Utils:
         """ Create the config file required for Event Message """
 
         conf_file = '/etc/cortx/cluster.conf'
-        with open(f'{conf_file}.sample', 'w+') as file:
-            json.dump({}, file, indent=2)
-        Conf.load('cluster', f'json://{conf_file}.sample')
-        for key, value in server_info.items():
-            Conf.set('cluster', f'server_node>{key}', value)
-        Conf.save('cluster')
-        # copy this conf file as cluster.conf
         try:
-            os.rename(f'{conf_file}.sample', conf_file)
-        except OSError as e:
-            raise SetupError(e.errno, "Failed to create %s %s", conf_file, e)
+            if os.path.exists(conf_file):
+                Conf.load('cluster', f'json://{conf_file}')
+                for key, value in server_info.items():
+                    Conf.set('cluster', f'server_node>{key}', value)
+                Conf.save('cluster')
+            else:
+                with open(f'{conf_file}', 'w+') as file:
+                    json.dump({}, file, indent=2)
+                Conf.load('cluster', f'json://{conf_file}')
+                for key, value in server_info.items():
+                    Conf.set('cluster', f'server_node>{key}', value)
+                Conf.save('cluster')
+        except ConfError as e:
+            raise SetupError(e.rc, "Unable to create cluster config file "\
+                "%s %s", conf_file, e)
+        except Exception as e:
+            raise SetupError(errors.ERR_OP_FAILED, "Unable to create cluster"\
+                " config file %s %s", conf_file, e)
 
     @staticmethod
     def validate(phase: str):

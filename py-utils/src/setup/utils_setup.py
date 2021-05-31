@@ -175,8 +175,6 @@ def main(argv: dict):
             Log.info(f"Command {command} {argv[1]} finished with exit " \
                 f"code {rc}")
             sys.exit(rc)
-        Log.info(f"Command {command} {argv[1]} finished with exit " \
-            f"code {rc}")
     except SetupError as e:
         sys.stderr.write("error: %s\n\n" % str(e))
         sys.stderr.write("%s\n" % traceback.format_exc())
@@ -184,6 +182,8 @@ def main(argv: dict):
     except Exception as e:
         sys.stderr.write("error: %s\n\n" % str(e))
         sys.stderr.write("%s\n" % traceback.format_exc())
+    Log.info(f"Command {command} {argv[1]} finished with exit " \
+        f"code {rc}")
 
 
 if __name__ == '__main__':
