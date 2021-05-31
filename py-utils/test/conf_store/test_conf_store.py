@@ -295,16 +295,16 @@ class TestConfStore(unittest.TestCase):
         """
         load_config('getKeys_local', 'json:///tmp/file1.json')
         key_lst = Conf.get_keys("getKeys_local", key_index=True)
-        expected_list = ['bridge>name', 'bridge>username',
-            'bridge>manufacturer', 'bridge>model', 'bridge>pin',
-            'bridge>port', 'bridge>lte_type[0]', 'bridge>lte_type[1]']
+        expected_list = ['bridge>name', 'bridge>username', 'bridge>manufacturer',
+        'bridge>model', 'bridge>pin', 'bridge>lte_type[0]>name',
+        'bridge>lte_type[1]>name']
         self.assertListEqual(key_lst, expected_list)
 
     def test_conf_key_index_b_False(self):
         """ Test confStore get_key api with key_index argument as False """
         key_lst = Conf.get_keys("getKeys_local", key_index=False)
         expected_list=['bridge>name', 'bridge>username', 'bridge>manufacturer',
-            'bridge>model', 'bridge>pin', 'bridge>port', 'bridge>lte_type']
+        'bridge>model', 'bridge>pin', 'bridge>lte_type>name']
         self.assertListEqual(key_lst, expected_list)
 
     def test_conf_store_get_machin_id_none(self):
