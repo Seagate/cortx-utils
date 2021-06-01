@@ -79,7 +79,7 @@ class ConfCli:
         ConfCli.init(args.url)
         string_2 = ConfCli.get(args).replace('"', '\"')
 
-        cmd = """ bash -c "diff <(echo "%s") <(echo "%s")" """ %(string_1, string_2)
+        cmd = """ bash -c "diff <(echo \\"%s\\") <(echo \\"%s\\")" """ %(string_1, string_2)
         cmd_proc = SimpleProcess([cmd])
         cmd_proc.shell = True
         stdout, stderr, rc = cmd_proc.run()
