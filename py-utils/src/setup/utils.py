@@ -32,6 +32,14 @@ class SetupError(Exception):
         self._rc = rc
         self._desc = message % (args)
 
+    @property
+    def rc(self):
+        return self._rc
+
+    @property
+    def desc(self):
+        return self._desc
+
     def __str__(self):
         if self._rc == 0:
             return self._desc

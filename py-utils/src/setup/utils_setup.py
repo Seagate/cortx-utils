@@ -176,6 +176,7 @@ def main(argv: dict):
         sys.stderr.write("error: %s\n\n" % str(e))
         sys.stderr.write("%s\n" % traceback.format_exc())
         Cmd.usage(argv[0])
+        rc = e.rc
     except Exception as e:
         sys.stderr.write("error: %s\n\n" % str(e))
         sys.stderr.write("%s\n" % traceback.format_exc())
