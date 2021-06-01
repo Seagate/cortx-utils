@@ -18,12 +18,20 @@ import glob
 from setuptools import setup
 import json
 
+if not os.path.isfile("./cortx.conf.sample"):
+    print("cortx.conf.sample file not found!")
+    sys.exit(1)
+    
 with open("cortx.conf.sample") as conf_file:
     build_data = json.load(conf_file)
 
 # Fetch install_path
 install_path = build_data["install_path"]
 utils_path = "%s/cortx/utils" % install_path
+
+if not os.path.isfile("./VERSION"):
+    print("VERSION file not found!")
+    sys.exit(1)
 
 # Fetch version
 with open("VERSION") as v_file:
