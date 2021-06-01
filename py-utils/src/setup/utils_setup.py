@@ -166,7 +166,6 @@ class CleanupCmd(Cmd):
 def main(argv: dict):
     Log.init('utils_setup', '/var/log/cortx/utils', level='INFO',
         backup_count=5, file_size_in_mb=5)
-    rc = 0
     try:
         desc = "CORTX Utils Setup command"
         Log.info(f"Starting utils_setup {argv[1]} ")
