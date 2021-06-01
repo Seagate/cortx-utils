@@ -22,7 +22,7 @@ import sys
 if not os.path.isfile("./cortx.conf.sample"):
     print("cortx.conf.sample file not found!")
     sys.exit(1)
-    
+
 with open("cortx.conf.sample") as conf_file:
     build_data = json.load(conf_file)
 
