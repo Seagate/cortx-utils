@@ -65,7 +65,7 @@ class TestConfCli(unittest.TestCase):
 
     def test_conf_cli_by_get_diff(self):
         """ Test by retrieving a value using get api """
-        cmd = "conf json:///tmp/file1.json diff -k version;branch -i json:///tmp/file2.json"
+        cmd = "conf json:///tmp/file1.json diff json:///tmp/file2.json -k version;branch"
         cmd_proc = SimpleProcess(cmd)
         result_data = cmd_proc.run()
         self.assertTrue(True if result_data[2] == 0 and
@@ -281,3 +281,4 @@ if __name__ == '__main__':
     # create the file and load sample json into it. Start test
     setup_and_generate_sample_files()
     unittest.main()
+
