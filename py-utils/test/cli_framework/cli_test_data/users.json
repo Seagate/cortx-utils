@@ -10,7 +10,7 @@
         "args": [
           {
             "flag": "-o",
-            "type": "CommonValidators._positive_int",
+            "type": "CliValidators._positive_int",
             "type_target": "cortx.utils.validator.cli_validators",
             "dest": "offset",
             "help": "Amount of users you want to get",
