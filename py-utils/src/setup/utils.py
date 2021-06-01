@@ -176,8 +176,9 @@ class Utils:
         _, status_err, status_rc = status_cmd.run()
 
         if status_rc != 0:
-            raise SetupError(status_rc, "Unable to start MessageBus Service \
-                %s", status_err.decode('utf-8'))
+            raise SetupError(status_rc, "MessageBus Service is either failed \
+                inactive. %s", status_err.decode('utf-8'))
+        
         return 0
 
     @staticmethod
