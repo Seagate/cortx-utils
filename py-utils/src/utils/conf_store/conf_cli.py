@@ -71,13 +71,14 @@ class ConfCli:
         return Format.dump(val_list, format_type)
 
     @staticmethod
-    def get_diff(args) -> str:
+    def diff(args) -> str:
         """ Compare two diffenent string value for the given keys """
-        string_1 = ConfCli.get(args).replace('"', '\"')
+        args.format = None
+        string_1 = ConfCli.get(args)
         ConfCli._index = "string_diff"
         args.url = args.diff
         ConfCli.init(args.url)
-        string_2 = ConfCli.get(args).replace('"', '\"')
+        string_2 = ConfCli.get(args)
 
         cmd = """ bash -c "diff <(echo \\"%s\\") <(echo \\"%s\\")" """ %(string_1, string_2)
         cmd_proc = SimpleProcess([cmd])
@@ -125,7 +126,7 @@ class GetCmd:
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 
-class GetDiffCmd:
+class DiffCmd:
     """ Get Diff Cmd Structure """
 
     @staticmethod
@@ -136,11 +137,9 @@ class GetDiffCmd:
             "Example(s): 'k1', 'k1>k2;k3', 'k4[2]>k5', 'k6>k4[2]>k5'\n\n"
             "Example command:\n"
             "# conf yaml:///tmp/old_release.info diff 'version' -i yaml:///tmp/new_release.conf \n\n")
-        s_parser.set_defaults(func=ConfCli.get_diff)
+        s_parser.set_defaults(func=ConfCli.diff)
         s_parser.add_argument('-i', dest='diff', help=
                 'Compare file', required=True)
-        s_parser.add_argument('-f', dest='format', help=
-                'Output Format json(default), yaml or toml')
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 
