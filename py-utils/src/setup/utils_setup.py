@@ -24,9 +24,6 @@ from cortx.setup import Utils
 from cortx.utils.log import Log
 from cortx.setup.utils import SetupError
 
-Log.init('utils_setup', '/var/log/cortx/utils', level='INFO', backup_count=5,\
-         file_size_in_mb=5)
-
 
 class Cmd:
     """ Setup Command """
@@ -167,6 +164,8 @@ class CleanupCmd(Cmd):
 
 
 def main(argv: dict):
+    Log.init('utils_setup', '/var/log/cortx/utils', level='INFO',
+        backup_count=5, file_size_in_mb=5)
     rc = 0
     try:
         desc = "CORTX Utils Setup command"
