@@ -20,14 +20,9 @@ import errno
 from cortx.utils import errors
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
-from cortx.utils.conf_store.error import ConfError
 from cortx.utils.validator.v_service import ServiceV
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.message_bus.error import MessageBusError
-
-
-Log.init('utils_setup', '/var/log/cortx/utils', level='INFO', backup_count=5,\
-         file_size_in_mb=5)
 
 
 class SetupError(Exception):
@@ -75,10 +70,9 @@ class Utils:
         ConfKeysV().validate('exists', 'cluster_config', key_list)
         msg_bus_type = Conf.get('cluster_config', key_list[0])
         if msg_bus_type != 'kafka':
-            Log.error(f"Message Bus do not support message bus type "\
-                f"{msg_bus_type}")
-            raise SetupError(errno.EINVAL, "Message Bus do not support " +\
-                "message bus type %s" % msg_bus_type)
+            Log.error(f"Message bus type {msg_bus_type} is not supported")
+            raise SetupError(errno.EINVAL, "Message bus type %s is not"\
+                " supported", msg_bus_type)
         # Read the required keys
         all_servers = Conf.get('cluster_config', key_list[1])
         no_servers = len(all_servers)

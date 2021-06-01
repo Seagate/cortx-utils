@@ -15,6 +15,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import sys
+import errno
 import inspect
 import argparse
 import traceback
@@ -166,6 +167,7 @@ class CleanupCmd(Cmd):
 
 
 def main(argv: dict):
+    rc = 0
     try:
         desc = "CORTX Utils Setup command"
         Log.info(f"Starting utils_setup {argv[1]} ")
@@ -178,6 +180,7 @@ def main(argv: dict):
     except Exception as e:
         sys.stderr.write("error: %s\n\n" % str(e))
         sys.stderr.write("%s\n" % traceback.format_exc())
+        rc = errno.EINVAL
     Log.info(f"Command {command} {argv[1]} finished with exit " \
         f"code {rc}")
 
