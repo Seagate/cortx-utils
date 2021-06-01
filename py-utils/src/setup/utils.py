@@ -166,18 +166,18 @@ class Utils:
 
         # start MessageBus service and check status
         start_cmd = SimpleProcess("systemctl start cortx_message_bus")
-        _, stderr, res_rc = start_cmd.run()
+        _, start_err, start_rc = start_cmd.run()
 
-        if res_rc != 0:
-            raise SetupError(res_rc, "Unable to start MessageBus Service \
-                %s", stderr.decode('utf-8'))
+        if start_rc != 0:
+            raise SetupError(start_rc, "Unable to start MessageBus Service \
+                %s", start_err.decode('utf-8'))
 
         status_cmd = SimpleProcess("systemctl status cortx_message_bus")
-        _, stderr, res_rc = status_cmd.run()
+        _, status_err, status_rc = status_cmd.run()
 
-        if res_rc != 0:
-            raise SetupError(res_rc, "Unable to start MessageBus Service \
-                        %s", stderr.decode('utf-8'))
+        if status_rc != 0:
+            raise SetupError(status_rc, "Unable to start MessageBus Service \
+                %s", status_err.decode('utf-8'))
         return 0
 
     @staticmethod
