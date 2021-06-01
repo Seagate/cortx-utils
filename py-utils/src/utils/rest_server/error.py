@@ -15,22 +15,21 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-class MessageBusError(Exception):
-    """ Generic Exception with error code and output """
+from collections import defaultdict
 
-    def __init__(self, rc, message, *args):
-        self._rc = rc
-        self._desc = message % (args)
+class RestServerError(Exception):
+    """ Error class for cortx rest server """
 
-    @property
-    def rc(self):
-        return self._rc
+    def __init__(self, e):
+        self._e = e
 
-    @property
-    def desc(self):
-        return self._desc
+    def http_error(self):
+        return self._http_error(self._e)
 
-    def __str__(self):
-        if self._rc == 0:
-            return self._desc
-        return "error(%d): %s" % (self._rc, self._desc)
+    @staticmethod
+    def _http_error(except_name):
+        ret_code_map = defaultdict(lambda: 500)
+        ret_code_map['KeyError'] = (418, "Wrong Key in payload!") # wrong key from client
+        ret_code_map['KafkaException'] = (514, "MessageBus backend error!")
+        return ret_code_map[except_name]
+
