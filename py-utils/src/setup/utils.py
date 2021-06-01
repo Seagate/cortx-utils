@@ -50,34 +50,21 @@ class Utils:
     def _create_msg_bus_config(kafka_server_list: list, port_list: list):
         """ Create the config file required for message bus """
 
-        conf_file = '/etc/cortx/message_bus.conf'
-        with open(f'{conf_file}.sample', 'w+') as file:
+        with open(r'/etc/cortx/message_bus.conf.sample', 'w+') as file:
             json.dump({}, file, indent=2)
-        try:
-            pre_servers = []
-            if os.path.exists(conf_file):
-                Conf.load('pre_index', f'json://{conf_file}')
-                pre_servers = Conf.get('pre_index', 'message_broker>cluster')
-            Conf.load('index', f'json://{conf_file}.sample')
-            Conf.set('index', 'message_broker>type', 'kafka')
-            servers = [{'server': kafka_server_list[i], 'port': port_list[i]}
-                       for i in range(len(kafka_server_list)) if
-                       {'server': kafka_server_list[i],
-                        'port': port_list[i]} not in pre_servers]
-            servers.extend(pre_servers)
-            Conf.set('index', 'message_broker>cluster', servers)
-            Conf.save('index')
-        except ConfError as e:
-            raise SetupError(e.rc, "Unable to load servers from config file"\
-                " %s %s", conf_file, e)
-        except Exception as e:
-            raise SetupError(errors.ERR_OP_FAILED, "Unable to load servers "\
-                "from config file %s %s", conf_file, e)
+        Conf.load('index', 'json:///etc/cortx/message_bus.conf.sample')
+        Conf.set('index', 'message_broker>type', 'kafka')
+        for i in range(len(kafka_server_list)):
+            Conf.set('index', f'message_broker>cluster[{i}]', \
+                {'server': kafka_server_list[i], 'port': port_list[i]})
+        Conf.save('index')
         # copy this conf file as message_bus.conf
         try:
-            os.rename(f'{conf_file}.sample', conf_file)
+            os.rename('/etc/cortx/message_bus.conf.sample', \
+                      '/etc/cortx/message_bus.conf')
         except OSError as e:
-            raise SetupError(e.errno, "Failed to create %s %s", conf_file, e)
+            raise SetupError(e.errno, "Failed to create \
+                /etc/cortx/message_bus.conf %s", e)
 
     @staticmethod
     def _get_kafka_server_list(conf_url: str):
@@ -127,26 +114,19 @@ class Utils:
     def _create_cluster_config(server_info: dict):
         """ Create the config file required for Event Message """
 
-        conf_file = '/etc/cortx/cluster.conf'
+        with open(r'/etc/cortx/cluster.conf.sample', 'w+') as file:
+            json.dump({}, file, indent=2)
+        Conf.load('cluster', 'json:///etc/cortx/cluster.conf.sample')
+        for key, value in server_info.items():
+            Conf.set('cluster', f'server_node>{key}', value)
+        Conf.save('cluster')
+        # copy this conf file as cluster.conf
         try:
-            if os.path.exists(conf_file):
-                Conf.load('cluster', f'json://{conf_file}')
-                for key, value in server_info.items():
-                    Conf.set('cluster', f'server_node>{key}', value)
-                Conf.save('cluster')
-            else:
-                with open(f'{conf_file}', 'w+') as file:
-                    json.dump({}, file, indent=2)
-                Conf.load('cluster', f'json://{conf_file}')
-                for key, value in server_info.items():
-                    Conf.set('cluster', f'server_node>{key}', value)
-                Conf.save('cluster')
-        except ConfError as e:
-            raise SetupError(e.rc, "Unable to create cluster config file "\
-                "%s %s", conf_file, e)
-        except Exception as e:
-            raise SetupError(errors.ERR_OP_FAILED, "Unable to create cluster"\
-                " config file %s %s", conf_file, e)
+            os.rename('/etc/cortx/cluster.conf.sample', \
+                '/etc/cortx/cluster.conf')
+        except OSError as e:
+            raise SetupError(e.errno, "Failed to create /etc/cortx/cluster.conf\
+                %s", e)
 
     @staticmethod
     def validate(phase: str):
