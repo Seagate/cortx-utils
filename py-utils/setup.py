@@ -45,12 +45,12 @@ with open('README.md', 'r') as rf:
     long_description = rf.read()
 
 def get_install_requirements() -> list:
-    with open('python_requirements.txt') as req:
-        install_requires = [line.strip() for line in req]
     try:
+        with open('python_requirements.txt') as req:
+            install_requires = [line.strip() for line in req]
         with open('python_requirements.ext.txt') as extreq:
             install_requires = install_requires + [line.strip() for line in extreq]
-    except FileNotFoundError:
+    except Exception:
         pass  ## log it!
     return install_requires
 
