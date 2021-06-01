@@ -73,19 +73,24 @@ class ConfCli:
     @staticmethod
     def diff(args) -> str:
         """ Compare two diffenent string value for the given keys """
-        args.format = None
-        string_1 = ConfCli.get(args)
-        ConfCli._index = "string_diff"
-        args.url = args.diff
-        ConfCli.init(args.url)
-        string_2 = ConfCli.get(args)
-
-        cmd = """ bash -c "diff <(echo \\"%s\\") <(echo \\"%s\\")" """ %(string_1, string_2)
-        cmd_proc = SimpleProcess([cmd])
-        cmd_proc.shell = True
-        stdout, stderr, rc = cmd_proc.run()
-        output = stdout.decode('utf-8') if rc == 1 else \
-            stderr.decode('utf-8')
+        output = ""
+        if len(args.args) > 0:
+            args.format = None
+            string_1 = ConfCli.get(args)
+            ConfCli._index = "string_diff"
+            args.url = args.diff
+            ConfCli.init(args.url)
+            string_2 = ConfCli.get(args)
+            
+            cmd = """ bash -c "diff <(echo \\"%s\\") <(echo \\"%s\\")" """ %(string_1, string_2)
+            cmd_proc = SimpleProcess([cmd])
+            cmd_proc.shell = True
+            stdout, stderr, rc = cmd_proc.run()
+            output = stdout.decode('utf-8') if rc == 1 else \
+                stderr.decode('utf-8')
+        else:
+            #todo the diff of all the keys between two files
+            pass
         return output
 
     @staticmethod
@@ -136,11 +141,11 @@ class DiffCmd:
             "Multiple keys are separated using ';'.\n"
             "Example(s): 'k1', 'k1>k2;k3', 'k4[2]>k5', 'k6>k4[2]>k5'\n\n"
             "Example command:\n"
-            "# conf yaml:///tmp/old_release.info diff 'version' -i yaml:///tmp/new_release.conf \n\n")
+            "# conf yaml:///tmp/old_release.info diff -i yaml:///tmp/new_release.conf -k 'version;branch'\n\n")
         s_parser.set_defaults(func=ConfCli.diff)
         s_parser.add_argument('-i', dest='diff', help=
                 'Compare file', required=True)
-        s_parser.add_argument('args', nargs='+', default=[], help='args')
+        s_parser.add_argument('-k', dest='args',  nargs='+', default=[], help='Keys list')
 
 
 class SetCmd:
