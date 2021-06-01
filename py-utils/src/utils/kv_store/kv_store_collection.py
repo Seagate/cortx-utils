@@ -104,29 +104,42 @@ class DirKvStore(KvStore):
         keys = payload.get_keys()
         vals = []
         for key in keys:
-            vals.append(payload.get(key))
+            vals.append(payload[key])
         self.set(keys, vals)
 
-    def get_keys(self, key_prefix: str):
+    def get_keys(self, key_prefix: str=None):
         """ Returns the list of keys starting with given prefix """
         key_dir, key_file = self._get_key_path(key_prefix)
         if os.path.isfile(key_file): 
             return [key_file.split("/").join(self._delim)]
         keys = []
-        for root, dirs, file_names in os.walk(key_file): 
+        if key_prefix is None:
+            key_prefix = ""
+        else:
+            key_prefix = "%s%s" %(key_prefix, self._delim)
+        for root, dirs, file_names in os.walk(key_file):
             path = ""
             if root != key_file:
                 path = root.replace(key_file+'/', '') + self._delim
             for file_name in file_names:
-                key = f'{key_prefix}%s{path}{file_name}' %self._delim
+                key = f'{key_prefix}{path}{file_name}'
                 keys.append(key)
         return keys
+
+    def get_data(self, format_type: str = None) -> dict:
+        keys = self.get_keys()
+        kv = {}
+        for key in keys: kv[key] = self.get(key)
+        return kv
 
     def set_data(self, payload: KvPayload):
         self.dump(payload)
 
     def _get_key_path(self, key):
         """ breaks key into dir path e.g. a>b>c to /root/a/b/c """
+        if key is None:
+            return self._store_path, self._store_path
+        
         key_list = key.split(self._delim)
         key_dir = os.path.join(self._store_path, *key_list[0:-1])
         key_file = os.path.join(key_dir, key_list[-1]) 
