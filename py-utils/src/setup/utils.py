@@ -162,7 +162,7 @@ class Utils:
         try:
             with open(f"{utils_path}/conf/python_requirements.ext.txt") as extfile :
              req_pack = req_pack + [pack.strip() for pack in extfile.readlines()]
-        except FileNotFoundError:
+        except Exception:
             pass   ## log it!
         for package in req_pack:
             if package not in result:
