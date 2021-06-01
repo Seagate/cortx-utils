@@ -17,6 +17,7 @@ import os
 import glob
 from setuptools import setup
 import json
+import sys
 
 if not os.path.isfile("./cortx.conf.sample"):
     print("cortx.conf.sample file not found!")
