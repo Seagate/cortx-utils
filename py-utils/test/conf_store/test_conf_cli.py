@@ -48,7 +48,8 @@ def setup_and_generate_sample_files():
             file.write(each)
 
     with open(r'/tmp/file2.json', 'w+') as file:
-        sample_config['bridge']['name'] = 'Homebridge Test'
+        sample_config['version'] = '2.0.1'
+        sample_config['branch'] = 'stable'
         json.dump(sample_config, file, indent=2)
 
 class TestConfCli(unittest.TestCase):
@@ -64,11 +65,11 @@ class TestConfCli(unittest.TestCase):
 
     def test_conf_cli_by_get_diff(self):
         """ Test by retrieving a value using get api """
-        cmd = "conf json:///tmp/file1.json diff bridge>name -i json:///tmp/file2.json"
+        cmd = "conf json:///tmp/file1.json diff version;branch -i json:///tmp/file2.json"
         cmd_proc = SimpleProcess(cmd)
         result_data = cmd_proc.run()
         self.assertTrue(True if result_data[2] == 0 and
-            result_data[0] == b'1c1\n< [Homebridge]\n---\n> [Homebridge Test]\n\n' else False, result_data[1])
+            result_data[0] == b'1c1\n< [2.0.0, main]\n---\n> [2.0.1, stable]\n\n' else False, result_data[1])
 
     def test_conf_cli_by_set(self):
         """ Test by setting a value into given key position """
