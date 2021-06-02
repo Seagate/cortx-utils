@@ -109,7 +109,7 @@ class DirKvStore(KvStore):
 
     def get_keys(self, key_prefix: str = None):
         """ Returns the list of keys starting with given prefix """
-        key_dir, key_file = self._get_key_path(key_prefix)
+        _, key_file = self._get_key_path(key_prefix)
         if os.path.isfile(key_file):
             return [key_file.split("/").join(self._delim)]
         keys = []
@@ -117,7 +117,7 @@ class DirKvStore(KvStore):
             key_prefix = ""
         else:
             key_prefix = "%s%s" %(key_prefix, self._delim)
-        for root, dirs, file_names in os.walk(key_file):
+        for root, _, file_names in os.walk(key_file):
             path = ""
             if root != key_file:
                 path = root.replace(key_file+'/', '') + self._delim
@@ -166,7 +166,7 @@ class DirKvStore(KvStore):
         """ Obtains values corresponding to the keys from the store """
         vals = []
         for key in keys:
-            key_dir, key_file = self._get_key_path(key)
+            _, key_file = self._get_key_path(key)
             try:
                 with open(key_file, 'r') as f:
                     vals.append(f.read())
