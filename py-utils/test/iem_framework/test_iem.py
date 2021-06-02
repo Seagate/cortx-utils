@@ -56,12 +56,12 @@ class TestMessage(unittest.TestCase):
         self.assertEqual(count, 1000)
 
     def test_alert_fail_receive(self):
-        """ Receive message init """
+        """ Receive message without subscribing """
         with self.assertRaises(AttributeError):
             EventMessage.receive()
 
     def test_alert_fail_send(self):
-        """ Send message with subscribe """
+        """ Send message without initialising """
         with self.assertRaises(AttributeError):
             EventMessage.send(module='mod', event_id='500', severity='B', \
                 message='This is message')
@@ -89,6 +89,10 @@ class TestMessage(unittest.TestCase):
                 message='This is message')
             EventMessage.send(module='mod', event_id='500', severity='Z', \
                 message=None)
+
+    def test_subscribe_validation(self):
+        with self.assertRaises(EventMessageError):
+            EventMessage.subscribe(component=None)
 
     def test_json_alert_send(self):
         """ Test send json as message description """
