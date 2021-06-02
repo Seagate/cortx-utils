@@ -1,3 +1,5 @@
+#!/bin/env python3
+
 # CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
@@ -16,41 +18,43 @@
 import errno
 from cortx.utils.schema import payload
 from cortx.utils.log import Log
-from cortx.utils.cli_framework.errors import CliError
+from cortx.utils.validator.error import VError
 
-class CliValidators:
+
+class FormatV:
     """
-    Validators used for CLI
+    Format validators
     """
+
     @staticmethod
-    def _positive_int(value):
+    def _validate_positive_int(value):
         """
-        Checks for positive int else raise Clierror
+        Checks for positive int else raise Error
         """
         try:
             if int(value) > -1:
                 return int(value)
-            raise CliError(errno.EINVAL, "Value Must be Positive Integer")
+            raise VError(errno.EINVAL, "Value Must be Positive Integer")
         except ValueError:
-            raise CliError(errno.EINVAL,"Value Must be Positive Integer")
+            raise VError(errno.EINVAL,"Value Must be Positive Integer")
 
     @staticmethod
-    def _file_parser(value):
+    def _validate_file_format(value):
         try:
             return payload.CommonPayload(value).load()
         except ValueError as ve:
             Log.error(f"File parsing failed. {value}: {ve}")
-            raise CliError(errno.EINVAL,
+            raise VError(errno.EINVAL,
                 ("File operations failed. "
                  "Please check if the file is valid or not"))
         except FileNotFoundError as err:
             Log.error(f"No such file present. {value}: {err}")
-            raise CliError(errno.ENOENT,
+            raise VError(errno.ENOENT,
                 ("File operation failed. "
                  "Please check if the file exists."))
         except KeyError as err:
             Log.error(f"Check file type. {value}: {err}")
-            raise CliError(errno.ENOENT,
+            raise VError(errno.ENOENT,
                 ("File operation failed. "
                  "Please check if the file exists and its type."))
 

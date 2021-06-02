@@ -18,16 +18,7 @@ import sys
 import os
 from cortx.utils.schema.payload import Json
 from cortx.utils.cli_framework import const
-from cortx.utils.cli_framework.command import CommandParser
-
-
-class ArgumentParser(argparse.ArgumentParser):
-    """Overwritten ArgumentParser class for internal purposes"""
-
-    def error(self, message):
-        # todo:  Need to Modify the changes for Fetching Error Messages from config file
-        self.print_usage(sys.stderr)
-        self.exit(2, f'Error: {message.capitalize()}\n')
+from cortx.utils.cli_framework.parser import ArgumentParser, CommandParser
 
 
 class CommandFactory(object):
@@ -63,7 +54,7 @@ class CommandFactory(object):
             # create filter_permission_json
             cmd_from_file = Json(os.path.join(component_cmd_dir, f"{argv[0]}.json")).load()
             cmd_obj = CommandParser(cmd_from_file, permissions.get(argv[0], {}))
-            cmd_obj.handle_main_parse(subparsers)
+            cmd_obj._handle_main_parse(subparsers)
         namespace = parser.parse_args(argv)
 
         CommandFactory.edit_arguments(namespace)
