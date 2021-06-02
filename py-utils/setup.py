@@ -97,10 +97,10 @@ setup(name='cortx-py-utils',
         ]
       },
       data_files = [ ('/var/lib/cortx/ha/specs', specs),
-                     ('/var/lib/cortx/ha', ['src/utils/ha/hac/args.yaml',
-                                            'src/utils/ha/hac/re_build.sh']),
                      ('/opt/seagate/cortx/utils/conf', tmpl_files),
                      ('/opt/seagate/cortx/utils/conf', get_requirements_files()),
+                     ('/var/lib/cortx/ha', ['src/utils/ha/hac/args.yaml',
+                                            'src/utils/ha/hac/re_build.sh']),
                      ('/opt/seagate/cortx/utils/conf', ['src/setup/setup.yaml']),
                      ('/etc/systemd/system', ['src/utils/message_bus/'
                                               'cortx_message_bus.service'])],
