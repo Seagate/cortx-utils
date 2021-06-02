@@ -15,7 +15,9 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import errno
 import subprocess
+from subprocess import TimeoutExpired, CalledProcessError  # nosec
 
 class Process:
     def __init__(self, cmd):
@@ -25,20 +27,21 @@ class Process:
     def run(self):
         pass
 
+
 class SimpleProcess(Process):
-    ''' Execute process and provide output '''
+    """ Execute process and provide output """
     def __init__(self, cmd):
         super(SimpleProcess, self).__init__(cmd)
-        self.shell=False
-        self.stdout=subprocess.PIPE
-        self.realtime_output=False
-        self.cwd=None
-        self.timeout=None
-        self.env=None
-        self.universal_newlines=None
+        self.shell = False
+        self.stdout = subprocess.PIPE
+        self.realtime_output = False
+        self.cwd = None
+        self.timeout = None
+        self.env = None
+        self.universal_newlines = None
 
     def run(self, **args):
-        ''' This will can run simple process '''
+        """ This will can run simple process """
         for key, value in args.items():
             setattr(self, key, value)
 
@@ -54,10 +57,22 @@ class SimpleProcess(Process):
             self._output = self._cp.stdout
             self._err = self._cp.stderr
             self._returncode = self._cp.returncode
+
+        except TimeoutExpired as e:
+            self._err = str(e)
+            self._output = ''
+            self._returncode = errno.ETIMEDOUT
+
+        except CalledProcessError as e:
+            self._err = str(e)
+            self._output = ''
+            self._returncode = e.returncode
+
         except Exception as err:
             self._err = "SubProcess Error: " + str(err)
-            self._output = ""
+            self._output = ''
             self._returncode = -1
+
         return self._output, self._err, self._returncode
 
 
