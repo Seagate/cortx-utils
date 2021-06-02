@@ -17,6 +17,11 @@ import os
 import glob
 from setuptools import setup
 import json
+import sys
+
+if not os.path.isfile("./cortx.conf.sample"):
+    print("error: cortx.conf.sample file not found!", file=sys.stderr)
+    sys.exit(1)
 
 with open("cortx.conf.sample") as conf_file:
     build_data = json.load(conf_file)
@@ -24,6 +29,10 @@ with open("cortx.conf.sample") as conf_file:
 # Fetch install_path
 install_path = build_data["install_path"]
 utils_path = "%s/cortx/utils" % install_path
+
+if not os.path.isfile("./VERSION"):
+    print("error: VERSION file not found!", file=sys.stderr)
+    sys.exit(1)
 
 # Fetch version
 with open("VERSION") as v_file:
@@ -51,6 +60,7 @@ def get_install_requirements() -> list:
     with open('requirements.txt') as r:
         install_requires = [line.strip() for line in r]
     return install_requires
+
 
 setup(name='cortx-py-utils',
       version=utils_version,

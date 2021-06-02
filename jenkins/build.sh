@@ -54,6 +54,7 @@ cd "$BASE_DIR"
 
 # Create version file
 echo $VER > VERSION
+/bin/chmod +rx VERSION
 
 # Fetch install_path
 INSTALL_PATH=$(grep install_path cortx.conf.sample |  cut -d " " -f 4 | sed -e 's/^"//' -e 's/"$//')
@@ -91,3 +92,4 @@ exit \$rc " >> utils-pre-install
 # Create the rpm
 /bin/python3.6 setup.py bdist_rpm --release="$REL" --pre-install utils-pre-install \
  --post-install utils-post-install --post-uninstall utils-post-uninstall
+[ $? -ne 0 ] && echo "build failed" && exit 1
