@@ -307,11 +307,11 @@ class TestStore(unittest.TestCase):
         TestStore.loaded_dir[0].set(['cluster_uuid'], ['#409'])
         out = TestStore.loaded_dir[0].get(['cluster_uuid'])
         self.assertEqual('#409', out[0])
-    
+
     def test_dir_store_b_by_get_non_exist_key(self):
         """ Test Kv Directory store to get non exist key, value """
         out = TestStore.loaded_dir[0].get(['non_cluster_uuid'])
-        self.assertEqual([], out)
+        self.assertEqual([None], out)
     
     def test_dir_store_c_by_set_nested_key(self):
         """ Test Kv Directory store by setting nested key structure """
@@ -321,7 +321,7 @@ class TestStore(unittest.TestCase):
 
     def test_dir_store_d_by_set_multiple_kv(self):
         """ Test Kv Directory store by setting nested key structure """
-        TestStore.loaded_dir[0].set(['cloud>cloud_type', 'kafka>message_type'], 
+        TestStore.loaded_dir[0].set(['cloud>cloud_type', 'kafka>message_type'],
             ['Azure', 'receive'])
         out = TestStore.loaded_dir[0].get(['kafka>message_type'])
         self.assertEqual('receive', out[0])
@@ -330,7 +330,7 @@ class TestStore(unittest.TestCase):
         """ Test Kv Directory store by removing given key using delete api """
         TestStore.loaded_dir[0].delete(['cloud>cloud_type'])
         out = TestStore.loaded_dir[0].get(['cloud>cloud_type'])
-        self.assertEqual([], out)
+        self.assertEqual([None], out)
 
 # loaded_dir
 if __name__ == '__main__':

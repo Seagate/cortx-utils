@@ -107,10 +107,10 @@ class DirKvStore(KvStore):
             vals.append(payload[key])
         self.set(keys, vals)
 
-    def get_keys(self, key_prefix: str=None):
+    def get_keys(self, key_prefix: str = None):
         """ Returns the list of keys starting with given prefix """
         key_dir, key_file = self._get_key_path(key_prefix)
-        if os.path.isfile(key_file): 
+        if os.path.isfile(key_file):
             return [key_file.split("/").join(self._delim)]
         keys = []
         if key_prefix is None:
@@ -129,7 +129,8 @@ class DirKvStore(KvStore):
     def get_data(self, format_type: str = None) -> dict:
         keys = self.get_keys()
         kv = {}
-        for key in keys: kv[key] = self.get(key)
+        for key in keys:
+            kv[key] = self.get(key)
         return kv
 
     def set_data(self, payload: KvPayload):
@@ -139,10 +140,9 @@ class DirKvStore(KvStore):
         """ breaks key into dir path e.g. a>b>c to /root/a/b/c """
         if key is None:
             return self._store_path, self._store_path
-        
         key_list = key.split(self._delim)
         key_dir = os.path.join(self._store_path, *key_list[0:-1])
-        key_file = os.path.join(key_dir, key_list[-1]) 
+        key_file = os.path.join(key_dir, key_list[-1])
         return key_dir, key_file
 
     def set(self, keys: list, vals: list):
@@ -155,16 +155,13 @@ class DirKvStore(KvStore):
             key_dir, key_file = self._get_key_path(key)
             try:
                 os.makedirs(key_dir, exist_ok = True)
-            except exception as e:
+            except Exception as e:
                 raise KvError(errno.EACCESS, "Cant set key %s. %s", key, e)
                 
             if os.path.exists(key_file) and not os.path.isfile(key_file):
                 raise KvError(errno.EINVAL, "Invalid Key %s" %key)
-            try:
-                with open(key_file, 'w') as f:
-                    f.write(val)
-            except:
-                pass
+            with open(key_file, 'w') as f:
+                f.write(val)
 
     def get(self, keys: list):
         """ Obtains values corresponding to the keys from the store """
@@ -174,8 +171,8 @@ class DirKvStore(KvStore):
             try:
                 with open(key_file, 'r') as f:
                     vals.append(f.read())
-            except:
-                pass
+            except OSError:
+                vals.append(None)
         return vals
 
     def delete(self, keys: list):
@@ -184,7 +181,7 @@ class DirKvStore(KvStore):
             key_dir, key_file = self._get_key_path(key)
             try:
                 os.remove(key_file)
-            except:
+            except OSError:
                 pass
 
 
@@ -349,7 +346,7 @@ class PropertiesKvStore(KvStore):
         kv_list = data.get_data()
         with open(self._store_path, 'w') as f:
             for key, val in kv_list.items():
-                f.write("%s = %s\n" %(key, val))
+                f.write("%s = %s\n" % (key, val))
 
 
 class PillarStore(KvStore):
