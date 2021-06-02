@@ -102,9 +102,7 @@ class DirKvStore(KvStore):
     def dump(self, payload: dict):
         """ Stores payload onto the store """
         keys = payload.get_keys()
-        vals = []
-        for key in keys:
-            vals.append(payload[key])
+        vals = [payload[key] for key in keys]
         self.set(keys, vals)
 
     def get_keys(self, key_prefix: str = None):
@@ -121,9 +119,7 @@ class DirKvStore(KvStore):
             path = ""
             if root != key_file:
                 path = root.replace(key_file+'/', '') + self._delim
-            for file_name in file_names:
-                key = f'{key_prefix}{path}{file_name}'
-                keys.append(key)
+            keys = [f'{key_prefix}{path}{f}' for f in file_names]
         return keys
 
     def get_data(self, format_type: str = None) -> dict:
@@ -180,8 +176,9 @@ class DirKvStore(KvStore):
             _, key_file = self._get_key_path(key)
             try:
                 os.remove(key_file)
-            except OSError:
-                pass
+            except OSError as e:
+                if e.errno != errno.ENOENT:
+                    raise KvError(e.errno, "Can not delete entry %s" % (key_file))
 
 
 class TomlKvStore(KvStore):

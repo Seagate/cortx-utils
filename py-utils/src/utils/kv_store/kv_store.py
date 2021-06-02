@@ -61,8 +61,7 @@ class KvStore:
     def set_data(self, payload: KvPayload):
         """ Updates input payload and writes into backend """
         p_payload = self.load()
-        for key in payload.get_keys():
-            p_payload.set(key, payload.get[key])
+        _ = map(lambda x: p_payload.set(x, payload.get[x]), payload.get_keys())
         self.dump(p_payload)
 
     def get(self, keys: list) -> list:
