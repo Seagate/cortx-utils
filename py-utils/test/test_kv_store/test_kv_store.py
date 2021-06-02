@@ -312,7 +312,7 @@ class TestStore(unittest.TestCase):
         """ Test Kv Directory store to get non exist key, value """
         out = TestStore.loaded_dir[0].get(['non_cluster_uuid'])
         self.assertEqual([None], out)
-    
+
     def test_dir_store_c_by_set_nested_key(self):
         """ Test Kv Directory store by setting nested key structure """
         TestStore.loaded_dir[0].set(['cluster>cluster_uuid'], ['#409'])

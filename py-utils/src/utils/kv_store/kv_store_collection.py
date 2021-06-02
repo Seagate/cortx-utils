@@ -157,7 +157,6 @@ class DirKvStore(KvStore):
                 os.makedirs(key_dir, exist_ok = True)
             except Exception as e:
                 raise KvError(errno.EACCESS, "Cant set key %s. %s", key, e)
-                
             if os.path.exists(key_file) and not os.path.isfile(key_file):
                 raise KvError(errno.EINVAL, "Invalid Key %s" %key)
             with open(key_file, 'w') as f:
