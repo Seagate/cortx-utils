@@ -18,6 +18,7 @@
 import json
 import time
 import errno
+from cortx.utils import errors
 from cortx.template import Singleton
 from cortx.utils.conf_store import Conf
 from cortx.utils.iem_framework.error import EventMessageError
@@ -53,9 +54,9 @@ class EventMessage(metaclass=Singleton):
         try:
             Conf.load('cluster', cls._conf_file)
             ids = Conf.get('cluster', 'server_node')
-            cls._site_id = int(ids['site_id'])
-            cls._rack_id = int(ids['rack_id'])
-            cls._node_id = int(ids['node_id'])
+            cls._site_id = ids['site_id']
+            cls._rack_id = ids['rack_id']
+            cls._node_id = ids['node_id']
         except Exception as e:
             raise EventMessageError(errno.EINVAL, "Invalid config in %s. %s", \
                 cls._conf_file, e)
@@ -65,6 +66,7 @@ class EventMessage(metaclass=Singleton):
         """ Set the Event Message context """
         cls._component = component
         cls._source = source
+        cls._consumer = None
         cls()
 
         if cls._component is None:
@@ -144,6 +146,10 @@ class EventMessage(metaclass=Singleton):
     @classmethod
     def receive(cls):
         """ Receive IEM alert message """
+        if cls._consumer is None:
+            raise EventMessageError(errors.ERR_SERVICE_NOT_INITIALIZED, \
+                "Consumer is not subscribed")
+
         alert = cls._consumer.receive()
         if alert is not None:
             try:
