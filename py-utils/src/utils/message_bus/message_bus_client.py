@@ -15,7 +15,9 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import errno
 from cortx.utils.message_bus import MessageBus
+from cortx.utils.message_bus.error import MessageBusError
 
 
 class MessageBusClient:
@@ -31,7 +33,8 @@ class MessageBusClient:
     def _get_conf(self, key: str):
         """ To get the client configurations """
         if key not in self._client_conf.keys():
-            raise MessageBusError(errno.EINVAL, "Invalid entry %s", key) 
+            raise MessageBusError(errno.ENOENT, "Could not find key %s in " +\
+                "conf file %s", key, self._message_bus.conf_file)
         return self._client_conf[key]
 
     def list_message_types(self) -> list:
@@ -148,7 +151,8 @@ class MessageProducer(MessageBusClient):
         Parameters:
         consumer_group  A String that represents Consumer Group ID.
         """
-        return self._message_bus.get_unread_count(consumer_group)
+        message_type = self._get_conf("message_type")
+        return self._message_bus.get_unread_count(message_type, consumer_group)
 
 
 class MessageConsumer(MessageBusClient):
@@ -175,7 +179,13 @@ class MessageConsumer(MessageBusClient):
             consumer_group=consumer_group, message_types=message_types, \
             auto_ack=auto_ack, offset=offset, message_bus=message_bus)
 
-    def get_unread_count(self):
-        """ Gets the count of unread messages from the Message Bus """
-        consumer_group = self._get_conf('consumer_group')
-        return self._message_bus.get_unread_count(consumer_group)
+    def get_unread_count(self, message_type: str):
+        """
+        Gets the count of unread messages from the Message Bus
+
+        Parameters:
+        message_type    This is essentially equivalent to the
+                        queue/topic name. For e.g. "Alert"
+        """
+        consumer_group = self._get_conf("consumer_group")
+        return self._message_bus.get_unread_count(message_type, consumer_group)

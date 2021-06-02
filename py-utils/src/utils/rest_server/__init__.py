@@ -15,22 +15,8 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-class MessageBusError(Exception):
-    """ Generic Exception with error code and output """
+__title__ = 'rest_server'
 
-    def __init__(self, rc, message, *args):
-        self._rc = rc
-        self._desc = message % (args)
+from cortx.utils.rest_server.rest_server import RestServer
+from cortx.utils.rest_server.error import RestServerError
 
-    @property
-    def rc(self):
-        return self._rc
-
-    @property
-    def desc(self):
-        return self._desc
-
-    def __str__(self):
-        if self._rc == 0:
-            return self._desc
-        return "error(%d): %s" % (self._rc, self._desc)

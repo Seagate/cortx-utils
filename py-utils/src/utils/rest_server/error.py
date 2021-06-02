@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
-# CORTX Python common library.
+# CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
-#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -16,27 +15,21 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+from collections import defaultdict
 
-import unittest
-from cortx.utils.message_bus import MessageBus, MessageBusAdmin
+class RestServerError(Exception):
+    """ Error class for cortx rest server """
 
+    def __init__(self, e):
+        self._e = e
 
-class TestMessage(unittest.TestCase):
-    """ Test MessageBus related functionality """
+    def http_error(self):
+        return self._http_error(self._e)
 
-    message_bus = MessageBus()
+    @staticmethod
+    def _http_error(except_name):
+        ret_code_map = defaultdict(lambda: 500)
+        ret_code_map['KeyError'] = (418, "Wrong Key in payload!") # wrong key from client
+        ret_code_map['KafkaException'] = (514, "MessageBus backend error!")
+        return ret_code_map[except_name]
 
-    _message_type = 'test_topic'
-    _partition = 1
-
-    def test_list_message_type(self):
-        """ Test list message type API """
-        admin = MessageBusAdmin(TestMessage.message_bus, admin_id='admin')
-        admin.register_message_type(message_types=[TestMessage._message_type], \
-            partitions=TestMessage._partition)
-        message_type_list = admin.list_message_types()
-        self.assertTrue(TestMessage._message_type in message_type_list)
-
-
-if __name__ == '__main__':
-    unittest.main()

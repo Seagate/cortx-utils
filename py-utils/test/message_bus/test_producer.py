@@ -18,36 +18,26 @@
 
 
 import unittest
-from cortx.utils.message_bus import MessageBus, MessageProducer, MessageConsumer
+from cortx.utils.message_bus import MessageBus, MessageProducer
 
 
 class TestMessage(unittest.TestCase):
-    """ Test MessageBus related functionality """
-
-    message_bus = MessageBus()
+    """ Test MessageBus related functionality. """
 
     def test_send(self):
-        """ Test Send Message """
+        """ Test Send Message. """
         messages = []
-        producer = MessageProducer(TestMessage.message_bus, \
-            producer_id='p1', message_type='big')
+        producer = MessageProducer(
+            producer_id='sel',
+            message_type='Sel',
+            method='async'
+        )
 
         self.assertIsNotNone(producer, "Producer not found")
-        for i in range(0, 100):
+        for i in range(0, 10):
             messages.append("This is message" + str(i))
-        self.assertEqual(len(messages), 100)
         self.assertIsInstance(messages, list)
         producer.send(messages)
-
-    def test_count(self):
-        """ Test Unread Message Count """
-        consumer = MessageConsumer(TestMessage.message_bus, \
-            consumer_id='sensors', consumer_group='test_group', \
-            message_types=['big'], auto_ack=True, offset='latest')
-
-        self.assertIsNotNone(consumer, "Consumer not found")
-        unread_count = consumer.get_unread_count()
-        self.assertEqual(unread_count, 100)
 
 
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # CORTX Python common library.
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -18,24 +18,22 @@
 
 
 import unittest
-from cortx.utils.message_bus import MessageBus, MessageProducer
+from cortx.utils.message_bus import MessageBus, MessageBusAdmin
 
 
 class TestMessage(unittest.TestCase):
-    """ Test MessageBus related functionality. """
+    """ Test MessageBus related functionality """
 
-    def test_send(self):
-        """ Test Send Message. """
-        messages = []
-        message_bus = MessageBus()
-        producer = MessageProducer(message_bus, producer_id='sel', \
-            message_type='Sel', method='async')
+    _message_type = 'test_topic'
+    _partition = 1
 
-        self.assertIsNotNone(producer, "Producer not found")
-        for i in range(0, 10):
-            messages.append("This is message" + str(i))
-        self.assertIsInstance(messages, list)
-        producer.send(messages)
+    def test_list_message_type(self):
+        """ Test list message type API """
+        admin = MessageBusAdmin(admin_id='admin')
+        admin.register_message_type(message_types=[TestMessage._message_type], \
+            partitions=TestMessage._partition)
+        message_type_list = admin.list_message_types()
+        self.assertTrue(TestMessage._message_type in message_type_list)
 
 
 if __name__ == '__main__':

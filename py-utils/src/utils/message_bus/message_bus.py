@@ -15,11 +15,12 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import errno
 from cortx.utils.message_bus.message_broker import MessageBrokerFactory
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.conf_store import Conf
+from cortx.utils.conf_store.error import ConfError
 from cortx.template import Singleton
-import errno
 
 
 class MessageBus(metaclass=Singleton):
@@ -33,10 +34,12 @@ class MessageBus(metaclass=Singleton):
             Conf.load('message_bus', self.conf_file)
             self._broker_conf = Conf.get('message_bus', 'message_broker')
             broker_type = self._broker_conf['type']
-
+        except ConfError as e:
+            raise MessageBusError(e.rc, "Error while parsing " +\
+                "configuration file %s. %s.", self.conf_file, e)
         except Exception as e:
-            raise MessageBusError(errno.EINVAL, "Invalid conf in %s. %s", \
-                self.conf_file, e)
+            raise MessageBusError(errno.ENOENT, "Error while parsing " +\
+                "configuration file %s. %s.", self.conf_file, e)
 
         self._broker = MessageBrokerFactory.get_instance(broker_type, \
                 self._broker_conf)
@@ -76,12 +79,12 @@ class MessageBus(metaclass=Singleton):
         """ Deletes all the messages from the configured message broker """
         self._broker.delete(client_id, message_type)
 
-    def get_unread_count(self, consumer_group: str):
+    def get_unread_count(self, message_type: str, consumer_group: str):
         """
         Gets the count of unread messages from the configured message
         broker
         """
-        return self._broker.get_unread_count(consumer_group)
+        return self._broker.get_unread_count(message_type, consumer_group)
 
     def receive(self, client_id: str, timeout: float = None) -> list:
         """ Receives messages from the configured message broker """

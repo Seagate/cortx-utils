@@ -1,5 +1,5 @@
-#!/usr/bin/env python3
-
+# !/usr/bin/env python3
+#
 # CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
 #
@@ -18,48 +18,29 @@
 
 
 import unittest
-from cortx.utils.message_bus import MessageBus, MessageProducer, MessageConsumer
+from cortx.utils.message_bus import MessageBus, MessageConsumer
 
 
 class TestMessage(unittest.TestCase):
     """ Test MessageBus related functionality. """
 
-    message_bus = MessageBus()
-
-    def test_consumer_one(self):
-        """ Test Receive Message for consumer group 1 """
-        consumer = MessageConsumer(TestMessage.message_bus, \
-            consumer_id='sspl_sensor', consumer_group='c1', \
-            message_types=['test_type'], auto_ack=False, offset='latest')
+    def test_receive(self):
+        """ Test Receive Message. """
+        consumer = MessageConsumer(
+            consumer_id='sel',
+            consumer_group='sel',
+            message_types=['Sel'],
+            auto_ack=False,
+            offset='latest'
+        )
 
         self.assertIsNotNone(consumer, "Consumer not found")
-        count = 0
         while True:
             try:
                 message = consumer.receive()
-                count += 1
                 self.assertIsNotNone(message, "Message not found")
                 consumer.ack()
             except Exception as e:
-                self.assertEqual(count, 10)
-                break
-
-    def test_consumer_two(self):
-        """ Test Receive Message for consumer group 2 """
-        consumer = MessageConsumer(TestMessage.message_bus, \
-            consumer_id='sspl_sensor1', consumer_group='c3', \
-            message_types=['test_type'], auto_ack=False, offset='latest')
-
-        self.assertIsNotNone(consumer, "Consumer not found")
-        count = 0
-        while True:
-            try:
-                message = consumer.receive()
-                count += 1
-                self.assertIsNotNone(message, "Message not found")
-                consumer.ack()
-            except Exception as e:
-                self.assertEqual(count, 10)
                 break
 
 
