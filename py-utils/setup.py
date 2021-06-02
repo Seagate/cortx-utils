@@ -20,7 +20,7 @@ import json
 import sys
 
 if not os.path.isfile("./cortx.conf.sample"):
-    print("cortx.conf.sample file not found!")
+    print("error: cortx.conf.sample file not found!", file=sys.stderr)
     sys.exit(1)
 
 with open("cortx.conf.sample") as conf_file:
@@ -31,7 +31,7 @@ install_path = build_data["install_path"]
 utils_path = "%s/cortx/utils" % install_path
 
 if not os.path.isfile("./VERSION"):
-    print("VERSION file not found!")
+    print("error: VERSION file not found!", file=sys.stderr)
     sys.exit(1)
 
 # Fetch version
