@@ -19,7 +19,6 @@
 import unittest
 from cortx.utils.iem_framework import EventMessage
 from cortx.utils.iem_framework.error import EventMessageError
-from cortx.utils.message_bus.error import MessageBusError
 
 
 class TestMessage(unittest.TestCase):
