@@ -54,7 +54,7 @@ cd "$BASE_DIR"
 
 # Create version file
 echo $VER > VERSION
-/bin/chmod +rx Version
+/bin/chmod +rx VERSION
 
 # Fetch install_path
 INSTALL_PATH=$(grep install_path cortx.conf.sample |  cut -d " " -f 4 | sed -e 's/^"//' -e 's/"$//')
