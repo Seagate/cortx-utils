@@ -164,7 +164,7 @@ class KvPayload:
         """ Obtain value for the given key """
         return self._get(key, self._data)
 
-    def __getitem__(self, key: str, val: str):
+    def __getitem__(self, key: str):
         """ read operator for KV payload, i.e. kv['xxx'] """
         return self.get(key)
 

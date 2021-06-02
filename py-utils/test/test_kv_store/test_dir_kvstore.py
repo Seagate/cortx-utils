@@ -19,10 +19,10 @@
 import unittest
 import sys
 import os
+from cortx.utils.kv_store import KvStoreFactory
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from cortx.utils.kv_store import KvStoreFactory
 
 class TestDirKvStore(unittest.TestCase):
     """Test store related functionality."""
@@ -77,15 +77,11 @@ class TestDirKvStore(unittest.TestCase):
             'key8' : 'val8',
             'key9' : 'val9'
         }
-        try:
-            self._kvs.set(data_set.keys(), ['val8'])
-            self.assertEqual(0, 1)
-        except:
-            pass
+        self._kvs.set(data_set.keys(), ['val8'])
+        self.assertEqual(0, 1)
 
     def tearDown(self):
         self._deltree(self._dir_path)
-        pass
 
     def _deltree(self, target):
         if not os.path.exists(target):
