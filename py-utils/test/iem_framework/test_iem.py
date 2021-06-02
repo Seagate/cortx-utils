@@ -19,6 +19,7 @@
 import unittest
 from cortx.utils.iem_framework import EventMessage
 from cortx.utils.iem_framework.error import EventMessageError
+from cortx.utils.message_bus.error import MessageBusError
 
 
 class TestMessage(unittest.TestCase):
@@ -32,7 +33,7 @@ class TestMessage(unittest.TestCase):
 
     def test_alert_verify_receive(self):
         """ Test receive alerts """
-        EventMessage.init(component='cmp', source='H', receiver=True)
+        EventMessage.subscribe(component='cmp')
         alert = EventMessage.receive()
         self.assertIs(type(alert), dict)
 
@@ -45,7 +46,7 @@ class TestMessage(unittest.TestCase):
 
     def test_bulk_verify_receive(self):
         """ Test bulk receive alerts """
-        EventMessage.init(component='cmp', source='H', receiver=True)
+        EventMessage.subscribe(component='cmp')
         count = 0
         while True:
             alert = EventMessage.receive()
@@ -55,22 +56,20 @@ class TestMessage(unittest.TestCase):
             count += 1
         self.assertEqual(count, 1000)
 
-    def test_receive_fail(self):
-        """ Receive message with receiver as False """
-        EventMessage.init(component='cmp', source='H')
-        with self.assertRaises(KeyError):
+    def test_alert_fail_receive(self):
+        """ Receive message init """
+        with self.assertRaises(AttributeError):
             EventMessage.receive()
 
-    def test_send_fail(self):
-        """ Send message with receiver as True """
-        EventMessage.init(component='cmp', source='H', receiver=True)
-        with self.assertRaises(NameError):
+    def test_alert_fail_send(self):
+        """ Send message with subscribe """
+        with self.assertRaises(AttributeError):
             EventMessage.send(module='mod', event_id='500', severity='B', \
                 message='This is message')
 
     def test_receive_without_send(self):
         """ Receive message without send """
-        EventMessage.init(component='cmp', source='H', receiver=True)
+        EventMessage.subscribe(component='cmp')
         alert = EventMessage.receive()
         self.assertIsNone(alert)
 
@@ -100,7 +99,7 @@ class TestMessage(unittest.TestCase):
 
     def test_json_verify_receive(self):
         """ Test receive json as message description """
-        EventMessage.init(component='cmp', source='H', receiver=True)
+        EventMessage.subscribe(component='cmp')
         alert = EventMessage.receive()
         self.assertIs(type(alert), dict)
 

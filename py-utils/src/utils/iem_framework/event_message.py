@@ -61,7 +61,7 @@ class EventMessage(metaclass=Singleton):
                 cls._conf_file, e)
 
     @classmethod
-    def init(cls, component: str, source: str, receiver: bool = False):
+    def init(cls, component: str, source: str):
         """ Set the Event Message context """
         cls._component = component
         cls._source = source
@@ -75,21 +75,22 @@ class EventMessage(metaclass=Singleton):
             raise EventMessageError(errno.EINVAL, "Invalid source type: %s", \
                 cls._source)
 
-        if receiver:
-            cls._client = MessageConsumer(consumer_id='event_consumer', \
-                consumer_group=cls._component, message_types=['IEM'], \
-                auto_ack=True, offset='earliest')
-        else:
-            cls._client = MessageProducer(producer_id='event_producer', \
-                message_type='IEM', method='sync')
+        cls._producer = MessageProducer(producer_id='event_producer', \
+            message_type='IEM', method='sync')
 
     @classmethod
     def send(cls, module: str, event_id: str, severity: str, message: str, \
-        *params):
+        site_id: str = None, rack_id: str = None, node_id: str = None, \
+        event_time: float = None, *params):
         """ Sends IEM alert message """
 
+        site_id = site_id if site_id is not None else cls._site_id
+        rack_id = rack_id if rack_id is not None else cls._rack_id
+        node_id = node_id if node_id is not None else cls._node_id
+        event_time = event_time if event_time is not None else time.time()
+
         # Validate attributes before sending
-        for attribute in [module, event_id, message]:
+        for attribute in [module, event_id, message, site_id, node_id, rack_id]:
             if attribute is None:
                 raise EventMessageError(errno.EINVAL, "Invalid IEM attributes \
                     %s", attribute)
@@ -104,7 +105,7 @@ class EventMessage(metaclass=Singleton):
                 'info': {
                     'severity': cls._SEVERITY_LEVELS[severity],
                     'type': cls._SOURCE[cls._source],
-                    'event_time': time.time()
+                    'event_time': event_time
                     },
                 'location': {
                     'site_id': cls._site_id,
@@ -112,6 +113,9 @@ class EventMessage(metaclass=Singleton):
                     'rack_id': cls._rack_id
                     },
                 'source': {
+                    'site_id': site_id,
+                    'node_id': node_id,
+                    'rack_id': rack_id,
                     'component': cls._component,
                     'module': module
                     },
@@ -123,12 +127,24 @@ class EventMessage(metaclass=Singleton):
             }
         })
 
-        cls._client.send([alert])
+        cls._producer.send([alert])
+
+    @classmethod
+    def subscribe(cls, component: str, **filter):
+        """ Subscribe to IEM alerts """
+        if component is None:
+            raise EventMessageError(errno.EINVAL, "Invalid component type: %s", \
+               component)
+
+        cls._consumer = MessageConsumer(consumer_id='event_consumer', \
+            consumer_group=component, message_types=['IEM'], \
+            auto_ack=True, offset='earliest')
+
 
     @classmethod
     def receive(cls):
         """ Receive IEM alert message """
-        alert = cls._client.receive()
+        alert = cls._consumer.receive()
         if alert is not None:
             try:
                 return json.loads(alert.decode('utf-8'))
