@@ -163,6 +163,21 @@ class Utils:
             admin.register_message_type(message_types=['IEM'], partitions=1)
         except MessageBusError as e:
             raise SetupError(e.rc, "Unable to create message_type. %s", e)
+
+        # start MessageBus service and check status
+        start_cmd = SimpleProcess("systemctl start cortx_message_bus")
+        _, start_err, start_rc = start_cmd.run()
+
+        if start_rc != 0:
+            raise SetupError(start_rc, "Unable to start MessageBus Service \
+                %s", start_err.decode('utf-8'))
+
+        status_cmd = SimpleProcess("systemctl status cortx_message_bus")
+        _, status_err, status_rc = status_cmd.run()
+
+        if status_rc != 0:
+            raise SetupError(status_rc, "MessageBus Service is either failed \
+                inactive. %s", status_err.decode('utf-8'))
         return 0
 
     @staticmethod
@@ -216,6 +231,15 @@ class Utils:
             except Exception as e:
                 raise SetupError(errors.ERR_OP_FAILED, "Can not reset Message Bus. \
                     %s", e)
+
+        # Stop MessageBus Service
+        cmd = SimpleProcess("systemctl stop cortx_message_bus")
+        _, stderr, res_rc = cmd.run()
+
+        if res_rc != 0:
+            raise SetupError(res_rc, "Unable to stop MessageBus Service. \
+                %s", stderr.decode('utf-8'))
+
         return 0
 
     @staticmethod

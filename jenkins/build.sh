@@ -92,4 +92,7 @@ exit \$rc " >> utils-pre-install
 # Create the rpm
 /bin/python3.6 setup.py bdist_rpm --release="$REL" --pre-install utils-pre-install \
  --post-install utils-post-install --post-uninstall utils-post-uninstall
-[ $? -ne 0 ] && echo "build failed" && exit 1
+if [ $? -ne 0 ]; then
+  echo "build failed"
+  exit 1
+fi
