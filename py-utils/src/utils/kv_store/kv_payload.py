@@ -62,8 +62,8 @@ class KvPayload:
         if isinstance(data, list):
             for index, d in enumerate(data):
                 if isinstance(d, dict):
-                    index_suffix = f"[{index}]" if key_index else ""
-                    newkey = None if not pkey else "%s%s" % (pkey, index_suffix)
+                    index_suff = f"[{index}]" if key_index else ""
+                    newkey = None if not pkey else "%s%s" % (pkey, index_suff)
                     self._get_keys(keys, d, newkey, key_index)
                 elif isinstance(d, str):
                     if pkey not in keys:
