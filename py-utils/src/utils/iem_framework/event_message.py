@@ -130,7 +130,7 @@ class EventMessage(metaclass=Singleton):
         cls._producer.send([alert])
 
     @classmethod
-    def subscribe(cls, component: str, **filter):
+    def subscribe(cls, component: str, **filters):
         """ Subscribe to IEM alerts """
         if component is None:
             raise EventMessageError(errno.EINVAL, "Invalid component type: %s", \
