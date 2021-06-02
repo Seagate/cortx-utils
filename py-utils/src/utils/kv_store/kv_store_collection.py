@@ -158,7 +158,7 @@ class DirKvStore(KvStore):
             except Exception as e:
                 raise KvError(errno.EACCESS, "Cant set key %s. %s", key, e)
             if os.path.exists(key_file) and not os.path.isfile(key_file):
-                raise KvError(errno.EINVAL, "Invalid Key %s" %key)
+                raise KvError(errno.EINVAL, "Invalid Key %s" % key)
             with open(key_file, 'w') as f:
                 f.write(val)
 
@@ -177,7 +177,7 @@ class DirKvStore(KvStore):
     def delete(self, keys: list):
         """ Deletes given set of keys from the store """
         for key in keys:
-            key_dir, key_file = self._get_key_path(key)
+            _, key_file = self._get_key_path(key)
             try:
                 os.remove(key_file)
             except OSError:
