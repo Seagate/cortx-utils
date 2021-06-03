@@ -75,7 +75,7 @@ class ConfCli:
         """ Compare two diffenent string value for the given keys """
         if len(args.args) < 1:
             args.format = None
-            args.key_index = None	
+            args.key_index = None
             string_1 = ConfCli.get_keys(args)
             ConfCli._index = "string_diff"
             args.url = args.second_url
