@@ -17,7 +17,6 @@
 
 import errno
 from cortx.utils.schema import payload
-from cortx.utils.log import Log
 from cortx.utils.validator.error import VError
 
 
@@ -48,16 +47,15 @@ class FormatV:
     def _validate_file_format(value):
         try:
             return payload.CommonPayload(value).load()
-        except ValueError as ve:
+        except ValueError:
             raise VError(errno.EINVAL,
                 ("File operations failed. "
                  "Please check if the file is valid or not"))
-        except FileNotFoundError as err:
+        except FileNotFoundError:
             raise VError(errno.ENOENT,
                 ("File operation failed. "
                  "Please check if the file exists."))
-        except KeyError as err:
+        except KeyError:
             raise VError(errno.ENOENT,
                 ("File operation failed. "
                  "Please check if the file exists and its type."))
-

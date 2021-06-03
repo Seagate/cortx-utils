@@ -14,13 +14,10 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 
-import argparse
 import json
 from typing import Dict, Any
-from copy import deepcopy
 from dict2xml import dict2xml
 from prettytable import PrettyTable
-from importlib import import_module
 from cortx.utils.cli_framework import const
 
 class Command:
