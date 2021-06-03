@@ -35,7 +35,7 @@ pipeline {
 		stage('Checkout py-utils') {
 			steps {
                 script { build_stage = env.STAGE_NAME }
-                checkout([$class: 'GitSCM', branches: [[name: "${CORTX_UTILS_BRANCH}"]], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'AuthorInChangelog']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: 'https://github.com/Seagate/cortx-utils']]])
+                checkout([$class: 'GitSCM', branches: [[name: "${CORTX_UTILS_BRANCH}"]], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'AuthorInChangelog']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: "${CORTX_UTILS_URL}"]]])
 			}
 		}
 	
@@ -48,7 +48,7 @@ pipeline {
                     if [ "${CORTX_UTILS_BRANCH}" == "cortx-1.0" ]; then
                         python3 setup.py bdist_rpm --post-install utils-post-install --pre-uninstall utils-pre-uninstall --release="${BUILD_NUMBER}_$(git rev-parse --short HEAD)"
                     else   
-                        ./jenkins/build.sh -v $version -b $BUILD_NUMBER
+                        ../jenkins/build.sh -v $version -b $BUILD_NUMBER
                     fi    
 				popd
 				
