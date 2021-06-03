@@ -29,6 +29,8 @@ class EventMessage(metaclass=Singleton):
     """ Event Message framework to generate alerts """
 
     _conf_file = "json:///etc/cortx/cluster.conf"
+    _producer = None
+    _consumer = None
 
     # VALID VALUES for IEC Components
     _SEVERITY_LEVELS = {
@@ -66,7 +68,6 @@ class EventMessage(metaclass=Singleton):
         """ Set the Event Message context """
         cls._component = component
         cls._source = source
-        cls._consumer = None
         cls()
 
         if cls._component is None:
@@ -85,6 +86,10 @@ class EventMessage(metaclass=Singleton):
         site_id: str = None, rack_id: str = None, node_id: str = None, \
         event_time: float = None, *params):
         """ Sends IEM alert message """
+
+        if cls._producer is None:
+            raise EventMessageError(errors.ERR_SERVICE_NOT_INITIALIZED, \
+                "Producer is not initialised")
 
         site_id = site_id if site_id is not None else cls._site_id
         rack_id = rack_id if rack_id is not None else cls._rack_id
