@@ -57,12 +57,12 @@ class TestMessage(unittest.TestCase):
 
     def test_alert_fail_receive(self):
         """ Receive message without subscribing """
-        with self.assertRaises(AttributeError):
+        with self.assertRaises(EventMessageError):
             EventMessage.receive()
 
     def test_alert_fail_send(self):
         """ Send message without initialising """
-        with self.assertRaises(AttributeError):
+        with self.assertRaises(EventMessageError):
             EventMessage.send(module='mod', event_id='500', severity='B', \
                 message='This is message')
 
