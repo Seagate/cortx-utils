@@ -17,4 +17,3 @@
 
 
 from cortx.utils.discovery.discovery import Discovery
-from cortx.utils.discovery.node_health_generator import ResourceFactory

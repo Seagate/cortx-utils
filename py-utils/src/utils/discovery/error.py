@@ -15,22 +15,13 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-class DiscoveryError(Exception):
+from cortx.utils.errors import BaseError
+
+
+class DiscoveryError(BaseError):
     """Generic Exception with error code and output."""
 
-    def __init__(self, rc, message, *args):
+    def __init__(self, rc=0, desc=None, message_id=None, message_args=None):
         """Initialize DiscoveryError"""
-        self._rc = rc
-        self._desc = message % (args)
-
-    @property
-    def rc(self):
-        return self._rc
-
-    @property
-    def desc(self):
-        return self._desc
-
-    def __str__(self):
-        if self._rc == 0: return self._desc
-        return "error(%d): %s" %(self._rc, self._desc)
+        super(DiscoveryError, self).__init__(
+              rc, 'Discovery error: %s' % desc, message_id, message_args)

@@ -15,15 +15,15 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import errno
-import inspect
 import os
 
-from cortx.utils.discovery.error import DiscoveryError
-from cortx.utils.discovery.resource_map import ResourceMap
+from cortx.utils.discovery.resource import ResourceFactory
+
+script_path = os.path.realpath(__file__)
+data_file = os.path.join(os.path.dirname(script_path), "node_health_info")
 
 
-class NodeHealthGenerator:
+class NodeHealth:
     """This generates node health information and updates map"""
 
     ROOT_NODE = "nodes"
@@ -36,7 +36,7 @@ class NodeHealthGenerator:
         self.success = "Success"
         self.failed = "Failed"
 
-    def run(self, rpath: str = None):
+    def generate(self, rpath: str, store_type: str):
         """
         Generates node health information and updates resource map.
 
@@ -46,53 +46,24 @@ class NodeHealthGenerator:
         reason if current request is failed.
         """
         rpath = rpath if rpath else self.ROOT_NODE
-        os.makedirs(NodeHealthGenerator.GEN_MARKER, exist_ok=True)
+        os.makedirs(NodeHealth.GEN_MARKER, exist_ok=True)
         try:
             resource = ResourceFactory.get_instance(rpath)
-            info = resource.generate_health_info()
-            ResourceMap.load()
-            ResourceMap.set(rpath, info)
-            NodeHealthGenerator.STATUS = self.success
+            url = "%s://%s.%s" % (store_type, data_file, store_type)
+            resource.init(url)
+            info = resource.get_health_info(rpath)
+            resource.set(rpath, info)
+            NodeHealth.STATUS = self.success
         except Exception as err:
-            NodeHealthGenerator.STATUS = self.failed + str(err)
-        os.removedirs(NodeHealthGenerator.GEN_MARKER)
-        return NodeHealthGenerator.STATUS
+            NodeHealth.STATUS = self.failed + f" - {err}"
+        os.removedirs(NodeHealth.GEN_MARKER)
+        return NodeHealth.STATUS
 
     def get_processing_status(self):
         """
         Returns "in-progress" is any request is under processing.
         Otherwise generator processing status is "Ready" or "Success".
         """
-        if os.path.exists(NodeHealthGenerator.GEN_MARKER):
-            NodeHealthGenerator.STATUS = self.inprogress
-        return NodeHealthGenerator.STATUS
-
-
-class ResourceFactory:
-    """Factory class for different resources"""
-
-    _resources = {}
-
-    def __init__(self):
-        """Initialize resource factory"""
-        pass
-
-    @staticmethod
-    def get_instance(rpath):
-        """Returns instance of ResourceFactory for given rpath"""
-        if rpath in ResourceFactory._resources.keys():
-            return ResourceFactory._resources[rpath]
-
-        # Parse rpath and find leaf node
-        nodes = rpath.strip().split(">")
-        leaf_node = nodes[-1] if nodes else nodes
-
-        # Get corresponding class instance
-        from cortx.utils.discovery import resource_collection
-        resources = inspect.getmembers(resource_collection, inspect.isclass)
-        for _, cls in resources:
-            if hasattr(cls, 'name') and leaf_node == cls.name:
-                ResourceFactory._resources[rpath] = cls(leaf_node, rpath)
-                return ResourceFactory._resources[rpath]
-
-        raise DiscoveryError(errno.EINVAL, "Invalid rpath '%s'", rpath)
+        if os.path.exists(NodeHealth.GEN_MARKER):
+            NodeHealth.STATUS = self.inprogress
+        return NodeHealth.STATUS

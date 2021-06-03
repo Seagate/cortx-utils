@@ -15,8 +15,8 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.discovery.resource_map import ResourceMap
-from cortx.utils.discovery.node_health_generator import NodeHealthGenerator
+from cortx.utils.discovery.resource import Resource
+from cortx.utils.discovery.node_health import NodeHealth
 
 
 class Discovery:
@@ -26,9 +26,9 @@ class Discovery:
     """
 
     def __init__(self):
-        self.health_gen = NodeHealthGenerator()
+        self.health_gen = NodeHealth()
 
-    def generate_node_health(self, rpath: str = None):
+    def generate_node_health(self, rpath: str = None, store_type: str = "json"):
         """
         This method generates node resource map and health information.
 
@@ -40,13 +40,14 @@ class Discovery:
             Examples:
                 node[0]>compute[0]>hw>disks
                 node[0]>compute
+                node[0]>storage[0]
                 node[0]>storage[0]>hw>psus
         """
         gen_status = self.get_gen_node_health_status()
         if gen_status == self.health_gen.inprogress:
             return "Failed - Node health generator is busy in processing "\
                 "previous request."
-        self.health_gen.run(rpath)
+        self.health_gen.generate(rpath, store_type)
         return "Success"
 
     def get_gen_node_health_status(self):
@@ -67,20 +68,30 @@ class Discovery:
         rpath: Resource path in resource map to fetch its health.
             If rpath is not given, it will fetch whole Cortx Node
             data health and display.
-            Examples:
-                node[0]>compute[0]>hw>disks
-                node[0]>compute
-                node[0]>storage[0]>hw>psus
         """
-        return ResourceMap.get(rpath)
+        val = Resource.get(rpath)
+        return val[0] if val else val
 
     @staticmethod
-    def get_resource_map(rpath: str = None):
+    def get_resource_map(rpath: str = None, delim: str = ">"):
         """
         Retruns a list of resource types discovered.
 
         rpath: Resource path in resource map
-            If rpath is given, parse resource map and collect
-            sub nodes discovered.
+        Sample Output:
+            [
+            "compute[0]>hw>platform_sensors>voltage_sensors",
+            "compute[0]>hw>platform_sensors",
+            "compute[0]>hw>nw_ports",
+            "compute[0]>hw",
+            "compute[0]>sw>cortx_sw[0]>uid"
+            "compute[0]>sw>cortx_sw[1]>uid"
+            ]
         """
-        return ResourceMap.get_keys(rpath)
+        if not rpath:
+            rpath = Resource.ROOT_NODE
+        leaf_node = rpath.split(delim)[-1]
+        rmap = {
+            leaf_node : Discovery.get_node_health(rpath)
+            }
+        return Resource.get_keys(rmap)

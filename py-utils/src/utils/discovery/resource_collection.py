@@ -15,8 +15,10 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+from cortx.utils.discovery.resource import Resource
 
-class Disks:
+
+class Disks(Resource):
     """Represents Disk instances"""
 
     name = "disks"
@@ -25,12 +27,11 @@ class Disks:
     def __init__(self, lnode, rpath):
         pass
 
-    @staticmethod
-    def generate_health_info():
+    def get_health_info(self):
         return Disks.info
 
 
-class Psus:
+class Psus(Resource):
     """Represents PSU instances"""
 
     name = "psus"
@@ -39,12 +40,11 @@ class Psus:
     def __init__(self, lnode, rpath):
         pass
 
-    @staticmethod
-    def generate_health_info():
+    def get_health_info(self):
         return Psus.info
 
 
-class Hardware(Disks, Psus):
+class Hardware(Resource):
     """Represents Hardware type instances"""
 
     name = "hw"
@@ -54,11 +54,11 @@ class Hardware(Disks, Psus):
         pass
 
     @staticmethod
-    def generate_health_info():
+    def get_health_info(self):
         return Hardware.info
 
 
-class Software:
+class Software(Resource):
     """Represents Software type instances"""
 
     name = "sw"
@@ -68,11 +68,11 @@ class Software:
         pass
 
     @staticmethod
-    def generate_health_info():
+    def get_health_info(self):
         return Software.info
 
 
-class Compute(Hardware, Software):
+class Compute(Resource):
     """Represents Compute instances"""
 
     name = "compute"
@@ -82,11 +82,11 @@ class Compute(Hardware, Software):
         pass
 
     @staticmethod
-    def generate_health_info():
+    def get_health_info(self):
         return Compute.info
 
 
-class Storage(Hardware, Software):
+class Storage(Resource):
     """Represents Storage instances"""
 
     name = "storage"
@@ -96,11 +96,11 @@ class Storage(Hardware, Software):
         pass
 
     @staticmethod
-    def generate_health_info():
+    def get_health_info(self):
         return Storage.info
 
 
-class Nodes(Compute, Storage):
+class Nodes(Resource):
     """Represents Node instances"""
 
     name = "nodes"
@@ -110,5 +110,5 @@ class Nodes(Compute, Storage):
         pass
 
     @staticmethod
-    def generate_health_info():
+    def get_health_info(self):
         return Nodes.info

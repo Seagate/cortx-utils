@@ -12,25 +12,37 @@
           "OS": "CentOS Linux release 7.8.2003 (Core)",
           "last_fetched": "Wed May 19 16:53:02 2021",
           "hw": {
-            "disks": {},
-            "psus": [
+            "disks": [
               {
-                "uid": "psu_001",
-                "location": "slot-from-left:001",
+                "uid": "disk_001",
+                "location": "row-1:slot-from-left:001",
                 "fru": "true",
                 "last_fetched": "Wed May 19 16:53:02 2021",
                 "health": {
                   "status": "OK",
-                  "description": "PSU is in good health",
+                  "description": "Disk drive is in good health",
                   "recommendation": "None",
                   "specifics": {
-                    "PowerCable": {
-                      "connection": "OK"
-                    }
+                    "SMART": {}
+                  }
+                }
+              },
+              {
+                "uid": "disk_002",
+                "location": "row-2:slot-from-left:002",
+                "fru": "true",
+                "last_fetched": "Wed May 19 16:53:02 2021",
+                "health": {
+                  "status": "FAULT",
+                  "description": "Disk drive has a fault, may malfunction or halt anytime",
+                  "recommendation": "Contact Seagate Support",
+                  "specifics": {
+                    "SMART": {}
                   }
                 }
               }
             ],
+            "psus": {},
             "platform_sensors": {
               "temperature_sensors": [
                 {
