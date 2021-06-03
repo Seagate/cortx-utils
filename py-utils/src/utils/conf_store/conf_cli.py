@@ -73,10 +73,15 @@ class ConfCli:
     @staticmethod
     def diff(args) -> str:
         """ Compare two diffenent string value for the given keys """
-        output = ""
         if len(args.args) < 1:
-            #todo the diff of all the keys between two files
-            sys.exit(0)
+            args.format = None
+            args.key_index = None	
+            string_1 = ConfCli.get_keys(args)
+            ConfCli._index = "string_diff"
+            args.url = args.second_url
+            ConfCli.init(args.url)
+            string_2 = ConfCli.get_keys(args)
+            cmd = """bash -c "diff <(echo \\"%s\\") <(echo \\"%s\\")" """ %(string_1, string_2)
         else:
             args.format = None
             string_1 = ConfCli.get(args)
@@ -85,11 +90,11 @@ class ConfCli:
             ConfCli.init(args.url)
             string_2 = ConfCli.get(args)
             cmd = """bash -c "diff <(echo \\"%s\\") <(echo \\"%s\\")" """ %(string_1, string_2)
-            cmd_proc = SimpleProcess([cmd])
-            cmd_proc.shell = True
-            stdout, stderr, rc = cmd_proc.run()
-            output = stdout.decode('utf-8') if rc == 1 else \
-                stderr.decode('utf-8')
+        cmd_proc = SimpleProcess([cmd])
+        cmd_proc.shell = True
+        stdout, stderr, rc = cmd_proc.run()
+        output = stdout.decode('utf-8') if rc == 1 else \
+             stderr.decode('utf-8')
         return output
 
     @staticmethod
@@ -229,3 +234,5 @@ def main():
 if __name__ == "__main__":
     rc = main()
     sys.exit(rc)
+
+
