@@ -26,6 +26,12 @@ class FormatV:
     Format validators
     """
 
+    def validate(self, v_type, value):
+        if v_type == "positive_int":
+            FormatV._validate_positive_int(value)
+        elif v_type == "file_format":
+            FormatV._validate_file_format(value)
+
     @staticmethod
     def _validate_positive_int(value):
         """
@@ -36,24 +42,21 @@ class FormatV:
                 return int(value)
             raise VError(errno.EINVAL, "Value Must be Positive Integer")
         except ValueError:
-            raise VError(errno.EINVAL,"Value Must be Positive Integer")
+            raise VError(errno.EINVAL,"Invalid argument.")
 
     @staticmethod
     def _validate_file_format(value):
         try:
             return payload.CommonPayload(value).load()
         except ValueError as ve:
-            Log.error(f"File parsing failed. {value}: {ve}")
             raise VError(errno.EINVAL,
                 ("File operations failed. "
                  "Please check if the file is valid or not"))
         except FileNotFoundError as err:
-            Log.error(f"No such file present. {value}: {err}")
             raise VError(errno.ENOENT,
                 ("File operation failed. "
                  "Please check if the file exists."))
         except KeyError as err:
-            Log.error(f"Check file type. {value}: {err}")
             raise VError(errno.ENOENT,
                 ("File operation failed. "
                  "Please check if the file exists and its type."))
