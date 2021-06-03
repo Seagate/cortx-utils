@@ -92,7 +92,7 @@ pipeline {
                     echo "VALIDATING $env RPM'S................"
                     echo "-------------------------------------"
                     pushd $integration_dir/$release_tag/$env
-                    motr_rpm=$(ls -1 | grep "cortx-motr" | grep -E -v "cortx-motr-debuginfo|cortx-motr-devel|cortx-motr-tests")
+                    motr_rpm=$(ls -1 | grep "cortx-motr-$version")
                     motr_rpm_release=`rpm -qp ${motr_rpm} --qf '%{RELEASE}' | tr -d '\040\011\012\015'`
                     motr_rpm_version=`rpm -qp ${motr_rpm} --qf '%{VERSION}' | tr -d '\040\011\012\015'`
                     motr_rpm_release_version="${motr_rpm_version}-${motr_rpm_release}"
