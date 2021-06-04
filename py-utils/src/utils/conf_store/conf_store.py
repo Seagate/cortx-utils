@@ -193,11 +193,11 @@ class Conf:
             Conf._machine_id = Conf._conf.machine_id
 
     @staticmethod
-    def load(index: str, url: str):
+    def load(index: str, url: str, **kwargs):
         """ Loads Config from the given URL """
         if Conf._conf is None:
             Conf.init()
-        Conf._conf.load(index, url)
+        Conf._conf.load(index, url, **kwargs)
 
     @staticmethod
     def save(index: str):
