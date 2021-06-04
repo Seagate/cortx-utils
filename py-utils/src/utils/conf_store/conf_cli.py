@@ -81,7 +81,6 @@ class ConfCli:
             args.url = args.second_url
             ConfCli.init(args.url)
             string_2 = ConfCli.get_keys(args)
-            cmd = """bash -c "diff <(echo \\"%s\\") <(echo \\"%s\\")" """ %(string_1, string_2)
         else:
             args.format = None
             string_1 = ConfCli.get(args)
@@ -89,7 +88,7 @@ class ConfCli:
             args.url = args.second_url
             ConfCli.init(args.url)
             string_2 = ConfCli.get(args)
-            cmd = """bash -c "diff <(echo \\"%s\\") <(echo \\"%s\\")" """ %(string_1, string_2)
+        cmd = """bash -c "diff <(echo \\"%s\\") <(echo \\"%s\\")" """ %(string_1, string_2)
         cmd_proc = SimpleProcess([cmd])
         cmd_proc.shell = True
         stdout, stderr, rc = cmd_proc.run()
@@ -234,5 +233,3 @@ def main():
 if __name__ == "__main__":
     rc = main()
     sys.exit(rc)
-
-
