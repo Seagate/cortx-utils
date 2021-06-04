@@ -11,7 +11,7 @@
           {
             "flag": "-o",
             "type": "IntType.validate",
-            "type_target": "cortx.utils.cli_framework.arg_validator",
+            "type_target": "cortx.utils.cli_framework.arg_validate",
             "dest": "offset",
             "help": "Amount of users you want to get",
             "params": true

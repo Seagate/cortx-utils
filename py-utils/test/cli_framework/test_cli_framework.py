@@ -30,9 +30,9 @@ class TestCliFramework(unittest.TestCase):
         self.permissions = {
             'users': { 'list': True, 'update': True, 'create': True }
             }
-        self.directory_path = os.path.join("test_data/")
-        self.cmd_response = payload.CommonPayload(os.path.join("test_data/","users_command_output.json")).load()
-        self.expected_output_file = os.path.join("test_data/","users_show_table_output")
+        self.directory_path = os.path.join("cli_test_data/")
+        self.cmd_response = payload.CommonPayload(os.path.join("cli_test_data/","users_command_output.json")).load()
+        self.expected_output_file = os.path.join("cli_test_data/","users_show_table_output")
         self.obtained_output_file = os.path.join("/tmp","users_show_table_obtained_output")
 
     def test_command_factory(self):
