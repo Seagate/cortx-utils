@@ -21,6 +21,7 @@ class ArgType:
     """
     Base class for Argumentent type validaton
     """
+    @staticmethod
     def validate(self, val):
        raise CliError(errno.ENOSYS, "validate not implemented")
 
