@@ -22,15 +22,6 @@ from cortx.utils.validator.error import VError
 
 class TestFormatValidator(unittest.TestCase):
 
-    def test_positive_int(self):
-        self.assertIsNone(FormatV().validate("positive_int", 1))
-
-    def test_negative_int(self):
-        self.assertRaises(VError, FormatV().validate, "positive_int", -1)
-
-    def test_char(self):
-        self.assertRaises(VError, FormatV().validate, "positive_int", 'x')
-
     def test_file_format(self):
         self.assertIsNone(FormatV().validate("file_format", "/etc/hosts"))
 

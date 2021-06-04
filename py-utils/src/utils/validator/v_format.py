@@ -24,27 +24,8 @@ class FormatV:
     """
     Format validators
     """
-
-    def validate(self, v_type, value):
-        if v_type == "positive_int":
-            FormatV._validate_positive_int(value)
-        elif v_type == "file_format":
-            FormatV._validate_file_format(value)
-
     @staticmethod
-    def _validate_positive_int(value):
-        """
-        Checks for positive int else raise Error
-        """
-        try:
-            if int(value) > -1:
-                return int(value)
-            raise VError(errno.EINVAL, "Value Must be Positive Integer")
-        except ValueError:
-            raise VError(errno.EINVAL,"Invalid argument.")
-
-    @staticmethod
-    def _validate_file_format(value):
+    def validate(value):
         try:
             return payload.CommonPayload(value).load()
         except ValueError:
