@@ -2,7 +2,7 @@ from cortx.utils.cli_framework.errors import CliError
 import errno
 
 
-class ArgType: 
+class ArgType:
 
     def validate(self, val):
        raise CliError(errno.ENOSYS, "validate not implemented")
