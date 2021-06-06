@@ -13,102 +13,116 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 # For any questions about this software or licensing,
-# please email opensource@seagate.com or cortx-questions@seagate.com.
+# please email opensource@seagate.com or cortx-questions@seagate.com
 
-from cortx.utils.discovery.resource import Resource
+import importlib.util
+import inspect
+import os
+import sys
 
-
-class Disks(Resource):
-    """Represents Disk instances"""
-
-    name = "disks"
-    info = {}
-
-    def __init__(self, lnode, rpath):
-        pass
-
-    def get_health_info(self):
-        return Disks.info
+from cortx.utils.conf_store import Conf
 
 
-class Psus(Resource):
-    """Represents PSU instances"""
-
-    name = "psus"
-    info = {}
-
-    def __init__(self, lnode, rpath):
-        pass
-
-    def get_health_info(self):
-        return Psus.info
+script_path = os.path.realpath(__file__)
+data_file = os.path.join(os.path.dirname(script_path), "dm_config.ini")
+dm_config = "dm_config"
+Conf.load(dm_config, "ini://%s" % data_file)
 
 
-class Hardware(Resource):
-    """Represents Hardware type instances"""
-
-    name = "hw"
-    info = {}
-
-    def __init__(self, lnode, rpath):
-        pass
-
-    @staticmethod
-    def get_health_info(self):
-        return Hardware.info
+def module_from_file(module_name, file_path):
+    spec = importlib.util.spec_from_file_location(module_name, file_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
-class Software(Resource):
-    """Represents Software type instances"""
+class Resource:
 
-    name = "sw"
-    info = {}
+    def __init__(self, name, child_resource=None, inst="*"):
+        self._name = name
+        self._instance = inst
+        self._child_resource = child_resource
+        self.health_provider_map = {
+            "storage": "storage",
+            "compute": "server"
+            }
 
-    def __init__(self, lnode, rpath):
-        pass
+    @property
+    def name(self):
+        return self._name
 
-    @staticmethod
-    def get_health_info(self):
-        return Software.info
+    @property
+    def child_resource(self):
+        return self._child_resource
+
+    @property
+    def instance(self):
+        return self._instance
+
+    def get_health_provider_module(self):
+        """Look for dm package in health provider path"""
+        provider = Conf.get(
+            dm_config, "HEALTH_PROVIDER>%s" % self.health_provider_map[self.name])
+        if provider == "dm":
+            provider_loc = os.path.dirname(os.path.realpath(__file__)) + "/dm/"
+        else:
+            provider_loc = "/opt/seagate/cortx/%s/dm/" % provider
+        sys.path.append(os.path.dirname(provider_loc))
+        return __import__(self.health_provider_map[self.name])
+
+    def get_health_info(self, rid):
+        """
+        rid:
+            "hw>controllers"
+            "hw>controllers[0]"
+            "hw>controllers[0]>health"
+            "hw>controllers[0]>health>status"
+            "fw>disk_groups"
+        """
+        info = None
+        module = self.get_health_provider_module()
+        members = inspect.getmembers(module, inspect.isclass)
+        for _, cls in members:
+            if hasattr(cls, 'name') and self.health_provider_map[self.name] == cls.name:
+                info = cls().get_health_info(rid)
+                break
+        return info
 
 
-class Compute(Resource):
-    """Represents Compute instances"""
+class Server(Resource):
 
     name = "compute"
-    info = {}
+    childs = []
 
-    def __init__(self, lnode, rpath):
-        pass
+    def __init__(self, child_resource, inst="*"):
+        super().__init__(self.name, child_resource, inst)
 
     @staticmethod
-    def get_health_info(self):
-        return Compute.info
+    def has_child(resource):
+        return resource in Nodes.childs
 
 
 class Storage(Resource):
-    """Represents Storage instances"""
 
     name = "storage"
-    info = {}
+    childs = []
 
-    def __init__(self, lnode, rpath):
-        pass
+    def __init__(self, child_resource, inst="*"):
+        super().__init__(self.name, child_resource, inst)
 
     @staticmethod
-    def get_health_info(self):
-        return Storage.info
+    def has_child(resource):
+        return resource in Nodes.childs
 
 
 class Nodes(Resource):
-    """Represents Node instances"""
 
     name = "nodes"
-    info = {}
+    childs = ["compute", "storage"]
 
-    def __init__(self, lnode, rpath):
-        pass
+    def __init__(self, child_resource, inst="*"):
+        super().__init__(child_resource, inst)
 
     @staticmethod
-    def get_health_info(self):
-        return Nodes.info
+    def has_child(resource):
+        return resource in Nodes.childs

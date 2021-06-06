@@ -15,20 +15,24 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import errno
+
+from cortx.utils.discovery.error import DiscoveryError
 from cortx.utils.discovery.resource import Resource
 from cortx.utils.discovery.node_health import NodeHealth
 
 
 class Discovery:
     """
-    A common interface of Discovery Module(DM). This will be used for
-    resource map, health and manifest generation.
+    Common interfaces of Discovery Module(DM). These will be used to
+    generate and view resource map, health and manifest.
     """
 
     def __init__(self):
+        self.root_node = "nodes"
         self.health_gen = NodeHealth()
 
-    def generate_node_health(self, rpath: str = None, store_type: str = "json"):
+    def generate_node_health(self, rpath: str = None):
         """
         This method generates node resource map and health information.
 
@@ -47,7 +51,8 @@ class Discovery:
         if gen_status == self.health_gen.inprogress:
             return "Failed - Node health generator is busy in processing "\
                 "previous request."
-        self.health_gen.generate(rpath, store_type)
+        rpath = rpath if rpath else self.root_node
+        self.health_gen.generate(rpath)
         return "Success"
 
     def get_gen_node_health_status(self):
@@ -80,18 +85,17 @@ class Discovery:
         rpath: Resource path in resource map
         Sample Output:
             [
-            "compute[0]>hw>platform_sensors>voltage_sensors",
-            "compute[0]>hw>platform_sensors",
-            "compute[0]>hw>nw_ports",
-            "compute[0]>hw",
-            "compute[0]>sw>cortx_sw[0]>uid"
-            "compute[0]>sw>cortx_sw[1]>uid"
+            "nodes[0]>compute[0]>hw>platform_sensors>voltage_sensors",
+            "nodes[0]>compute[0]>hw>platform_sensors",
+            "nodes[0]>compute[0]>hw",
+            "nodes[0]>compute[0]>sw>cortx_sw[0]>uid"
+            "nodes[0]>compute[0]>sw>cortx_sw[1]>uid"
             ]
         """
         if not rpath:
             rpath = Resource.ROOT_NODE
-        leaf_node = rpath.split(delim)[-1]
-        rmap = {
-            leaf_node : Discovery.get_node_health(rpath)
-            }
-        return Resource.get_keys(rmap)
+        val = Discovery.get_node_health(rpath)
+        if val:
+            rmap = {rpath : val}
+            return Resource.get_keys(rmap)
+        return val

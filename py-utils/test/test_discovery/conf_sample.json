@@ -2,7 +2,7 @@
   "nodes": [
     {
       "uid": "cortx_node_1",
-      "last_fetched": "Wed May 19 16:53:02 2021",
+      "last_updated": "1615290352",
       "compute": [
         {
           "node_type": "server",
@@ -10,184 +10,600 @@
           "make": "supermicro",
           "model": "6019u-trt",
           "OS": "CentOS Linux release 7.8.2003 (Core)",
-          "last_fetched": "Wed May 19 16:53:02 2021",
+          "last_updated": "1615290352",
+          "health": {
+            "status": "OK",
+            "description": "server is in good health",
+            "recommendation": "None",
+            "specifics": []
+          },
           "hw": {
             "disks": [
               {
-                "uid": "disk_001",
-                "location": "row-1:slot-from-left:001",
+                "uid": "disk_1",
                 "fru": "true",
-                "last_fetched": "Wed May 19 16:53:02 2021",
+                "last_updated": "1615290352",
                 "health": {
                   "status": "OK",
-                  "description": "Disk drive is in good health",
+                  "description": "disk_1 disk drive is in good health",
                   "recommendation": "None",
-                  "specifics": {
-                    "SMART": {}
-                  }
+                  "specifics": [
+                    {
+                      "SMART": {
+                        "SMART_available": true,
+                        "SMART_support": "Enabled",
+                        "SMART_health": "PASSED"
+                      },
+                      "freeSpace": "21072 MB",
+                      "totalSpace": "9347 MB",
+                      "diskUsedPercentage": 51.3
+                    }
+                  ]
                 }
               },
               {
-                "uid": "disk_002",
-                "location": "row-2:slot-from-left:002",
+                "uid": "disk_2",
                 "fru": "true",
-                "last_fetched": "Wed May 19 16:53:02 2021",
+                "last_updated": "1615290352",
                 "health": {
                   "status": "FAULT",
-                  "description": "Disk drive has a fault, may malfunction or halt anytime",
+                  "description": "disk_2 disk drive has a fault, may malfunction or halt anytime",
                   "recommendation": "Contact Seagate Support",
-                  "specifics": {
-                    "SMART": {}
-                  }
+                  "specifics": [
+                    {
+                      "SMART": {
+                        "SMART_available": true,
+                        "SMART_support": "Enabled",
+                        "SMART_health": "PASSED"
+                      },
+                      "freeSpace": "21072 MB",
+                      "totalSpace": "9347 MB",
+                      "diskUsedPercentage": 51.3
+                    }
+                  ]
+                }
+              },
+              {
+                "uid": "disk_3",
+                "fru": "true",
+                "last_updated": "1615290352",
+                "health": {
+                  "status": "OK",
+                  "description": "disk_3 drive is in good health",
+                  "recommendation": "None",
+                  "specifics": [
+                    {
+                      "SMART": {
+                        "SMART_available": true,
+                        "SMART_support": "Enabled",
+                        "SMART_health": "PASSED"
+                      },
+                      "freeSpace": "21072 MB",
+                      "totalSpace": "9347 MB",
+                      "diskUsedPercentage": 51.3
+                    }
+                  ]
+                }
+              },
+              {
+                "uid": "disk_4",
+                "fru": "true",
+                "last_updated": "1615290352",
+                "health": {
+                  "status": "OK",
+                  "description": "disk_4 drive is in good health",
+                  "recommendation": "None",
+                  "specifics": [
+                    {
+                      "SMART": {
+                        "SMART_available": true,
+                        "SMART_support": "Enabled",
+                        "SMART_health": "PASSED"
+                      },
+                      "freeSpace": "21072 MB",
+                      "totalSpace": "9347 MB",
+                      "diskUsedPercentage": 51.3
+                    }
+                  ]
                 }
               }
             ],
-            "psus": {},
+            "psus": [
+              {
+                "uid": "psu_1",
+                "fru": "true",
+                "last_updated": "1615290352",
+                "health": {
+                  "status": "OK",
+                  "description": "PSU is in good health",
+                  "recommendation": "None",
+                  "specifics": [
+                    {
+                      "location": "PSU1",
+                      "present": "OK",
+                      "plugged": "Yes",
+                      "PowerCable": {
+                        "connection": "OK"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "uid": "psu_2",
+                "fru": "true",
+                "last_updated": "1615290352",
+                "health": {
+                  "status": "FAULT",
+                  "description": "PSU has a fault, may malfunction or halt anytime",
+                  "recommendation": "Contact Seagate Support",
+                  "specifics": [
+                    {
+                      "location": "PSU2",
+                      "present": "OK",
+                      "plugged": "Yes",
+                      "PowerCable": {
+                        "connection": "OK"
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "fans": [
+              {
+                "uid": "fan_1",
+                "fru": "true",
+                "last_updated": "1615290352",
+                "health": {
+                  "status": "OK",
+                  "description": "FAN is in good health",
+                  "recommendation": "None",
+                  "specifics": [
+                    {
+                      "sensor_reading": "6300 (+/- 0) RPM",
+                      "lower_critical_threshold": "500.000",
+                      "upper_critical_threshold": "25400.000"
+                    }
+                  ]
+                }
+              },
+              {
+                "uid": "fan_2",
+                "fru": "true",
+                "last_updated": "1615290352",
+                "health": {
+                  "status": "OK",
+                  "description": "FAN is in good health",
+                  "recommendation": "None",
+                  "specifics": [
+                    {
+                      "sensor_reading": "6300 (+/- 0) RPM",
+                      "lower_critical_threshold": "500.000",
+                      "upper_critical_threshold": "25400.000"
+                    }
+                  ]
+                }
+              },
+              {
+                "uid": "fan_3",
+                "fru": "true",
+                "last_updated": "1615290352",
+                "health": {
+                  "status": "OK",
+                  "description": "FAN is in good health",
+                  "recommendation": "None",
+                  "specifics": [
+                    {
+                      "sensor_reading": "6300 (+/- 0) RPM",
+                      "lower_critical_threshold": "500.000",
+                      "upper_critical_threshold": "25400.000"
+                    }
+                  ]
+                }
+              }
+            ],
             "platform_sensors": {
               "temperature_sensors": [
                 {
                   "uid": "CPU1_Temp",
-                  "location": "slot-from-left:003",
                   "fru": "false",
-                  "last_fetched": "Wed May 19 16:53:02 2021",
+                  "last_updated": "1615290352",
                   "health": {
                     "status": "OK",
                     "description": "CPU1_Temp is in good health",
                     "recommendation": "None",
-                    "specifics": {
-                      "current_rpm": 20.0,
-                      "lower critical threshold": 5.0,
-                      "upper_critical_threshold": "98.000"
-                    }
+                    "specifics": [
+                      {
+                        "Sensor Reading": "38 (+/- 0) degrees C",
+                        "lower_critical_threshold": "5",
+                        "upper_critical_threshold": "88"
+                      }
+                    ]
                   }
                 }
               ],
               "voltage_sensors": [
                 {
                   "uid": "12V",
-                  "location": "slot-from-left:003",
                   "fru": "false",
-                  "last_fetched": "Wed May 19 16:53:02 2021",
+                  "last_updated": "1615290352",
                   "health": {
                     "status": "OK",
                     "description": "12V is in good health",
                     "recommendation": "None",
-                    "specifics": {
-                      "current_rpm": 20.0,
-                      "lower critical threshold": 5.0,
-                      "upper_critical_threshold": 98.0
-                    }
+                    "specifics": [
+                      {
+                        "Sensor Reading": "12.305 (+/- 0) Volts",
+                        "lower_critical_threshold": "10.536",
+                        "upper_critical_threshold": "13.281"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "current_sensors": [
+                {
+                  "uid": "None",
+                  "fru": "None",
+                  "last_updated": "1615290352",
+                  "health": {
+                    "status": "None",
+                    "description": "Unable to get 'current' sensor information",
+                    "recommendation": "Contact Seagate Support",
+                    "specifics": [
+                      {
+                        "Sensor Reading": "None",
+                        "lower_critical_threshold": "None",
+                        "upper_critical_threshold": "None"
+                      }
+                    ]
                   }
                 }
               ]
             },
+            "sas_hba": [
+              {
+                "uid": "SASHBA-0",
+                "fru": "false",
+                "last_updated": "1615290352",
+                "health": {
+                  "status": "FAULT",
+                  "description": "SASHBA-0 are not in good health",
+                  "recommendation": "Contact Seagate Support",
+                  "specifics": [
+                    {
+                      "resource_id": "SASHBA-0:phy-10",
+                      "negotiated_link_rate": "12.0 Gbit"
+                    },
+                    {
+                      "resource_id": "SASHBA-0:phy-14",
+                      "negotiated_link_rate": "12.0 Gbit"
+                    },
+                    {
+                      "resource_id": "SASHBA-0:phy-4",
+                      "negotiated_link_rate": "12.0 Gbit"
+                    },
+                    {
+                      "resource_id": "SASHBA-0:phy-5",
+                      "negotiated_link_rate": "Phy Disabled"
+                    },
+                    {
+                      "resource_id": "SASHBA-0:phy-6",
+                      "negotiated_link_rate": "Unknown"
+                    },
+                    {
+                      "resource_id": "SASHBA-0:phy-7",
+                      "negotiated_link_rate": "12.0 Gbit"
+                    }
+                  ]
+                }
+              }
+            ],
+            "sas_ports": [
+              {
+                "uid": "sas_port_1",
+                "fru": "false",
+                "last_updated": "1615290352",
+                "health": {
+                  "status": "OK",
+                  "description": "sas_port_1 is in good health",
+                  "recommendation": "None",
+                  "specifics": [
+                    {
+                      "negotiated_link_rate": "12.0 Gbit"
+                    }
+                  ]
+                }
+              },
+              {
+                "uid": "sas_port_2",
+                "fru": "false",
+                "last_updated": "1615290352",
+                "health": {
+                  "status": "OK",
+                  "description": "sas_port_2 is in good health",
+                  "recommendation": "None",
+                  "specifics": [
+                    {
+                      "negotiated_link_rate": "12.0 Gbit"
+                    }
+                  ]
+                }
+              },
+              {
+                "uid": "sas_port_3",
+                "fru": "false",
+                "last_updated": "1615290352",
+                "health": {
+                  "status": "FAULT",
+                  "description": "sas_port_2 is not in good health",
+                  "recommendation": "Contact Seagate Support",
+                  "specifics": [
+                    {
+                      "negotiated_link_rate": "Unknown"
+                    }
+                  ]
+                }
+              }
+            ],
             "nw_ports": [
-              {}
+              {
+                "uid": "br0",
+                "fru": "false",
+                "last_updated": "1615290352",
+                "health": {
+                  "status": "OK",
+                  "description": "br0 is in good health",
+                  "recommendation": "None",
+                  "specifics": [
+                    {
+                      "ifId": "br0",
+                      "networkErrors": 0,
+                      "droppedPacketsIn": 0,
+                      "packetsIn": 0,
+                      "trafficIn": 0,
+                      "droppedPacketsOut": 0,
+                      "packetsOut": 8,
+                      "trafficOut": 656,
+                      "nwStatus": "UP",
+                      "ipV4": "10.230.241.156",
+                      "nwCableConnStatus": "UP"
+                    }
+                  ]
+                }
+              },
+              {
+                "uid": "eth0",
+                "fru": "false",
+                "last_updated": "1615290352",
+                "health": {
+                  "status": "OK",
+                  "description": "eth0 is in good health",
+                  "recommendation": "None",
+                  "specifics": [
+                    {
+                      "ifId": "eth0",
+                      "networkErrors": 0,
+                      "droppedPacketsIn": 0,
+                      "packetsIn": 2814902,
+                      "trafficIn": 978173738,
+                      "droppedPacketsOut": 0,
+                      "packetsOut": 172167,
+                      "trafficOut": 211159549,
+                      "nwStatus": "UP",
+                      "ipV4": "10.230.241.156",
+                      "nwCableConnStatus": "UP"
+                    }
+                  ]
+                }
+              }
+            ],
+            "cpu": [
+              {
+                "uid": "cpu_0",
+                "fru": "false",
+                "last_updated": "1615290352",
+                "health": {
+                  "status": "OK",
+                  "description": "cpu_0 is in good health",
+                  "recommendation": "None",
+                  "specifics": [
+                    {
+                      "cpu_usage": 48,
+                      "state": "online"
+                    }
+                  ]
+                }
+              }
+            ],
+            "memory": [
+              {
+                "uid": "memory_0",
+                "fru": "false",
+                "last_updated": "1615290352",
+                "health": {
+                  "status": "OK",
+                  "description": "Host memory is in good health",
+                  "recommendation": "None",
+                  "specifics": [
+                    {
+                      "total": 3971125248,
+                      "available": 2713260032,
+                      "percent": 31.7,
+                      "used": 926560256,
+                      "free": 165969920,
+                      "active": 2166595584,
+                      "inactive": 1130049536,
+                      "buffers": 398815232,
+                      "cached": 2479779840,
+                      "shared": 35155968,
+                      "slab": 431493120
+                    }
+                  ]
+                }
+              }
             ]
           },
           "sw": {
-            "cortx_sw": [
+            "cortx_sw_services": [
               {
                 "uid": "sspl",
-                "location": "/opt/seagate/cortx/sspl",
                 "fru": "false",
-                "last_fetched": "Wed May 19 16:53:02 2021",
+                "last_updated": "1615290352",
                 "health": {
                   "status": "OK",
-                  "description": "NA",
-                  "recommendation": "NA",
-                  "specifics": {
-                    "installed": "true",
-                    "service_status": "active",
-                    "version": "1.0"
-                  }
+                  "description": "SSPL can monitor hardware faults, removal, or replacement by continuously sensing sub-systems like Storage Enclosure, Node Servers, and Components, and Network Interfaces.",
+                  "recommendation": "None",
+                  "specifics": [
+                    {
+                      "service_name": "sspl-ll.service",
+                      "installed": "true",
+                      "pid": "2524",
+                      "state": "active",
+                      "substate": "running",
+                      "status": "enabled",
+                      "version": "2.0",
+                      "command_line_path": [
+                        "/usr/bin/sspl_ll_d",
+                        "-n"
+                      ]
+                    }
+                  ]
                 }
               },
               {
                 "uid": "csm",
-                "location": "/opt/seagate/cortx/csm",
                 "fru": "false",
-                "last_fetched": "Wed May 19 16:53:02 2021",
+                "last_updated": "1615290352",
                 "health": {
                   "status": "OK",
-                  "description": "NA",
-                  "recommendation": "NA",
-                  "specifics": {
-                    "installed": "true",
-                    "service_status": "active",
-                    "version": "1.0"
-                  }
+                  "description": "CORTX Management Portal provides user interface (UI) to facilitate the easy utility of different CORTX components and features.",
+                  "recommendation": "None",
+                  "specifics": [
+                    {
+                      "service_name": "cortx_management_portal.service",
+                      "installed": "true",
+                      "pid": "1234",
+                      "state": "active",
+                      "substate": "running",
+                      "status": "enabled",
+                      "version": "2.0",
+                      "command_line_path": [
+                        "/usr/bin/csm",
+                        "-n"
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "uid": "s3",
+                "fru": "false",
+                "last_updated": "1615290352",
+                "health": {
+                  "status": "DEGRADED",
+                  "description": "CORTX-S3 Server is an object storage service with high data availability, durability, scalability, performance, and security.",
+                  "recommendation": "start s3 service using systemctl",
+                  "specifics": [
+                    {
+                      "service_name": "s3",
+                      "installed": "true",
+                      "pid": "3456",
+                      "state": "inactive",
+                      "substate": "None",
+                      "status": "disabled",
+                      "version": "None",
+                      "command_line_path": []
+                    }
+                  ]
+                }
+              }
+            ],
+            "external_sw_services": [
+              {
+                "uid": "kafka",
+                "fru": "false",
+                "last_updated": "1615290352",
+                "health": {
+                  "status": "OK",
+                  "description": "None",
+                  "recommendation": "None",
+                  "specifics": [
+                    {
+                      "service_name": "kafka",
+                      "installed": "true",
+                      "pid": "2524",
+                      "state": "active",
+                      "substate": "running",
+                      "status": "enabled",
+                      "version": "1.0",
+                      "command_line_path": [
+                        "/usr/bin/kafka",
+                        "-n"
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "uid": "consul",
+                "fru": "false",
+                "last_updated": "1615290352",
+                "health": {
+                  "status": "DEGRADED",
+                  "description": "consul service is not started",
+                  "recommendation": "start consul service using systemctl",
+                  "specifics": [
+                    {
+                      "service_name": "consul",
+                      "installed": "true",
+                      "pid": "2524",
+                      "state": "inactive",
+                      "substate": "inactive",
+                      "status": "enabled",
+                      "version": "1.0",
+                      "command_line_path": [
+                        "/usr/bin/consul",
+                        "-n"
+                      ]
+                    }
+                  ]
                 }
               }
             ],
             "os": {
-              "system_disks": [
+              "raid_array": [
                 {
-                  "uid": "system_disk001",
-                  "location": "NA",
-                  "fru": "true",
-                  "last_fetched": "Wed May 19 16:53:02 2021",
+                  "uid": "md0",
+                  "fru": "false",
+                  "last_updated": "1615290352",
                   "health": {
-                    "status": "NA",
-                    "description": "NA",
-                    "recommendation": "NA",
-                    "specifics": {
-                      "uid": "ST1000NM000A-2J3100-WJB08FQA",
-                      "health": "OK",
-                      "serial-number": "WJB08FQA",
-                      "vendor": "",
-                      "model": "ST1000NM000A-2J3100"
-                    }
-                  }
-                },
-                {
-                  "uid": "system_disk002",
-                  "location": "NA",
-                  "fru": "true",
-                  "last_fetched": "Wed May 19 16:53:02 2021",
-                  "health": {
-                    "status": "NA",
-                    "description": "NA",
-                    "recommendation": "NA",
-                    "specifics": {
-                      "uid": "ST1000NM000A-2J3100-WJB08F5Q",
-                      "health": "OK",
-                      "serial-number": "WJB08F5Q",
-                      "vendor": "",
-                      "model": "ST1000NM000A-2J3100"
-                    }
-                  }
-                }
-              ],
-              "md_raid": [
-                {
-                  "uid": "/dev/md0:/dev/sda1",
-                  "location": "/dev/md0:/dev/sda1",
-                  "fru": "true",
-                  "last_fetched": "Wed May 19 16:53:02 2021",
-                  "health": {
-                    "status": "FAULT",
-                    "description": "NA",
-                    "recommendation": "NA",
-                    "specifics": {
-                      "device": "/dev/md0",
-                      "drives": [
-                        {
-                          "status": "Down",
-                          "identity": {
-                            "path": "/dev/sda1",
-                            "serialNumber": "None"
+                    "status": "OK",
+                    "description": "Raid array md0 is in good health",
+                    "recommendation": "None",
+                    "specifics": [
+                      {
+                        "location": "/dev/md0",
+                        "data_integrity_status": "OK",
+                        "drives": [
+                          {
+                            "status": "UP",
+                            "identity": {
+                              "path": "/dev/sda1",
+                              "serialNumber": "None"
+                            }
+                          },
+                          {
+                            "status": "UP",
+                            "dentity": {
+                              "path": "/dev/sdb1",
+                              "serialNumber": "None"
+                            }
                           }
-                        },
-                        {
-                          "status": "UP",
-                          "dentity": {
-                            "path": "/dev/sdb1",
-                            "serialNumber": "None"
-                          }
-                        }
-                      ]
-                    }
+                        ]
+                      }
+                    ]
                   }
                 }
               ]
@@ -195,85 +611,54 @@
           }
         }
       ],
-      "storage": [
-        {
-          "node_type": "storage_enclosure:rbod",
-          "uid": "rss_5u84_001",
-          "make": "seagate",
-          "model": "5u84",
-          "last_fetched": "Wed May 19 16:53:02 2021",
-          "hw": {},
-          "fw": {
-            "logical_volumes": [
-              {
-                "uid": "logical_volume-dg01_v0003",
-                "location": "slot-from-right:001",
-                "fru": "false",
-                "last_fetched": "Wed May 19 16:53:02 2021",
+      "storage": {
+        "hw": {
+          "controllers": [
+            {
+              "uid": "controller_a",
+              "fru": "true",
+              "last_updated": 1623006294,
+              "health": {
                 "status": "OK",
-                "health": "OK",
-                "description": "logical_volume-dg01_v0003 is in good health",
-                "recommendation": "None",
-                "specifics": {
-                  "virtual-disk-serial": "00c0ff27ca8d00005d8e965e00000000",
-                  "virtual-disk-name": "dg01",
-                  "wwn": "600C0FF00027CA8DCC7FE95E04000000"
-                }
-              },
-              {
-                "uid": "logical_volume-dg01_v0004",
-                "location": "slot-from-right:001",
-                "fru": "false",
-                "last_fetched": "Wed May 19 16:53:02 2021",
-                "status": "OK",
-                "health": "OK",
-                "description": "logical_volume-dg01_v0004 is in good health",
-                "recommendation": "None",
-                "specifics": {
-                  "virtual-disk-serial": "00c0ff3c577c00006c8f965e00000000",
-                  "virtual-disk-name": "dg02",
-                  "wwn": "600C0FF00027CA8DCC7FE95E05000000"
-                }
+                "description": "N/A",
+                "recommendation": "",
+                "specifics": [
+                  {
+                    "serial-number": "DHSIFGD-2029512C4C",
+                    "disks": 28,
+                    "virtual-disks": 0,
+                    "model": "5565",
+                    "part-number": "FRUKC82-01",
+                    "fw": "GNS265R14-01",
+                    "location": "Left"
+                  }
+                ]
               }
-            ],
-            "disk_groups": [
-              {
-                "uid": "diskgroup-dg01",
-                "location": "not-applicable",
-                "fru": "false",
-                "last_fetched": "Wed May 19 16:53:02 2021",
+            },
+            {
+              "uid": "controller_b",
+              "fru": "true",
+              "last_updated": 1623006294,
+              "health": {
                 "status": "OK",
-                "health": "OK",
-                "description": "diskgroup-dg01 is in good health",
-                "recommendation": "None",
-                "specifics": {
-                  "pool-serial-number": "00c0ff27ca8d00005d8e965e00000000",
-                  "diskcount": 14,
-                  "size": "153.4TB",
-                  "freespace": "601.2GB"
-                }
-              },
-              {
-                "uid": "diskgroup-dg02",
-                "location": "not-applicable",
-                "fru": "false",
-                "last_fetched": "Wed May 19 16:53:02 2021",
-                "status": "DEGRADED",
-                "health": "DEGRADED",
-                "description": "diskgroup-dg02 is in degraded health",
-                "recommendation": "Affected disk may need replacement",
-                "specifics": {
-                  "pool-serial-number": "00c0ff3c577c00006c8f965e00000000",
-                  "diskcount": 14,
-                  "health": "OK",
-                  "size": "153.4TB",
-                  "freespace": "601.2GB"
-                }
+                "description": "N/A",
+                "recommendation": "",
+                "specifics": [
+                  {
+                    "serial-number": "DHSIFGD-2029512C7C",
+                    "disks": 28,
+                    "virtual-disks": 0,
+                    "model": "5565",
+                    "part-number": "FRUKC82-01",
+                    "fw": "GNS265R14-01",
+                    "location": "Right"
+                  }
+                ]
               }
-            ]
-          }
+            }
+          ]
         }
-      ]
+      }
     }
   ]
 }

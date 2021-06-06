@@ -102,21 +102,15 @@ class ResourceFactory:
         pass
 
     @staticmethod
-    def get_instance(rpath: str) -> Resource:
+    def get_instance(node: str, rpath: str) -> Resource:
         """Returns instance of ResourceFactory for given rpath"""
-        if rpath in ResourceFactory._resources.keys():
-            return ResourceFactory._resources[rpath]
-
-        # Parse rpath and find leaf node
-        nodes = rpath.strip().split(">")
-        leaf_node = nodes[-1] if nodes else nodes
-
         # Get corresponding class instance
         from cortx.utils.discovery import resource_collection
         resources = inspect.getmembers(resource_collection, inspect.isclass)
         for _, cls in resources:
-            if hasattr(cls, 'name') and leaf_node == cls.name:
-                ResourceFactory._resources[rpath] = cls
-                return ResourceFactory._resources[rpath]
+            if hasattr(cls, 'name') and node == cls.name:
+                ResourceFactory._resources[rpath] = {}
+                ResourceFactory._resources[rpath]["instance"] = cls
+                return ResourceFactory._resources[rpath]["instance"]
 
         raise DiscoveryError(errno.EINVAL, "Invalid rpath: '%s'" % rpath)

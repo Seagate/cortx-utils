@@ -16,19 +16,22 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
+import re
 
-from cortx.utils.discovery.resource import ResourceFactory
+from cortx.utils.discovery.resource import Resource, ResourceFactory
 
 script_path = os.path.realpath(__file__)
-data_file = os.path.join(os.path.dirname(script_path), "node_health_info")
+store_type = "json"
+data_file = os.path.join(
+    os.path.dirname(script_path), "node_health_info.%s" % store_type)
 
 
 class NodeHealth:
     """This generates node health information and updates map"""
 
-    ROOT_NODE = "nodes"
     STATUS = "Ready"
-    GEN_MARKER = "/tmp/dm_inprogress"
+    GEN_MARKER = "/var/cortx/dm/dm_inprogress"
+    URL = "%s://%s" % (store_type, data_file)
 
     def __init__(self):
         """Initialize node health generator"""
@@ -36,23 +39,35 @@ class NodeHealth:
         self.success = "Success"
         self.failed = "Failed"
 
-    def generate(self, rpath: str, store_type: str):
-        """
-        Generates node health information and updates resource map.
+    @staticmethod
+    def get_node_details(node):
+        res = re.search(r"(\w+)\[([\d]+)\]|(\w+)", node)
+        inst = res.groups()[1] if res.groups()[1] else "*"
+        node = res.groups()[0] if res.groups()[1] else res.groups()[2]
+        return node, inst
 
-        Node health information will be processed and returns completion
-        status "Success". If any upcoming request during processing, it
-        will return status "In-progress". Retruns "Failed" status with
-        reason if current request is failed.
-        """
-        rpath = rpath if rpath else self.ROOT_NODE
+    def generate(self, rpath: str):
+        """Generates node health information and updates resource map"""
         os.makedirs(NodeHealth.GEN_MARKER, exist_ok=True)
+        info = None
         try:
-            resource = ResourceFactory.get_instance(rpath)
-            url = "%s://%s.%s" % (store_type, data_file, store_type)
-            resource.init(url)
-            info = resource.get_health_info(rpath)
-            resource.set(rpath, info)
+            # Parse rpath and find left node
+            nodes = rpath.strip().split(">")
+            leaf_node, inst = self.get_node_details(nodes[-1])
+            for num, node in enumerate(nodes, 1):
+                node, inst = self.get_node_details(node)
+                resource = ResourceFactory.get_instance(node, rpath)
+                # Validate next node is its child
+                child_found = False
+                if node != leaf_node:
+                    child_found = True if resource.has_child(nodes[num]) else False
+                if not child_found or node == leaf_node:
+                    main = resource(child_resource=None, inst=inst)
+                    info = main.get_health_info(
+                        rid=">".join(nodes[num:]))
+                    break
+            Resource.init(NodeHealth.URL)
+            Resource.set(rpath, info)
             NodeHealth.STATUS = self.success
         except Exception as err:
             NodeHealth.STATUS = self.failed + f" - {err}"

@@ -20,18 +20,17 @@ import os
 import unittest
 
 from cortx.utils.discovery import Discovery
+from cortx.utils.discovery.node_health import NodeHealth
 from cortx.utils.discovery.resource import Resource
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-file_path = os.path.join(dir_path, 'conf_sample.json')
+data_file = os.path.join(dir_path, 'conf_sample.json')
 
-Resource.index = "test_healthmap"
-Resource.url = "json://%s" % file_path
-Resource.init(Resource.url)
+NodeHealth.url = "json://%s" % data_file
+Resource.init(NodeHealth.url)
 
-rpath1 = "nodes[0]>compute[0]>hw>psus"
-rpath2 = "nodes[0]>compute[0]>hw>disks[0]>health>status"
-rpath3 = "nodes[0]>storage[0]>fw"
+rpath1 = "nodes[0]>storage>hw>controllers"
+rpath2 = "nodes[0]>storage>hw>controllers[0]>health>status"
 
 discovery = Discovery()
 
@@ -42,7 +41,8 @@ class TestDiscovery(unittest.TestCase):
     def test_get_gen_node_health_status_ok(self):
         """Check for generator health status"""
         status = discovery.get_gen_node_health_status()
-        self.assertIn(status, ["Ready", "Success"])
+        self.assertIn(
+            status, ["Ready", "Success"], "DM inprogress unexpectedly.")
         discovery.generate_node_health(rpath1)
         status = discovery.get_gen_node_health_status()
         self.assertEqual(status, "Success")
@@ -50,18 +50,23 @@ class TestDiscovery(unittest.TestCase):
     def test_generate_node_health_ok(self):
         """Check for request acceptance and successful health generation"""
         status = discovery.generate_node_health(rpath1)
-        self.assertEqual(status, "Success")
+        self.assertEqual(
+            status, "Success", "Failed to generate node health")
 
     def test_get_node_health_ok(self):
         """Check for node health information is 'OK'"""
         health = discovery.get_node_health(rpath2)
-        self.assertNotIn(health, [{}, None, "", []])
-        self.assertEqual(health, "OK")
+        self.assertTrue(
+            True if health else False,
+            "Health information not fouhd for given rpath.")
 
     def test_get_resource_map_ok(self):
         """Check list of resource maps collected"""
-        rmap = discovery.get_resource_map(rpath3)
-        self.assertNotIn(rmap, [{}, None, "", []])
+        rmap = discovery.get_resource_map(rpath1)
+        self.assertTrue(
+            True if rmap else False,
+            "Resource map not found for given rpath.")
+
 
 if __name__ == '__main__':
     unittest.main()
