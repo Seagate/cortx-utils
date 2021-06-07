@@ -158,7 +158,6 @@ class Utils:
         # check whether zookeeper and kafka are running
         ServiceV().validate('isrunning', ['kafka-zookeeper.service', \
             'kafka.service'])
-        
         # Check required python packages
         utils_path = Utils._get_utils_path()
         with open(f"{utils_path}/conf/python_requirements.txt") as file:
