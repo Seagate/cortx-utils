@@ -74,7 +74,7 @@ pipeline {
         failure {
             script {
                 if ( params.HOST.isEmpty() ) {
-                    markNodeOffline("VM Cleanup Failure - Automated offline")
+                    markNodeOffline("VM Teardown Failure - Automated offline")
                 }    
             }
         }    
@@ -130,4 +130,3 @@ def getCurrentNode(nodeName) {
   }
   throw new Exception("No node for $nodeName")
 }
-
