@@ -58,23 +58,30 @@ class ConfStore:
         Parameters:
         index:     Identifier for the config loaded from the KV Store
         kv_store:  KV Store (Conf Backend)
-        overwrite: When False, it throws exception if index already exists. 
-                   Default: False 
+        fail_reload: When False, it throws exception if index already exists.
+                   Default: False
+        skip_reload: When True, it skips reloading a index configuration.
+                   Default: False
         callback:  Callback for the config changes in the KV Store.
         """
-        overwrite = False
+        fail_reload = True
+        skip_reload = False
         for key, val in kwargs.items():
-            if key == 'overwrite':
-                overwrite = True
+            if key == 'fail_reload':
+                fail_reload = val
+            elif key == 'skip_reload':
+                skip_reload = val
             elif key == 'callback':
                 self._callbacks[index] = val
             else:
                 raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
 
-        if index in self._cache.keys() and not overwrite:
-            raise ConfError(errno.EINVAL, "conf index %s already exists",
-                index)
-
+        if index in self._cache.keys():
+            if skip_reload:
+                return
+            if fail_reload:
+                raise ConfError(errno.EINVAL, "conf index %s already exists",
+                                index)
         kv_store = KvStoreFactory.get_instance(kvs_url, self._delim)
         self._cache[index] = ConfCache(kv_store, self._delim)
 
