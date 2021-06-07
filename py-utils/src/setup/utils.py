@@ -168,7 +168,7 @@ class Utils:
                 req_pack.append(f"{pack[0]} ({pack[1]})")
         try:
             with open(f"{utils_path}/conf/python_requirements.ext.txt") as extfile :
-                for package in file.readlines():
+                for package in extfile.readlines():
                     pack = package.strip().split('==')
                     req_pack.append(f"{pack[0]} ({pack[1]})")
         except Exception:
