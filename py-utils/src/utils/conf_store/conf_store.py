@@ -58,10 +58,13 @@ class ConfStore:
         Parameters:
         index:     Identifier for the config loaded from the KV Store
         kv_store:  KV Store (Conf Backend)
-        fail_reload: When True, it reloads the conf. into existing index
-                     Else False it throws exception if index already exists.
+        fail_reload: When True, and if index already exists, load() throws
+                     exception.
+                     When True, and if index do not exists, load() succeeds.
+                     When false, irrespective of index status, load() succeeds
                      Default: True
-        skip_reload: When True, it skips reloading a index configuration.
+        skip_reload: When True, it skips reloading a index configuration by
+                     overriding fail_reload
                      Default: False
         callback:  Callback for the config changes in the KV Store.
         """
