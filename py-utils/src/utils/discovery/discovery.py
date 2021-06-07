@@ -20,10 +20,7 @@ from cortx.utils.discovery.node_health import NodeHealth
 
 
 class Discovery:
-    """
-    Common interfaces of Discovery Module(DM). These will be used to
-    generate and view resource map, health and manifest.
-    """
+    """Common interfaces of Discovery Module(DM)"""
 
     def __init__(self):
         self.root_node = "nodes"
@@ -32,25 +29,22 @@ class Discovery:
     def generate_node_health(self, rpath: str = None):
         """
         This method generates node resource map and health information.
-
-        Health information will be stored in Fs and therefore it fetches
-        health information for given rpath later through show interface.
         rpath: Resource path in resource map to fetch its health.
             If rpath is not given, it will fetch whole Cortx Node
             data health and display.
             Examples:
                 node[0]>compute[0]>hw>disks
-                node[0]>compute
+                node[0]>compute[0]
                 node[0]>storage[0]
                 node[0]>storage[0]>hw>psus
         """
         gen_status = self.get_gen_node_health_status()
         if gen_status == self.health_gen.inprogress:
-            return "Failed - Node health generator is busy in processing "\
-                "previous request."
+            return "Failed - Node health generation is in-progress " \
+                "already for previous request"
         rpath = rpath if rpath else self.root_node
-        self.health_gen.generate(rpath)
-        return "Success"
+        gen_status = self.health_gen.generate(rpath)
+        return gen_status
 
     def get_gen_node_health_status(self):
         """
@@ -63,36 +57,36 @@ class Discovery:
         return self.health_gen.get_processing_status()
 
     @staticmethod
-    def get_node_health(rpath: str = None):
+    def get_node_health():
         """
-        Fetch and display node health for given rpath.
+        Return resource health map backend URL.
+        URL format: "json://<file_path>/<file_name>"
+        """
+        return NodeHealth.URL
 
-        rpath: Resource path in resource map to fetch its health.
-            If rpath is not given, it will fetch whole Cortx Node
-            data health and display.
-        """
-        val = Resource.get(rpath)
-        return val[0] if val else val
+    # @staticmethod
+    # def get_resource_map(rpath: str = None, delim: str = ">"):
+    #     """
+    #     Retruns a list of resource types discovered.
 
-    @staticmethod
-    def get_resource_map(rpath: str = None, delim: str = ">"):
-        """
-        Retruns a list of resource types discovered.
+    #     rpath: Resource path in resource map
+    #     Sample Output:
+    #         [
+    #         "nodes[0]>compute[0]>hw>platform_sensors>voltage_sensors",
+    #         "nodes[0]>compute[0]>hw>platform_sensors",
+    #         "nodes[0]>compute[0]>hw",
+    #         "nodes[0]>compute[0]>sw>cortx_sw[0]>uid"
+    #         "nodes[0]>compute[0]>sw>cortx_sw[1]>uid"
+    #         ]
+    #     """
+    #     # Resource map is collected based on get_node_health().
+    #     # Now it returns backend URL. Hence below won't help unless
+    #     # get_node_health() returns values instead of backend URL.
 
-        rpath: Resource path in resource map
-        Sample Output:
-            [
-            "nodes[0]>compute[0]>hw>platform_sensors>voltage_sensors",
-            "nodes[0]>compute[0]>hw>platform_sensors",
-            "nodes[0]>compute[0]>hw",
-            "nodes[0]>compute[0]>sw>cortx_sw[0]>uid"
-            "nodes[0]>compute[0]>sw>cortx_sw[1]>uid"
-            ]
-        """
-        if not rpath:
-            rpath = Resource.ROOT_NODE
-        val = Discovery.get_node_health(rpath)
-        if val:
-            rmap = {rpath : val}
-            return Resource.get_keys(rmap)
-        return val
+    #     if not rpath:
+    #         rpath = Resource.ROOT_NODE
+    #     val = Discovery.get_node_health(rpath)
+    #     if val:
+    #         rmap = {rpath : val}
+    #         return Resource.get_keys(rmap)
+    #     return val

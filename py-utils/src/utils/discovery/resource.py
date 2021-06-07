@@ -20,7 +20,6 @@ import inspect
 import os
 import sys
 
-from abc import ABCMeta, abstractmethod
 from cortx.utils.conf_store import Conf
 from cortx.utils.discovery.error import DiscoveryError
 from cortx.utils.kv_store import KvStoreFactory
@@ -84,8 +83,8 @@ class Resource:
         Walks through dictionary and returns a list of leaf nodes in full path
         Example,
         input:
-            dict_data = {'psus': [{'type': ['AC', 'DC']}, {'health': 'ok'}],
-                         'disk': {'id': 'dg01'}}
+            "compute" = {'psus': [{'type': ['AC', 'DC']}, {'health': 'ok'}],
+                         'disks': [{'id': 'dg01'}]}
         output:
             ['psus[0]>type[0]', 'psus[0]>type[1]', 'psus>[1]>>test', 'disks>id']
         """
@@ -120,8 +119,13 @@ class Resource:
 
     def get_health_info(self, rpath):
         """Initialize health provider module and fetch health information"""
-        provider_loc = Conf.get(
-            dm_config, "HEALTH_PROVIDER>%s" % self.health_provider_map[self.name])
+        try:
+            provider_loc = Conf.get(
+                dm_config,
+                "HEALTH_PROVIDER>%s" % self.health_provider_map[self.name])
+        except KeyError as err:
+            raise DiscoveryError(
+                errno.EINVAL, f"{err} not found in DM health provider config.")
         module = self.get_health_provider_module(provider_loc)
         members = inspect.getmembers(module, inspect.isclass)
         for _, cls in members:
@@ -143,14 +147,18 @@ class ResourceFactory:
 
     @staticmethod
     def get_instance(node: str, rpath: str) -> Resource:
-        """Returns instance of ResourceFactory for given rpath"""
+        """
+        Returns instance of ResourceFactory for given rpath.
+
+        Created cls instance will be reused if generate node
+        health is called for same rpath again.
+        """
         # Get corresponding class instance
         from cortx.utils.discovery import resource_collection
         resources = inspect.getmembers(resource_collection, inspect.isclass)
         for _, cls in resources:
             if hasattr(cls, 'name') and node == cls.name:
-                ResourceFactory._resources[rpath] = {}
-                ResourceFactory._resources[rpath]["instance"] = cls
-                return ResourceFactory._resources[rpath]["instance"]
+                ResourceFactory._resources[rpath] = cls
+                return ResourceFactory._resources[rpath]
 
         raise DiscoveryError(errno.EINVAL, "Invalid rpath: '%s'" % rpath)

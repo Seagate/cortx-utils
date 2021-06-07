@@ -15,9 +15,11 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import errno
 import os
 import re
 
+from cortx.utils.discovery.error import DiscoveryError
 from cortx.utils.discovery.resource import Resource, ResourceFactory
 
 script_path = os.path.realpath(__file__)
@@ -30,17 +32,24 @@ class NodeHealth:
     """This generates node health information and updates map"""
 
     STATUS = "Ready"
-    GEN_MARKER = "/var/cortx/dm/dm_inprogress"
+    GEN_MARKER = "/var/cortx/dm/dm_genhealth_inprogress"
     URL = "%s://%s" % (store_type, data_file)
 
     def __init__(self):
         """Initialize node health generator"""
+        #self.ready = "Ready"
         self.inprogress = "In-progress"
         self.success = "Success"
         self.failed = "Failed"
 
     @staticmethod
     def get_node_details(node):
+        """
+        Parse node information and returns left string and instance.
+        Example
+            "storage"    -> ("storage", "*")
+            "storage[0]" -> ("storage", "0")
+        """
         res = re.search(r"(\w+)\[([\d]+)\]|(\w+)", node)
         inst = res.groups()[1] if res.groups()[1] else "*"
         node = res.groups()[0] if res.groups()[1] else res.groups()[2]
@@ -48,30 +57,39 @@ class NodeHealth:
 
     def generate(self, rpath: str):
         """Generates node health information and updates resource map"""
-        os.makedirs(NodeHealth.GEN_MARKER, exist_ok=True)
+        if NodeHealth.STATUS == self.inprogress:
+            return NodeHealth.STATUS
         info = None
         try:
             # Parse rpath and find left node
             nodes = rpath.strip().split(">")
             leaf_node, _ = self.get_node_details(nodes[-1])
+
             for num, node in enumerate(nodes, 1):
                 node, _ = self.get_node_details(node)
                 resource = ResourceFactory.get_instance(node, rpath)
+
                 # Validate next node is its child
                 child_found = False
                 if node != leaf_node:
                     next_node, _ = self.get_node_details(nodes[num])
-                    child_found = True if resource.has_child(next_node) else False
+                    child_found = resource.has_child(next_node)
+                    if resource.childs and not child_found:
+                        raise DiscoveryError(
+                            errno.EINVAL, "Invalid rpath '%s'" % rpath)
+
+                # Fetch node health information
                 if not child_found or node == leaf_node:
                     main = resource(child_resource=None)
                     info = main.get_health_info(rpath)
                     break
+
+            # Update resource map
             Resource.init(NodeHealth.URL)
             Resource.set(rpath, info)
             NodeHealth.STATUS = self.success
         except Exception as err:
             NodeHealth.STATUS = self.failed + f" - {err}"
-        os.removedirs(NodeHealth.GEN_MARKER)
         return NodeHealth.STATUS
 
     def get_processing_status(self):
@@ -79,6 +97,8 @@ class NodeHealth:
         Returns "in-progress" is any request is under processing.
         Otherwise generator processing status is "Ready" or "Success".
         """
-        if os.path.exists(NodeHealth.GEN_MARKER):
-            NodeHealth.STATUS = self.inprogress
+        # if os.path.exists(NodeHealth.GEN_MARKER):
+        #     NodeHealth.STATUS = self.inprogress
+        # elif self.failed in NodeHealth.STATUS:
+        #     NodeHealth.STATUS = self.ready
         return NodeHealth.STATUS

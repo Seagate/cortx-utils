@@ -27,8 +27,8 @@ class Server(Resource):
         super().__init__(self.name, child_resource)
 
     @staticmethod
-    def has_child(resource):
-        return resource in Nodes.childs
+    def has_child(child_resource):
+        return child_resource in Server.childs
 
 
 class Storage(Resource):
@@ -40,8 +40,8 @@ class Storage(Resource):
         super().__init__(self.name, child_resource)
 
     @staticmethod
-    def has_child(resource):
-        return resource in Nodes.childs
+    def has_child(child_resource):
+        return child_resource in Storage.childs
 
 
 class Nodes(Resource):
@@ -53,5 +53,5 @@ class Nodes(Resource):
         super().__init__(child_resource)
 
     @staticmethod
-    def has_child(resource):
-        return resource in Nodes.childs
+    def has_child(child_resource):
+        return child_resource in Nodes.childs
