@@ -20,7 +20,6 @@ from copy import deepcopy
 from importlib import import_module
 from cortx.utils.cli_framework.command import Command
 from typing import Dict, Any
-from cortx.utils.cli_framework.arg_validator import *
 
 
 class ArgumentParser(argparse.ArgumentParser):
