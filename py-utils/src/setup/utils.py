@@ -15,14 +15,14 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
-import errno
 import json
-from cortx.utils.conf_store import Conf
-from cortx.utils.process import SimpleProcess
-from cortx.utils.validator.v_confkeys import ConfKeysV
-from cortx.utils.validator.v_service import ServiceV
-from cortx.utils.message_bus.error import MessageBusError
+import errno
 from cortx.utils import errors
+from cortx.utils.log import Log
+from cortx.utils.conf_store import Conf
+from cortx.utils.validator.v_service import ServiceV
+from cortx.utils.validator.v_confkeys import ConfKeysV
+from cortx.utils.message_bus.error import MessageBusError
 
 
 class SetupError(Exception):
@@ -32,9 +32,18 @@ class SetupError(Exception):
         self._rc = rc
         self._desc = message % (args)
 
+    @property
+    def rc(self):
+        return self._rc
+
+    @property
+    def desc(self):
+        return self._desc
+
     def __str__(self):
-        if self._rc == 0: return self._desc
-        return "error(%d): %s" %(self._rc, self._desc)
+        if self._rc == 0:
+            return self._desc
+        return "error(%d): %s" % (self._rc, self._desc)
 
 
 class Utils:
@@ -63,17 +72,15 @@ class Utils:
     @staticmethod
     def _get_kafka_server_list(conf_url: str):
         """ Reads the ConfStore and derives keys related to message bus """
-
         Conf.load('cluster_config', conf_url)
-
-        key_list = ['cortx>software>common>message_bus_type', \
-                    'cortx>software>kafka>servers']
+        key_list = ['cortx>software>common>message_bus_type',
+                   'cortx>software>kafka>servers']
         ConfKeysV().validate('exists', 'cluster_config', key_list)
-
         msg_bus_type = Conf.get('cluster_config', key_list[0])
         if msg_bus_type != 'kafka':
-            raise SetupError(errno.EINVAL, "Message Bus do not support type \
-                %s", msg_bus_type)
+            Log.error(f"Message bus type {msg_bus_type} is not supported")
+            raise SetupError(errno.EINVAL, "Message bus type %s is not"\
+                " supported", msg_bus_type)
         # Read the required keys
         all_servers = Conf.get('cluster_config', key_list[1])
         no_servers = len(all_servers)
@@ -89,8 +96,10 @@ class Utils:
                 port_list.append(all_servers[i][rc + 1:])
                 kafka_server_list.append(all_servers[i][:rc])
         if len(kafka_server_list) == 0:
-            raise SetupError(errno.EINVAL, "No valid Kafka server info \
-                provided for config key: %s", key_list[1])
+            Log.error(f"Missing config entry {key_list} in config file "\
+                f"{conf_url}")
+            raise SetupError(errno.EINVAL, "Missing config entry %s in config"
+                " file %s", key_list, conf_url)
         return kafka_server_list, port_list
 
     @staticmethod
@@ -98,7 +107,6 @@ class Utils:
         """ Reads the ConfStore and derives keys related to Event Message """
 
         Conf.load('server_info', conf_url)
-
         key_list = [f'server_node>{machine_id}']
         ConfKeysV().validate('exists', 'server_info', key_list)
         server_info = Conf.get('server_info', key_list[0])
@@ -136,20 +144,14 @@ class Utils:
         # check whether zookeeper and kafka are running
         ServiceV().validate('isrunning', ['kafka-zookeeper.service', \
             'kafka.service'])
-
-        # Check python packages and install if something is missing
-        cmd = "pip3 freeze"
-        cmd_proc = SimpleProcess(cmd)
-        stdout, stderr, rc = cmd_proc.run()
-        result = stdout.decode('utf-8') if rc == 0 else \
-            stderr.decode('utf-8')
+        # Check python packages installed
         with open('/opt/seagate/cortx/utils/conf/requirements.txt') as f:
             packages = f.readlines()
-            # packages will have \n in every string. Need to remove that
-            for package in enumerate(packages):
-                if result.find(package[1][:-1]) == -1:
-                    raise SetupError(errno.EINVAL, "Required python package %s \
-                        is missing", package[1][:-1])
+            packages = [
+                f"{pkg.strip().split('==')[0]} ({pkg.strip().split('==')[1]})"
+                for pkg in packages]
+            from cortx.utils.validator.v_pkg import PkgV
+            PkgV().validate(v_type='pip3s', args=packages)
         return 0
 
     @staticmethod
@@ -183,19 +185,19 @@ class Utils:
     @staticmethod
     def config(conf_url: str):
         """ Performs configurations """
-
         # Message Bus Config
         kafka_server_list, port_list = Utils._get_kafka_server_list(conf_url)
         if kafka_server_list is None:
-            raise SetupError(errno.EINVAL, "Could not find kafka server \
-                information in %s", conf_url)
+            Log.error(f"Could not find kafka server information in {conf_url}")
+            raise SetupError(errno.EINVAL, "Could not find kafka server " +\
+                "information in %s", conf_url)
         Utils._create_msg_bus_config(kafka_server_list, port_list)
-
-        # Populate /etc/cortx/cluster.conf
+        # Cluster config
         server_info = Utils._get_server_info(conf_url, Conf.machine_id)
         if server_info is None:
-            raise SetupError(errno.EINVAL, "Could not find server information \
-                in %s", conf_url)
+            Log.error(f"Could not find server information in {conf_url}")
+            raise SetupError(errno.EINVAL, "Could not find server " +\
+                "information in %s", conf_url)
         Utils._create_cluster_config(server_info)
         return 0
 
@@ -209,14 +211,14 @@ class Utils:
         # Recieve the same & validate
         msg = msg_test.receive_msg()
         if str(msg.decode('utf-8')) != "Test Message":
-            raise SetupError(errno.EINVAL, "Unable to test the config. Received \
+            Log.error(f"Unable to test the config. Received message is {msg}")
+            raise SetupError(errno.EINVAL, "Unable to test the config. Received\
                 message is %s", msg)
         return 0
 
     @staticmethod
     def reset():
         """ Remove/Delete all the data that was created after post install """
-
         conf_file = '/etc/cortx/message_bus.conf'
         if os.path.exists(conf_file):
             # delete message_types
@@ -229,23 +231,22 @@ class Utils:
             except MessageBusError as e:
                 raise SetupError(e.rc, "Can not reset Message Bus. %s", e)
             except Exception as e:
-                raise SetupError(errors.ERR_OP_FAILED, "Can not reset Message Bus. \
-                    %s", e)
+                raise SetupError(errors.ERR_OP_FAILED, "Can not reset Message  \
+                    Bus. %s", e)
 
         # Stop MessageBus Service
         cmd = SimpleProcess("systemctl stop cortx_message_bus")
         _, stderr, res_rc = cmd.run()
-
         if res_rc != 0:
             raise SetupError(res_rc, "Unable to stop MessageBus Service. \
                 %s", stderr.decode('utf-8'))
-
         return 0
 
     @staticmethod
     def cleanup():
         """ Cleanup configs and logs. """
-        config_files = ['/etc/cortx/message_bus.conf', '/etc/cortx/cluster.conf']
+        config_files = ['/etc/cortx/message_bus.conf', \
+            '/etc/cortx/cluster.conf']
         for each_file in config_files:
             if os.path.exists(each_file):
                 # delete data/config stored
