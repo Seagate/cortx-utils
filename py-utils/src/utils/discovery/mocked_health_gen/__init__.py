@@ -15,24 +15,4 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com
 
-"""
- ***************************************************************************
-  Description: Storage class to provide fru health and specific information
-               through web service.
- ***************************************************************************
-"""
-
-class Server:
-    """Provides health information of FRUs in a node"""
-
-    name = "server"
-
-    def __init__(self):
-        """Initialize server"""
-        pass
-
-    def get_health_info(self, rid):
-        """Get health information of fru in given resource id
-        rid: Resource id (Example: hw>disks)
-        """
-        return
+from cortx.utils.discovery.mocked_health_gen.mocked_health_gen import Storage, Server

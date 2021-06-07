@@ -17,21 +17,42 @@
 
 import errno
 import inspect
+import os
+import sys
 
 from abc import ABCMeta, abstractmethod
+from cortx.utils.conf_store import Conf
 from cortx.utils.discovery.error import DiscoveryError
 from cortx.utils.kv_store import KvStoreFactory
 
+script_path = os.path.realpath(__file__)
+data_file = os.path.join(os.path.dirname(script_path), "dm_config.yaml")
+dm_config = "dm_config"
+Conf.load(dm_config, "yaml://%s" % data_file)
 
-class Resource(metaclass=ABCMeta):
-    """Update resource map and fetch information based on rpath"""
+
+class Resource:
+    """Abstraction over all resource type"""
 
     ROOT_NODE = "nodes"
     _kv = None
 
-    @abstractmethod
-    def get_health_info(self):
-        pass
+    def __init__(self, name, child_resource=None):
+        """Initialize resource"""
+        self._name = name
+        self._child_resource = child_resource
+        self.health_provider_map = {
+            "storage": "storage",
+            "compute": "server"
+            }
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def child_resource(self):
+        return self._child_resource
 
     @staticmethod
     def init(url: str):
@@ -90,6 +111,25 @@ class Resource(metaclass=ABCMeta):
                     n = n + 1
         do_walk(dict_data)
         return final_list
+
+    @staticmethod
+    def get_health_provider_module(path):
+        """Look for __init__ module in health provider path"""
+        sys.path.append(path)
+        return __import__("__init__")
+
+    def get_health_info(self, rpath):
+        """Initialize health provider module and fetch health information"""
+        provider_loc = Conf.get(
+            dm_config, "HEALTH_PROVIDER>%s" % self.health_provider_map[self.name])
+        module = self.get_health_provider_module(provider_loc)
+        members = inspect.getmembers(module, inspect.isclass)
+        for _, cls in members:
+            if hasattr(cls, 'name') and self.health_provider_map[self.name] == cls.name:
+                return cls().get_health_info(rpath)
+        raise DiscoveryError(
+            errno.EINVAL,
+            "Invalid health provider path: '%s'" % provider_loc)
 
 
 class ResourceFactory:

@@ -1,0 +1,3 @@
+HEALTH_PROVIDER:
+    storage: /usr/lib/python3.6/site-packages/cortx/utils/discovery/mocked_health_gen
+    server: /usr/lib/python3.6/site-packages/cortx/utils/discovery/mocked_health_gen

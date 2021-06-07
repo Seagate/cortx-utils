@@ -53,18 +53,18 @@ class NodeHealth:
         try:
             # Parse rpath and find left node
             nodes = rpath.strip().split(">")
-            leaf_node, inst = self.get_node_details(nodes[-1])
+            leaf_node, _ = self.get_node_details(nodes[-1])
             for num, node in enumerate(nodes, 1):
-                node, inst = self.get_node_details(node)
+                node, _ = self.get_node_details(node)
                 resource = ResourceFactory.get_instance(node, rpath)
                 # Validate next node is its child
                 child_found = False
                 if node != leaf_node:
-                    child_found = True if resource.has_child(nodes[num]) else False
+                    next_node, _ = self.get_node_details(nodes[num])
+                    child_found = True if resource.has_child(next_node) else False
                 if not child_found or node == leaf_node:
-                    main = resource(child_resource=None, inst=inst)
-                    info = main.get_health_info(
-                        rid=">".join(nodes[num:]))
+                    main = resource(child_resource=None)
+                    info = main.get_health_info(rpath)
                     break
             Resource.init(NodeHealth.URL)
             Resource.set(rpath, info)
