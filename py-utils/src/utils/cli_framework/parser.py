@@ -20,6 +20,7 @@ from copy import deepcopy
 from importlib import import_module
 from cortx.utils.cli_framework.command import Command
 from typing import Dict, Any
+from cortx.utils.cli_framework.arg_validator import *
 
 
 class ArgumentParser(argparse.ArgumentParser):
@@ -117,9 +118,11 @@ class CommandParser:
             self._communication_obj["json"] = {}
             for each_args in sub_command["args"]:
                 if each_args.get("type", None):
-                    if each_args.get("type_target"):
-                        module_obj = import_module(each_args.pop("type_target"))
-                        each_args["type"] = eval(f"module_obj.{each_args['type']}")
+                    if each_args.get("type_method"):
+                        type_method = each_args.pop("type_method")
+                        if each_args.get("type_target"):
+                            module_obj = import_module(each_args.pop("type_target"))
+                            each_args["type"] = eval(f"module_obj.{type_method}")
                     else:
                         each_args["type"] = eval(each_args["type"])
                 if each_args.get("suppress_help", False):
