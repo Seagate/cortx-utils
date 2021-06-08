@@ -187,6 +187,37 @@ class ConfStore:
         for key in key_list:
             self._cache[dst_index].set(key, self._cache[src_index].get(key))
 
+    def merge(self, dest_index: str, src_index: str, keys: list = None):
+        """
+        Merges the content of src_index and dest_index file
+
+        Parameters:
+        dst_index - Destination Index, to this index resulted values will be
+            merged
+        src_index - Source Index, From which we overwriting/merging key values
+        keys - optional parameter, Only specified keys will be merged.
+        """
+        if src_index not in self._cache.keys():
+            raise ConfError(errno.EINVAL, "config index %s is not loaded",
+                            src_index)
+        if dest_index not in self._cache.keys():
+            raise ConfError(errno.EINVAL, "config index %s is not loaded",
+                            dest_index)
+        if keys:
+            for key in keys:
+                if self._cache[src_index].get(key):
+                    if key not in self._cache[dest_index].get_keys():
+                        self._cache[dest_index].set(key, \
+                            self._cache[src_index].get(key))
+                else:
+                    raise ConfError(errno.EINVAL, f"Invalid key {key} provided.")
+        else:
+            for key in self._cache[src_index].get_keys():
+                # add new key in dest_index
+                if key not in self._cache[dest_index].get_keys():
+                    self._cache[dest_index].set(key, \
+                        self._cache[src_index].get(key))
+
 
 class Conf:
     """ Singleton class instance based on conf_store """
@@ -235,6 +266,10 @@ class Conf:
         """ Creates a Copy suffixed file for main file"""
         Conf._conf.copy(src_index, dst_index, key_list)
         Conf._conf.save(dst_index)
+
+    @staticmethod
+    def merge(dest_index: str, src_index: str, keys: list = None):
+        Conf._conf.merge(dest_index, src_index, keys)
 
     class ClassProperty(property):
         """ Subclass property for classmethod properties """
