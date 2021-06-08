@@ -17,6 +17,7 @@
 
 import errno
 import os
+import psutil
 import re
 
 from cortx.utils.discovery.error import DiscoveryError
@@ -37,7 +38,7 @@ class NodeHealth:
 
     def __init__(self):
         """Initialize node health generator"""
-        #self.ready = "Ready"
+        self.ready = "Ready"
         self.inprogress = "In-progress"
         self.success = "Success"
         self.failed = "Failed"
@@ -57,8 +58,13 @@ class NodeHealth:
 
     def generate(self, rpath: str):
         """Generates node health information and updates resource map"""
-        if NodeHealth.STATUS == self.inprogress:
-            return NodeHealth.STATUS
+        # Deny new request if current scan task is inprogress
+        if self.get_processing_status() == self.inprogress:
+            raise DiscoveryError(
+                errno.EINPROGRESS, "Failed - Node health scan is in-progress.")
+
+        os.makedirs(NodeHealth.GEN_MARKER, exist_ok=True)
+        NodeHealth.STATUS = self.success
         info = None
         try:
             # Parse rpath and find left node
@@ -79,7 +85,14 @@ class NodeHealth:
                             errno.EINVAL, "Invalid rpath '%s'" % rpath)
 
                 # Fetch node health information
-                if not child_found or node == leaf_node:
+                if node == leaf_node and len(resource.childs) != 0:
+                    info = {}
+                    for child in resource.childs:
+                        child_inst = ResourceFactory.get_instance(child, rpath)
+                        main = resource(child_resource=child_inst)
+                        info.update(main.get_health_info(rpath))
+                    break
+                elif node == leaf_node or len(resource.childs) == 0:
                     main = resource(child_resource=None)
                     info = main.get_health_info(rpath)
                     break
@@ -87,18 +100,22 @@ class NodeHealth:
             # Update resource map
             Resource.init(NodeHealth.URL)
             Resource.set(rpath, info)
-            NodeHealth.STATUS = self.success
         except Exception as err:
             NodeHealth.STATUS = self.failed + f" - {err}"
+        os.removedirs(NodeHealth.GEN_MARKER)
         return NodeHealth.STATUS
 
     def get_processing_status(self):
         """
-        Returns "in-progress" is any request is under processing.
-        Otherwise generator processing status is "Ready" or "Success".
+        Returns "in-progress" if any request is being processed.
+        Otherwise Node Health scan status is "Ready" or "Success".
         """
-        # if os.path.exists(NodeHealth.GEN_MARKER):
-        #     NodeHealth.STATUS = self.inprogress
-        # elif self.failed in NodeHealth.STATUS:
-        #     NodeHealth.STATUS = self.ready
+        if os.path.exists(NodeHealth.GEN_MARKER):
+            NodeHealth.STATUS = self.inprogress
+            # Remove marker file if node reboot identified
+            last_reboot = int(psutil.boot_time())
+            last_modified_time = int(os.stat(NodeHealth.GEN_MARKER).st_mtime)
+            if last_reboot > last_modified_time:
+                os.removedirs(NodeHealth.GEN_MARKER)
+                NodeHealth.STATUS = self.ready
         return NodeHealth.STATUS

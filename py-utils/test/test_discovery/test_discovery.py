@@ -19,6 +19,7 @@
 import unittest
 
 from cortx.utils.discovery import Discovery
+from cortx.utils.discovery.error import DiscoveryError
 from cortx.utils.discovery.node_health import NodeHealth
 from cortx.utils.discovery.resource import Resource
 
@@ -26,8 +27,12 @@ data_file = "/tmp/test_resource_health_map.json"
 NodeHealth.url = "json://%s" % data_file
 Resource.init(NodeHealth.url)
 
-rpath1 = "nodes[0]>storage[0]"
-rpath2 = "nodes[0]>compute[0]>hw>disks[0]>health>status"
+# Sample rpaths
+valid_rpath = "nodes[0]"
+#valid_rpath = "nodes[0]>compute[0]"
+#valid_rpath = "nodes[0]>storage[0]"
+#valid_rpath = "nodes[0]>storage[0]>hw>controllers"
+invalid_rpath = "nodes[0]>notexist[0]"
 
 discovery = Discovery()
 
@@ -47,7 +52,7 @@ class TestDiscovery(unittest.TestCase):
         Check for generate node health status is successful
         on processing the request.
         """
-        discovery.generate_node_health(rpath1)
+        discovery.generate_node_health(valid_rpath)
         status = discovery.get_gen_node_health_status()
         self.assertEqual(status, "Success")
 
@@ -56,33 +61,32 @@ class TestDiscovery(unittest.TestCase):
         Check for generate node health status is in-progress
         with previous request.
         """
-        # Set generate node health task is inprogress
+        # Set node health scan request is inprogress
         NodeHealth.STATUS = "In-progress"
         try:
             status = discovery.get_gen_node_health_status()
-        except:
-            pass
+        except Exception as err:
+            status = f"{err}"
         # Reset
         NodeHealth.STATUS = "Ready"
-        self.assertEqual(
-            status, "In-progress",
-            "Generate node health is not processing.")
+        self.assertEqual(status, "In-progress")
 
     def test_generate_node_health_success(self):
         """Check for request acceptance and successful health generation"""
-        status = discovery.generate_node_health(rpath1)
+        status = discovery.generate_node_health(valid_rpath)
         self.assertEqual(status, "Success", "Failed")
 
     def test_generate_node_health_failed(self):
         """Check for request denied or failed status"""
         NodeHealth.STATUS = "In-progress"
-        status = ""
-        try:
-            status = discovery.generate_node_health(rpath1)
-        except Exception as err:
-            status = f"{err}"
+        self.assertRaises(
+            DiscoveryError, discovery.generate_node_health, valid_rpath)
         NodeHealth.STATUS = "Ready"
-        self.assertIn("Failed", status, "New request is not denied.")
+
+    def test_generate_node_health_on_invalid_rpath(self):
+        """Check for request denied or failed status"""
+        status = discovery.generate_node_health(invalid_rpath)
+        self.assertIn("Invalid rpath", status, "Invalid rapth is processed.")
 
     def test_get_node_health(self):
         """Check for fetching node health backend URL"""

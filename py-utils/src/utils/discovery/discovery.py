@@ -37,10 +37,6 @@ class Discovery:
                 node[0]>storage[0]
                 node[0]>storage[0]>hw>psus
         """
-        gen_status = self.get_gen_node_health_status()
-        if gen_status == self.health_gen.inprogress:
-            return "Failed - Node health generation is in-progress " \
-                "already for previous request"
         rpath = rpath if rpath else self.root_node
         gen_status = self.health_gen.generate(rpath)
         return gen_status
@@ -62,30 +58,3 @@ class Discovery:
         URL format: "json://<file_path>/<file_name>"
         """
         return NodeHealth.URL
-
-    # @staticmethod
-    # def get_resource_map(rpath: str = None, delim: str = ">"):
-    #     """
-    #     Retruns a list of resource types discovered.
-
-    #     rpath: Resource path in resource map
-    #     Sample Output:
-    #         [
-    #         "nodes[0]>compute[0]>hw>platform_sensors>voltage_sensors",
-    #         "nodes[0]>compute[0]>hw>platform_sensors",
-    #         "nodes[0]>compute[0]>hw",
-    #         "nodes[0]>compute[0]>sw>cortx_sw[0]>uid"
-    #         "nodes[0]>compute[0]>sw>cortx_sw[1]>uid"
-    #         ]
-    #     """
-    #     # Resource map is collected based on get_node_health().
-    #     # Now it returns backend URL. Hence below won't help unless
-    #     # get_node_health() returns values instead of backend URL.
-
-    #     if not rpath:
-    #         rpath = Resource.ROOT_NODE
-    #     val = Discovery.get_node_health(rpath)
-    #     if val:
-    #         rmap = {rpath : val}
-    #         return Resource.get_keys(rmap)
-    #     return val

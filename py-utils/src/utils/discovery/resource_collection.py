@@ -23,7 +23,7 @@ class Server(Resource):
     name = "compute"
     childs = []
 
-    def __init__(self, child_resource):
+    def __init__(self, child_resource=None):
         super().__init__(self.name, child_resource)
 
     @staticmethod
@@ -36,7 +36,7 @@ class Storage(Resource):
     name = "storage"
     childs = []
 
-    def __init__(self, child_resource):
+    def __init__(self, child_resource=None):
         super().__init__(self.name, child_resource)
 
     @staticmethod
@@ -49,9 +49,13 @@ class Nodes(Resource):
     name = "nodes"
     childs = ["compute", "storage"]
 
-    def __init__(self, child_resource):
-        super().__init__(child_resource)
+    def __init__(self, child_resource=None):
+        super().__init__(self.name, child_resource)
+        self.child = child_resource()
 
     @staticmethod
     def has_child(child_resource):
         return child_resource in Nodes.childs
+
+    def get_health_info(self, rpath):
+        return self.child.get_health_info(rpath)
