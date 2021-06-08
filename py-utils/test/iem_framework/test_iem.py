@@ -106,6 +106,31 @@ class TestMessage(unittest.TestCase):
         alert = EventMessage.receive()
         self.assertIs(type(alert), dict)
 
+    def test_validate_without_optional_params(self):
+        """ Validate without optional params of send attributes """
+        EventMessage.send(module='mod', event_id='500', severity='B', \
+            message_blob={'input': 'This is message'})
+        alert = EventMessage.receive()
+        self.assertEqual(alert['iem']['location']['site_id'], \
+            alert['iem']['source']['site_id'])
+        self.assertEqual(alert['iem']['location']['node_id'], \
+            alert['iem']['source']['node_id'])
+        self.assertEqual(alert['iem']['location']['rack_id'], \
+            alert['iem']['source']['rack_id'])
+
+    def test_validate_with_optional_params(self):
+        """ Validate with optional params of send attributes """
+        EventMessage.send(module='mod', event_id='500', severity='B', \
+            message_blob={'input': 'This is message'}, problem_site_id='2', \
+            problem_rack_id='6', problem_node_id='9')
+        alert = EventMessage.receive()
+        self.assertNotEqual(alert['iem']['location']['site_id'], \
+            alert['iem']['source']['site_id'])
+        self.assertNotEqual(alert['iem']['location']['node_id'], \
+            alert['iem']['source']['node_id'])
+        self.assertNotEqual(alert['iem']['location']['rack_id'], \
+            alert['iem']['source']['rack_id'])
+
 
 if __name__ == '__main__':
     unittest.main()

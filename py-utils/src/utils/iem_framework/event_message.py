@@ -141,14 +141,14 @@ class EventMessage(metaclass=Singleton):
                     'event_time': event_time
                     },
                 'location': {
-                    'site_id': cls._site_id,
-                    'node_id': cls._node_id,
-                    'rack_id': cls._rack_id
-                    },
-                'source': {
                     'site_id': site_id,
                     'node_id': node_id,
-                    'rack_id': rack_id,
+                    'rack_id': rack_id
+                    },
+                'source': {
+                    'site_id': cls._site_id,
+                    'node_id': cls._node_id,
+                    'rack_id': cls._rack_id,
                     'component': cls._component,
                     'module': module
                     },
