@@ -1,4 +1,5 @@
 # CORTX-Py-Utils: CORTX Python common library.
+# CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -26,14 +27,11 @@ class Client:
     def call(self, command):
         pass
 
-    def process_request(self, session, cmd, action, options, args, method):
-        pass
 
-
-class DirectClient(Client):
+class CliClient(Client):
     """Class Handles Direct Calls for CLI"""
     def __init__(self):
-        super(DirectClient, self).__init__(None)
+        super(CliClient, self).__init__(None)
 
     async def call(self, command):
         module_obj = import_module(command.comm.get("target"))
@@ -53,6 +51,6 @@ class RestClient(Client):
     def __init__(self):
         super(RestClient, self).__init__(None)
 
-    def process_request(self, session, cmd, action, options, args, method):
+    def call(self, session, cmd, action, options, args, method):
         #TODO: Implement to create rest request.
         pass
