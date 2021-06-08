@@ -26,7 +26,6 @@ class Terminal:
     waring or to get inputs from user or confirmation messages
     """
 
-    EMPTY_PASS_FIELD = "Password field can't be empty."
     @staticmethod
     def get_quest_answer(name: str) -> bool:
         """
@@ -81,7 +80,7 @@ class Terminal:
                           "characters.\n"))
         value = value or getpass(prompt="Password: ")
         if not value:
-            raise CliError(errno.EINVAL, Terminal.EMPTY_PASS_FIELD)
+            raise CliError(errno.EINVAL, "Password field can not be empty.")
         if confirm_pass_flag:
             confirm_password = getpass(prompt="Confirm Password: ")
             if not confirm_password:

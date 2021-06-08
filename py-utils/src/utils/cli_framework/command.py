@@ -73,7 +73,6 @@ class Command:
             output_type=self._options.get("format","success"))
 
 
-
 class Output:
     """CLI Response Display Class"""
     def __init__(self, command, response):
