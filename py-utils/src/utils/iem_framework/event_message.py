@@ -18,6 +18,7 @@
 import json
 import time
 import errno
+from cortx.utils import errors
 from cortx.template import Singleton
 from cortx.utils.conf_store import Conf
 from cortx.utils.iem_framework.error import EventMessageError
@@ -27,7 +28,9 @@ from cortx.utils.message_bus import MessageProducer, MessageConsumer
 class EventMessage(metaclass=Singleton):
     """ Event Message framework to generate alerts """
 
-    _conf_file = "json:///etc/cortx/cluster.conf"
+    _conf_file = 'json:///etc/cortx/cluster.conf'
+    _producer = None
+    _consumer = None
 
     # VALID VALUES for IEC Components
     _SEVERITY_LEVELS = {
@@ -49,23 +52,28 @@ class EventMessage(metaclass=Singleton):
     }
 
     @classmethod
-    def __init__(cls):
+    def init(cls, component: str, source: str):
+        """
+        Set the Event Message context
+
+        Parameters:
+        component       Component that generates the IEM. For e.g. 'S3', 'SSPL'
+        source          Single character that indicates the type of component.
+                        For e.g. H-Hardware, S-Software, F-Firmware, O-OS
+        """
+
+        cls._component = component
+        cls._source = source
+
         try:
-            Conf.load('cluster', cls._conf_file)
+            Conf.load('cluster', cls._conf_file, skip_reload=True)
             ids = Conf.get('cluster', 'server_node')
-            cls._site_id = int(ids['site_id'])
-            cls._rack_id = int(ids['rack_id'])
-            cls._node_id = int(ids['node_id'])
+            cls._site_id = ids['site_id']
+            cls._rack_id = ids['rack_id']
+            cls._node_id = ids['node_id']
         except Exception as e:
             raise EventMessageError(errno.EINVAL, "Invalid config in %s. %s", \
                 cls._conf_file, e)
-
-    @classmethod
-    def init(cls, component: str, source: str, receiver: bool = False):
-        """ Set the Event Message context """
-        cls._component = component
-        cls._source = source
-        cls()
 
         if cls._component is None:
             raise EventMessageError(errno.EINVAL, "Invalid component type: %s", \
@@ -75,21 +83,47 @@ class EventMessage(metaclass=Singleton):
             raise EventMessageError(errno.EINVAL, "Invalid source type: %s", \
                 cls._source)
 
-        if receiver:
-            cls._client = MessageConsumer(consumer_id='event_consumer', \
-                consumer_group=cls._component, message_types=['IEM'], \
-                auto_ack=True, offset='earliest')
-        else:
-            cls._client = MessageProducer(producer_id='event_producer', \
-                message_type='IEM', method='sync')
+        cls._producer = MessageProducer(producer_id='event_producer', \
+            message_type='IEM', method='sync')
 
     @classmethod
-    def send(cls, module: str, event_id: str, severity: str, message: str, \
-        *params):
-        """ Sends IEM alert message """
+    def send(cls, module: str, event_id: str, severity: str, message_blob: str,\
+        problem_site_id: str = None, problem_rack_id: str = None, \
+        problem_node_id: str = None, event_time: float = None):
+        """
+        Sends IEM alert message
+
+        Parameters:
+        module            Indicates the sub module of a component that generated
+                          the IEM. i.e SSPL submodule like HPI.
+        event_id          A numerical value that uniquely identifies an event.
+        severity          The degree of impact an event has on the operation of
+                          a component.
+        message_blob      Blob alert message.
+        problem_site_id   Uniquely identifies a single data center site.
+                          (Sender Location)
+        problem_rack_id   A numerical value that identifies a single Rack in a
+                          single site (Sender Location)
+        problem_node_id   A numerical value that indicates node ID (UUID)
+                          (Sender Location)
+        event_time        Time of the event
+        """
+
+        if cls._producer is None:
+            raise EventMessageError(errors.ERR_SERVICE_NOT_INITIALIZED, \
+                "Producer is not initialised")
+
+        site_id = problem_site_id if problem_site_id is not None else \
+            cls._site_id
+        rack_id = problem_rack_id if problem_rack_id is not None else \
+            cls._rack_id
+        node_id = problem_node_id if problem_node_id is not None else \
+            cls._node_id
+        event_time = event_time if event_time is not None else time.time()
 
         # Validate attributes before sending
-        for attribute in [module, event_id, message]:
+        for attribute in [module, event_id, message_blob, site_id, rack_id, \
+            node_id]:
             if attribute is None:
                 raise EventMessageError(errno.EINVAL, "Invalid IEM attributes \
                     %s", attribute)
@@ -104,31 +138,54 @@ class EventMessage(metaclass=Singleton):
                 'info': {
                     'severity': cls._SEVERITY_LEVELS[severity],
                     'type': cls._SOURCE[cls._source],
-                    'event_time': time.time()
+                    'event_time': event_time
                     },
                 'location': {
-                    'site_id': cls._site_id,
-                    'node_id': cls._node_id,
-                    'rack_id': cls._rack_id
+                    'site_id': site_id,
+                    'node_id': node_id,
+                    'rack_id': rack_id
                     },
                 'source': {
+                    'site_id': cls._site_id,
+                    'node_id': cls._node_id,
+                    'rack_id': cls._rack_id,
                     'component': cls._component,
                     'module': module
                     },
                 'contents': {
                     'event': event_id,
-                    'message': message,
-                    'params': params,
+                    'message': message_blob
                 }
             }
         })
 
-        cls._client.send([alert])
+        cls._producer.send([alert])
+
+    @classmethod
+    def subscribe(cls, component: str, **filters):
+        """
+        Subscribe to IEM alerts
+
+        Parameters:
+        component       Component that generates the IEM. For e.g. 'S3', 'SSPL'
+        """
+        if component is None:
+            raise EventMessageError(errno.EINVAL, "Invalid component type: %s", \
+               component)
+
+        cls._consumer = MessageConsumer(consumer_id='event_consumer', \
+            consumer_group=component, message_types=['IEM'], \
+            auto_ack=True, offset='earliest')
+
 
     @classmethod
     def receive(cls):
         """ Receive IEM alert message """
-        alert = cls._client.receive()
+        if cls._consumer is None:
+            raise EventMessageError(errors.ERR_SERVICE_NOT_INITIALIZED, \
+                "Consumer is not subscribed")
+
+        alert = cls._consumer.receive()
         if alert is not None:
             try:
                 return json.loads(alert.decode('utf-8'))
