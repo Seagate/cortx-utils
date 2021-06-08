@@ -28,68 +28,50 @@ routes = web.RouteTableDef()
 class IemRestHandler(RestServer):
     """ Rest interface of Iem """
 
-    _iem_ip = '127.0.0.1'
-    _iem_port = 28400
+    @staticmethod
+    async def send(request):
+        try:
+            payload = await request.json()
 
-    def __init__(self):
-        super().__init__(web, routes, self._iem_ip, self._iem_port)
+            component = payload['component']
+            source = payload['source']
+            EventMessage.init(component=component, source=source)
+
+            del payload['component']
+            del payload['source']
+            EventMessage.send(**payload)
+        except EventMessageError as e:
+            response_obj = {'error_code': e.rc, 'exception': \
+                ['EventMessageError', {'message': e.desc}]}
+        except Exception as e:
+            exception_key = type(e).__name__
+            exception = RestServerError(exception_key).http_error()
+            response_obj = {'error_code': exception[0], 'exception': \
+                [exception_key, {'message': exception[1]}]}
+            raise EventMessageError(exception[0], exception[1]) from e
+        else:
+            status_code = 200  # No exception, Success
+            response_obj = {'status_code': status_code, 'status': 'success'}
+        finally:
+            return web.Response(text=json.dumps(response_obj), status=status_code)
 
     @staticmethod
-    @routes.get('/EventMessage/event')
-    @routes.post('/EventMessage/event')
-    async def iem_rest(request):
-        if request.method == 'POST':
-            try:
-                payload = await request.json()
-
-                component = payload['component']
-                source = payload['source']
-                EventMessage.init(component=component, source=source)
-
-                del payload['component']
-                del payload['source']
-                EventMessage.send(**payload)
-            except EventMessageError as e:
-                status_code = e.rc
-                error_message = e.desc
-                response_obj = {'error_code': status_code, 'exception': \
-                    ['EventMessageError', {'message' : error_message}]}
-            except Exception as e:
-                exception_key = type(e).__name__
-                exception = RestServerError(exception_key).http_error()
-                status_code = exception[0]
-                error_message = exception[1]
-                response_obj = {'error_code': status_code, 'exception': [exception_key, {'message' : error_message}]}
-                raise EventMessageError(status_code, error_message) from e
-            else:
-                status_code = 200 # No exception, Success
-                response_obj = {'status_code': status_code, 'status': 'success'}
-            finally:
-                return web.Response(text=json.dumps(response_obj) , status=status_code)
-
-        if request.method == 'GET':
-            try:
-                component = request.rel_url.query['component']
-                EventMessage.subscribe(component=component)
-                alert = EventMessage.receive()
-            except EventMessageError as e:
-                status_code = e.rc
-                error_message = e.desc
-                response_obj = {'error_code': status_code, 'exception': \
-                    ['EventMessageError', {'message': error_message}]}
-            except Exception as e:
-                exception_key = type(e).__name__
-                exception = RestServerError(exception_key).http_error()
-                status_code = exception[0]
-                error_message = exception[1]
-                response_obj = {'error_code': status_code, 'exception': [exception_key, {'message' : error_message}]}
-                raise EventMessageError(status_code, error_message) from e
-            else:
-                status_code = 200  # No exception, Success
-                response_obj = {'alert': str(alert)}
-            finally:
-                return web.Response(text=json.dumps(response_obj), status=status_code)
-
-
-if __name__ == '__main__':
-    IemRestHandler()
+    async def receive(request):
+        try:
+            component = request.rel_url.query['component']
+            EventMessage.subscribe(component=component)
+            alert = EventMessage.receive()
+        except EventMessageError as e:
+            response_obj = {'error_code': e.rc, 'exception': \
+                ['EventMessageError', {'message': e.desc}]}
+        except Exception as e:
+            exception_key = type(e).__name__
+            exception = RestServerError(exception_key).http_error()
+            response_obj = {'error_code': exception[0], 'exception': \
+                [exception_key, {'message' : exception[1]}]}
+            raise EventMessageError(exception[0], exception[1]) from e
+        else:
+            status_code = 200  # No exception, Success
+            response_obj = {'alert': str(alert)}
+        finally:
+            return web.Response(text=json.dumps(response_obj), status=status_code)

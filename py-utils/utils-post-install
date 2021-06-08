@@ -22,6 +22,6 @@
 /bin/cp -f /usr/lib/python3.6/site-packages/cortx/setup/utils_setup.py /opt/seagate/cortx/utils/bin/utils_setup
 /bin/chmod +x /opt/seagate/cortx/utils/bin/utils_setup
 
-# Copy the message_bus_server.py as message_bus_server
-/bin/cp -f /usr/lib/python3.6/site-packages/cortx/utils/message_bus/message_bus_server.py /opt/seagate/cortx/utils/bin/message_bus_server
-/bin/chmod +x /opt/seagate/cortx/utils/bin/message_bus_server
+# Copy the rest_server.py as rest_server
+/bin/cp -f /usr/lib/python3.6/site-packages/cortx/utils/rest_server/rest_server.py /opt/seagate/cortx/utils/bin/rest_server
+/bin/chmod +x /opt/seagate/cortx/utils/bin/rest_server

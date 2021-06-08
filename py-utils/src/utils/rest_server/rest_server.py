@@ -15,12 +15,23 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+from aiohttp import web
+
 
 class RestServer:
     """ Base class for Cortx Rest Server implementation """
 
-    def __init__(self, web, routes, host: str, port: int):
+    def __init__(self):
         app = web.Application()
-        app.add_routes(routes)
-        web.run_app(app, host=host, port=port)
+        from cortx.utils.iem_framework.iem_server import IemRestHandler
+        from cortx.utils.message_bus import MessgeBusRestHandler
+        app.add_routes([web.post('/EventMessage/event', IemRestHandler.send), \
+            web.get('/EventMessage/event', IemRestHandler.receive), \
+            web.post('/MessageBus/message/{message_type}', MessgeBusRestHandler.send), \
+            web.get('/MessageBus/message/{message_type}', MessgeBusRestHandler.receive)])
 
+        web.run_app(app, host='127.0.0.1', port=23800)
+
+
+if __name__ == '__main__':
+    RestServer()
