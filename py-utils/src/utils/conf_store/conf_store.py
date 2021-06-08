@@ -20,6 +20,7 @@ import errno
 from cortx.utils.conf_store.error import ConfError
 from cortx.utils.conf_store.conf_cache import ConfCache
 from cortx.utils.kv_store.kv_store import KvStoreFactory
+from cortx.utils import errors
 
 
 class ConfStore:
@@ -198,25 +199,23 @@ class ConfStore:
         keys - optional parameter, Only specified keys will be merged.
         """
         if src_index not in self._cache.keys():
-            raise ConfError(errno.EINVAL, "config index %s is not loaded",
-                            src_index)
+            raise ConfError(errors.ERR_NOT_INITIALIZED, "config index %s is "\
+                "not loaded", src_index)
         if dest_index not in self._cache.keys():
-            raise ConfError(errno.EINVAL, "config index %s is not loaded",
-                            dest_index)
-        if keys:
-            for key in keys:
-                if self._cache[src_index].get(key):
-                    if key not in self._cache[dest_index].get_keys():
-                        self._cache[dest_index].set(key, \
-                            self._cache[src_index].get(key))
-                else:
-                    raise ConfError(errno.EINVAL, f"Invalid key {key} provided.")
-        else:
-            for key in self._cache[src_index].get_keys():
-                # add new key in dest_index
-                if key not in self._cache[dest_index].get_keys():
-                    self._cache[dest_index].set(key, \
-                        self._cache[src_index].get(key))
+            raise ConfError(errors.ERR_NOT_INITIALIZED, "config index %s is "\
+                "not loaded", dest_index)
+        if keys is None:
+            keys = self._cache[src_index].get_keys()
+        for key in keys:
+            if not self._cache[src_index].get(key):
+                raise ConfError(errno.ENOENT, "%s is not present in %s", \
+                    key, src_index)
+        self._merge(dest_index, src_index, keys)
+
+    def _merge(self, dest_index, src_index, keys):
+        for key in keys:
+            if key not in self._cache[dest_index].get_keys():
+                self._cache[dest_index].set(key, self._cache[src_index].get(key))
 
 
 class Conf:
