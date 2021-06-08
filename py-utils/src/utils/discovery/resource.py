@@ -16,6 +16,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
+import importlib
 import inspect
 import os
 import sys
@@ -114,8 +115,14 @@ class Resource:
     @staticmethod
     def get_health_provider_module(path):
         """Look for __init__ module in health provider path"""
-        sys.path.append(path)
-        return __import__("__init__")
+        module = None
+        if path.startswith("/"):
+            sys.path.append(path)
+            module = __import__("__init__")
+        else:
+            path = path.strip().rstrip("/").replace("/", ".")
+            module = importlib.import_module(path)
+        return module
 
     def get_health_info(self, rpath):
         """Initialize health provider module and fetch health information"""
