@@ -104,8 +104,8 @@ setup(name='cortx-py-utils',
                      ('%s/conf' % utils_path, ['requirements.txt', 'src/setup/setup.yaml',
                                  'cortx.conf.sample', 'VERSION']),
                      ('%s/conf' % utils_path, tmpl_files),
-                     ('/etc/systemd/system', ['src/utils/message_bus/'
-                                              'cortx_message_bus.service'])],
+                     ('/etc/systemd/system', ['src/utils/rest_server/'
+                                              'cortx_rest.service'])],
       long_description=long_description,
       zip_safe=False,
       python_requires='>=3.6',
