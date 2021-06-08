@@ -93,4 +93,3 @@ class MessageBusRestHandler(RestServer):
 
 if __name__ == '__main__':
     MessageBusRestHandler()
-

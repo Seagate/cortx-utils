@@ -14,19 +14,31 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
-import sys
 import glob
-from typing import List
 from setuptools import setup
+import json
+import sys
 
-# Get the version string from command line
-utils_version = "1.0.0"    #default version
-for argument in sys.argv:
-    if argument.startswith("--version"):
-        utils_version = argument.split("=")[1]
-        # remove the argument as it is not recognized argument for setup
-        sys.argv.remove(argument)
+if not os.path.isfile("./cortx.conf.sample"):
+    print("error: cortx.conf.sample file not found!", file=sys.stderr)
+    sys.exit(1)
 
+with open("cortx.conf.sample") as conf_file:
+    build_data = json.load(conf_file)
+
+# Fetch install_path
+install_path = build_data["install_path"]
+utils_path = "%s/cortx/utils" % install_path
+
+if not os.path.isfile("./VERSION"):
+    print("error: VERSION file not found!", file=sys.stderr)
+    sys.exit(1)
+
+# Fetch version
+with open("VERSION") as v_file:
+    utils_version = v_file.read().strip()
+
+# Fetch ha spec file list
 SPEC_DIR = "src/utils/ha/hac/specs/"
 _ROOT = os.path.abspath(os.path.dirname(__file__)) + "/" + SPEC_DIR
 specs = []
@@ -48,6 +60,7 @@ def get_install_requirements() -> list:
     with open('requirements.txt') as r:
         install_requires = [line.strip() for line in r]
     return install_requires
+
 
 setup(name='cortx-py-utils',
       version=utils_version,
@@ -73,7 +86,6 @@ setup(name='cortx-py-utils',
                 'cortx.setup', 'cortx.utils.service',
                  'cortx.utils.setup', 'cortx.utils.setup.kafka',
                 'cortx.utils.rest_server', 'cortx.utils.iem_framework'
-
                 ],
       package_data={
         'cortx': ['py.typed'],
@@ -89,12 +101,12 @@ setup(name='cortx-py-utils',
       data_files = [ ('/var/lib/cortx/ha/specs', specs),
                      ('/var/lib/cortx/ha', ['src/utils/ha/hac/args.yaml',
                                             'src/utils/ha/hac/re_build.sh']),
-                     ('/opt/seagate/cortx/utils/conf',
-                          ['requirements.txt', 'src/setup/setup.yaml']),
-                     ('/opt/seagate/cortx/utils/conf', tmpl_files),
-                     ('/etc/systemd/system', ['src/utils/message_bus/cortx_message_bus.service'])],
+                     ('%s/conf' % utils_path, ['requirements.txt', 'src/setup/setup.yaml',
+                                 'cortx.conf.sample', 'VERSION']),
+                     ('%s/conf' % utils_path, tmpl_files),
+                     ('/etc/systemd/system', ['src/utils/message_bus/'
+                                              'cortx_message_bus.service'])],
       long_description=long_description,
       zip_safe=False,
       python_requires='>=3.6',
       install_requires=get_install_requirements())
-
