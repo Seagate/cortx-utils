@@ -38,20 +38,19 @@ setup(
     package_dir={"cortx.utils.test": "."},
     packages=[
         "cortx.utils.test",
-        "cortx.utils.test.kvstore",
-        "cortx.utils.test.test_validator",
-        "cortx.utils.test.test_kv_store",
-        "cortx.utils.test.test_message_bus",
-        "cortx.utils.test.test_conf_store",
-        "cortx.utils.test.test_schema",
+        "cortx.utils.test.validator",
+        "cortx.utils.test.kv_store",
+        "cortx.utils.test.message_bus",
+        "cortx.utils.test.conf_store",
+        "cortx.utils.test.schema",
     ],
     package_data={
         "": [
             "*.json",
-            "test_schema/*.json",
-            "test_kv_store/*.json",
-            "test_conf_store/*.json",
-            "test_message_bus/*.conf",
+            "schema/*.json",
+            "kv_store/*.json",
+            "conf_store/*.json",
+            "message_bus/*.conf",
         ]
     },
 )
