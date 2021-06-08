@@ -28,11 +28,11 @@ class TestMessage(unittest.TestCase):
         """ Test send alerts """
         EventMessage.init(component='cmp', source='H')
         EventMessage.send(module='mod', event_id='500', severity='B', \
-            message='This is message')
+            message_blob='This is message')
 
     def test_alert_verify_receive(self):
         """ Test receive alerts """
-        EventMessage.init(component='cmp', source='H', receiver=True)
+        EventMessage.subscribe(component='cmp')
         alert = EventMessage.receive()
         self.assertIs(type(alert), dict)
 
@@ -41,11 +41,11 @@ class TestMessage(unittest.TestCase):
         EventMessage.init(component='cmp', source='H')
         for alert_count in range(0, 1000):
             EventMessage.send(module='mod', event_id='500', severity='B', \
-                message='This is message' + str(alert_count))
+                message_blob='This is message' + str(alert_count))
 
     def test_bulk_verify_receive(self):
         """ Test bulk receive alerts """
-        EventMessage.init(component='cmp', source='H', receiver=True)
+        EventMessage.subscribe(component='cmp')
         count = 0
         while True:
             alert = EventMessage.receive()
@@ -55,22 +55,20 @@ class TestMessage(unittest.TestCase):
             count += 1
         self.assertEqual(count, 1000)
 
-    def test_receive_fail(self):
-        """ Receive message with receiver as False """
-        EventMessage.init(component='cmp', source='H')
-        with self.assertRaises(KeyError):
+    def test_alert_fail_receive(self):
+        """ Receive message without subscribing """
+        with self.assertRaises(EventMessageError):
             EventMessage.receive()
 
-    def test_send_fail(self):
-        """ Send message with receiver as True """
-        EventMessage.init(component='cmp', source='H', receiver=True)
-        with self.assertRaises(NameError):
+    def test_alert_fail_send(self):
+        """ Send message without initialising """
+        with self.assertRaises(EventMessageError):
             EventMessage.send(module='mod', event_id='500', severity='B', \
-                message='This is message')
+                message_blob='This is message')
 
     def test_receive_without_send(self):
         """ Receive message without send """
-        EventMessage.init(component='cmp', source='H', receiver=True)
+        EventMessage.subscribe(component='cmp')
         alert = EventMessage.receive()
         self.assertIsNone(alert)
 
@@ -84,25 +82,54 @@ class TestMessage(unittest.TestCase):
         """ Validate send attributes """
         with self.assertRaises(EventMessageError):
             EventMessage.send(module=None, event_id='500', severity='B', \
-                message='This is message')
+                message_blob='This is message')
             EventMessage.send(module='mod', event_id=None, severity='B', \
-                message='This is message')
+                message_blob='This is message')
             EventMessage.send(module='mod', event_id='500', severity='Z', \
-                message='This is message')
+                message_blob='This is message')
             EventMessage.send(module='mod', event_id='500', severity='Z', \
-                message=None)
+                message_blob=None)
+
+    def test_subscribe_validation(self):
+        with self.assertRaises(EventMessageError):
+            EventMessage.subscribe(component=None)
 
     def test_json_alert_send(self):
         """ Test send json as message description """
         EventMessage.init(component='cmp', source='H')
         EventMessage.send(module='mod', event_id='500', severity='B', \
-            message={'input': 'This is message'})
+            message_blob={'input': 'This is message'})
 
     def test_json_verify_receive(self):
         """ Test receive json as message description """
-        EventMessage.init(component='cmp', source='H', receiver=True)
+        EventMessage.subscribe(component='cmp')
         alert = EventMessage.receive()
         self.assertIs(type(alert), dict)
+
+    def test_validate_without_optional_params(self):
+        """ Validate without optional params of send attributes """
+        EventMessage.send(module='mod', event_id='500', severity='B', \
+            message_blob={'input': 'This is message'})
+        alert = EventMessage.receive()
+        self.assertEqual(alert['iem']['location']['site_id'], \
+            alert['iem']['source']['site_id'])
+        self.assertEqual(alert['iem']['location']['node_id'], \
+            alert['iem']['source']['node_id'])
+        self.assertEqual(alert['iem']['location']['rack_id'], \
+            alert['iem']['source']['rack_id'])
+
+    def test_validate_with_optional_params(self):
+        """ Validate with optional params of send attributes """
+        EventMessage.send(module='mod', event_id='500', severity='B', \
+            message_blob={'input': 'This is message'}, problem_site_id='2', \
+            problem_rack_id='6', problem_node_id='9')
+        alert = EventMessage.receive()
+        self.assertNotEqual(alert['iem']['location']['site_id'], \
+            alert['iem']['source']['site_id'])
+        self.assertNotEqual(alert['iem']['location']['node_id'], \
+            alert['iem']['source']['node_id'])
+        self.assertNotEqual(alert['iem']['location']['rack_id'], \
+            alert['iem']['source']['rack_id'])
 
 
 if __name__ == '__main__':
