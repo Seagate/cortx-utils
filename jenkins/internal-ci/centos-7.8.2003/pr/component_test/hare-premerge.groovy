@@ -33,13 +33,17 @@ pipeline {
      parameters {
         string(name: 'HARE_REPO', defaultValue: 'https://github.com/Seagate/cortx-hare', description: 'Repo to be used for Hare build.')
         string(name: 'HARE_BRANCH', defaultValue: 'main', description: 'Branch to be used for Hare build.')
+        string(name: 'VM_FQDN', defaultValue: 'ssc-vm-3370.colo.seagate.com', description: 'VM to be used for premerge test.')
+        string(name: 'VM_CRED_USR', defaultValue: 'root', description: 'VM user.')
+        password(name: 'VM_CRED_PSW', defaultValue: 'seagate', description: 'password.')
+         
     }
     environment {
         REPO_NAME = 'cortx-hare'
         // Updates :
         //   - Need new VM with clean state snapshot for HARE CI : https://jts.seagate.com/browse/EOS-18463
-        VM_FQDN = 'ssc-vm-3370.colo.seagate.com' // SSC VM used for Hare CI 
-        VM_CRED = credentials('node-user') // To connect SSC VM over SSH
+        // VM_FQDN = 'ssc-vm-3370.colo.seagate.com' // SSC VM used for Hare CI 
+        // VM_CRED = credentials('node-user') // To connect SSC VM over SSH
         GITHUB_TOKEN = credentials('cortx-admin-github') // To clone cortx-hare repo
         GPR_REPO = "https://github.com/${ghprbGhRepository}"
         HARE_REPO = "${ghprbGhRepository != null ? GPR_REPO : HARE_REPO}"
