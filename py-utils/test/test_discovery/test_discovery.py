@@ -79,8 +79,8 @@ class TestDiscovery(unittest.TestCase):
         status = ""
         try:
             status = discovery.generate_node_health(rpath1)
-        except:
-            pass
+        except Exception as err:
+            status = f"{err}"
         NodeHealth.STATUS = "Ready"
         self.assertIn("Failed", status, "New request is not denied.")
 

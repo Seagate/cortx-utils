@@ -15,7 +15,6 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.discovery.resource import Resource
 from cortx.utils.discovery.node_health import NodeHealth
 
 
