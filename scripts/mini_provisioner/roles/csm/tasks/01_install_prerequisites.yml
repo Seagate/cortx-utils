@@ -89,7 +89,7 @@
 
 - name: "[install_prereq] : Install csm agent, csm web, cortx-py-utils, python36-cortx-prvsnr and cli"
   yum: 
-    name: ["cortx-cli", "cortx-csm_agent", "cortx-csm_web", "cortx-py-utils", "python36-cortx-prvsnr"]
+    name: ["cortx-cli", "cortx-csm_agent", "cortx-csm_web", "cortx-py-utils", "python36-cortx-prvsnr", "udx-discovery", "uds-pyi"]
     state: present
 
 - name: "[install_prereq] : Create a cortx directory if does not exist"
@@ -98,39 +98,39 @@
     state: directory
     mode: '0755'
 
-- name: "[install_prereq] : Copy utils post install config"
-  ansible.builtin.template:
-    src: utils_config.j2
-    dest: /opt/seagate/cortx/utils/conf/utils.post_install.tmpl.1-node
-    mode: '0774'    
-
-- name: "[install_prereq] : Copy utils config"
-  ansible.builtin.template:
-    src: utils_config.j2
-    dest: /opt/seagate/cortx/utils/conf/utils.config.tmpl.1-node
-    mode: '0774'
-
-- name: "[install_cortx_manager] : Get Machine ID" 
+- name: "[update_cortx_manager_template] : Get Machine ID" 
   shell: cat /etc/machine-id
   register: machineid_out
 
 - set_fact:
     MACHINE_ID: "{{ machineid_out.stdout }}"
 
-- name: "[install_cortx_manager] : Get Secret Key" 
+- name: "[update_cortx_manager_template] : Get Secret Key" 
   shell: python3 -W "ignore" -c "from cortx.utils.security.cipher import Cipher; key = Cipher.generate_key('bae4b468-565d-49df-9495-a43a5d89babc','cortx');print((Cipher.encrypt(key, b'Seagate@1')).decode('utf-8'))"
   register: secretkey_out
 
 - set_fact:
     SECRET_KEY: "{{ secretkey_out.stdout }}"
 
-- name: "[install_cortx_manager] : Update post_install configuration template"
+- name: "[update_cortx_manager_template] : Copy utils post install config"
+  ansible.builtin.template:
+    src: utils_post_install.j2
+    dest: /opt/seagate/cortx/utils/conf/utils.post_install.tmpl.1-node
+    mode: '0774'    
+
+- name: "[update_cortx_manager_template] : Copy utils config"
+  ansible.builtin.template:
+    src: utils_config.j2
+    dest: /opt/seagate/cortx/utils/conf/utils.config.tmpl.1-node
+    mode: '0774'
+
+- name: "[update_cortx_manager_template] : Update post_install configuration template"
   ansible.builtin.replace:
     path: /opt/seagate/cortx/csm/conf/csm.post_install.tmpl.1-node
     regexp: 'TMPL_MACHINE_ID'
     replace: "{{ MACHINE_ID }}"
 
-- name: "[install_cortx_manager] : Update prepare configuration template"
+- name: "[update_cortx_manager_template] : Update prepare configuration template"
   ansible.builtin.replace:
     path: /opt/seagate/cortx/csm/conf/csm.prepare.tmpl.1-node
     regexp: "{{ item.tempval }}"
@@ -143,7 +143,7 @@
     - { tempval: "TMPL_CSM_SECRET_KEY", val: "{{ SECRET_KEY }}" }
     - { tempval: "TMPL_SGIAM_SECRET_KEY", val: "{{ SECRET_KEY }}" }  
 
-- name: "[install_cortx_manager] : Update config configuration template"
+- name: "[update_cortx_manager_template] : Update config configuration template"
   ansible.builtin.replace:
     path: /opt/seagate/cortx/csm/conf/csm.config.tmpl.1-node
     regexp: "{{ item.tempval }}"
@@ -156,7 +156,7 @@
     - { tempval: "TMPL_CSM_SECRET_KEY", val: "{{ SECRET_KEY }}" }
     - { tempval: "TMPL_SGIAM_SECRET_KEY", val: "{{ SECRET_KEY }}" }  
 
-- name: "[install_cortx_manager] : Update init configuration template"
+- name: "[update_cortx_manager_template] : Update init configuration template"
   ansible.builtin.replace:
     path: /opt/seagate/cortx/csm/conf/csm.init.tmpl.1-node
     regexp: "{{ item.tempval }}"
@@ -167,4 +167,31 @@
     - { tempval: "TMPL_SERVER_HOSTNAME", val: "{{ ansible_nodename }}" }
     - { tempval: "TMPL_CLUSTER_ID", val: "{{ CLUSTER_ID }}" }
     - { tempval: "TMPL_CSM_SECRET_KEY", val: "{{ SECRET_KEY }}" }
-    - { tempval: "TMPL_SGIAM_SECRET_KEY", val: "{{ SECRET_KEY }}" }    
+    - { tempval: "TMPL_SGIAM_SECRET_KEY", val: "{{ SECRET_KEY }}" }
+
+- name: "[update_usl_template] : Update prepare configuration template"
+  ansible.builtin.replace:
+    path: /opt/seagate/cortx/csm/conf/usl.prepare.tmpl.1-node
+    regexp: "{{ item.tempval }}"
+    replace: "{{ item.val }}"
+  with_items:
+    - { tempval: "TMPL_MACHINE_ID", val: "{{ MACHINE_ID }}" }
+    - { tempval: "TMPL_CLUSTER_ID", val: "{{ CLUSTER_ID }}" }
+
+- name: "[update_usl_template] : Update config configuration template"
+  ansible.builtin.replace:
+    path: /opt/seagate/cortx/csm/conf/usl.config.tmpl.1-node
+    regexp: "{{ item.tempval }}"
+    replace: "{{ item.val }}"
+  with_items:
+    - { tempval: "TMPL_MACHINE_ID", val: "{{ MACHINE_ID }}" }
+    - { tempval: "TMPL_CLUSTER_ID", val: "{{ CLUSTER_ID }}" }
+
+- name: "[update_usl_template] : Update init configuration template"
+  ansible.builtin.replace:
+    path: /opt/seagate/cortx/csm/conf/usl.init.tmpl.1-node
+    regexp: "{{ item.tempval }}"
+    replace: "{{ item.val }}"
+  with_items:
+    - { tempval: "TMPL_MACHINE_ID", val: "{{ MACHINE_ID }}" }
+    - { tempval: "TMPL_CLUSTER_ID", val: "{{ CLUSTER_ID }}" }

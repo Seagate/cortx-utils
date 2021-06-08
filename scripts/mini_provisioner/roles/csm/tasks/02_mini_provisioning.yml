@@ -13,13 +13,13 @@
     - name: "[mini_provisioning] : CSM Config" 
       shell: "{{ item }}"
       with_items:
-        - "/opt/seagate/cortx/utils/bin/utils_setup config --config json:///opt/seagate/cortx/utils/conf/utils.config.tmpl.1-node"
+        - "/opt/seagate/cortx/utils/bin/utils_setup config --config yaml:///opt/seagate/cortx/utils/conf/utils.config.tmpl.1-node"
         - "/opt/seagate/cortx/csm/bin/csm_setup config --config json:///opt/seagate/cortx/csm/conf/csm.config.tmpl.1-node"
 
     - name: "[mini_provisioning] : CSM Init" 
       shell: /opt/seagate/cortx/csm/bin/csm_setup init --config json:///opt/seagate/cortx/csm/conf/csm.init.tmpl.1-node
   rescue:
-    - name: display config templates
+    - name: Display CSM config templates
       debug: var=item
       with_file:
         - "/opt/seagate/cortx/csm/conf/csm.post_install.tmpl.1-node"
@@ -33,3 +33,40 @@
  
     - name: Print CSM logs to console
       debug: msg = "{{ csm_log_out.stdout }}"
+
+- name: "[mini_provisioning] : Execute USL scripts"
+  block:
+    - name: "[mini_provisioning] : Create directory for key material storage"
+      shell: install -d -m 0700 -o cortxub -g cortxub /var/csm/tls
+
+    - name: "[mini_provisioning] : Generate native key material"
+      become: true
+      become_user: cortxub
+      shell: umask 0177 && openssl req -x509 -newkey "rsa:4096" -keyout "/var/csm/tls/native.key" -nodes -out "/var/csm/tls/native.crt" -days 365 -subj "{{ CERT_PARAM }}"
+    
+    - name: "[mini_provisioning] : USL Post Install"
+      shell: usl_setup post_install --config json:///opt/seagate/cortx/csm/conf/usl.post_install.tmpl.1-node
+
+    - name: "[mini_provisioning] : USL Prepare Install"
+      shell: usl_setup prepare --config json:///opt/seagate/cortx/csm/conf/usl.prepare.tmpl.1-node
+
+    - name: "[mini_provisioning] : USL Config Install"
+      shell: usl_setup config --config json:///opt/seagate/cortx/csm/conf/usl.config.tmpl.1-node
+
+    - name: "[mini_provisioning] : USL Init Install"
+      shell: usl_setup init --config json:///opt/seagate/cortx/csm/conf/usl.init.tmpl.1-node
+  rescue:
+    - name: Display USL config templates
+      debug: var=item
+      with_file:
+        - "/opt/seagate/cortx/csm/conf/usl.post_install.tmpl.1-node"
+        - "/opt/seagate/cortx/csm/conf/usl.prepare.tmpl.1-node"
+        - "/opt/seagate/cortx/csm/conf/usl.config.tmpl.1-node"
+        - "/opt/seagate/cortx/csm/conf/usl.init.tmpl.1-node"
+
+    - name: Display logs
+      shell: cat /tmp/usl_setup.log
+      register: usl_log_out      
+ 
+    - name: Print USL logs to console
+      debug: msg = "{{ usl_log_out.stdout }}"

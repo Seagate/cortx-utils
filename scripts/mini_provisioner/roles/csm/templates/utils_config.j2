@@ -1,12 +1,13 @@
-{
- "cortx": {
-  "software": {
-    "common": {
-      "message_bus_type": "kafka"
-    },
-    "kafka": {
-      "servers": ["{{ ansible_nodename }}"]
-      }
-    }
-  }
-}
+cortx:
+  software:
+    common:
+      message_bus_type: kafka # kafka is the only supported type
+    kafka:
+      servers:
+      # Value should be in format <FQDN>:<port>. Port is optional
+      - {{ ansible_nodename }}:9092
+server_node:
+  {{ MACHINE_ID }}:
+    site_id: 0
+    rack_id: 0
+    node_id: 0
