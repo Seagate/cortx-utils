@@ -28,7 +28,7 @@ class TestMessage(unittest.TestCase):
         """ Test send alerts """
         EventMessage.init(component='cmp', source='H')
         EventMessage.send(module='mod', event_id='500', severity='B', \
-            message='This is message')
+            message_blob='This is message')
 
     def test_alert_verify_receive(self):
         """ Test receive alerts """
@@ -41,7 +41,7 @@ class TestMessage(unittest.TestCase):
         EventMessage.init(component='cmp', source='H')
         for alert_count in range(0, 1000):
             EventMessage.send(module='mod', event_id='500', severity='B', \
-                message='This is message' + str(alert_count))
+                message_blob='This is message' + str(alert_count))
 
     def test_bulk_verify_receive(self):
         """ Test bulk receive alerts """
@@ -64,7 +64,7 @@ class TestMessage(unittest.TestCase):
         """ Send message without initialising """
         with self.assertRaises(EventMessageError):
             EventMessage.send(module='mod', event_id='500', severity='B', \
-                message='This is message')
+                message_blob='This is message')
 
     def test_receive_without_send(self):
         """ Receive message without send """
@@ -82,13 +82,13 @@ class TestMessage(unittest.TestCase):
         """ Validate send attributes """
         with self.assertRaises(EventMessageError):
             EventMessage.send(module=None, event_id='500', severity='B', \
-                message='This is message')
+                message_blob='This is message')
             EventMessage.send(module='mod', event_id=None, severity='B', \
-                message='This is message')
+                message_blob='This is message')
             EventMessage.send(module='mod', event_id='500', severity='Z', \
-                message='This is message')
+                message_blob='This is message')
             EventMessage.send(module='mod', event_id='500', severity='Z', \
-                message=None)
+                message_blob=None)
 
     def test_subscribe_validation(self):
         with self.assertRaises(EventMessageError):
@@ -98,7 +98,7 @@ class TestMessage(unittest.TestCase):
         """ Test send json as message description """
         EventMessage.init(component='cmp', source='H')
         EventMessage.send(module='mod', event_id='500', severity='B', \
-            message={'input': 'This is message'})
+            message_blob={'input': 'This is message'})
 
     def test_json_verify_receive(self):
         """ Test receive json as message description """
