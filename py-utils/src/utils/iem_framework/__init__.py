@@ -17,5 +17,6 @@
 
 __title__ = 'iem_framework'
 
-from cortx.utils.iem_framework.event_message import EventMessage
 from cortx.utils.iem_framework.error import EventMessageError
+from cortx.utils.iem_framework.iem_server import IemRestHandler
+from cortx.utils.iem_framework.event_message import EventMessage

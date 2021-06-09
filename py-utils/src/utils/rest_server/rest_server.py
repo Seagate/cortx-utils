@@ -23,12 +23,12 @@ class RestServer:
 
     def __init__(self):
         app = web.Application()
-        from cortx.utils.iem_framework.iem_server import IemRestHandler
-        from cortx.utils.message_bus import MessgeBusRestHandler
+        from cortx.utils.iem_framework import IemRestHandler
+        from cortx.utils.message_bus import MessageBusRestHandler
         app.add_routes([web.post('/EventMessage/event', IemRestHandler.send), \
             web.get('/EventMessage/event', IemRestHandler.receive), \
-            web.post('/MessageBus/message/{message_type}', MessgeBusRestHandler.send), \
-            web.get('/MessageBus/message/{message_type}', MessgeBusRestHandler.receive)])
+            web.post('/MessageBus/message/{message_type}', MessageBusRestHandler.send), \
+            web.get('/MessageBus/message/{message_type}', MessageBusRestHandler.receive)])
 
         web.run_app(app, host='127.0.0.1', port=23800)
 
