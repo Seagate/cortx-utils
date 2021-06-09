@@ -14,14 +14,21 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+# Value of install_path will be changed at build time
+#install_path_placeholder
+utils_path=$install_path/cortx/utils
+
 # Create /etc/cortx. This will be used for storing message_bus.conf file
 /bin/mkdir -p /etc/cortx
 
 # Copy the setup_cli.py as utils_setup
-/bin/mkdir -p /opt/seagate/cortx/utils/bin
-/bin/cp -f /usr/lib/python3.6/site-packages/cortx/setup/utils_setup.py /opt/seagate/cortx/utils/bin/utils_setup
-/bin/chmod +x /opt/seagate/cortx/utils/bin/utils_setup
+/bin/mkdir -p $utils_path/bin/
+/bin/ln -s /usr/lib/python3.6/site-packages/cortx/setup/utils_setup.py $utils_path/bin/utils_setup
+/bin/chmod +x $utils_path/bin//utils_setup
 
 # Copy the message_bus_server.py as message_bus_server
-/bin/cp -f /usr/lib/python3.6/site-packages/cortx/utils/message_bus/message_bus_server.py /opt/seagate/cortx/utils/bin/message_bus_server
-/bin/chmod +x /opt/seagate/cortx/utils/bin/message_bus_server
+/bin/ln -s /usr/lib/python3.6/site-packages/cortx/utils/message_bus/message_bus_server.py $utils_path/bin/message_bus_server
+/bin/chmod +x $utils_path/bin/message_bus_server
+
+# Copy cortx.conf file to /etc/cortx
+[ -f "/etc/cortx/cortx.conf" ] || cp -n $utils_path/conf/cortx.conf.sample /etc/cortx/cortx.conf

@@ -20,6 +20,7 @@ import errno
 from cortx.utils import errors
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
+from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.v_service import ServiceV
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.message_bus.error import MessageBusError
@@ -53,6 +54,7 @@ class Utils:
     @staticmethod
     def _get_utils_path() -> str:
         """ Gets install path from cortx.conf and returns utils path """
+        
         config_file_path = "/etc/cortx/cortx.conf"
         Conf.load('config_file', f'yaml:///{config_file_path}')
         install_path = Conf.get(index='config_file', key='install_path')
@@ -158,6 +160,7 @@ class Utils:
         # check whether zookeeper and kafka are running
         ServiceV().validate('isrunning', ['kafka-zookeeper.service', \
             'kafka.service'])
+
         # Check required python packages
         utils_path = Utils._get_utils_path()
         with open(f"{utils_path}/conf/python_requirements.txt") as file:
@@ -227,11 +230,12 @@ class Utils:
     @staticmethod
     def test():
         """ Perform configuration testing """
+
         from cortx.setup import MessageBusTest
         msg_test = MessageBusTest()
         # Send a message
         msg_test.send_msg(["Test Message"])
-        # Recieve the same & validate
+        # Receive the same & validate
         msg = msg_test.receive_msg()
         if str(msg.decode('utf-8')) != "Test Message":
             Log.error(f"Unable to test the config. Received message is {msg}")
