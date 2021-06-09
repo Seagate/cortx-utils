@@ -62,7 +62,7 @@ class MessageBusRestHandler(RestServer):
             consumer_group = request.rel_url.query['consumer_group']
             consumer = MessageConsumer(consumer_id='rest_consumer', \
                 consumer_group=consumer_group, message_types=message_types, \
-                auto_ack=True, offset='latest')
+                auto_ack=True, offset='earliest')
 
             message = consumer.receive()
         except MessageBusError as e:
