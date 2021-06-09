@@ -199,7 +199,7 @@ pipeline {
         stage('Deploy') {
             agent { 
                 node { 
-                    label params.HOST == "-" ? "vm_deployment_1n && !cleanup_req" : "vm_deployment_1n_user_host"
+                    label params.HOST == "-" ? "vm_deployment_1n && !teardown_req" : "vm_deployment_1n_user_host"
                     customWorkspace "/var/jenkins/mini_provisioner/${JOB_NAME}_${BUILD_NUMBER}"
                 } 
             }
@@ -270,7 +270,7 @@ pipeline {
                         if ( "${DEBUG}" == "yes" ) {  
                             markNodeOffline("Motr Debug Mode Enabled on This Host  - ${BUILD_URL}")
                         } else {
-                            build job: 'Cortx-Automation/Deployment/VM-Cleanup', wait: false, parameters: [string(name: 'NODE_LABEL', value: "${env.NODE_NAME}")]                    
+                            build job: 'Cortx-Automation/Deployment/VM-Teardown', wait: false, parameters: [string(name: 'NODE_LABEL', value: "${env.NODE_NAME}")]                    
                         }
                     }
 
@@ -333,7 +333,7 @@ def runAnsible(tags) {
     }
 }
 def markNodeforCleanup() {
-	nodeLabel = "cleanup_req"
+	nodeLabel = "teardown_req"
     node = getCurrentNode(env.NODE_NAME)
 	node.setLabelString(node.getLabelString() + " " + nodeLabel)
 	node.save()
