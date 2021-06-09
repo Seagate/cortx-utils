@@ -206,10 +206,11 @@ class ConfStore:
                 "not loaded", dest_index)
         if keys is None:
             keys = self._cache[src_index].get_keys()
-        for key in keys:
-            if not self._cache[src_index].get(key):
-                raise ConfError(errno.ENOENT, "%s is not present in %s", \
-                    key, src_index)
+        else:
+            for key in keys:
+                if not self._cache[src_index].get(key):
+                    raise ConfError(errno.ENOENT, "%s is not present in %s", \
+                        key, src_index)
         self._merge(dest_index, src_index, keys)
 
     def _merge(self, dest_index, src_index, keys):
