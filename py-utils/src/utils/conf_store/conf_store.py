@@ -195,8 +195,10 @@ class ConfStore:
         Parameters:
         dst_index - Destination Index, to this index resulted values will be
             merged
-        src_index - Source Index, From which we overwriting/merging key values
-        keys - optional parameter, Only specified keys will be merged.
+        src_index - Source Index, From which new keys (and related values) are
+            picked up for merging
+        keys - optional parameter, Only these keys (and related values) from
+            src_index will be merged.
         """
         if src_index not in self._cache.keys():
             raise ConfError(errors.ERR_NOT_INITIALIZED, "config index %s is "\
