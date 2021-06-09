@@ -23,4 +23,3 @@ from cortx.utils.message_bus.message_bus_server import MessageBusRestHandler
 from cortx.utils.message_bus.message_bus_client import MessageProducer, \
     MessageConsumer, MessageBusAdmin
 from cortx.utils.message_bus.message_broker import MessageBroker, MessageBrokerFactory
-

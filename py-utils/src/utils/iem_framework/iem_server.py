@@ -41,14 +41,18 @@ class IemRestHandler(RestServer):
             del payload['source']
             EventMessage.send(**payload)
         except EventMessageError as e:
-            response_obj = {'error_code': e.rc, 'exception': \
-                ['EventMessageError', {'message': e.desc}]}
+            status_code = e.rc
+            error_message = e.desc
+            response_obj = {'error_code': status_code, 'exception': \
+                ['EventMessageError', {'message': error_message}]}
         except Exception as e:
             exception_key = type(e).__name__
             exception = RestServerError(exception_key).http_error()
-            response_obj = {'error_code': exception[0], 'exception': \
-                [exception_key, {'message': exception[1]}]}
-            raise EventMessageError(exception[0], exception[1]) from e
+            status_code = exception[0]
+            error_message = exception[1]
+            response_obj = {'error_code': status_code, 'exception': \
+                [exception_key, {'message': error_message}]}
+            raise EventMessageError(status_code, error_message) from e
         else:
             status_code = 200  # No exception, Success
             response_obj = {'status_code': status_code, 'status': 'success'}
@@ -62,14 +66,18 @@ class IemRestHandler(RestServer):
             EventMessage.subscribe(component=component)
             alert = EventMessage.receive()
         except EventMessageError as e:
-            response_obj = {'error_code': e.rc, 'exception': \
-                ['EventMessageError', {'message': e.desc}]}
+            status_code = e.rc
+            error_message = e.desc
+            response_obj = {'error_code': status_code, 'exception': \
+                ['EventMessageError', {'message': error_message}]}
         except Exception as e:
             exception_key = type(e).__name__
             exception = RestServerError(exception_key).http_error()
-            response_obj = {'error_code': exception[0], 'exception': \
-                [exception_key, {'message' : exception[1]}]}
-            raise EventMessageError(exception[0], exception[1]) from e
+            status_code = exception[0]
+            error_message = exception[1]
+            response_obj = {'error_code': status_code, 'exception': \
+                [exception_key, {'message': error_message}]}
+            raise EventMessageError(status_code, error_message) from e
         else:
             status_code = 200  # No exception, Success
             response_obj = {'alert': str(alert)}
