@@ -175,7 +175,7 @@ class Utils:
                     req_pack.append(f"{pack[0]} ({pack[1]})")
         except Exception:
             Log.info("Not found: "+f"{utils_path}/conf/python_requirements.ext.txt")
-            
+
         from cortx.utils.validator.v_pkg import PkgV
         PkgV().validate(v_type='pip3s', args=req_pack)
         return 0
