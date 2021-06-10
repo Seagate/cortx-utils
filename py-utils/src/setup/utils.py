@@ -54,7 +54,7 @@ class Utils:
     @staticmethod
     def _get_utils_path() -> str:
         """ Gets install path from cortx.conf and returns utils path """
-        
+
         config_file_path = "/etc/cortx/cortx.conf"
         Conf.load('config_file', f'yaml:///{config_file_path}')
         install_path = Conf.get(index='config_file', key='install_path')
