@@ -86,7 +86,8 @@ setup(name='cortx-py-utils',
                 'cortx.setup', 'cortx.utils.service',
                 'cortx.utils.setup', 'cortx.utils.setup.kafka',
                 'cortx.utils.cli_framework',
-                'cortx.utils.rest_server', 'cortx.utils.iem_framework'
+                'cortx.utils.rest_server', 'cortx.utils.iem_framework',
+                'cortx.utils.support_bundle'
                 ],
       package_data={
         'cortx': ['py.typed'],
@@ -103,7 +104,8 @@ setup(name='cortx-py-utils',
                      ('/var/lib/cortx/ha', ['src/utils/ha/hac/args.yaml',
                                             'src/utils/ha/hac/re_build.sh']),
                      ('%s/conf' % utils_path, ['requirements.txt', 'src/setup/setup.yaml',
-                                 'cortx.conf.sample', 'VERSION']),
+                                 'cortx.conf.sample', 'VERSION', 
+                                 'src/utils/support_bundle/setup_path.yaml']),
                      ('%s/conf' % utils_path, tmpl_files),
                      ('/etc/systemd/system', ['src/utils/message_bus/'
                                               'cortx_message_bus.service'])],

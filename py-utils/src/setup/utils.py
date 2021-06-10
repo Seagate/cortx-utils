@@ -129,6 +129,15 @@ class Utils:
         return server_info
 
     @staticmethod
+    def _set_cluster_hostname_nodename_mapping(conf_url):
+        cluster_data = Conf.get("server_info", "server_node")
+        for machine_id, node_data in cluster_data.items():
+            hostname = node_data.get("hostname")
+            node_name = node_data.get("name")
+            Conf.set("cluster", f"node_host_mapping>{node_name}", hostname)
+        Conf.save("cluster")
+
+    @staticmethod
     def _create_cluster_config(server_info: dict):
         """ Create the config file required for Event Message """
 
@@ -217,6 +226,8 @@ class Utils:
             raise SetupError(errno.EINVAL, "Could not find server " +\
                 "information in %s", conf_url)
         Utils._create_cluster_config(server_info)
+        #set cluster nodename:hostname mapping to cluster.conf
+        Utils._set_hostname_nodename_mapping(conf_url)
         return 0
 
     @staticmethod

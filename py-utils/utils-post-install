@@ -16,8 +16,8 @@
 
 # Value of install_path will be changed at build time
 #install_path_placeholder
-utils_path=$install_path/cortx/utils
-
+cortx_path=$install_path/cortx/
+utils_path=$cortx_path/utils
 # Create /etc/cortx. This will be used for storing message_bus.conf file
 /bin/mkdir -p /etc/cortx
 
@@ -32,3 +32,6 @@ utils_path=$install_path/cortx/utils
 
 # Copy cortx.conf file to /etc/cortx
 [ -f "/etc/cortx/cortx.conf" ] || cp -n $utils_path/conf/cortx.conf.sample /etc/cortx/cortx.conf
+
+# Replace cortx path to setup_path.yaml
+sed -i -e "s|<CORTX_PATH>|${cortx_path}|g" $utils_path/conf/setup_path.yaml

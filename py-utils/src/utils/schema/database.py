@@ -54,6 +54,15 @@ DATABASE = {
                     "collection": "config"
                 }
             }
+        },
+        {
+            "import_path": "cortx.utils.support_bundle.model.SupportBundleModel",
+            "database": "es_db",
+            "config": {
+                "es_db": {
+                    "collection": "supportbundle"
+                }
+            }
         }
 
     ]

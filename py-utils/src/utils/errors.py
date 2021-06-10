@@ -16,6 +16,8 @@
 import inspect
 
 OPERATION_SUCESSFUL = 0x0000
+ERR_INVALID_VALUE   = 0x1001
+ERR_INVALID_REQUEST = 0x1003
 INTERNAL_ERROR = 0x1005
 ERR_OP_FAILED = 0x1100
 ERR_INVALID_CLIENT_TYPE = 0x1501
@@ -89,6 +91,20 @@ class InternalError(BaseError):
         super(InternalError, self).__init__(
               INTERNAL_ERROR, 'Internal error: %s' % desc,
               message_id, message_args)
+
+
+class InvalidRequest(BaseError):
+    """
+    This error will be raised when an invalid response
+    message is received for any of the cli commands.
+    """
+
+    _err = ERR_INVALID_REQUEST
+    _desc = "Invalid request message received."
+
+    def __init__(self, _desc=None, message_id=None, message_args=None):
+        super(InvalidRequest, self).__init__(
+            ERR_INVALID_REQUEST, _desc, message_id, message_args)
 
 
 class DataAccessError(InternalError):
