@@ -14,24 +14,20 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import sys
-import os
 import string
 import random
 import getpass
 import errno
-from importlib import import_module
-from cortx.utils.schema.payload import Yaml, JsonMessage
+from cortx.utils.schema.payload import JsonMessage
 from cortx.utils.support_bundle import const
 from cortx.utils.support_bundle.model import SupportBundleRepository
-from cortx.utils.errors import (OPERATION_SUCESSFUL, UtilsError,
+from cortx.utils.errors import (OPERATION_SUCESSFUL,
                             InvalidRequest, ERR_INVALID_VALUE)
 from cortx.utils.data.db.db_provider import (DataBaseProvider, GeneralConfig)
 from cortx.utils.errors import DataAccessExternalError
 from cortx.utils.schema.providers import Response
 from cortx.utils.conf_store.conf_store import Conf
 from cortx.utils.log import Log
-import time
-from cortx.utils.process import SimpleProcess
 from cortx.utils.support_bundle.services import ProvisionerServices
 from cortx.utils.schema import database
 

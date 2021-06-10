@@ -1,18 +1,3 @@
-# CORTX-CSM: CORTX Management web and CLI interface.
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published
-# by the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Affero General Public License for more details.
-# You should have received a copy of the GNU Affero General Public License
-# along with this program. If not, see <https://www.gnu.org/licenses/>.
-# For any questions about this software or licensing,
-# please email opensource@seagate.com or cortx-questions@seagate.com.
-
 #!/usr/bin/env python3
 
 # CORTX-Py-Utils: CORTX Python common library.
@@ -33,7 +18,7 @@
 import os
 import threading
 import shutil
-from typing import Dict, List
+from typing import List
 from cortx.utils.schema.payload import Yaml, Tar
 from cortx.utils.support_bundle import const
 from datetime import datetime
@@ -217,5 +202,5 @@ class ComponentsBundle:
         finally:
             if os.path.isdir(bundle_path):
                 shutil.rmtree(bundle_path)
-        msg = f"Support bundle generation completed."
+        msg = "Support bundle generation completed."
         ComponentsBundle._publish_log(msg, INFO, bundle_id, node_name, comment)

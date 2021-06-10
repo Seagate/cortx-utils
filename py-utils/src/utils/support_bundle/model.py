@@ -19,7 +19,7 @@ from cortx.utils.data.access import BaseModel
 from schematics.types import StringType
 from cortx.utils.data.access import Query
 from cortx.utils.data.access.filters import Compare
-from cortx.utils.data.db.db_provider import (DataBaseProvider, GeneralConfig)
+from cortx.utils.data.db.db_provider import DataBaseProvider
 
 
 class SupportBundleModel(BaseModel):

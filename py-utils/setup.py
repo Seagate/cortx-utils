@@ -104,7 +104,7 @@ setup(name='cortx-py-utils',
                      ('/var/lib/cortx/ha', ['src/utils/ha/hac/args.yaml',
                                             'src/utils/ha/hac/re_build.sh']),
                      ('%s/conf' % utils_path, ['requirements.txt', 'src/setup/setup.yaml',
-                                 'cortx.conf.sample', 'VERSION', 
+                                 'cortx.conf.sample', 'VERSION',
                                  'src/utils/support_bundle/setup_path.yaml']),
                      ('%s/conf' % utils_path, tmpl_files),
                      ('/etc/systemd/system', ['src/utils/message_bus/'

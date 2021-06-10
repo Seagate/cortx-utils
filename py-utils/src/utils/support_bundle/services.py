@@ -28,7 +28,7 @@ class ProvisionerServices:
             params = {"username": Conf.get("CSM", "CSM>username"),
                       "password": Conf.get("CSM", "CSM>password")}
             provisioner = import_module(
-                f"csm.plugins.cortx.provisioner").ProvisionerPlugin(
+                "csm.plugins.cortx.provisioner").ProvisionerPlugin(
                 **params)
         except ImportError as e:
             Log.error(f"Provisioner package not installed on system. {e}")
