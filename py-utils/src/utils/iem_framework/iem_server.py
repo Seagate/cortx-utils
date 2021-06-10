@@ -57,7 +57,8 @@ class IemRestHandler(RestServer):
             status_code = 200  # No exception, Success
             response_obj = {'status_code': status_code, 'status': 'success'}
         finally:
-            return web.Response(text=json.dumps(response_obj), status=status_code)
+            return web.Response(text=json.dumps(response_obj), \
+                status=status_code)
 
     @staticmethod
     async def receive(request):
@@ -80,6 +81,7 @@ class IemRestHandler(RestServer):
             raise EventMessageError(status_code, error_message) from e
         else:
             status_code = 200  # No exception, Success
-            response_obj = {'alert': str(alert)}
+            response_obj = {'alert': alert}
         finally:
-            return web.Response(text=json.dumps(response_obj), status=status_code)
+            return web.Response(text=json.dumps(response_obj), \
+                status=status_code)
