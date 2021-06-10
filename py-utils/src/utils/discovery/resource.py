@@ -21,14 +21,20 @@ import inspect
 import os
 import sys
 
+from cortx.utils import const
 from cortx.utils.conf_store import Conf
 from cortx.utils.discovery.error import DiscoveryError
 from cortx.utils.kv_store import KvStoreFactory
 
+## Setup DM config
 script_path = os.path.realpath(__file__)
-data_file = os.path.join(os.path.dirname(script_path), "dm_config.yaml")
+store_type = "yaml"
 dm_config = "dm_config"
-Conf.load(dm_config, "yaml://%s" % data_file)
+dm_config_url = "%s://%s" % (
+    store_type,
+    os.path.join(os.path.dirname(script_path),
+                 "%s.%s" % (dm_config, store_type)))
+Conf.load(dm_config, dm_config_url)
 
 
 class Resource:
@@ -57,9 +63,8 @@ class Resource:
     @staticmethod
     def init(url: str):
         """Read from stored config"""
-        if Resource._kv is None:
-            Resource._kv = KvStoreFactory.get_instance(url)
-            Resource._kv.load()
+        Resource._kv = KvStoreFactory.get_instance(url)
+        Resource._kv.load()
 
     @staticmethod
     def set(key: str, value: str):

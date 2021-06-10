@@ -15,46 +15,71 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import errno
+import os
+import psutil
+import threading
+import time
+
+from cortx.utils.discovery.error import DiscoveryError
 from cortx.utils.discovery.node_health import NodeHealth
 
 
 class Discovery:
     """Common interfaces of Discovery Module(DM)"""
 
-    def __init__(self):
-        self.root_node = "nodes"
-        self.health_gen = NodeHealth()
+    ROOT_NODE = "nodes"
 
-    def generate_node_health(self, rpath: str = None):
+    @staticmethod
+    def generate_node_health(rpath: str = None):
         """
-        This method generates node resource map and health information.
+        Generates node resource map and health information. This returns
+        unique id for any accepted request.
+
         rpath: Resource path in resource map to fetch its health.
             If rpath is not given, it will fetch whole Cortx Node
-            data health and display.
+            data health.
             Examples:
                 node[0]>compute[0]>hw>disks
                 node[0]>compute[0]
                 node[0]>storage[0]
                 node[0]>storage[0]>hw>psus
         """
-        rpath = rpath if rpath else self.root_node
-        gen_status = self.health_gen.generate(rpath)
-        return gen_status
-
-    def get_gen_node_health_status(self):
-        """
-        Returns the below status based on health generator processing state.
-
-        "In-progress" if last health generation request is being processed.
-        "Success" if health generation request is completed.
-        "Failed (with reason)" if request is failed or denied during processing.
-        """
-        return self.health_gen.get_processing_status()
+        rpath = rpath if rpath else Discovery.ROOT_NODE
+        # Deny new request if previous request is being processed
+        if os.path.exists(NodeHealth.GEN_MARKER):
+            # Remove marker file if it is stale
+            last_reboot = int(psutil.boot_time())
+            last_modified_time = int(os.stat(NodeHealth.GEN_MARKER).st_mtime)
+            if last_reboot > last_modified_time:
+                os.removedirs(NodeHealth.GEN_MARKER)
+            else:
+                raise DiscoveryError(
+                    errno.EINPROGRESS, "Failed - Node health scan is in-progress.")
+        # Process new request
+        request_id = str(time.time()).replace(".", "")
+        t = threading.Thread(target=NodeHealth.generate, args=(rpath, request_id))
+        t.start()
+        return request_id
 
     @staticmethod
-    def get_node_health():
+    def get_gen_node_health_status(request_id):
         """
-        Return resource health map backend URL.
+        Returns processing status of the given request id.
+
+        "In-progress" if health generation request is being processed
+        "Success" if health generation request is completed
+        "Failed (with reason)" if request is failed
+        """
+        if not request_id:
+            raise DiscoveryError(errno.EINVAL, "Invalid request ID.")
+        return NodeHealth.get_processing_status(request_id)
+
+    @staticmethod
+    def get_node_health(request_id):
+        """
+        Returns resource health map backend URL.
+
         URL format: "json://<file_path>/<file_name>"
         """
-        return NodeHealth.URL
+        return NodeHealth.get_resource_map_location(request_id)
