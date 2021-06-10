@@ -86,6 +86,101 @@ class YamlKvStore(KvStore):
             yaml.dump(data.get_data(), f, default_flow_style=False)
 
 
+class DirKvStore(KvStore):
+    """ Organizes Key Values in a dir structure """
+    name = "dir"
+
+    def __init__(self, store_loc, store_path, delim='>'):
+        KvStore.__init__(self, store_loc, store_path, delim)
+        if not os.path.exists(self._store_path):
+            os.mkdir(self._store_path)
+
+    def load(self):
+        """ Return Empty Set. Cant read dir structure. Not supported """
+        return KvPayload()
+
+    def dump(self, payload: dict):
+        """ Stores payload onto the store """
+        keys = payload.get_keys()
+        vals = [payload[key] for key in keys]
+        self.set(keys, vals)
+
+    def get_keys(self, key_prefix: str = None):
+        """ Returns the list of keys starting with given prefix """
+        _, key_file = self._get_key_path(key_prefix)
+        if os.path.isfile(key_file):
+            return [key_file.split("/").join(self._delim)]
+        keys = []
+        if key_prefix is None:
+            key_prefix = ""
+        else:
+            key_prefix = "%s%s" %(key_prefix, self._delim)
+        for root, _, file_names in os.walk(key_file):
+            path = ""
+            if root != key_file:
+                path = root.replace(key_file+'/', '') + self._delim
+            keys = [f'{key_prefix}{path}{f}' for f in file_names]
+        return keys
+
+    def get_data(self, format_type: str = None) -> dict:
+        keys = self.get_keys()
+        kv = {}
+        for key in keys:
+            kv[key] = self.get(key)
+        return kv
+
+    def set_data(self, payload: KvPayload):
+        self.dump(payload)
+
+    def _get_key_path(self, key):
+        """ breaks key into dir path e.g. a>b>c to /root/a/b/c """
+        if key is None:
+            return self._store_path, self._store_path
+        key_list = key.split(self._delim)
+        key_dir = os.path.join(self._store_path, *key_list[0:-1])
+        key_file = os.path.join(key_dir, key_list[-1])
+        return key_dir, key_file
+
+    def set(self, keys: list, vals: list):
+        """ stores given keys and values into the store """
+        if len(keys) != len(vals):
+            raise KvError(errno.EINVAL, "Mismatched keys & values %s:%s",
+                          keys, vals)
+
+        for key, val in zip(keys, vals):
+            key_dir, key_file = self._get_key_path(key)
+            try:
+                os.makedirs(key_dir, exist_ok = True)
+            except Exception as e:
+                raise KvError(errno.EACCESS, "Cant set key %s. %s", key, e)
+            if os.path.exists(key_file) and not os.path.isfile(key_file):
+                raise KvError(errno.EINVAL, "Invalid Key %s" % key)
+            with open(key_file, 'w') as f:
+                f.write(val)
+
+    def get(self, keys: list):
+        """ Obtains values corresponding to the keys from the store """
+        vals = []
+        for key in keys:
+            _, key_file = self._get_key_path(key)
+            try:
+                with open(key_file, 'r') as f:
+                    vals.append(f.read())
+            except OSError:
+                vals.append(None)
+        return vals
+
+    def delete(self, keys: list):
+        """ Deletes given set of keys from the store """
+        for key in keys:
+            _, key_file = self._get_key_path(key)
+            try:
+                os.remove(key_file)
+            except OSError as e:
+                if e.errno != errno.ENOENT:
+                    raise KvError(e.errno, "Can not delete entry %s" % (key_file))
+
+
 class TomlKvStore(KvStore):
     """ Represents a TOML File Store """
 
@@ -238,7 +333,8 @@ class PropertiesKvStore(KvStore):
                     key, val = line.split('=', 1)
                     data[key.strip()] = val.strip()
             except Exception as ex:
-                raise KvError(errno.ENOENT, "Invalid properties store format %s. %s.", line, ex)
+                raise KvError(errno.ENOENT, "Invalid properties store format "\
+                    "%s. %s.", line, ex)
         return KvPayload(data, self._delim)
 
     def dump(self, data) -> None:
@@ -246,7 +342,7 @@ class PropertiesKvStore(KvStore):
         kv_list = data.get_data()
         with open(self._store_path, 'w') as f:
             for key, val in kv_list.items():
-                f.write("%s = %s\n" %(key, val))
+                f.write("%s = %s\n" % (key, val))
 
 
 class PillarStore(KvStore):
