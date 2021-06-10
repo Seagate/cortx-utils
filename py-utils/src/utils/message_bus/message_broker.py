@@ -16,6 +16,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import inspect
+from cortx.utils.log import Log
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils import errors
 
@@ -27,7 +28,12 @@ class MessageBrokerFactory:
 
     @staticmethod
     def get_instance(broker_type: str, broker_conf: dict):
+        Log.init("MessageBrokerFactory", '/var/log/cortx/utils', level='INFO',
+                 backup_count=5, file_size_in_mb=5)
+        Log.info(f"MessageBrokerFactory: get_instance(): Started with "
+            f"arguments broker_type: {broker_type}, broker_conf: {broker_conf}")
         if broker_type in MessageBrokerFactory._brokers:
+            Log.info(f"get_instance(): Successfully completed.")
             return MessageBrokerFactory._brokers[broker_type]
 
         from cortx.utils.message_bus import message_broker_collection
@@ -37,8 +43,11 @@ class MessageBrokerFactory:
                 if broker_type == cls.name:
                     message_broker = cls(broker_conf)
                     MessageBrokerFactory._brokers[broker_type] = message_broker
+                    Log.info(f"get_instance(): Successfully completed.")
                     return message_broker
 
+        Log.error(f"get_instance(): MessageBusError: "
+            f"{errors.ERR_INVALID_SERVICE_NAME} Invalid service name {broker_type}.")
         raise MessageBusError(errors.ERR_INVALID_SERVICE_NAME, \
             "Invalid service name %s.", broker_type)
 
