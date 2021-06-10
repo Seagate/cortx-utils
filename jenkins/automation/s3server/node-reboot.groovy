@@ -62,6 +62,9 @@ pipeline {
                         
                         #Bring nodes online
                         ansible-playbook node-reboot.yml --tags jenkins-online -i \$NODE_LIST  --extra-vars "ansible_ssh_pass=$VM_CRED_PSW jenkins_password="$JENKINS_API_PSW" jenkins_user=$JENKINS_API_USR"
+
+			#Configure Lnet after nodes come online
+ 			ansible-playbook node-reboot.yml -v --tags lnet -i \$NODE_IP_LIST  --extra-vars "ansible_ssh_pass=$VM_CRED_PSW"
                     popd
                     
                 """
