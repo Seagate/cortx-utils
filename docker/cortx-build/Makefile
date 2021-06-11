@@ -333,7 +333,7 @@ _ha_prereq:
 	pushd "cortx-workspace/cortx-ha" && \
 		yum clean all;rm -rf /var/cache/yum && \
 		yum erase python36-PyYAML -y && \
-		pip3 install -r https://raw.githubusercontent.com/Seagate/cortx-utils/main/py-utils/requirements.txt && \
+		pip3 install -r https://raw.githubusercontent.com/Seagate/cortx-utils/main/py-utils/python_requirements.txt && \
 		yum localinstall -y ${RPM_DIR}/cortx-py-utils*noarch.rpm && \
 		bash ./jenkins/cicd/cortx-ha-dep.sh  && \
 		pip3 install numpy && \
