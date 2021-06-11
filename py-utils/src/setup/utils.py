@@ -62,8 +62,8 @@ class Utils:
         if not install_path:
             error_msg = f"install_path not found in {config_file_path}"
             raise SetupError(errno.EINVAL, error_msg)
-        else:
-            return install_path + "/cortx/utils"
+
+        return install_path + "/cortx/utils"
 
     @staticmethod
     def _create_msg_bus_config(kafka_server_list: list, port_list: list):
@@ -161,15 +161,23 @@ class Utils:
         ServiceV().validate('isrunning', ['kafka-zookeeper.service', \
             'kafka.service'])
 
-        # Check python packages installed
+        # Check required python packages
         utils_path = Utils._get_utils_path()
-        with open(f'{utils_path}/conf/requirements.txt') as f:
-            packages = f.readlines()
-            packages = [
-                f"{pkg.strip().split('==')[0]} ({pkg.strip().split('==')[1]})"
-                for pkg in packages]
-            from cortx.utils.validator.v_pkg import PkgV
-            PkgV().validate(v_type='pip3s', args=packages)
+        with open(f"{utils_path}/conf/python_requirements.txt") as file:
+            req_pack = []
+            for package in file.readlines():
+                pack = package.strip().split('==')
+                req_pack.append(f"{pack[0]} ({pack[1]})")
+        try:
+            with open(f"{utils_path}/conf/python_requirements.ext.txt") as extfile :
+                for package in extfile.readlines():
+                    pack = package.strip().split('==')
+                    req_pack.append(f"{pack[0]} ({pack[1]})")
+        except Exception:
+            Log.info("Not found: "+f"{utils_path}/conf/python_requirements.ext.txt")
+
+        from cortx.utils.validator.v_pkg import PkgV
+        PkgV().validate(v_type='pip3s', args=req_pack)
         return 0
 
     @staticmethod
