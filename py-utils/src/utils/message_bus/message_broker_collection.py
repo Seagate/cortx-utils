@@ -53,8 +53,6 @@ class KafkaMessageBroker(MessageBroker):
     def __init__(self, broker_conf: dict):
         """ Initialize Kafka based Configurations """
         super().__init__(broker_conf)
-        Log.init("MessageBusBroker", '/var/log/cortx/utils', level='INFO',
-                 backup_count=5, file_size_in_mb=5)
         Log.info(f"KafkaMessageBroker: __init__(): initialized with broker"
                   f" configurations as {broker_conf}")
         self._clients = {'admin': {}, 'producer': {}, 'consumer': {}}

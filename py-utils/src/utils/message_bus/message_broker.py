@@ -28,8 +28,6 @@ class MessageBrokerFactory:
 
     @staticmethod
     def get_instance(broker_type: str, broker_conf: dict):
-        Log.init("MessageBrokerFactory", '/var/log/cortx/utils', level='INFO',
-                 backup_count=5, file_size_in_mb=5)
         Log.info(f"MessageBrokerFactory: get_instance(): Started with "
             f"arguments broker_type: {broker_type}, broker_conf: {broker_conf}")
         if broker_type in MessageBrokerFactory._brokers:
