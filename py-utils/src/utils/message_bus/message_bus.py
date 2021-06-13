@@ -35,6 +35,8 @@ class MessageBus(metaclass=Singleton):
             Conf.load('message_bus', self.conf_file)
             self._broker_conf = Conf.get('message_bus', 'message_broker')
             broker_type = self._broker_conf['type']
+            Log.init("MessageBus", '/var/log/cortx/utils/message_bus',
+                level='INFO', backup_count=5, file_size_in_mb=5)
             Log.info(f"MessageBus initialized as {broker_type}")
         except ConfError as e:
             Log.error(f"MessageBusError: {e.rc} Error while parsing" \

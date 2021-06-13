@@ -130,7 +130,7 @@ class KafkaMessageBroker(MessageBroker):
             for entry in ['offset', 'consumer_group', 'message_types', \
                 'auto_ack', 'client_id']:
                 if entry not in client_conf.keys():
-                    Log.Error(f"MessageBusError: Could not find entry "\
+                    Log.error(f"MessageBusError: Could not find entry "\
                         f"{entry} in conf keys for client type {client_type}")
                     raise MessageBusError(errno.ENOENT, "Could not find " +\
                         "entry %s in conf keys for client type %s", entry, \
@@ -153,7 +153,7 @@ class KafkaMessageBroker(MessageBroker):
             try:
                 task.result()  # The result itself is None
             except Exception as e:
-                Log.Error(f"MessageBusError: {errors.ERR_OP_FAILED}." \
+                Log.error(f"MessageBusError: {errors.ERR_OP_FAILED}." \
                     f" Admin operation fails for {method}. {e}")
                 raise MessageBusError(errors.ERR_OP_FAILED, \
                     "Admin operation fails for %s. %s", method, e)
@@ -164,13 +164,13 @@ class KafkaMessageBroker(MessageBroker):
             message_type_metadata = admin.list_topics().__dict__
             return message_type_metadata['topics']
         except KafkaException as e:
-            Log.Error(f"MessageBusError: {errors.ERR_OP_FAILED}. " \
+            Log.error(f"MessageBusError: {errors.ERR_OP_FAILED}. " \
                 f"list_topics() failed. {e} Check if Kafka service is " \
                 f"running successfully")
             raise MessageBusError(errors.ERR_OP_FAILED, "list_topics() " +\
                 "failed. %s. Check if Kafka service is running successfully", e)
         except Exception as e:
-            Log.Error(f"MessageBusError: {errors.ERR_OP_FAILED}. " \
+            Log.error(f"MessageBusError: {errors.ERR_OP_FAILED}. " \
                 f"list_topics() failed. {e} Check if Kafka service is " \
                 f"running successfully")
             raise MessageBusError(errors.ERR_OP_FAILED, "list_topics() " + \
