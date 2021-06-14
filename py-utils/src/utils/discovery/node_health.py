@@ -27,12 +27,13 @@ from cortx.utils.conf_store import Conf
 from cortx.utils.discovery.error import DiscoveryError
 from cortx.utils.discovery.resource import Resource, ResourceFactory
 
-# Setup DM requests
+# Setup DM request status tracker
 os.makedirs(const.DM_CONFIG_PATH, exist_ok=True)
 os.makedirs(const.DM_RESOURCE_MAP_PATH, exist_ok=True)
 store_type = "json"
 dm_requests = "dm_requests"
-dm_requests_file = os.path.join(const.DM_CONFIG_PATH, "%s.%s" % (dm_requests, store_type))
+dm_requests_file = os.path.join(
+    const.DM_CONFIG_PATH, "%s.%s" % (dm_requests, store_type))
 dm_requests_url = "%s://%s" % (store_type, dm_requests_file)
 if not os.path.exists(dm_requests_file):
     with open(dm_requests_file, "w+") as f:
@@ -43,7 +44,6 @@ Conf.load(dm_requests, dm_requests_url)
 class NodeHealth:
     """This generates node health information and updates map"""
 
-    GEN_MARKER = "/var/cortx/dm/dm_genhealth_inprogress"
     INPROGRESS = "In-progress"
     SUCCESS = "Success"
     FAILED = "Failed"
@@ -113,10 +113,6 @@ class NodeHealth:
     @staticmethod
     def generate(rpath: str, req_id: str):
         """Generates node health information and updates resource map"""
-        # Block new request if any request is being processed
-        os.makedirs(NodeHealth.GEN_MARKER, exist_ok=True)
-        time.sleep(0.1)
-
         try:
             # Initialize resource map
             data_file = os.path.join(const.DM_RESOURCE_MAP_PATH,
@@ -130,9 +126,6 @@ class NodeHealth:
         except Exception as err:
             status = NodeHealth.FAILED + f" - {err}"
             NodeHealth.set_dm_request_processed(req_id, status)
-
-        # Remove marker once request is processed
-        os.removedirs(NodeHealth.GEN_MARKER)
 
     @staticmethod
     def get_processing_status(req_id):

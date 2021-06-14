@@ -31,7 +31,7 @@ class Discovery:
     ROOT_NODE = "nodes"
 
     @staticmethod
-    def generate_node_health(rpath: str = None):
+    def generate_node_health(rpath: str = None, backend_url: str = None):
         """
         Generates node resource map and health information. This returns
         unique id for any accepted request.
@@ -44,19 +44,13 @@ class Discovery:
                 node[0]>compute[0]
                 node[0]>storage[0]
                 node[0]>storage[0]>hw>psus
+        backend_url: Path to store resource health information
         """
+        if backend_url:
+            raise DiscoveryError(
+                errno.EINVAL,
+                "Backend url based node health generation is not supported.")
         rpath = rpath if rpath else Discovery.ROOT_NODE
-        # Deny new request if previous request is being processed
-        if os.path.exists(NodeHealth.GEN_MARKER):
-            # Remove marker file if it is stale
-            last_reboot = int(psutil.boot_time())
-            last_modified_time = int(os.stat(NodeHealth.GEN_MARKER).st_mtime)
-            if last_reboot > last_modified_time:
-                os.removedirs(NodeHealth.GEN_MARKER)
-            else:
-                raise DiscoveryError(
-                    errno.EINPROGRESS, "Failed - Node health scan is in-progress.")
-        # Process new request
         request_id = str(time.time()).replace(".", "")
         t = threading.Thread(target=NodeHealth.generate, args=(rpath, request_id))
         t.start()
