@@ -110,7 +110,8 @@ class TestConfStore(unittest.TestCase):
         result_data = Conf.get_keys('backup', key_index=True)
         # Expected list should match the result_data list output
         expected_list = Conf.get_keys('csm_local')
-        self.assertListEqual(expected_list, result_data)
+        # Expected Length should match else Failure.
+        self.assertTrue(True if len(expected_list) == len(result_data) else False)
 
     def test_conf_load_invalid_arguments(self):
         """
@@ -120,8 +121,8 @@ class TestConfStore(unittest.TestCase):
             Conf.load('invalid_arg', 'json:/tmp/file1.json',
                       test_arg='This is invalid')
         except Exception as err:
-            self.assertEqual("load() got an unexpected keyword argument"
-                             " 'test_arg'", err.args[0])
+            self.assertTrue(True if err.args[1] == "Invalid parameter %s"
+                            and err.args[0] == 22 else False)
 
     def test_conf_store_get_by_index_with_chained_index(self):
         """
@@ -287,6 +288,7 @@ class TestConfStore(unittest.TestCase):
             load_config('pro_local1', 'properties:///tmp/example.properties')
         except Exception as err:
             self.assertEqual('Invalid properties store format %s. %s.', err.args[1])
+
     # Get_keys API
     def test_conf_key_index_a_True(self):
         """
@@ -295,19 +297,20 @@ class TestConfStore(unittest.TestCase):
         """
         load_config('getKeys_local', 'json:///tmp/file1.json')
         key_lst = Conf.get_keys("getKeys_local", key_index=True)
-        expected_list = ['bridge>name', 'bridge>username', 'bridge>manufacturer',
-        'bridge>model', 'bridge>pin', 'bridge>lte_type[0]>name',
-        'bridge>lte_type[1]>name']
+        expected_list = ['version', 'branch', 'bridge>name', 'bridge>username',
+            'bridge>manufacturer', 'bridge>model', 'bridge>pin', 'bridge>port',
+            'bridge>lte_type[0]', 'bridge>lte_type[1]', 'node_count']
         self.assertListEqual(key_lst, expected_list)
 
     def test_conf_key_index_b_False(self):
         """ Test confStore get_key api with key_index argument as False """
         key_lst = Conf.get_keys("getKeys_local", key_index=False)
-        expected_list=['bridge>name', 'bridge>username', 'bridge>manufacturer',
-        'bridge>model', 'bridge>pin', 'bridge>lte_type>name']
+        expected_list = ['version', 'branch', 'bridge>name', 'bridge>username',
+            'bridge>manufacturer', 'bridge>model', 'bridge>pin', 'bridge>port',
+            'bridge>lte_type', 'node_count']
         self.assertListEqual(key_lst, expected_list)
 
-    def test_conf_store_get_machin_id_none(self):
+    def test_conf_store_get_machine_id_none(self):
         """ Test get_machine_id None value """
         from cortx.utils.conf_store import ConfStore
         # rename /etc/machine-id
@@ -318,12 +321,45 @@ class TestConfStore(unittest.TestCase):
         os.rename("/etc/machine-id.old", "/etc/machine-id")
         self.assertEqual(mc_id, None)
 
-    def test_conf_store_get_machin_id(self):
+    def test_conf_store_get_machine_id(self):
         """ Test get_machine_id """
         mc_id = Conf.machine_id
         with open("/etc/machine-id", 'r') as mc_id_file:
-                actual_id = mc_id_file.read()
+            actual_id = mc_id_file.read()
         self.assertEqual(mc_id, actual_id.strip())
+
+    def test_conf_load_fail_reload(self):
+        """ Test conf load fail_reload argument """
+        Conf.load('reload_index', 'json:///tmp/file1.json')
+        expected_lst = Conf.get_keys('reload_index')
+        Conf.load('reload_index', 'toml:///tmp/document.toml', fail_reload=False)
+        out_lst = Conf.get_keys('reload_index')
+        self.assertTrue(True if expected_lst != out_lst else False)
+
+    def test_conf_load_skip_reload(self):
+        """ Test conf load skip_reload argument """
+        Conf.load('skip_index', 'json:///tmp/file1.json')
+        expected_lst = Conf.get_keys('skip_index')
+        Conf.load('skip_index', 'toml:///tmp/document.toml', skip_reload=True)
+        out_lst = Conf.get_keys('skip_index')
+        self.assertTrue(True if expected_lst == out_lst else False)
+
+    def test_conf_load_fail_and_skip(self):
+        """ Test conf load fail_reload and skip_reload argument """
+        Conf.load('fail_skip_index', 'json:///tmp/file1.json')
+        expected_lst = Conf.get_keys('fail_skip_index')
+        Conf.load('fail_skip_index', 'toml:///tmp/document.toml', fail_reload=False, skip_reload=True)
+        out_lst = Conf.get_keys('fail_skip_index')
+        self.assertTrue(True if expected_lst == out_lst else False)
+
+    def test_conf_load_fail_and_skip_non_hap(self):
+        """ Test conf load fail_reload True and skip_reload as True argument """
+        Conf.load('non_happy_index', 'json:///tmp/file1.json')
+        expected_lst = Conf.get_keys('non_happy_index')
+        Conf.load('non_happy_index', 'toml:///tmp/document.toml', fail_reload=True, skip_reload=True)
+        out_lst = Conf.get_keys('non_happy_index')
+        self.assertTrue(True if expected_lst == out_lst else False)
+
 
 if __name__ == '__main__':
     """

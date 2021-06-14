@@ -1,6 +1,5 @@
-#!/bin/bash
-#
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# CORTX-Py-Utils: CORTX Python common library.
+# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -14,10 +13,14 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-# Take action only in case of un-install
-if [ $1 == 0 ]
-then
-    # Remove the files we have created
-    /bin/rm -rf /opt/seagate/cortx/utils
-    /bin/rm -f /etc/cortx/cortx.conf
-fi
+
+import argparse
+
+class CliError(argparse.ArgumentError):
+    def __init__(self, rc, message, argument=None):
+        super(CliError, self).__init__(argument, message)
+        self.rc = rc
+        self.message = message
+
+    def __str__(self):
+        return f"{self.rc}: {self.message}"
