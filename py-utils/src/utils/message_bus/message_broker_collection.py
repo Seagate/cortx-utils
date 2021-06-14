@@ -372,7 +372,7 @@ class KafkaMessageBroker(MessageBroker):
         admin = self._clients['admin'][admin_id]
         Log.debug(f"Started with arguments admin_id: {admin_id}, " \
                   f"message_type: {message_type}")
-        
+
         for tuned_retry in range(self._max_config_retry_count):
             self._resource.set_config('retention.ms', \
                 self._min_msg_retention_period)
