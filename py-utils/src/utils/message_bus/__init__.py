@@ -16,13 +16,9 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 __title__ = 'message_bus'
-from cortx.utils.log import Log
 
 from cortx.utils.message_bus.message_bus import MessageBus
 from cortx.utils.message_bus.message_bus_client import MessageProducer, \
     MessageConsumer, MessageBusAdmin
 from cortx.utils.message_bus.message_broker import MessageBroker, MessageBrokerFactory
 from cortx.utils.message_bus.error import MessageBusError
-
-Log.init("MessageBus", '/var/log/cortx/utils/message_bus', level='INFO', \
-         backup_count=5, file_size_in_mb=5)
