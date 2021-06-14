@@ -15,6 +15,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 set -e
+set -x
 PROG_NAME=$(basename "$0")
 BASE_DIR=$(realpath $(dirname "$0")/../py-utils)
 BUILD_NUMBER=
