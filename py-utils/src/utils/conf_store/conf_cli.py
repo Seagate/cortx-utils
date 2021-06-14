@@ -93,6 +93,28 @@ class ConfCli:
         return output
 
     @staticmethod
+    def merge(args):
+        """ merges source and dest. conf files """
+
+        dest_index = ConfCli._index
+        ConfCli._index = 'src_index'
+        ConfCli.init(args.src_url)
+        src_index = ConfCli._index
+        if not args.keys:  # no keys provided
+            args.key_index = None
+            keys = ConfCli.get_keys(args)  # getting src file keys
+        else:
+            keys = args.keys[0].split(';')
+            args.key_index = None
+            src_keys = ConfCli.get_keys(args)
+            for key in keys:
+                if key not in src_keys:
+                    raise ConfError(errno.ENOENT, "%s is not present in %s", \
+                        key, args.src_url)
+        Conf.merge(dest_index, src_index, keys)
+        Conf.save(dest_index)
+
+    @staticmethod
     def delete(args):
         """ Deletes given set of keys from the config """
         key_list = args.args[0].split(';')
@@ -198,6 +220,24 @@ class GetsKeysCmd:
             "when True, returns keys including array index\n"
             "e.g. In case of 'xxx[0],xxx[1]', only 'xxx' is returned\n\n")
 
+
+class MergeCmd:
+    """ Get Merge Cmd Structure """
+
+    @staticmethod
+    def add_args(sub_parser) -> None:
+        s_parser = sub_parser.add_parser('merge', help=
+            "Merges contents of source and destination conf files\n."
+            "based on source conf file keys. Keys are optional parameters\n"
+            "Multiple keys are separated using ';'.\n"
+            "Example keys passed: 'k1', 'k1;k2;k3'\n\n"
+            "Example command:\n"
+            "# conf yaml:///tmp/test_dest.file merge yaml:///tmp/test_src.file -k 'k1;k2;k3'\n\n")
+        s_parser.add_argument('src_url', help='Source url for merge')
+        s_parser.set_defaults(func=ConfCli.merge)
+        s_parser.add_argument('-k', dest='keys',  nargs='+', default=[], help='Only specified keys will be merged.')
+
+
 def main():
     # Setup Parser
     parser = argparse.ArgumentParser(description='Conf Store CLI',
@@ -225,6 +265,7 @@ def main():
         sys.stderr.write("%s\n\n" % str(e))
         sys.stderr.write("%s\n" % traceback.format_exc())
         return errno.EINVAL
+
 
 if __name__ == "__main__":
     rc = main()
