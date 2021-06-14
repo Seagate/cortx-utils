@@ -1,6 +1,5 @@
-#!/bin/bash
-#
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# CORTX-Py-Utils: CORTX Python common library.
+# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -14,10 +13,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-# Take action only in case of un-install
-if [ $1 == 0 ]
-then
-    # Remove the files we have created
-    /bin/rm -rf /opt/seagate/cortx/utils
-    /bin/rm -f /etc/cortx/cortx.conf
-fi
+SUB_COMMANDS_PERMISSIONS = "permissions_tag"
+EXCLUDED_COMMANDS=[]
+HIDDEN_COMMANDS = []
+OPERATION_SUCESSFUL     = 0x0000

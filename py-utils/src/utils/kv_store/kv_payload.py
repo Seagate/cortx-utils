@@ -61,19 +61,20 @@ class KvPayload:
         key_index: bool = True) -> None:
         if isinstance(data, list):
             for index, d in enumerate(data):
+                index_suffix = f"[{index}]" if key_index else ""
                 if isinstance(d, dict):
-                    index_suffix = f"[{index}]" if key_index else ""
                     newkey = None if not pkey else "%s%s" % (pkey, index_suffix)
                     self._get_keys(keys, d, newkey, key_index)
-                elif isinstance(d, str):
-                    if pkey not in keys:
-                        keys.append(pkey)
+                elif isinstance(d, (str, int)):
+                    newkey = "%s%s" % (pkey, index_suffix)
+                    if newkey not in keys:
+                        keys.append(newkey)
         elif isinstance(data,  dict):
             for key, val in data.items():
                 newkey = key if pkey is None else "%s%s%s" % (pkey, self._delim, key)
                 if isinstance(val, (list, dict)):
                     self._get_keys(keys, val, newkey, key_index)
-                elif isinstance(val, str):
+                elif isinstance(val, (str, int)):
                     if newkey not in keys:
                         keys.append(newkey)
 
@@ -124,34 +125,75 @@ class KvPayload:
         if key not in self._keys:
             self._keys.append(key)
 
+    def _key_index_split(self, indexed_key: str) -> list:
+        """ Split index from key """
+        return re.split(r'\[([0-9]+)\]', indexed_key)
+
     def _get(self, key: str, data: dict) -> str:
-        k = key.split(self._delim, 1)
+        """ Core logic for get """
+        key_split = key.split(self._delim, 1)
 
-        # Check if key has index, if so identify index
-        index = None
-        ki = re.split(r'\[([0-9]+)\]', k[0])
-        if len(ki) > 1:
-            if len(ki[0].strip()) == 0:
-                raise KvError(errno.EINVAL, "Invalid key %s", ki[0])
+        # leaf node
+        if len(key_split) == 1:
+            [leaf_key] = key_split
+            leaf_key_index = self._key_index_split(leaf_key)
+            #combine all in _key_index_split method
+            if len(leaf_key_index[0].strip()) == 0:
+                raise KvError(errno.EINVAL, "Empyt key %s", leaf_key)
+            if len(leaf_key_index) > 1:
+                if not leaf_key_index[1].isnumeric():
+                    raise KvError(errno.EINVAL, \
+                        "Invalid key index for the key %s", leaf_key)
+                if leaf_key_index[2]:
+                    raise KvError(errno.EINVAL, "Invalid key %s", leaf_key)
 
-            if not ki[1].isnumeric():
-                raise KvError(errno.EINVAL,
-                                   "Invalid key index for the key %s", ki[0])
-            k[0], index = ki[0], int(ki[1])
+                leaf_key, leaf_index = leaf_key_index[0], int(leaf_key_index[1])
+                if leaf_key not in data.keys():
+                    return None
+                if leaf_index > len(data[leaf_key])-1:
+                    return None
 
-        if k[0] not in data.keys():
-            return None
-        data1 = data[k[0]]
-        if index is not None:
-            if not isinstance(data[k[0]], list) or index >= len(data[k[0]]):
+                if leaf_key not in data.keys():
+                    return None
+                if not isinstance(data[leaf_key], list):
+                    return None
+                return data[leaf_key][leaf_index]
+
+            if isinstance(data, dict):
+                if leaf_key not in data.keys():
+                    return None
+                return data[leaf_key]
+        elif len(key_split) > 1:
+            p_key, c_key = key_split
+
+        # Check if parent key has index, if so split key and index
+        key_index = self._key_index_split(p_key)
+        # Raise error if key is an empty str
+        if len(key_index[0].strip()) == 0:
+            raise KvError(errno.EINVAL, "Empyt key %s", p_key)
+
+        if len(key_index) > 1:
+            if not key_index[1].isnumeric():
+                raise KvError(errno.EINVAL, \
+                    "Invalid key index for the key %s", p_key)
+            if key_index[2]:
+                raise KvError(errno.EINVAL, "Invalid key %s", p_key)
+            p_key, p_index = key_index[0], int(key_index[1])
+            if isinstance(data[p_key], list):
+                if p_index > (len(data[p_key])-1):
+                    return None
+                if isinstance(data[p_key][p_index], dict):
+                    return self._get(c_key, data[p_key][p_index])
+            else:
+                # Index for a dict!
                 return None
-            data1 = data[k[0]][index]
-
-        # if this is leaf node of the key
-        if len(k) == 1: return data1
-
-        # This is not the leaf node of the key, process intermediate node
-        return self._get(k[1], data1)
+        else:
+            if p_key not in data.keys():
+                return None
+            if isinstance(data[p_key], dict):
+                return self._get(c_key, data[p_key])
+            else:
+                return None
 
     def get(self, key: str) -> str:
         """ Obtain value for the given key """

@@ -1,0 +1,59 @@
+{
+    "name": "users",
+    "description": "Users",
+    "sub_commands": [
+      {
+        "name": "show",
+        "description": "Shows user list",
+        "need_confirmation": false,
+        "permissions_tag": "list",
+        "args": [
+          {
+            "flag": "-o",
+            "type": "int",
+            "dest": "offset",
+            "help": "Amount of users you want to get",
+            "params": true
+          },
+          {
+            "flag": "-f",
+            "dest": "format",
+            "help": "Format of Output",
+            "default": "table",
+            "type": "str",
+            "choices": [
+              "table",
+              "xml",
+              "json"
+            ]
+          },
+          {
+            "flag": "args",
+            "default": [],
+            "suppress_help": true,
+            "nargs": "?",
+            "help": ""
+          }
+        ],
+        "comm": {
+          "type": "rest",
+          "method": "get",
+          "target": "/{version}/csm/users",
+          "version": "v2"
+        },
+        "output": {
+          "table": {
+            "headers": {
+              "username": "Username",
+              "user_type": "User Type",
+              "roles": "Roles",
+              "created_time": "Creation time",
+              "updated_time": "Last update time"
+            },
+            "filters": "users"
+          }
+        }
+      }
+    ]
+  }
+  
