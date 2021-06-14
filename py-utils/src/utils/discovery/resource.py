@@ -22,19 +22,8 @@ import os
 import sys
 
 from cortx.utils import const
-from cortx.utils.conf_store import Conf
 from cortx.utils.discovery.error import DiscoveryError
 from cortx.utils.kv_store import KvStoreFactory
-
-## Setup DM config
-script_path = os.path.realpath(__file__)
-store_type = "yaml"
-dm_config = "dm_config"
-dm_config_url = "%s://%s" % (
-    store_type,
-    os.path.join(os.path.dirname(script_path),
-                 "%s.%s" % (dm_config, store_type)))
-Conf.load(dm_config, dm_config_url)
 
 
 class Resource:
@@ -132,9 +121,9 @@ class Resource:
     def get_health_info(self, rpath):
         """Initialize health provider module and fetch health information"""
         try:
-            provider_loc = Conf.get(
-                dm_config,
-                "HEALTH_PROVIDER>%s" % self.health_provider_map[self.name])
+            from cortx.utils.discovery.node_health import dm_conf
+            provider_loc = dm_conf.get(
+                ["HEALTH_PROVIDER>%s" % self.health_provider_map[self.name]])[0]
         except KeyError as err:
             raise DiscoveryError(
                 errno.EINVAL, f"{err} not found in DM health provider config.")

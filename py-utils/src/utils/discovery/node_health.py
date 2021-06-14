@@ -23,22 +23,25 @@ import re
 import time
 
 from cortx.utils import const
-from cortx.utils.conf_store import Conf
 from cortx.utils.discovery.error import DiscoveryError
 from cortx.utils.discovery.resource import Resource, ResourceFactory
+from cortx.utils.kv_store import KvStoreFactory
 
-# Setup DM request status tracker
-os.makedirs(const.DM_CONFIG_PATH, exist_ok=True)
-os.makedirs(const.DM_RESOURCE_MAP_PATH, exist_ok=True)
-store_type = "json"
-dm_requests = "dm_requests"
-dm_requests_file = os.path.join(
-    const.DM_CONFIG_PATH, "%s.%s" % (dm_requests, store_type))
-dm_requests_url = "%s://%s" % (store_type, dm_requests_file)
-if not os.path.exists(dm_requests_file):
-    with open(dm_requests_file, "w+") as f:
-        json.dump({}, f, indent=2)
-Conf.load(dm_requests, dm_requests_url)
+# Load DM config
+store_type = "yaml"
+store_path = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    "dm_config.%s" % store_type)
+dm_config_url = "%s://%s" % (store_type, store_path)
+dm_conf = KvStoreFactory.get_instance(dm_config_url)
+dm_conf.load()
+
+# Load DM request status tracker
+os.makedirs(dm_conf.get(["REQUEST_REGISTER>location"])[0], exist_ok=True)
+os.makedirs(dm_conf.get(["RESOURCE_MAP>location"])[0], exist_ok=True)
+requests_url = dm_conf.get(["REQUEST_REGISTER>url"])[0]
+req_register = KvStoreFactory.get_instance(requests_url)
+req_register.load()
 
 
 class NodeHealth:
@@ -64,18 +67,16 @@ class NodeHealth:
     @staticmethod
     def add_dm_request(rpath, req_id, url):
         """Updates new request information"""
-        Conf.set(dm_requests, "%s>rpath" % req_id, rpath)
-        Conf.set(dm_requests, "%s>status" % req_id, NodeHealth.INPROGRESS)
-        Conf.set(dm_requests, "%s>url" % req_id, url)
-        Conf.set(dm_requests, "%s>time" % req_id, int(time.time()))
-        Conf.save(dm_requests)
+        req_register.set(["%s>rpath" % req_id], [rpath])
+        req_register.set(["%s>status" % req_id], [NodeHealth.INPROGRESS])
+        req_register.set(["%s>url" % req_id], [url])
+        req_register.set(["%s>time" % req_id], [int(time.time())])
 
     @staticmethod
     def set_dm_request_processed(req_id, status):
         """Updates processed request information"""
-        Conf.set(dm_requests, "%s>status" % req_id, status)
-        Conf.set(dm_requests, "%s>time" % req_id, int(time.time()))
-        Conf.save(dm_requests)
+        req_register.set(["%s>status" % req_id], [status])
+        req_register.set(["%s>time" % req_id], [int(time.time())])
 
     @staticmethod
     def update_resource_map(rpath):
@@ -111,13 +112,15 @@ class NodeHealth:
                 break
 
     @staticmethod
-    def generate(rpath: str, req_id: str):
+    def generate(rpath: str, req_id: str, url: str = None):
         """Generates node health information and updates resource map"""
         try:
             # Initialize resource map
-            data_file = os.path.join(const.DM_RESOURCE_MAP_PATH,
-                "node_health_info_%s.%s" % (req_id, store_type))
-            url = "%s://%s" % (store_type, data_file)
+            if not url:
+                store_type = dm_conf.get(["RESOURCE_MAP>store_type"])[0]
+                data_file = os.path.join(const.DM_RESOURCE_MAP_PATH,
+                    "node_health_info_%s.%s" % (req_id, store_type))
+                url = "%s://%s" % (store_type, data_file)
             Resource.init(url)
             # Process request
             NodeHealth.add_dm_request(rpath, req_id, url)
@@ -131,26 +134,36 @@ class NodeHealth:
     def get_processing_status(req_id):
         """
         Returns "in-progress" if any request is being processed.
-        Otherwise Node Health scan status is "Ready" or "Success".
+        Otherwise returns "Success" or "Failed (with reason)" status.
         """
-        status = Conf.get(dm_requests, "%s>status" % req_id)
+        status_list = req_register.get(["%s>status" % req_id])
+        status = status_list[0] if status_list else None
+
         if not status:
             raise DiscoveryError(
                 errno.EINVAL, "Request ID '%s' not found." % req_id)
         else:
             # Set failed status to stale request ID
+            expiry_sec = int(dm_conf.get(["REQUEST_REGISTER>expiry_sec"])[0])
             last_reboot = int(psutil.boot_time())
-            req_start_time = int(Conf.get(dm_requests, "%s>time" % req_id))
-            if (last_reboot > req_start_time) and status is NodeHealth.INPROGRESS:
+            # Set request is expired if processing time exceeds
+            req_start_time = int(req_register.get(["%s>time" % req_id])[0])
+            current_time = int(time.time())
+            is_req_expired = (current_time - req_start_time) > expiry_sec
+            if (last_reboot > req_start_time or is_req_expired) and \
+                status is NodeHealth.INPROGRESS:
+                # Set request state as failed
                 NodeHealth.set_dm_request_processed(
                     req_id, "Failed - request is expired.")
-            status = Conf.get(dm_requests, "%s>status" % req_id)
+            status = req_register.get(["%s>status" % req_id])[0]
+
         return status
 
     @staticmethod
     def get_resource_map_location(req_id):
         """Returns backend URL"""
-        url = Conf.get(dm_requests, "%s>url" % req_id)
+        url_list = req_register.get(["%s>url" % req_id])
+        url = url_list[0] if url_list else None
         if not url:
             raise DiscoveryError(
                 errno.EINVAL, "Request ID '%s' not found." % req_id)

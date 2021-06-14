@@ -50,10 +50,16 @@ class Discovery:
             raise DiscoveryError(
                 errno.EINVAL,
                 "Backend url based node health generation is not supported.")
+
         rpath = rpath if rpath else Discovery.ROOT_NODE
         request_id = str(time.time()).replace(".", "")
         t = threading.Thread(target=NodeHealth.generate, args=(rpath, request_id))
         t.start()
+
+        # When multiple requests gets registered, KV load throws decoding error
+        # due to key scanning happening at the same time by other requests.
+        time.sleep(0.5)
+
         return request_id
 
     @staticmethod

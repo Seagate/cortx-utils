@@ -16,3 +16,12 @@
 HEALTH_PROVIDER:
     storage: cortx/utils/discovery/mocked_health_gen
     server: cortx/utils/discovery/mocked_health_gen
+
+REQUEST_REGISTER:
+    location: "/var/cortx/dm/conf"
+    url: "json:///var/cortx/dm/conf/requests.json"
+    expiry_sec: 1800
+
+RESOURCE_MAP:
+    location: "/var/cortx/dm/resource_map"
+    store_type: "json"

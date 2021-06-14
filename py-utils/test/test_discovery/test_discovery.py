@@ -43,7 +43,6 @@ class TestDiscovery(unittest.TestCase):
         status = Discovery.get_gen_node_health_status(request_id)
         self.assertEqual(status, "Success")
 
-
     def test_get_node_health(self):
         """Check for generated recource map location"""
         req_id = Discovery.generate_node_health(valid_rpath)
