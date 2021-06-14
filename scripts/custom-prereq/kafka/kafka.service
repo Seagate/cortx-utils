@@ -9,9 +9,9 @@ Type=simple
 User=kafka
 Group=kafka
 ExecStart=/opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/server.properties
-ExecStartPost=sleep 10;for i in $( seq 1 10 ); do test 1 -le $(ps ax | grep ' kafka\.Kafka ' | grep java | grep -v grep | awk '{print $1}' | wc -l) && break || ( sleep 2; continue ); done
+ExecStartPost=sleep 5;for i in $( /usr/bin/seq 1 40 ); do /usr/bin/test 1 -le $(/usr/bin/ps ax | /usr/bin/grep ' kafka\.Kafka ' | /usr/bin/grep java | /usr/bin/grep -v /usr/bin/grep | /usr/bin/awk '{print $1}' | wc -l) && break || ( sleep 2; continue ); done
 ExecStop=/opt/kafka/bin/kafka-server-stop.sh
-ExecStopPost=sleep 5;for i in $( seq 1 20 ); do PIDS=$(ps ax | grep ' kafka\.Kafka ' | grep java | grep -v grep | awk '{print $1}' | wc -l); test 0 -eq ${PIDS} && break || (  kill -s TERM ${PIDS}; sleep 2; continue ); done
+ExecStopPost=sleep 5;for i in $( /usr/bin/seq 1 40 ); do PIDS=$(/usr/bin/ps ax | /usr/bin/grep ' kafka\.Kafka ' | /usr/bin/grep java | /usr/bin/grep -v /usr/bin/grep | /usr/bin/awk '{print $1}'); /usr/bin/test 0 -eq $(echo ${PIDS} | wc -l) && break || (  /usr/bin/kill -s SIGKILL ${PIDS}; sleep 2; continue ); done
 
 [Install]
 WantedBy=multi-user.target
