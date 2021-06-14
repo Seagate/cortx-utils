@@ -88,7 +88,7 @@ pipeline {
                         yum erase python36-PyYAML -y
 
                         pip3 install -r https://raw.githubusercontent.com/Seagate/cortx-utils/$BRANCH/py-utils/python_requirements.txt
-
+                        pip3 install -r https://raw.githubusercontent.com/Seagate/cortx-utils/$BRANCH/py-utils/python_requirements.ext.txt
                         bash jenkins/cicd/cortx-ha-dep.sh
                         pip3 install numpy
                         

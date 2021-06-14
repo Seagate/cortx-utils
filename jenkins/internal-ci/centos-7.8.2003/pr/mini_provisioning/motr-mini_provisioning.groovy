@@ -107,6 +107,7 @@ index-url: http://cortx-storage.colo.seagate.com/releases/cortx/third-party-deps
 trusted-host: cortx-storage.colo.seagate.com
 EOF
 					pip3 install -r https://raw.githubusercontent.com/Seagate/cortx-utils/$BRANCH/py-utils/python_requirements.txt
+                    pip3 install -r https://raw.githubusercontent.com/Seagate/cortx-utils/$BRANCH/py-utils/python_requirements.ext.txt
 					rm -rf /etc/pip.conf
                 '''
 
