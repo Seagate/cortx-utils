@@ -17,9 +17,9 @@
 
 import json
 from aiohttp import web
-from cortx.utils.rest_server import RestServer
+from cortx.utils.utils_server import RestServer
 from cortx.utils.iem_framework import EventMessage
-from cortx.utils.rest_server.error import RestServerError
+from cortx.utils.utils_server.error import RestServerError
 from cortx.utils.iem_framework.error import EventMessageError
 
 routes = web.RouteTableDef()
