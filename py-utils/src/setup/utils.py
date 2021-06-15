@@ -24,6 +24,7 @@ from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.v_service import ServiceV
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.message_bus.error import MessageBusError
+from cortx.utils.service.service_handler import Service
 
 
 class SetupError(Exception):
@@ -159,6 +160,18 @@ class Utils:
                 %s", e)
 
     @staticmethod
+    def _configure_rsyslog():
+        """
+        Restart rsyslog service for reflecting supportbundle rsyslog config
+        """
+        try:
+            Log.info("Restarting rsyslog service")
+            service_obj = Service("rsyslog.service")
+            service_obj.restart()
+        except Exception as e:
+            Log.warn(f"Error in rsyslog service restart: {e}")
+
+    @staticmethod
     def validate(phase: str):
         """ Perform validtions """
 
@@ -239,7 +252,7 @@ class Utils:
         Utils._create_cluster_config(server_info)
         #set cluster nodename:hostname mapping to cluster.conf
         Utils._set_cluster_hostname_nodename_mapping(conf_url)
-
+        Utils._configure_rsyslog()
         Utils._rename_conf_sample_to_conf()
         return 0
 

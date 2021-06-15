@@ -35,3 +35,7 @@ utils_path=$cortx_path/utils
 
 # Replace cortx path to setup_path.yaml
 sed -i -e "s|<CORTX_PATH>|${cortx_path}|g" $utils_path/conf/setup_path.yaml
+
+# Copy rsyslog config to /etc/rsyslog.d
+[ ! -d "/etc/rsyslog.d" ] && mkdir "/etc/rsyslog.d"
+cp -n "$utils_path/conf/0-support_bundle.conf" "/etc/rsyslog.d"
