@@ -121,9 +121,9 @@ class Resource:
     def get_health_info(self, rpath):
         """Initialize health provider module and fetch health information"""
         try:
-            from cortx.utils.discovery.node_health import dm_conf
-            provider_loc = dm_conf.get(
-                ["HEALTH_PROVIDER>%s" % self.health_provider_map[self.name]])[0]
+            from cortx.utils.discovery.node_health import common_config
+            provider_loc = common_config.get(
+                ["health_provider>%s" % self.health_provider_map[self.name]])[0]
         except KeyError as err:
             raise DiscoveryError(
                 errno.EINVAL, f"{err} not found in DM health provider config.")

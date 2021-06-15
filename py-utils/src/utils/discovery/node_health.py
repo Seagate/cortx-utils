@@ -28,18 +28,15 @@ from cortx.utils.discovery.resource import Resource, ResourceFactory
 from cortx.utils.kv_store import KvStoreFactory
 
 # Load DM config
-store_type = "yaml"
-store_path = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)),
-    "dm_config.%s" % store_type)
-dm_config_url = "%s://%s" % (store_type, store_path)
-dm_conf = KvStoreFactory.get_instance(dm_config_url)
-dm_conf.load()
+store_type = "json"
+config_url = "%s://%s" % (store_type, const.CORTX_CONF_FILE)
+common_config = KvStoreFactory.get_instance(config_url)
+common_config.load()
 
 # Load DM request status tracker
-os.makedirs(dm_conf.get(["REQUEST_REGISTER>location"])[0], exist_ok=True)
-os.makedirs(dm_conf.get(["RESOURCE_MAP>location"])[0], exist_ok=True)
-requests_url = dm_conf.get(["REQUEST_REGISTER>url"])[0]
+os.makedirs(common_config.get(["resource_map>location"])[0], exist_ok=True)
+requests_url = "%s://%s" % (
+    store_type, common_config.get(["resource_map>requests_file"])[0])
 req_register = KvStoreFactory.get_instance(requests_url)
 req_register.load()
 
@@ -117,8 +114,9 @@ class NodeHealth:
         try:
             # Initialize resource map
             if not url:
-                store_type = dm_conf.get(["RESOURCE_MAP>store_type"])[0]
-                data_file = os.path.join(const.DM_RESOURCE_MAP_PATH,
+                store_type = common_config.get(["resource_map>store_type"])[0]
+                resource_map_loc = common_config.get(["resource_map>location"])[0]
+                data_file = os.path.join(resource_map_loc,
                     "node_health_info_%s.%s" % (req_id, store_type))
                 url = "%s://%s" % (store_type, data_file)
             Resource.init(url)
@@ -144,7 +142,7 @@ class NodeHealth:
                 errno.EINVAL, "Request ID '%s' not found." % req_id)
         else:
             # Set failed status to stale request ID
-            expiry_sec = int(dm_conf.get(["REQUEST_REGISTER>expiry_sec"])[0])
+            expiry_sec = int(common_config.get(["resource_map>expiry_sec"])[0])
             last_reboot = int(psutil.boot_time())
             # Set request is expired if processing time exceeds
             req_start_time = int(req_register.get(["%s>time" % req_id])[0])

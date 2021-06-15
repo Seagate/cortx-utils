@@ -29,6 +29,7 @@ valid_rpath = "nodes[0]"
 #valid_rpath = "nodes[0]>storage[0]>hw>controllers"
 invalid_rpath = "nodes[0]>notexist[0]"
 
+
 class TestDiscovery(unittest.TestCase):
     """Test Discovery module interfaces"""
 
