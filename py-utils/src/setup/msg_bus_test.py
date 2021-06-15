@@ -25,32 +25,34 @@ class MessageBusTest:
 
     def __init__(self):
         from cortx.utils.conf_store import Conf
+        from cortx.utils.message_bus import MessageBusAdmin
         Conf.load("index", "json:///etc/cortx/message_bus.conf")
         self._server = Conf.get("index",'message_broker>cluster[0]>server')
         # Create a test topic
-        cmd = "/opt/kafka/bin/kafka-topics.sh --create" + \
-              " --topic mytest --bootstrap-server " + self._server + ":9092"
         try:
-            cmd_proc = SimpleProcess(cmd)
-            res_op, res_err, res_rc = cmd_proc.run()
-            if res_rc != 0:
-                raise SetupError(errno.EINVAL, "Unable to test the config")
+            admin = MessageBusAdmin(admin_id = 'admins')
+            admin.register_message_type(message_types=['mytest'], partitions = 1)
+            list_topic = admin.list_message_types(admin_id = 'admins')
+            if len(list_topic) <= 0:
+                raise SetupError(errno.EINVAL, "Failed to test the config." \
+                    "Topic creation failed.")
         except Exception as e:
-            raise SetupError(errno.EINVAL, \
-                             "Unable to test the config, %s", e)
+            raise SetupError(errno.EINVAL, "Failed to test the config, %s", e)
 
     def __del__(self):
         # Delete the test topic
-        cmd = "/opt/kafka/bin/kafka-topics.sh --delete" + \
-              " --topic mytest --bootstrap-server " + self._server + ":9092"
+        from cortx.utils.message_bus import MessageBusAdmin
+        # deregister_message_type
         try:
-            cmd_proc = SimpleProcess(cmd)
-            res_op, res_err, res_rc = cmd_proc.run()
-            if res_rc != 0:
-                raise SetupError(errno.EINVAL, "Unable to test the config")
+            admin = MessageBusAdmin(admin_id = 'admins')
+            admin.deregister_message_type(message_types=['mytest'])
+            list_topic = admin.list_message_types(admin_id = 'admins')
+            if len(list_topic) != 0:
+                raise SetupError(errno.EINVAL, "Failed to test the config." \
+                    " Deregister topic failed.")
         except Exception as e:
             raise SetupError(errno.EINVAL, \
-                             "Unable to test the config, %s", e)
+                             "Failed to test the config, %s", e)
 
     def send_msg(self, message):
         """ Sends a  message """
@@ -73,5 +75,5 @@ class MessageBusTest:
                 if message != None:
                     return message
             except Exception as e:
-                raise SetupError(errno.EINVAL, \
-                             "Unable to test the config. %s", e)
+                raise SetupError(errno.EINVAL, "Failed to receive messages." \
+                    " Unable to test the config. %s", e)
