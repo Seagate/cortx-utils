@@ -45,8 +45,8 @@ class Openldap:
 
     def __init__(self, conf_url):
         if not os.path.isfile(self._preqs_conf_file):
-            raise OpenldapSetupError("message":"pre-requisite json file: %s not found"\
-                % (self._preqs_conf_file))
+            raise OpenldapSetupError({"message":"pre-requisite json file: %s \
+                not found"% (self._preqs_conf_file)})
         Conf.load(self.index, conf_url)
         Conf.load(self.prov, f'yaml://{self._prov_conf_file}')
 
@@ -76,8 +76,8 @@ class Openldap:
                 if services:
                     PkgV().validate('services', services)
         except OpenldapSetupError as e:
-            raise OpenldapSetupError("%s prereqs validations failed, \
-                exception %s" % (phase, e))
+            raise OpenldapSetupError({"message":"%s prereqs validation failed,\
+                exception %s" % (phase, e)})
         return 0
 
     def _key_value_verify(self, key: str):
@@ -85,7 +85,8 @@ class Openldap:
 
         value = Conf.get(self.index, key)
         if not value:
-            raise OpenldapSetupError("Empty value for key : %s" % (key))
+            raise OpenldapSetupError({"message":"Empty value for key : %s"\
+                % (key)})
         else:
             address_token = ["hostname", "public_fqdn", "private_fqdn"]
             for token in address_token:
@@ -232,12 +233,13 @@ class Openldap:
                     list_match_found = False
                     break
             if list_match_found is False:
-                raise OpenldapSetupError("No match found for %s" % (key_yard))
+                raise OpenldapSetupError({"message":"No match found for %s"\
+                    % (key_yard)})
             Log.debug("Validation complete\n")
 
         except OpenldapSetupError as e:
-            raise OpenldapSetupError("ERROR : Validating keys failed, \
-                exception %s" % (e))
+            raise OpenldapSetupError({"message":"ERROR : Validating keys \
+                failed, exception %s" % (e)})
 
     def post_install(self):
         """ Performs post install operations. Raises exception on error """
