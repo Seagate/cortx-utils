@@ -145,7 +145,6 @@ class KafkaMessageBroker(MessageBroker):
             Log.debug(f"Successfully initialized Consumer() and subscribed" \
                 f" to {client_conf['message_types']}")
             self._clients[client_type][client_conf['client_id']] = consumer
-            Log.debug(f"Successfully completed")
 
     def _task_status(self, tasks: dict, method: str):
         """ Check if the task is completed successfully """
@@ -208,8 +207,8 @@ class KafkaMessageBroker(MessageBroker):
         partitions      Integer that represents number of partitions to be
                         created.
         """
-        Log.debug(f"Started with arguments admin_id={admin_id}, message_types" \
-                 f"={message_types}, partitions={partitions}")
+        Log.debug(f"Involked with arguments admin_id={admin_id}, " \
+            f"message_types={message_types}, partitions={partitions}")
         admin = self._clients['admin'][admin_id]
         new_message_type = [NewTopic(each_message_type, \
             num_partitions=partitions) for each_message_type in message_types]
@@ -231,7 +230,7 @@ class KafkaMessageBroker(MessageBroker):
                     continue
                 else:
                     break
-        Log.debug(f"Successfully completed.")
+        Log.debug(f"Successfully Created given list of message types.")
 
     def deregister_message_type(self, admin_id: str, message_types: list):
         """
@@ -242,7 +241,7 @@ class KafkaMessageBroker(MessageBroker):
         message_types   This is essentially equivalent to the list of
                         queue/topic name. For e.g. ["Alert"]
         """
-        Log.debug(f"Starting deregister_message_type() with admin_id:" \
+        Log.debug(f"Involked with admin_id:" \
             f"{admin_id} and message_types:{message_types}")
         admin = self._clients['admin'][admin_id]
         deleted_message_types = admin.delete_topics(message_types)
@@ -262,7 +261,8 @@ class KafkaMessageBroker(MessageBroker):
                     time.sleep(list_retry*1)
                     continue
                 else:
-                    Log.debug(f"Successfully completed.")
+                    Log.debug(f"Successfully deleted given list of message" \
+                        f" types.")
                     break
 
     def add_concurrency(self, admin_id: str, message_type: str, \
@@ -280,7 +280,7 @@ class KafkaMessageBroker(MessageBroker):
         Note:  Number of partitions for a message type can only be increased,
                never decreased
         """
-        Log.debug(f"Starting with arguments admin_id: {admin_id}, " \
+        Log.debug(f"Involked with arguments admin_id: {admin_id}, " \
             f"message_type:{message_type} concurrency_count: " \
             f"{concurrency_count}")
         admin = self._clients['admin'][admin_id]
@@ -303,8 +303,9 @@ class KafkaMessageBroker(MessageBroker):
                 time.sleep(list_retry*1)
                 continue
             else:
-                Log.debug(f"Successfully completed.")
                 break
+        Log.debug(f"Successfully Increased the partitions for a " \
+            f"{message_type} to {concurrency_count}")
 
     def send(self, producer_id: str, message_type: str, method: str, \
         messages: list, timeout=0.1):
@@ -318,7 +319,7 @@ class KafkaMessageBroker(MessageBroker):
         method          Can be set to "sync" or "async"(default).
         messages        A list of messages sent to Kafka Message Server
         """
-        Log.debug(f"Start sending list of messages with arguments messages:" \
+        Log.debug(f"Involked with arguments messages:" \
             f" {messages}, producer_id: {producer_id}, message_type: " \
             f"{message_type}, method: {method}")
         producer = self._clients['producer'][producer_id]
@@ -335,14 +336,14 @@ class KafkaMessageBroker(MessageBroker):
                 producer.flush()
             else:
                 producer.poll(timeout=timeout)
-        Log.debug(f"Successfully completed")
+        Log.debug("Successfully Sent list of messages to Kafka cluster")
 
     def get_log_size(self, message_type: str):
         """ Gets size of log across all the partitions """
         total_size = 0
         cmd = "/opt/kafka/bin/kafka-log-dirs.sh --describe --bootstrap-server "\
             + self._servers + " --topic-list " + message_type
-        Log.debug(f"Started with arguments message_type: {message_type}")
+        Log.debug(f"Involked with arguments message_type: {message_type}")
         try:
             cmd_proc = SimpleProcess(cmd)
             run_result = cmd_proc.run()
@@ -353,7 +354,7 @@ class KafkaMessageBroker(MessageBroker):
                 partition = brokers['logDirs'][0]['partitions']
                 for each_partition in partition:
                     total_size += each_partition['size']
-            Log.debug(f"Successfully completed")
+            Log.debug(f"Successfully retrived log size {total_size}")
             return total_size
         except Exception as e:
             Log.error(f"MessageBusError:{errors.ERR_OP_FAILED} Command {cmd}" \
@@ -370,7 +371,7 @@ class KafkaMessageBroker(MessageBroker):
                         queue/topic name. For e.g. "Alert"
         """
         admin = self._clients['admin'][admin_id]
-        Log.debug(f"Started with arguments admin_id: {admin_id}, " \
+        Log.debug(f"Involked with arguments admin_id: {admin_id}, " \
                   f"message_type: {message_type}")
 
         for tuned_retry in range(self._max_config_retry_count):
@@ -417,7 +418,7 @@ class KafkaMessageBroker(MessageBroker):
                 continue
             else:
                 break
-        Log.debug(f"Successfully completed.")
+        Log.debug("Successfully Deleted all the messages from Kafka cluster.")
 
     def get_unread_count(self, message_type: str, consumer_group: str):
         """
@@ -429,7 +430,7 @@ class KafkaMessageBroker(MessageBroker):
         consumer_group  A String that represents Consumer Group ID.
         """
         table = []
-        Log.debug(f"Started with arguments message_type: {message_type}, " \
+        Log.debug(f"Involked with arguments message_type: {message_type}, " \
             f"consumer_group: {consumer_group}")
         # Update the offsets if purge was called
         if self.get_log_size(message_type) == 0:
@@ -494,7 +495,8 @@ class KafkaMessageBroker(MessageBroker):
                     f"consumers in the consumer group, {consumer_group}.")
                 raise MessageBusError(errno.ENOENT, "No active " +\
                     "consumers in the consumer group, %s.", consumer_group)
-        Log.debug(f"Successfully completed.")
+        Log.debug(f"Successfully Got the count of unread messages from the" \
+            f" Kafka message server as {unread_count}")
         return sum(unread_count)
 
     def receive(self, consumer_id: str, timeout: float = None) -> list:
@@ -507,7 +509,7 @@ class KafkaMessageBroker(MessageBroker):
                         will lead to blocking indefinitely for the message
         """
         consumer = self._clients['consumer'][consumer_id]
-        Log.debug(f"Started with arguments consumer_id: {consumer_id}, " \
+        Log.debug(f"Involked with arguments consumer_id: {consumer_id}, " \
             f"timeout: {timeout}")
         if consumer is None:
             Log.error(f"MessageBusError: {errors.ERR_SERVICE_NOT_INITIALIZED}"\
@@ -533,6 +535,7 @@ class KafkaMessageBroker(MessageBroker):
                         "for consumer %s failed to receive message. %s", \
                         timeout, consumer_id, msg.error())
                 else:
+                    Log.debug(f"Received messages: {msg.value()}")
                     return msg.value()
         except KeyboardInterrupt:
             Log.error(f"MessageBusError: {errno.EINTR} Received Keyboard " \
