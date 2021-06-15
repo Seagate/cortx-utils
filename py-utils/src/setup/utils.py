@@ -131,7 +131,7 @@ class Utils:
     @staticmethod
     def _set_cluster_hostname_nodename_mapping(conf_url):
         cluster_data = Conf.get("server_info", "server_node")
-        for machine_id, node_data in cluster_data.items():
+        for _, node_data in cluster_data.items():
             hostname = node_data.get("hostname")
             node_name = node_data.get("name")
             Conf.set("cluster", f"node_host_mapping>{node_name}", hostname)
@@ -147,6 +147,9 @@ class Utils:
         for key, value in server_info.items():
             Conf.set('cluster', f'server_node>{key}', value)
         Conf.save('cluster')
+
+    @staticmethod
+    def _rename_conf_sample_to_conf():
         # copy this conf file as cluster.conf
         try:
             os.rename('/etc/cortx/cluster.conf.sample', \
@@ -235,7 +238,9 @@ class Utils:
                 "information in %s", conf_url)
         Utils._create_cluster_config(server_info)
         #set cluster nodename:hostname mapping to cluster.conf
-        Utils._set_hostname_nodename_mapping(conf_url)
+        Utils._set_cluster_hostname_nodename_mapping(conf_url)
+
+        Utils._rename_conf_sample_to_conf()
         return 0
 
     @staticmethod

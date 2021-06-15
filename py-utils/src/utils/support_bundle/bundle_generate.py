@@ -49,8 +49,8 @@ class ComponentsBundle:
         Log.init("support_bundle",
                  syslog_server="localhost",
                  syslog_port=514,
-                 log_path="/var/log/seagate/support_bundle/",
-                 level="DEBUG")
+                 log_path=Conf.get("cortx_conf","support_bundle>bundle_path"),
+                 level="INFO")
         result = "Success"
         if level == ERROR:
             result = ERROR.capitalize()
@@ -169,7 +169,7 @@ class ComponentsBundle:
                 comment)
             return None
 
-        Log.debug(f'Summary file created')
+        Log.debug('Summary file created')
         symlink_path = Conf.get("cortx_conf","support_bundle>symlink_path")
         if os.path.exists(symlink_path):
             try:

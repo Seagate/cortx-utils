@@ -18,11 +18,9 @@ import string
 import random
 import getpass
 import errno
-from cortx.utils.schema.payload import JsonMessage
 from cortx.utils.support_bundle import const
 from cortx.utils.support_bundle.model import SupportBundleRepository
-from cortx.utils.errors import (OPERATION_SUCESSFUL,
-                            InvalidRequest, ERR_INVALID_VALUE)
+from cortx.utils.errors import OPERATION_SUCESSFUL, InvalidRequest
 from cortx.utils.data.db.db_provider import (DataBaseProvider, GeneralConfig)
 from cortx.utils.errors import DataAccessExternalError
 from cortx.utils.schema.providers import Response

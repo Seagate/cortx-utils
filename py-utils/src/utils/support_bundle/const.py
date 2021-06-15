@@ -15,8 +15,6 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-OPERATION_SUCESSFUL     = 0x0000
-ERR_INVALID_VALUE       = 0x1001
 SUPPORT_BUNDLE_TAG = "support_bundle;"
 SUPPORT_BUNDLE = 'SUPPORT_BUNDLE'
 SOS_COMP = 'os'
