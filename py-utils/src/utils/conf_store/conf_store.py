@@ -20,6 +20,7 @@ import errno
 from cortx.utils.conf_store.error import ConfError
 from cortx.utils.conf_store.conf_cache import ConfCache
 from cortx.utils.kv_store.kv_store import KvStoreFactory
+from cortx.utils import errors
 
 
 class ConfStore:
@@ -97,7 +98,7 @@ class ConfStore:
 
         self._cache[index].dump()
 
-    def get(self, index: str, key: str, default_val: str = None):
+    def get(self, index: str, key: str, default_val: str = None, **filters):
         """
         Obtain value for the given configuration
 
@@ -118,7 +119,7 @@ class ConfStore:
         if key is None:
             raise ConfError(errno.EINVAL, "can't able to find config key "
                                                "%s in loaded config", key)
-        val = self._cache[index].get(key)
+        val = self._cache[index].get(key, **filters)
         return default_val if val is None else val
 
     def set(self, index: str, key: str, val):
@@ -166,7 +167,8 @@ class ConfStore:
 
         return self._cache[index].delete(key)
 
-    def copy(self, src_index: str, dst_index: str, key_list: list = None):
+    def copy(self, src_index: str, dst_index: str, key_list: list = None,
+        deep_scan: bool = True):
         """
         Copies one config domain to the other and saves
 
@@ -183,9 +185,41 @@ class ConfStore:
                 dst_index)
 
         if key_list is None:
-            key_list = self._cache[src_index].get_keys(key_index=True)
+            key_list = self._cache[src_index].get_keys(key_index=deep_scan)
         for key in key_list:
             self._cache[dst_index].set(key, self._cache[src_index].get(key))
+
+    def merge(self, dest_index: str, src_index: str, keys: list = None):
+        """
+        Merges the content of src_index and dest_index file
+
+        Parameters:
+        dst_index - Destination Index, to this index resulted values will be
+            merged
+        src_index - Source Index, From which new keys (and related values) are
+            picked up for merging
+        keys - optional parameter, Only these keys (and related values) from
+            src_index will be merged.
+        """
+        if src_index not in self._cache.keys():
+            raise ConfError(errors.ERR_NOT_INITIALIZED, "config index %s is "\
+                "not loaded", src_index)
+        if dest_index not in self._cache.keys():
+            raise ConfError(errors.ERR_NOT_INITIALIZED, "config index %s is "\
+                "not loaded", dest_index)
+        if keys is None:
+            keys = self._cache[src_index].get_keys()
+        else:
+            for key in keys:
+                if not self._cache[src_index].get(key):
+                    raise ConfError(errno.ENOENT, "%s is not present in %s", \
+                        key, src_index)
+        self._merge(dest_index, src_index, keys)
+
+    def _merge(self, dest_index, src_index, keys):
+        for key in keys:
+            if key not in self._cache[dest_index].get_keys():
+                self._cache[dest_index].set(key, self._cache[src_index].get(key))
 
 
 class Conf:
@@ -221,9 +255,9 @@ class Conf:
         Conf._conf.set(index, key, val)
 
     @staticmethod
-    def get(index: str, key: str, default_val: str = None):
+    def get(index: str, key: str, default_val: str = None, **filters):
         """ Obtains config value for the given key """
-        return Conf._conf.get(index, key, default_val)
+        return Conf._conf.get(index, key, default_val, **filters)
 
     @staticmethod
     def delete(index: str, key: str):
@@ -231,10 +265,15 @@ class Conf:
         return Conf._conf.delete(index, key)
 
     @staticmethod
-    def copy(src_index: str, dst_index: str, key_list: list = None):
+    def copy(src_index: str, dst_index: str, key_list: list = None,
+        deep_scan: bool = True):
         """ Creates a Copy suffixed file for main file"""
-        Conf._conf.copy(src_index, dst_index, key_list)
+        Conf._conf.copy(src_index, dst_index, key_list, deep_scan)
         Conf._conf.save(dst_index)
+
+    @staticmethod
+    def merge(dest_index: str, src_index: str, keys: list = None):
+        Conf._conf.merge(dest_index, src_index, keys)
 
     class ClassProperty(property):
         """ Subclass property for classmethod properties """

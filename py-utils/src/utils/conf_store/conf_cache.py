@@ -50,9 +50,9 @@ class ConfCache:
             self._kv_store.dump(self._data)
         self._dirty = False
 
-    def get(self, key: str = None):
+    def get(self, key: str = None, **filters):
         """ Returns the value corresponding to the key """
-        return self._data.get(key)
+        return self._data.get(key, **filters)
 
     def set(self, key: str, val):
         """ Sets the value into the DB for the given key """
