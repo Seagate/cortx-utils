@@ -32,8 +32,8 @@ class MessageBusTest:
         try:
             admin = MessageBusAdmin(admin_id = 'admins')
             admin.register_message_type(message_types=['mytest'], partitions = 1)
-            list_topic = admin.list_message_types(admin_id = 'admins')
-            if len(list_topic) <= 0:
+            list_topic = admin.list_message_types()
+            if "mytest" not in list_topic:
                 raise SetupError(errno.EINVAL, "Failed to test the config." \
                     "Topic creation failed.")
         except Exception as e:
@@ -46,8 +46,8 @@ class MessageBusTest:
         try:
             admin = MessageBusAdmin(admin_id = 'admins')
             admin.deregister_message_type(message_types=['mytest'])
-            list_topic = admin.list_message_types(admin_id = 'admins')
-            if len(list_topic) != 0:
+            list_topic = admin.list_message_types()
+            if "mytest" in list_topic:
                 raise SetupError(errno.EINVAL, "Failed to test the config." \
                     " Deregister topic failed.")
         except Exception as e:
