@@ -53,7 +53,7 @@ class KafkaMessageBroker(MessageBroker):
     def __init__(self, broker_conf: dict):
         """ Initialize Kafka based Configurations """
         super().__init__(broker_conf)
-        Log.info(f"KafkaMessageBroker: initialized with broker " \
+        Log.debug(f"KafkaMessageBroker: initialized with broker " \
             f"configurations broker_conf: {broker_conf}")
         self._clients = {'admin': {}, 'producer': {}, 'consumer': {}}
 
@@ -98,7 +98,6 @@ class KafkaMessageBroker(MessageBroker):
             if client_type != 'consumer':
                 kafka_conf['socket.timeout.ms'] = self._kafka_socket_timeout
                 self.admin = AdminClient(kafka_conf)
-                Log.debug("Successfully initialized AdminClient()")
                 self._clients['admin'][client_conf['client_id']] = self.admin
 
         if client_type == 'producer':

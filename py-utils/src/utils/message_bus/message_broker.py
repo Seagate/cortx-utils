@@ -28,11 +28,9 @@ class MessageBrokerFactory:
 
     @staticmethod
     def get_instance(broker_type: str, broker_conf: dict):
-        Log.info(f"MessageBrokerFactory: involked with arguments broker_type:" \
+        Log.debug(f"MessageBrokerFactory: involked with arguments broker_type:" \
             f" {broker_type}, broker_conf: {broker_conf}")
         if broker_type in MessageBrokerFactory._brokers:
-            Log.info(f"Successfully returned existing {broker_type} " \
-                f"MessageBroker.")
             return MessageBrokerFactory._brokers[broker_type]
 
         from cortx.utils.message_bus import message_broker_collection
@@ -42,8 +40,6 @@ class MessageBrokerFactory:
                 if broker_type == cls.name:
                     message_broker = cls(broker_conf)
                     MessageBrokerFactory._brokers[broker_type] = message_broker
-                    Log.debug(f"Successfully created and returned " \
-                        f"{broker_type} MesageBroker.")
                     return message_broker
 
         Log.error(f"MessageBusError: {errors.ERR_INVALID_SERVICE_NAME}" \

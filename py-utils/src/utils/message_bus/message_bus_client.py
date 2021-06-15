@@ -31,7 +31,7 @@ class MessageBusClient:
             client_conf['message_bus']
         self._message_bus.init_client(client_type, **client_conf)
         self._client_conf = client_conf
-        Log.info(f"MessageBusClient: initialized with arguments" \
+        Log.debug(f"MessageBusClient: initialized with arguments" \
             f" client_type: {client_type}, kwargs: {client_conf}")
 
     def _get_conf(self, key: str):
