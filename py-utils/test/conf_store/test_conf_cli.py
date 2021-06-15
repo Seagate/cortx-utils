@@ -291,17 +291,22 @@ class TestConfCli(unittest.TestCase):
         except Exception:
             self.assertEqual(result_data[2], '22')
 
-    def test_conf_cli_merge(self):
-        cmd = "conf json:///tmp/file1.json merge json:///tmp/file2.json -k 'version;branch'"
+    def test_conf_cli_merge_keys(self):
+        cmd = "conf json:///tmp/file1.json merge json:///tmp/file2.json -k version;branch"
         cmd_proc = SimpleProcess(cmd)
         result_data = cmd_proc.run()
-        self.assertTrue(True if result_data[2] == 0 and
-            result_data[0] == b'1c1\n< [2.0.0, main]\n---\n> [2.0.1, stable]\n\n' else False, result_data[1])
+        self.assertEqual(result_data[2], 0)
+
+    def test_conf_cli_merge(self):
+        cmd = "conf json:///tmp/file1.json merge json:///tmp/file2.json"
+        cmd_proc = SimpleProcess(cmd)
+        result_data = cmd_proc.run()
+        self.assertEqual(result_data[2], 0)
 
     @classmethod
     def tearDownClass(cls):
-        # delete_files()
-        pass
+        delete_files()
+
 
 if __name__ == '__main__':
     # create the file and load sample json into it. Start test
