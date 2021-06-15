@@ -90,8 +90,6 @@ class PostInstallCmd(Cmd):
         self.openldap = Openldap(args.config)
 
     def process(self):
-        self.openldap.validate("post-install")
-
         # TODO: Add actions here
         rc = self.openldap.post_install()
         return rc
