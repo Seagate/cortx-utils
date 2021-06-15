@@ -24,10 +24,7 @@ class MessageBusTest:
     """ Represents Message Bus Test methods """
 
     def __init__(self):
-        from cortx.utils.conf_store import Conf
         from cortx.utils.message_bus import MessageBusAdmin
-        Conf.load("index", "json:///etc/cortx/message_bus.conf")
-        self._server = Conf.get("index",'message_broker>cluster[0]>server')
         # Create a test topic
         try:
             admin = MessageBusAdmin(admin_id = 'admins')
