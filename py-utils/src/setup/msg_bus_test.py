@@ -27,7 +27,7 @@ class MessageBusTest:
         from cortx.utils.message_bus import MessageBusAdmin
         # Create a test topic
         try:
-            admin = MessageBusAdmin(admin_id = 'admins')
+            admin = MessageBusAdmin(admin_id='admins')
             admin.register_message_type(message_types=['mytest'], partitions = 1)
             list_topic = admin.list_message_types()
             if 'mytest' not in list_topic:
@@ -41,7 +41,7 @@ class MessageBusTest:
         from cortx.utils.message_bus import MessageBusAdmin
         # deregister_message_type
         try:
-            admin = MessageBusAdmin(admin_id = 'admins')
+            admin = MessageBusAdmin(admin_id='admins')
             admin.deregister_message_type(message_types=['mytest'])
             list_topic = admin.list_message_types()
             if 'mytest' in list_topic:
