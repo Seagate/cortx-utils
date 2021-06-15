@@ -25,28 +25,28 @@ class MessageBusTest:
 
     def __init__(self):
         from cortx.utils.message_bus import MessageBusAdmin
-        # Create a test topic
+        # Create a test message_type
         try:
-            admin = MessageBusAdmin(admin_id='admins')
+            admin = MessageBusAdmin(admin_id='messageadmin')
             admin.register_message_type(message_types=['mytest'], partitions = 1)
-            list_topic = admin.list_message_types()
-            if 'mytest' not in list_topic:
+            list_message_type = admin.list_message_types()
+            if 'mytest' not in list_message_type:
                 raise SetupError(errno.EINVAL, "Failed to test the config." \
-                    "Topic creation failed.")
+                    "message_type 'mytest' creation failed.")
         except Exception as e:
             raise SetupError(errno.EINVAL, "Failed to test the config, %s", e)
 
     def __del__(self):
-        # Delete the test topic
+        # Delete the test message_type
         from cortx.utils.message_bus import MessageBusAdmin
         # deregister_message_type
         try:
-            admin = MessageBusAdmin(admin_id='admins')
+            admin = MessageBusAdmin(admin_id='messageadmin')
             admin.deregister_message_type(message_types=['mytest'])
-            list_topic = admin.list_message_types()
-            if 'mytest' in list_topic:
+            list_message_type = admin.list_message_types()
+            if 'mytest' in list_message_type:
                 raise SetupError(errno.EINVAL, "Failed to test the config." \
-                    " Deregister topic failed.")
+                    " Deregister messge_type: mytest failed")
         except Exception as e:
             raise SetupError(errno.EINVAL, \
                              "Failed to test the config, %s", e)
@@ -72,5 +72,6 @@ class MessageBusTest:
                 if message != None:
                     return message
             except Exception as e:
-                raise SetupError(errno.EINVAL, "Failed to receive messages." \
-                    " Unable to test the config. %s", e)
+                raise SetupError(errno.EINVAL, "Failed to receive messages" \
+                    "for message_type: mytest. Unable to test the config." \
+                    " %s", e)
