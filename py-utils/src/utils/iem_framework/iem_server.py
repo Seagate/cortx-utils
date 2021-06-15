@@ -25,7 +25,7 @@ from cortx.utils.iem_framework.error import EventMessageError
 routes = web.RouteTableDef()
 
 
-class IemRestHandler(RestServer):
+class IemRequestHandler(RestServer):
     """ Rest interface of Iem """
 
     @staticmethod

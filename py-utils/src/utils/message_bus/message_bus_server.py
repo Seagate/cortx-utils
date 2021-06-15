@@ -25,7 +25,7 @@ from cortx.utils.message_bus import MessageConsumer, MessageProducer
 routes = web.RouteTableDef()
 
 
-class MessageBusRestHandler(RestServer):
+class MessageBusRequestHandler(RestServer):
     """ Rest interface of message bus """
 
     @staticmethod

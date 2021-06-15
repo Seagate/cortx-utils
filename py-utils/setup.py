@@ -84,7 +84,8 @@ setup(name='cortx-py-utils',
                 'cortx.utils.product_features', 'cortx.utils.security',
                 'cortx.utils.schema', 'cortx.utils.appliance_info',
                 'cortx.setup', 'cortx.utils.service',
-                 'cortx.utils.setup', 'cortx.utils.setup.kafka',
+                'cortx.utils.setup', 'cortx.utils.setup.kafka',
+                'cortx.utils.cli_framework',
                 'cortx.utils.utils_server', 'cortx.utils.iem_framework'
                 ],
       package_data={
