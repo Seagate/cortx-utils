@@ -275,7 +275,7 @@ class TestConfCli(unittest.TestCase):
             result_data = cmd_proc.run()
         except Exception:
             self.assertEqual(result_data[2], '22')
-			
+
     def test_conf_cli_by_get_diff_keys(self):
         """
         Test by retrieving a value using get api
@@ -284,7 +284,7 @@ class TestConfCli(unittest.TestCase):
         cmd_proc = SimpleProcess(cmd)
         result_data = cmd_proc.run()
         self.assertTrue(False if result_data[2] != 0 and
-            result_data[0] != b'< Update your Differnces>' else True, result_data[1])
+    result_data[0] != b'<Update your Differnces>' else True, result_data[1])
 
 if __name__ == '__main__':
     # create the file and load sample json into it. Start test
