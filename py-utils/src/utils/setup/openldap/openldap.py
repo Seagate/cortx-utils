@@ -17,12 +17,12 @@
 import os
 import re
 import traceback
+import BaseError 
 
 from cortx.utils.validator.v_pkg import PkgV
 from cortx.utils.validator.v_network import NetworkV
 from cortx.utils.conf_store import Conf
 from cortx.utils.log import Log
-from BaseError import rc, error
 
 class OpenldapSetupError(BaseError):
     """ Generic Exception with error code and output """
@@ -45,7 +45,7 @@ class Openldap:
 
     def __init__(self, conf_url):
         if not os.path.isfile(self._preqs_conf_file):
-            raise OpenldapSetupError("pre-requisite json file: %s not found"\
+            raise OpenldapSetupError("message":"pre-requisite json file: %s not found"\
                 % (self._preqs_conf_file))
         Conf.load(self.index, conf_url)
         Conf.load(self.prov, f'yaml://{self._prov_conf_file}')
