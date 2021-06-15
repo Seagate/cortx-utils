@@ -26,7 +26,7 @@ from cortx.utils.discovery.node_health import NodeHealth
 
 
 class Discovery:
-    """Common interfaces of Discovery Module(DM)"""
+    """Common interfaces of Discovery Library"""
 
     ROOT_NODE = "nodes"
 
