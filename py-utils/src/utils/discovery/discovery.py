@@ -46,6 +46,9 @@ class Discovery:
                 node[0]>storage[0]>hw>psus
         backend_url: Path to store resource health information
         """
+        # TODO: Both rpath and backend_url are optional. With backend url,
+        # resource map can be put in desired location for data aggregation
+        # and managing resource health map files.
         if backend_url:
             raise DiscoveryError(
                 errno.EINVAL,
