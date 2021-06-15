@@ -208,7 +208,8 @@ _cortx-py-utils_install:
 	pushd cortx-workspace/cortx-utils/py-utils && \
 		yum install python3-pip gcc python3-devel -y && \
 		yum erase python36-PyYAML -y && \
-		pip3 install -r requirements.txt && \
+		pip3 install -r python_requirements.txt && \
+		pip3 install -r python_requirements.ext.txt && \
 		yum localinstall -y ${RPM_DIR}/cortx-py-utils*noarch.rpm && \
 	popd || (echo "ERROR: Failed to install cortx-utils package. Exiting..."; exit 1) 	
 
@@ -333,8 +334,6 @@ _ha_prereq:
 	pushd "cortx-workspace/cortx-ha" && \
 		yum clean all;rm -rf /var/cache/yum && \
 		yum erase python36-PyYAML -y && \
-		pip3 install -r https://raw.githubusercontent.com/Seagate/cortx-utils/main/py-utils/python_requirements.txt && \
-		yum localinstall -y ${RPM_DIR}/cortx-py-utils*noarch.rpm && \
 		bash ./jenkins/cicd/cortx-ha-dep.sh  && \
 		pip3 install numpy && \
 	popd || (echo "ERROR: cortx-ha source code is not available in cortx-workspace. Exiting..."; exit 1)

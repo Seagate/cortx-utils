@@ -2,7 +2,7 @@
 
 set -euf -o pipefail
 
-pip3 install githubrelease
+pip3 install click==7.1.2 && pip3 install githubrelease
 mkdir -p /cortx-build-dependencies && cd  /cortx-build-dependencies || exit
 export LC_ALL=en_US.utf8
 githubrelease asset Seagate/cortx download build-dependencies && /bin/createrepo -v . || exit
