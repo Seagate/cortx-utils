@@ -27,8 +27,8 @@ utils_path=$install_path/cortx/utils
 /bin/chmod +x $utils_path/bin//utils_setup
 
 # Copy the message_bus_server.py as message_bus_server
-/bin/ln -s /usr/lib/python3.6/site-packages/cortx/utils/rest_server/rest_server.py $utils_path/bin/rest_server
-/bin/chmod +x $utils_path/bin/rest_server
+/bin/ln -s /usr/lib/python3.6/site-packages/cortx/utils/utils_server/utils_server.py $utils_path/bin/utils_server
+/bin/chmod +x $utils_path/bin/utils_server
 
 # Copy cortx.conf file to /etc/cortx
 [ -f "/etc/cortx/cortx.conf" ] || cp -n $utils_path/conf/cortx.conf.sample /etc/cortx/cortx.conf

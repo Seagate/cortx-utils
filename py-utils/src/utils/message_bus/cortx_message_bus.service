@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 User=root
-ExecStart=/opt/seagate/cortx/utils/bin/rest_server
+ExecStart=/opt/seagate/cortx/utils/bin/utils_server
 Restart=always
 
 [Install]
