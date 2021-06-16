@@ -1,3 +1,6 @@
 {
-  "install_path": "/opt/seagate"
+  "install_path": "/opt/seagate",
+  "utils": {
+    "log_level": "INFO"
+  }
 }
