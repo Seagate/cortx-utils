@@ -16,8 +16,6 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
-import os
-import psutil
 import threading
 import time
 

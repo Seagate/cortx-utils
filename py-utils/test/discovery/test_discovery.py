@@ -16,17 +16,16 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import time
 import unittest
 
 from cortx.utils.discovery import Discovery
 from cortx.utils.discovery.error import DiscoveryError
 
 # Sample rpaths
-valid_rpath = "nodes[0]"
+#valid_rpath = "nodes[0]"
 #valid_rpath = "nodes[0]>compute[0]"
 #valid_rpath = "nodes[0]>storage[0]"
-#valid_rpath = "nodes[0]>storage[0]>hw>controllers"
+valid_rpath = "nodes[0]>storage[0]>hw>controllers"
 invalid_rpath = "nodes[0]>notexist[0]"
 
 

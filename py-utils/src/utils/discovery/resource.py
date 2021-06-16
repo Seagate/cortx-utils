@@ -18,10 +18,8 @@
 import errno
 import importlib
 import inspect
-import os
 import sys
 
-from cortx.utils import const
 from cortx.utils.discovery.error import DiscoveryError
 from cortx.utils.kv_store import KvStoreFactory
 
