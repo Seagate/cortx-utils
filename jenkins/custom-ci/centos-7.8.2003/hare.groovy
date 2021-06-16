@@ -53,7 +53,7 @@ pipeline {
 
 				sh label: 'Install cortx-prereq', script: '''
 					yum erase python36-PyYAML -y
-                    cat <<EOF >>/etc/pip.conf
+					cat <<EOF >>/etc/pip.conf
 [global]
 timeout: 60
 index-url: http://cortx-storage.colo.seagate.com/releases/cortx/third-party-deps/python-deps/python-packages-2.0.0-latest/
@@ -62,6 +62,7 @@ EOF
 					pip3 install -r https://raw.githubusercontent.com/Seagate/cortx-utils/main/py-utils/python_requirements.txt
 					pip3 install -r https://raw.githubusercontent.com/Seagate/cortx-utils/main/py-utils/python_requirements.ext.txt
 					rm -rf /etc/pip.conf
+					
                 '''
 				sh label: 'Configure yum repositories', script: '''
 					set +x
@@ -100,7 +101,6 @@ EOF
 				sh label: 'Copy RPMS', script: '''
 					mkdir -p $build_upload_dir
 					cp /root/rpmbuild/RPMS/x86_64/*.rpm $build_upload_dir
-					createrepo -v --update $build_upload_dir
 				'''
 			}
 		}

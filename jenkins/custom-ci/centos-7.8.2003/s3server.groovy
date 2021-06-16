@@ -115,7 +115,6 @@ pipeline {
 							mkdir -p $build_upload_dir
 							cp /root/rpmbuild/RPMS/x86_64/*.rpm $build_upload_dir
 							cp /root/rpmbuild/RPMS/noarch/*.rpm $build_upload_dir
-							createrepo -v --update $build_upload_dir
 						'''
 					}
 				}

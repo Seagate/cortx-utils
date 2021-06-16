@@ -53,6 +53,13 @@ EOF
 					pip3 install -r https://raw.githubusercontent.com/Seagate/cortx-utils/$branch/py-utils/python_requirements.ext.txt
 					rm -rf /etc/pip.conf
 			'''		
+
+				sh label: '', script: '''
+				#Use main branch for cortx-py-utils
+				sed -i 's/stable/main/'  /etc/yum.repos.d/cortx.repo
+				yum clean all && rm -rf /var/cache/yum
+			'''	
+
 			}
 		}
 		

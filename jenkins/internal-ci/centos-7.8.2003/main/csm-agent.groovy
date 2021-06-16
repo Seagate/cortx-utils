@@ -56,6 +56,7 @@ pipeline {
 				# Install cortx-prereq package
 					pip3 uninstall pip -y && yum install python3-pip -y && ln -s /usr/bin/pip3 /usr/local/bin/pip3
 					sh ./cortx-re/scripts/third-party-rpm/install-cortx-prereq.sh
+					yum clean all && rm -rf /var/cache/yum
 
 				# Install pyinstaller	
 				pip3.6 install  pyinstaller==3.5

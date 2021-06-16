@@ -39,9 +39,6 @@ pipeline {
 				dir('seagate-ldr') {
 				    checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'AuthorInChangelog']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: 'https://github.com/Seagate/seagate-ldr.git']]])
 				}
-				dir ('cortx-re') {
-					checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: 'main']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'CloneOption', noTags: true, reference: '', shallow: true]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: 'https://github.com/Seagate/cortx-re']]]
-				}
 			}
 		}
 		
@@ -49,12 +46,22 @@ pipeline {
 			steps {
 				script { build_stage = env.STAGE_NAME }
 
-				sh label: 'Install cortx-prereq package', script: """
-					pip3 uninstall pip -y && yum install python3-pip -y && ln -s /usr/bin/pip3 /usr/local/bin/pip3
-					sh ./cortx-re/scripts/third-party-rpm/install-cortx-prereq.sh
+				sh label: 'Configure yum repositories', script: """
+				if [ "${CSM_WEB_BRANCH}" == "cortx-1.0" ]; then
+					yum-config-manager --disable cortx-C7.7.1908
+					yum-config-manager --add-repo=http://cortx-storage.colo.seagate.com/releases/cortx/github/cortx-1.0/$os_version/last_successful/
+				else
+					yum-config-manager --disable cortx-C7.7.1908,cortx-uploads
+					yum-config-manager --add-repo=http://cortx-storage.colo.seagate.com/releases/cortx/github/main/$os_version/last_successful/
+				fi
+				yum-config-manager --add-repo=http://cortx-storage.colo.seagate.com/releases/cortx/github/integration-custom-ci/$os_version/$release_tag/cortx_iso/
+				yum-config-manager --save --setopt=cortx-storage*.gpgcheck=1 cortx-storage* && yum-config-manager --save --setopt=cortx-storage*.gpgcheck=0 cortx-storage*
+				yum clean all && rm -rf /var/cache/yum
 				"""
-				sh label: 'Install Utils and Provisionr', script: '''
-					yum install -y cortx-py-utils cortx-prvsnr
+
+				sh label: 'Install Provisionr', script: '''
+					yum clean all && rm -rf /var/cache/yum
+					yum install -y cortx-prvsnr
 					pip3.6 install  pyinstaller==3.5
 				'''
 			}
@@ -82,10 +89,8 @@ pipeline {
 				sh label: 'Copy RPMS', script: '''
 					mkdir -p $build_upload_dir
 					cp ./cortx-management-web/dist/rpmbuild/RPMS/x86_64/*.rpm $build_upload_dir
-					createrepo -v --update $build_upload_dir
 				'''
 			}
 		}	
-
 	}
 }	
