@@ -102,7 +102,6 @@ class KafkaMessageBroker(MessageBroker):
 
         if client_type == 'producer':
             producer = Producer(**kafka_conf)
-            Log.debug("Successfully initialized Producer()")
             self._clients[client_type][client_conf['client_id']] = producer
 
             self._resource = ConfigResource('topic', \
@@ -141,8 +140,6 @@ class KafkaMessageBroker(MessageBroker):
 
             consumer = Consumer(**kafka_conf)
             consumer.subscribe(client_conf['message_types'])
-            Log.debug(f"Successfully initialized Consumer() and subscribed" \
-                f" to {client_conf['message_types']}")
             self._clients[client_type][client_conf['client_id']] = consumer
 
     def _task_status(self, tasks: dict, method: str):
