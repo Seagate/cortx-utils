@@ -1,6 +1,8 @@
 - name: "[ Validate Deployment ] : Get journalctl Log" 
   shell: "journalctl 2>&1 > {{ CORXT_DEPLOYMENT_LOG_PATH }}/journalctl.log"
   ignore_errors: true
+  delegate_to: "{{ hostvars[item]['ansible_host'] }}"
+  loop: "{{ groups['srvnodes'] }}"
 
 - name: "[ Validate Deployment ] : Get installed rpm package info"
   shell: yum list installed | grep 'cortx' 2>&1 > {{ CORXT_DEPLOYMENT_LOG_PATH }}/installed_cortx_rpm_list.log
