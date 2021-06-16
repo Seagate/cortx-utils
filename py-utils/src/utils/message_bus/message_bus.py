@@ -33,10 +33,13 @@ class MessageBus(metaclass=Singleton):
         """ Initialize a MessageBus and load its configurations """
         try:
             Conf.load('message_bus', self.conf_file)
+            Conf.load('config_file', 'json:///etc/cortx/cortx.conf')
+            log_level = Conf.get('config_file', 'log_level>utils_log_level', 'INFO')
+
             self._broker_conf = Conf.get('message_bus', 'message_broker')
             broker_type = self._broker_conf['type']
             Log.init("MessageBus", '/var/log/cortx/utils/message_bus',
-                level='INFO', backup_count=5, file_size_in_mb=5)
+                level=log_level, backup_count=5, file_size_in_mb=5)
             Log.info(f"MessageBus initialized as {broker_type}")
         except ConfError as e:
             Log.error(f"MessageBusError: {e.rc} Error while parsing" \
