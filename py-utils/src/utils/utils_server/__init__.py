@@ -15,12 +15,8 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+__title__ = 'utils_server'
 
-class RestServer:
-    """ Base class for Cortx Rest Server implementation """
-
-    def __init__(self, web, routes, host: str, port: int):
-        app = web.Application()
-        app.add_routes(routes)
-        web.run_app(app, host=host, port=port)
+from cortx.utils.utils_server.utils_server import RestServer
+from cortx.utils.utils_server.error import RestServerError
 

@@ -15,8 +15,25 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-__title__ = 'rest_server'
+from aiohttp import web
 
-from cortx.utils.rest_server.rest_server import RestServer
-from cortx.utils.rest_server.error import RestServerError
 
+class RestServer:
+    """ Base class for Cortx Rest Server implementation """
+
+    def __init__(self):
+        app = web.Application()
+        from cortx.utils.iem_framework import IemRequestHandler
+        from cortx.utils.message_bus import MessageBusRequestHandler
+        app.add_routes([web.post('/EventMessage/event', IemRequestHandler.send), \
+            web.get('/EventMessage/event', IemRequestHandler.receive), \
+            web.post('/MessageBus/message/{message_type}', \
+            MessageBusRequestHandler.send), \
+            web.get('/MessageBus/message/{message_type}', \
+            MessageBusRequestHandler.receive)])
+
+        web.run_app(app, host='127.0.0.1', port=28300)
+
+
+if __name__ == '__main__':
+    RestServer()
