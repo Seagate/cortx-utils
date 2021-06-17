@@ -310,7 +310,7 @@ class KafkaMessageBroker(MessageBroker):
         method          Can be set to "sync" or "async"(default).
         messages        A list of messages sent to Kafka Message Server
         """
-        Log.debug(f"Producer {producer_id} sending list of messages " \ 
+        Log.debug(f"Producer {producer_id} sending list of messages " \
             f"{messages} of message type {message_type} to kafka server" \
             f" with method {method}")
         producer = self._clients['producer'][producer_id]
