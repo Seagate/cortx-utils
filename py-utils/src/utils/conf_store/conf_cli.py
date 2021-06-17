@@ -37,6 +37,11 @@ class ConfCli:
         Conf.load(ConfCli._index, url)
 
     @staticmethod
+    def load(url: str, index: str):
+        """ Load ConfStore URL """
+        Conf.load(index, url)
+
+    @staticmethod
     def set(args):
         """ Set Key Value """
         kv_delim = '=' if args.kv_delim == None else args.kv_delim
@@ -97,16 +102,13 @@ class ConfCli:
         """ merges source and dest. conf files """
 
         dest_index = ConfCli._index
-        ConfCli._index = 'src_index'
-        ConfCli.init(args.src_url)
-        src_index = ConfCli._index
+        ConfCli.load(args.src_url, 'src_index')
+        src_index = 'src_index'
         if not args.keys:  # no keys provided
-            args.key_index = None
-            keys = ConfCli.get_keys(args)  # getting src file keys
+            keys = Conf.get_keys(src_index)  # getting src file keys
         else:
             keys = args.keys[0].split(';')
-            args.key_index = None
-            src_keys = ConfCli.get_keys(args)
+            src_keys = Conf.get_keys(src_index)
             for key in keys:
                 if key not in src_keys:
                     raise ConfError(errno.ENOENT, "%s is not present in %s", \
@@ -232,10 +234,12 @@ class MergeCmd:
             "Multiple keys are separated using ';'.\n"
             "Example keys passed: 'k1', 'k1;k2;k3'\n\n"
             "Example command:\n"
+            "# conf yaml:///tmp/test_dest.file merge yaml:///tmp/test_src.file\n\n"
             "# conf yaml:///tmp/test_dest.file merge yaml:///tmp/test_src.file -k 'k1;k2;k3'\n\n")
         s_parser.add_argument('src_url', help='Source url for merge')
         s_parser.set_defaults(func=ConfCli.merge)
-        s_parser.add_argument('-k', dest='keys',  nargs='+', default=[], help='Only specified keys will be merged.')
+        s_parser.add_argument('-k', dest='keys',  nargs='+', default=[], \
+            help='Only specified keys will be merged.')
 
 
 def main():
