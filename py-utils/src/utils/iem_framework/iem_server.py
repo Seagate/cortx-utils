@@ -31,8 +31,7 @@ class IemRequestHandler(RestServer):
 
     @staticmethod
     async def send(request):
-        Log.info(f"Received POST request for component " \
-            f"{request.json()['component']}")
+        Log.info(f"Received POST request for EventMessage")
         try:
             payload = await request.json()
 

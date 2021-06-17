@@ -33,7 +33,7 @@ class RestServer:
             web.get('/MessageBus/message/{message_type}', \
             MessageBusRequestHandler.receive)])
 
-        Log.info("Starting Message Server on host:port - 127.0.0.1:28300")
+        Log.info("Starting Message Server on host,port- 127.0.0.1:28300")
         web.run_app(app, host='127.0.0.1', port=28300)
 
 
@@ -41,7 +41,7 @@ if __name__ == '__main__':
     from cortx.utils.conf_store import Conf
 
     Conf.load('config_file', 'json:///etc/cortx/cortx.conf')
-    log_level = Conf.get('config_file', 'utils>log_level', 'INFO')
+    log_level = Conf.get('config_file', 'utils>log_level11', 'DEBUG')
     Log.init('utils_server', '/var/log/cortx/utils/utils_server', \
         level=log_level, backup_count=5, file_size_in_mb=5)
     RestServer()
