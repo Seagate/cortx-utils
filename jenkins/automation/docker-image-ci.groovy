@@ -1,7 +1,7 @@
 pipeline {
     agent {
         node {
-            label 'docker-image-centos-7.8.2003-node'
+            label 'docker-image-build-centos-7.8'
         }
     }
     
@@ -101,5 +101,25 @@ pipeline {
                 '''
 			}
 		}
+    }
+
+	post {
+
+		always {
+			script {
+
+				def recipientProvidersClass = [[$class: 'RequesterRecipientProvider']]
+                
+                def mailRecipients = "CORTX.DevOps.RE@seagate.com"
+                emailext ( 
+                    body: '''${SCRIPT, template="release-email.template"}''',
+                    mimeType: 'text/html',
+                    subject: "[Jenkins Build ${currentBuild.currentResult}] : ${env.JOB_NAME}",
+                    attachLog: true,
+                    to: "${mailRecipients}",
+					recipientProviders: recipientProvidersClass
+                )
+            }
+        }
     }
 }
