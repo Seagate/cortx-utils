@@ -9,7 +9,7 @@ pipeline {
 	
     environment {
         version = "2.0.0"
-        thrid_party_version = "2.0.0-latest"
+        third_party_version = "2.0.0-latest"
         os_version = "centos-7.8.2003"
         branch = "main"
         release_dir = "/mnt/bigstorage/releases/cortx"
@@ -19,7 +19,7 @@ pipeline {
         BUILD_TO_DELETE = ""
         passphrase = credentials('rpm-sign-passphrase')
         ARTIFACT_LOCATION = "http://cortx-storage.colo.seagate.com/releases/cortx/github/$branch/$os_version"
-        thrid_party_dir = "$release_dir/third-party-deps/centos/centos-7.8.2003-$thrid_party_version/"
+        third_party_dir = "$release_dir/third-party-deps/centos/centos-7.8.2003-$third_party_version/"
 		python_deps = "$release_dir/third-party-deps/python-deps/python-packages-2.0.0-latest"
         cortx_os_iso = "/mnt/bigstorage/releases/cortx_builds/custom-os-iso/cortx-os-1.0.0-23.iso"
         // WARNING : 'rm' command where used in this dir path, be conscious while changing the value  
@@ -174,8 +174,8 @@ pipeline {
 					pushd $cortx_build_dir
                         test -d $release_tag && rm -f $release_tag
                         mkdir $release_tag && pushd $release_tag
-                            ln -s $thrid_party_dir 3rd_party
-							ln -s $python_deps python_deps
+                            ln -s $(readlink -f $third_party_dir) 3rd_party
+                            ln -s $(readlink -f $python_deps) python_deps
                         popd
                     popd
                 '''
