@@ -15,22 +15,25 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-class MessageBusError(Exception):
-    """ Generic Exception with error code and output """
+from aiohttp import web
 
-    def __init__(self, rc, message, *args):
-        self._rc = rc
-        self._desc = message % (args)
 
-    @property
-    def rc(self):
-        return self._rc
+class RestServer:
+    """ Base class for Cortx Rest Server implementation """
 
-    @property
-    def desc(self):
-        return self._desc
+    def __init__(self):
+        app = web.Application()
+        from cortx.utils.iem_framework import IemRequestHandler
+        from cortx.utils.message_bus import MessageBusRequestHandler
+        app.add_routes([web.post('/EventMessage/event', IemRequestHandler.send), \
+            web.get('/EventMessage/event', IemRequestHandler.receive), \
+            web.post('/MessageBus/message/{message_type}', \
+            MessageBusRequestHandler.send), \
+            web.get('/MessageBus/message/{message_type}', \
+            MessageBusRequestHandler.receive)])
 
-    def __str__(self):
-        if self._rc == 0:
-            return self._desc
-        return "error(%d): %s" % (self._rc, self._desc)
+        web.run_app(app, host='127.0.0.1', port=28300)
+
+
+if __name__ == '__main__':
+    RestServer()

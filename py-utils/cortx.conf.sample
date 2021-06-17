@@ -1,7 +1,17 @@
 {
   "install_path": "/opt/seagate",
   "support_bundle": {
-      "bundle_path": "/var/log/seagate/support_bundle/",
-      "symlink_path": "/tmp/support_bundle/"
+        "bundle_path": "/var/log/seagate/support_bundle/"
+        "symlink_path": "/tmp/support_bundle/"
+        },
+  "health_provider": {
+    "storage": "cortx/utils/discovery/mocked_health_gen",
+    "server": "cortx/utils/discovery/mocked_health_gen"
+  },
+  "resource_map": {
+    "location": "/var/cortx/resources/",
+    "store_type": "json",
+    "requests_file": "/var/cortx/resources/requests.json",
+    "expiry_sec": 1800
   }
 }

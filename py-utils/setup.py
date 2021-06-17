@@ -94,9 +94,9 @@ setup(name='cortx-py-utils',
                 'cortx.utils.schema', 'cortx.utils.appliance_info',
                 'cortx.setup', 'cortx.utils.service',
                 'cortx.utils.setup', 'cortx.utils.setup.kafka',
-                'cortx.utils.cli_framework',
-                'cortx.utils.rest_server', 'cortx.utils.iem_framework',
-                'cortx.utils.support_bundle'
+                'cortx.utils.cli_framework', 'cortx.utils.support_bundle',
+                'cortx.utils.utils_server', 'cortx.utils.iem_framework',
+                'cortx.utils.discovery', 'cortx.utils.discovery.mocked_health_gen'
                 ],
       package_data={
         'cortx': ['py.typed'],
@@ -120,7 +120,9 @@ setup(name='cortx-py-utils',
                                  'src/utils/support_bundle/0-support_bundle.conf']),
                      ('%s/conf' % utils_path, tmpl_files),
                      ('/etc/systemd/system', ['src/utils/message_bus/'
-                                              'cortx_message_bus.service'])],
+                                              'cortx_message_bus.service']),
+                     ('/var/cortx/resources/mocked_data', [
+                     'src/utils/discovery/mocked_health_gen/mocked_node_health.json'])],
       long_description=long_description,
       zip_safe=False,
       python_requires='>=3.6',
