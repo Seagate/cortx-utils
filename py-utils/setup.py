@@ -15,6 +15,7 @@
 
 import os
 import glob
+from fnmatch import fnmatch
 from setuptools import setup
 import json
 import sys
@@ -56,11 +57,19 @@ with open('README.md', 'r') as rf:
     long_description = rf.read()
 
 def get_install_requirements() -> list:
-    install_requires = []
-    with open('requirements.txt') as r:
-        install_requires = [line.strip() for line in r]
+    with open('python_requirements.txt') as req:
+        install_requires = [line.strip() for line in req]
+    try:
+        with open('python_requirements.ext.txt') as extreq:
+            install_requires = install_requires + [line.strip() for line in extreq]
+    except Exception:
+        pass  ## log it!
     return install_requires
 
+def get_requirements_files() -> list:
+    req_file_list = [req_file for req_file in os.listdir(".") \
+        if fnmatch(req_file, "python_requirements.*txt")]
+    return req_file_list
 
 setup(name='cortx-py-utils',
       version=utils_version,
@@ -84,8 +93,10 @@ setup(name='cortx-py-utils',
                 'cortx.utils.product_features', 'cortx.utils.security',
                 'cortx.utils.schema', 'cortx.utils.appliance_info',
                 'cortx.setup', 'cortx.utils.service',
-                 'cortx.utils.setup', 'cortx.utils.setup.kafka',
-                'cortx.utils.rest_server', 'cortx.utils.iem_framework'
+                'cortx.utils.setup', 'cortx.utils.setup.kafka',
+                'cortx.utils.cli_framework',
+                'cortx.utils.utils_server', 'cortx.utils.iem_framework',
+                'cortx.utils.discovery', 'cortx.utils.discovery.mocked_health_gen'
                 ],
       package_data={
         'cortx': ['py.typed'],
@@ -99,13 +110,17 @@ setup(name='cortx-py-utils',
         ]
       },
       data_files = [ ('/var/lib/cortx/ha/specs', specs),
+                     ('/opt/seagate/cortx/utils/conf', tmpl_files),
+                     ('/opt/seagate/cortx/utils/conf', get_requirements_files()),
                      ('/var/lib/cortx/ha', ['src/utils/ha/hac/args.yaml',
                                             'src/utils/ha/hac/re_build.sh']),
-                     ('%s/conf' % utils_path, ['requirements.txt', 'src/setup/setup.yaml',
+                     ('%s/conf' % utils_path, ['src/setup/setup.yaml',
                                  'cortx.conf.sample', 'VERSION']),
                      ('%s/conf' % utils_path, tmpl_files),
                      ('/etc/systemd/system', ['src/utils/message_bus/'
-                                              'cortx_message_bus.service'])],
+                                              'cortx_message_bus.service']),
+                     ('/var/cortx/resources/mocked_data', [
+                     'src/utils/discovery/mocked_health_gen/mocked_node_health.json'])],
       long_description=long_description,
       zip_safe=False,
       python_requires='>=3.6',

@@ -20,6 +20,7 @@ import errno
 from cortx.utils import errors
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
+from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.v_service import ServiceV
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.message_bus.error import MessageBusError
@@ -48,6 +49,21 @@ class SetupError(Exception):
 
 class Utils:
     """ Represents Utils and Performs setup related actions """
+
+    # Utils private methods
+    @staticmethod
+    def _get_utils_path() -> str:
+        """ Gets install path from cortx.conf and returns utils path """
+
+        config_file_path = "/etc/cortx/cortx.conf"
+        Conf.load('config_file', f'yaml:///{config_file_path}')
+        install_path = Conf.get(index='config_file', key='install_path')
+
+        if not install_path:
+            error_msg = f"install_path not found in {config_file_path}"
+            raise SetupError(errno.EINVAL, error_msg)
+
+        return install_path + "/cortx/utils"
 
     @staticmethod
     def _create_msg_bus_config(kafka_server_list: list, port_list: list):
@@ -144,14 +160,24 @@ class Utils:
         # check whether zookeeper and kafka are running
         ServiceV().validate('isrunning', ['kafka-zookeeper.service', \
             'kafka.service'])
-        # Check python packages installed
-        with open('/opt/seagate/cortx/utils/conf/requirements.txt') as f:
-            packages = f.readlines()
-            packages = [
-                f"{pkg.strip().split('==')[0]} ({pkg.strip().split('==')[1]})"
-                for pkg in packages]
-            from cortx.utils.validator.v_pkg import PkgV
-            PkgV().validate(v_type='pip3s', args=packages)
+
+        # Check required python packages
+        utils_path = Utils._get_utils_path()
+        with open(f"{utils_path}/conf/python_requirements.txt") as file:
+            req_pack = []
+            for package in file.readlines():
+                pack = package.strip().split('==')
+                req_pack.append(f"{pack[0]} ({pack[1]})")
+        try:
+            with open(f"{utils_path}/conf/python_requirements.ext.txt") as extfile :
+                for package in extfile.readlines():
+                    pack = package.strip().split('==')
+                    req_pack.append(f"{pack[0]} ({pack[1]})")
+        except Exception:
+            Log.info("Not found: "+f"{utils_path}/conf/python_requirements.ext.txt")
+
+        from cortx.utils.validator.v_pkg import PkgV
+        PkgV().validate(v_type='pip3s', args=req_pack)
         return 0
 
     @staticmethod
@@ -204,11 +230,12 @@ class Utils:
     @staticmethod
     def test():
         """ Perform configuration testing """
+
         from cortx.setup import MessageBusTest
         msg_test = MessageBusTest()
         # Send a message
         msg_test.send_msg(["Test Message"])
-        # Recieve the same & validate
+        # Receive the same & validate
         msg = msg_test.receive_msg()
         if str(msg.decode('utf-8')) != "Test Message":
             Log.error(f"Unable to test the config. Received message is {msg}")
