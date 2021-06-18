@@ -99,7 +99,7 @@ class ConfCli:
 
     @staticmethod
     def merge(args):
-        """ merges source and dest. conf files """
+        """ merges source conf file into dest. conf file. """
 
         src_index = 'src_index'
         dest_index = ConfCli._index
@@ -229,7 +229,7 @@ class MergeCmd:
     @staticmethod
     def add_args(sub_parser) -> None:
         s_parser = sub_parser.add_parser('merge', help=
-            "Merges contents of source and destination conf files\n."
+            "Merges contents of source file into destination conf file\n."
             "based on source conf file keys. Keys are optional parameters\n"
             "Multiple keys are separated using ';'.\n"
             "Example keys passed: 'k1', 'k1;k2;k3'\n\n"
