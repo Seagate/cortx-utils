@@ -1,0 +1,38 @@
+{
+    "users": [
+      {
+        "id": "admin",
+        "username": "admin",
+        "user_type": "csm",
+        "roles": [
+          "admin",
+          "manage"
+        ],
+        "email": "admin@seagate.com",
+        "created_time": "2021-05-17T06:37:52.667498+00:00Z",
+        "updated_time": "2021-05-17T06:37:52.667527+00:00Z"
+      },
+      {
+        "id": "monitor01",
+        "username": "monitor01",
+        "user_type": "csm",
+        "roles": [
+          "monitor"
+        ],
+        "email": "monitor01@seagate.com",
+        "created_time": "2021-05-19T10:22:35.620563+00:00Z",
+        "updated_time": "2021-05-19T10:22:35.620616+00:00Z"
+      },
+      {
+        "id": "manager01",
+        "username": "manager01",
+        "user_type": "csm",
+        "roles": [
+          "manager"
+        ],
+        "email": "manager01@seagate.com",
+        "created_time": "2021-05-19T10:22:35.620563+00:00Z",
+        "updated_time": "2021-05-19T10:22:35.620616+00:00Z"
+      }
+    ]
+  }

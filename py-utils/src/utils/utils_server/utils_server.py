@@ -1,5 +1,6 @@
-#!/bin/bash
-#
+#!/usr/bin/env python3
+
+# CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -14,21 +15,25 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-# Value of install_path will be changed at build time
-#install_path_placeholder
-utils_path=$install_path/cortx/utils
+from aiohttp import web
 
-# Create /etc/cortx. This will be used for storing message_bus.conf file
-/bin/mkdir -p /etc/cortx
 
-# Copy the setup_cli.py as utils_setup
-/bin/mkdir -p $utils_path/bin/
-/bin/ln -s /usr/lib/python3.6/site-packages/cortx/setup/utils_setup.py $utils_path/bin/utils_setup
-/bin/chmod +x $utils_path/bin//utils_setup
+class RestServer:
+    """ Base class for Cortx Rest Server implementation """
 
-# Copy the message_bus_server.py as message_bus_server
-/bin/ln -s /usr/lib/python3.6/site-packages/cortx/utils/utils_server/utils_server.py $utils_path/bin/utils_server
-/bin/chmod +x $utils_path/bin/utils_server
+    def __init__(self):
+        app = web.Application()
+        from cortx.utils.iem_framework import IemRequestHandler
+        from cortx.utils.message_bus import MessageBusRequestHandler
+        app.add_routes([web.post('/EventMessage/event', IemRequestHandler.send), \
+            web.get('/EventMessage/event', IemRequestHandler.receive), \
+            web.post('/MessageBus/message/{message_type}', \
+            MessageBusRequestHandler.send), \
+            web.get('/MessageBus/message/{message_type}', \
+            MessageBusRequestHandler.receive)])
 
-# Copy cortx.conf file to /etc/cortx
-[ -f "/etc/cortx/cortx.conf" ] || cp -n $utils_path/conf/cortx.conf.sample /etc/cortx/cortx.conf
+        web.run_app(app, host='127.0.0.1', port=28300)
+
+
+if __name__ == '__main__':
+    RestServer()

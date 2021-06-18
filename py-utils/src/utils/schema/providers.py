@@ -15,22 +15,39 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-class MessageBusError(Exception):
-    """ Generic Exception with error code and output """
 
-    def __init__(self, rc, message, *args):
-        self._rc = rc
-        self._desc = message % (args)
+class Request(object):
+    """ Represents a request to be processed by Provider """
 
-    @property
+    def __init__(self, action, args, options=None):
+        self._action = action
+        self._args = args
+        self._options = options
+
+    def action(self):
+        return self._action
+
+    def args(self):
+        return self._args
+
+    def options(self):
+        return self._options
+
+
+class Response(object):
+    """ Represents a response after processing of a request """
+    # TODO:Wherever this class is used for raising the error; that will be
+    #  replaced with proper CsmError type
+
+    def __init__(self, rc=0, output=''):
+        self._rc = int(rc)
+        self._output = output
+
+    def output(self):
+        return self._output
+
     def rc(self):
         return self._rc
 
-    @property
-    def desc(self):
-        return self._desc
-
     def __str__(self):
-        if self._rc == 0:
-            return self._desc
-        return "error(%d): %s" % (self._rc, self._desc)
+        return '%d: %s' % (self._rc, self._output)

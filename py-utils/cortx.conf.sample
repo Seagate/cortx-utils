@@ -2,5 +2,15 @@
   "install_path": "/opt/seagate",
   "log_level": {
     "utils_log_level": "INFO"
+  },
+  "health_provider": {
+    "storage": "cortx/utils/discovery/mocked_health_gen",
+    "server": "cortx/utils/discovery/mocked_health_gen"
+  },
+  "resource_map": {
+    "location": "/var/cortx/resources/",
+    "store_type": "json",
+    "requests_file": "/var/cortx/resources/requests.json",
+    "expiry_sec": 1800
   }
 }
