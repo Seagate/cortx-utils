@@ -85,7 +85,6 @@ class ConfCli:
             args.format = None
             string_1 = ConfCli.get(args)
             ConfCli._index = "string_diff"
-            diff_index = "string_diff"
             args.url = args.second_url
             ConfCli.init(args.url)
             string_2 = ConfCli.get(args)
