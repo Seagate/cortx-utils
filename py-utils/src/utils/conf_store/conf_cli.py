@@ -101,9 +101,9 @@ class ConfCli:
     def merge(args):
         """ merges source and dest. conf files """
 
-        dest_index = ConfCli._index
-        ConfCli.load(args.src_url, 'src_index')
         src_index = 'src_index'
+        dest_index = ConfCli._index
+        ConfCli.load(args.src_url, src_index)
         if not args.keys:  # no keys provided
             keys = Conf.get_keys(src_index)  # getting src file keys
         else:
