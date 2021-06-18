@@ -33,7 +33,7 @@ class RestServer:
             web.get('/MessageBus/message/{message_type}', \
             MessageBusRequestHandler.receive)])
 
-        Log.info("Starting Message Server on host,port- 127.0.0.1:28300")
+        Log.info("Starting Message Server 127.0.0.1 on port 28300")
         web.run_app(app, host='127.0.0.1', port=28300)
 
 

@@ -31,7 +31,7 @@ class MessageBusRequestHandler(RestServer):
 
     @staticmethod
     async def send(request):
-        Log.info(f"Received POST request for message type " \
+        Log.debug(f"Received POST request for message type " \
             f"{request.match_info['message_type']}. Processing message")
         try:
             message_type = request.match_info['message_type']
@@ -62,7 +62,7 @@ class MessageBusRequestHandler(RestServer):
             raise MessageBusError(status_code, error_message) from e
         else:
             status_code = 200  # No exception, Success
-            Log.debug(f"Sending messages {messages} for message_type  " \
+            Log.debug(f"Sending messages for message_type  " \
                 f"{message_type} using POST method finished with status " \
                 f"code: {status_code}")
             response_obj = {'status_code': status_code, 'status': 'success'}
@@ -72,7 +72,7 @@ class MessageBusRequestHandler(RestServer):
 
     @staticmethod
     async def receive(request):
-        Log.info(f"Received GET request for message type " \
+        Log.debug(f"Received GET request for message type " \
             f"{request.match_info['message_type']}. Getting message")
         try:
             message_types = str(request.match_info['message_type']).split('&')
@@ -86,8 +86,8 @@ class MessageBusRequestHandler(RestServer):
             status_code = e.rc
             error_message = e.desc
             Log.error(f"Unable to receive message for message_type: " \
-                f"{message_types}, status code: {status_code}," \
-                f" error: {error_message}")
+                f"{message_types} using consumer group {consumer_group}, " \
+                f"status code: {status_code}, error: {error_message}")
             response_obj = {'error_code': status_code, 'exception': \
                 ['MessageBusError', {'message': error_message}]}
         except Exception as e:

@@ -31,7 +31,6 @@ class IemRequestHandler(RestServer):
 
     @staticmethod
     async def send(request):
-        Log.info("Received POST request for EventMessage")
         try:
             payload = await request.json()
 
@@ -64,16 +63,15 @@ class IemRequestHandler(RestServer):
         else:
             status_code = 200  # No exception, Success
             response_obj = {'status_code': status_code, 'status': 'success'}
-            Log.debug(f"Sending messages - {payload['message_blob']} for " \
-                f"component: {component} and source: {source}, using " \
-                f"POST method finished with status code: {status_code}")
+            Log.debug(f"POST method finished for component: {component} "
+                f"and source: {source}, with status code: {status_code}")
         finally:
             return web.Response(text=json.dumps(response_obj), \
                 status=status_code)
 
     @staticmethod
     async def receive(request):
-        Log.info(f"Received GET request for component " \
+        Log.debug(f"Received GET request for component " \
             f"{request.rel_url.query['component']}")
         try:
             component = request.rel_url.query['component']
@@ -102,8 +100,8 @@ class IemRequestHandler(RestServer):
             status_code = 200  # No exception, Success
             response_obj = {'alert': alert}
             Log.debug(f"Subscribed to component {component} and received " \
-                f"event message alert - {alert} using GET method finished " \
-                f"with status code: {status_code}")
+                f"event message alert info. - {alert['iem']['info']}. " \
+                f"GET method finished with status code: {status_code}")
         finally:
             return web.Response(text=json.dumps(response_obj), \
                 status=status_code)
