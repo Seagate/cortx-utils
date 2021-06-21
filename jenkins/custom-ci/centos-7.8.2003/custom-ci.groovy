@@ -398,38 +398,48 @@ pipeline {
 				sh label: 'Release ISO', script: '''
 				mkdir -p $integration_dir/$release_tag/iso && pushd $integration_dir/$release_tag/iso
             		genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -hide-rr-moved -publisher Seagate -o $integration_dir/$release_tag/iso/cortx-$version-$release_tag-single.iso $integration_dir/$release_tag
-					sed -i '/BUILD/d' $integration_dir/$release_tag/3rd_party/THIRD_PARTY_RELEASE.INFO
 				popd
                 '''
 				
                 sh label: 'Upgrade ISO', script: '''
-                mkdir -p $integration_dir/$release_tag/sw_upgrade/{3rd_party,cortx_iso,python_deps}
+                #Create upgrade directorty structure
+				mkdir -p $integration_dir/$release_tag/sw_upgrade/{3rd_party,cortx_iso,python_deps}
                 createrepo -v $integration_dir/$release_tag/sw_upgrade/3rd_party/
-                find $integration_dir/$release_tag/3rd_party/ -not -path '*repodata*' -type d  -printf '%P\n' | xargs -t -I % sh -c '{ mkdir -p $integration_dir/$release_tag/sw_upgrade/3rd_party/%; createrepo -v $integration_dir/$release_tag/sw_upgrade/3rd_party/%; }'
+                find $integration_dir/$release_tag/3rd_party/ -not -path '*repodata*' -type d  -printf '%P\n' | xargs -t -I % sh -c '{ mkdir -p $integration_dir/$release_tag/sw_upgrade/3rd_party/%; createrepo -q $integration_dir/$release_tag/sw_upgrade/3rd_party/%; }'
+
+				#Copy all component packages
 		        cp -r $integration_dir/$release_tag/cortx_iso/* $integration_dir/$release_tag/sw_upgrade/cortx_iso/
-				cp -r $integration_dir/$release_tag/python_deps/* $integration_dir/$release_tag/sw_upgrade/python_deps/
-                cp $integration_dir/$release_tag/3rd_party/THIRD_PARTY_RELEASE.INFO $integration_dir/$release_tag/sw_upgrade/3rd_party
-				cp $integration_dir/$release_tag/cortx_iso/RELEASE.INFO $integration_dir/$release_tag/sw_upgrade/
+				
+				#Copy RELEASE.INFO, Third Party RPM and Python index files. 
+				cp $integration_dir/$release_tag/3rd_party/THIRD_PARTY_RELEASE.INFO $integration_dir/$release_tag/sw_upgrade/3rd_party
+				sed -i -e /tar/d -e /rpm/d -e /tgz/d $integration_dir/$release_tag/sw_upgrade/3rd_party/THIRD_PARTY_RELEASE.INFO
 				cp $integration_dir/$release_tag/python_deps/index.html $integration_dir/$release_tag/sw_upgrade/python_deps/index.html
+				sed -i /href/d $integration_dir/$release_tag/sw_upgrade/python_deps/index.html
+				cp $integration_dir/$release_tag/cortx_iso/RELEASE.INFO $integration_dir/$release_tag/sw_upgrade/
                 
                 genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -hide-rr-moved -publisher Seagate -o $integration_dir/$release_tag/iso/cortx-$version-$release_tag-upgrade.iso $integration_dir/$release_tag/sw_upgrade
                 rm -rf $integration_dir/$release_tag/sw_upgrade
                 
                 '''
-				sh label: 'Additional Files', script:'''
-                cortx_prvsnr_preq=$(ls "$integration_dir/$release_tag/cortx_iso" | grep "python36-cortx-prvsnr" | cut -d- -f5 | cut -d_ -f2 | cut -d. -f1 | sed s/"git"//)
-                    
-                wget -O $integration_dir/$release_tag/iso/cortx-prep-$version-$BUILD_NUMBER.sh https://raw.githubusercontent.com/Seagate/cortx-prvsnr/$cortx_prvsnr_preq/cli/src/cortx_prep.sh
 
-                ln -s $cortx_os_iso $integration_dir/$release_tag/iso/$(basename $cortx_os_iso)
- 
-                '''
 				sh label: "Sign ISO files", script: '''
                 pushd scripts/rpm-signing
                     ./file-sign.sh ${passphrase} $integration_dir/$release_tag/iso/cortx-$version-$release_tag-upgrade.iso
                     pkill gpg-agent
                     ./file-sign.sh ${passphrase} $integration_dir/$release_tag/iso/cortx-$version-$release_tag-single.iso 
                 popd
+                '''
+
+				sh label: 'Additional Files', script:'''
+				#Add cortx-prep.sh
+                cortx_prvsnr_preq=$(ls "$integration_dir/$release_tag/cortx_iso" | grep "python36-cortx-prvsnr" | cut -d- -f5 | cut -d_ -f2 | cut -d. -f1 | sed s/"git"//)                 
+                wget -O $integration_dir/$release_tag/iso/cortx-prep-$version-$BUILD_NUMBER.sh https://raw.githubusercontent.com/Seagate/cortx-prvsnr/$cortx_prvsnr_preq/cli/src/cortx_prep.sh
+
+				#Add custom-os ISO
+                ln -s $cortx_os_iso $integration_dir/$release_tag/iso/$(basename $cortx_os_iso)
+
+				#Remove Build details from THIRD_PARTY_RELEASE.INFO
+				sed -i '/BUILD/d' $integration_dir/$release_tag/3rd_party/THIRD_PARTY_RELEASE.INFO
                 '''
 				sh label: 'Print Release Build and ISO location', script:'''
 				echo "Custom Release Build and ISO is available at,"

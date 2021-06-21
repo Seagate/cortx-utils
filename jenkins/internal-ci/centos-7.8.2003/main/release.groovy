@@ -216,17 +216,26 @@ pipeline {
 		        mv $integration_dir/$release_tag/prod/* $cortx_build_dir/$release_tag/cortx_iso
                 mkdir -p $integration_dir/$release_tag/prod/iso
                 
-                genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -publisher Seagate -o $integration_dir/$release_tag/prod/iso/cortx-$version-$BUILD_NUMBER-single.iso $cortx_build_dir/$release_tag
+                genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -hide-rr-moved -publisher Seagate -o $integration_dir/$release_tag/prod/iso/cortx-$version-$BUILD_NUMBER-single.iso $cortx_build_dir/$release_tag
                 '''
 
                 sh label: 'Upgrade ISO', script: '''
+                #Create upgrade directorty structure
                 mkdir -p $cortx_build_dir/$release_tag/sw_upgrade/{3rd_party,cortx_iso,python_deps}
                 createrepo -v $cortx_build_dir/$release_tag/sw_upgrade/3rd_party/
                 find $cortx_build_dir/$release_tag/3rd_party/ -not -path '*repodata*' -type d  -printf '%P\n' | xargs -t -I % sh -c '{ mkdir -p $cortx_build_dir/$release_tag/sw_upgrade/3rd_party/%; createrepo -v $cortx_build_dir/$release_tag/sw_upgrade/3rd_party/%; }'
-		        cp -r $cortx_build_dir/$release_tag/cortx_iso/* $cortx_build_dir/$release_tag/sw_upgrade/cortx_iso
-                cp $cortx_build_dir/$release_tag/3rd_party/THIRD_PARTY_RELEASE.INFO $cortx_build_dir/$release_tag/sw_upgrade/3rd_party
+		        
+                #Copy all component packages
+                cp -r $cortx_build_dir/$release_tag/cortx_iso/* $cortx_build_dir/$release_tag/sw_upgrade/cortx_iso
                 
-                genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -publisher Seagate -o $integration_dir/$release_tag/prod/iso/cortx-$version-$BUILD_NUMBER-upgrade.iso $cortx_build_dir/$release_tag/sw_upgrade
+                #Copy RELEASE.INFO, Third Party RPM and Python index files.
+                cp $cortx_build_dir/$release_tag/3rd_party/THIRD_PARTY_RELEASE.INFO $cortx_build_dir/$release_tag/sw_upgrade/3rd_party
+                sed -i -e /tar/d -e /rpm/d -e /tgz/d $cortx_build_dir/$release_tag/sw_upgrade/3rd_party/THIRD_PARTY_RELEASE.INFO
+				cp $cortx_build_dir/$release_tag/python_deps/index.html $cortx_build_dir/$release_tag/sw_upgrade/python_deps/index.html
+				sed -i /href/d $cortx_build_dir/$release_tag/sw_upgrade/python_deps/index.html
+				cp $cortx_build_dir/$release_tag/cortx_iso/RELEASE.INFO $cortx_build_dir/$release_tag/sw_upgrade/
+                
+                genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -hide-rr-moved -publisher Seagate -o $integration_dir/$release_tag/prod/iso/cortx-$version-$BUILD_NUMBER-upgrade.iso $cortx_build_dir/$release_tag/sw_upgrade
                 rm -rf $cortx_build_dir/$release_tag/sw_upgrade
                 
                 '''
@@ -296,7 +305,7 @@ pipeline {
                 env.release_build = "${env.release_tag}"
                 env.build_stage = "${build_stage}"
 
-                def toEmail = "shailesh.vaidya@seagate.com, priyank.p.dalal@seagate.com, mukul.malhotra@seagate.com, amol.j.kongre@seagate.com, gowthaman.chinnathambi@seagate.com, gaurav.chaudhari@seagate.com"
+                def toEmail = "shailesh.vaidya@seagate.com"
                 
                 emailext ( 
                         body: '''${SCRIPT, template="release-email.template"}''',
