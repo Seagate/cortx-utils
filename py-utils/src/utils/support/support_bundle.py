@@ -18,15 +18,16 @@ import string
 import random
 import getpass
 import errno
-from cortx.utils.support_bundle import const
-from cortx.utils.support_bundle.model import SupportBundleRepository
-from cortx.utils.errors import OPERATION_SUCESSFUL, InvalidRequest
+from cortx.utils.support import const
+from cortx.utils.support.model import SupportBundleRepository
+from cortx.utils.errors import OPERATION_SUCESSFUL
+from cortx.utils.support.errors import BundleError
 from cortx.utils.data.db.db_provider import (DataBaseProvider, GeneralConfig)
 from cortx.utils.errors import DataAccessExternalError
 from cortx.utils.schema.providers import Response
 from cortx.utils.conf_store.conf_store import Conf
 from cortx.utils.log import Log
-from cortx.utils.support_bundle.services import ProvisionerServices
+from cortx.utils.support.services import ProvisionerServices
 from cortx.utils.schema import database
 
 class SupportBundle:
@@ -43,7 +44,7 @@ class SupportBundle:
         """
         Log.info("Reading hostnames, node_list information")
         Conf.load('cortx_cluster', 'json:///etc/cortx/cluster.conf')
-        node_hostname_map = Conf.get('cortx_cluster', 'node_host_mapping')
+        node_hostname_map = Conf.get('cortx_cluster', 'cluster')
         if not node_hostname_map:
             response_msg = "Node list and hostname not found."
             return Response(output=response_msg,
@@ -106,15 +107,16 @@ class SupportBundle:
                 await provisioner.begin_bundle_generation(
                     f"bundle_generate '{bundle_id}' '{comment}' "
                     f"'{hostname}' {comp_list}", nodename)
-            except InvalidRequest:
-                return Response(output = "Bundle generation failed.\nPlease "
-                         "check CLI for details.", rc = errno.ENOENT)
+            except BundleError as be:
+                Log.error(f"Bundle generation failed.{be}")
+                return Response("Bundle generation failed.\nPlease "
+                         "check CLI for details.", rc = errno.EINVAL)
             except Exception as e:
                 Log.error(f"Provisioner API call failed : {e}")
                 return Response(output = "Bundle Generation Failed.",
                                 rc = errno.ENOENT)
 
-        symlink_path = Conf.get("cortx_conf","support_bundle>symlink_path")
+        symlink_path = const.SYMLINK_PATH
         display_string_len = len(bundle_id) + 4
         response_msg = (
             f"Please use the below bundle id for checking the status of support bundle."

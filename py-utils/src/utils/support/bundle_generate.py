@@ -20,7 +20,7 @@ import threading
 import shutil
 from typing import List
 from cortx.utils.schema.payload import Yaml, Tar
-from cortx.utils.support_bundle import const
+from cortx.utils.support import const
 from datetime import datetime
 from cortx.utils.process import SimpleProcess
 from cortx.utils.conf_store.conf_store import Conf
@@ -45,17 +45,34 @@ class ComponentsBundle:
         :param comment: Comment Added by user to Generate the Bundle :type:str.
         :return: None.
         """
-        #Initilize Logger for Uploading the Final Comment to ElasticSearch.
-        Log.init("support_bundle",
-                 syslog_server="localhost",
-                 syslog_port=514,
-                 log_path=Conf.get("cortx_conf","support_bundle>bundle_path"),
-                 level="INFO")
         result = "Success"
         if level == ERROR:
             result = ERROR.capitalize()
         message = (f"{const.SUPPORT_BUNDLE_TAG}|{bundle_id}|{node_name}|{comment}|{result}|{msg}")
         Log.support_bundle(message)
+
+    @staticmethod
+    def _create_summary_file(bundle_id, node_name, comment, bundle_path):
+        # Create Summary File for Tar.
+        summary_file_path = os.path.join(bundle_path, "summary.yaml")
+        Log.info(f"Adding summary file at {summary_file_path}")
+        summary_data = {
+            const.SB_BUNDLE_ID: str(bundle_id),
+            const.SB_NODE_NAME: str(node_name),
+            const.SB_COMMENT: repr(comment),
+            "Generated Time": str(datetime.isoformat(datetime.now()))
+        }
+        try:
+            Yaml(summary_file_path).dump(summary_data)
+        except PermissionError as e:
+            ComponentsBundle._publish_log(f"Permission denied for creating summary file {e}",
+                                         ERROR, bundle_id, node_name, comment)
+            return None
+        except Exception as e:
+            ComponentsBundle._publish_log(f"{e}", ERROR, bundle_id, node_name,
+                comment)
+            return None
+        Log.debug('Summary file created')
 
     @staticmethod
     def _exc_components_cmd(commands: List, bundle_id: str, path: str,
@@ -103,19 +120,21 @@ class ComponentsBundle:
                    f" {const.SB_COMMENT}: {comment}, {const.SB_COMPONENTS}: {components},"
                    f" {const.SOS_COMP}"))
         # Read Commands.Yaml and Check's If It Exists.
-        support_bundle_config = Yaml(os.path.join(Conf.get("cortx_conf", "install_path"), "cortx/utils/conf/setup_path.yaml")).load()
+        cmd_setup_file = os.path.join(Conf.get("cortx_conf", "utils>install_path"),
+                                "cortx/utils/conf/setup_path.yaml")
+        support_bundle_config = Yaml(cmd_setup_file).load()
         if not support_bundle_config:
-            ComponentsBundle._publish_log(f"No such file {const.COMMANDS_FILE}",
+            ComponentsBundle._publish_log(f"No such file {cmd_setup_file}",
                                          ERROR, bundle_id, node_name, comment)
             return None
         # Path Location for creating Support Bundle.
-        path = os.path.join(Conf.get("cortx_conf","support_bundle>bundle_path"))
+        path = os.path.join(Conf.get("cortx_conf","support>support_bundle_path"))
 
         if os.path.isdir(path):
             try:
                 shutil.rmtree(path)
             except PermissionError:
-                Log.warn(const.PERMISSION_ERROR_MSG.format(path=path))
+                Log.warn(f"Incorrect permissions for path:{path}")
 
         bundle_path = os.path.join(path, bundle_id)
         os.makedirs(bundle_path)
@@ -146,31 +165,13 @@ class ComponentsBundle:
                     thread_obj.start()
                     Log.debug(f"Started thread -> {thread_obj.ident}  Component -> {each_component}")
                     threads.append(thread_obj)
-        directory_path = Conf.get("cortx_conf","support_bundle>bundle_path")
+        directory_path = Conf.get("cortx_conf","support>support_bundle_path")
         tar_file_name = os.path.join(directory_path,
                                      f"{bundle_id}_{node_name}.tar.gz")
-        # Create Summary File for Tar.
-        summary_file_path = os.path.join(bundle_path, "summary.yaml")
-        Log.debug(f"Adding summary file at {summary_file_path}")
-        summary_data = {
-            const.SB_BUNDLE_ID: str(bundle_id),
-            const.SB_NODE_NAME: str(node_name),
-            const.SB_COMMENT: repr(comment),
-            "Generated Time": str(datetime.isoformat(datetime.now()))
-        }
-        try:
-            Yaml(summary_file_path).dump(summary_data)
-        except PermissionError as e:
-            ComponentsBundle._publish_log(f"Permission denied for creating summary file {e}",
-                                         ERROR, bundle_id, node_name, comment)
-            return None
-        except Exception as e:
-            ComponentsBundle._publish_log(f"{e}", ERROR, bundle_id, node_name,
-                comment)
-            return None
 
-        Log.debug('Summary file created')
-        symlink_path = Conf.get("cortx_conf","support_bundle>symlink_path")
+        ComponentsBundle._create_summary_file(bundle_id, node_name, comment, bundle_path)
+
+        symlink_path = const.SYMLINK_PATH
         if os.path.exists(symlink_path):
             try:
                 shutil.rmtree(symlink_path)

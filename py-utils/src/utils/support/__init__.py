@@ -15,12 +15,13 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-SUPPORT_BUNDLE_TAG = "support_bundle;"
-SUPPORT_BUNDLE = 'SUPPORT_BUNDLE'
-SOS_COMP = 'os'
-SB_COMPONENTS = "components"
-SB_COMMENT = "comment"
-SB_NODE_NAME = "node_name"
-SB_BUNDLE_ID = "bundle_id"
-SB_BUNDLE_PATH = "bundle_path"
-SB_SYMLINK_PATH = "symlink_path"
+from cortx.utils.conf_store.conf_store import Conf
+from cortx.utils.log import Log
+
+Conf.load('cortx_conf', 'json:///etc/cortx/cortx.conf')
+
+Log.init("support_bundle",
+         syslog_server="localhost",
+         syslog_port=514,
+         log_path=Conf.get("cortx_conf","support>support_bundle_path"),
+         level="INFO")

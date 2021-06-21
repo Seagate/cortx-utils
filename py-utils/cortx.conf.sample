@@ -1,9 +1,10 @@
 {
-  "install_path": "/opt/seagate",
-  "support_bundle": {
-        "bundle_path": "/var/log/seagate/support_bundle/"
-        "symlink_path": "/tmp/support_bundle/"
-        },
+    "utils": {
+        "install_path": "/opt/seagate"
+    },
+    "support": {
+        "support_bundle_path": "/var/log/seagate/support_bundle/"
+    },
   "health_provider": {
     "storage": "cortx/utils/discovery/mocked_health_gen",
     "server": "cortx/utils/discovery/mocked_health_gen"

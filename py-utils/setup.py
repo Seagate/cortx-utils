@@ -28,7 +28,7 @@ with open("cortx.conf.sample") as conf_file:
     build_data = json.load(conf_file)
 
 # Fetch install_path
-install_path = build_data["install_path"]
+install_path = build_data["utils"]["install_path"]
 utils_path = "%s/cortx/utils" % install_path
 
 if not os.path.isfile("./VERSION"):
@@ -94,7 +94,7 @@ setup(name='cortx-py-utils',
                 'cortx.utils.schema', 'cortx.utils.appliance_info',
                 'cortx.setup', 'cortx.utils.service',
                 'cortx.utils.setup', 'cortx.utils.setup.kafka',
-                'cortx.utils.cli_framework', 'cortx.utils.support_bundle',
+                'cortx.utils.cli_framework', 'cortx.utils.support',
                 'cortx.utils.utils_server', 'cortx.utils.iem_framework',
                 'cortx.utils.discovery', 'cortx.utils.discovery.mocked_health_gen'
                 ],
@@ -116,8 +116,8 @@ setup(name='cortx-py-utils',
                                             'src/utils/ha/hac/re_build.sh']),
                      ('%s/conf' % utils_path, ['src/setup/setup.yaml',
                                  'cortx.conf.sample', 'VERSION',
-                                 'src/utils/support_bundle/setup_path.yaml',
-                                 'src/utils/support_bundle/0-support_bundle.conf']),
+                                 'src/utils/support/setup_path.yaml',
+                                 'src/utils/support/0-support_bundle.conf']),
                      ('%s/conf' % utils_path, tmpl_files),
                      ('/etc/systemd/system', ['src/utils/message_bus/'
                                               'cortx_message_bus.service']),

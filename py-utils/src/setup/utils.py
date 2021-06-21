@@ -58,7 +58,7 @@ class Utils:
 
         config_file_path = "/etc/cortx/cortx.conf"
         Conf.load('config_file', f'yaml:///{config_file_path}')
-        install_path = Conf.get(index='config_file', key='install_path')
+        install_path = Conf.get(index='config_file', key='utils>install_path')
 
         if not install_path:
             error_msg = f"install_path not found in {config_file_path}"
@@ -130,21 +130,17 @@ class Utils:
         return server_info
 
     @staticmethod
-    def _set_cluster_hostname_nodename_mapping(conf_url):
+    def _copy_cluster_map():
         cluster_data = Conf.get("server_info", "server_node")
         for _, node_data in cluster_data.items():
             hostname = node_data.get("hostname")
             node_name = node_data.get("name")
-            Conf.set("cluster", f"node_host_mapping>{node_name}", hostname)
+            Conf.set("cluster", f"cluster>{node_name}", hostname)
         Conf.save("cluster")
 
     @staticmethod
     def _create_cluster_config(server_info: dict):
         """ Create the config file required for Event Message """
-
-        with open(r'/etc/cortx/cluster.conf.sample', 'w+') as file:
-            json.dump({}, file, indent=2)
-        Conf.load('cluster', 'json:///etc/cortx/cluster.conf.sample')
         for key, value in server_info.items():
             Conf.set('cluster', f'server_node>{key}', value)
         Conf.save('cluster')
@@ -237,6 +233,10 @@ class Utils:
     def config(conf_url: str):
         """ Performs configurations """
         # Message Bus Config
+        with open(r'/etc/cortx/cluster.conf.sample', 'w+') as file:
+            json.dump({}, file, indent=2)
+        Conf.load('cluster', 'json:///etc/cortx/cluster.conf.sample')
+
         kafka_server_list, port_list = Utils._get_kafka_server_list(conf_url)
         if kafka_server_list is None:
             Log.error(f"Could not find kafka server information in {conf_url}")
@@ -251,7 +251,7 @@ class Utils:
                 "information in %s", conf_url)
         Utils._create_cluster_config(server_info)
         #set cluster nodename:hostname mapping to cluster.conf
-        Utils._set_cluster_hostname_nodename_mapping(conf_url)
+        Utils._copy_cluster_map()
         Utils._configure_rsyslog()
         Utils._rename_conf_sample_to_conf()
         return 0
