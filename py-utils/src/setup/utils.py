@@ -58,7 +58,7 @@ class Utils:
 
         config_file_path = "/etc/cortx/cortx.conf"
         Conf.load('config_file', f'yaml:///{config_file_path}')
-        install_path = Conf.get(index='config_file', key='utils>install_path')
+        install_path = Conf.get(index='config_file', key='install_path')
 
         if not install_path:
             error_msg = f"install_path not found in {config_file_path}"

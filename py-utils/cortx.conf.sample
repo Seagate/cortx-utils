@@ -1,7 +1,5 @@
 {
-    "utils": {
-        "install_path": "/opt/seagate"
-    },
+    "install_path": "/opt/seagate",
     "support": {
         "support_bundle_path": "/var/log/seagate/support_bundle/"
     },

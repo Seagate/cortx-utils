@@ -36,7 +36,7 @@ class SupportBundle:
     """
 
     @staticmethod
-    async def fetch_active_nodes_hosts():
+    async def get_active_nodes():
         """
         This Method is for reading hostnames, node_list information.
         :return: hostnames : List of Hostname :type: List
@@ -70,7 +70,7 @@ class SupportBundle:
         return f" -c {shell_args}"
 
     @staticmethod
-    async def bundle_generate(command) -> sys.stdout:
+    async def generate_bundle(command) -> sys.stdout:
         """
         Initializes the process for Generating Support Bundle on Each CORTX Node.
         :param command: Csm_cli Command Object :type: command
@@ -96,7 +96,7 @@ class SupportBundle:
         comp_list = SupportBundle._get_components(components)
 
         # Get HostNames and Node Names.
-        node_hostname_map = await SupportBundle.fetch_active_nodes_hosts()
+        node_hostname_map = await SupportBundle.get_active_nodes()
         if not isinstance(node_hostname_map, dict):
             return node_hostname_map
 
@@ -129,7 +129,7 @@ class SupportBundle:
                         rc = OPERATION_SUCESSFUL)
 
     @staticmethod
-    async def bundle_status(command):
+    async def get_bundle_status(command):
         """
         Initializes the process for Displaying the Status for Support Bundle.
         :param command: Csm_cli Command Object :type: command

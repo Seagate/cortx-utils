@@ -28,7 +28,7 @@ with open("cortx.conf.sample") as conf_file:
     build_data = json.load(conf_file)
 
 # Fetch install_path
-install_path = build_data["utils"]["install_path"]
+install_path = build_data["install_path"]
 utils_path = "%s/cortx/utils" % install_path
 
 if not os.path.isfile("./VERSION"):
@@ -116,7 +116,7 @@ setup(name='cortx-py-utils',
                                             'src/utils/ha/hac/re_build.sh']),
                      ('%s/conf' % utils_path, ['src/setup/setup.yaml',
                                  'cortx.conf.sample', 'VERSION',
-                                 'src/utils/support/setup_path.yaml',
+                                 'src/utils/support/support.yaml',
                                  'src/utils/support/0-support_bundle.conf']),
                      ('%s/conf' % utils_path, tmpl_files),
                      ('/etc/systemd/system', ['src/utils/message_bus/'

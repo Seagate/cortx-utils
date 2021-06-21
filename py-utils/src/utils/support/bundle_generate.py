@@ -120,8 +120,8 @@ class ComponentsBundle:
                    f" {const.SB_COMMENT}: {comment}, {const.SB_COMPONENTS}: {components},"
                    f" {const.SOS_COMP}"))
         # Read Commands.Yaml and Check's If It Exists.
-        cmd_setup_file = os.path.join(Conf.get("cortx_conf", "utils>install_path"),
-                                "cortx/utils/conf/setup_path.yaml")
+        cmd_setup_file = os.path.join(Conf.get("cortx_conf", "install_path"),
+                                "cortx/utils/conf/support.yaml")
         support_bundle_config = Yaml(cmd_setup_file).load()
         if not support_bundle_config:
             ComponentsBundle._publish_log(f"No such file {cmd_setup_file}",
