@@ -47,7 +47,7 @@ class SimpleProcess(Process):
 
         import shlex
         try:
-            cmd = shlex.split(self._cmd) if type(self._cmd) is str else self._cmd
+            cmd = shlex.split(self._cmd) if isinstance(self._cmd, str) else self._cmd
             if getattr(self, 'realtime_output'):
                 self.stdout=None
             self._cp = subprocess.run(cmd, stdout=self.stdout,
