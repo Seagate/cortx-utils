@@ -41,11 +41,9 @@ class TestMessage(unittest.TestCase):
     def test_get(self):
         """ Test receive message. """
         response = requests.get(self._base_url + self._message_type
-                                + '?consumer_group=' + self._consumer_group)
+            + '?consumer_group=' + self._consumer_group)
         self.assertEqual(response.status_code, 200)
-
 
 
 if __name__ == '__main__':
     unittest.main()
-

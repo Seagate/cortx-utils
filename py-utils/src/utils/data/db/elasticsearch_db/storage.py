@@ -195,22 +195,15 @@ class ElasticSearchQueryConverter(GenericQueryConverter):
 class ElasticSearchDataMapper:
     """ElasticSearch data mappings helper"""
 
-    def __init__(self, model: Type[BaseModel], mapping_type: str):
+    def __init__(self, model: Type[BaseModel]):
         """
 
         :param Type[BaseModel] model: model for constructing data mapping for index in ElasticSearch
         """
         self._model = model
-        self._mapping_type = mapping_type
-
-        if mapping_type is None:
-            raise DataAccessInternalError("Mapping type is not specified")
-
         self._mapping = {
             ESWords.MAPPINGS: {
-                mapping_type: {
                     ESWords.PROPERTIES: {
-                    }
                 }
             }
         }
@@ -223,8 +216,7 @@ class ElasticSearchDataMapper:
         :param Type[BaseType] property_type: type of property for given property `name`
         :return:
         """
-        properties = self._mapping[ESWords.MAPPINGS][self._mapping_type][ESWords.PROPERTIES]
-
+        properties = self._mapping[ESWords.MAPPINGS][ESWords.PROPERTIES]
         if name in properties:
             raise InternalError(f"Repeated property name in model: {name}")
 
@@ -254,12 +246,10 @@ class ElasticSearchQueryService:
     """Query service-helper for Elasticsearch"""
 
     def __init__(self, index: str, es_client: Elasticsearch,
-                 query_converter: ElasticSearchQueryConverter, mapping_type: str):
+                 query_converter: ElasticSearchQueryConverter):
         self._index = index
         self._es_client = es_client
         self._query_converter = query_converter
-        self._mapping_type = mapping_type
-
     def search_by_query(self, query: Query) -> Search:
         """
         Get Elasticsearch Search instance by given query object
@@ -272,8 +262,7 @@ class ElasticSearchQueryService:
 
         extra_params = dict()
         sort_by = dict()
-        search = Search(index=self._index, doc_type=self._mapping_type, using=self._es_client)
-
+        search = Search(index=self._index, using=self._es_client)
         q = query.data
 
         if q.filter_by is not None:
@@ -323,12 +312,12 @@ class ElasticSearchDB(GenericDataBase):
         self._es_client = es_client
         self._tread_pool_exec = thread_pool_exec
         self._loop = loop or asyncio.get_event_loop()
-        self._mapping_type = collection  # Used as mapping type for particular index
+        self._collection = collection
 
         self._query_converter = ElasticSearchQueryConverter(model)
 
         # We are associating index name in ElasticSearch with given collection
-        self._index = self._mapping_type
+        self._index = self._collection
 
         if not isinstance(model, type) or not issubclass(model, BaseModel):
             raise DataAccessInternalError("Model parameter is not a Class object or not inherited "
@@ -339,7 +328,7 @@ class ElasticSearchDB(GenericDataBase):
         self._model_scheme = None
 
         self._query_service = ElasticSearchQueryService(self._index, self._es_client,
-                                                        self._query_converter, self._mapping_type)
+                                                        self._query_converter)
 
     @classmethod
     async def create_database(cls, config, collection, model: Type[BaseModel]) -> IDataBase:
@@ -358,8 +347,14 @@ class ElasticSearchDB(GenericDataBase):
             if config.login:
                 auth = (config.login, config.password)
 
-            node = {"host": config.host, "port": config.port}
-            cls.elastic_instance = Elasticsearch(hosts=[node], http_auth=auth)
+            nodes = [{"host": x, "port": config.port} for x in config.hosts]
+            cls.elastic_instance = Elasticsearch(
+                hosts=nodes,
+                http_auth=auth,
+                sniff_on_start=True,  # sniff before doing anything
+                sniff_on_connection_fail=True,  # refresh nodes after a node fails to respond
+                sniff_timeout=10,
+                sniffer_timeout=60)  # and also every 60 seconds
             cls.pool = ThreadPoolExecutor(max_workers=multiprocessing.cpu_count())
             cls.loop = asyncio.get_event_loop()
 
@@ -396,23 +391,17 @@ class ElasticSearchDB(GenericDataBase):
 
         # self._obj_index = self._es_client.indices.get_alias("*")
         if indices.get(self._index, None) is None:
-            data_mappings = ElasticSearchDataMapper(self._model, self._mapping_type)
+            data_mappings = ElasticSearchDataMapper(self._model)
             mappings_dict = data_mappings.build_index_mappings(replication)
             # self._es_client.indices.create(index=model.__name__, ignore=400, body=mappings_dict)
 
-            # NOTE: for newly created indexes ElasticSearch mapping type and index name coincide
             await self._loop.run_in_executor(self._tread_pool_exec,
                                              _create, self._index, mappings_dict)
 
         self._index_info = await self._loop.run_in_executor(self._tread_pool_exec,
                                                             _get, self._index)
 
-        # NOTE: if ElasticSearch index was created outside from CSM Agent there
-        #  is no guarantee that index name and mapping type coincide
-        self._mapping_type = next(iter(self._index_info[self._index][ESWords.MAPPINGS].keys()), None)
-        if self._mapping_type is None:
-            raise DataAccessExternalError(f"There are no mapping type for ElasticSearch index {self._mapping_type}")
-        self._model_scheme = self._index_info[self._index][ESWords.MAPPINGS][self._mapping_type][ESWords.PROPERTIES]
+        self._model_scheme = self._index_info[self._index][ESWords.MAPPINGS][ESWords.PROPERTIES]
         self._model_scheme = {k.lower(): v for k, v in self._model_scheme.items()}
 
     async def store(self, obj: BaseModel):
@@ -430,8 +419,7 @@ class ElasticSearchDB(GenericDataBase):
             :return: elastic search server response
             """
             # TODO: is it needed to use id?
-            _result = self._es_client.index(index=self._index, doc_type=self._mapping_type,
-                                            id=_id, body=_doc)
+            _result = self._es_client.index(index=self._index, id=_id, body=_doc)
             return _result
 
         await super().store(obj)  # Call generic code
@@ -521,13 +509,12 @@ class ElasticSearchDB(GenericDataBase):
         # NOTE: Important: call of the parent update method changes _to_update dict!
         await super().update(filter_obj, _to_update)  # Call the generic code
 
-        ubq = UpdateByQuery(index=self._index, doc_type=self._mapping_type, using=self._es_client)
-
+        ubq = UpdateByQuery(index=self._index, using=self._es_client)
         filter_by = self._query_converter.build(filter_obj)
         ubq = ubq.query(filter_by)
 
         source = dict_to_source(_to_update)
-        ubq = ubq.script(inline=source, lang=ESWords.PAINLESS)
+        ubq = ubq.script(source=source, lang=ESWords.PAINLESS)
 
         result = await self._loop.run_in_executor(self._tread_pool_exec, _update, ubq)
 
@@ -553,7 +540,7 @@ class ElasticSearchDB(GenericDataBase):
         :return: number of deleted entries
         """
         def _delete(_by_filter):
-            search = Search(index=self._index, doc_type=self._mapping_type, using=self._es_client)
+            search = Search(index=self._index, using=self._es_client)
             search = search.query(_by_filter)
             return search.delete()
 
@@ -577,9 +564,9 @@ class ElasticSearchDB(GenericDataBase):
         """
 
         def _count(_body):
-            return self._es_client.count(index=self._index, doc_type=self._mapping_type, body=_body)
+            return self._es_client.count(index=self._index, body=_body)
 
-        search = Search(index=self._index, doc_type=self._mapping_type, using=self._es_client)
+        search = Search(index=self._index, using=self._es_client)
         if filter_obj is not None:
             filter_by = self._query_converter.build(filter_obj)
             search = search.query(filter_by)
