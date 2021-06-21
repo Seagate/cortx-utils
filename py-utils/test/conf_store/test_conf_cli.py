@@ -291,7 +291,6 @@ class TestConfCli(unittest.TestCase):
         except Exception:
             self.assertEqual(result_data[2], '22')
 
-<<<<<<< HEAD
     def test_conf_cli_by_get_diff_keys(self):
         """
         Test by retrieving a value using get api
@@ -300,8 +299,8 @@ class TestConfCli(unittest.TestCase):
         cmd_proc = SimpleProcess(cmd)
         result_data = cmd_proc.run()
         self.assertTrue(False if result_data[2] != 0 and
-    result_data[0] != b'<Update your Differnces>' else True, result_data[1])
-=======
+            result_data[0] != b'<Update your Differnces>' else True, result_data[1])
+
     def test_conf_cli_merge_keys(self):
         cmd = "conf json:///tmp/file1.json merge json:///tmp/file2.json -k version;branch"
         cmd_proc = SimpleProcess(cmd)
@@ -317,8 +316,6 @@ class TestConfCli(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         delete_files()
-
->>>>>>> 87b21d57c00e1caba79be1a448f97c777a60f96e
 
 if __name__ == '__main__':
     # create the file and load sample json into it. Start test
