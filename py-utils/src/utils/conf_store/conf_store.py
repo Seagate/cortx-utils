@@ -20,6 +20,7 @@ import errno
 from cortx.utils.conf_store.error import ConfError
 from cortx.utils.conf_store.conf_cache import ConfCache
 from cortx.utils.kv_store.kv_store import KvStoreFactory
+from cortx.utils import errors
 
 
 class ConfStore:
@@ -58,23 +59,34 @@ class ConfStore:
         Parameters:
         index:     Identifier for the config loaded from the KV Store
         kv_store:  KV Store (Conf Backend)
-        overwrite: When False, it throws exception if index already exists. 
-                   Default: False 
+        fail_reload: When True, and if index already exists, load() throws
+                     exception.
+                     When True, and if index do not exists, load() succeeds.
+                     When false, irrespective of index status, load() succeeds
+                     Default: True
+        skip_reload: When True, it skips reloading a index configuration by
+                     overriding fail_reload
+                     Default: False
         callback:  Callback for the config changes in the KV Store.
         """
-        overwrite = False
+        fail_reload = True
+        skip_reload = False
         for key, val in kwargs.items():
-            if key == 'overwrite':
-                overwrite = True
+            if key == 'fail_reload':
+                fail_reload = val
+            elif key == 'skip_reload':
+                skip_reload = val
             elif key == 'callback':
                 self._callbacks[index] = val
             else:
                 raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
 
-        if index in self._cache.keys() and not overwrite:
-            raise ConfError(errno.EINVAL, "conf index %s already exists",
-                index)
-
+        if index in self._cache.keys():
+            if skip_reload:
+                return
+            if fail_reload:
+                raise ConfError(errno.EINVAL, "conf index %s already exists",
+                                index)
         kv_store = KvStoreFactory.get_instance(kvs_url, self._delim)
         self._cache[index] = ConfCache(kv_store, self._delim)
 
@@ -176,6 +188,38 @@ class ConfStore:
         for key in key_list:
             self._cache[dst_index].set(key, self._cache[src_index].get(key))
 
+    def merge(self, dest_index: str, src_index: str, keys: list = None):
+        """
+        Merges the content of src_index and dest_index file
+
+        Parameters:
+        dst_index - Destination Index, to this index resulted values will be
+            merged
+        src_index - Source Index, From which new keys (and related values) are
+            picked up for merging
+        keys - optional parameter, Only these keys (and related values) from
+            src_index will be merged.
+        """
+        if src_index not in self._cache.keys():
+            raise ConfError(errors.ERR_NOT_INITIALIZED, "config index %s is "\
+                "not loaded", src_index)
+        if dest_index not in self._cache.keys():
+            raise ConfError(errors.ERR_NOT_INITIALIZED, "config index %s is "\
+                "not loaded", dest_index)
+        if keys is None:
+            keys = self._cache[src_index].get_keys()
+        else:
+            for key in keys:
+                if not self._cache[src_index].get(key):
+                    raise ConfError(errno.ENOENT, "%s is not present in %s", \
+                        key, src_index)
+        self._merge(dest_index, src_index, keys)
+
+    def _merge(self, dest_index, src_index, keys):
+        for key in keys:
+            if key not in self._cache[dest_index].get_keys():
+                self._cache[dest_index].set(key, self._cache[src_index].get(key))
+
 
 class Conf:
     """ Singleton class instance based on conf_store """
@@ -193,11 +237,11 @@ class Conf:
             Conf._machine_id = Conf._conf.machine_id
 
     @staticmethod
-    def load(index: str, url: str):
+    def load(index: str, url: str, **kwargs):
         """ Loads Config from the given URL """
         if Conf._conf is None:
             Conf.init()
-        Conf._conf.load(index, url)
+        Conf._conf.load(index, url, **kwargs)
 
     @staticmethod
     def save(index: str):
@@ -224,6 +268,10 @@ class Conf:
         """ Creates a Copy suffixed file for main file"""
         Conf._conf.copy(src_index, dst_index, key_list)
         Conf._conf.save(dst_index)
+
+    @staticmethod
+    def merge(dest_index: str, src_index: str, keys: list = None):
+        Conf._conf.merge(dest_index, src_index, keys)
 
     class ClassProperty(property):
         """ Subclass property for classmethod properties """

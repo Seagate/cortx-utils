@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
@@ -15,12 +13,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-
-class RestServer:
-    """ Base class for Cortx Rest Server implementation """
-
-    def __init__(self, web, routes, host: str, port: int):
-        app = web.Application()
-        app.add_routes(routes)
-        web.run_app(app, host=host, port=port)
-
+SUB_COMMANDS_PERMISSIONS = "permissions_tag"
+EXCLUDED_COMMANDS=[]
+HIDDEN_COMMANDS = []
+OPERATION_SUCESSFUL     = 0x0000

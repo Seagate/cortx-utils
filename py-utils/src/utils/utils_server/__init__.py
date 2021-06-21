@@ -15,8 +15,8 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-__title__ = 'rest_server'
+__title__ = 'utils_server'
 
-from cortx.utils.rest_server.rest_server import RestServer
-from cortx.utils.rest_server.error import RestServerError
+from cortx.utils.utils_server.utils_server import RestServer
+from cortx.utils.utils_server.error import RestServerError
 
