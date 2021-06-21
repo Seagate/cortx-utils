@@ -15,11 +15,13 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import os, errno
-import logging.handlers
+import os
+import errno
 import inspect
 import traceback
+import logging.handlers
 from functools import wraps
+
 
 class Log:
     CRITICAL = logging.CRITICAL
@@ -80,7 +82,8 @@ class Log:
                                   maxBytes=max_bytes, backupCount=backup_count)
             file_handler.setFormatter(formatter)
             logger.setLevel(log_level)
-            logger.addHandler(file_handler)
+            if not logger.hasHandlers():
+                logger.addHandler(file_handler)
   
         return logger
 

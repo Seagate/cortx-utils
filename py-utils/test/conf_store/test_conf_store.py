@@ -41,14 +41,36 @@ def setup_and_generate_sample_files():
         for key, val in sample_config.items():
             file.write("%s = %s\n" %(key, val))
 
+    # create conf sample for conf merge
+    Conf.load('merge_index', 'yaml:///tmp/test_conf_merge.conf.sample')
+    Conf.set('merge_index', 'cortx>software>common>message_bus_type', 'kafka')
+    Conf.save('merge_index')
+
+
 def load_config(index, backend_url):
     """Instantiate and Load Config into constore"""
     Conf.load(index, backend_url)
     return Conf
 
 
+def delete_files():
+    files = ['/tmp/test_conf_merge.conf.sample', '/tmp/test_conf_merge.conf']
+    for file in files:
+        try:
+            if os.path.exists(file):
+                os.remove(file)
+        except OSError as e:
+            print(e)
+
+
 class TestConfStore(unittest.TestCase):
     """Test case will test available API's of ConfStore"""
+
+    @classmethod
+    def setUpClass(cls):
+        setup_and_generate_sample_files()
+        Conf.load('src_index', 'yaml:///tmp/test_conf_merge.conf.sample')
+        Conf.load('dest_index', 'yaml:///tmp/test_conf_merge.conf')
 
     def test_conf_store_load_and_get(self):
         """Test by loading the give config file to in-memory"""
@@ -110,7 +132,8 @@ class TestConfStore(unittest.TestCase):
         result_data = Conf.get_keys('backup', key_index=True)
         # Expected list should match the result_data list output
         expected_list = Conf.get_keys('csm_local')
-        self.assertListEqual(expected_list, result_data)
+        # Expected Length should match else Failure.
+        self.assertTrue(True if len(expected_list) == len(result_data) else False)
 
     def test_conf_load_invalid_arguments(self):
         """
@@ -120,8 +143,8 @@ class TestConfStore(unittest.TestCase):
             Conf.load('invalid_arg', 'json:/tmp/file1.json',
                       test_arg='This is invalid')
         except Exception as err:
-            self.assertEqual("load() got an unexpected keyword argument"
-                             " 'test_arg'", err.args[0])
+            self.assertTrue(True if err.args[1] == "Invalid parameter %s"
+                            and err.args[0] == 22 else False)
 
     def test_conf_store_get_by_index_with_chained_index(self):
         """
@@ -287,6 +310,7 @@ class TestConfStore(unittest.TestCase):
             load_config('pro_local1', 'properties:///tmp/example.properties')
         except Exception as err:
             self.assertEqual('Invalid properties store format %s. %s.', err.args[1])
+
     # Get_keys API
     def test_conf_key_index_a_True(self):
         """
@@ -295,19 +319,20 @@ class TestConfStore(unittest.TestCase):
         """
         load_config('getKeys_local', 'json:///tmp/file1.json')
         key_lst = Conf.get_keys("getKeys_local", key_index=True)
-        expected_list = ['bridge>name', 'bridge>username',
-            'bridge>manufacturer', 'bridge>model', 'bridge>pin',
-            'bridge>port', 'bridge>lte_type[0]', 'bridge>lte_type[1]']
+        expected_list = ['version', 'branch', 'bridge>name', 'bridge>username',
+            'bridge>manufacturer', 'bridge>model', 'bridge>pin', 'bridge>port',
+            'bridge>lte_type[0]', 'bridge>lte_type[1]', 'node_count']
         self.assertListEqual(key_lst, expected_list)
 
     def test_conf_key_index_b_False(self):
         """ Test confStore get_key api with key_index argument as False """
         key_lst = Conf.get_keys("getKeys_local", key_index=False)
-        expected_list=['bridge>name', 'bridge>username', 'bridge>manufacturer',
-            'bridge>model', 'bridge>pin', 'bridge>port', 'bridge>lte_type']
+        expected_list = ['version', 'branch', 'bridge>name', 'bridge>username',
+            'bridge>manufacturer', 'bridge>model', 'bridge>pin', 'bridge>port',
+            'bridge>lte_type', 'node_count']
         self.assertListEqual(key_lst, expected_list)
 
-    def test_conf_store_get_machin_id_none(self):
+    def test_conf_store_get_machine_id_none(self):
         """ Test get_machine_id None value """
         from cortx.utils.conf_store import ConfStore
         # rename /etc/machine-id
@@ -318,17 +343,109 @@ class TestConfStore(unittest.TestCase):
         os.rename("/etc/machine-id.old", "/etc/machine-id")
         self.assertEqual(mc_id, None)
 
-    def test_conf_store_get_machin_id(self):
+    def test_conf_store_get_machine_id(self):
         """ Test get_machine_id """
         mc_id = Conf.machine_id
         with open("/etc/machine-id", 'r') as mc_id_file:
-                actual_id = mc_id_file.read()
+            actual_id = mc_id_file.read()
         self.assertEqual(mc_id, actual_id.strip())
+
+    def test_conf_load_fail_reload(self):
+        """ Test conf load fail_reload argument """
+        Conf.load('reload_index', 'json:///tmp/file1.json')
+        expected_lst = Conf.get_keys('reload_index')
+        Conf.load('reload_index', 'toml:///tmp/document.toml', fail_reload=False)
+        out_lst = Conf.get_keys('reload_index')
+        self.assertTrue(True if expected_lst != out_lst else False)
+
+    def test_conf_load_skip_reload(self):
+        """ Test conf load skip_reload argument """
+        Conf.load('skip_index', 'json:///tmp/file1.json')
+        expected_lst = Conf.get_keys('skip_index')
+        Conf.load('skip_index', 'toml:///tmp/document.toml', skip_reload=True)
+        out_lst = Conf.get_keys('skip_index')
+        self.assertTrue(True if expected_lst == out_lst else False)
+
+    def test_conf_load_fail_and_skip(self):
+        """ Test conf load fail_reload and skip_reload argument """
+        Conf.load('fail_skip_index', 'json:///tmp/file1.json')
+        expected_lst = Conf.get_keys('fail_skip_index')
+        Conf.load('fail_skip_index', 'toml:///tmp/document.toml', fail_reload=False, skip_reload=True)
+        out_lst = Conf.get_keys('fail_skip_index')
+        self.assertTrue(True if expected_lst == out_lst else False)
+
+    def test_conf_load_fail_and_skip_non_hap(self):
+        """ Test conf load fail_reload True and skip_reload as True argument """
+        Conf.load('non_happy_index', 'json:///tmp/file1.json')
+        expected_lst = Conf.get_keys('non_happy_index')
+        Conf.load('non_happy_index', 'toml:///tmp/document.toml', fail_reload=True, skip_reload=True)
+        out_lst = Conf.get_keys('non_happy_index')
+        self.assertTrue(True if expected_lst == out_lst else False)
+
+    def test_conf_store_merge_01new_file(self):
+        self.assertEqual(Conf.get_keys('dest_index'), [])
+        Conf.merge('dest_index', 'src_index')
+        Conf.save('dest_index')
+        self.assertEqual(Conf.get_keys('dest_index'),
+            Conf.get_keys('src_index'))
+
+    def test_conf_store_merge_02no_key(self):
+        Conf.set('src_index', 'new_key', 'new_value')
+        Conf.save('src_index')
+        Conf.merge('dest_index', 'src_index')
+        Conf.save('dest_index')
+        self.assertEqual(Conf.get('dest_index', 'new_key'), 'new_value')
+        self.assertIn('new_key', Conf.get_keys('dest_index'))
+
+    def test_conf_store_merge_03already_key(self):
+        Conf.set('dest_index', 'cortx>software>kafka>servers[0]', 'host2.com')
+        Conf.save('dest_index')
+        Conf.set('src_index', 'cortx>software>kafka>servers[0]', 'host1.com')
+        Conf.merge('dest_index', 'src_index')
+        Conf.save('dest_index')
+        self.assertEqual('host2.com', Conf.get('dest_index',\
+            'cortx>software>kafka>servers[0]'))
+
+    def test_conf_store_merge_05update_multiple(self):
+        Conf.set('src_index', 'cortx>software>kafka>servers[0]', 'host1.com')
+        Conf.set('src_index', 'cortx>software>kafka>servers[1]', 'host2.com')
+        Conf.set('src_index', 'cortx>software>kafka>servers[2]', 'host3.com')
+        Conf.save('src_index')
+        Conf.merge('dest_index', 'src_index')
+        Conf.save('dest_index')
+        self.assertNotEqual('host1.com', Conf.get('dest_index',
+            'cortx>software>kafka>servers[0]'))
+        self.assertEqual('host2.com', Conf.get('dest_index',
+            'cortx>software>kafka>servers[1]'))
+        self.assertEqual('host3.com', Conf.get('dest_index',
+            'cortx>software>kafka>servers[2]'))
+
+    def test_conf_store_merge_06_with_keys(self):
+        Conf.set('src_index', 'cortx>software>common>test_key1', 'test_value')
+        Conf.set('src_index', 'cortx>software>common>test_key2', 'test_value')
+        Conf.set('src_index', 'cortx>software>common>message_bus_type', \
+            'rabbitmq')
+        Conf.save('src_index')
+        Conf.merge('dest_index', 'src_index', keys=\
+            ['cortx>software>common>test_key1',
+             'cortx>software>common>test_key2',
+             'cortx>software>common>message_bus_type'])
+        Conf.save('dest_index')
+        self.assertEqual('test_value', Conf.get('dest_index', \
+            'cortx>software>common>test_key1'))
+        self.assertEqual('test_value', Conf.get('dest_index', \
+            'cortx>software>common>test_key2'))
+        self.assertEqual('kafka', Conf.get('dest_index', \
+            'cortx>software>common>message_bus_type'))
+
+    @classmethod
+    def tearDownClass(cls):
+        delete_files()
+
 
 if __name__ == '__main__':
     """
     Firstly create the file and load sample json into it.
     Start test
     """
-    setup_and_generate_sample_files()
     unittest.main()
