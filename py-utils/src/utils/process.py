@@ -16,8 +16,10 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
+import shlex
 import subprocess
 from subprocess import TimeoutExpired, CalledProcessError  # nosec
+
 
 class Process:
     def __init__(self, cmd):
@@ -45,7 +47,6 @@ class SimpleProcess(Process):
         for key, value in args.items():
             setattr(self, key, value)
 
-        import shlex
         try:
             cmd = shlex.split(self._cmd) if isinstance(self._cmd, str) else self._cmd
             if getattr(self, 'realtime_output'):
@@ -89,7 +90,7 @@ class PipedProcess(Process):
 
         cmd = self._cmd
         try:
-            list_cmds = [x.split() for x in cmd.split(' | ')]
+            list_cmds = [shlex.split(x) for x in cmd.split(' | ')]
             ps = None
             for index, cmd in enumerate(list_cmds):
                 if index == 0:
