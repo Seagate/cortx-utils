@@ -109,8 +109,11 @@ class NetworkV:
                 raise VError(errno.ECONNREFUSED, res)
 
     def _is_ip(self, ip):
-        return (ip.count(".") == 3 and all(self._is_valid_ipv4_part(ip_part)
-                for ip_part in ip.split(".")))
+        try:
+            return ip.count(".") == 3 and all(
+                [self._is_valid_ipv4_part(ip_part) for ip_part in ip.split(".")])
+        except Exception as e:
+            raise VError(errno.EINVAL, f"Invalid IP {ip}.") from e
 
     def _is_valid_ipv4_part(self, ip_part):
         try:
