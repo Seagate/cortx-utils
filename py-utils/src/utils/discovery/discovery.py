@@ -26,10 +26,8 @@ from cortx.utils.discovery.node_health import NodeHealth
 class Discovery:
     """Common interfaces of Discovery Library"""
 
-    ROOT_NODE = "nodes"
-
     @staticmethod
-    def generate_node_health(rpath: str = None, backend_url: str = None):
+    def generate_node_health(rpath: str = None, store_url: str = None):
         """
         Generates node resource map and health information. This returns
         unique id for any accepted request.
@@ -38,23 +36,15 @@ class Discovery:
             If rpath is not given, it will fetch whole Cortx Node
             data health.
             Examples:
-                node[0]>compute[0]>hw>disks
-                node[0]>compute[0]
-                node[0]>storage[0]
-                node[0]>storage[0]>hw>psus
-        backend_url: Path to store resource health information
+                node>compute[0]>hw>disks
+                node>compute[0]
+                node>storage[0]
+                node>storage[0]>hw>psus
+        store_url: Path to store resource health information
         """
-        # TODO: Both rpath and backend_url are optional. With backend url,
-        # resource map can be put in desired location for data aggregation
-        # and managing resource health map files.
-        if backend_url:
-            raise DiscoveryError(
-                errno.EINVAL,
-                "Backend url based node health generation is not supported.")
-
-        rpath = rpath if rpath else Discovery.ROOT_NODE
         request_id = str(time.time()).replace(".", "")
-        t = threading.Thread(target=NodeHealth.generate, args=(rpath, request_id))
+        t = threading.Thread(
+            target=NodeHealth.generate, args=(rpath, request_id, store_url))
         t.start()
 
         # When multiple requests gets registered, KV load throws decoding error
@@ -77,7 +67,7 @@ class Discovery:
         return NodeHealth.get_processing_status(request_id)
 
     @staticmethod
-    def get_node_health(request_id):
+    def get_node_health(request_id=None):
         """
         Returns resource health map backend URL.
 

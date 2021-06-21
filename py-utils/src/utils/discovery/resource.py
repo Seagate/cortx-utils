@@ -27,7 +27,7 @@ from cortx.utils.kv_store import KvStoreFactory
 class Resource:
     """Abstraction over all resource type"""
 
-    ROOT_NODE = "nodes"
+    ROOT_NODE = "node"
     _kv = None
 
     def __init__(self, name, child_resource=None):
@@ -108,12 +108,17 @@ class Resource:
     def get_health_provider_module(path):
         """Look for __init__ module in health provider path"""
         module = None
-        if path.startswith("/"):
-            sys.path.append(path)
-            module = __import__("__init__")
-        else:
-            path = path.strip().rstrip("/").replace("/", ".")
-            module = importlib.import_module(path)
+        try:
+            if path.startswith("/"):
+                sys.path.append(path)
+                module = __import__("__init__")
+            else:
+                m_path = path.strip().rstrip("/").replace("/", ".")
+                module = importlib.import_module(m_path)
+        except ModuleNotFoundError:
+            raise DiscoveryError(
+                errno.EINVAL,
+                "Failed to import health provider module from - %s" % path)
         return module
 
     def get_health_info(self, rpath):
@@ -132,7 +137,8 @@ class Resource:
                 return cls().get_health_info(rpath)
         raise DiscoveryError(
             errno.EINVAL,
-            "Invalid health provider path: '%s'" % provider_loc)
+            "%s health provider not found in configured path %s" % (
+                self.health_provider_map[self.name].title(), provider_loc))
 
 
 class ResourceFactory:

@@ -37,7 +37,7 @@ class Server:
     def get_health_info(self, rpath):
         """
         Fetch health information for given FRU
-        rpath: Resouce id (Example: nodes[0]>compute[0]>hw>disks)
+        rpath: Resouce id (Example: node>compute[0]>hw>disks)
         """
         return Conf.get(mock_index, rpath)
 
@@ -50,11 +50,11 @@ class Storage:
     def get_health_info(self, rpath):
         """
         Fetch health information for given FRU
-        rpath: Resouce id (Example: nodes[0]>storage[0]>hw>controllers)
+        rpath: Resouce id (Example: node>storage[0]>hw>controllers)
         """
         return Conf.get(mock_index, rpath)
 
 
 if __name__ == "__main__":
     storage = Storage()
-    storage.get_health_info(rpath="nodes[0]>storage[0]>hw>controllers")
+    storage.get_health_info(rpath="node>storage[0]>hw>controllers")

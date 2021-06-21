@@ -44,6 +44,7 @@ req_register.load()
 class NodeHealth:
     """This generates node health information and updates map"""
 
+    ROOT_NODE = "node"
     INPROGRESS = "In-progress"
     SUCCESS = "Success"
     FAILED = "Failed"
@@ -109,19 +110,34 @@ class NodeHealth:
                 break
 
     @staticmethod
-    def generate(rpath: str, req_id: str, url: str = None):
+    def generate(rpath: str, req_id: str, store_url: str):
         """Generates node health information and updates resource map"""
+        if not store_url and not rpath:
+            # Create static store url
+            rpath = NodeHealth.ROOT_NODE
+            store_type = common_config.get(["resource_map>store_type"])[0]
+            resource_map_loc = common_config.get(["resource_map>location"])[0]
+            data_file = os.path.join(resource_map_loc,
+                "node_health_info.%s" % (store_type))
+            store_url = "%s://%s" % (store_type, data_file)
+
+        elif not store_url and rpath:
+            # Create request_id based store_url
+            store_type = common_config.get(["resource_map>store_type"])[0]
+            resource_map_loc = common_config.get(["resource_map>location"])[0]
+            data_file = os.path.join(resource_map_loc,
+                "node_health_info_%s.%s" % (req_id, store_type))
+            store_url = "%s://%s" % (store_type, data_file)
+
+        else:
+            # Use given store url
+            rpath = rpath if rpath else NodeHealth.ROOT_NODE
+
         try:
             # Initialize resource map
-            if not url:
-                store_type = common_config.get(["resource_map>store_type"])[0]
-                resource_map_loc = common_config.get(["resource_map>location"])[0]
-                data_file = os.path.join(resource_map_loc,
-                    "node_health_info_%s.%s" % (req_id, store_type))
-                url = "%s://%s" % (store_type, data_file)
-            Resource.init(url)
+            Resource.init(store_url)
             # Process request
-            NodeHealth.add_dm_request(rpath, req_id, url)
+            NodeHealth.add_dm_request(rpath, req_id, store_url)
             NodeHealth.update_resource_map(rpath)
             NodeHealth.set_dm_request_processed(req_id, NodeHealth.SUCCESS)
         except Exception as err:
@@ -159,10 +175,25 @@ class NodeHealth:
 
     @staticmethod
     def get_resource_map_location(req_id):
-        """Returns backend URL"""
-        url_list = req_register.get(["%s>url" % req_id])
-        url = url_list[0] if url_list else None
-        if not url:
-            raise DiscoveryError(
-                errno.EINVAL, "Request ID '%s' not found." % req_id)
-        return url
+        """Returns backend store URL"""
+        if req_id:
+            url_list = req_register.get(["%s>url" % req_id])
+            store_url = url_list[0] if url_list else None
+            if not store_url:
+                raise DiscoveryError(
+                    errno.EINVAL, "Request ID '%s' not found." % req_id)
+        else:
+            # Look for static data or cached file
+            store_type = common_config.get(["resource_map>store_type"])[0]
+            resource_map_loc = common_config.get(["resource_map>location"])[0]
+            data_file = os.path.join(resource_map_loc,
+                "node_health_info.%s" % (store_type))
+
+            if not os.path.exists(data_file):
+                raise DiscoveryError(
+                    errno.EINVAL,
+                    "Resource health map is unavailable. Please generate.")
+
+            store_url = "%s://%s" % (store_type, data_file)
+
+        return store_url
