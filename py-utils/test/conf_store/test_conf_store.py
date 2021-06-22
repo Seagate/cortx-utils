@@ -438,6 +438,19 @@ class TestConfStore(unittest.TestCase):
         self.assertEqual('kafka', Conf.get('dest_index', \
             'cortx>software>common>message_bus_type'))
 
+    def test_conf_store_is_loaded(self):
+        res = Conf.is_loaded('index')
+        self.assertEqual(res, False)
+        Conf.load('index', 'yaml:///tmp/test_conf_merge.conf.sample')
+        res = Conf.is_loaded('index')
+        self.assertEqual(res, True)
+        res = Conf.is_loaded('unknown_index')
+        self.assertEqual(res, False)
+        if not Conf.is_loaded('new_index'):
+            Conf.load('new_index', 'yaml:///tmp/test_conf_merge.conf.sample')
+            res = Conf.is_loaded('new_index')
+            self.assertEqual(res, True)
+
     @classmethod
     def tearDownClass(cls):
         delete_files()

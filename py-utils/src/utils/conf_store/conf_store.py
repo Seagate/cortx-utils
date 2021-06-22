@@ -98,6 +98,18 @@ class ConfStore:
 
         self._cache[index].dump()
 
+    def is_loaded(self, index: str) -> bool:
+        """
+        Checks the index loaded into ConfStore or not
+
+        Parameters:
+        index:          Identifier for the config loaded from the KV Store
+        return type:    Boolean
+                        True - index already loaded
+                        False - index not loaded
+        """
+        return True if index in self._cache.keys() else False
+
     def get(self, index: str, key: str, default_val: str = None):
         """
         Obtain value for the given configuration
@@ -247,6 +259,11 @@ class Conf:
     def save(index: str):
         """ Saves the configuration onto the backend store """
         Conf._conf.save(index)
+
+    @staticmethod
+    def is_loaded(index: str):
+        """ Checks the index is loaded into ConfStore or not """
+        return False if Conf._conf is None else Conf._conf.is_loaded(index)
 
     @staticmethod
     def set(index: str, key: str, val):
