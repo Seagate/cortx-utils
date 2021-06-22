@@ -300,7 +300,7 @@ pipeline {
                         body: '''${SCRIPT, template="deployment-email.template"}''',
                         mimeType: 'text/html',
                         subject: "${MESSAGE} # ${build_id}",
-                        to: "gowthaman.chinnathambi@seagate.com",
+                        to: "gaurav.chaudhari@seagate.com,shailesh.vaidya@seagate.com",
                         recipientProviders: [[$class: 'RequesterRecipientProvider']]
 				    )
 

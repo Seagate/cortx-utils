@@ -45,4 +45,4 @@ _Note : Add **RE** as component while raising Jira ticket_ (e.g. https://jts.sea
 
 All RE related documents are available in the below locations
 -   [RE GitHub Wiki](https://github.com/Seagate/cortx-re/wiki)
--   [Cortx Dev SharePoint](https://seagatetechnology-my.sharepoint.com/personal/gowthaman_chinnathambi_seagate_com/_layouts/15/onedrive.aspx?id=%2Fsites%2Fgteamdrv1%2Ftdrive1224%2FShared%20Documents%2FComponents%2FRelease%20Engineering%2FDocumentation&listurl=https%3A%2F%2Fseagatetechnology%2Esharepoint%2Ecom%2Fsites%2Fgteamdrv1%2Ftdrive1224%2FShared%20Documents)
+-   [Cortx Dev SharePoint](https://seagatetechnology.sharepoint.com/:f:/r/sites/gteamdrv1/tdrive1224/Shared%20Documents/Components/Release%20Engineering/Documentation?csf=1&web=1&e=LdXiz4)
