@@ -32,6 +32,6 @@ provisioner setup_provisioner \
     {% for node in  HOST.split(',') %}srvnode-{{ counter }}:{{ node }} {% set counter = counter + 1 %}{% endfor %}
 
 
-provisioner configure_setup {{ CORXT_DEPLOYMENT_CONFIG_PATH }}/config.ini {{ REQUIRED_HOST }}
+provisioner configure_setup {{ CORXT_DEPLOYMENT_CONFIG_PATH }}/config.ini {{ REQUIRED_HOST }} || { echo "Configure-Setup Failed" ; exit 1; }  
 salt-call state.apply components.system.config.pillar_encrypt
 provisioner confstore_export

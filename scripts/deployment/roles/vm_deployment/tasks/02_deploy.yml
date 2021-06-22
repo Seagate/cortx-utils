@@ -5,7 +5,7 @@
     - name: "[ Deploy Cortx Stack ] : 1. Provisioner Bootstrap" 
       shell: "bash {{ CORXT_DEPLOYMENT_SCRIPT_PATH }}/provisioner_bootsrap.sh 2>&1 | tee -a {{ CORXT_DEPLOYMENT_LOG_PATH }}/01_provisioner_bootstrap.log"
       register: deploy_vm
-      failed_when: "\"Success: Node Validation done\" not in deploy_vm.stdout and \"Confstore copied across all nodes of cluster\" not in deploy_vm.stdout"
+      failed_when: "\"Success: Node Validation done\" not in deploy_vm.stdout and \"Confstore copied across all nodes of cluster\" not in deploy_vm.stdout and \"Configure-Setup Failed\" in deploy_vm.stdout"
       tags: ['02_1_PRVSNR_BOOTSTRAP']
 
     - name: "[ Deploy Cortx Stack ] : Validate Provisioner Bootstrap" 
