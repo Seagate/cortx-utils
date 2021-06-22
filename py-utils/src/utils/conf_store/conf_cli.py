@@ -132,13 +132,15 @@ class ConfCli:
             Conf.save(ConfCli._index)
 
     @staticmethod
-    def get_keys(args) -> list:
+    def get_keys(args, index: str = None) -> list:
         """ Returns list of keys present in store """
         key_index = 'true' if args.key_index == None else args.key_index.lower().strip()
         key_index = True if key_index == 'true' else False if key_index == 'false' else None
-        if key_index == None:
+        if key_index is None:
             raise ConfError(errno.EINVAL, "invalid key_index value %s", key_index)
-        return Conf.get_keys(ConfCli._index, key_index=key_index)
+	if index is None:
+		index = ConfCli._index
+        return Conf.get_keys(index, key_index=key_index)
 
 
 class GetCmd:
