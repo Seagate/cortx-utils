@@ -110,7 +110,8 @@ class Resource:
         module = None
         try:
             if path.startswith("/"):
-                sys.path.append(path)
+                if path not in sys.path:
+                    sys.path.append(path)
                 module = __import__("__init__")
             else:
                 m_path = path.strip().rstrip("/").replace("/", ".")
@@ -126,7 +127,7 @@ class Resource:
         try:
             from cortx.utils.discovery.node_health import common_config
             provider_loc = common_config.get(
-                ["health_provider>%s" % self.health_provider_map[self.name]])[0]
+                ["discovery>health_provider>%s" % self.health_provider_map[self.name]])[0]
         except KeyError as err:
             raise DiscoveryError(
                 errno.EINVAL, f"{err} not found in DM health provider config.")

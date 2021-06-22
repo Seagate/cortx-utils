@@ -22,11 +22,11 @@ from cortx.utils.discovery import Discovery
 from cortx.utils.discovery.error import DiscoveryError
 
 # Sample rpaths
-#valid_rpath = "nodes[0]"
-#valid_rpath = "nodes[0]>compute[0]"
-#valid_rpath = "nodes[0]>storage[0]"
-valid_rpath = "nodes[0]>storage[0]>hw>controllers"
-invalid_rpath = "nodes[0]>notexist[0]"
+#valid_rpath = "node"
+#valid_rpath = "node>compute[0]"
+#valid_rpath = "node>storage[0]"
+valid_rpath = "node>storage[0]>hw>controllers"
+invalid_rpath = "node>notexist[0]"
 
 
 class TestDiscovery(unittest.TestCase):

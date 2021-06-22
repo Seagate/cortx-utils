@@ -34,9 +34,9 @@ common_config = KvStoreFactory.get_instance(config_url)
 common_config.load()
 
 # Load DM request status tracker
-os.makedirs(common_config.get(["resource_map>location"])[0], exist_ok=True)
+os.makedirs(common_config.get(["discovery>resource_map>location"])[0], exist_ok=True)
 requests_url = "%s://%s" % (
-    store_type, common_config.get(["resource_map>requests_file"])[0])
+    store_type, common_config.get(["discovery>resource_map>requests_file"])[0])
 req_register = KvStoreFactory.get_instance(requests_url)
 req_register.load()
 
@@ -115,16 +115,16 @@ class NodeHealth:
         if not store_url and not rpath:
             # Create static store url
             rpath = NodeHealth.ROOT_NODE
-            store_type = common_config.get(["resource_map>store_type"])[0]
-            resource_map_loc = common_config.get(["resource_map>location"])[0]
+            store_type = common_config.get(["discovery>resource_map>store_type"])[0]
+            resource_map_loc = common_config.get(["discovery>resource_map>location"])[0]
             data_file = os.path.join(resource_map_loc,
                 "node_health_info.%s" % (store_type))
             store_url = "%s://%s" % (store_type, data_file)
 
         elif not store_url and rpath:
             # Create request_id based store_url
-            store_type = common_config.get(["resource_map>store_type"])[0]
-            resource_map_loc = common_config.get(["resource_map>location"])[0]
+            store_type = common_config.get(["discovery>resource_map>store_type"])[0]
+            resource_map_loc = common_config.get(["discovery>resource_map>location"])[0]
             data_file = os.path.join(resource_map_loc,
                 "node_health_info_%s.%s" % (req_id, store_type))
             store_url = "%s://%s" % (store_type, data_file)
@@ -158,7 +158,7 @@ class NodeHealth:
                 errno.EINVAL, "Request ID '%s' not found." % req_id)
         else:
             # Set failed status to stale request ID
-            expiry_sec = int(common_config.get(["resource_map>expiry_sec"])[0])
+            expiry_sec = int(common_config.get(["discovery>resource_map>expiry_sec"])[0])
             last_reboot = int(psutil.boot_time())
             # Set request is expired if processing time exceeds
             req_start_time = int(req_register.get(["%s>time" % req_id])[0])
@@ -184,8 +184,8 @@ class NodeHealth:
                     errno.EINVAL, "Request ID '%s' not found." % req_id)
         else:
             # Look for static data or cached file
-            store_type = common_config.get(["resource_map>store_type"])[0]
-            resource_map_loc = common_config.get(["resource_map>location"])[0]
+            store_type = common_config.get(["discovery>resource_map>store_type"])[0]
+            resource_map_loc = common_config.get(["discovery>resource_map>location"])[0]
             data_file = os.path.join(resource_map_loc,
                 "node_health_info.%s" % (store_type))
 

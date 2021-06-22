@@ -20,10 +20,11 @@ import os
 from cortx.utils.conf_store import Conf
 from cortx.utils.discovery.node_health import common_config
 
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+store_path = os.path.join(dir_path, 'mocked_node_health.json')
 store_type = "json"
-store_path = os.path.join(
-    os.path.dirname(common_config.get(["resource_map>location"])[0]),
-    "mocked_data/mocked_node_health.json")
 mock_data_url = "%s://%s" % (store_type, store_path)
 mock_index = "mock_index"
 Conf.load(mock_index, mock_data_url)
