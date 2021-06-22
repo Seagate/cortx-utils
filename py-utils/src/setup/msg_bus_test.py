@@ -14,10 +14,9 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import errno
 import time
 from cortx.setup import SetupError
-from cortx.utils.process import SimpleProcess
+from cortx.utils import errors
 
 
 class MessageBusTest:
@@ -28,13 +27,13 @@ class MessageBusTest:
         # Create a test message_type
         try:
             admin = MessageBusAdmin(admin_id='messageadmin')
-            admin.register_message_type(message_types=['mytest'], partitions = 1)
+            admin.register_message_type(message_types=['mytest'], partitions=1)
             list_message_type = admin.list_message_types()
             if 'mytest' not in list_message_type:
-                raise SetupError(errno.EINVAL, "Failed to test the config." \
+                raise SetupError(errors.ERR_OP_FAILED, "Failed to test the config." \
                     "message_type 'mytest' creation failed.")
         except Exception as e:
-            raise SetupError(errno.EINVAL, "Failed to test the config, %s", e)
+            raise SetupError(errors.ERR_OP_FAILED, "Failed to test the config, %s", e)
 
     def __del__(self):
         # Delete the test message_type
@@ -45,11 +44,11 @@ class MessageBusTest:
             admin.deregister_message_type(message_types=['mytest'])
             list_message_type = admin.list_message_types()
             if 'mytest' in list_message_type:
-                raise SetupError(errno.EINVAL, "Failed to test the config." \
-                    " Deregister messge_type: mytest failed")
+                raise SetupError(errors.ERR_OP_FAILED, "Failed to test the" \
+                    " config. Deregister messge_type: mytest failed")
         except Exception as e:
-            raise SetupError(errno.EINVAL, \
-                             "Failed to test the config, %s", e)
+            raise SetupError(errors.ERR_OP_FAILED, \
+                "Failed to test the config, %s", e)
 
     def send_msg(self, message):
         """ Sends a  message """
@@ -72,6 +71,6 @@ class MessageBusTest:
                 if message != None:
                     return message
             except Exception as e:
-                raise SetupError(errno.EINVAL, "Failed to receive messages" \
+                raise SetupError(errors.ERR_OP_FAILED, "Failed to receive messages" \
                     "for message_type: mytest. Unable to test the config." \
                     " %s", e)
