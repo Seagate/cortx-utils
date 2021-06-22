@@ -8,57 +8,67 @@ from shutil import copyfile
 import socket
 
 class Replication:
-
-    def checkHostValidity(hostFilePath):
+hostList = []
+    def readInputHostFile(hostFilePath):
         file=open(hostFilePath, 'r')
         Lines=file.readlines()
-        totalHosts = 0;
         for line in Lines :
+            hostList.append(line.strip())
+
+    def checkHostValidity():
+        totalHosts = 0;
+        for host in hostList :
             totalHosts = totalHosts + 1
-            #exit_code = os.system(f"ping {parameter} 1 -w2 {ip} > /dev/null 2>&1")
-            exit_code = os.system("ping -c 1 " + line.strip())
+            exit_code = os.system("ping -c 1 " + host)
             if(exit_code == 0):
-                print(line.strip() + ' is valid and reachable.')
+                print(host + ' is valid and reachable.')
             else:
-                print(line.strip() + ' is either invalid or not reachable.')
+                print(host + ' is either invalid or not reachable.')
                 quit()
         return totalHosts
     
-    def getServerIdFromHostFile(hostFilePath):
-        file=open(hostFilePath, 'r')
-        Lines=file.readlines()
+    def getServerIdFromHostFile():
         serverId = 1
-        for line in Lines :
-            if(line.strip() == socket.gethostname()):
+        for host in hostList :
+            if(host == socket.gethostname()):
                 break
             serverId = serverId + 1
         return serverId
 
+    def addAttribute(l, dn, attrToAdd, value):
+        mod_attrs = [( ldap.MOD_ADD, attrToAdd, bytes(str(value), 'utf-8')  )]
+        try:
+            l.modify_s(dn,mod_attrs)
+        except:
+            print('Exception while adding '+ attrToAdd + 'to dn '+ dn)
+
+    def deleteAttribute(l, dn, attrToDelete):
+        ldap_result_id = l.search_s(dn, ldap.SCOPE_BASE, None, [attrToDelete])
+        for result1,result2 in ldap_result_id:
+        if(result2):
+        for value in result2[attrToDelete]:
+            if(value):
+                mod_attrs = [( ldap.MOD_DELETE, attrToDelete, value  )]
+                try:
+                    l.modify_s(dn,mod_attrs)
+                except:
+                    print('Exception while deleting '+attrToDelete)
+
     def setReplication(hosts, pwd):
-        totalHostCount = Replication.checkHostValidity(hosts)
-        id = Replication.getServerIdFromHostFile(hosts)
+        Replication.readInputHostFile(hostFile)
+        totalHostCount = Replication.checkHostValidity()
+        id = Replication.getServerIdFromHostFile()
         if id > totalHostCount :
             print('Current host entry is not present in input host file')
             quit()
-        # Open a connection
         l = ldap.initialize("ldapi://")
-        # Bind/authenticate with a user with apropriate rights to add objects
         l.simple_bind_s("cn=admin,dc=seagate,dc=com","seagate")
-        # The dn of our new entry/object
         l.sasl_non_interactive_bind_s('EXTERNAL')
+        
         dn="cn=config"
-        #cleanup serverId
-        mod_attrs = [( ldap.MOD_DELETE, 'olcServerID', bytes(str(id), 'utf-8')  )]
-        try:
-            l.modify_s(dn,mod_attrs)
-        except:
-            print('Exception while deleting serverId')
-
-        mod_attrs = [( ldap.MOD_ADD, 'olcServerID', bytes(str(id), 'utf-8')  )]
-        try:
-            l.modify_s(dn,mod_attrs)
-        except:
-            print('Exception while adding serverId to config')
+        Replication.deleteAttribute(l, dn, 'olcServerID')
+        Replication.addAttribute(l,dn,'olcServerID',id)
+        
         dn="cn=module,cn=config"
         add_record = [
          ('objectClass', [b'olcModuleList']),
@@ -82,34 +92,16 @@ class Replication:
             print('Exception while adding olcOverlay to config')
 
         dn="olcDatabase={0}config,cn=config"
+        Replication.deleteAttribute(l, dn, 'olcSyncrepl')
         ridnum = 0
-        file=open(hosts, 'r')
-        Lines=file.readlines()
-        for line in Lines :
+        for host in hostList :
             ridnum = ridnum + 1
-            value="rid=00"+str(ridnum)+" provider=ldap://"+line.strip()+":389/ bindmethod=simple binddn=cn=admin,cn=config credentials="+pwd+" searchbase=cn=config scope=sub schemachecking=on type=refreshAndPersist retry=30 5 300 3 interval=00:00:05:00"
-            mod_attrs = [ ( ldap.MOD_DELETE, 'olcSyncRepl', bytes(value, 'utf-8') )]
-            try:
-                l.modify_s(dn,mod_attrs)
-            except:
-                print('Exception while deleting olcSyncRepl from config')
-            mod_attrs = [ ( ldap.MOD_ADD, 'olcSyncRepl', bytes(value, 'utf-8') )]
-            try:
-                l.modify_s(dn,mod_attrs)
-            except:
-                print('Exception while adding olcSyncRepl to config')
-        #cleanup Mirror Mode
-        mod_attrs = [( ldap.MOD_DELETE, 'olcMirrorMode', [b'TRUE'])]
-        try:
-            l.modify_s(dn,mod_attrs)
-        except :
-            print('Exception while deleting olcMirrorMode from config')
-
-        mod_attrs = [( ldap.MOD_ADD, 'olcMirrorMode', [b'TRUE'])]
-        try:
-            l.modify_s(dn,mod_attrs)
-        except:
-            print('Exception while adding olcMirrorMode to config')
+            value="rid=00"+str(ridnum)+" provider=ldap://"+host+":389/ bindmethod=simple binddn=cn=admin,cn=config credentials="+pwd+" searchbase=cn=config scope=sub schemachecking=on type=refreshAndPersist retry=30 5 300 3 interval=00:00:05:00"
+            Replication.addAttribute(l,dn,'olcSyncRepl',value)
+        
+        Replication.deleteAttribute(l,dn,'olcMirrorMode')
+        Replication.addAttribute(l,dn,'olcMirrorMode','TRUE')
+        
         dn="olcOverlay=syncprov,olcDatabase={2}mdb,cn=config"
         add_record = [
          ('objectClass', [b'olcOverlayConfig', b'olcSyncProvConfig']),
@@ -122,31 +114,11 @@ class Replication:
             print('Exception while adding olcOverlay to data')
 
         dn="olcDatabase={2}mdb,cn=config"
-        for line in Lines :
+        Replication.deleteAttribute(l, dn, 'olcSyncrepl')
+        for host in hostList :
             ridnum = ridnum + 1
-            value="rid=00"+str(ridnum)+" provider=ldap://"+line.strip()+":389/ bindmethod=simple binddn=cn=admin,dc=seagate,dc=com credentials="+pwd+" searchbase=dc=seagate,dc=com scope=sub schemachecking=on type=refreshAndPersist retry=30 5 300 3 interval=00:00:05:00"
-            mod_attrs = [ ( ldap.MOD_DELETE, 'olcSyncRepl', bytes(value, 'utf-8') )]
-            try:
-                l.modify_s(dn,mod_attrs)
-            except:
-                print('Exception while deleting olcSyncRepl from data')
+            value="rid=00"+str(ridnum)+" provider=ldap://"+host+":389/ bindmethod=simple binddn=cn=admin,dc=seagate,dc=com credentials="+pwd+" searchbase=dc=seagate,dc=com scope=sub schemachecking=on type=refreshAndPersist retry=30 5 300 3 interval=00:00:05:00"
+            Replication.addAttribute(l,dn,'olcSyncRepl',value)
 
-            mod_attrs = [ ( ldap.MOD_ADD, 'olcSyncRepl', bytes(value, 'utf-8') )]
-            try:
-                l.modify_s(dn,mod_attrs)
-            except:
-                print('Exception while adding olcSyncRepl to data')
-        #cleanup Mirror Mode
-        mod_attrs = [( ldap.MOD_DELETE, 'olcMirrorMode', [b'TRUE'])]
-        try:
-            l.modify_s(dn,mod_attrs)
-        except:
-            print('Exception while deleting mirrorMode from data')
-        
-        mod_attrs = [( ldap.MOD_ADD, 'olcMirrorMode', [b'TRUE'])]
-        try:
-            l.modify_s(dn,mod_attrs)
-        except:
-            print('Exception while adding olcMirrorMode to data')
-
-
+        Replication.deleteAttribute(l,dn,'olcMirrorMode')
+        Replication.addAttribute(l,dn,'olcMirrorMode','TRUE')
