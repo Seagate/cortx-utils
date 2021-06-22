@@ -71,6 +71,9 @@ class Discovery:
         """
         Returns resource health map backend URL.
 
+        request_id: Unique ID returned by generate node health method
+        If request_id is not given, this will return available static
+        store url.
         URL format: "json://<file_path>/<file_name>"
         """
         return NodeHealth.get_resource_map_location(request_id)

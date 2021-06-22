@@ -15,6 +15,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com
 
+import sys
 import os
 
 from cortx.utils.conf_store import Conf
@@ -38,7 +39,7 @@ class Server:
     def get_health_info(self, rpath):
         """
         Fetch health information for given FRU
-        rpath: Resouce id (Example: node>compute[0]>hw>disks)
+        rpath: Resource id (Example: node>compute[0]>hw>disks)
         """
         return Conf.get(mock_index, rpath)
 
@@ -51,7 +52,7 @@ class Storage:
     def get_health_info(self, rpath):
         """
         Fetch health information for given FRU
-        rpath: Resouce id (Example: node>storage[0]>hw>controllers)
+        rpath: Resource id (Example: node>storage[0]>hw>controllers)
         """
         return Conf.get(mock_index, rpath)
 

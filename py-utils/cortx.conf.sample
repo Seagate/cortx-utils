@@ -2,8 +2,8 @@
   "install_path": "/opt/seagate",
   "discovery": {
     "health_provider": {
-      "storage": "cortx/utils/test/discovery/mocked_health_gen",
-      "server": "cortx/utils/test/discovery/mocked_health_gen"
+      "storage": "/opt/seagate/cortx/sspl/bin/resource_map",
+      "server": "/opt/seagate/cortx/sspl/bin/resource_map"
     },
     "resource_map": {
       "location": "/var/cortx/resources/",

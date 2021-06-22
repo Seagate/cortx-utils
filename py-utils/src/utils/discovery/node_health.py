@@ -27,13 +27,13 @@ from cortx.utils.discovery.error import DiscoveryError
 from cortx.utils.discovery.resource import Resource, ResourceFactory
 from cortx.utils.kv_store import KvStoreFactory
 
-# Load DM config
+# Load cortx common config
 store_type = "json"
 config_url = "%s://%s" % (store_type, const.CORTX_CONF_FILE)
 common_config = KvStoreFactory.get_instance(config_url)
 common_config.load()
 
-# Load DM request status tracker
+# Load Discovery health generate request status tracker
 os.makedirs(common_config.get(["discovery>resource_map>location"])[0], exist_ok=True)
 requests_url = "%s://%s" % (
     store_type, common_config.get(["discovery>resource_map>requests_file"])[0])
