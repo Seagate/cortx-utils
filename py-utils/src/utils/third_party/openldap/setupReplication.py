@@ -1,3 +1,23 @@
+#!/usr/bin/env python3
+#
+# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# For any questions about this software or licensing,
+# please email opensource@seagate.com or cortx-questions@seagate.com.
+#
+
 import sys
 import os
 import ldap
@@ -6,68 +26,81 @@ import shutil
 import glob
 from shutil import copyfile
 import socket
+from cortx.utils.log import Log
 
 class Replication:
-hostList = []
-    def readInputHostFile(hostFilePath):
-        file=open(hostFilePath, 'r')
-        Lines=file.readlines()
+    hostlist = []
+    Log.init('replication_config_log','/var/log/seagate/s3',level='DEBUG')
+    def readinputhostfile(host_file_path):
+        global hostlist
+        hostlist=[]
+        file = open(host_file_path, 'r')
+        Lines = file.readlines()
         for line in Lines :
-            hostList.append(line.strip())
+            hostlist.append(line.strip())
+        hostlist.sort()
 
-    def checkHostValidity():
-        totalHosts = 0;
-        for host in hostList :
-            totalHosts = totalHosts + 1
+    def checkhostvalidity():
+        totalhosts = 0;
+        for host in hostlist :
+            totalhosts = totalhosts + 1
             exit_code = os.system("ping -c 1 " + host)
             if(exit_code == 0):
-                print(host + ' is valid and reachable.')
+                Log.debug(host + ' is valid and reachable.')
             else:
-                print(host + ' is either invalid or not reachable.')
+                Log.debug(host + ' is either invalid or not reachable.')
                 quit()
-        return totalHosts
+        return totalhosts
     
-    def getServerIdFromHostFile():
-        serverId = 1
-        for host in hostList :
+    def getserveridfromhostfile():
+        serverid = 1
+        for host in hostlist :
             if(host == socket.gethostname()):
                 break
-            serverId = serverId + 1
-        return serverId
+            serverid = serverid + 1
+        return serverid
 
-    def addAttribute(l, dn, attrToAdd, value):
-        mod_attrs = [( ldap.MOD_ADD, attrToAdd, bytes(str(value), 'utf-8')  )]
+    def addattribute(conn, dn, attr_to_add, value):
+        mod_attrs = [(ldap.MOD_ADD, attr_to_add, bytes(str(value), 'utf-8'))]
         try:
-            l.modify_s(dn,mod_attrs)
+            conn.modify_s(dn,mod_attrs)
         except:
-            print('Exception while adding '+ attrToAdd + 'to dn '+ dn)
+            Log.error('Exception while adding '+ attr_to_add + ' to dn '+ dn)
+            raise Exception('Exception while adding '+ attr_to_add + ' to dn '+ dn)
 
-    def deleteAttribute(l, dn, attrToDelete):
-        ldap_result_id = l.search_s(dn, ldap.SCOPE_BASE, None, [attrToDelete])
+    def deleteattribute_old(conn, dn, attr_to_delete):
+        ldap_result_id = conn.search_s(dn, ldap.SCOPE_BASE, None, [attr_to_delete])
         for result1,result2 in ldap_result_id:
-        if(result2):
-        for value in result2[attrToDelete]:
-            if(value):
-                mod_attrs = [( ldap.MOD_DELETE, attrToDelete, value  )]
-                try:
-                    l.modify_s(dn,mod_attrs)
-                except:
-                    print('Exception while deleting '+attrToDelete)
+            if(result2):
+                for value in result2[attr_to_delete]:
+                    if(value):
+                        mod_attrs = [( ldap.MOD_DELETE, attr_to_delete,value )]
+                        try:
+                            conn.modify_s(dn,mod_attrs)
+                        except:
+                            Log.error('Exception while deleting '+attr_to_delete+ ' from dn '+ dn + ' value '+str(value) )
 
-    def setReplication(hosts, pwd):
-        Replication.readInputHostFile(hostFile)
-        totalHostCount = Replication.checkHostValidity()
-        id = Replication.getServerIdFromHostFile()
-        if id > totalHostCount :
-            print('Current host entry is not present in input host file')
+    def deleteattribute(conn, dn, attr_to_delete):
+        mod_attrs = [( ldap.MOD_DELETE, attr_to_delete, None  )]
+        try:
+            conn.modify_s(dn,mod_attrs)
+        except:
+            Log.error('Exception while deleting '+attr_to_delete+ ' from dn '+ dn  )
+
+    def setreplication(hostfile, pwd):
+        Replication.readinputhostfile(hostfile)
+        totalhostcount = Replication.checkhostvalidity()
+        id = Replication.getserveridfromhostfile()
+        if id > totalhostcount :
+            Log.debug('Current host-'+socket.gethostname()+' is not present in input host file')
             quit()
-        l = ldap.initialize("ldapi://")
-        l.simple_bind_s("cn=admin,dc=seagate,dc=com","seagate")
-        l.sasl_non_interactive_bind_s('EXTERNAL')
+        conn = ldap.initialize("ldapi://")
+        conn.simple_bind_s("cn=admin,dc=seagate,dc=com","seagate")
+        conn.sasl_non_interactive_bind_s('EXTERNAL')
         
         dn="cn=config"
-        Replication.deleteAttribute(l, dn, 'olcServerID')
-        Replication.addAttribute(l,dn,'olcServerID',id)
+        Replication.deleteattribute(conn, dn, 'olcserverid')
+        Replication.addattribute(conn,dn,'olcserverid',id)
         
         dn="cn=module,cn=config"
         add_record = [
@@ -77,31 +110,11 @@ hostList = []
          ('olcModuleLoad', [b'syncprov.la'])
         ]
         try:
-            l.add_s(dn, add_record)
+            conn.add_s(dn, add_record)
         except:
-            print('Exception while adding syncprov_mod')
-        dn="olcOverlay=syncprov,olcDatabase={0}config,cn=config"
-        add_record = [
-         ('objectClass', [b'olcOverlayConfig', b'olcSyncProvConfig']),
-         ('olcOverlay', [b'syncprov'] ),
-         ('olcSpSessionLog', [b'100'] )
-        ]
-        try:
-            l.add_s(dn, add_record)
-        except:
-            print('Exception while adding olcOverlay to config')
+            Log.error('Exception while adding syncprov_mod')
+            raise Exception('Exception while adding syncprov_mod')
 
-        dn="olcDatabase={0}config,cn=config"
-        Replication.deleteAttribute(l, dn, 'olcSyncrepl')
-        ridnum = 0
-        for host in hostList :
-            ridnum = ridnum + 1
-            value="rid=00"+str(ridnum)+" provider=ldap://"+host+":389/ bindmethod=simple binddn=cn=admin,cn=config credentials="+pwd+" searchbase=cn=config scope=sub schemachecking=on type=refreshAndPersist retry=30 5 300 3 interval=00:00:05:00"
-            Replication.addAttribute(l,dn,'olcSyncRepl',value)
-        
-        Replication.deleteAttribute(l,dn,'olcMirrorMode')
-        Replication.addAttribute(l,dn,'olcMirrorMode','TRUE')
-        
         dn="olcOverlay=syncprov,olcDatabase={2}mdb,cn=config"
         add_record = [
          ('objectClass', [b'olcOverlayConfig', b'olcSyncProvConfig']),
@@ -109,16 +122,18 @@ hostList = []
          ('olcSpSessionLog', [b'100'] )
         ]
         try:
-            l.add_s(dn, add_record)
+            conn.add_s(dn, add_record)
         except:
-            print('Exception while adding olcOverlay to data')
+            Log.error('Exception while adding olcOverlay to data')
+            raise Exception('Exception while adding olcOverlay to data')
 
         dn="olcDatabase={2}mdb,cn=config"
-        Replication.deleteAttribute(l, dn, 'olcSyncrepl')
-        for host in hostList :
+        Replication.deleteattribute(conn, dn, 'olcSyncrepl')
+        ridnum = 0
+        for host in hostlist :
             ridnum = ridnum + 1
-            value="rid=00"+str(ridnum)+" provider=ldap://"+host+":389/ bindmethod=simple binddn=cn=admin,dc=seagate,dc=com credentials="+pwd+" searchbase=dc=seagate,dc=com scope=sub schemachecking=on type=refreshAndPersist retry=30 5 300 3 interval=00:00:05:00"
-            Replication.addAttribute(l,dn,'olcSyncRepl',value)
-
-        Replication.deleteAttribute(l,dn,'olcMirrorMode')
-        Replication.addAttribute(l,dn,'olcMirrorMode','TRUE')
+            value="rid=00"+str(ridnum)+" provider=ldap://"+host+":389/ bindmethod=simple binddn=\"cn=admin,dc=seagate,dc=com\" credentials="+pwd+" searchbase=\"dc=seagate,dc=com\" scope=sub schemachecking=on type=refreshAndPersist retry=\"30 5 300 3\" interval=00:00:05:00"
+            Replication.addattribute(conn,dn,'olcSyncrepl',value)
+        Replication.deleteattribute(conn,dn,'olcMirrorMode')
+        Replication.addattribute(conn,dn,'olcMirrorMode','TRUE')
+        conn.unbind_s()
