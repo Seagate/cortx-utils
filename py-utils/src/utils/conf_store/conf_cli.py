@@ -138,8 +138,8 @@ class ConfCli:
         key_index = True if key_index == 'true' else False if key_index == 'false' else None
         if key_index is None:
             raise ConfError(errno.EINVAL, "invalid key_index value %s", key_index)
-	if index is None:
-		index = ConfCli._index
+        if index is None:
+            index = ConfCli._index
         return Conf.get_keys(index, key_index=key_index)
 
 
