@@ -3,7 +3,6 @@ attr
 compat-lua-libs
 consul >= 1.7.0, consul < 1.10.0
 corosync
-facter
 fence-agents-ipmilan
 findutils
 gdb
@@ -41,6 +40,7 @@ perl-Try-Tiny
 perl-YAML-LibYAML
 perl-autodie
 pkgconfig
+puppet-agent >= 6.13.0
 python-magic
 python3-pip
 python36 == 3.6.8
