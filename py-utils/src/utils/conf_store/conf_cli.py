@@ -85,7 +85,7 @@ class ConfCli:
             diff_index = "string_diff"
             args.url = args.second_url
             ConfCli.load(args.url, diff_index)
-            string_2 = ConfCli.get_keys(args)
+            string_2 = ConfCli.get_keys(args, diff_index)
         else:
             args.format = None
             string_1 = ConfCli.get(args)
