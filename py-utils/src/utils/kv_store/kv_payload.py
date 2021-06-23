@@ -24,7 +24,7 @@ from cortx.utils.schema import Format
 class KvPayload:
     """ Dict based in memory representation of Key Value data """
 
-    def __init__(self, data: dict = None, delim='>'):
+    def __init__(self, data: dict = None, delim='>', recurse: bool = True):
         """
         kvstore will be initialized at the time of load
         delim is used to split key into hierarchy, e.g. "k1>2" or "k1.k2"
@@ -34,7 +34,10 @@ class KvPayload:
             raise KvError(errno.EINVAL, "Invalid delim %s", delim)
         self._delim = delim
         self._keys = []
-        self._get_keys(self._keys, self._data)
+        if recurse:
+            self._get_keys(self._keys, self._data)
+        else:
+            self._shallow_get_keys(self._keys, self._data)
 
     @property
     def json(self):
@@ -45,7 +48,7 @@ class KvPayload:
             return self._data
         return Format.dump(self._data, format_type)
 
-    def get_keys(self, deep_scan: bool = True, **filters) -> list:
+    def get_keys(self, recurse: bool = True, **filters) -> list:
         """
         Obtains list of keys stored in the payload
         Input Paramters:
@@ -58,7 +61,7 @@ class KvPayload:
         if len(filters.items()) == 0:
             return self._keys
         keys = []
-        if deep_scan:
+        if recurse:
             self._get_keys(keys, self._data, None, **filters)
         else:
             self._shallow_get_keys(keys, self._data, None, **filters)
@@ -100,7 +103,7 @@ class KvPayload:
                 if not isinstance(data[key], (dict, list)):
                     keys.append(nkey)
                 else:
-                    self._get_keys(keys, data[key], nkey, key_index)
+                    self._shallow_get_keys(keys, data[key], nkey, key_index)
         else:
             raise KvError(errno.ENOSYS, "Cant handle type %s", type(data))
 
@@ -186,7 +189,7 @@ class KvPayload:
         if len(k) == 1: return data1
 
         # This is not the leaf node of the key, process intermediate node
-        return self._get(k[1], data1)
+        return self._shallow_get(k[1], data1)
 
     def _get(self, key: str, data: dict) -> str:
         """ Core logic for get """
@@ -251,9 +254,9 @@ class KvPayload:
             else:
                 return None
 
-    def get(self, key: str, deep_scan: bool = True) -> str:
+    def get(self, key: str, recurse: bool = True) -> str:
         """ Obtain value for the given key """
-        if deep_scan:
+        if recurse:
             return self._get(key, self._data)
         return self._shallow_get(key, self._data)
 

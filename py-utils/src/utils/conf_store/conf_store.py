@@ -71,6 +71,7 @@ class ConfStore:
         """
         fail_reload = True
         skip_reload = False
+        recurse = True
         for key, val in kwargs.items():
             if key == 'fail_reload':
                 fail_reload = val
@@ -78,6 +79,10 @@ class ConfStore:
                 skip_reload = val
             elif key == 'callback':
                 self._callbacks[index] = val
+            elif key == 'recurse':
+                if val not in [True, False]:
+                    raise ConfError(errno.EINVAL, "Invalid value for recurse %s", val)
+                recurse = val
             else:
                 raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
 
@@ -88,7 +93,7 @@ class ConfStore:
                 raise ConfError(errno.EINVAL, "conf index %s already exists",
                                 index)
         kv_store = KvStoreFactory.get_instance(kvs_url, self._delim)
-        self._cache[index] = ConfCache(kv_store, self._delim)
+        self._cache[index] = ConfCache(kv_store, self._delim, recurse=recurse)
 
     def save(self, index: str):
         """ Saves the given index configuration onto KV Store """
@@ -168,7 +173,7 @@ class ConfStore:
         return self._cache[index].delete(key)
 
     def copy(self, src_index: str, dst_index: str, key_list: list = None,
-        deep_scan: bool = True):
+        recurse: bool = True):
         """
         Copies one config domain to the other and saves
 
@@ -185,7 +190,10 @@ class ConfStore:
                 dst_index)
 
         if key_list is None:
-            key_list = self._cache[src_index].get_keys(key_index=deep_scan)
+            if recurse:
+                key_list = self._cache[src_index].get_keys(key_index=True)
+            else:
+                key_list = self._cache[src_index].get_keys(key_index=False)
         for key in key_list:
             self._cache[dst_index].set(key, self._cache[src_index].get(key))
 
@@ -238,11 +246,11 @@ class Conf:
             Conf._machine_id = Conf._conf.machine_id
 
     @staticmethod
-    def load(index: str, url: str, **kwargs):
+    def load(index: str, url: str, recurse=True, **kwargs):
         """ Loads Config from the given URL """
         if Conf._conf is None:
             Conf.init()
-        Conf._conf.load(index, url, **kwargs)
+        Conf._conf.load(index, url, recurse=recurse, **kwargs)
 
     @staticmethod
     def save(index: str):
@@ -266,9 +274,9 @@ class Conf:
 
     @staticmethod
     def copy(src_index: str, dst_index: str, key_list: list = None,
-        deep_scan: bool = True):
+        recurse: bool = True):
         """ Creates a Copy suffixed file for main file"""
-        Conf._conf.copy(src_index, dst_index, key_list, deep_scan)
+        Conf._conf.copy(src_index, dst_index, key_list, recurse)
         Conf._conf.save(dst_index)
 
     @staticmethod

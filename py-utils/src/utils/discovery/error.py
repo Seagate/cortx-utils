@@ -1,5 +1,6 @@
-#!/bin/bash
-#
+#!/bin/env python3
+
+# CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -14,21 +15,13 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-# Value of install_path will be changed at build time
-#install_path_placeholder
-utils_path=$install_path/cortx/utils
+from cortx.utils.errors import BaseError
 
-# Create /etc/cortx. This will be used for storing message_bus.conf file
-/bin/mkdir -p /etc/cortx
 
-# Copy the setup_cli.py as utils_setup
-/bin/mkdir -p $utils_path/bin/
-/bin/ln -s /usr/lib/python3.6/site-packages/cortx/setup/utils_setup.py $utils_path/bin/utils_setup
-/bin/chmod +x $utils_path/bin//utils_setup
+class DiscoveryError(BaseError):
+    """Generic Exception with error code and output."""
 
-# Copy the message_bus_server.py as message_bus_server
-/bin/ln -s /usr/lib/python3.6/site-packages/cortx/utils/utils_server/utils_server.py $utils_path/bin/utils_server
-/bin/chmod +x $utils_path/bin/utils_server
-
-# Copy cortx.conf file to /etc/cortx
-[ -f "/etc/cortx/cortx.conf" ] || cp -n $utils_path/conf/cortx.conf.sample /etc/cortx/cortx.conf
+    def __init__(self, rc=0, desc=None, message_id=None, message_args=None):
+        """Initialize DiscoveryError"""
+        super(DiscoveryError, self).__init__(
+              rc, '%s' % desc, message_id, message_args)

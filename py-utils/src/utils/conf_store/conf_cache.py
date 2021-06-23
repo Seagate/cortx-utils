@@ -23,13 +23,14 @@ from cortx.utils.kv_store.kv_store import KvStore
 class ConfCache:
     """ In-memory configuration Data """
 
-    def __init__(self, kv_store: KvStore, delim='>'):
+    def __init__(self, kv_store: KvStore, delim='>', recurse=True):
         if len(delim) > 1:
             raise ConfError(errno.EINVAL, "invalid delim %s", delim)
         self._delim = delim
         self._dirty = False
         self._kv_store = kv_store
         self._data = None
+        self.recurse = recurse
         self.load()
 
     def get_data(self):
@@ -42,7 +43,7 @@ class ConfCache:
         """ Loads the configuration from the KV backend """
         if self._dirty:
             raise Exception('%s not synced to disk' % self._kv_store)
-        self._data = self._kv_store.load()
+        self._data = self._kv_store.load(recurse = self.recurse)
 
     def dump(self):
         """ Dump the config values onto the corresponding KV backend """
