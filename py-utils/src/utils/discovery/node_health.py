@@ -33,10 +33,11 @@ config_url = "%s://%s" % (store_type, const.CORTX_CONF_FILE)
 common_config = KvStoreFactory.get_instance(config_url)
 common_config.load()
 
-# Load Discovery health generate request status tracker
+# Load Discovery request status tracker
 os.makedirs(common_config.get(["discovery>resource_map>location"])[0], exist_ok=True)
-requests_url = "%s://%s" % (
-    store_type, common_config.get(["discovery>resource_map>requests_file"])[0])
+requests_url = "%s://%s" % (store_type, os.path.join(
+    common_config.get(["discovery>resource_map>location"])[0],
+    "requests.json"))
 req_register = KvStoreFactory.get_instance(requests_url)
 req_register.load()
 

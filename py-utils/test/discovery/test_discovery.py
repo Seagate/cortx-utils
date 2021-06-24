@@ -41,15 +41,12 @@ class TestDiscovery(unittest.TestCase):
     """Test Discovery module interfaces"""
 
     def setUp(self):
-        self.storage_hp = common_config.get(
-            ["discovery>health_provider>storage"])[0]
-        self.server_hp = common_config.get(
-            ["discovery>health_provider>server"])[0]
-        # Set health provider to use mocked data
-        common_config.set(["discovery>health_provider>storage"],
-                        ["cortx/utils/test/discovery/mocked_health_gen"])
-        common_config.set(["discovery>health_provider>server"],
-                        ["cortx/utils/test/discovery/mocked_health_gen"])
+        self.solution_platform_monitor = common_config.get(
+            ["discovery>solution_platform_monitor"])[0]
+        # Set platform monitor path to mocked data path
+        common_config.set(
+            ["discovery>solution_platform_monitor"],
+            ["cortx/utils/test/discovery/mocked_health_gen"])
 
     def test_generate_node_health(self):
         """Check for immediate request id"""
@@ -94,11 +91,10 @@ class TestDiscovery(unittest.TestCase):
             DiscoveryError, Discovery.get_node_health, request_id)
 
     def tearDown(self):
-        # Reset health provider
+        # Reset platform monitor path
         common_config.set(
-            ["discovery>health_provider>storage"], [self.storage_hp])
-        common_config.set(
-            ["discovery>health_provider>server"], [self.server_hp])
+            ["discovery>solution_platform_monitor"],
+            [self.solution_platform_monitor])
 
 
 if __name__ == '__main__':

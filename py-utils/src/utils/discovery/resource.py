@@ -18,6 +18,7 @@
 import errno
 import importlib
 import inspect
+import os
 import sys
 
 from cortx.utils.discovery.error import DiscoveryError
@@ -66,45 +67,6 @@ class Resource:
         return Resource._kv.get([rpath])
 
     @staticmethod
-    def get_keys(data: dict, delim: str = ">"):
-        """Collect all resource map keys"""
-        return Resource.traverse_dict(data, delim)
-
-    @staticmethod
-    def traverse_dict(dict_data: dict, delim: str):
-        """
-        Walks through dictionary and returns a list of leaf nodes in full path
-        Example,
-        input:
-            "compute" = {'psus': [{'type': ['AC', 'DC']}, {'health': 'ok'}],
-                         'disks': [{'id': 'dg01'}]}
-        output:
-            ['psus[0]>type[0]', 'psus[0]>type[1]', 'psus>[1]>>test', 'disks>id']
-        """
-        stack = []
-        final_list = []
-        # Meta function to iterate dict values
-        def do_walk(datadict):
-            if isinstance(datadict, dict):
-                for key, value in datadict.items():
-                    stack.append(key)
-                    if isinstance(value, dict) or isinstance(value, list):
-                        do_walk(value)
-                    joined_keys = f"{delim}".join(stack).replace(f"{delim}{delim}", "")
-                    final_list.append(joined_keys)
-                    stack.pop()
-            elif isinstance(datadict, list):
-                n = 0
-                for key in datadict:
-                    stack.append(f"{delim}[{str(n)}]")
-                    if isinstance(key, dict) or isinstance(key, list):
-                        do_walk(key)
-                    stack.pop()
-                    n = n + 1
-        do_walk(dict_data)
-        return final_list
-
-    @staticmethod
     def get_health_provider_module(path):
         """Look for __init__ module in health provider path"""
         module = None
@@ -124,13 +86,11 @@ class Resource:
 
     def get_health_info(self, rpath):
         """Initialize health provider module and fetch health information"""
-        try:
-            from cortx.utils.discovery.node_health import common_config
-            provider_loc = common_config.get(
-                ["discovery>health_provider>%s" % self.health_provider_map[self.name]])[0]
-        except KeyError as err:
-            raise DiscoveryError(
-                errno.EINVAL, f"{err} not found in DM health provider config.")
+        from cortx.utils.discovery.node_health import common_config
+        solution_platform_monitor = common_config.get(
+            ["discovery>solution_platform_monitor"])[0]
+        product_id = common_config.get(["product_id"])[0]
+        provider_loc = os.path.join(solution_platform_monitor, product_id)
         module = self.get_health_provider_module(provider_loc)
         members = inspect.getmembers(module, inspect.isclass)
         for _, cls in members:
