@@ -24,9 +24,9 @@ dir_path = os.path.dirname(os.path.abspath(__file__))
 
 class TestSuite:
     """Create and run test suite"""
-    
+
     def run_test_suite(self):
-        """create and run complete test suite""" 
+        """create and run complete test suite"""
         loader = unittest.TestLoader()
         #Creates test suite
         test_suite = loader.discover(dir_path, pattern='test*.py', \
