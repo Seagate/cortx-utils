@@ -27,27 +27,27 @@
     - Restart network
   delegate_to: "{{ ansible_host }}"
 
-- name: Validate {{ PBDATA_ITF }} interface
+- name: Validate {{ PBDATA1_ITF }} interface
   lineinfile:
-    path: /etc/sysconfig/network-scripts/ifcfg-{{ PBDATA_ITF }}
+    path: /etc/sysconfig/network-scripts/ifcfg-{{ PBDATA1_ITF }}
     state: present
     regexp: '^ONBOOT='
     line: 'ONBOOT=yes'
-  when: ansible_{{ PBDATA_ITF }}.ipv4.address is not defined
+  when: ansible_{{ PBDATA1_ITF }}.ipv4.address is not defined
   notify:
     - Restart network
   delegate_to: "{{ ansible_host }}"
 
-- name: Validate {{ PVDATA_ITF }} interface
-  lineinfile:
-    path: /etc/sysconfig/network-scripts/ifcfg-{{ PVDATA_ITF }}
-    state: present
-    regexp: '^ONBOOT='
-    line: 'ONBOOT=yes'
-  when: ansible_{{ PVDATA_ITF }}.ipv4.address is not defined
-  notify:
-    - Restart network
-  delegate_to: "{{ ansible_host }}"
+#- name: Validate {{ PVDATA1_ITF }} interface
+#  lineinfile:
+#    path: /etc/sysconfig/network-scripts/ifcfg-{{ PVDATA1_ITF }}
+#    state: present
+#    regexp: '^ONBOOT='
+#    line: 'ONBOOT=yes'
+#  when: ansible_{{ PVDATA1_ITF }}.ipv4.address is not defined
+#  notify:
+#    - Restart network
+#  delegate_to: "{{ ansible_host }}"
 
 - name: Refresh network service
   meta: flush_handlers

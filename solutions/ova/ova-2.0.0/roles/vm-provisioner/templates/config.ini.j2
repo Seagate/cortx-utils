@@ -1,0 +1,21 @@
+[srvnode_default]
+network.data.private_interfaces={{ PVDATA1_ITF }}
+network.data.public_interfaces={{ PBDATA1_ITF }}
+network.mgmt.interfaces={{ MGMT_ITF }}
+bmc.user=None
+bmc.secret=None
+storage.cvg.0.data_devices=/dev/sdb,/dev/sdc,/dev/sdd,/dev/sde,/dev/sdf,/dev/sdg,/dev/sdh,/dev/sdi
+storage.cvg.0.metadata_devices=/dev/sdj
+network.data.private_ip=None
+storage.durability.sns.data=4
+storage.durability.sns.parity=2
+storage.durability.sns.spare=2
+
+[srvnode-1]
+hostname={{ OVA_HOSTNAME }}
+roles=primary,openldap_server
+
+[enclosure_default]
+type=virtual
+
+[enclosure-1]

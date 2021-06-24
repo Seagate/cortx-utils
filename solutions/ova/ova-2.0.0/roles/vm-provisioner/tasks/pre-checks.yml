@@ -12,23 +12,23 @@
   notify:
     - Restart network
 
-- name: Validate {{ PBDATA_ITF }} interface
+- name: Validate {{ PBDATA1_ITF }} interface
   lineinfile:
-    path: /etc/sysconfig/network-scripts/ifcfg-{{ PBDATA_ITF }}
+    path: /etc/sysconfig/network-scripts/ifcfg-{{ PBDATA1_ITF }}
     state: present
     regexp: '^ONBOOT='
     line: 'ONBOOT=yes'
-  when: ansible_{{ PBDATA_ITF }}.ipv4.address is not defined
+  when: ansible_{{ PBDATA1_ITF }}.ipv4.address is not defined
   notify:
     - Restart network
 
-- name: Validate {{ PVDATA_ITF }} interface
+- name: Validate {{ PVDATA1_ITF }} interface
   lineinfile:
-    path: /etc/sysconfig/network-scripts/ifcfg-{{ PVDATA_ITF }}
+    path: /etc/sysconfig/network-scripts/ifcfg-{{ PVDATA1_ITF }}
     state: present
     regexp: '^ONBOOT='
     line: 'ONBOOT=yes'
-  when: ansible_{{ PVDATA_ITF }}.ipv4.address is not defined
+  when: ansible_{{ PVDATA1_ITF }}.ipv4.address is not defined
   notify:
     - Restart network
 
@@ -56,6 +56,10 @@
   when: "{{ 'localhost' in host.stdout }}"
 
 - name: set hostname fact
-  set_fact: 
+  set_fact:
     ansible_nodename: "{{ OVA_HOSTNAME }}"
   when: "{{ 'localhost' in host.stdout }}"
+
+- name: Disable SELinux
+  selinux:
+    state: disabled

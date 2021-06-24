@@ -1,4 +1,10 @@
 ---
+- name: Install dependency packages
+  yum:
+    name:
+      - python-pyvmomi
+    state: present
+
 - name: Poweron the VM
   vmware_guest_powerstate:
     hostname: "{{ VSPHERE_HOSTNAME }}"
@@ -8,12 +14,6 @@
     name: "{{ VSPHERE_VM_NAME }}"
     validate_certs: no
     state: powered-on
-
-- name: Install dependency packages
-  yum:
-    name:
-      - python-pyvmomi
-    state: present
 
 - name: Revert VM to snapshot
   vmware_guest_snapshot:

@@ -2,16 +2,6 @@
 - name: Run pre-checks
   include_tasks: pre-checks.yml
 
-- name: Download cortx-prereqs script
-  get_url:
-    url: "{{ PREREQ_SCRIPT }}"
-    dest: /root/cortx-prereqs.sh
-    mode: '0751' 
-
-- name: Execute cortx-prereqs script
-  shell: ./cortx-prereqs.sh --disable-sub-mgr
-  ignore_errors: yes
-
 - name: Install dependency packages
   yum:
     name:
@@ -45,31 +35,28 @@
     group: root
     mode: '0754'
 
-#provisoner fix      
-- name: Add srvnode-1 in hosts
-  lineinfile:
-    dest: /etc/hosts
-    line: "127.0.0.2 srvnode-1"
-
 - name: Check /etc/hosts file data
   shell: "cat /etc/hosts"
   register: hostsdata
-  
+
 - name: Display /etc/hosts file data
   debug:
     msg: "{{ hostsdata }}"
-    
+
 - name: Execute provisioner script
   script: "files/provisioner.sh {{ BUILD_URL }}"
   register: command_result
   failed_when: "'ERROR' in command_result.stdout"
 
-#provisioner fix for sms1 only
-- name: Edit csm config file
-  shell: "sed -i 's/host:.*/host: 127.0.0.1/g' /etc/csm/database.yaml"
+#s3server fix
+- name: Edit s3 config file
+  shell: "sed -i 's/S3_MOTR_MAX_UNITS_PER_REQUEST: 32/S3_MOTR_MAX_UNITS_PER_REQUEST: 8/g' /opt/seagate/cortx/s3/conf/s3config.yaml"
 
-- name: Restart csm_agent
-  shell: systemctl restart csm_agent
+- name: Restart s3 service
+  shell: systemctl restart s3server@*
+
+- name: Start cluster
+  shell: "cortx cluster start"
 
 - name: Close port on management interface
   shell: firewall-cmd --zone=public --remove-port=443/tcp --permanent
@@ -81,32 +68,6 @@
     - "salt '*' cmd.run 'firewall-cmd --zone=public-data-zone --add-port=28100/tcp --permanent'"
     - "salt '*' cmd.run 'firewall-cmd --reload'"
 
-#csm fix
-#- name: CSM fix
-#  shell: "{{ item }}"
-#  with_items:
-#    - "usermod -a -G certs,prvsnrusers csm"
-#    - "mkdir -p /var/lib/uds/.uds"
-#    - "csm_setup post_install"
-#    - "csm_setup config --uds-public-ip {{ ansible_host }}"
-#    - "csm_setup init"
- 
-#s3server fix
-- name: Edit s3 config file
-  shell: "sed -i 's/S3_MOTR_MAX_UNITS_PER_REQUEST: 32/S3_MOTR_MAX_UNITS_PER_REQUEST: 8/g' /opt/seagate/cortx/s3/conf/s3config.yaml" 
-
-- name: Restart s3 service
-  shell: systemctl restart s3server@0x7200000000000001:0x16
-
-- name: Remove stale cert alerts
-  shell: "{{ item }}"
-  with_items:
-    - "curl -X DELETE 'localhost:9200/alerts?pretty'"
-    - "curl -X DELETE 'localhost:9200/alerts-history?pretty'"
-
-- name: Restart csm_agent
-  shell: systemctl restart csm_agent
-
 - name: Install vmware-tools
   yum: name=open-vm-tools state=present
 
@@ -117,12 +78,9 @@
 - name: Print db data
   debug:
     msg: "{{ firstdbresult }}"
- 
+
 - include_role:
-    name: vm-service-checker 
- 
-- name: Change hostname
-  shell: "hostnamectl set-hostname --static --transient --pretty localhost"
+    name: vm-service-checker
 
 - name: Delete horizontal line in hosts file
   lineinfile:
@@ -130,10 +88,17 @@
     state: absent
     regexp: '^--'
 
+- name: Get the .repo files list
+  find:
+    paths: /etc/yum.repos.d
+    patterns: "*.repo"
+  register: repos_files_to_delete
+
 - name: Cleanup yum repo files
   file:
-    path: /etc/yum.repos.d/*.repo 
+    path: "{{ item.path }}"
     state: absent
+  with_items: "{{ repos_files_to_delete.files }}"
 
 - name: Clean bash history
   shell: cat /dev/null > /root/.bash_history
@@ -145,7 +110,7 @@
 - name: Check database.yml file data
   shell: "cat /etc/csm/database.yaml"
   register: dbconfig
-  
+
 - name: Check ip addresses
   shell: "ip a"
   register: ipaddrinfo

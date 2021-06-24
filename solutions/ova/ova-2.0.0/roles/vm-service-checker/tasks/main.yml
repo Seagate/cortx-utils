@@ -37,8 +37,8 @@
 - name: Restart sspl-ll if inactive
   shell: "{{ item }}"
   with_items:
-    - "sh /opt/seagate/cortx/sspl/bin/sspl_setup post_install -p SINGLE"
-    - "sh /opt/seagate/cortx/sspl/bin/sspl_setup config -f"
+#    - "/opt/seagate/cortx/sspl/bin/sspl_setup post_install -p SINGLE"
+#    - "/opt/seagate/cortx/sspl/bin/sspl_setup config -f"
     - "systemctl start sspl-ll"   
   when: sspl_ll_status.stdout != "active"
 
