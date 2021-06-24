@@ -241,6 +241,14 @@ class Utils:
             Log.error(f"Unable to test the config. Received message is {msg}")
             raise SetupError(errno.EINVAL, "Unable to test the config. Received\
                 message is %s", msg)
+        #Runs all the unittests from py-utils/test
+        try:
+            from cortx.utils.test.run_test import TestSuite
+            suite = TestSuite()
+            suite.run_test_suite()
+        except ModuleNotFoundError:
+            raise SetupError(errno.EINVAL, "Failed to import, \
+                Ensure cortx-py-utils-test rpm is installed")
         return 0
 
     @staticmethod
