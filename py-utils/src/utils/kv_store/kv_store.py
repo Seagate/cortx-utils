@@ -49,9 +49,11 @@ class KvStore:
     def delim(self):
         return self._delim
 
-    def get_keys(self, key_prefix: str):
+    def get_keys(self, key_prefix: str = None):
         """ returns list of keys starting with given prefix """
         payload = self.load()
+        if key_prefix is None:
+            return payload.get_keys()
         return filter(lambda x: x.startswith(key_prefix), payload.get_keys())
 
     def get_data(self, format_type: str = None) -> str:
