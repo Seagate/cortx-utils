@@ -192,8 +192,8 @@ class Openldap:
             if set(yardstick_list_exp) == set(full_arg_keys_list):
                 Log.debug("Validation complete\n")
             else:
-                raise Exception("Validation failed for %s" % phase_name)
                 Log.debug("Validation failed\n")
+                raise Exception("Validation failed for %s" % phase_name)
 
         except OpenldapSetupError as e:
             raise OpenldapSetupError({"message":"ERROR : Validating keys \
