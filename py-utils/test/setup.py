@@ -43,6 +43,7 @@ setup(
         "cortx.utils.test.message_bus",
         "cortx.utils.test.conf_store",
         "cortx.utils.test.schema",
+        "cortx.utils.test.iem_framework",
     ],
     package_data={
         "": [
@@ -51,6 +52,7 @@ setup(
             "kv_store/*.json",
             "conf_store/*.json",
             "message_bus/*.conf",
+            "iem_framework/*.json"
         ]
     },
 )
