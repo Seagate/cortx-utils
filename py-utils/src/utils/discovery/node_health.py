@@ -34,7 +34,13 @@ common_config = KvStoreFactory.get_instance(config_url)
 common_config.load()
 
 # Load Discovery request status tracker
-os.makedirs(common_config.get(["discovery>resource_map>location"])[0], exist_ok=True)
+try:
+    os.makedirs(common_config.get(
+        ["discovery>resource_map>location"])[0], exist_ok=True)
+except PermissionError as err:
+    raise DiscoveryError(
+        errno.EACCES,
+        "Failed to create default store directory. %s" % err)
 requests_url = "%s://%s" % (store_type, os.path.join(
     common_config.get(["discovery>resource_map>location"])[0],
     "requests.json"))
@@ -64,7 +70,7 @@ class NodeHealth:
         return node, inst
 
     @staticmethod
-    def add_dm_request(rpath, req_id, url):
+    def add_discovery_request(rpath, req_id, url):
         """Updates new request information"""
         req_register.set(["%s>rpath" % req_id], [rpath])
         req_register.set(["%s>status" % req_id], [NodeHealth.INPROGRESS])
@@ -72,7 +78,7 @@ class NodeHealth:
         req_register.set(["%s>time" % req_id], [int(time.time())])
 
     @staticmethod
-    def set_dm_request_processed(req_id, status):
+    def set_discovery_request_processed(req_id, status):
         """Updates processed request information"""
         req_register.set(["%s>status" % req_id], [status])
         req_register.set(["%s>time" % req_id], [int(time.time())])
@@ -138,12 +144,12 @@ class NodeHealth:
             # Initialize resource map
             Resource.init(store_url)
             # Process request
-            NodeHealth.add_dm_request(rpath, req_id, store_url)
+            NodeHealth.add_discovery_request(rpath, req_id, store_url)
             NodeHealth.update_resource_map(rpath)
-            NodeHealth.set_dm_request_processed(req_id, NodeHealth.SUCCESS)
+            NodeHealth.set_discovery_request_processed(req_id, NodeHealth.SUCCESS)
         except Exception as err:
             status = NodeHealth.FAILED + f" - {err}"
-            NodeHealth.set_dm_request_processed(req_id, status)
+            NodeHealth.set_discovery_request_processed(req_id, status)
 
     @staticmethod
     def get_processing_status(req_id):
@@ -168,7 +174,7 @@ class NodeHealth:
             if (last_reboot > req_start_time or is_req_expired) and \
                 status is NodeHealth.INPROGRESS:
                 # Set request state as failed
-                NodeHealth.set_dm_request_processed(
+                NodeHealth.set_discovery_request_processed(
                     req_id, "Failed - request is expired.")
             status = req_register.get(["%s>status" % req_id])[0]
 
@@ -192,7 +198,7 @@ class NodeHealth:
 
             if not os.path.exists(data_file):
                 raise DiscoveryError(
-                    errno.EINVAL,
+                    errno.ENOENT,
                     "Resource health map is unavailable. Please generate.")
 
             store_url = "%s://%s" % (store_type, data_file)
