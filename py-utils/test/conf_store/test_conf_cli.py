@@ -317,7 +317,9 @@ class TestConfCli(unittest.TestCase):
     def tearDownClass(cls):
         delete_files()
 
+
 if __name__ == '__main__':
     # create the file and load sample json into it. Start test
     setup_and_generate_sample_files()
     unittest.main()
+
