@@ -83,7 +83,7 @@ class Resource:
                 module = importlib.import_module(m_path)
         except ModuleNotFoundError:
             raise DiscoveryError(
-                errno.EINVAL,
+                errno.ENOENT,
                 "Failed to import health provider module from - %s" % path)
         return module
 
