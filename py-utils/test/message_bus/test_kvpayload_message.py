@@ -22,33 +22,58 @@ from cortx.utils.conf_store import Conf
 from cortx.utils.message_bus import MessageProducer, MessageConsumer
 
 
-class TestMessage(unittest.TestCase):
+class TestKVPayloadMessage(unittest.TestCase):
     """ Test MessageBus related functionality """
 
-    _file = 'json:///etc/cortx/message_bus.conf'
-    _conf_key = 'message_broker'
+    _json_file = 'json:///etc/cortx/message_bus.conf'
+    _yaml_file = 'yaml:///tmp/test_yaml.yaml'
+    _toml_file = 'toml:///tmp/test_toml.toml'
+    _json_key = 'message_broker'
+    _yaml_key = 'cortx'
+    _toml_key = 'cortx>software'
     _message_type = 'kv_payloads'
+
+    @classmethod
+    def setUpClass(cls):
+        Conf.load('yaml', TestKVPayloadMessage._yaml_file)
+        Conf.set('yaml', 'cortx>software>common>message_bus_type', 'kafka')
+        Conf.save('yaml')
+
+        Conf.load('toml', TestKVPayloadMessage._toml_file)
+        Conf.set('toml', 'cortx>software>common>message_bus_type', 'kafka')
+        Conf.save('toml')
 
     def test_kv_send(self):
         """ Test send kv_payload as message """
         messages = []
         producer = MessageProducer(producer_id='kv_producer', \
-            message_type=TestMessage._message_type, method='sync')
+            message_type=TestKVPayloadMessage._message_type, method='sync')
         self.assertIsNotNone(producer, "Producer not found")
 
-        # To get the value for particular key
-        Conf.load('index', TestMessage._file, skip_reload=True)
-        payload = Conf.get('index', TestMessage._conf_key)
-
+        # Load json as payload
+        Conf.load('json', TestKVPayloadMessage._json_file, skip_reload=True)
+        payload = Conf.get('json', TestKVPayloadMessage._json_key)
         messages.append(json.dumps(payload))
+
+        # Load yaml as payload
+        Conf.load('yaml', TestKVPayloadMessage._yaml_file, skip_reload=True)
+        payload = Conf.get('yaml', TestKVPayloadMessage._yaml_key)
+        messages.append(json.dumps(payload))
+
+        # Load toml as payload
+        Conf.load('toml', TestKVPayloadMessage._toml_file, skip_reload=True)
+        payload = Conf.get('toml', TestKVPayloadMessage._toml_key)
+        messages.append(json.dumps(payload))
+
         self.assertIsInstance(messages, list)
         producer.send(messages)
 
     def test_receive(self):
         """ Test receive kv_payload as message """
         consumer = MessageConsumer(consumer_id='kv_consumer', \
-            consumer_group='kv', message_types=[TestMessage._message_type], \
-            auto_ack=True, offset='earliest')
+            consumer_group='kv', \
+            message_types=[TestKVPayloadMessage._message_type], auto_ack=True, \
+            offset='earliest')
         self.assertIsNotNone(consumer, "Consumer not found")
 
         while True:
