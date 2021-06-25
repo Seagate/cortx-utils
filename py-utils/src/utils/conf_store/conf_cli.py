@@ -79,7 +79,6 @@ class ConfCli:
     def diff(args) -> str:
         """ Compare two diffenent string value for the given keys """
         if len(args.args) < 1:
-            args.format = None
             args.key_index = None
             string_1 = ConfCli.get_keys(args)
             diff_index = "string_diff"
@@ -87,12 +86,12 @@ class ConfCli:
             ConfCli.load(args.url, diff_index)
             string_2 = ConfCli.get_keys(args, diff_index)
         else:
-            args.format = None
             string_1 = ConfCli.get(args)
             ConfCli._index = "string_diff"
             args.url = args.second_url
             ConfCli.init(args.url)
             string_2 = ConfCli.get(args)
+        args.format = None
         cmd = """bash -c "diff <(echo \\"%s\\") <(echo \\"%s\\")" """ %(string_1, string_2)
         cmd_proc = SimpleProcess([cmd])
         cmd_proc.shell = True
