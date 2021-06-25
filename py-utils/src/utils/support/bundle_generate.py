@@ -111,6 +111,12 @@ class ComponentsBundle:
         :return:
         """
         # Fetch Command Arguments.
+        Log.init("support_bundle",
+                syslog_server="localhost",
+                syslog_port=514,
+                log_path=Conf.get("cortx_conf","support>support_bundle_path"),
+                level="INFO")
+
         bundle_id = command.options.get(const.SB_BUNDLE_ID, "")
         node_name = command.options.get(const.SB_NODE_NAME, "")
         comment = command.options.get(const.SB_COMMENT, "")

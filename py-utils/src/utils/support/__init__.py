@@ -16,12 +16,6 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 from cortx.utils.conf_store.conf_store import Conf
-from cortx.utils.log import Log
+
 
 Conf.load('cortx_conf', 'json:///etc/cortx/cortx.conf')
-
-Log.init("support_bundle",
-         syslog_server="localhost",
-         syslog_port=514,
-         log_path=Conf.get("cortx_conf","support>support_bundle_path"),
-         level="INFO")

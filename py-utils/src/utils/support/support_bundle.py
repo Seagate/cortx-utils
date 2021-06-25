@@ -34,6 +34,7 @@ class SupportBundle:
     """
     This Class initializes the Support Bundle Generation for CORTX.
     """
+    
 
     @staticmethod
     async def get_active_nodes():
@@ -82,7 +83,7 @@ class SupportBundle:
             response_msg = "Support Bundle Command requires root privileges"
             return Response(output = response_msg, rc = errno.EACCES)
         bundle_id = SupportBundle._generate_bundle_id()
-        provisioner = ProvisionerServices.import_provisioner_plugin()
+        provisioner = ProvisionerServices()
         if not provisioner:
             return Response(output = "Provisioner package not found.",
                             rc = errno.ENOENT)
