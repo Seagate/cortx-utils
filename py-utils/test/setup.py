@@ -46,7 +46,7 @@ setup(
         "cortx.utils.test.iem_framework",
         "cortx.utils.test.discovery",
         "cortx.utils.test.discovery.mocked_health_gen",
-        "cortx.utils.test.discovery.mocked_health_gen.lr_r2",
+        "cortx.utils.test.discovery.mocked_health_gen.lr2",
     ],
     package_data={
         "": [

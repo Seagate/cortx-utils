@@ -1,6 +1,6 @@
 {
   "install_path": "/opt/seagate",
-  "product_id": "lr_r2",
+  "product_id": "LR2",
   "discovery": {
     "solution_platform_monitor": "/opt/seagate/cortx/sspl/bin/resource_map",
     "resource_map": {

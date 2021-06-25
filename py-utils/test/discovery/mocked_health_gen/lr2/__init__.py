@@ -15,4 +15,4 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com
 
-from cortx.utils.test.discovery.mocked_health_gen.lr_r2.mocked_health_gen import Storage, Server
+from cortx.utils.test.discovery.mocked_health_gen.lr2.mocked_health_gen import Storage, Server

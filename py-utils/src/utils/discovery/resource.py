@@ -84,7 +84,7 @@ class Resource:
         except ModuleNotFoundError:
             raise DiscoveryError(
                 errno.ENOENT,
-                "Failed to import health provider module from - %s" % path)
+                "Failed to import health provider module from configured path - %s" % path)
         return module
 
     def get_health_info(self, rpath):
@@ -92,7 +92,7 @@ class Resource:
         from cortx.utils.discovery.node_health import common_config
         monitor_path = common_config.get(
             ["discovery>solution_platform_monitor"])[0]
-        product_id = common_config.get(["product_id"])[0]
+        product_id = common_config.get(["product_id"])[0].lower()
         module = self.get_health_provider_module(monitor_path, product_id)
         members = inspect.getmembers(module, inspect.isclass)
         for _, cls in members:
@@ -101,7 +101,7 @@ class Resource:
         raise DiscoveryError(
             errno.EINVAL,
             "%s health provider not found in configured path %s" % (
-                self.health_provider_map[self.name].title(), provider_loc))
+                self.health_provider_map[self.name].title(), monitor_path))
 
 
 class ResourceFactory:
