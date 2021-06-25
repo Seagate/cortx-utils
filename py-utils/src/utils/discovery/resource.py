@@ -67,16 +67,19 @@ class Resource:
         return Resource._kv.get([rpath])
 
     @staticmethod
-    def get_health_provider_module(path):
-        """Look for __init__ module in health provider path"""
+    def get_health_provider_module(path, product_id):
+        """Look for solution specific __init__ module in health provider path"""
         module = None
         try:
             if path.startswith("/"):
                 if path not in sys.path:
                     sys.path.append(path)
-                module = __import__("__init__")
+                module_path = os.path.join(path, product_id)
+                if module_path not in sys.path:
+                    sys.path.append(module_path)
+                module = __import__("%s.__init__" % product_id)
             else:
-                m_path = path.strip().rstrip("/").replace("/", ".")
+                m_path = os.path.join(path.strip(), product_id).replace("/", ".")
                 module = importlib.import_module(m_path)
         except ModuleNotFoundError:
             raise DiscoveryError(
@@ -87,11 +90,10 @@ class Resource:
     def get_health_info(self, rpath):
         """Initialize health provider module and fetch health information"""
         from cortx.utils.discovery.node_health import common_config
-        solution_platform_monitor = common_config.get(
+        monitor_path = common_config.get(
             ["discovery>solution_platform_monitor"])[0]
         product_id = common_config.get(["product_id"])[0]
-        provider_loc = os.path.join(solution_platform_monitor, product_id)
-        module = self.get_health_provider_module(provider_loc)
+        module = self.get_health_provider_module(monitor_path, product_id)
         members = inspect.getmembers(module, inspect.isclass)
         for _, cls in members:
             if hasattr(cls, 'name') and self.health_provider_map[self.name] == cls.name:
