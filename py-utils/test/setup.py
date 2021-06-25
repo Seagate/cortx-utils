@@ -55,6 +55,7 @@ setup(
             "conf_store/*.json",
             "message_bus/*.conf",
             "cli_framework/test_data/*.json"
+            "iem_framework/*.json"
         ]
     },
 )
