@@ -18,8 +18,6 @@
 import provisioner
 import provisioner.freeze
 from cortx.utils.log import Log
-from importlib import import_module
-from cortx.utils.conf_store.conf_store import Conf
 from cortx.utils.errors import BaseError
 
 

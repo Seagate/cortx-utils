@@ -34,7 +34,7 @@ class SupportBundle:
     """
     This Class initializes the Support Bundle Generation for CORTX.
     """
-    
+
 
     @staticmethod
     async def get_active_nodes():
