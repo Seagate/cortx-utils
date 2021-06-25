@@ -146,8 +146,11 @@ class Utils:
         Conf.save('cluster')
 
     @staticmethod
-    def _rename_conf_sample_to_conf():
-        # copy this conf file as cluster.conf
+    def _copy_conf_sample_to_conf():
+        if not os.path.exists("/etc/cortx/cluster.conf.sample"):
+            with open("/etc/cortx/cluster.conf.sample", "w+") as file:
+                json.dump({}, file, indent=2)
+        # copy this sample conf file as cluster.conf
         try:
             os.rename('/etc/cortx/cluster.conf.sample', \
                 '/etc/cortx/cluster.conf')
@@ -232,10 +235,11 @@ class Utils:
     @staticmethod
     def config(conf_url: str):
         """ Performs configurations """
+        # copy cluster.conf.sample file to /etc/cortx/cluster.conf
+        Utils._copy_conf_sample_to_conf()
+
         # Message Bus Config
-        with open(r'/etc/cortx/cluster.conf.sample', 'w+') as file:
-            json.dump({}, file, indent=2)
-        Conf.load('cluster', 'json:///etc/cortx/cluster.conf.sample')
+        Conf.load('cluster', 'json:///etc/cortx/cluster.conf')
 
         kafka_server_list, port_list = Utils._get_kafka_server_list(conf_url)
         if kafka_server_list is None:
@@ -253,7 +257,6 @@ class Utils:
         #set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map()
         Utils._configure_rsyslog()
-        Utils._rename_conf_sample_to_conf()
         return 0
 
     @staticmethod
