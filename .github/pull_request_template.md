@@ -17,6 +17,8 @@
 # Review Checklist 
   Before posting the PR please ensure
 - [ ] PR is self reviewed
+- [ ] Is there a change in filename/package/module or signature [Y/N]: 
+- [ ] If yes for above point, Is a notification sent to all other cortx components [Y/N]
 - [ ] Jira is updated
 - [ ] Check if the description is clear and explained. 
 - [ ] Check Acceptance Criterion is defined. 

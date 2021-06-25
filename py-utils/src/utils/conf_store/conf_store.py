@@ -164,7 +164,6 @@ class ConfStore:
         if index not in self._cache.keys():
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
-
         return self._cache[index].delete(key)
 
     def copy(self, src_index: str, dst_index: str, key_list: list = None):
