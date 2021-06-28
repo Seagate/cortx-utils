@@ -24,12 +24,9 @@ from cortx.utils.support_bundle.error import SupportBundleError
 
 
 class SupportBundle:
+    """ Generate support bundle for py-utils"""
 
     def __init__(self):
-        """
-        Parameters:
-        path: (optional)
-        """
         self.path = "/tmp/cortx/support_bundle/"
         self.tar_name = "py-utils"
         self.tmp_src = "/tmp/cortx/py-utils/"
@@ -43,7 +40,7 @@ class SupportBundle:
         }
 
     def generate_support_bundle(self):
-        # MessageBus
+        """ Generate a tar file """
         for key, value in self.files_to_bundle.items():
             if os.path.exists(value):
                 self.copy_file(value)
@@ -51,6 +48,7 @@ class SupportBundle:
         self.clear_tmp_files()
 
     def copy_file(self, source: str, destination: str = None):
+        """ Copy a file from source to destination location """
         directory = os.path.dirname(self.tmp_src)
         if not os.path.exists(directory):
             os.makedirs(directory)
@@ -59,10 +57,10 @@ class SupportBundle:
         try:
             shutil.copy2(source, destination)
         except FileNotFoundError as fe:
-            print(fe)
             raise SupportBundleError(errno.EINVAL, "File not found %s", fe)
 
     def generate_tar(self):
+        """ Generate tar.gz file at given path """
         tar_file_name = self.path + self.tar_name + ".tar.gz"
         if not os.path.exists(self.path):
             os.makedirs(self.path)
@@ -70,4 +68,5 @@ class SupportBundle:
             tar.add(self.tmp_src, arcname=os.path.basename(self.tmp_src))
 
     def clear_tmp_files(self):
+        """ Clean tmp files after support bundle generation completed """
         shutil.rmtree(self.tmp_src)
