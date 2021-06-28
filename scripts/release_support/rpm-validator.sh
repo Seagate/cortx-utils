@@ -191,15 +191,7 @@ gpgkey=$BUILD_URL/RPM-GPG-KEY-Seagate
 priority=1
 EOF
 
-cat > /etc/yum.repos.d/salt.repo <<- EOF
-[saltstack-repo]
-name=SaltStack repo for RHEL/CentOS $releasever
-baseurl=https://archive.repo.saltstack.com/py3/redhat/7.0/x86_64/archive/2019.2.1/
-enabled=1
-gpgcheck=1
-gpgkey=https://archive.repo.saltstack.com/py3/redhat/7.0/x86_64/archive/2019.2.1/SALTSTACK-GPG-KEY.pub
-priority=1
-EOF
+yum-config-manager --add-repo http://cortx-storage.colo.seagate.com/releases/cortx/third-party-deps/centos/centos-7.8.2003-2.0.0-latest/
 
 }
 
