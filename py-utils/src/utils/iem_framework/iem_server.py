@@ -99,9 +99,9 @@ class IemRequestHandler(RestServer):
         else:
             status_code = 200  # No exception, Success
             response_obj = {'alert': alert}
-            Log.debug(f"Subscribed to component {component} and received " \
-                f"event message alert info. - {alert['iem']['info']}. " \
-                f"GET method finished with status code: {status_code}")
+            Log.debug(f"GET method finished with status code: {status_code}" \
+                f"for component {component} and received event message " \
+                f"alert info. - {alert['iem']['info']}.")
         finally:
             return web.Response(text=json.dumps(response_obj), \
                 status=status_code)
