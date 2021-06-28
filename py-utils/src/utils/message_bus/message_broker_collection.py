@@ -203,7 +203,7 @@ class KafkaMessageBroker(MessageBroker):
         partitions      Integer that represents number of partitions to be
                         created.
         """
-        Log.debug(f"Register message type {message_type} using {admin_id}" \
+        Log.debug(f"Register message type {message_types} using {admin_id}" \
             f" with {partitions} partitions")
         admin = self._clients['admin'][admin_id]
         new_message_type = [NewTopic(each_message_type, \
@@ -236,7 +236,7 @@ class KafkaMessageBroker(MessageBroker):
         message_types   This is essentially equivalent to the list of
                         queue/topic name. For e.g. ["Alert"]
         """
-        Log.debug(f"Deregister message type {message_type} using {admin_id}")
+        Log.debug(f"Deregister message type {message_types} using {admin_id}")
         admin = self._clients['admin'][admin_id]
         deleted_message_types = admin.delete_topics(message_types)
         self._task_status(deleted_message_types, \
