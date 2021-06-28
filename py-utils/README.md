@@ -38,7 +38,7 @@ git clone --recursive https://github.com/Seagate/cortx-utils -b main
   - Create pip package
     - It will create `cortx_py_utils-1.0.0-py3-none-any.whl`
 ```bash
-$ pip3 install wheel
+$ sudo pip3 install wheel
 $ cd ./cortx-utils/py-utils
 $ python3 setup.py bdist_wheel
 ```
@@ -48,14 +48,14 @@ It will create `cortx-py-utils-1.0.0-1_<git-version>.noarch.rpm` by default. One
 Below command passes version string as 2.0.0 and build number 2, which creates `cortx-py-utils-2.0.0-2_<git-version>.noarch.rpm`
 Run below command from repo root (cortx-utils).
 ```bash
-$ ./jenkins/build.sh -v 2.0.0 -b 2
+$ sudo ./jenkins/build.sh -v 2.0.0 -b 2
 ```
 
 ## Installation
   - Installation with pip package
 ```bash
 $ cd ./py-utils/dist
-$ pip3 install cortx_py_utils-1.0.0-py3-none-any.whl
+$ sudo pip3 install cortx_py_utils-1.0.0-py3-none-any.whl
 ```
 
   - Installation with RPM package
@@ -70,12 +70,12 @@ $ sudo yum install -y cortx-py-utils-*.noarch.rpm
 
 - Pip package uninstall
 ```bash
-$ pip3 uninstall cortx-py-utils
+$ sudo pip3 uninstall cortx-py-utils
 ```
 
   - RPM uninstall
 ```
-$ yum remove cortx-py-utils
+$ sudo yum remove cortx-py-utils
 ```
 
 ## Update new dependency package
