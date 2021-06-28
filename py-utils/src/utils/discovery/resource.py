@@ -18,6 +18,7 @@
 import errno
 import importlib
 import inspect
+import os
 import sys
 
 from cortx.utils.discovery.error import DiscoveryError
@@ -27,7 +28,7 @@ from cortx.utils.kv_store import KvStoreFactory
 class Resource:
     """Abstraction over all resource type"""
 
-    ROOT_NODE = "nodes"
+    ROOT_NODE = "node"
     _kv = None
 
     def __init__(self, name, child_resource=None):
@@ -66,73 +67,41 @@ class Resource:
         return Resource._kv.get([rpath])
 
     @staticmethod
-    def get_keys(data: dict, delim: str = ">"):
-        """Collect all resource map keys"""
-        return Resource.traverse_dict(data, delim)
-
-    @staticmethod
-    def traverse_dict(dict_data: dict, delim: str):
-        """
-        Walks through dictionary and returns a list of leaf nodes in full path
-        Example,
-        input:
-            "compute" = {'psus': [{'type': ['AC', 'DC']}, {'health': 'ok'}],
-                         'disks': [{'id': 'dg01'}]}
-        output:
-            ['psus[0]>type[0]', 'psus[0]>type[1]', 'psus>[1]>>test', 'disks>id']
-        """
-        stack = []
-        final_list = []
-        # Meta function to iterate dict values
-        def do_walk(datadict):
-            if isinstance(datadict, dict):
-                for key, value in datadict.items():
-                    stack.append(key)
-                    if isinstance(value, dict) or isinstance(value, list):
-                        do_walk(value)
-                    joined_keys = f"{delim}".join(stack).replace(f"{delim}{delim}", "")
-                    final_list.append(joined_keys)
-                    stack.pop()
-            elif isinstance(datadict, list):
-                n = 0
-                for key in datadict:
-                    stack.append(f"{delim}[{str(n)}]")
-                    if isinstance(key, dict) or isinstance(key, list):
-                        do_walk(key)
-                    stack.pop()
-                    n = n + 1
-        do_walk(dict_data)
-        return final_list
-
-    @staticmethod
-    def get_health_provider_module(path):
-        """Look for __init__ module in health provider path"""
+    def get_health_provider_module(path, product_id):
+        """Look for solution specific __init__ module in health provider path"""
         module = None
-        if path.startswith("/"):
-            sys.path.append(path)
-            module = __import__("__init__")
-        else:
-            path = path.strip().rstrip("/").replace("/", ".")
-            module = importlib.import_module(path)
+        try:
+            if path.startswith("/"):
+                if path not in sys.path:
+                    sys.path.append(path)
+                module_path = os.path.join(path, product_id)
+                if module_path not in sys.path:
+                    sys.path.append(module_path)
+                module = __import__("%s.__init__" % product_id)
+            else:
+                m_path = os.path.join(path.strip(), product_id).replace("/", ".")
+                module = importlib.import_module(m_path)
+        except ModuleNotFoundError:
+            raise DiscoveryError(
+                errno.ENOENT,
+                "Failed to import health provider module from configured path - %s" % path)
         return module
 
     def get_health_info(self, rpath):
         """Initialize health provider module and fetch health information"""
-        try:
-            from cortx.utils.discovery.node_health import common_config
-            provider_loc = common_config.get(
-                ["health_provider>%s" % self.health_provider_map[self.name]])[0]
-        except KeyError as err:
-            raise DiscoveryError(
-                errno.EINVAL, f"{err} not found in DM health provider config.")
-        module = self.get_health_provider_module(provider_loc)
+        from cortx.utils.discovery.node_health import common_config
+        monitor_path = common_config.get(
+            ["discovery>solution_platform_monitor"])[0]
+        product_id = common_config.get(["product_id"])[0].lower()
+        module = self.get_health_provider_module(monitor_path, product_id)
         members = inspect.getmembers(module, inspect.isclass)
         for _, cls in members:
             if hasattr(cls, 'name') and self.health_provider_map[self.name] == cls.name:
                 return cls().get_health_info(rpath)
         raise DiscoveryError(
             errno.EINVAL,
-            "Invalid health provider path: '%s'" % provider_loc)
+            "%s health provider not found in configured path %s" % (
+                self.health_provider_map[self.name].title(), monitor_path))
 
 
 class ResourceFactory:

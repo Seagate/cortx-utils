@@ -28,7 +28,7 @@ class MessageBrokerFactory:
 
     @staticmethod
     def get_instance(broker_type: str, broker_conf: dict):
-        Log.debug(f"MessageBrokerFactory: involked with arguments broker_type:" \
+        Log.debug(f"MessageBrokerFactory: invoked with arguments broker_type:" \
             f" {broker_type}, broker_conf: {broker_conf}")
         if broker_type in MessageBrokerFactory._brokers:
             return MessageBrokerFactory._brokers[broker_type]

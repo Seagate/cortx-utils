@@ -34,7 +34,7 @@ class MessageBus(metaclass=Singleton):
         try:
             Conf.load('message_bus', self.conf_file)
             Conf.load('config_file', 'json:///etc/cortx/cortx.conf')
-            log_level = Conf.get('config_file', 'log_level>utils_log_level', 'INFO')
+            log_level = Conf.get('config_file', 'utils>log_level', 'INFO')
 
             self._broker_conf = Conf.get('message_bus', 'message_broker')
             broker_type = self._broker_conf['type']
