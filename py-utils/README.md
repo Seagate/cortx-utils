@@ -33,6 +33,7 @@ git clone --recursive https://github.com/Seagate/cortx-utils -b main
 
 
 ## Build
+**Note:** One need to be privileged user (root) for building cortx-py-utils
 **Note:** Use one of following method to create build package
 
   - Create pip package
@@ -52,6 +53,7 @@ $ ./jenkins/build.sh -v 2.0.0 -b 2
 ```
 
 ## Installation
+**Note:** One need to be privileged user (root) for installing cortx-py-utils
   - Installation with pip package
 ```bash
 $ cd ./py-utils/dist
