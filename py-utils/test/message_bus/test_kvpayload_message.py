@@ -18,70 +18,54 @@
 
 import json
 import unittest
-from cortx.utils.conf_store import Conf
+from cortx.utils.kv_store import KvStoreFactory
 from cortx.utils.message_bus import MessageProducer, MessageConsumer
 
 
 class TestKVPayloadMessage(unittest.TestCase):
-    """ Test MessageBus related functionality """
+    """ Test Send/Receive KvPayload as message """
 
-    _json_file = 'json:///etc/cortx/message_bus.conf'
-    _yaml_file = 'yaml:///tmp/test_yaml.yaml'
-    _toml_file = 'toml:///tmp/test_toml.toml'
-    _json_key = 'message_broker'
-    _yaml_key = 'cortx'
-    _toml_key = 'cortx>software'
     _message_type = 'kv_payloads'
+    _kv_store = KvStoreFactory.get_instance('json:///etc/cortx/message_bus.conf')
+    _consumer = MessageConsumer(consumer_id='kv_consumer', consumer_group='kv', \
+        message_types=[_message_type], auto_ack=True, offset='earliest')
+    _producer = MessageProducer(producer_id='kv_producer', \
+        message_type=_message_type, method='sync')
 
-    @classmethod
-    def setUpClass(cls):
-        Conf.load('yaml', TestKVPayloadMessage._yaml_file)
-        Conf.set('yaml', 'cortx>software>common>message_bus_type', 'kafka')
-        Conf.save('yaml')
+    def test_json_kv_send(self):
+        """ Load json as payload """
+        payload = TestKVPayloadMessage._kv_store.get_data()
+        TestKVPayloadMessage._producer.send([json.dumps(payload)])
 
-        Conf.load('toml', TestKVPayloadMessage._toml_file)
-        Conf.set('toml', 'cortx>software>common>message_bus_type', 'kafka')
-        Conf.save('toml')
+    def test_json_receive(self):
+        """ Receive json payload as message """
+        message = TestKVPayloadMessage._consumer.receive()
+        self.assertTrue(message.decode('utf-8'), str({'message_broker': \
+            {'type': 'kafka', 'cluster': [{'server': 'localhost', 'port': \
+            '9092'}]}}))
 
-    def test_kv_send(self):
-        """ Test send kv_payload as message """
-        messages = []
-        producer = MessageProducer(producer_id='kv_producer', \
-            message_type=TestKVPayloadMessage._message_type, method='sync')
-        self.assertIsNotNone(producer, "Producer not found")
+    def test_yaml_kv_send(self):
+        """ Load yaml as payload """
+        payload = TestKVPayloadMessage._kv_store.get_data(format_type='yaml')
+        TestKVPayloadMessage._producer.send([payload])
 
-        # Load json as payload
-        Conf.load('json', TestKVPayloadMessage._json_file, skip_reload=True)
-        payload = Conf.get('json', TestKVPayloadMessage._json_key)
-        messages.append(json.dumps(payload))
+    def test_yaml_receive(self):
+        """ Receive json payload as message """
+        message = TestKVPayloadMessage._consumer.receive()
+        self.assertTrue(message.decode('utf-8'), "message_broker:\n  \
+            cluster:\n  - port: '9092'\n    server: localhost\n  type: kafka\n")
 
-        # Load yaml as payload
-        Conf.load('yaml', TestKVPayloadMessage._yaml_file, skip_reload=True)
-        payload = Conf.get('yaml', TestKVPayloadMessage._yaml_key)
-        messages.append(json.dumps(payload))
+    def test_toml_kv_send(self):
+        """ Load toml as payload """
+        payload = TestKVPayloadMessage._kv_store.get_data(format_type='toml')
+        TestKVPayloadMessage._producer.send([payload])
 
-        # Load toml as payload
-        Conf.load('toml', TestKVPayloadMessage._toml_file, skip_reload=True)
-        payload = Conf.get('toml', TestKVPayloadMessage._toml_key)
-        messages.append(json.dumps(payload))
-
-        self.assertIsInstance(messages, list)
-        producer.send(messages)
-
-    def test_receive(self):
-        """ Test receive kv_payload as message """
-        consumer = MessageConsumer(consumer_id='kv_consumer', \
-            consumer_group='kv', \
-            message_types=[TestKVPayloadMessage._message_type], auto_ack=True, \
-            offset='earliest')
-        self.assertIsNotNone(consumer, "Consumer not found")
-
-        while True:
-            message = consumer.receive()
-            if message is None:
-                break
-            payload = json.loads(message)
-            self.assertIs(type(payload), dict)
+    def test_toml_receive(self):
+        """ Receive json payload as message """
+        message = TestKVPayloadMessage._consumer.receive()
+        self.assertTrue(message.decode('utf-8'), '[message_broker]\ntype = \
+            "kafka"\n[[message_broker.cluster]]\nserver = "localhost"\nport = \
+            "9092"\n\n')
 
 
 if __name__ == '__main__':
