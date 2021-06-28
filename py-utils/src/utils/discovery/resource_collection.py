@@ -44,9 +44,9 @@ class Storage(Resource):
         return child_resource in Storage.childs
 
 
-class Nodes(Resource):
+class Node(Resource):
 
-    name = "nodes"
+    name = "node"
     childs = ["compute", "storage"]
 
     def __init__(self, child_resource=None):
@@ -55,7 +55,7 @@ class Nodes(Resource):
 
     @staticmethod
     def has_child(child_resource):
-        return child_resource in Nodes.childs
+        return child_resource in Node.childs
 
     def get_health_info(self, rpath):
         return self.child.get_health_info(rpath)

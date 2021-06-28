@@ -63,7 +63,7 @@ Note : The rpm package installation will fail if any dependent python package is
 Please refer to WIKI (https://github.com/Seagate/cortx-utils/wiki/%22cortx-py-utils%22-single-node-manual-provisioning)
 ```bash
 $ cd ./py-utils/dist
-$ yum install -y cortx-py-utils-1.0.0-1.noarch.rpm
+$ sudo yum install -y cortx-py-utils-*.noarch.rpm
 ```
 
 ## Uninstall
