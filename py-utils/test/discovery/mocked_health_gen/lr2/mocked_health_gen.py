@@ -15,15 +15,17 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com
 
+import sys
 import os
 
 from cortx.utils.conf_store import Conf
 from cortx.utils.discovery.node_health import common_config
 
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+store_path = os.path.join(dir_path, 'mocked_node_health.json')
 store_type = "json"
-store_path = os.path.join(
-    os.path.dirname(common_config.get(["resource_map>location"])[0]),
-    "mocked_data/mocked_node_health.json")
 mock_data_url = "%s://%s" % (store_type, store_path)
 mock_index = "mock_index"
 Conf.load(mock_index, mock_data_url)
@@ -37,7 +39,7 @@ class Server:
     def get_health_info(self, rpath):
         """
         Fetch health information for given FRU
-        rpath: Resouce id (Example: nodes[0]>compute[0]>hw>disks)
+        rpath: Resource id (Example: node>compute[0]>hw>disks)
         """
         return Conf.get(mock_index, rpath)
 
@@ -50,11 +52,11 @@ class Storage:
     def get_health_info(self, rpath):
         """
         Fetch health information for given FRU
-        rpath: Resouce id (Example: nodes[0]>storage[0]>hw>controllers)
+        rpath: Resource id (Example: node>storage[0]>hw>controllers)
         """
         return Conf.get(mock_index, rpath)
 
 
 if __name__ == "__main__":
     storage = Storage()
-    storage.get_health_info(rpath="nodes[0]>storage[0]>hw>controllers")
+    storage.get_health_info(rpath="node>storage[0]>hw>controllers")
