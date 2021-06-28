@@ -45,7 +45,7 @@ class MessageBusTest:
             list_message_type = admin.list_message_types()
             if 'mytest' in list_message_type:
                 raise SetupError(errors.ERR_OP_FAILED, "Failed to test the" \
-                    " config. Deregister messge_type: mytest failed")
+                    " config. Deregister message_type: mytest failed")
         except Exception as e:
             raise SetupError(errors.ERR_OP_FAILED, \
                 "Failed to test the config, %s", e)
@@ -73,4 +73,5 @@ class MessageBusTest:
             except Exception as e:
                 raise SetupError(errors.ERR_OP_FAILED, "Failed to receive messages" \
                     "for message_type: mytest. Unable to test the config." \
-                    " %s", e)
+                    " %s with consumer_id: setup, message_types: mytest " \
+                    "consumer_group: provisioner", e)

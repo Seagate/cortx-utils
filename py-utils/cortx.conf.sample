@@ -1,13 +1,12 @@
 {
   "install_path": "/opt/seagate",
-  "health_provider": {
-    "storage": "cortx/utils/discovery/mocked_health_gen",
-    "server": "cortx/utils/discovery/mocked_health_gen"
-  },
-  "resource_map": {
-    "location": "/var/cortx/resources/",
-    "store_type": "json",
-    "requests_file": "/var/cortx/resources/requests.json",
-    "expiry_sec": 1800
+  "product_id": "LR2",
+  "discovery": {
+    "solution_platform_monitor": "/opt/seagate/cortx/sspl/bin/resource_map",
+    "resource_map": {
+      "location": "/var/cortx/resources/",
+      "store_type": "json",
+      "expiry_sec": 1800
+    }
   }
 }
