@@ -21,6 +21,7 @@ from cortx.utils.utils_server import RestServer
 from cortx.utils.iem_framework import EventMessage
 from cortx.utils.utils_server.error import RestServerError
 from cortx.utils.iem_framework.error import EventMessageError
+from cortx.utils.log import Log
 
 routes = web.RouteTableDef()
 
@@ -43,6 +44,9 @@ class IemRequestHandler(RestServer):
         except EventMessageError as e:
             status_code = e.rc
             error_message = e.desc
+            Log.error(f"Unable to send event message for component: " \
+                      f"{component}, status code: {status_code}," \
+                      f" error: {error_message}")
             response_obj = {'error_code': status_code, 'exception': \
                 ['EventMessageError', {'message': error_message}]}
         except Exception as e:
@@ -50,18 +54,25 @@ class IemRequestHandler(RestServer):
             exception = RestServerError(exception_key).http_error()
             status_code = exception[0]
             error_message = exception[1]
+            Log.error(f"Internal error while sending event messages for " \
+                f"component: {component}, status code: " \
+                f"{status_code}, error: {error_message}")
             response_obj = {'error_code': status_code, 'exception': \
                 [exception_key, {'message': error_message}]}
             raise EventMessageError(status_code, error_message) from e
         else:
             status_code = 200  # No exception, Success
             response_obj = {'status_code': status_code, 'status': 'success'}
+            Log.debug(f"POST method finished for component: {component} "
+                f"and source: {source}, with status code: {status_code}")
         finally:
             return web.Response(text=json.dumps(response_obj), \
                 status=status_code)
 
     @staticmethod
     async def receive(request):
+        Log.debug(f"Received GET request for component " \
+            f"{request.rel_url.query['component']}")
         try:
             component = request.rel_url.query['component']
             EventMessage.subscribe(component=component)
@@ -69,6 +80,9 @@ class IemRequestHandler(RestServer):
         except EventMessageError as e:
             status_code = e.rc
             error_message = e.desc
+            Log.error(f"Unable to receive event message for component: " \
+                f"{component}, status code: {status_code}," \
+                f" error: {error_message}")
             response_obj = {'error_code': status_code, 'exception': \
                 ['EventMessageError', {'message': error_message}]}
         except Exception as e:
@@ -76,12 +90,18 @@ class IemRequestHandler(RestServer):
             exception = RestServerError(exception_key).http_error()
             status_code = exception[0]
             error_message = exception[1]
+            Log.error(f"Internal error while receiving event messages for " \
+                f"component: {component}, status code: " \
+                f"{status_code}, error: {error_message}")
             response_obj = {'error_code': status_code, 'exception': \
                 [exception_key, {'message': error_message}]}
             raise EventMessageError(status_code, error_message) from e
         else:
             status_code = 200  # No exception, Success
             response_obj = {'alert': alert}
+            Log.debug(f"GET method finished with status code: {status_code}" \
+                f"for component {component} and received event message " \
+                f"alert info. - {alert['iem']['info']}.")
         finally:
             return web.Response(text=json.dumps(response_obj), \
                 status=status_code)
