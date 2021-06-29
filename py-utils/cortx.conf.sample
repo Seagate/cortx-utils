@@ -4,6 +4,9 @@
     "log_level": "INFO"
     },
   "product_id": "LR2",
+  "support": {
+    "support_bundle_path": "/var/log/seagate/support_bundle/"
+  },
   "discovery": {
     "solution_platform_monitor": "/opt/seagate/cortx/sspl/bin/resource_map",
     "resource_map": {

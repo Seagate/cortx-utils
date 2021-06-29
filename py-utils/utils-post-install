@@ -14,10 +14,10 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-# Value of install_path will be changed at build time
-#install_path_placeholder
-utils_path=$install_path/cortx/utils
-
+## Replace <INSTALL_PATH> with cortx installation path example: /opt/seagate
+install_path=<INSTALL_PATH>
+cortx_path=$install_path/cortx/
+utils_path=$cortx_path/utils
 # Create /etc/cortx. This will be used for storing message_bus.conf file
 /bin/mkdir -p /etc/cortx
 
@@ -32,3 +32,10 @@ utils_path=$install_path/cortx/utils
 
 # Copy cortx.conf file to /etc/cortx
 [ -f "/etc/cortx/cortx.conf" ] || cp -n $utils_path/conf/cortx.conf.sample /etc/cortx/cortx.conf
+
+# Replace cortx path to support.yaml
+sed -i -e "s|<CORTX_PATH>|${cortx_path}|g" $utils_path/conf/support.yaml
+
+# Copy rsyslog config to /etc/rsyslog.d
+[ ! -d "/etc/rsyslog.d" ] && mkdir "/etc/rsyslog.d"
+cp -n "$utils_path/conf/0-support_bundle.conf" "/etc/rsyslog.d"
