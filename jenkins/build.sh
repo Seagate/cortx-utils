@@ -57,7 +57,7 @@ echo $VER > VERSION
 /bin/chmod +rx VERSION
 
 # Fetch install_path
-INSTALL_PATH=$(grep install_path cortx.conf.sample |  cut -d " " -f 6 | sed -e 's/^"//' -e 's/",$//')
+INSTALL_PATH=$(jq .install_path cortx.conf.sample |  tr -d '"')
 
 # Put install_path in utils-post-install
 sed -i -e "s|<INSTALL_PATH>|${INSTALL_PATH}|g" utils-post-install
