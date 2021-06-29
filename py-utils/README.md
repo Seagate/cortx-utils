@@ -33,14 +33,15 @@ git clone --recursive https://github.com/Seagate/cortx-utils -b main
 
 
 ## Build
+**Note:** One need to be privileged user (root) for building cortx-py-utils
 **Note:** Use one of following method to create build package
 
   - Create pip package
     - It will create `cortx_py_utils-1.0.0-py3-none-any.whl`
 ```bash
-$ pip3 install wheel
+$ sudo pip3 install wheel
 $ cd ./cortx-utils/py-utils
-$ python3 setup.py bdist_wheel
+$ sudo python3 setup.py bdist_wheel
 ```
 
   - Create RPM Package
@@ -48,14 +49,15 @@ It will create `cortx-py-utils-1.0.0-1_<git-version>.noarch.rpm` by default. One
 Below command passes version string as 2.0.0 and build number 2, which creates `cortx-py-utils-2.0.0-2_<git-version>.noarch.rpm`
 Run below command from repo root (cortx-utils).
 ```bash
-$ ./jenkins/build.sh -v 2.0.0 -b 2
+$ sudo ./jenkins/build.sh -v 2.0.0 -b 2
 ```
 
 ## Installation
+**Note:** One need to be privileged user (root) for installing cortx-py-utils
   - Installation with pip package
 ```bash
 $ cd ./py-utils/dist
-$ pip3 install cortx_py_utils-1.0.0-py3-none-any.whl
+$ sudo pip3 install cortx_py_utils-1.0.0-py3-none-any.whl
 ```
 
   - Installation with RPM package
@@ -63,19 +65,19 @@ Note : The rpm package installation will fail if any dependent python package is
 Please refer to WIKI (https://github.com/Seagate/cortx-utils/wiki/%22cortx-py-utils%22-single-node-manual-provisioning)
 ```bash
 $ cd ./py-utils/dist
-$ yum install -y cortx-py-utils-1.0.0-1.noarch.rpm
+$ sudo yum install -y cortx-py-utils-*.noarch.rpm
 ```
 
 ## Uninstall
 
 - Pip package uninstall
 ```bash
-$ pip3 uninstall cortx-py-utils
+$ sudo pip3 uninstall cortx-py-utils
 ```
 
   - RPM uninstall
 ```
-$ yum remove cortx-py-utils
+$ sudo yum remove cortx-py-utils
 ```
 
 ## Update new dependency package

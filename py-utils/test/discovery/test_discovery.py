@@ -18,22 +18,38 @@
 
 import unittest
 
+from cortx.utils import const
 from cortx.utils.discovery import Discovery
 from cortx.utils.discovery.error import DiscoveryError
+from cortx.utils.kv_store import KvStoreFactory
+
+# Load cortx common config
+store_type = "json"
+config_url = "%s://%s" % (store_type, const.CORTX_CONF_FILE)
+common_config = KvStoreFactory.get_instance(config_url)
+common_config.load()
 
 # Sample rpaths
-#valid_rpath = "nodes[0]"
-#valid_rpath = "nodes[0]>compute[0]"
-#valid_rpath = "nodes[0]>storage[0]"
-valid_rpath = "nodes[0]>storage[0]>hw>controllers"
-invalid_rpath = "nodes[0]>notexist[0]"
+#valid_rpath = "node"
+#valid_rpath = "node>compute[0]"
+#valid_rpath = "node>storage[0]"
+valid_rpath = "node>storage[0]>hw>controllers"
+invalid_rpath = "node>notexist[0]"
 
 
 class TestDiscovery(unittest.TestCase):
     """Test Discovery module interfaces"""
 
+    def setUp(self):
+        self.solution_platform_monitor = common_config.get(
+            ["discovery>solution_platform_monitor"])[0]
+        # Set platform monitor path to mocked data path
+        common_config.set(
+            ["discovery>solution_platform_monitor"],
+            ["cortx/utils/test/discovery/mocked_health_gen"])
+
     def test_generate_node_health(self):
-        """Check for immediate request id """
+        """Check for immediate request id"""
         request_id = Discovery.generate_node_health(valid_rpath)
         self.assertIsNotNone(request_id)
 
@@ -44,9 +60,15 @@ class TestDiscovery(unittest.TestCase):
         self.assertEqual(status, "Success")
 
     def test_get_node_health(self):
-        """Check for generated recource map location"""
+        """Check for generated resource map location"""
         req_id = Discovery.generate_node_health(valid_rpath)
         url = Discovery.get_node_health(req_id)
+        self.assertIsNotNone(url)
+
+    def test_get_node_health_static_store_url(self):
+        """Check for static store url"""
+        request_id = Discovery.generate_node_health()
+        url = Discovery.get_node_health(request_id)
         self.assertIsNotNone(url)
 
     def test_generate_node_health_on_invalid_rpath(self):
@@ -67,6 +89,12 @@ class TestDiscovery(unittest.TestCase):
         request_id = "xxxxxxxxxxx"
         self.assertRaises(
             DiscoveryError, Discovery.get_node_health, request_id)
+
+    def tearDown(self):
+        # Reset platform monitor path
+        common_config.set(
+            ["discovery>solution_platform_monitor"],
+            [self.solution_platform_monitor])
 
 
 if __name__ == '__main__':

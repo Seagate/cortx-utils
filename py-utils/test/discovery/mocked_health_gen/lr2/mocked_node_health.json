@@ -1,6 +1,6 @@
 {
   "uid":"rack_001",
-  "nodes":[
+  "node":
       {
         "uid":"cortx_node_1",
         "last_updated":"1615290352",
@@ -1118,5 +1118,4 @@
             }
         ]
       }
-  ]
 }
