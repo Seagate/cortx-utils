@@ -291,6 +291,16 @@ class TestConfCli(unittest.TestCase):
         except Exception:
             self.assertEqual(result_data[2], '22')
 
+    def test_conf_cli_by_get_diff_keys(self):
+        """
+        Test by retrieving a value using get api
+        """
+        cmd = "conf json:///tmp/file1.json diff json:///tmp/file2.json"
+        cmd_proc = SimpleProcess(cmd)
+        result_data = cmd_proc.run()
+        self.assertTrue(False if result_data[2] != 0 and
+            result_data[0] != b'<Update your Differnces>' else True, result_data[1])
+
     def test_conf_cli_merge_keys(self):
         cmd = "conf json:///tmp/file1.json merge json:///tmp/file2.json -k version;branch"
         cmd_proc = SimpleProcess(cmd)

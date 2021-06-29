@@ -137,7 +137,7 @@ class TestCmd(Cmd):
 
     def process(self):
         Utils.validate('test')
-        rc = Utils.test()
+        rc = Utils.test(self._url)
         return rc
 
 

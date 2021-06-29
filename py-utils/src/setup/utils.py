@@ -147,6 +147,16 @@ class Utils:
                 %s", e)
 
     @staticmethod
+    def _get_plan_info(conf_url: str):
+        """ Reads the ConfStore and derives keys related to test plan """
+
+        Conf.load('plan_info', conf_url)
+        key_list = ['cortx>software>test_plan']
+        ConfKeysV().validate('exists', 'plan_info', key_list)
+        plan_info = Conf.get('plan_info', key_list[0])
+        return plan_info
+
+    @staticmethod
     def validate(phase: str):
         """ Perform validtions """
 
@@ -228,7 +238,7 @@ class Utils:
         return 0
 
     @staticmethod
-    def test():
+    def test(conf_url: str):
         """ Perform configuration testing """
 
         from cortx.setup import MessageBusTest
@@ -241,11 +251,12 @@ class Utils:
             Log.error(f"Unable to test the config. Received message is {msg}")
             raise SetupError(errno.EINVAL, "Unable to test the config. Received\
                 message is %s", msg)
-        #Runs all the unittests from py-utils/test
+        #Runs cortx-py-utils unittests
         try:
             from cortx.utils.test.run_test import TestSuite
+            test_plan = Utils._get_plan_info(conf_url)
             suite = TestSuite()
-            suite.run_test_suite()
+            suite.run_test_suite(test_plan)
         except ModuleNotFoundError:
             raise SetupError(errno.EINVAL, "Failed to import, \
                 Ensure cortx-py-utils-test rpm is installed")

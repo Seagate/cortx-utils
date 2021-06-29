@@ -18,6 +18,9 @@
 
 import os
 import unittest
+import errno
+from cortx.setup.utils import SetupError
+
 
 dir_path = os.path.dirname(os.path.abspath(__file__))
 
@@ -25,12 +28,16 @@ dir_path = os.path.dirname(os.path.abspath(__file__))
 class TestSuite:
     """Create and run test suite"""
 
-    def run_test_suite(self):
+    def run_test_suite(self, test_plan):
         """create and run complete test suite"""
-        loader = unittest.TestLoader()
-        #Creates test suite
-        test_suite = loader.discover(dir_path, pattern='test*.py', \
-            top_level_dir=None)
-        runner = unittest.TextTestRunner(verbosity=2)
-        #Runs test suite
-        runner.run(test_suite)
+        if test_plan == 'sanity' or test_plan == 'regression':
+            loader = unittest.TestLoader()
+            #Creates test suite
+            test_suite = loader.discover(dir_path, pattern='test*.py', \
+                top_level_dir=None)
+            runner = unittest.TextTestRunner(verbosity=2)
+            #Runs test suite
+            runner.run(test_suite)
+        else:
+            raise SetupError(errno.EINVAL, "Ensure correct test_plan is \
+                updated in conf_url")

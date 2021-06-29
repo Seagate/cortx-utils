@@ -1,4 +1,4 @@
-#!/bin/python3
+#!/usr/bin/env python3
 
 # CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
@@ -14,5 +14,3 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com
-
-from cortx.utils.discovery.mocked_health_gen.mocked_health_gen import Storage, Server

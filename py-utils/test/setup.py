@@ -46,6 +46,9 @@ setup(
         "cortx.utils.test.cli_framework",
         "cortx.utils.test.discovery",
         "cortx.utils.test.iem_framework",
+        "cortx.utils.test.discovery",
+        "cortx.utils.test.discovery.mocked_health_gen",
+        "cortx.utils.test.discovery.mocked_health_gen.lr2",
     ],
     package_data={
         "": [
@@ -54,8 +57,9 @@ setup(
             "kv_store/*.json",
             "conf_store/*.json",
             "message_bus/*.conf",
-            "cli_framework/test_data/*.json"
-            "iem_framework/*.json"
+            "cli_framework/test_data/*.json",
+            "iem_framework/*.json",
+            "mocked_health_gen/*.json",
         ]
     },
 )
