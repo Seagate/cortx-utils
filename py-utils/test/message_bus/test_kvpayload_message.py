@@ -18,7 +18,7 @@
 
 import json
 import unittest
-from cortx.utils.kv_store import KvStoreFactory
+from cortx.utils.kv_store import KvPayload
 from cortx.utils.message_bus import MessageProducer, MessageConsumer
 
 
@@ -26,7 +26,8 @@ class TestKVPayloadMessage(unittest.TestCase):
     """ Test Send/Receive KvPayload as message """
 
     _message_type = 'kv_payloads'
-    _kv_store = KvStoreFactory.get_instance('json:///etc/cortx/message_bus.conf')
+    _payload = KvPayload({'message_broker': {'type': 'kafka', 'cluster': \
+        [{'server': 'localhost', 'port': '9092'}]}})
     _consumer = MessageConsumer(consumer_id='kv_consumer', consumer_group='kv', \
         message_types=[_message_type], auto_ack=True, offset='earliest')
     _producer = MessageProducer(producer_id='kv_producer', \
@@ -34,8 +35,8 @@ class TestKVPayloadMessage(unittest.TestCase):
 
     def test_json_kv_send(self):
         """ Load json as payload """
-        payload = TestKVPayloadMessage._kv_store.get_data()
-        TestKVPayloadMessage._producer.send([json.dumps(payload)])
+        message = TestKVPayloadMessage._payload.get_data()
+        TestKVPayloadMessage._producer.send([json.dumps(message)])
 
     def test_json_receive(self):
         """ Receive json payload as message """
@@ -46,8 +47,8 @@ class TestKVPayloadMessage(unittest.TestCase):
 
     def test_yaml_kv_send(self):
         """ Load yaml as payload """
-        payload = TestKVPayloadMessage._kv_store.get_data(format_type='yaml')
-        TestKVPayloadMessage._producer.send([payload])
+        message = TestKVPayloadMessage._payload.get_data(format_type='yaml')
+        TestKVPayloadMessage._producer.send([message])
 
     def test_yaml_receive(self):
         """ Receive json payload as message """
@@ -57,8 +58,8 @@ class TestKVPayloadMessage(unittest.TestCase):
 
     def test_toml_kv_send(self):
         """ Load toml as payload """
-        payload = TestKVPayloadMessage._kv_store.get_data(format_type='toml')
-        TestKVPayloadMessage._producer.send([payload])
+        message = TestKVPayloadMessage._payload.get_data(format_type='toml')
+        TestKVPayloadMessage._producer.send([message])
 
     def test_toml_receive(self):
         """ Receive json payload as message """
