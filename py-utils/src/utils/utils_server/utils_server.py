@@ -16,6 +16,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 from aiohttp import web
+from cortx.utils.log import Log
 
 
 class RestServer:
@@ -32,8 +33,15 @@ class RestServer:
             web.get('/MessageBus/message/{message_type}', \
             MessageBusRequestHandler.receive)])
 
+        Log.info("Starting Message Server 127.0.0.1 on port 28300")
         web.run_app(app, host='127.0.0.1', port=28300)
 
 
 if __name__ == '__main__':
+    from cortx.utils.conf_store import Conf
+
+    Conf.load('config_file', 'json:///etc/cortx/cortx.conf')
+    log_level = Conf.get('config_file', 'utils>log_level', 'INFO')
+    Log.init('utils_server', '/var/log/cortx/utils/utils_server', \
+        level=log_level, backup_count=5, file_size_in_mb=5)
     RestServer()
