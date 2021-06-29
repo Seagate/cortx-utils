@@ -15,6 +15,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import time
+
 from cortx.setup import SetupError
 from cortx.utils import errors
 
@@ -68,7 +69,7 @@ class MessageBusTest:
             try:
                 time.sleep(1)
                 message = consumer.receive()
-                if message != None:
+                if message is not None:
                     return message
             except Exception as e:
                 raise SetupError(errors.ERR_OP_FAILED, "Failed to receive messages" \
