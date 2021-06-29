@@ -91,7 +91,6 @@ class InternalError(BaseError):
               INTERNAL_ERROR, 'Internal error: %s' % desc,
               message_id, message_args)
 
-
 class DataAccessError(InternalError):
 
     """Base Data Access Error"""
