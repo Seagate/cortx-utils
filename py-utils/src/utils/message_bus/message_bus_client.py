@@ -89,9 +89,10 @@ class MessageBusClient:
         message_list = []
         for each_message in messages:
             if isinstance(each_message, KvPayload):
-                each_message = json.dumps(each_message.json())
-                message_list.append([each_message])
-            message_list.append([each_message])
+                each_message = json.dumps(each_message.json)
+                message_list.append(each_message)
+                continue
+            message_list.append(each_message)
         return message_list
 
     def send(self, messages: list):
