@@ -1,6 +1,4 @@
-#!/bin/python3
-
-# CORTX Python common library.
+# CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -14,6 +12,17 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
+from cortx.utils.errors import BaseError
 
 
-from cortx.utils.discovery.discovery import Discovery
+class BundleError(BaseError):
+    """
+    Error class for support bundle related errors
+    """
+
+    def __init__(self, rc=None, desc=None, message_id=None, message_args=None):
+        super(BundleError, self).__init__(
+            rc, desc, message_id, message_args)
+
+    def __str__(self):
+        return f"BundleError: {self.rc}: {self.desc}"

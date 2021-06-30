@@ -78,23 +78,26 @@ class ConfCli:
     @staticmethod
     def diff(args) -> str:
         """ Compare two diffenent string value for the given keys """
-        output = ""
         if len(args.args) < 1:
-            #todo the diff of all the keys between two files
-            sys.exit(0)
+            args.key_index = None
+            string_1 = ConfCli.get_keys(args)
+            diff_index = "string_diff"
+            args.url = args.second_url
+            ConfCli.load(args.url, diff_index)
+            string_2 = ConfCli.get_keys(args, diff_index)
         else:
-            args.format = None
             string_1 = ConfCli.get(args)
             ConfCli._index = "string_diff"
             args.url = args.second_url
             ConfCli.init(args.url)
             string_2 = ConfCli.get(args)
-            cmd = """bash -c "diff <(echo \\"%s\\") <(echo \\"%s\\")" """ %(string_1, string_2)
-            cmd_proc = SimpleProcess([cmd])
-            cmd_proc.shell = True
-            stdout, stderr, rc = cmd_proc.run()
-            output = stdout.decode('utf-8') if rc == 1 else \
-                stderr.decode('utf-8')
+        args.format = None
+        cmd = """bash -c "diff <(echo \\"%s\\") <(echo \\"%s\\")" """ %(string_1, string_2)
+        cmd_proc = SimpleProcess([cmd])
+        cmd_proc.shell = True
+        stdout, stderr, rc = cmd_proc.run()
+        output = stdout.decode('utf-8') if rc == 1 else \
+             stderr.decode('utf-8')
         return output
 
     @staticmethod
@@ -128,13 +131,15 @@ class ConfCli:
             Conf.save(ConfCli._index)
 
     @staticmethod
-    def get_keys(args) -> list:
+    def get_keys(args, index: str = None) -> list:
         """ Returns list of keys present in store """
         key_index = 'true' if args.key_index == None else args.key_index.lower().strip()
         key_index = True if key_index == 'true' else False if key_index == 'false' else None
-        if key_index == None:
+        if key_index is None:
             raise ConfError(errno.EINVAL, "invalid key_index value %s", key_index)
-        return Conf.get_keys(ConfCli._index, key_index=key_index)
+        if index is None:
+            index = ConfCli._index
+        return Conf.get_keys(index, key_index=key_index)
 
 
 class GetCmd:
