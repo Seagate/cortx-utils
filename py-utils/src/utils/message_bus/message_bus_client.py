@@ -89,6 +89,10 @@ class MessageBusClient:
         for message in messages:
             if isinstance(message, KvPayload):
                 message = message.json
+
+            if not isinstance(message, str):
+                raise MessageBusError(errno.EINVAL, "Invalid message format. \
+                    %s", message)
             message_list.append(message)
         return message_list
 
