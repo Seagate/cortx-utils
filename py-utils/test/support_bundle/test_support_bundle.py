@@ -19,26 +19,26 @@
 import os
 import unittest
 
-from cortx.utils.support_bundle import SupportBundle
+from cortx.utils.support_bundle import UtilsSupportBundle
 
 
 class TestSupportBundle(unittest.TestCase):
 
     def test_support_bundle_a(self):
         """ Test by generating support tar in default location """
-        SupportBundle.generate()
+        UtilsSupportBundle.generate()
         status = os.path.exists("/tmp/cortx/support_bundle/py-utils.tar.gz")
         self.assertTrue(status)
 
     def test_support_bundle_b_custom_target_output(self):
         """ Test by generating support tar in custom location """
-        SupportBundle.generate(target_path="/tmp/sbtest/out/")
+        UtilsSupportBundle.generate(target_path="/tmp/sbtest/out/")
         status = os.path.exists("/tmp/sbtest/out/py-utils.tar.gz")
         self.assertTrue(status)
 
     def test_support_bundle_c_wrong_target_output(self):
         """ Test by generating support tar in some random -,. location """
-        SupportBundle.generate(target_path="-")
+        UtilsSupportBundle.generate(target_path="-")
         status = os.path.exists("-py-utils.tar.gz")
         self.assertTrue(status)
 

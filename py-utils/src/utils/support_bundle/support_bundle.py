@@ -25,7 +25,7 @@ from cortx.utils.support_bundle.error import SupportBundleError
 from cortx.utils.conf_store import Conf
 
 
-class SupportBundle:
+class UtilsSupportBundle:
     """ Generate support bundle for py-utils"""
     _default_path = "/tmp/cortx/support_bundle/"
     _tar_name = "py-utils"
@@ -42,21 +42,21 @@ class SupportBundle:
     @staticmethod
     def generate(target_path=None):
         """ Generate a tar file """
-        for key, value in SupportBundle._files_to_bundle.items():
+        for key, value in UtilsSupportBundle._files_to_bundle.items():
             if os.path.exists(value):
-                SupportBundle.__copy_file(value)
-        SupportBundle.__kafka_get_log_location_and_copy()
-        SupportBundle.__generate_tar(target_path)
-        SupportBundle.__clear_tmp_files()
+                UtilsSupportBundle.__copy_file(value)
+        UtilsSupportBundle.__kafka_get_log_location_and_copy()
+        UtilsSupportBundle.__generate_tar(target_path)
+        UtilsSupportBundle.__clear_tmp_files()
 
     @staticmethod
     def __copy_file(source: str, destination: str = None):
         """ Copy a file from source to destination location """
-        directory = os.path.dirname(SupportBundle._tmp_src)
+        directory = os.path.dirname(UtilsSupportBundle._tmp_src)
         if not os.path.exists(directory):
             os.makedirs(directory)
         if destination is None:
-            destination = os.path.join(SupportBundle._tmp_src,
+            destination = os.path.join(UtilsSupportBundle._tmp_src,
                 os.path.basename(source))
         try:
             shutil.copy2(source, destination)
@@ -67,40 +67,39 @@ class SupportBundle:
     def __generate_tar(target_path=None):
         """ Generate tar.gz file at given path """
         target_path = target_path if target_path is not None \
-            else SupportBundle._default_path
+            else UtilsSupportBundle._default_path
         tar_file_name = os.path.join(target_path,
-            SupportBundle._tar_name + ".tar.gz")
+            UtilsSupportBundle._tar_name + ".tar.gz")
         if not os.path.exists(target_path):
             os.makedirs(target_path)
         with tarfile.open(tar_file_name, "w:gz") as tar:
-            tar.add(SupportBundle._tmp_src,
-                arcname=os.path.basename(SupportBundle._tmp_src))
+            tar.add(UtilsSupportBundle._tmp_src,
+                arcname=os.path.basename(UtilsSupportBundle._tmp_src))
 
     @staticmethod
     def __kafka_get_log_location_and_copy():
-        files_lst = SupportBundle._files_to_bundle
-        # Same index will be used to test multiple times to init random
-        r_num = str(int(random.random() * 10))
+        files_lst = UtilsSupportBundle._files_to_bundle
         if os.path.exists(files_lst["kafka_server"]) and os.path.exists(
                 files_lst["kafka_zookeeper"]):
             to_be_collected = {}
-            Conf.load('kafka_server'+r_num,
-                "properties://" + files_lst["kafka_server"])
-            Conf.load('kafka_zookeeper'+r_num,
-                "properties://" + files_lst["kafka_zookeeper"])
+            Conf.load('kafka_server',
+                "properties://" + files_lst["kafka_server"], fail_reload=False)
+            Conf.load('kafka_zookeeper',
+                "properties://" + files_lst["kafka_zookeeper"],
+                fail_reload=False)
 
-            to_be_collected['kafka_log_dirs'] = Conf.get('kafka_server'+r_num,
+            to_be_collected['kafka_log_dirs'] = Conf.get('kafka_server',
                 "log.dirs", "/tmp/kafka-logs")
             to_be_collected['zookeeper_data_log_dir'] = Conf.get(
-                'kafka_zookeeper'+r_num, "dataLogDir")
+                'kafka_zookeeper', "dataLogDir")
             to_be_collected['zookeeper_data_dir'] = Conf.get(
-                'kafka_zookeeper'+r_num, "dataDir", "/var/zookeeper")
+                'kafka_zookeeper', "dataDir", "/var/zookeeper")
             # Copy entire kafka and zookeeper logs
             for key, value in to_be_collected.items():
                 if value and os.path.exists(value):
-                    shutil.copytree(value, SupportBundle._tmp_src + key)
+                    shutil.copytree(value, UtilsSupportBundle._tmp_src + key)
 
     @staticmethod
     def __clear_tmp_files():
         """ Clean tmp files after support bundle generation completed """
-        shutil.rmtree(SupportBundle._tmp_src)
+        shutil.rmtree(UtilsSupportBundle._tmp_src)
