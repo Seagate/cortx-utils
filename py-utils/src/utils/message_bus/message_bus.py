@@ -16,6 +16,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
+from cortx.utils.log import Log
 from cortx.utils.message_bus.message_broker import MessageBrokerFactory
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.conf_store import Conf
@@ -32,12 +33,22 @@ class MessageBus(metaclass=Singleton):
         """ Initialize a MessageBus and load its configurations """
         try:
             Conf.load('message_bus', self.conf_file)
+            Conf.load('config_file', 'json:///etc/cortx/cortx.conf')
+            log_level = Conf.get('config_file', 'utils>log_level', 'INFO')
+
             self._broker_conf = Conf.get('message_bus', 'message_broker')
             broker_type = self._broker_conf['type']
+            Log.init("MessageBus", '/var/log/cortx/utils/message_bus',
+                level=log_level, backup_count=5, file_size_in_mb=5)
+            Log.info(f"MessageBus initialized as {broker_type}")
         except ConfError as e:
+            Log.error(f"MessageBusError: {e.rc} Error while parsing" \
+                      f" configuration file {self.conf_file}. {e}.")
             raise MessageBusError(e.rc, "Error while parsing " +\
                 "configuration file %s. %s.", self.conf_file, e)
         except Exception as e:
+            Log.error(f"MessageBusError: {e.rc} Error while parsing" \
+                      f" configuration file {self.conf_file}. {e}.")
             raise MessageBusError(errno.ENOENT, "Error while parsing " +\
                 "configuration file %s. %s.", self.conf_file, e)
 
