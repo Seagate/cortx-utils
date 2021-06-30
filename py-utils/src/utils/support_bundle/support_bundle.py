@@ -31,7 +31,7 @@ class UtilsSupportBundle:
     _tar_name = "py-utils"
     _tmp_src = "/tmp/cortx/py-utils/"
     _files_to_bundle = {
-        "message_bus": "/var/log/cortx/utils/message_bus/MessageBus.log",
+        "message_bus": "/var/log/cortx/utils/message_bus/message_bus.log",
         "iem_and_rest":
             "/var/log/cortx/utils/utils_server/utils_server.log",
         "utils_setup": "/var/log/cortx/utils/utils_setup.log",
