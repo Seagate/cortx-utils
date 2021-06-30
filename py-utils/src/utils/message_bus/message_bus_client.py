@@ -80,6 +80,20 @@ class MessageBusClient:
         self._message_bus.add_concurrency(client_id, message_type, \
             concurrency_count)
 
+    @staticmethod
+    def _check_message_format(messages: list) -> list:
+        """ Convert the format of message to string """
+        import json
+        from cortx.utils.kv_store import KvPayload
+
+        message_list = []
+        for each_message in messages:
+            if isinstance(each_message, KvPayload):
+                each_message = json.dumps(each_message.json())
+                message_list.append([each_message])
+            message_list.append([each_message])
+        return message_list
+
     def send(self, messages: list):
         """
         Sends list of messages to the Message Bus
@@ -90,6 +104,7 @@ class MessageBusClient:
         message_type = self._get_conf('message_type')
         method = self._get_conf('method')
         client_id = self._get_conf('client_id')
+        messages = self._check_message_format(messages)
         self._message_bus.send(client_id, message_type, method, messages)
 
     def delete(self):
