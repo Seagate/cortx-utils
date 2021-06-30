@@ -49,7 +49,7 @@ if [ -z "${BUILD_NUMBER}" ]; then
 BUILD_NUMBER="0"
 fi
 
-
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 echo -e "Generating RELEASE.INFO file"
 
 EXCLUDE_PACKAGES="cortx-motr-devel\|cortx-motr-tests-ut\|cortx-libsspl_sec-devel\|cortx-libsspl_sec-method_pki\|cortx-prvsnr-cli\|cortx-sspl-cli\|cortx-s3iamcli-devel\|cortx-sspl-test"
@@ -64,6 +64,8 @@ BUILD: $(echo "$BUILD_NUMBER" | sed -e 's/^/\"/g' -e 's/$/\"/g')
 OS: $(cat /etc/redhat-release | sed -e 's/ $//g' -e 's/^/\"/g' -e 's/$/\"/g')
 DATETIME: $(date +"%d-%b-%Y %H:%M %Z" | sed -e 's/^/\"/g' -e 's/$/\"/g')
 KERNEL: $(ls cortx-motr-[0-9]*.rpm | sed -e  's/.*3/3/g' -e 's/.x86_64.rpm//g' -e 's/^/\"/g' -e 's/$/\"/g')
+REQUIRES:
+$(sed 's/^/    /g' "$SCRIPT_DIR"/../versioning/compatibility.info)
 COMPONENTS:
 $(ls -1 ./*.rpm | sed 's/\.\///g' | grep -v "$EXCLUDE_PACKAGES" |  awk '{ print "    - \""$1"\""}')
 EOF
