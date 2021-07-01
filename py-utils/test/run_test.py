@@ -21,15 +21,13 @@ import unittest
 import errno
 from cortx.setup.utils import SetupError
 
-
 dir_path = os.path.dirname(os.path.abspath(__file__))
 
-
 class TestSuite:
-    """Create and run test suite"""
+    """ Create and run test suite """
 
     def run_test_suite(self, test_plan):
-        """create and run complete test suite"""
+        """ create and run test suite as per test plan """
         if test_plan == 'sanity' or test_plan == 'regression':
             loader = unittest.TestLoader()
             #Creates test suite
@@ -40,4 +38,4 @@ class TestSuite:
             runner.run(test_suite)
         else:
             raise SetupError(errno.EINVAL, "Ensure correct test_plan is \
-                updated in conf_url")
+                passed in the command")

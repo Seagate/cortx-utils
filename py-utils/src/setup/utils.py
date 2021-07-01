@@ -25,6 +25,8 @@ from cortx.utils.validator.v_service import ServiceV
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.service.service_handler import Service
+from cortx.utils.validator.v_pkg import PkgV
+from cortx.utils.validator.error import VError
 
 
 class SetupError(Exception):
@@ -159,16 +161,6 @@ class Utils:
                 %s", e)
 
     @staticmethod
-    def _get_plan_info(conf_url: str):
-        """ Reads the ConfStore and derives keys related to test plan """
-
-        Conf.load('plan_info', conf_url)
-        key_list = ['cortx>software>test_plan']
-        ConfKeysV().validate('exists', 'plan_info', key_list)
-        plan_info = Conf.get('plan_info', key_list[0])
-        return plan_info
-
-    @staticmethod
     def _configure_rsyslog():
         """
         Restart rsyslog service for reflecting supportbundle rsyslog config
@@ -210,7 +202,6 @@ class Utils:
         except Exception:
             Log.info("Not found: "+f"{utils_path}/conf/python_requirements.ext.txt")
 
-        from cortx.utils.validator.v_pkg import PkgV
         PkgV().validate(v_type='pip3s', args=req_pack)
         return 0
 
@@ -270,28 +261,20 @@ class Utils:
         return 0
 
     @staticmethod
-    def test(conf_url: str):
+    def test(plan):
         """ Perform configuration testing """
-
-        from cortx.setup import MessageBusTest
-        msg_test = MessageBusTest()
-        # Send a message
-        msg_test.send_msg(["Test Message"])
-        # Receive the same & validate
-        msg = msg_test.receive_msg()
-        if str(msg.decode('utf-8')) != "Test Message":
-            Log.error(f"Unable to test the config. Received message is {msg}")
-            raise SetupError(errno.EINVAL, "Unable to test the config. Received\
-                message is %s", msg)
         #Runs cortx-py-utils unittests
         try:
+            Log.info("Validating cortx-py-utils-test rpm")
+            PkgV().validate('rpms', ['cortx-py-utils-test'])
             from cortx.utils.test.run_test import TestSuite
-            test_plan = Utils._get_plan_info(conf_url)
+            test_plan = plan
             suite = TestSuite()
             suite.run_test_suite(test_plan)
-        except ModuleNotFoundError:
-            raise SetupError(errno.EINVAL, "Failed to import, \
-                Ensure cortx-py-utils-test rpm is installed")
+        except VError as ve:
+            Log.error("Failed at package Validation: %s", ve)
+            raise SetupError(errno.EINVAL, "Failed at package Validation: \
+                %s", ve)
         return 0
 
     @staticmethod

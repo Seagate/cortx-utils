@@ -69,11 +69,17 @@ class Cmd:
         return args.command(args)
 
     @staticmethod
+    def _add_extended_args(parser):
+        """ Override this method to add extended args """
+        return 0
+
+    @staticmethod
     def add_args(parser: str, cls: str, name: str):
         """ Add Command args for parsing """
 
         parser1 = parser.add_parser(cls.name, help='setup %s' % name)
         parser1.add_argument('--config', help='Conf Store URL', type=str)
+        cls._add_extended_args(parser1)
         parser1.add_argument('args', nargs='*', default=[], help='args')
         parser1.set_defaults(command=cls)
 
@@ -132,12 +138,19 @@ class TestCmd(Cmd):
     """ Test Setup Cmd """
     name = 'test'
 
+    @staticmethod
+    def _add_extended_args(parser):
+        parser.add_argument('--plan', default='sanity', help='Test Plan', \
+            type=str)
+
     def __init__(self, args):
         super().__init__(args)
+        #Default test_plan is 'sanity'
+        self.test_plan = args.plan
 
     def process(self):
         Utils.validate('test')
-        rc = Utils.test(self._url)
+        rc = Utils.test(self.test_plan)
         return rc
 
 
