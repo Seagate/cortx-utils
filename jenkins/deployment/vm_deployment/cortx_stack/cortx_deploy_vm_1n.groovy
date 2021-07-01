@@ -191,10 +191,15 @@ pipeline {
             when { expression { SKIP_STAGE == "no"  } }
             steps {
                 script {
-                    
-                    info("Running '03. Validate Deployment' Stage")
+                    try {
+                        info("Running '03. Validate Deployment' Stage")
 
-                    runAnsible("03_VALIDATE")
+                        runAnsible("03_VALIDATE")
+                    }
+                    catch (err) {
+                        currentBuild.result = 'UNSTABLE'
+                        SKIP_STAGE = "yes"
+                    }                
                 }
             } 
         }
