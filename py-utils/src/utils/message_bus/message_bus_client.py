@@ -92,7 +92,7 @@ class MessageBusClient:
 
             if not isinstance(message, str):
                 raise MessageBusError(errno.EINVAL, "Invalid message format. \
-                    %s", message)
+                    not of type KvPayload, str. %s", message)
             message_list.append(message)
         return message_list
 
