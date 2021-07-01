@@ -51,6 +51,8 @@ class ConfigCmd(SetupCmd):
 
     try:
       self.configure_openldap()
+    except Exception as e:
+      raise OpenldapPROVError(f'exception: {e}\n')
 
 
   def configure_openldap(self):
