@@ -91,8 +91,8 @@ class MessageBusClient:
                 message = message.json
 
             if not isinstance(message, str):
-                raise MessageBusError(errno.EINVAL, "Invalid message format. \
-                    not of type KvPayload, str. %s", message)
+                raise MessageBusError(errno.EINVAL, "Invalid message format, \
+                    not of type KvPayload or str. %s", message)
             message_list.append(message)
         return message_list
 
