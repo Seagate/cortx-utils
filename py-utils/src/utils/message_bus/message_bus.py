@@ -34,7 +34,7 @@ class MessageBus(metaclass=Singleton):
         Conf.load('config_file', 'json:///etc/cortx/cortx.conf',
             skip_reload=False)
         log_level = Conf.get('config_file', 'utils>log_level', 'INFO')
-        Log.init("MessageBus", '/var/log/cortx/utils/message_bus',
+        Log.init("message_bus", '/var/log/cortx/utils/message_bus',
             level=log_level, backup_count=5, file_size_in_mb=5)
 
         try:
@@ -46,7 +46,7 @@ class MessageBus(metaclass=Singleton):
             Log.error(f"MessageBusError: {e.rc} Error while parsing" \
                 f" configuration file {self.conf_file}. {e}.")
             raise MessageBusError(e.rc, "Error while parsing " + \
-                                  "configuration file %s. %s.", self.conf_file, e)
+                "configuration file %s. %s.", self.conf_file, e)
         except Exception as e:
             Log.error(f"MessageBusError: {e.rc} Error while parsing" \
                 f" configuration file {self.conf_file}. {e}.")
