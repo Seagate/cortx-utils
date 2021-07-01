@@ -71,6 +71,7 @@ class ConfStore:
         """
         fail_reload = True
         skip_reload = False
+        recurse = True
         for key, val in kwargs.items():
             if key == 'fail_reload':
                 fail_reload = val
@@ -78,6 +79,10 @@ class ConfStore:
                 skip_reload = val
             elif key == 'callback':
                 self._callbacks[index] = val
+            elif key == 'recurse':
+                if val not in [True, False]:
+                    raise ConfError(errno.EINVAL, "Invalid value for recurse %s", val)
+                recurse = val
             else:
                 raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
 
@@ -88,7 +93,7 @@ class ConfStore:
                 raise ConfError(errno.EINVAL, "conf index %s already exists",
                                 index)
         kv_store = KvStoreFactory.get_instance(kvs_url, self._delim)
-        self._cache[index] = ConfCache(kv_store, self._delim)
+        self._cache[index] = ConfCache(kv_store, self._delim, recurse=recurse)
 
     def save(self, index: str):
         """ Saves the given index configuration onto KV Store """
@@ -98,7 +103,7 @@ class ConfStore:
 
         self._cache[index].dump()
 
-    def get(self, index: str, key: str, default_val: str = None):
+    def get(self, index: str, key: str, default_val: str = None, **filters):
         """
         Obtain value for the given configuration
 
@@ -119,7 +124,7 @@ class ConfStore:
         if key is None:
             raise ConfError(errno.EINVAL, "can't able to find config key "
                                                "%s in loaded config", key)
-        val = self._cache[index].get(key)
+        val = self._cache[index].get(key, **filters)
         return default_val if val is None else val
 
     def set(self, index: str, key: str, val):
@@ -166,7 +171,8 @@ class ConfStore:
                 index)
         return self._cache[index].delete(key)
 
-    def copy(self, src_index: str, dst_index: str, key_list: list = None):
+    def copy(self, src_index: str, dst_index: str, key_list: list = None,
+        recurse: bool = True):
         """
         Copies one config domain to the other and saves
 
@@ -183,7 +189,10 @@ class ConfStore:
                 dst_index)
 
         if key_list is None:
-            key_list = self._cache[src_index].get_keys(key_index=False)
+            if recurse:
+                key_list = self._cache[src_index].get_keys(key_index=True)
+            else:
+                key_list = self._cache[src_index].get_keys(key_index=False)
         for key in key_list:
             self._cache[dst_index].set(key, self._cache[src_index].get(key))
 
@@ -236,11 +245,11 @@ class Conf:
             Conf._machine_id = Conf._conf.machine_id
 
     @staticmethod
-    def load(index: str, url: str, **kwargs):
+    def load(index: str, url: str, recurse=True, **kwargs):
         """ Loads Config from the given URL """
         if Conf._conf is None:
             Conf.init()
-        Conf._conf.load(index, url, **kwargs)
+        Conf._conf.load(index, url, recurse=recurse, **kwargs)
 
     @staticmethod
     def save(index: str):
@@ -253,9 +262,9 @@ class Conf:
         Conf._conf.set(index, key, val)
 
     @staticmethod
-    def get(index: str, key: str, default_val: str = None):
+    def get(index: str, key: str, default_val: str = None, **filters):
         """ Obtains config value for the given key """
-        return Conf._conf.get(index, key, default_val)
+        return Conf._conf.get(index, key, default_val, **filters)
 
     @staticmethod
     def delete(index: str, key: str):
@@ -263,9 +272,10 @@ class Conf:
         return Conf._conf.delete(index, key)
 
     @staticmethod
-    def copy(src_index: str, dst_index: str, key_list: list = None):
+    def copy(src_index: str, dst_index: str, key_list: list = None,
+        recurse: bool = True):
         """ Creates a Copy suffixed file for main file"""
-        Conf._conf.copy(src_index, dst_index, key_list)
+        Conf._conf.copy(src_index, dst_index, key_list, recurse)
         Conf._conf.save(dst_index)
 
     @staticmethod

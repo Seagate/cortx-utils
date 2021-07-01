@@ -1,5 +1,8 @@
 {
   "install_path": "/opt/seagate",
+  "utils": {
+    "log_level": "INFO"
+    },
   "product_id": "LR2",
   "support": {
     "support_bundle_path": "/var/log/seagate/support_bundle/"

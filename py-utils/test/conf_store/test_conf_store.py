@@ -132,6 +132,7 @@ class TestConfStore(unittest.TestCase):
         result_data = Conf.get_keys('backup', key_index=True)
         # Expected list should match the result_data list output
         expected_list = Conf.get_keys('csm_local')
+        self.assertListEqual(sorted(expected_list), sorted(result_data))
         # Expected Length should match else Failure.
         self.assertTrue(True if len(expected_list) == len(result_data) else False)
 
@@ -321,7 +322,7 @@ class TestConfStore(unittest.TestCase):
         key_lst = Conf.get_keys("getKeys_local", key_index=True)
         expected_list = ['version', 'branch', 'bridge>name', 'bridge>username',
             'bridge>manufacturer', 'bridge>model', 'bridge>pin', 'bridge>port',
-            'bridge>lte_type[0]', 'bridge>lte_type[1]', 'node_count']
+            'bridge>lte_type[0]>name', 'bridge>lte_type[1]>name', 'node_count']
         self.assertListEqual(key_lst, expected_list)
 
     def test_conf_key_index_b_False(self):
@@ -329,7 +330,7 @@ class TestConfStore(unittest.TestCase):
         key_lst = Conf.get_keys("getKeys_local", key_index=False)
         expected_list = ['version', 'branch', 'bridge>name', 'bridge>username',
             'bridge>manufacturer', 'bridge>model', 'bridge>pin', 'bridge>port',
-            'bridge>lte_type', 'node_count']
+            'bridge>lte_type>name', 'node_count']
         self.assertListEqual(key_lst, expected_list)
 
     def test_conf_store_get_machine_id_none(self):
