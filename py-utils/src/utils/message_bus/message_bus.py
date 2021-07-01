@@ -54,7 +54,7 @@ class MessageBus(metaclass=Singleton):
                 "configuration file %s. %s.", self.conf_file, e)
 
         self._broker = MessageBrokerFactory.get_instance(broker_type, \
-                                                         self._broker_conf)
+            self._broker_conf)
 
     def init_client(self, client_type: str, **client_conf: dict):
         """ To create producer/consumer client based on the configurations """
