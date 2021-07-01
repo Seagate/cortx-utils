@@ -37,7 +37,7 @@ class JsonKvStore(KvStore):
             with open(self._store_path, 'w+') as f:
                 json.dump({}, f, indent=2)
 
-    def load(self) -> KvPayload:
+    def load(self, **kwargs) -> KvPayload:
         """ Reads from the file """
         import json
         from json.decoder import JSONDecodeError
@@ -48,7 +48,10 @@ class JsonKvStore(KvStore):
             except JSONDecodeError as jerr:
                 raise KvError(errno.EINVAL, "Invalid JSON format %s",
                                    jerr.__str__())
-        return KvPayload(data, self._delim)
+        recurse = True
+        if 'recurse' in kwargs.keys():
+            recurse = kwargs['recurse']
+        return KvPayload(data, self._delim, recurse=recurse)
 
     def dump(self, data) -> None:
         """ Saves data onto the file """
@@ -68,7 +71,7 @@ class YamlKvStore(KvStore):
             with open(self._store_path, 'w+') as f:
                 pass
 
-    def load(self) -> KvPayload:
+    def load(self, **kwargs) -> KvPayload:
         """ Reads from the file """
         import yaml
         with open(self._store_path, 'r') as f:
@@ -77,7 +80,10 @@ class YamlKvStore(KvStore):
             except Exception as yerr:
                 raise KvError(errno.EINVAL, "Invalid YAML format %s",
                                    yerr.__str__())
-        return KvPayload(data, self._delim)
+        recurse = True
+        if 'recurse' in kwargs.keys():
+            recurse = kwargs['recurse']
+        return KvPayload(data, self._delim, recurse=recurse)
 
     def dump(self, data) -> None:
         """ Saves data onto the file """
@@ -95,7 +101,7 @@ class DirKvStore(KvStore):
         if not os.path.exists(self._store_path):
             os.mkdir(self._store_path)
 
-    def load(self):
+    def load(self, **kwargs):
         """ Return Empty Set. Cant read dir structure. Not supported """
         return KvPayload()
 
@@ -152,7 +158,7 @@ class DirKvStore(KvStore):
             try:
                 os.makedirs(key_dir, exist_ok = True)
             except Exception as e:
-                raise KvError(errno.EACCESS, "Cant set key %s. %s", key, e)
+                raise KvError(errno.EACCES, "Cant set key %s. %s", key, e)
             if os.path.exists(key_file) and not os.path.isfile(key_file):
                 raise KvError(errno.EINVAL, "Invalid Key %s" % key)
             with open(key_file, 'w') as f:
@@ -192,7 +198,7 @@ class TomlKvStore(KvStore):
             with open(self._store_path, 'w+') as f:
                 pass
 
-    def load(self) -> KvPayload:
+    def load(self, **kwargs) -> KvPayload:
         """ Reads from the file """
         import toml
         with open(self._store_path, 'r') as f:
@@ -201,7 +207,10 @@ class TomlKvStore(KvStore):
             except Exception as terr:
                 raise KvError(errno.EINVAL, "Invalid TOML format %s",
                                    terr.__str__())
-        return KvPayload(data, self._delim)
+        recurse = True
+        if 'recurse' in kwargs.keys():
+            recurse = kwargs['recurse']
+        return KvPayload(data, self._delim, recurse=recurse)
 
     def dump(self, data) -> None:
         """ Saves data onto the file """
@@ -257,7 +266,7 @@ class IniKvStore(KvStore):
         self._config = configparser.ConfigParser()
         self._type = configparser.SectionProxy
 
-    def load(self) -> IniKvPayload:
+    def load(self, **kwargs) -> IniKvPayload:
         """ Reads from the file """
         try:
             self._config.read(self._store_path)
@@ -281,9 +290,12 @@ class DictKvStore(KvStore):
     def __init__(self, store_loc, store_path, delim='>'):
         KvStore.__init__(self, store_loc, store_path, delim)
 
-    def load(self) -> KvPayload:
+    def load(self, **kwargs) -> KvPayload:
         """ Reads from the file """
-        return KvPayload(self._store_path, self._delim)
+        recurse = True
+        if 'recurse' in kwargs.keys():
+            recurse = kwargs['recurse']
+        return KvPayload(self._store_path, self._delim, recurse=recurse)
 
     def dump(self, data) -> None:
         """ Saves data onto dictionary itself """
@@ -321,7 +333,7 @@ class PropertiesKvStore(KvStore):
     def __init__(self, store_loc, store_path, delim='>'):
         KvStore.__init__(self, store_loc, store_path, delim)
 
-    def load(self) -> KvPayload:
+    def load(self, **kwargs) -> KvPayload:
         """ Loads data from properties file """
         data = {}
         with open(self._store_path, 'r') as f:

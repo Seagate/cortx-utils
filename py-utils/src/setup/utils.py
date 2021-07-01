@@ -24,6 +24,7 @@ from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.v_service import ServiceV
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.message_bus.error import MessageBusError
+from cortx.utils.service.service_handler import Service
 
 
 class SetupError(Exception):
@@ -129,16 +130,27 @@ class Utils:
         return server_info
 
     @staticmethod
+    def _copy_cluster_map():
+        cluster_data = Conf.get("server_info", "server_node")
+        for _, node_data in cluster_data.items():
+            hostname = node_data.get("hostname")
+            node_name = node_data.get("name")
+            Conf.set("cluster", f"cluster>{node_name}", hostname)
+        Conf.save("cluster")
+
+    @staticmethod
     def _create_cluster_config(server_info: dict):
         """ Create the config file required for Event Message """
-
-        with open(r'/etc/cortx/cluster.conf.sample', 'w+') as file:
-            json.dump({}, file, indent=2)
-        Conf.load('cluster', 'json:///etc/cortx/cluster.conf.sample')
         for key, value in server_info.items():
             Conf.set('cluster', f'server_node>{key}', value)
         Conf.save('cluster')
-        # copy this conf file as cluster.conf
+
+    @staticmethod
+    def _copy_conf_sample_to_conf():
+        if not os.path.exists("/etc/cortx/cluster.conf.sample"):
+            with open("/etc/cortx/cluster.conf.sample", "w+") as file:
+                json.dump({}, file, indent=2)
+        # copy this sample conf file as cluster.conf
         try:
             os.rename('/etc/cortx/cluster.conf.sample', \
                 '/etc/cortx/cluster.conf')
@@ -155,6 +167,18 @@ class Utils:
         ConfKeysV().validate('exists', 'plan_info', key_list)
         plan_info = Conf.get('plan_info', key_list[0])
         return plan_info
+
+    @staticmethod
+    def _configure_rsyslog():
+        """
+        Restart rsyslog service for reflecting supportbundle rsyslog config
+        """
+        try:
+            Log.info("Restarting rsyslog service")
+            service_obj = Service("rsyslog.service")
+            service_obj.restart()
+        except Exception as e:
+            Log.warn(f"Error in rsyslog service restart: {e}")
 
     @staticmethod
     def validate(phase: str):
@@ -221,7 +245,12 @@ class Utils:
     @staticmethod
     def config(conf_url: str):
         """ Performs configurations """
+        # copy cluster.conf.sample file to /etc/cortx/cluster.conf
+        Utils._copy_conf_sample_to_conf()
+
         # Message Bus Config
+        Conf.load('cluster', 'json:///etc/cortx/cluster.conf')
+
         kafka_server_list, port_list = Utils._get_kafka_server_list(conf_url)
         if kafka_server_list is None:
             Log.error(f"Could not find kafka server information in {conf_url}")
@@ -235,6 +264,9 @@ class Utils:
             raise SetupError(errno.EINVAL, "Could not find server " +\
                 "information in %s", conf_url)
         Utils._create_cluster_config(server_info)
+        #set cluster nodename:hostname mapping to cluster.conf
+        Utils._copy_cluster_map()
+        Utils._configure_rsyslog()
         return 0
 
     @staticmethod

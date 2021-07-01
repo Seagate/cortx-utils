@@ -57,10 +57,10 @@ echo $VER > VERSION
 /bin/chmod +rx VERSION
 
 # Fetch install_path
-INSTALL_PATH=$(grep install_path cortx.conf.sample |  cut -d " " -f 4 | sed -e 's/^"//' -e 's/",$//')
+INSTALL_PATH=$(jq .install_path cortx.conf.sample |  tr -d '"')
 
 # Put install_path in utils-post-install
-sed -i "/#install_path_placeholder/c\install_path=$INSTALL_PATH" utils-post-install
+sed -i -e "s|<INSTALL_PATH>|${INSTALL_PATH}|g" utils-post-install
 
 echo "Creating cortx-py-utils RPM with version $VER, release $REL"
 
