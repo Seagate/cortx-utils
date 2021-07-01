@@ -31,29 +31,30 @@ class MessageBus(metaclass=Singleton):
 
     def __init__(self):
         """ Initialize a MessageBus and load its configurations """
-        try:
-            Conf.load('message_bus', self.conf_file)
-            Conf.load('config_file', 'json:///etc/cortx/cortx.conf')
-            log_level = Conf.get('config_file', 'utils>log_level', 'INFO')
+        Conf.load('config_file', 'json:///etc/cortx/cortx.conf',
+            skip_reload=True)
+        log_level = Conf.get('config_file', 'utils>log_level', 'INFO')
+        Log.init('message_bus', '/var/log/cortx/utils/message_bus',
+            level=log_level, backup_count=5, file_size_in_mb=5)
 
+        try:
+            Conf.load('message_bus', self.conf_file, skip_reload=True)
             self._broker_conf = Conf.get('message_bus', 'message_broker')
             broker_type = self._broker_conf['type']
-            Log.init("MessageBus", '/var/log/cortx/utils/message_bus',
-                level=log_level, backup_count=5, file_size_in_mb=5)
             Log.info(f"MessageBus initialized as {broker_type}")
         except ConfError as e:
             Log.error(f"MessageBusError: {e.rc} Error while parsing" \
-                      f" configuration file {self.conf_file}. {e}.")
-            raise MessageBusError(e.rc, "Error while parsing " +\
+                f" configuration file {self.conf_file}. {e}.")
+            raise MessageBusError(e.rc, "Error while parsing " + \
                 "configuration file %s. %s.", self.conf_file, e)
         except Exception as e:
             Log.error(f"MessageBusError: {e.rc} Error while parsing" \
-                      f" configuration file {self.conf_file}. {e}.")
-            raise MessageBusError(errno.ENOENT, "Error while parsing " +\
+                f" configuration file {self.conf_file}. {e}.")
+            raise MessageBusError(errno.ENOENT, "Error while parsing " + \
                 "configuration file %s. %s.", self.conf_file, e)
 
         self._broker = MessageBrokerFactory.get_instance(broker_type, \
-                self._broker_conf)
+            self._broker_conf)
 
     def init_client(self, client_type: str, **client_conf: dict):
         """ To create producer/consumer client based on the configurations """
