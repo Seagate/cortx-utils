@@ -34,7 +34,7 @@ class MessageBus(metaclass=Singleton):
         Conf.load('config_file', 'json:///etc/cortx/cortx.conf',
             skip_reload=True)
         log_level = Conf.get('config_file', 'utils>log_level', 'INFO')
-        Log.init("message_bus", '/var/log/cortx/utils/message_bus',
+        Log.init('message_bus', '/var/log/cortx/utils/message_bus',
             level=log_level, backup_count=5, file_size_in_mb=5)
 
         try:
