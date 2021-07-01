@@ -32,13 +32,13 @@ class MessageBus(metaclass=Singleton):
     def __init__(self):
         """ Initialize a MessageBus and load its configurations """
         Conf.load('config_file', 'json:///etc/cortx/cortx.conf',
-            skip_reload=False)
+            skip_reload=True)
         log_level = Conf.get('config_file', 'utils>log_level', 'INFO')
         Log.init("message_bus", '/var/log/cortx/utils/message_bus',
             level=log_level, backup_count=5, file_size_in_mb=5)
 
         try:
-            Conf.load('message_bus', self.conf_file, skip_reload=False)
+            Conf.load('message_bus', self.conf_file, skip_reload=True)
             self._broker_conf = Conf.get('message_bus', 'message_broker')
             broker_type = self._broker_conf['type']
             Log.info(f"MessageBus initialized as {broker_type}")
