@@ -39,3 +39,6 @@ sed -i -e "s|<CORTX_PATH>|${cortx_path}|g" $utils_path/conf/support.yaml
 # Copy rsyslog config to /etc/rsyslog.d
 [ ! -d "/etc/rsyslog.d" ] && mkdir "/etc/rsyslog.d"
 cp -n "$utils_path/conf/0-support_bundle.conf" "/etc/rsyslog.d"
+
+#Copy ldap mdb to utils install path
+cp -f ./../src/utils/third_party/openldap/olcDatabase\=\{2\}mdb.ldif $utils_path/conf

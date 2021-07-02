@@ -89,15 +89,15 @@ class BaseConfig:
         ROOTDNPASSWORD=None
         ROOTDNPASSWORD = rootpassword
         if ROOTDNPASSWORD == None :
-            print('Please provide the password for ldap configuration')
+            Log.error('Password not provided for ldap configuration')
             quit()
         if forcecleanup != None :
             forceclean = forcecleanup
         config_file_path = "/etc/cortx/cortx.conf"
         Conf.load('config_file', f'yaml:///{config_file_path}')
-        INSTALLDIR = Conf.get(index='config_file', key='install_path')
+        mdb_dir = Conf.get(index='config_file', key='install_path') + '/cortx/utils/conf'
         BaseConfig.cleanup(forceclean)
-        copyfile(INSTALLDIR+'/olcDatabase={2}mdb.ldif' ,\
+        copyfile(mdb_dir + '/olcDatabase={2}mdb.ldif' ,\
         '/etc/openldap/slapd.d/cn=config/olcDatabase={2}mdb.ldif')
         os.system('chgrp ldap /etc/openldap/certs/password')
         cmd = 'slappasswd -s ' + ROOTDNPASSWORD
