@@ -16,6 +16,8 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
+
+from cortx.utils.log import Log
 from cortx.utils.message_bus import MessageBus
 from cortx.utils.message_bus.error import MessageBusError
 
@@ -29,10 +31,14 @@ class MessageBusClient:
             client_conf['message_bus']
         self._message_bus.init_client(client_type, **client_conf)
         self._client_conf = client_conf
+        Log.debug(f"MessageBusClient: initialized with arguments" \
+            f" client_type: {client_type}, kwargs: {client_conf}")
 
     def _get_conf(self, key: str):
         """ To get the client configurations """
         if key not in self._client_conf.keys():
+            Log.error(f"MessageBusError: {errno.ENOENT}. Could not" \
+                f" find key {key} in conf file {self._message_bus.conf_file}")
             raise MessageBusError(errno.ENOENT, "Could not find key %s in " +\
                 "conf file %s", key, self._message_bus.conf_file)
         return self._client_conf[key]
