@@ -45,9 +45,7 @@ class Replication:
         for host in hostlist :
             totalhosts = totalhosts + 1
             exit_code = os.system("ping -c 1 " + host)
-            if(exit_code == 0):
-                Log.debug(host + ' is valid and reachable.')
-            else:
+            if(exit_code != 0):
                 Log.debug(host + ' is either invalid or not reachable.')
                 quit()
         return totalhosts
@@ -113,7 +111,6 @@ class Replication:
             conn.add_s(dn, add_record)
         except:
             Log.error('Exception while adding syncprov_mod')
-            raise Exception('Exception while adding syncprov_mod')
 
         dn="olcOverlay=syncprov,olcDatabase={2}mdb,cn=config"
         add_record = [
