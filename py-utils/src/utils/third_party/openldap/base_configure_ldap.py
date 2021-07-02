@@ -22,6 +22,7 @@ import ldap
 import glob
 from shutil import copyfile
 from cortx.utils.log import Log
+from cortx.utils.conf_store import Conf
 
 class BaseConfig:
     Log.init('baseConfigLog','/var/log/seagate/s3',level='DEBUG')
@@ -92,8 +93,9 @@ class BaseConfig:
             quit()
         if forcecleanup != None :
             forceclean = forcecleanup
-
-        INSTALLDIR="/opt/seagate/cortx/s3/install/ldap"
+        config_file_path = "/etc/cortx/cortx.conf"
+        Conf.load('config_file', f'yaml:///{config_file_path}')
+        INSTALLDIR = Conf.get(index='config_file', key='install_path')
         BaseConfig.cleanup(forceclean)
         copyfile(INSTALLDIR+'/olcDatabase={2}mdb.ldif' ,\
         '/etc/openldap/slapd.d/cn=config/olcDatabase={2}mdb.ldif')
