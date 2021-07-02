@@ -14,43 +14,42 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import errno
 import time
+
 from cortx.setup import SetupError
-from cortx.utils.process import SimpleProcess
+from cortx.utils import errors
 
 
 class MessageBusTest:
     """ Represents Message Bus Test methods """
 
     def __init__(self):
-        from cortx.utils.conf_store import Conf
-        Conf.load("index", "json:///etc/cortx/message_bus.conf")
-        self._server = Conf.get("index",'message_broker>cluster[0]>server')
-        # Create a test topic
-        cmd = "/opt/kafka/bin/kafka-topics.sh --create" + \
-              " --topic mytest --bootstrap-server " + self._server + ":9092"
+        from cortx.utils.message_bus import MessageBusAdmin
+        # Create a test message_type
         try:
-            cmd_proc = SimpleProcess(cmd)
-            res_op, res_err, res_rc = cmd_proc.run()
-            if res_rc != 0:
-                raise SetupError(errno.EINVAL, "Unable to test the config")
+            admin = MessageBusAdmin(admin_id='messageadmin')
+            admin.register_message_type(message_types=['mytest'], partitions=1)
+            list_message_type = admin.list_message_types()
+            if 'mytest' not in list_message_type:
+                raise SetupError(errors.ERR_OP_FAILED, "Failed to test the config." \
+                    "message_type 'mytest' creation failed.")
         except Exception as e:
-            raise SetupError(errno.EINVAL, \
-                             "Unable to test the config, %s", e)
+            raise SetupError(errors.ERR_OP_FAILED, "Failed to test the config, %s", e)
 
     def __del__(self):
-        # Delete the test topic
-        cmd = "/opt/kafka/bin/kafka-topics.sh --delete" + \
-              " --topic mytest --bootstrap-server " + self._server + ":9092"
+        # Delete the test message_type
+        from cortx.utils.message_bus import MessageBusAdmin
+        # deregister_message_type
         try:
-            cmd_proc = SimpleProcess(cmd)
-            res_op, res_err, res_rc = cmd_proc.run()
-            if res_rc != 0:
-                raise SetupError(errno.EINVAL, "Unable to test the config")
+            admin = MessageBusAdmin(admin_id='messageadmin')
+            admin.deregister_message_type(message_types=['mytest'])
+            list_message_type = admin.list_message_types()
+            if 'mytest' in list_message_type:
+                raise SetupError(errors.ERR_OP_FAILED, "Failed to test the" \
+                    " config. Deregister message_type: mytest failed")
         except Exception as e:
-            raise SetupError(errno.EINVAL, \
-                             "Unable to test the config, %s", e)
+            raise SetupError(errors.ERR_OP_FAILED, \
+                "Failed to test the config, %s", e)
 
     def send_msg(self, message):
         """ Sends a  message """
@@ -70,8 +69,10 @@ class MessageBusTest:
             try:
                 time.sleep(1)
                 message = consumer.receive()
-                if message != None:
+                if message is not None:
                     return message
             except Exception as e:
-                raise SetupError(errno.EINVAL, \
-                             "Unable to test the config. %s", e)
+                raise SetupError(errors.ERR_OP_FAILED, "Failed to receive messages" \
+                    "for message_type: mytest. Unable to test the config." \
+                    " %s with consumer_id: setup, message_types: mytest " \
+                    "consumer_group: provisioner", e)
