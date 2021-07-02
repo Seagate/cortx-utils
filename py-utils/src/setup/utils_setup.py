@@ -168,7 +168,7 @@ class CleanupCmd(Cmd):
 
 
 class PreUpgradeCmd(Cmd):
-    """ Manages  post upgrade config changes """
+    """ Manages post upgrade config changes """
     name = 'pre_upgrade'
 
     def __init__(self, args: dict):
@@ -181,7 +181,7 @@ class PreUpgradeCmd(Cmd):
 
 
 class PostUpgradeCmd(Cmd):
-    """ Manages  post upgrade config changes """
+    """ Manages post upgrade config changes """
     name = 'post_upgrade'
 
     def __init__(self, args: dict):
