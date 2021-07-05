@@ -45,7 +45,7 @@ class UtilsSupportBundle:
         for key, value in UtilsSupportBundle._files_to_bundle.items():
             if os.path.exists(value):
                 UtilsSupportBundle.__copy_file(value)
-        UtilsSupportBundle.__kafka_get_log_location_and_copy()
+        UtilsSupportBundle.__collect_kafka_logs()
         UtilsSupportBundle.__generate_tar(target_path)
         UtilsSupportBundle.__clear_tmp_files()
 
@@ -77,7 +77,7 @@ class UtilsSupportBundle:
                 arcname=os.path.basename(UtilsSupportBundle._tmp_src))
 
     @staticmethod
-    def __kafka_get_log_location_and_copy():
+    def __collect_kafka_logs():
         files_lst = UtilsSupportBundle._files_to_bundle
         if os.path.exists(files_lst["kafka_server"]) and os.path.exists(
                 files_lst["kafka_zookeeper"]):

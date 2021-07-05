@@ -94,7 +94,7 @@ setup(name='cortx-py-utils',
                 'cortx.utils.schema', 'cortx.utils.appliance_info',
                 'cortx.setup', 'cortx.utils.service',
                 'cortx.utils.setup', 'cortx.utils.setup.kafka',
-                'cortx.utils.support_bundle', 'cortx.utils.cli_framework',
+                'cortx.utils.support', 'cortx.utils.cli_framework',
                 'cortx.utils.utils_server', 'cortx.utils.iem_framework',
                 'cortx.utils.discovery', 'cortx.utils.discovery.mocked_health_gen'
                 ],
