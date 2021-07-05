@@ -19,7 +19,7 @@
 import os
 import unittest
 
-from cortx.utils.support_bundle import UtilsSupportBundle
+from cortx.utils.support import UtilsSupportBundle
 
 
 class TestSupportBundle(unittest.TestCase):
