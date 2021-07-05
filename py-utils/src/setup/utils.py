@@ -315,3 +315,25 @@ class Utils:
                     raise SetupError(e.errno, "Error deleting config file %s, \
                         %s", each_file, e)
         return 0
+
+    @staticmethod
+    def pre_upgrade(level: str):
+        """ pre upgrade hook for node and cluster level """
+        if level == 'node':
+            # TODO Perform corresponding actions for node
+            pass
+        elif level == 'cluster':
+            # TODO Perform corresponding actions for cluster
+            pass
+        return 0
+
+    @staticmethod
+    def post_upgrade(level: str):
+        """ post upgrade hook for node and cluster level """
+        if level == 'node':
+            # TODO Perform corresponding actions for node
+            pass
+        elif level == 'cluster':
+            # TODO Perform corresponding actions for cluster
+            pass
+        return 0
