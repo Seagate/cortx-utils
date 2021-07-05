@@ -41,7 +41,7 @@ class UtilsSupportBundle:
     @staticmethod
     def generate(target_path=None):
         """ Generate a tar file """
-        for key, value in UtilsSupportBundle._files_to_bundle.items():
+        for value in UtilsSupportBundle._files_to_bundle.values():
             if os.path.exists(value):
                 UtilsSupportBundle.__copy_file(value)
         UtilsSupportBundle.__collect_kafka_logs()
