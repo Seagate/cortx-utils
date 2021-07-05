@@ -16,12 +16,11 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os.path
-import random
 import shutil
 import tarfile
 import errno
 
-from cortx.utils.support_bundle.error import SupportBundleError
+from cortx.utils.support.error import SupportBundleError
 from cortx.utils.conf_store import Conf
 
 
