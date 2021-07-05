@@ -257,6 +257,9 @@ class Utils:
         #set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map()
         Utils._configure_rsyslog()
+        os.mkdirs("/var/log/cortx/utils/message_bus", exist_ok=True)
+        # temporary fix for a common message bus log file
+        os.chmod("/var/log/cortx/utils/message_bus", 0o0777)
         return 0
 
     @staticmethod

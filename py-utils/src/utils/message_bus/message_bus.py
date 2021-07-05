@@ -33,16 +33,15 @@ class MessageBus(metaclass=Singleton):
 
     def __init__(self):
         """ Initialize a MessageBus and load its configurations """
-        Conf.load('config_file', 'json:///etc/cortx/cortx.conf',
+        Conf.load('config_file', 'json:///etc/cortx/cortx.conf', \
             skip_reload=True)
-        log_level = Conf.get('config_file', 'utils>log_level', 'INFO')
-        Log.init('message_bus', '/var/log/cortx/utils/message_bus',
-            level=log_level, backup_count=5, file_size_in_mb=5)
-        os.chmod("/var/log/cortx/utils/message_bus", stat.S_IRWXU | \
-                 stat.S_IRWXG | stat.S_IROTH | stat.S_IXOTH)
-        os.chmod("/var/log/cortx/utils/message_bus/message_bus.log", \
-            stat.S_IREAD | stat.S_IWRITE | stat.S_IRGRP | stat.S_IWGRP | \
-            stat.S_IROTH | stat.S_IWOTH)
+        if not Log.logger:
+            log_level = Conf.get('config_file', 'utils>log_level', 'INFO')
+            Log.init('message_bus', '/var/log/cortx/utils/message_bus', \
+                level=log_level, backup_count=5, file_size_in_mb=5)
+            os.chmod("/var/log/cortx/utils/message_bus/message_bus.log", \
+                stat.S_IREAD | stat.S_IWRITE | stat.S_IRGRP | stat.S_IWGRP | \
+                stat.S_IROTH | stat.S_IWOTH)
 
         try:
             Conf.load('message_bus', self.conf_file, skip_reload=True)
