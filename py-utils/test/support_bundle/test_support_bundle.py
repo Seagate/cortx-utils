@@ -39,7 +39,7 @@ class TestSupportBundle(unittest.TestCase):
     def test_support_bundle_c_wrong_target_output(self):
         """ Test by generating support tar in some random -,. location """
         UtilsSupportBundle.generate(target_path="-")
-        status = os.path.exists("-py-utils.tar.gz")
+        status = os.path.exists("-/py-utils.tar.gz")
         self.assertTrue(status)
 
 
