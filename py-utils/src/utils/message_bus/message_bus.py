@@ -15,6 +15,8 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import os
+import stat
 import errno
 from cortx.utils.log import Log
 from cortx.utils.message_bus.message_broker import MessageBrokerFactory
@@ -36,6 +38,11 @@ class MessageBus(metaclass=Singleton):
         log_level = Conf.get('config_file', 'utils>log_level', 'INFO')
         Log.init('message_bus', '/var/log/cortx/utils/message_bus',
             level=log_level, backup_count=5, file_size_in_mb=5)
+        os.chmod("/var/log/cortx/utils/message_bus", stat.S_IRWXU | \
+                 stat.S_IRWXG | stat.S_IROTH | stat.S_IXOTH)
+        os.chmod("/var/log/cortx/utils/message_bus/message_bus.log", \
+            stat.S_IREAD | stat.S_IWRITE | stat.S_IRGRP | stat.S_IWGRP | \
+            stat.S_IROTH)
 
         try:
             Conf.load('message_bus', self.conf_file, skip_reload=True)
