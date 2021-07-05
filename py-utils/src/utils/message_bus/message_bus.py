@@ -33,7 +33,7 @@ class MessageBus(metaclass=Singleton):
 
     def __init__(self):
         """ Initialize a MessageBus and load its configurations """
-        Conf.load('config_file', 'json:///etc/cortx/cortx.conf', \
+        Conf.load('config_file', 'json:///etc/cortx/cortx.conf',
             skip_reload=True)
         if not Log.logger:
             log_level = Conf.get('config_file', 'utils>log_level', 'INFO')
