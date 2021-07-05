@@ -42,7 +42,7 @@ class MessageBus(metaclass=Singleton):
                  stat.S_IRWXG | stat.S_IROTH | stat.S_IXOTH)
         os.chmod("/var/log/cortx/utils/message_bus/message_bus.log", \
             stat.S_IREAD | stat.S_IWRITE | stat.S_IRGRP | stat.S_IWGRP | \
-            stat.S_IROTH)
+            stat.S_IROTH | stat.S_IWOTH)
 
         try:
             Conf.load('message_bus', self.conf_file, skip_reload=True)
