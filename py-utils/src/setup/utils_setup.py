@@ -167,6 +167,32 @@ class CleanupCmd(Cmd):
         return rc
 
 
+class PreUpgradeCmd(Cmd):
+    """ Manages post upgrade config changes """
+    name = 'pre_upgrade'
+
+    def __init__(self, args: dict):
+        super().__init__(args)
+
+    def process(self):
+        Utils.validate('post_upgrade')
+        rc = Utils.pre_upgrade(self.args[0])
+        return rc
+
+
+class PostUpgradeCmd(Cmd):
+    """ Manages post upgrade config changes """
+    name = 'post_upgrade'
+
+    def __init__(self, args: dict):
+        super().__init__(args)
+
+    def process(self):
+        Utils.validate('post_upgrade')
+        rc = Utils.post_upgrade(self.args[0])
+        return rc
+
+
 def main(argv: dict):
     Log.init('utils_setup', '/var/log/cortx/utils', level='INFO',
         backup_count=5, file_size_in_mb=5)
