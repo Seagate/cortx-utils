@@ -91,52 +91,52 @@ class Log:
     @staticmethod
     def debug(msg, *args, **kwargs):
         caller = inspect.stack()[1][3]
-        Log.logger.debug(f"[{Log.pid} {caller}] {msg}", *args, **kwargs)
+        Log.logger.debug(f"[{Log.pid}] [{caller}] {msg}", *args, **kwargs)
 
     @staticmethod
     def info(msg, *args, **kwargs):
         caller = inspect.stack()[1][3]
-        Log.logger.info(f"[{Log.pid} {caller}] {msg}", *args, **kwargs)
+        Log.logger.info(f"[{Log.pid}] [{caller}] {msg}", *args, **kwargs)
 
     @staticmethod
     def audit(msg, *args, **kwargs):
         caller = inspect.stack()[1][3]
-        Log.audit_logger.info(f"{Log.pid}: audit: {msg}", *args, **kwargs)
+        Log.audit_logger.info(f"[{Log.pid}] audit: {msg}", *args, **kwargs)
 
     @staticmethod
     def support_bundle(msg, *args, **kwargs):
         caller = inspect.stack()[1][3]
-        Log.audit_logger.info(f"{Log.pid}: support_bundle: {msg}", *args, **kwargs)
+        Log.audit_logger.info(f"[{Log.pid}] support_bundle: {msg}", *args, **kwargs)
 
     @staticmethod
     def warn(msg, *args, **kwargs):
         caller = inspect.stack()[1][3]
-        Log.logger.warn(f"[{Log.pid} {caller}] {msg}", *args, **kwargs)
+        Log.logger.warn(f"[{Log.pid}] [{caller}] {msg}", *args, **kwargs)
 
     @staticmethod
     def error(msg, *args, **kwargs):
         caller = inspect.stack()[1][3]
-        Log.logger.error(f"[{Log.pid} {caller}] {msg}", *args, **kwargs)
+        Log.logger.error(f"[{Log.pid}] [{caller}] {msg}", *args, **kwargs)
 
     @staticmethod
     def critical(msg, *args, **kwargs):
         """ Logs a message with level CRITICAL on this logger. """
         caller = inspect.stack()[1][3]
         Log.logger.critical(traceback.format_exc())
-        Log.logger.critical(f"[{Log.pid} {caller}] {msg}", *args, **kwargs)
+        Log.logger.critical(f"[{Log.pid}] [{caller}] {msg}", *args, **kwargs)
 
     @staticmethod
     def exception(e, *args, **kwargs):
         """ Logs a message with level ERROR on this logger. """
         caller = inspect.stack()[1][3]
-        Log.logger.exception(f"[{Log.pid} {caller}] [{e.__class__.__name__}] e")
+        Log.logger.exception(f"[{Log.pid}] [{caller}] [{e.__class__.__name__}] e")
 
     @staticmethod
     def console(msg, *args, **kwargs):
         """ Logs a message with level ERROR on this logger. """
         caller = inspect.stack()[1][3]
-        Log.logger.debug(f"[{Log.pid} {caller}] {msg}", *args, **kwargs)
-        print(f"[{Log.pid} {caller}] {msg}")
+        Log.logger.debug(f"[{Log.pid}] [{caller}] {msg}", *args, **kwargs)
+        print(f"[{Log.pid}] [{caller}] {msg}")
 
 
     @staticmethod
