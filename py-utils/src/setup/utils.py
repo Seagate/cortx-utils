@@ -17,6 +17,7 @@
 import os
 import json
 import errno
+from pathlib import Path
 from cortx.utils import errors
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
@@ -260,6 +261,9 @@ class Utils:
         os.makedirs("/var/log/cortx/utils/message_bus", exist_ok=True)
         # temporary fix for a common message bus log file
         os.chmod("/var/log/cortx/utils/message_bus", 0o0777)
+        Path("/var/log/cortx/utils/message_bus/message_bus.log").touch( \
+            exist_ok=True)
+        os.chmod("/var/log/cortx/utils/message_bus/message_bus.log", 0o0666)
         return 0
 
     @staticmethod
