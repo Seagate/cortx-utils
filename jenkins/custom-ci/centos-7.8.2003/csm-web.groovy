@@ -73,7 +73,7 @@ pipeline {
 				sh label: 'Build', script: '''
 					pushd cortx-management-web
 						BUILD=$(git rev-parse --short HEAD)
-						VERSION=$(cat VERSION)
+						VERSION="2.0.0"
 						echo "Executing build script"
 						echo "VERSION:$VERSION"
 						echo "Python:$(python --version)"
