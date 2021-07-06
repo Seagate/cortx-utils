@@ -43,6 +43,10 @@ setup(
         "cortx.utils.test.message_bus",
         "cortx.utils.test.conf_store",
         "cortx.utils.test.schema",
+        "cortx.utils.test.iem_framework",
+        "cortx.utils.test.discovery",
+        "cortx.utils.test.discovery.mocked_health_gen",
+        "cortx.utils.test.discovery.mocked_health_gen.lr2",
     ],
     package_data={
         "": [
@@ -51,6 +55,8 @@ setup(
             "kv_store/*.json",
             "conf_store/*.json",
             "message_bus/*.conf",
+            "iem_framework/*.json",
+            "mocked_health_gen/*.json",
         ]
     },
 )

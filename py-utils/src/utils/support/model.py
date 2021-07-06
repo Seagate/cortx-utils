@@ -15,8 +15,26 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.support.utils_support_bundle import UtilsSupportBundle
-from cortx.utils.conf_store.conf_store import Conf
+from cortx.utils.data.access import BaseModel
+from schematics.types import StringType
+from cortx.utils.data.access import Query
+from cortx.utils.data.access.filters import Compare
+from cortx.utils.data.db.db_provider import DataBaseProvider
 
 
-Conf.load('cortx_conf', 'json:///etc/cortx/cortx.conf')
+class SupportBundleModel(BaseModel):
+    _id = "bundle_id"
+    bundle_id = StringType()
+    node_name = StringType()
+    comment = StringType()
+    result = StringType()
+    message = StringType()
+
+class SupportBundleRepository:
+    def __init__(self, storage: DataBaseProvider):
+        self.db = storage
+
+    async def retrieve_all(self, bundle_id) -> [SupportBundleModel]:
+        query = Query().filter_by(Compare(SupportBundleModel.bundle_id, '=',
+                                          bundle_id))
+        return await self.db(SupportBundleModel).get(query)

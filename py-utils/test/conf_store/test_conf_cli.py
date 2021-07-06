@@ -52,8 +52,23 @@ def setup_and_generate_sample_files():
         sample_config['branch'] = 'stable'
         json.dump(sample_config, file, indent=2)
 
+
+def delete_files():
+    files = ['/tmp/file1.json', '/tmp/file2.json']
+    for file in files:
+        try:
+            if os.path.exists(file):
+                os.remove(file)
+        except OSError as e:
+            print(e)
+
+
 class TestConfCli(unittest.TestCase):
     """Test case will test available API's of ConfStore"""
+
+    @classmethod
+    def setUpClass(cls):
+        setup_and_generate_sample_files()
 
     def test_conf_cli_by_get(self):
         """ Test by retrieving a value using get api """
@@ -275,6 +290,32 @@ class TestConfCli(unittest.TestCase):
             result_data = cmd_proc.run()
         except Exception:
             self.assertEqual(result_data[2], '22')
+
+    def test_conf_cli_by_get_diff_keys(self):
+        """
+        Test by retrieving a value using get api
+        """
+        cmd = "conf json:///tmp/file1.json diff json:///tmp/file2.json"
+        cmd_proc = SimpleProcess(cmd)
+        result_data = cmd_proc.run()
+        self.assertTrue(False if result_data[2] != 0 and
+            result_data[0] != b'<Update your Differnces>' else True, result_data[1])
+
+    def test_conf_cli_merge_keys(self):
+        cmd = "conf json:///tmp/file1.json merge json:///tmp/file2.json -k version;branch"
+        cmd_proc = SimpleProcess(cmd)
+        result_data = cmd_proc.run()
+        self.assertEqual(result_data[2], 0)
+
+    def test_conf_cli_merge(self):
+        cmd = "conf json:///tmp/file1.json merge json:///tmp/file2.json"
+        cmd_proc = SimpleProcess(cmd)
+        result_data = cmd_proc.run()
+        self.assertEqual(result_data[2], 0)
+
+    @classmethod
+    def tearDownClass(cls):
+        delete_files()
 
 
 if __name__ == '__main__':
