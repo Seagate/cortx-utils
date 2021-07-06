@@ -260,7 +260,11 @@ class Utils:
         Utils._configure_rsyslog()
         # temporary fix for a common message bus log file
         # The issue happend when some user other than root:root is trying
+<<<<<<< HEAD
         # to write logs in these log dir/files. This needs to be removed soon!
+=======
+        # to write logs in these log dir/files. This needs to be removed!
+>>>>>>> 1741a9cf18f5d8653f3608966b1a8cc95f1f71a0
         os.makedirs("/var/log/cortx/utils/message_bus", exist_ok=True)
         os.chmod("/var/log/cortx/utils/message_bus", 0o0777)
         Path("/var/log/cortx/utils/message_bus/message_bus.log").touch( \
