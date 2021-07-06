@@ -1,5 +1,7 @@
-{% if REQUIRED_HOST != 1 %}
 [cluster]
+{% if REQUIRED_HOST == '1' %}
+mgmt_vip=None
+{% else %}
 mgmt_vip={{ MGMT_VIP }}
 {% endif %}
 [srvnode_default]
@@ -11,6 +13,9 @@ bmc.secret=None
 storage.cvg.0.data_devices= {{ DATA_DEVICES }}
 storage.cvg.0.metadata_devices={{ METADATA_DEVICES }}
 network.data.private_ip=None
+storage.durability.sns.data=1
+storage.durability.sns.parity=0
+storage.durability.sns.spare=0
 
 {% set node_count = 1 %}
 {% for node in HOST.split(',') %}
