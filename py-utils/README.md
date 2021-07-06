@@ -23,7 +23,7 @@ A common utils framework which includes common modules across components
 
 ## Prerequisites for build
 ```bash
-sudo yum install gcc rpm-build python36 python36-pip python36-devel python36-setuptools openssl-devel libffi-devel
+sudo yum install gcc rpm-build python36 python36-pip python36-devel python36-setuptools openssl-devel libffi-devel python36-dbus
 ```
 
 ## Clone
@@ -33,15 +33,6 @@ git clone --recursive https://github.com/Seagate/cortx-utils -b main
 
 
 ## Build
-**Note:** Use one of following method to create build package
-
-  - Create pip package
-    - It will create `cortx_py_utils-1.0.0-py3-none-any.whl`
-```bash
-$ pip3 install wheel
-$ cd ./cortx-utils/py-utils
-$ python3 setup.py bdist_wheel
-```
 
   - Create RPM Package
 It will create `cortx-py-utils-1.0.0-1_<git-version>.noarch.rpm` by default. One can change the version by passing extra `-v <version_string>` parameter.
@@ -51,13 +42,8 @@ Run below command from repo root (cortx-utils).
 $ ./jenkins/build.sh -v 2.0.0 -b 2
 ```
 
-## Installation
-  - Installation with pip package
-```bash
-$ cd ./py-utils/dist
-$ pip3 install cortx_py_utils-1.0.0-py3-none-any.whl
-```
-
+## Install
+ 
   - Installation with RPM package
 Note : The rpm package installation will fail if any dependent python package is not installed.
 Please refer to WIKI (https://github.com/Seagate/cortx-utils/wiki/%22cortx-py-utils%22-single-node-manual-provisioning)
@@ -68,10 +54,6 @@ $ sudo yum install -y cortx-py-utils-*.noarch.rpm
 
 ## Uninstall
 
-- Pip package uninstall
-```bash
-$ pip3 uninstall cortx-py-utils
-```
 
   - RPM uninstall
 ```
