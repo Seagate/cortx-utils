@@ -258,8 +258,10 @@ class Utils:
         #set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map()
         Utils._configure_rsyslog()
-        os.makedirs("/var/log/cortx/utils/message_bus", exist_ok=True)
         # temporary fix for a common message bus log file
+        # The issue happend when some user other than root:root is trying
+        # to write logs in these log dir/files. This needs to be removed soon!
+        os.makedirs("/var/log/cortx/utils/message_bus", exist_ok=True)
         os.chmod("/var/log/cortx/utils/message_bus", 0o0777)
         Path("/var/log/cortx/utils/message_bus/message_bus.log").touch( \
             exist_ok=True)
