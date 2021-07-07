@@ -23,7 +23,7 @@ A common utils framework which includes common modules across components
 
 ## Prerequisites for build
 ```bash
-sudo yum install gcc rpm-build python36 python36-pip python36-devel python36-setuptools openssl-devel libffi-devel python36-dbus
+sudo yum install -y gcc rpm-build python36 python36-pip python36-devel python36-setuptools openssl-devel libffi-devel python36-dbus
 ```
 
 ## Clone
