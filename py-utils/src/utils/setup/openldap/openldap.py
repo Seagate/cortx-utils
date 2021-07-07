@@ -47,7 +47,7 @@ class Openldap:
         if not os.path.isfile(self._preqs_conf_file):
             raise OpenldapSetupError({"message":"pre-requisite json file \
                 not found"})
-        Conf.load(self.index, conf_url)
+        Conf.load(self.index, f'json://{conf_url}')
         Conf.load(self.prov, f'yaml://{self._prov_conf_file}')
 
         self.machine_id = Conf.machine_id
