@@ -15,7 +15,6 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.support.utils_support_bundle import UtilsSupportBundle
 from cortx.utils.conf_store.conf_store import Conf
 
 

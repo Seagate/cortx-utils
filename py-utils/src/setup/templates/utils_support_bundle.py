@@ -1,7 +1,8 @@
-#!/bin/python3
+#!/usr/bin/env python3
 
 # CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -15,13 +16,33 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import sys
 import os.path
 import shutil
 import tarfile
 import errno
 
-from cortx.utils.support.error import SupportBundleError
 from cortx.utils.conf_store import Conf
+
+
+class SupportBundleError(Exception):
+    """ Generic Exception with error code and output """
+
+    def __init__(self, rc, message, *args):
+        self._rc = rc
+        self._desc = message % (args)
+
+    @property
+    def rc(self):
+        return self._rc
+
+    @property
+    def desc(self):
+        return self._desc
+
+    def __str__(self):
+        if self._rc == 0: return self._desc
+        return "error(%d): %s" %(self._rc, self._desc)
 
 
 class UtilsSupportBundle:
@@ -65,6 +86,7 @@ class UtilsSupportBundle:
     @staticmethod
     def __generate_tar(target_path=None):
         """ Generate tar.gz file at given path """
+        import  pdb;pdb.set_trace()
         target_path = target_path if target_path is not None \
             else UtilsSupportBundle._default_path
         tar_file_name = os.path.join(target_path,
@@ -102,3 +124,14 @@ class UtilsSupportBundle:
     def __clear_tmp_files():
         """ Clean tmp files after support bundle generation completed """
         shutil.rmtree(UtilsSupportBundle._tmp_src)
+
+
+if __name__ == '__main__':
+    """
+    argument:
+        path: targeted path where py-utils.tar.gz should be created
+    """
+    target = None
+    if len(sys.argv) > 1:
+        target = sys.argv[1]
+    UtilsSupportBundle.generate(target_path=target)
