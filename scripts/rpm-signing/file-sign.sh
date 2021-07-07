@@ -22,6 +22,6 @@ set PASSPHRASE [lindex $argv 0]
 set FILE [lindex $argv 1]
 
 spawn gpg --output {*}${FILE}.sig  --detach-sig {*}${FILE}
-expect -exact "Please enter the passphrase to unlock the secret key for the OpenPGP"
+expect "Please enter the passphrase to unlock the secret key for the OpenPGP"
 send -- "${PASSPHRASE}\r"
 expect eof

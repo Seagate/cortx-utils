@@ -241,7 +241,7 @@ pipeline {
                 sh label: "Sign ISO files", script: '''
                 pushd scripts/rpm-signing
                     ./file-sign.sh ${passphrase} $integration_dir/$release_tag/prod/iso/cortx-$version-$BUILD_NUMBER-upgrade.iso
-                    pkill gpg-agent
+                    sleep 5
                     ./file-sign.sh ${passphrase} $integration_dir/$release_tag/prod/iso/cortx-$version-$BUILD_NUMBER-single.iso 
                 popd
                 '''
