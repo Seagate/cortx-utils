@@ -17,8 +17,8 @@
 import os
 import re
 import traceback
-import BaseError 
 
+from cortx.utils.errors import BaseError 
 from cortx.utils.validator.v_pkg import PkgV
 from cortx.utils.validator.v_network import NetworkV
 from cortx.utils.conf_store import Conf
