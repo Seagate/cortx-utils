@@ -54,7 +54,6 @@ python36-pika
 python36-pip
 python36-ply
 python36-psutil == 5.6.7
-rabbitmq-server == 3.8.9
 rsync
 rsyslog
 ruby
