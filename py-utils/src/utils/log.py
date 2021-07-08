@@ -62,7 +62,7 @@ class Log:
         :param log_level: Log Class Instance :type: Class(Log)
         :return: Logger Object
         """
-        log_format = "%(asctime)s %(name)s %(levelname)s %(message)s"
+        log_format = "%(asctime)s %(process)d %(name)s %(levelname)s %(message)s"
         logger_name = f"{file_name}"
         formatter = logging.Formatter(log_format, "%Y-%m-%d %H:%M:%S")
         if logger_type == "audit":
