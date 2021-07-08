@@ -40,14 +40,15 @@ class Openldap:
     """ Represents Openldap and Performs setup related actions."""
     index = "openldap"
     prov = "provisioning"
-    _preqs_conf_file = "openldapsetup_prereqs.json"
-    _prov_conf_file = "openldap_prov_config.yaml"
+    _preqs_conf_file = "/opt/seagate/cortx/utils/conf/openldapsetup_prereqs.json"
+    _prov_conf_file = "/opt/seagate/cortx/utils/conf/openldap_prov_config.yaml"
+    Log.init('OpenldapConfigLog','/var/log/seagate/s3',level='DEBUG')
 
     def __init__(self, conf_url):
         if not os.path.isfile(self._preqs_conf_file):
             raise OpenldapSetupError({"message":"pre-requisite json file \
                 not found"})
-        Conf.load(self.index, f'json://{conf_url}')
+        Conf.load(self.index, f'yaml://{conf_url}')
         Conf.load(self.prov, f'yaml://{self._prov_conf_file}')
 
         self.machine_id = Conf.machine_id
