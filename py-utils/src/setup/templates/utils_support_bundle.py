@@ -23,26 +23,14 @@ import tarfile
 import errno
 
 from cortx.utils.conf_store import Conf
+from cortx.utils.errors import UtilsError
 
 
-class SupportBundleError(Exception):
+class SupportBundleError(UtilsError):
     """ Generic Exception with error code and output """
 
     def __init__(self, rc, message, *args):
-        self._rc = rc
-        self._desc = message % (args)
-
-    @property
-    def rc(self):
-        return self._rc
-
-    @property
-    def desc(self):
-        return self._desc
-
-    def __str__(self):
-        if self._rc == 0: return self._desc
-        return "error(%d): %s" %(self._rc, self._desc)
+        super().__init__(rc, message, *args)
 
 
 class UtilsSupportBundle:
@@ -86,7 +74,6 @@ class UtilsSupportBundle:
     @staticmethod
     def __generate_tar(target_path=None):
         """ Generate tar.gz file at given path """
-        import  pdb;pdb.set_trace()
         target_path = target_path if target_path is not None \
             else UtilsSupportBundle._default_path
         tar_file_name = os.path.join(target_path,
