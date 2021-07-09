@@ -3,7 +3,7 @@ pipeline {
     agent {
 		node {
             // Agent created with 4GB ram/16GB memory in EOS_SVC_RE1 account 
-			label "s3-compatibility-test-${INTEGRATION_TYPE}"
+			label "s3-compatibility-test-ceph-rhev"
 
             // Use custom workspace for easy troublshooting
             customWorkspace "/root/compatability-test/${INTEGRATION_TYPE}"
@@ -11,7 +11,7 @@ pipeline {
 	}
 
 	options {
-        timeout(time: 120, unit: 'MINUTES')
+        timeout(time: 240, unit: 'MINUTES')
         timestamps()
         ansiColor('xterm') 
         buildDiscarder(logRotator(numToKeepStr: "30"))
