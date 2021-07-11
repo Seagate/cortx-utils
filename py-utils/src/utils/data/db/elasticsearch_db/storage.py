@@ -278,7 +278,13 @@ class ElasticSearchQueryService:
             search = search.extra(**extra_params)
 
         if q.order_by is not None:
-            sort_by[field_to_str(q.order_by.field)] = {ESWords.ORDER: convert(q.order_by.order)}
+            string_field_type = q.order_by.kwargs.get("string_field_type")
+            if string_field_type is not None and \
+                isinstance(q.order_by.field, StringType):
+                sort_by[f"{field_to_str(q.order_by.field)}.{string_field_type}"] = \
+                    {ESWords.ORDER: convert(q.order_by.order)}
+            else:
+                sort_by[field_to_str(q.order_by.field)] = {ESWords.ORDER: convert(q.order_by.order)}
             search = search.sort(sort_by)
 
         return search
