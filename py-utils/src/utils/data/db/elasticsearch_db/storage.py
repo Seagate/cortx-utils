@@ -385,7 +385,7 @@ class ElasticSearchDB(GenericDataBase):
 
         def _get(_index):
             return self._es_client.indices.get(self._index)
-        
+
         try:
             indices = await self._loop.run_in_executor(self._tread_pool_exec, _get_alias, self._index)
         except ConnectionError as e:
