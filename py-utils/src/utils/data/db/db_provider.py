@@ -21,7 +21,7 @@ from enum import Enum
 from typing import Type
 
 from schematics import Model
-from schematics.types import DictType, StringType, ListType, ModelType, IntType
+from schematics.types import DictType, StringType, ListType, ModelType, IntType, BooleanType
 
 from cortx.utils.data.access import BaseModel
 from cortx.utils.errors import MalformedConfigurationError, DataAccessInternalError, DataAccessError
@@ -65,6 +65,7 @@ class ModelSettings(Model):
     Configuration for base model like collection as example
     """
     collection = StringType(required=True)
+    create_schema = BooleanType(default=True)
 
 
 class DBModelConfig(Model):
@@ -157,7 +158,7 @@ class AsyncDataBase:
         self._database_status = ServiceStatus.IN_PROGRESS
         try:
             self._database = await self._database_module.create_database(self._db_config.config,
-                                                                         self._model_settings.collection,
+                                                                         self._model_settings,
                                                                          self._model)
         except DataAccessError:
             raise

@@ -331,17 +331,18 @@ class ElasticSearchDB(GenericDataBase):
                                                         self._query_converter)
 
     @classmethod
-    async def create_database(cls, config, collection, model: Type[BaseModel]) -> IDataBase:
+    async def create_database(cls, config, model_settings, model: Type[BaseModel]) -> IDataBase:
         """
         Creates new instance of ElasticSearch DB and performs necessary initializations
 
         :param DBSettings config: configuration for elasticsearch server
-        :param str collection: collection for storing model onto db
+        :param :param model_settings: Model settings
         :param Type[BaseModel] model: model which instances will be stored in DB
         :return:
         """
         # NOTE: please, be sure that you avoid using this method twice (or more times) for the same
         # model
+        collection = model_settings.collection
         if not all((cls.elastic_instance, cls.thread_pool, cls.loop)):
             auth = None
             if config.login:
@@ -361,7 +362,8 @@ class ElasticSearchDB(GenericDataBase):
         es_db = cls(cls.elastic_instance, model, collection, cls.thread_pool, cls.loop)
 
         try:
-            await es_db.attach_to_index(config.replication)
+            if model_settings.create_schema:
+                await es_db.attach_to_index(config.replication)
         except DataAccessExternalError:
             raise  # forward error to upper caller
         except Exception as e:
@@ -383,7 +385,7 @@ class ElasticSearchDB(GenericDataBase):
 
         def _get(_index):
             return self._es_client.indices.get(self._index)
-
+        
         try:
             indices = await self._loop.run_in_executor(self._tread_pool_exec, _get_alias, self._index)
         except ConnectionError as e:
