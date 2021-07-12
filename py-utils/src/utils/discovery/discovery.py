@@ -82,42 +82,23 @@ class Discovery:
     @staticmethod
     def generate_manifest(rpath: str = None, store_url: str = None):
         """
-        This generates manifest for given rpath. It process only one
-        request at a time and rejects new request while processing
-        current.
+        This generates manifest for given rpath. This returns
+        unique id for any accepted request.
 
         If no rpath given it generates manifest for all resources.
         """
-        location = common_config.get(
-            ["discovery>resource_map>location"])[0]
-        manifest_id_file = "%s/manifest_id_file.txt" % location
-        if not os.path.exists(manifest_id_file):
-            with open(manifest_id_file, "w") as f:
-                f.write("")
+        request_id = str(time.time()).replace(".", "")
+        t = threading.Thread(
+            target=NodeHealth.generate,
+            args=(rpath, request_id, store_url),
+            kwargs={"manifest": True})
+        t.start()
 
-        # Allow new request if no manifest request is being
-        # processed currently
-        with open(manifest_id_file) as f:
-            prev_req_id = f.read().strip()
-        try:
-            status = Discovery.get_gen_manifest_status(prev_req_id)
-        except DiscoveryError:
-            status = "Unknown"
-        if status == NodeHealth.INPROGRESS:
-            raise DiscoveryError(
-                errno.EINPROGRESS,
-                "Manifest generation is already in-progress with " \
-                "request ID - %s" % prev_req_id)
-        else:
-            request_id = str(time.time()).replace(".", "")
-            t = threading.Thread(
-                target=NodeHealth.generate,
-                args=(rpath, request_id, store_url),
-                kwargs={"manifest": True})
-            t.start()
-            with open(manifest_id_file, "w") as f:
-                f.write("%s" % request_id)
-            return request_id
+        # When multiple requests get registered, KV load throws decoding error
+        # due to key scanning happening at the same time by other requests.
+        time.sleep(0.5)
+
+        return request_id
 
     @staticmethod
     def get_gen_manifest_status(request_id):
