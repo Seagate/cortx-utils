@@ -86,7 +86,7 @@ class Discovery:
         request at a time and rejects new request while processing
         current.
 
-        If no rpath given it generates manifest for all reqsources.
+        If no rpath given it generates manifest for all resources.
         """
         location = common_config.get(
             ["discovery>resource_map>location"])[0]
@@ -110,8 +110,6 @@ class Discovery:
                 "request ID - %s" % prev_req_id)
         else:
             request_id = str(time.time()).replace(".", "")
-            if not store_url:
-                store_url = ""
             t = threading.Thread(
                 target=NodeHealth.generate,
                 args=(rpath, request_id, store_url),

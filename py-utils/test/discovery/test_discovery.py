@@ -16,6 +16,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import time
 import unittest
 
 from cortx.utils import const
@@ -89,6 +90,22 @@ class TestDiscovery(unittest.TestCase):
         request_id = "xxxxxxxxxxx"
         self.assertRaises(
             DiscoveryError, Discovery.get_node_health, request_id)
+
+    def test_manifest(self):
+        """Check for node health status using valid request_id"""
+        # Validate generate manifest  API
+        request_id = Discovery.generate_manifest(valid_rpath)
+        self.assertIsNotNone(request_id)
+        # Validate generate manifest status API
+        status = Discovery.get_gen_manifest_status(request_id)
+        max_wait_time = time.time() + 120
+        while status == "In-progress" and max_wait_time > time.time():
+            time.sleep(10)
+        status = Discovery.get_gen_manifest_status(request_id)
+        self.assertEqual(status, "Success")
+        # Validate get manifest API
+        url = Discovery.get_manifest(request_id)
+        self.assertIsNotNone(url)
 
     def tearDown(self):
         # Reset platform monitor path

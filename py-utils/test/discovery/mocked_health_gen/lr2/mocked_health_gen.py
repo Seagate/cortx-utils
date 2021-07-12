@@ -43,6 +43,13 @@ class Server:
         """
         return Conf.get(mock_index, rpath)
 
+    def get_manifest_info(self, rpath):
+        """
+        Fetch manifest information for given FRU
+        rpath: Resource id (Example: node>compute[0]>hw>disks)
+        """
+        return Conf.get(mock_index, rpath)
+
 
 class Storage:
     """Provides health information of FRUs in storage"""
@@ -55,6 +62,14 @@ class Storage:
         rpath: Resource id (Example: node>storage[0]>hw>controllers)
         """
         return Conf.get(mock_index, rpath)
+
+    def get_manifest_info(self, rpath):
+        """
+        Fetch manifest for given FRU
+        rpath: Resource id (Example: node>storage[0]>hw>controllers)
+        """
+        return Conf.get(mock_index, rpath)
+
 
 
 if __name__ == "__main__":

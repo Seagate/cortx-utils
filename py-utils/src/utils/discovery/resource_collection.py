@@ -59,3 +59,6 @@ class Node(Resource):
 
     def get_health_info(self, rpath):
         return self.child.get_health_info(rpath)
+
+    def get_manifest_info(self, rpath):
+        return self.child.get_manifest_info(rpath)
