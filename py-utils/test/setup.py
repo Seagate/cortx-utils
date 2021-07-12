@@ -38,6 +38,7 @@ setup(
     package_dir={"cortx.utils.test": "."},
     packages=[
         "cortx.utils.test",
+        "cortx.utils.test.plans",
         "cortx.utils.test.validator",
         "cortx.utils.test.kv_store",
         "cortx.utils.test.message_bus",
@@ -53,6 +54,7 @@ setup(
     package_data={
         "": [
             "*.json",
+            "plans/*.pln",
             "schema/*.json",
             "kv_store/*.json",
             "conf_store/*.json",

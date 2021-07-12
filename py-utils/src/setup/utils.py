@@ -27,6 +27,7 @@ from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.service.service_handler import Service
 from cortx.utils.validator.v_pkg import PkgV
 from cortx.utils.validator.error import VError
+from cortx.utils.const import RUN_TEST_DIR
 
 
 class SetupError(Exception):
@@ -267,10 +268,17 @@ class Utils:
         try:
             Log.info("Validating cortx-py-utils-test rpm")
             PkgV().validate('rpms', ['cortx-py-utils-test'])
-            from cortx.utils.test.run_test import TestSuite
-            test_plan = plan
-            suite = TestSuite()
-            suite.run_test_suite(test_plan)
+            import cortx.utils.test as test_module
+            plan_path = os.path.join(os.path.dirname(test_module.__file__), \
+                'plans/', plan + '.pln')
+            Log.info("Running test plan: %s", plan)
+            cmd = "%s/run_test -t  %s" %(RUN_TEST_DIR, plan_path)
+            _output, _err, _rc = SimpleProcess(cmd).run(realtime_output=True)
+            if _rc != 0:
+                Log.error("Py-utils Test Failed")
+                raise SetupError(errno.EINVAL,"Py-utils Test Failed \n \
+                    Output : %s \n Error : %s \n Return Code : %s" \
+                        %(_output, _err, _rc))
         except VError as ve:
             Log.error("Failed at package Validation: %s", ve)
             raise SetupError(errno.EINVAL, "Failed at package Validation: \
