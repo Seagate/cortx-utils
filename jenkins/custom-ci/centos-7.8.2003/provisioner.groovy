@@ -51,7 +51,11 @@ pipeline {
 				'''
 
                 sh encoding: 'UTF-8', label: 'cortx-setup', script: '''
+                if [ -f "./devops/rpms/lr-cli/build_python_cortx_setup.sh" ]; then
 					bash ./devops/rpms/lr-cli/build_python_cortx_setup.sh -vv --out-dir /root/rpmbuild/RPMS/x86_64/ --pkg-ver ${CUSTOM_CI_BUILD_ID}_git$(git rev-parse --short HEAD)
+                else
+                    echo "cortx-setup package creation is not implemented"
+                fi        
 				'''
             }
         }
