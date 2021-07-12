@@ -47,11 +47,11 @@ pipeline {
                 """
 				
 				sh encoding: 'UTF-8', label: 'api', script: '''
-				if [ "${PRVSNR_BRANCH}" == "Cortx-v1.0.0_Beta" ]; then
-					echo "No Provisioner API RPMS in Beta Build hence skipping"
-				else
 					bash ./devops/rpms/api/build_python_api.sh -vv --out-dir /root/rpmbuild/RPMS/x86_64/ --pkg-ver ${CUSTOM_CI_BUILD_ID}_git$(git rev-parse --short HEAD)
-				fi
+				'''
+
+                sh encoding: 'UTF-8', label: 'cortx-setup', script: '''
+					bash ./devops/rpms/lr-cli/build_python_cortx_setup.sh -vv --out-dir /root/rpmbuild/RPMS/x86_64/ --pkg-ver ${CUSTOM_CI_BUILD_ID}_git$(git rev-parse --short HEAD)
 				'''
             }
         }
