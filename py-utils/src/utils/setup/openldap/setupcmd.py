@@ -43,7 +43,7 @@ class SetupCmd(object):
   cluster_id = None
   machine_id = None
   ldap_mdb_folder = "/var/lib/ldap"
-  openldap_prov_config = "openldap_prov_config.yaml"
+  openldap_prov_config = "openldap_prov_config.yaml"#TODO put path of install location
   _preqs_conf_file = "openldapsetup_prereqs.json"
   ha_service_map = {}
 
@@ -96,14 +96,28 @@ class SetupCmd(object):
       encrypted_rootdn_pass = self.get_confvalue(self.get_confkey('CONFIG>CONFSTORE_ROOTDN_PASSWD_KEY'))
 
       if encrypted_ldapadmin_pass != None:
-        self.ldap_passwd = Cipher.decrypt(cipher_key, encrypted_ldapadmin_pass)
+        self.ldap_passwd = Cipher.decrypt(cipher_key, bytes(str(encrypted_ldapadmin_pass), 'utf-8'))
 
       if encrypted_rootdn_pass != None:
-        self.rootdn_passwd = Cipher.decrypt(cipher_key, encrypted_rootdn_pass)
+        self.rootdn_passwd = Cipher.decrypt(cipher_key, bytes(str(encrypted_rootdn_pass),'utf-8'))
 
     except Exception as e:
       sys.stderr.write(f'read ldap credentials failed, error: {e}\n')
       raise e
+
+  def restart_services(self, s3services_list):
+    """Restart services specified as parameter."""
+    for service_name in s3services_list:
+      try:
+        # if service name not found in the ha_service_map then use systemctl
+        service_name = self.ha_service_map[service_name]
+        cmd = ['cortx', 'restart',  f'{service_name}']
+      except KeyError:
+        cmd = ['/bin/systemctl', 'restart',  f'{service_name}']
+      handler = SimpleProcess(cmd)
+      res_op, res_err, res_rc = handler.run()
+      if res_rc != 0:
+        raise Exception(f"{cmd} failed with err: {res_err}, out: {res_op}, ret: {res_rc}")
 
 
   def validate_pre_requisites(self,

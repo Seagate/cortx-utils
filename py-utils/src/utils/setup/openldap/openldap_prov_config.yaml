@@ -22,6 +22,8 @@ PREPARE:
 CONFIG:
   CONFSTORE_ROOTDN_USER_KEY: "cortx>software>openldap>root>user"
   CONFSTORE_ROOTDN_PASSWD_KEY: "cortx>software>openldap>root>secret"
+  CONFSTORE_LDAPADMIN_USER_KEY: "cortx>software>openldap>sgiam>user"
+  CONFSTORE_LDAPADMIN_PASSWD_KEY: "cortx>software>openldap>sgiam>secret"
   CONFSTORE_STORAGE_SET_COUNT_KEY: "cluster>cluster-id>site>storage_set_count"
   CONFSTORE_STORAGE_SET_SERVER_NODES_KEY: "cluster>cluster-id>storage_set[storage-set-count]>server_nodes"
   CONFSTORE_CLUSTER_ID_KEY: "server_node>machine-id>cluster_id"

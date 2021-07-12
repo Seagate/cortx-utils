@@ -26,7 +26,7 @@ from  ast import literal_eval
 
 from setupcmd import SetupCmd, OpenldapPROVError
 from cortx.utils.process import SimpleProcess
-from base_configure_ldap import ConfigLdap
+#from base_configure_ldap import BaseConfig
 
 class ConfigCmd(SetupCmd):
   """Config Setup Cmd."""
@@ -37,7 +37,6 @@ class ConfigCmd(SetupCmd):
     try:
       super(ConfigCmd, self).__init__(config)
 
-      self.update_cluster_id()
       self.read_ldap_credentials()
 
     except Exception as e:
@@ -64,7 +63,7 @@ class ConfigCmd(SetupCmd):
     # Perform base configuration
     #Put below inside a class  and method and then import it and call
     #os.system('python3 ./../../third_party/openldap/base_configure_ldap.py --forceclean True --rootdnpasswd ' + self.rootdn_passwd)
-    self.base_configure(self.rootdn_passwd,'True')
+    #BaseConfig.performbaseconfig(self.rootdn_passwd,'True')
     if os.path.isfile("/opt/seagate/cortx/s3/install/ldap/rsyslog.d/slapdlog.conf"):
       try:
         os.makedirs("/etc/rsyslog.d")
