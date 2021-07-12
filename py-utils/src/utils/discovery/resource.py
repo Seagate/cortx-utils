@@ -96,7 +96,8 @@ class Resource:
         module = self.get_module_from_path(monitor_path, product_id)
         members = inspect.getmembers(module, inspect.isclass)
         for _, cls in members:
-            if hasattr(cls, 'name') and self.resource_provider_map[self.name] == cls.name:
+            if hasattr(cls, 'name') and \
+                self.resource_provider_map[self.name] == cls.name:
                 try:
                     return cls().get_health_info(rpath)
                 except Exception as err:
@@ -105,7 +106,8 @@ class Resource:
         raise DiscoveryError(
             errno.EINVAL,
             "%s health provider not found in configured path %s" % (
-                self.resource_provider_map[self.name].title(), monitor_path))
+                self.resource_provider_map[self.name].title(),
+                monitor_path))
 
     def get_manifest_info(self, rpath):
         """Initialize manifest module and fetch resource information"""
@@ -116,7 +118,8 @@ class Resource:
         module = self.get_module_from_path(monitor_path, product_id)
         members = inspect.getmembers(module, inspect.isclass)
         for _, cls in members:
-            if hasattr(cls, 'name') and self.resource_provider_map[self.name] == cls.name:
+            if hasattr(cls, 'name') and \
+                self.resource_provider_map[self.name] == cls.name:
                 try:
                     return cls().get_manifest_info(rpath)
                 except Exception as err:
@@ -125,7 +128,8 @@ class Resource:
         raise DiscoveryError(
             errno.EINVAL,
             "%s health provider not found in configured path %s" % (
-                self.resource_provider_map[self.name].title(), monitor_path))
+                self.resource_provider_map[self.name].title(),
+                monitor_path))
 
 
 class ResourceFactory:

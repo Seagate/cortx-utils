@@ -91,20 +91,21 @@ class TestDiscovery(unittest.TestCase):
         self.assertRaises(
             DiscoveryError, Discovery.get_node_health, request_id)
 
-    def test_manifest(self):
-        """Check for node health status using valid request_id"""
-        # Validate generate manifest  API
+    def test_generate_manifest(self):
+        """Check for immediate request id"""
         request_id = Discovery.generate_manifest(valid_rpath)
         self.assertIsNotNone(request_id)
-        # Validate generate manifest status API
-        status = Discovery.get_gen_manifest_status(request_id)
-        max_wait_time = time.time() + 120
-        while status == "In-progress" and max_wait_time > time.time():
-            time.sleep(10)
+
+    def test_get_gen_manifest_status_success(self):
+        """Check for manifest request status using valid request_id"""
+        request_id = Discovery.generate_node_health(valid_rpath)
         status = Discovery.get_gen_manifest_status(request_id)
         self.assertEqual(status, "Success")
-        # Validate get manifest API
-        url = Discovery.get_manifest(request_id)
+
+    def test_get_manifest(self):
+        """Check for generated manifest location"""
+        req_id = Discovery.generate_node_health(valid_rpath)
+        url = Discovery.get_manifest(req_id)
         self.assertIsNotNone(url)
 
     def tearDown(self):
