@@ -35,7 +35,7 @@ class Resource:
         """Initialize resource"""
         self._name = name
         self._child_resource = child_resource
-        self.health_provider_map = {
+        self.resource_provider_map = {
             "storage": "storage",
             "compute": "server"
             }
@@ -67,8 +67,8 @@ class Resource:
         return Resource._kv.get([rpath])
 
     @staticmethod
-    def get_health_provider_module(path, product_id):
-        """Look for solution specific __init__ module in health provider path"""
+    def get_module_from_path(path, product_id):
+        """Look for solution specific __init__ module in given path"""
         module = None
         try:
             if path.startswith("/"):
@@ -93,15 +93,39 @@ class Resource:
         monitor_path = common_config.get(
             ["discovery>solution_platform_monitor"])[0]
         product_id = common_config.get(["product_id"])[0].lower()
-        module = self.get_health_provider_module(monitor_path, product_id)
+        module = self.get_module_from_path(monitor_path, product_id)
         members = inspect.getmembers(module, inspect.isclass)
         for _, cls in members:
-            if hasattr(cls, 'name') and self.health_provider_map[self.name] == cls.name:
-                return cls().get_health_info(rpath)
+            if hasattr(cls, 'name') and self.resource_provider_map[self.name] == cls.name:
+                try:
+                    return cls().get_health_info(rpath)
+                except Exception as err:
+                    raise DiscoveryError(
+                        errno.EINVAL, f"{cls.name} - {err}")
         raise DiscoveryError(
             errno.EINVAL,
             "%s health provider not found in configured path %s" % (
-                self.health_provider_map[self.name].title(), monitor_path))
+                self.resource_provider_map[self.name].title(), monitor_path))
+
+    def get_manifest_info(self, rpath):
+        """Initialize manifest module and fetch resource information"""
+        from cortx.utils.discovery.node_health import common_config
+        monitor_path = common_config.get(
+            ["discovery>solution_platform_monitor"])[0]
+        product_id = common_config.get(["product_id"])[0].lower()
+        module = self.get_module_from_path(monitor_path, product_id)
+        members = inspect.getmembers(module, inspect.isclass)
+        for _, cls in members:
+            if hasattr(cls, 'name') and self.resource_provider_map[self.name] == cls.name:
+                try:
+                    return cls().get_manifest_info(rpath)
+                except Exception as err:
+                    raise DiscoveryError(
+                        errno.EINVAL, f"{cls.name} - {err}")
+        raise DiscoveryError(
+            errno.EINVAL,
+            "%s health provider not found in configured path %s" % (
+                self.resource_provider_map[self.name].title(), monitor_path))
 
 
 class ResourceFactory:

@@ -16,11 +16,12 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
+import os
 import threading
 import time
 
 from cortx.utils.discovery.error import DiscoveryError
-from cortx.utils.discovery.node_health import NodeHealth
+from cortx.utils.discovery.node_health import NodeHealth, common_config
 
 
 class Discovery:
@@ -72,6 +73,73 @@ class Discovery:
         Returns resource health map backend URL.
 
         request_id: Unique ID returned by generate node health method
+        If request_id is not given, this will return available static
+        store url.
+        URL format: "json://<file_path>/<file_name>"
+        """
+        return NodeHealth.get_resource_map_location(request_id)
+
+    @staticmethod
+    def generate_manifest(rpath: str = None, store_url: str = None):
+        """
+        This generates manifest for given rpath. It process only one
+        request at a time and rejects new request while processing
+        current.
+
+        If no rpath given it generates manifest for all reqsources.
+        """
+        location = common_config.get(
+            ["discovery>resource_map>location"])[0]
+        manifest_id_file = "%s/manifest_id_file.txt" % location
+        if not os.path.exists(manifest_id_file):
+            with open(manifest_id_file, "w") as f:
+                f.write("")
+
+        # Allow new request if no manifest request is being
+        # processed currently
+        with open(manifest_id_file) as f:
+            prev_req_id = f.read().strip()
+        try:
+            status = Discovery.get_gen_manifest_status(prev_req_id)
+        except DiscoveryError:
+            status = "Unknown"
+        if status == NodeHealth.INPROGRESS:
+            raise DiscoveryError(
+                errno.EINPROGRESS,
+                "Manifest generation is already in-progress with " \
+                "request ID - %s" % prev_req_id)
+        else:
+            request_id = str(time.time()).replace(".", "")
+            if not store_url:
+                store_url = ""
+            t = threading.Thread(
+                target=NodeHealth.generate,
+                args=(rpath, request_id, store_url),
+                kwargs={"manifest": True})
+            t.start()
+            with open(manifest_id_file, "w") as f:
+                f.write("%s" % request_id)
+            return request_id
+
+    @staticmethod
+    def get_gen_manifest_status(request_id):
+        """
+        Returns processing status of the given request id.
+
+        "In-progress" if manifest request is being processed
+        "Success" if manifest request is completed
+        "Failed (with reason)" if request is failed
+        """
+        if not request_id:
+            raise DiscoveryError(errno.EINVAL, "Invalid request ID.")
+        return NodeHealth.get_processing_status(request_id)
+
+    @staticmethod
+    def get_manifest(request_id=None):
+        """
+        Returns resource manifest backend URL.
+
+        request_id: Unique ID returned by generate manifest method
         If request_id is not given, this will return available static
         store url.
         URL format: "json://<file_path>/<file_name>"

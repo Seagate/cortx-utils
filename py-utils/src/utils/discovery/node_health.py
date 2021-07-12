@@ -84,7 +84,7 @@ class NodeHealth:
         req_register.set(["%s>time" % req_id], [int(time.time())])
 
     @staticmethod
-    def update_resource_map(rpath):
+    def update_resource_map(rpath, manifest):
         """Update resource map for resources in rpath"""
         # Parse rpath and find left node
         nodes = rpath.strip().split(">")
@@ -109,15 +109,21 @@ class NodeHealth:
                     child_inst = ResourceFactory.get_instance(child, rpath)
                     main = resource(child_resource=child_inst)
                     joined_rpath = rpath + ">" + child
-                    main.set(joined_rpath, main.get_health_info(joined_rpath))
+                    if manifest:
+                        main.set(joined_rpath, main.get_manifest_info(joined_rpath))
+                    else:
+                        main.set(joined_rpath, main.get_health_info(joined_rpath))
                 break
             elif node == leaf_node or len(resource.childs) == 0:
                 main = resource(child_resource=None)
-                main.set(rpath, main.get_health_info(rpath))
+                if manifest:
+                    main.set(rpath, main.get_manifest_info(rpath))
+                else:
+                    main.set(rpath, main.get_health_info(rpath))
                 break
 
     @staticmethod
-    def generate(rpath: str, req_id: str, store_url: str):
+    def generate(rpath: str, req_id: str, store_url: str, manifest: bool = False):
         """Generates node health information and updates resource map"""
         if not store_url and not rpath:
             # Create static store url
@@ -126,6 +132,9 @@ class NodeHealth:
             resource_map_loc = common_config.get(["discovery>resource_map>location"])[0]
             data_file = os.path.join(resource_map_loc,
                 "node_health_info.%s" % (store_type))
+            if manifest:
+                data_file = os.path.join(resource_map_loc,
+                    "manifest_info.%s" % (store_type))
             store_url = "%s://%s" % (store_type, data_file)
 
         elif not store_url and rpath:
@@ -134,6 +143,9 @@ class NodeHealth:
             resource_map_loc = common_config.get(["discovery>resource_map>location"])[0]
             data_file = os.path.join(resource_map_loc,
                 "node_health_info_%s.%s" % (req_id, store_type))
+            if manifest:
+                data_file = os.path.join(resource_map_loc,
+                    "manifest_%s.%s" % (req_id, store_type))
             store_url = "%s://%s" % (store_type, data_file)
 
         else:
@@ -145,7 +157,7 @@ class NodeHealth:
             Resource.init(store_url)
             # Process request
             NodeHealth.add_discovery_request(rpath, req_id, store_url)
-            NodeHealth.update_resource_map(rpath)
+            NodeHealth.update_resource_map(rpath, manifest)
             NodeHealth.set_discovery_request_processed(req_id, NodeHealth.SUCCESS)
         except Exception as err:
             status = NodeHealth.FAILED + f" - {err}"
