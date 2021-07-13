@@ -1,7 +1,7 @@
 pipeline {
     agent {
         node {
-            label 'docker-image-build-centos-7.8'
+           label "docker-image-build-${OS_VERSION}"
         }
     }
     
@@ -25,7 +25,7 @@ pipeline {
 
         choice (
             name: 'OS_VERSION', 
-            choices: ['centos-7.8.2003'],
+            choices: ['centos-7.8.2003', 'centos-7.9.2009'],
             description: 'OS Version'
         )
 
@@ -57,10 +57,11 @@ pipeline {
 			steps {
 				script { build_stage = env.STAGE_NAME }
 				sh label: 'Build Docker image', script: '''
-				echo -e "Running on $HOSTNAME"
+				echo -e "Running on $HOSTNAME with Operating System as $(cat /etc/redhat-release)"
                         #Clean Up
                 		echo 'y' | docker image prune
                 		if [ ! -z \$(docker ps -a -q) ]; then docker rm -f \$(docker ps -a -q); fi
+                        mkdir -p /mnt/docker/tmp
                         if [ $ENVIRONMENT == "internal-ci" ]; then
                 	    	docker-compose -f docker/cortx-build/docker-compose.yml build --force-rm  --compress --build-arg GIT_HASH="$(git rev-parse --short HEAD)" cortx-build-internal-$OS_VERSION
 		                else
@@ -75,18 +76,18 @@ pipeline {
 			steps {
 				script { build_stage = env.STAGE_NAME }
 				               
-                checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: 'main']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: '/mnt/docker/tmp/cortx-workspace'], [$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: false, recursiveSubmodules: true, reference: '', shallow: true, trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/Seagate/cortx']]]
+                checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: 'main']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: '/mnt/workspace/'], [$class: 'SubmoduleOption', disableSubmodules: false, parentCredentials: false, recursiveSubmodules: true, reference: '', shallow: true, trackingSubmodules: false]], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/Seagate/cortx']]]
 
                 sh label: 'Validate Docker image', script: '''
                 if [ $ENVIRONMENT == "internal-ci" ]; then
-                    docker run --rm -v /mnt/docker/tmp/cortx-workspace:/cortx-workspace -v /mnt/docker/tmp/artifacts:/var/artifacts ghcr.io/seagate/cortx-re/cortx-build-internal:$OS_VERSION make clean build
+                    docker run --rm -v /mnt/workspace:/cortx-workspace -v /mnt/artifacts:/var/artifacts ghcr.io/seagate/cortx-re/cortx-build-internal:$OS_VERSION make clean build
                 else    
-                    docker run --rm -v /mnt/docker/tmp/cortx-workspace:/cortx-workspace -v /mnt/docker/tmp/artifacts:/var/artifacts ghcr.io/seagate/cortx-build:$OS_VERSION make clean build
+                    docker run --rm -v /mnt/workspace:/cortx-workspace -v /mnt/artifacts:/var/artifacts ghcr.io/seagate/cortx-build:$OS_VERSION make clean build
                 fi
                 echo "CORTX Packages generated..."
-                grep -w "cortx-motr\\|cortx-s3server\\|cortx-hare\\|cortx-csm_agent\\|cortx-csm_web\\|cortx-sspl\\|cortx-s3server\\|cortx-prvsnr" /mnt/docker/tmp/artifacts/0/cortx_iso/RELEASE.INFO
-                cat /mnt/docker/tmp/artifacts/0/cortx_iso/RELEASE.INFO
-                rm -rf /mnt/docker/tmp/
+                grep -w "cortx-motr\\|cortx-s3server\\|cortx-hare\\|cortx-csm_agent\\|cortx-csm_web\\|cortx-sspl\\|cortx-s3server\\|cortx-prvsnr" /mnt/artifacts/0/cortx_iso/RELEASE.INFO
+                cat /mnt/artifacts/0/cortx_iso/RELEASE.INFO
+                rm -rf /mnt/artifacts/* /mnt/workspace/*
                 '''
 			}
 		}
@@ -99,7 +100,11 @@ pipeline {
 				script { build_stage = env.STAGE_NAME }
 				sh label: 'Build Docker image', script: '''
                 docker login ghcr.io -u ${GITHUB_CRED_USR} -p ${GITHUB_CRED_PSW}
-                docker-compose -f docker/internal-ci/docker-compose.yml push cortx-build-internal-$OS_VERSION
+                if [ $ENVIRONMENT == "internal-ci" ]; then
+                    docker-compose -f docker/cortx-build/docker-compose.yml push cortx-build-internal-$OS_VERSION
+                else
+                    docker-compose -f docker/cortx-build/docker-compose.yml push cortx-build-$OS_VERSION
+                fi    
                 '''
 			}
 		}

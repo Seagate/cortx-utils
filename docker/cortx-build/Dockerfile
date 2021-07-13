@@ -41,7 +41,7 @@ ENV LANG=en_US.UTF-8 \
 RUN rm -rf /etc/yum.repos.d/CentOS-*
 
 #Add Internal and CORTX uploads repository
-COPY ./docker/cortx-build/${ENVIRONMENT}/*.repo /etc/yum.repos.d/
+COPY ./docker/cortx-build/${ENVIRONMENT}/C${CENTOS_RELEASE}.repo /etc/yum.repos.d/
 
 # Install EPEL repo for opensource-ci
 RUN if [ "$ENVIRONMENT" = "opensource-ci" ] ; then yum install epel-release -y ; fi && yum clean all \
@@ -172,7 +172,7 @@ COPY ./docker/cortx-build/lustre-2.9.0.spec.patch .
 
 RUN patch -p1 -i lustre-2.9.0.spec.patch /root/rpmbuild/SPECS/lustre.spec
 
-RUN yum -y install kernel{,-devel}-3.10.0-1127.el7  \
+RUN yum -y install kernel{,-devel}  \
 	&& yum-builddep -y /root/rpmbuild/SPECS/lustre.spec \
         && yum clean all \
         && rm -rf /var/cache/yum

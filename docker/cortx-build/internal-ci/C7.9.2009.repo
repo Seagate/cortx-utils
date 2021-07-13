@@ -3,7 +3,6 @@ gpgcheck=0
 enabled=1
 baseurl=http://ssc-satellite1.colo.seagate.com/pulp/repos/EOS/Library/custom/CentOS-7/CentOS-7-OS/
 name=base
-exclude=kernel*3.10.0-1160*
 
 [epel]
 gpgcheck=0
