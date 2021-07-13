@@ -74,7 +74,7 @@ class BaseConfig:
         # Open a connection
         ldap_conn = ldap.initialize("ldapi:///")
         # Bind/authenticate with a user with apropriate rights to add objects
-        ldap_conn.simple_bind_s("cn=admin,dc=seagate,dc=com",ROOTDNPASSWORD)
+        #ldap_conn.simple_bind_s("cn=admin,dc=seagate,dc=com",ROOTDNPASSWORD)
         ldap_conn.sasl_non_interactive_bind_s('EXTERNAL')
         mod_attrs = [(ldap.MOD_REPLACE, attribute, bytes(str(value), 'utf-8'))]
         try:
