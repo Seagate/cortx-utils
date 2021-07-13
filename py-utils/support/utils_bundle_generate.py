@@ -27,7 +27,7 @@ from cortx.utils.errors import UtilsError
 
 
 class SupportBundleError(UtilsError):
-    """ SupportBundleError Exception with error code and output """
+    """ SupportBundleError exception with error code and output """
 
     def __init__(self, rc, message, *args):
         super().__init__(rc, message, *args)
@@ -35,9 +35,9 @@ class SupportBundleError(UtilsError):
 
 class UtilsSupportBundle:
     """ Generate support bundle for py-utils """
-    _default_path = "/tmp/cortx/support_bundle/"
-    _tar_name = "py-utils"
-    _tmp_src = "/tmp/cortx/py-utils/"
+    _default_path = '/tmp/cortx/support_bundle/'
+    _tar_name = 'py-utils'
+    _tmp_src = '/tmp/cortx/py-utils/'
     _files_to_bundle = {
         'message_bus': '/var/log/cortx/utils/message_bus/message_bus.log',
         'iem_and_rest':
@@ -113,13 +113,19 @@ class UtilsSupportBundle:
         """ Clean temporary files created by the support bundle """
         shutil.rmtree(UtilsSupportBundle._tmp_src)
 
+def main():
+    target = None
+    if len(sys.argv) > 1:
+        target = sys.argv[1]
+    else:
+        msg = "error: invalid argument %s"
+        raise SupportBundleError(errno.EINVAL, msg , sys.argv)
+    UtilsSupportBundle.generate(target_path=target)
+
 
 if __name__ == '__main__':
     """
     argument:
         path: targeted path where py-utils.tar.gz should be created
     """
-    target = None
-    if len(sys.argv) > 1:
-        target = sys.argv[1]
-    UtilsSupportBundle.generate(target_path=target)
+    sys.exit(main())

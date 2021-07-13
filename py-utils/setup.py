@@ -50,6 +50,9 @@ for root, directories, filenames in os.walk(_ROOT):
 # Get the list of template files
 tmpl_files = glob.glob('src/setup/templates/*.*')
 
+# Get the support files
+support_files = glob.glob('support/*.*')
+
 with open('LICENSE', 'r') as lf:
     license = lf.read()
 
@@ -107,11 +110,13 @@ setup(name='cortx-py-utils',
             'conf = cortx.utils.conf_store.conf_cli:main',
             'utils_setup = cortx.setup.utils_setup:main',
             'iem = cortx.utils.iem_framework.iem_cli:main',
-            'kafka_setup = cortx.utils.setup.kafka.kafka_setup:main'
+            'kafka_setup = cortx.utils.setup.kafka.kafka_setup:main',
+            'utils_support_bundle = cortx.support.utils_support_bundle:main'
         ]
       },
       data_files = [ ('/var/lib/cortx/ha/specs', specs),
                      ('/opt/seagate/cortx/utils/conf', tmpl_files),
+                     ('/opt/seagate/cortx/utils/conf', support_files),
                      ('/opt/seagate/cortx/utils/conf', get_requirements_files()),
                      ('/var/lib/cortx/ha', ['src/utils/ha/hac/args.yaml',
                                             'src/utils/ha/hac/re_build.sh']),
