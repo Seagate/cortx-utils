@@ -77,7 +77,7 @@ class Openldap:
                 services = Conf.get(phase, f'{phase}>services')
                 if services:
                     PkgV().validate('services', services)
-        Log.debug("%s - pre-requisite validation complete\n" % phase)
+            Log.debug("%s - pre-requisite validation complete\n" % phase)
         except OpenldapSetupError as e:
             raise OpenldapSetupError({"message":"prereqs validation failed"})
         return 0
