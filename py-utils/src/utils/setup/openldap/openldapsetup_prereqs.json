@@ -1,7 +1,11 @@
 {
   "post_install": {
+    "rpms": ["openldap-servers", "openldap-clients"],
+    "pip3s": ["cryptography"]
   },
   "prepare": {
+    "rpms": ["openldap-servers", "openldap-clients"],
+    "pip3s": ["cryptography"]
   },
   "config": {
   },
@@ -12,5 +16,5 @@
   "reset": {
   },
   "cleanup": {
-  },
+  }
 }
