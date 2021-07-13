@@ -152,7 +152,7 @@ class TestCmd(Cmd):
 
     def process(self):
         # TODO: Add actions here
-        rc = self.openldap.test(self.test_plan)
+        rc = self.openldap.test(self.test_plan, self._url)
         return rc
 
 

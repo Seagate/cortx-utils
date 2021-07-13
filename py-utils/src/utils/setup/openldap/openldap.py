@@ -23,6 +23,7 @@ from cortx.utils.validator.v_pkg import PkgV
 from cortx.utils.validator.v_network import NetworkV
 from cortx.utils.conf_store import Conf
 from cortx.utils.log import Log
+from test import Test
 
 class OpenldapSetupError(BaseError):
     """ Generic Exception with error code and output """
@@ -238,10 +239,9 @@ class Openldap:
         # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
         return 0
 
-    def test(self, plan):
+    def test(self, plan, config: str):
         """ Perform configuration testing. Raises exception on error """
-
-        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
+        Test(config, "seagate")
         return 0
 
     def reset(self):
