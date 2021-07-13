@@ -121,6 +121,9 @@ setup(name='cortx-py-utils',
                                  'src/utils/support/support_bundle.yaml',
                                  'src/utils/support/0-support_bundle.conf']),
                      ('%s/conf' % utils_path, tmpl_files),
+                     ('%s/conf' % utils_path, [
+                     'src/utils/setup/openldap/openldapsetup_prereqs.json',
+                     'src/utils/setup/openldap/openldap_prov_config.yaml']),
                      ('/etc/systemd/system', ['src/utils/message_bus/'
                                               'cortx_message_bus.service'])],
       long_description=long_description,
