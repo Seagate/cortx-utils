@@ -27,24 +27,24 @@ from cortx.utils.errors import UtilsError
 
 
 class SupportBundleError(UtilsError):
-    """ Generic Exception with error code and output """
+    """ SupportBundleError Exception with error code and output """
 
     def __init__(self, rc, message, *args):
         super().__init__(rc, message, *args)
 
 
 class UtilsSupportBundle:
-    """ Generate support bundle for py-utils"""
+    """ Generate support bundle for py-utils """
     _default_path = "/tmp/cortx/support_bundle/"
     _tar_name = "py-utils"
     _tmp_src = "/tmp/cortx/py-utils/"
     _files_to_bundle = {
-        "message_bus": "/var/log/cortx/utils/message_bus/message_bus.log",
-        "iem_and_rest":
-            "/var/log/cortx/utils/utils_server/utils_server.log",
-        "utils_setup": "/var/log/cortx/utils/utils_setup.log",
-        "kafka_server": "/opt/kafka/config/server.properties",
-        "kafka_zookeeper": "/opt/kafka/config/zookeeper.properties"
+        'message_bus': '/var/log/cortx/utils/message_bus/message_bus.log',
+        'iem_and_rest':
+            '/var/log/cortx/utils/utils_server/utils_server.log',
+        'utils_setup': '/var/log/cortx/utils/utils_setup.log',
+        'kafka_server': '/opt/kafka/config/server.properties',
+        'kafka_zookeeper': '/opt/kafka/config/zookeeper.properties'
     }
 
     @staticmethod
@@ -69,7 +69,7 @@ class UtilsSupportBundle:
         try:
             shutil.copy2(source, destination)
         except FileNotFoundError as fe:
-            raise SupportBundleError(errno.EINVAL, "File not found %s", fe)
+            raise SupportBundleError(errno.ENOENT, "File not found %s", fe)
 
     @staticmethod
     def __generate_tar(target_path=None):
@@ -91,25 +91,26 @@ class UtilsSupportBundle:
                 files_lst["kafka_zookeeper"]):
             to_be_collected = {}
             Conf.load('kafka_server',
-                "properties://" + files_lst["kafka_server"], fail_reload=False)
+                'properties://' + files_lst['kafka_server'], fail_reload=False)
             Conf.load('kafka_zookeeper',
-                "properties://" + files_lst["kafka_zookeeper"],
+                'properties://' + files_lst['kafka_zookeeper'],
                 fail_reload=False)
 
             to_be_collected['kafka_log_dirs'] = Conf.get('kafka_server',
-                "log.dirs", "/tmp/kafka-logs")
+                'log.dirs', '/tmp/kafka-logs')
             to_be_collected['zookeeper_data_log_dir'] = Conf.get(
-                'kafka_zookeeper', "dataLogDir")
+                'kafka_zookeeper', 'dataLogDir')
             to_be_collected['zookeeper_data_dir'] = Conf.get(
-                'kafka_zookeeper', "dataDir", "/var/zookeeper")
+                'kafka_zookeeper', 'dataDir', '/var/zookeeper')
             # Copy entire kafka and zookeeper logs
             for key, value in to_be_collected.items():
                 if value and os.path.exists(value):
-                    shutil.copytree(value, UtilsSupportBundle._tmp_src + key)
+                    shutil.copytree(value,
+                        os.path.join(UtilsSupportBundle._tmp_src, key))
 
     @staticmethod
     def __clear_tmp_files():
-        """ Clean tmp files after support bundle generation completed """
+        """ Clean temporary files created by the support bundle """
         shutil.rmtree(UtilsSupportBundle._tmp_src)
 
 
