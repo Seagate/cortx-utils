@@ -43,7 +43,7 @@ class SetupCmd(object):
   cluster_id = None
   machine_id = None
   ldap_mdb_folder = "/var/lib/ldap"
-  openldap_prov_config = "openldap_prov_config.yaml"#TODO put path of install location
+  openldap_prov_config = "/opt/seagate/cortx/utils/conf/openldap_prov_config.yaml"
   _preqs_conf_file = "openldapsetup_prereqs.json"
   ha_service_map = {}
 
