@@ -30,6 +30,12 @@ CONFIG:
   CONFSTORE_BASE_DN: "cortx>software>openldap>base_dn"
 INIT:
 TEST:
+  OPENLDAP_BASE_DN: "cortx>software>openldap>base_dn"
+  OPENLDAP_BIND_BASE_DN: "cortx>software>openldap>bind_base_dn"
+  OPENLDAP_SYNCREPL_BASE_DN: "cortx>software>openldap>syncrepl_base_dn"
+  OPENLDAP_SYNCREPL_BIND_BASE_DN: "cortx>software>openldap>syncrepl_bind_base_dn"
+  OPENLDAP_SERVERID_BASE_DN: "cortx>software>openldap>serverID_base_dn"
+  OPENLDAP_SERVERID_BIND_BASE_DN: "cortx>software>openldap>serverID_bind_base_dn"
 RESET:
 CLEANUP:
 # Unsolicited Keys should be added to the bottom.
