@@ -63,7 +63,7 @@ class ConfigCmd(SetupCmd):
     # Perform base configuration
     #Put below inside a class  and method and then import it and call
     #os.system('python3 ./../../third_party/openldap/base_configure_ldap.py --forceclean True --rootdnpasswd ' + self.rootdn_passwd)
-    BaseConfig.performbaseconfig(self.rootdn_passwd,'True')
+    BaseConfig.performbaseconfig(self.rootdn_passwd.decode("utf-8"),'True')
     if os.path.isfile("/opt/seagate/cortx/s3/install/ldap/rsyslog.d/slapdlog.conf"):
       try:
         os.makedirs("/etc/rsyslog.d")
