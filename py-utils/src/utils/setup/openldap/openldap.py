@@ -43,6 +43,7 @@ class Openldap:
     _preqs_conf_file = "/opt/seagate/cortx/utils/conf/openldapsetup_prereqs.json"
     _prov_conf_file = "/opt/seagate/cortx/utils/conf/openldap_prov_config.yaml"
     Log.init('OpenldapConfigLog','/var/log/seagate/s3',level='DEBUG')
+    url = ""
 
     def __init__(self, conf_url):
         if not os.path.isfile(self._preqs_conf_file):
@@ -50,7 +51,7 @@ class Openldap:
                 not found"})
         Conf.load(self.index, f'yaml://{conf_url}')
         Conf.load(self.prov, f'yaml://{self._prov_conf_file}')
-
+        self.url = conf_url
         self.machine_id = Conf.machine_id
 
         self.cluster_id_key = Conf.get(self.prov, \
@@ -218,8 +219,8 @@ class Openldap:
 
     def config(self):
         """ Performs configurations. Raises exception on error """
-
-        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
+        from configcmd import ConfigCmd
+        ConfigCmd(self.url).process()
         return 0
 
     def init(self):
