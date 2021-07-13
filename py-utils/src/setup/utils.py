@@ -17,6 +17,7 @@
 import os
 import json
 import errno
+from pathlib import Path
 from cortx.utils import errors
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
@@ -259,6 +260,14 @@ class Utils:
         #set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map()
         Utils._configure_rsyslog()
+        # temporary fix for a common message bus log file
+        # The issue happend when some user other than root:root is trying
+        # to write logs in these log dir/files. This needs to be removed soon!
+        os.makedirs('/var/log/cortx/utils/message_bus', exist_ok=True)
+        os.chmod('/var/log/cortx/utils/message_bus', 0o0777)
+        Path('/var/log/cortx/utils/message_bus/message_bus.log').touch( \
+            exist_ok=True)
+        os.chmod('/var/log/cortx/utils/message_bus/message_bus.log', 0o0666)
         return 0
 
     @staticmethod
@@ -324,4 +333,26 @@ class Utils:
                 except OSError as e:
                     raise SetupError(e.errno, "Error deleting config file %s, \
                         %s", each_file, e)
+        return 0
+
+    @staticmethod
+    def pre_upgrade(level: str):
+        """ pre upgrade hook for node and cluster level """
+        if level == 'node':
+            # TODO Perform corresponding actions for node
+            pass
+        elif level == 'cluster':
+            # TODO Perform corresponding actions for cluster
+            pass
+        return 0
+
+    @staticmethod
+    def post_upgrade(level: str):
+        """ post upgrade hook for node and cluster level """
+        if level == 'node':
+            # TODO Perform corresponding actions for node
+            pass
+        elif level == 'cluster':
+            # TODO Perform corresponding actions for cluster
+            pass
         return 0

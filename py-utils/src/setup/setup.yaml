@@ -41,3 +41,23 @@ utils:
     cleanup:
         cmd: /opt/seagate/cortx/utils/bin/utils_setup cleanup
         args: --config $URL
+
+    upgrade:
+
+        post:
+            args: --config $URL
+            {% if level == 'node' %}
+            cmd: /opt/seagate/cortx/utils/bin/utils_setup post_upgrade node
+            {% else %}
+            cmd: /opt/seagate/cortx/utils/bin/utils_setup post_upgrade cluster
+            {% endif %}
+            when: {{ level in ('node', 'cluster') }}
+
+        pre:
+            args: --config $URL
+            {% if level == 'node' %}
+            cmd: /opt/seagate/cortx/utils/bin/utils_setup pre_upgrade node
+            {% else %}
+            cmd: /opt/seagate/cortx/utils/bin/utils_setup pre_upgrade cluster
+            {% endif %}
+            when: {{ level in ('node', 'cluster') }}
