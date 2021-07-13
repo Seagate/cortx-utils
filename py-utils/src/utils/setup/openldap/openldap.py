@@ -77,6 +77,7 @@ class Openldap:
                 services = Conf.get(phase, f'{phase}>services')
                 if services:
                     PkgV().validate('services', services)
+        Log.debug("%s - pre-requisite validation complete\n" % phase)
         except OpenldapSetupError as e:
             raise OpenldapSetupError({"message":"prereqs validation failed"})
         return 0
@@ -192,7 +193,7 @@ class Openldap:
                 self._key_value_verify(key)
 
             if set(yardstick_list_exp) == set(full_arg_keys_list):
-                Log.debug("Validation complete\n")
+                Log.debug("%s - keys validation complete\n" % phase_name.lower())
             else:
                 Log.debug("Validation failed\n")
                 raise Exception("Validation failed for %s" % phase_name)
@@ -204,16 +205,22 @@ class Openldap:
     def post_install(self):
         """ Performs post install operations. Raises exception on error """
 
-        self.validate("post_install")
-        self._keys_validate("post_install")
+        phase_name = "post_install"
+        Log.debug("%s - Starting\n" % phase_name)
+        self.validate(phase_name)
+        self._keys_validate(phase_name)
+        Log.debug("%s - Successful" % phase_name)
         # Perform actual operation. Obtain inputs using Conf.get(index, ..)
         return 0
 
     def prepare(self):
         """ Perform prepare operations. Raises exception on error """
 
-        self.validate("prepare")
-        self._keys_validate("prepare")
+        phase_name = "prepare"
+        Log.debug("%s - Starting\n" % phase_name)
+        self.validate(phase_name)
+        self._keys_validate(phase_name)
+        Log.debug("%s - Successful" % phase_name)
         # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
         return 0
 
