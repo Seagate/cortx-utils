@@ -1,0 +1,24 @@
+server_node:
+  TMPL_MACHINE_ID:
+    cluster_id: "TMPL_CLUSTER_ID"
+    hostname: "TMPL_HOSTNAME"
+    network:
+      data:
+        public_fqdn: "TMPL_PUBLIC_FQDN"
+        private_fqdn: "TMPL_PRIVATE_FQDN"
+    s3_instances: "TMPL_SERVER_INSTANCES"
+cortx:
+  software:
+    openldap:
+      base_dn: "dc=seagate,dc=com"
+      bind_base_dn: "cn=admin,dc=seagate,dc=com"
+      syncrepl_base_dn: "olcDatabase={2}mdb,cn=config"
+      syncrepl_bind_base_dn: "cn=admin,cn=config"
+      serverID_base_dn: "cn=config"
+      serverID_bind_base_dn: "cn=admin,cn=config"
+cluster:
+  TMPL_CLUSTER_ID:
+    site:
+      storage_set_count: "TMPL_STORAGE_SET_COUNT"
+    storage_set:
+    - server_nodes: "['TMPL_MACHINE_ID']"
