@@ -36,6 +36,8 @@ TEST:
   OPENLDAP_SYNCREPL_BIND_BASE_DN: "cortx>software>openldap>syncrepl_bind_base_dn"
   OPENLDAP_SERVERID_BASE_DN: "cortx>software>openldap>serverID_base_dn"
   OPENLDAP_SERVERID_BIND_BASE_DN: "cortx>software>openldap>serverID_bind_base_dn"
+  CONFSTORE_STORAGE_SET_SERVER_NODES_KEY: "cluster>cluster-id>storage_set[storage-set-count]>server_nodes"
+  CONFSTORE_STORAGE_SET_COUNT_KEY: "cluster>cluster-id>site>storage_set_count"
 RESET:
 CLEANUP:
 # Unsolicited Keys should be added to the bottom.

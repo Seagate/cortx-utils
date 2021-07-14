@@ -24,6 +24,7 @@ import ldap
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
 from setupcmd import SetupCmd, OpenldapPROVError
+from  ast import literal_eval
 
 class Test(SetupCmd):
     def __init__(self, config: str, passwd):
@@ -34,8 +35,10 @@ class Test(SetupCmd):
 
         Log.init('test_log','/var/log/seagate/s3/openldap_prv',level='DEBUG')
         self.test_base_dn(passwd)
-        self.test_olcsyncrepl(passwd)
-        self.test_olcserverId(passwd)
+        if self.test_openldap_replication() > 1:
+            self.test_olcsyncrepl(passwd)
+            self.test_olcserverId(passwd)
+        print("came here")
 
     def test_base_dn(self,pwd):
         baseDN = self.get_confvalue(self.get_confkey('TEST>OPENLDAP_BASE_DN'))
@@ -51,6 +54,23 @@ class Test(SetupCmd):
             Log.error(repr(e))
             raise e
         ldap_conn.unbind_s()
+
+    def test_openldap_replication(self) -> int:
+        storage_set_count = self.get_confvalue(self.get_confkey(
+            'TEST>CONFSTORE_STORAGE_SET_COUNT_KEY').replace("cluster-id", self.cluster_id))
+
+        index = 0
+        no_nodes = 0
+        while index < int(storage_set_count):
+            server_nodes_list = self.get_confkey(
+              'TEST>CONFSTORE_STORAGE_SET_SERVER_NODES_KEY').replace("cluster-id", self.cluster_id).replace("storage-set-count", str(index))
+            server_nodes_list = self.get_confvalue(server_nodes_list)
+            if type(server_nodes_list) is str:
+                server_nodes_list = literal_eval(server_nodes_list)
+
+            no_nodes = no_nodes + len(server_nodes_list)
+            index += 1
+        return no_nodes
 
     def test_olcsyncrepl(self, pwd):
         baseDN = self.get_confvalue(self.get_confkey('TEST>OPENLDAP_SYNCREPL_BASE_DN'))

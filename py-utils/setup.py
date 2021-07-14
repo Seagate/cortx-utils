@@ -124,6 +124,7 @@ setup(name='cortx-py-utils',
                      'src/utils/setup/openldap/openldap_prov_config.yaml',
                      'src/utils/setup/openldap/olcDatabase={2}mdb.ldif',
                      'src/utils/setup/openldap/templates/openldap.prepare.tmpl.1-node',
+                     'src/utils/setup/openldap/templates/openldap.test.tmpl.1-node',
                      'src/utils/setup/openldap/templates/openldap.post_install.tmpl.1-node',
                      'src/utils/setup/openldap/templates/openldap.config.tmpl.1-node']),
                      ('/etc/systemd/system', ['src/utils/message_bus/'
