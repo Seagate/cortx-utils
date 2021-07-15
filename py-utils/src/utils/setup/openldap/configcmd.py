@@ -71,7 +71,8 @@ class ConfigCmd(SetupCmd):
       sys.stderr.write(f'Failed to restart rsyslog service, error: {e}\n')
       raise e
     # set openldap-replication
-    self.configure_openldap_replication()
+    # Temporarily commented
+    #self.configure_openldap_replication()
     
 
   def configure_openldap_replication(self):
