@@ -8,6 +8,8 @@
     "pip3s": ["cryptography"]
   },
   "config": {
+    "rpms": ["openldap-servers", "openldap-clients","openldap-devel"],
+    "pip3s": ["cryptography","python-ldap"]
   },
   "init": {
   },

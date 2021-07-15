@@ -227,8 +227,13 @@ class Openldap:
 
     def config(self):
         """ Performs configurations. Raises exception on error """
+        phase_name = "config"
+        Log.debug("%s - Starting\n" % phase_name)
+        self.validate(phase_name)
+        self._keys_validate(phase_name)
         from configcmd import ConfigCmd
         ConfigCmd(self.url).process()
+        Log.debug("%s - Successful" % phase_name)
         return 0
 
     def init(self):
