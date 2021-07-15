@@ -21,7 +21,7 @@ pipeline {
         ARTIFACT_LOCATION = "http://cortx-storage.colo.seagate.com/releases/cortx/github/$branch/$os_version"
         third_party_dir = "$release_dir/third-party-deps/centos/centos-7.8.2003-$third_party_version/"
 		python_deps = "$release_dir/third-party-deps/python-deps/python-packages-2.0.0-latest"
-        cortx_os_iso = "/mnt/bigstorage/releases/cortx_builds/custom-os-iso/cortx-os-1.0.0-23.iso"
+        cortx_os_iso = "/mnt/bigstorage/releases/cortx_builds/custom-os-iso/cortx-2.0.0/cortx-os-2.0.0-7.iso"
         // WARNING : 'rm' command where used in this dir path, be conscious while changing the value  
 		cortx_build_dir = "$release_dir/github/$branch/$os_version/cortx_builds" 
     }
@@ -250,7 +250,7 @@ pipeline {
 		        sh label: 'Additional Files', script:'''
                 cortx_prvsnr_preq=$(ls "$cortx_build_dir/$release_tag/cortx_iso" | grep "python36-cortx-prvsnr" | cut -d- -f5 | cut -d_ -f2 | cut -d. -f1 | sed s/"git"//)
                     
-                wget -O $integration_dir/$release_tag/prod/iso/cortx-prep-$version-$BUILD_NUMBER.sh https://raw.githubusercontent.com/Seagate/cortx-prvsnr/$cortx_prvsnr_preq/cli/src/cortx_prep.sh
+                wget -O $integration_dir/$release_tag/prod/iso/install-$version-$BUILD_NUMBER.sh https://raw.githubusercontent.com/Seagate/cortx-prvsnr/$cortx_prvsnr_preq/srv/components/provisioner/scripts/cortx_prep.sh
 
                 ln -s $cortx_os_iso $integration_dir/$release_tag/prod/iso/$(basename $cortx_os_iso)
  
@@ -289,7 +289,17 @@ pipeline {
                             string(name: 'CORTX_BUILD', value: "http://cortx-storage.colo.seagate.com/releases/cortx/github/${branch}/${os_version}/${env.release_tag}/prod"),
                             booleanParam(name: 'CREATE_JIRA_ISSUE_ON_FAILURE', value: true),
                             booleanParam(name: 'AUTOMATED', value: true)
-                        ]         
+                        ]
+                    build job: 'Partition Main Deploy 1N', propagate: false, wait: false, parameters: [
+                            string(name: 'CORTX_BUILD', value: "http://cortx-storage.colo.seagate.com/releases/cortx/github/${branch}/${os_version}/${env.release_tag}/prod"),
+                            booleanParam(name: 'CREATE_JIRA_ISSUE_ON_FAILURE', value: true),
+                            booleanParam(name: 'AUTOMATED', value: true)
+                        ]
+                    build job: 'Partition Main Deploy 3N', propagate: false, wait: false, parameters: [
+                            string(name: 'CORTX_BUILD', value: "http://cortx-storage.colo.seagate.com/releases/cortx/github/${branch}/${os_version}/${env.release_tag}/prod"),
+                            booleanParam(name: 'CREATE_JIRA_ISSUE_ON_FAILURE', value: true),
+                            booleanParam(name: 'AUTOMATED', value: true)
+                        ]       
 				}
             }
         }
