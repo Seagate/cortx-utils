@@ -58,6 +58,14 @@
 - set_fact:
     DATA_DEVICES: "{{ ','.join(VM_DEVICES.split(',')[1:REQUIRED_DEVICES|int]) }}"
     METADATA_DEVICES: "{{ VM_DEVICES.split(',')[0] }}"
+  when: SETUP_TYPE == 'single'
+
+- set_fact:
+    CVG0_DATA_DEVICES: "{{ ','.join(VM_DEVICES.split(',')[1:4]) }}"
+    CVG0_METADATA_DEVICES: "{{ VM_DEVICES.split(',')[0] }}"
+    CVG1_DATA_DEVICES: "{{ ','.join(VM_DEVICES.split(',')[5:8]) }}"
+    CVG1_METADATA_DEVICES: "{{ VM_DEVICES.split(',')[4] }}"
+  when: SETUP_TYPE == '3_node'
 
 - name: "[ Deploy Prerequisite ] : Create provisioner config file & bootstrap script on primary node"
   template:

@@ -10,13 +10,26 @@ network.data.public_interfaces=eth1,eth2
 network.mgmt.interfaces=eth0
 bmc.user=None
 bmc.secret=None
-storage.cvg.0.data_devices= {{ DATA_DEVICES }}
+{% if REQUIRED_HOST == '1' %}
+storage.cvg.0.data_devices={{ DATA_DEVICES }}
 storage.cvg.0.metadata_devices={{ METADATA_DEVICES }}
 network.data.private_ip=None
 storage.durability.sns.data=1
 storage.durability.sns.parity=0
 storage.durability.sns.spare=0
-
+{% else %}
+storage.cvg.0.data_devices={{ CVG0_DATA_DEVICES }} 
+storage.cvg.0.metadata_devices={{ CVG0_METADATA_DEVICES }}
+storage.cvg.1.data_devices={{ CVG1_DATA_DEVICES }}
+storage.cvg.1.metadata_devices={{ CVG1_METADATA_DEVICES }}
+network.data.private_ip=None
+storage.durability.sns.data=4
+storage.durability.sns.parity=2
+storage.durability.sns.spare=0
+storage.durability.dix.data=1
+storage.durability.dix.parity=2
+storage.durability.dix.spare=0
+{% endif %}
 {% set node_count = 1 %}
 {% for node in HOST.split(',') %}
 [srvnode-{{ node_count }}]
