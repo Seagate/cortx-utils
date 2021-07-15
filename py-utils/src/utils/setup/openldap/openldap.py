@@ -132,16 +132,16 @@ class Openldap:
                 replace("cluster-id", cluster_id_val)
             storage_set_count_str = Conf.get(self.index, storage_set_count_key)
         if storage_set_count_str is not None:
-            storage_set_val = int(storage_set_count_str)
+            storage_set_val = int(storage_set_count_str) - 1
         else:
             storage_set_val = 0
 
-        if key.find("machine-id") == 0:
-            key.replace("machine-id", machine_id_val)
-        if key.find("cluster-id") == 0:
-            key.replace("cluster-id", cluster_id_val)
-        if key.find("storage-set-count") == 0:
-            key.replace("storage-set-count", storage_set_val)
+        if key.find("machine-id") != -1:
+            key = key.replace("machine-id", machine_id_val)
+        if key.find("cluster-id") != -1:
+            key = key.replace("cluster-id", cluster_id_val)
+        if key.find("storage-set-count") != -1:
+            key = key.replace("storage-set-count", str(storage_set_val))
 
         return key
 
@@ -152,7 +152,7 @@ class Openldap:
 
         for key in prov_keys_list:
             if key.find(phase_name) == 0:
-                value = Conf.get(self.index, key)
+                value = Conf.get(self.prov, key)
                 if value is not None:
                     phase_key_list.append(value)
         return phase_key_list
@@ -193,7 +193,7 @@ class Openldap:
             for key in full_arg_keys_list:
                 self._key_value_verify(key)
 
-            if set(yardstick_list_exp) == set(full_arg_keys_list):
+            if set(yardstick_list_exp).issubset(set(full_arg_keys_list)):
                 Log.debug("%s - keys validation complete\n" % phase_name.lower())
             else:
                 Log.debug("Validation failed\n")
