@@ -23,7 +23,7 @@ import os
 import errno
 import shutil
 from  ast import literal_eval
-
+from cortx.utils.log import Log
 from setupcmd import SetupCmd, OpenldapPROVError
 from cortx.utils.process import SimpleProcess
 from base_configure_ldap import BaseConfig
@@ -34,11 +34,13 @@ class ConfigCmd(SetupCmd):
   """Config Setup Cmd."""
   name = "config"
   utils_tmp_dir = "/opt/seagate/cortx/utils/tmp"
+  Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',level='DEBUG')
 
   def __init__(self, config: str):
     """Constructor."""
     try:
       super(ConfigCmd, self).__init__(config)
+      Log.debug("Inside config phaze, reading credentials from input file")
       self.read_ldap_credentials()
     except Exception as e:
       raise OpenldapPROVError(f'exception: {e}\n')
@@ -52,8 +54,10 @@ class ConfigCmd(SetupCmd):
 
   def configure_openldap(self):
     """Install and Configure Openldap over Non-SSL."""
+    Log.debug("Inside config phaze, starting openldap base configuration")
     # Perform base configuration
     BaseConfig.performbaseconfig(self.rootdn_passwd.decode("utf-8"),'True')
+    Log.debug("openldap base configuration completed successfully")
     if os.path.isfile("/opt/seagate/cortx/s3/install/ldap/rsyslog.d/slapdlog.conf"):
       try:
         os.makedirs("/etc/rsyslog.d")
@@ -64,15 +68,17 @@ class ConfigCmd(SetupCmd):
                   '/etc/rsyslog.d/slapdlog.conf')
     # restart rsyslog service
     try:
-      sys.stdout.write("Restarting rsyslog service...\n")
+      Log.debug("Restarting rsyslog service...\n")
       service_list = ["rsyslog"]
       self.restart_services(service_list)
     except Exception as e:
       sys.stderr.write(f'Failed to restart rsyslog service, error: {e}\n')
       raise e
     # set openldap-replication
+    # Log.debug("Starting openldap replication")
     # Temporarily commented
     #self.configure_openldap_replication()
+    #Log.debug("Openldap replication configured successfully")
     
 
   def configure_openldap_replication(self):

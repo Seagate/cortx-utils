@@ -25,7 +25,7 @@ from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
 
 class BaseConfig:
-    Log.init('baseConfigLog','/var/log/seagate/s3',level='DEBUG')
+    Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',level='DEBUG')
     def add_attribute(binddn,dn,record,pwd):
         #add_s - init.ldif
         # Open a connection
