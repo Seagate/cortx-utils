@@ -30,7 +30,7 @@ from cortx.utils.log import Log
 
 class Replication:
     hostlist = []
-    Log.init('replication_config_log','/var/log/seagate/s3',level='DEBUG')
+    Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',level='DEBUG')
     def readinputhostfile(host_file_path):
         global hostlist
         hostlist=[]
