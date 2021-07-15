@@ -292,12 +292,10 @@ pipeline {
                         ]
                     build job: 'Partition Main Deploy 1N', propagate: false, wait: false, parameters: [
                             string(name: 'CORTX_BUILD', value: "http://cortx-storage.colo.seagate.com/releases/cortx/github/${branch}/${os_version}/${env.release_tag}/prod"),
-                            booleanParam(name: 'CREATE_JIRA_ISSUE_ON_FAILURE', value: true),
                             booleanParam(name: 'AUTOMATED', value: true)
                         ]
                     build job: 'Partition Main Deploy 3N', propagate: false, wait: false, parameters: [
                             string(name: 'CORTX_BUILD', value: "http://cortx-storage.colo.seagate.com/releases/cortx/github/${branch}/${os_version}/${env.release_tag}/prod"),
-                            booleanParam(name: 'CREATE_JIRA_ISSUE_ON_FAILURE', value: true),
                             booleanParam(name: 'AUTOMATED', value: true)
                         ]       
 				}
