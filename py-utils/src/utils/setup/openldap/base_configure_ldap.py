@@ -104,11 +104,11 @@ class BaseConfig:
         pwd.replace('/','\/')
         #restart slapd post cleanup
         os.system('systemctl restart slapd')
-        dn=config_values.get('sync_repl_config_dn')
-        BaseConfig.modify_attribute(dn,'olcRootDN',config_values.get('sync_repl_bind_base_dn'))
+        dn='olcDatabase={0}config,cn=config'
+        BaseConfig.modify_attribute(dn,'olcRootDN','cn=admin,cn=config')
         BaseConfig.modify_attribute(dn,'olcRootPW',pwd)
         BaseConfig.modify_attribute(dn,'olcAccess','{0}to * by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" write by self write by * read')
-        dn=config_values.get('sync_repl_base_dn')
+        dn='olcDatabase={2}mdb,cn=config'
         BaseConfig.modify_attribute(dn,'olcSuffix', config_values.get('base_dn'))
         BaseConfig.modify_attribute(dn,'olcRootDN', config_values.get('bind_base_dn'))
         ldap_conn = ldap.initialize("ldapi:///")
@@ -141,14 +141,14 @@ class BaseConfig:
          ('olcModuleLoad', [b'unique.la'] ),
          ('objectClass', [b'olcModuleList'])
         ]
-        BaseConfig.add_attribute(config_values.get('sync_repl_bind_base_dn'),"cn=module{0},cn=config",add_record,ROOTDNPASSWORD)
+        BaseConfig.add_attribute("cn=admin,cn=config","cn=module{0},cn=config",add_record,ROOTDNPASSWORD)
 
         add_record = [
          ('olcUniqueUri', [b'ldap:///?mail?sub?'] ),
          ('olcOverlay', [b'unique'] ),
          ('objectClass', [b'olcOverlayConfig',b'olcUniqueConfig'])
         ]
-        BaseConfig.add_attribute(config_values.get('sync_repl_bind_base_dn'),"olcOverlay=unique,olcDatabase={2}mdb,cn=config",add_record,ROOTDNPASSWORD)
+        BaseConfig.add_attribute("cn=admin,cn=config","olcOverlay=unique,olcDatabase={2}mdb,cn=config",add_record,ROOTDNPASSWORD)
 
         add_record = [
          ('cn', [b'module{1}'] ),
@@ -156,4 +156,4 @@ class BaseConfig:
          ('olcModuleLoad', [b'ppolicy.la'] ),
          ('objectClass', [b'olcModuleList'])
         ]
-        BaseConfig.add_attribute(config_values.get('sync_repl_bind_base_dn'),"cn=module{1},cn=config",add_record,ROOTDNPASSWORD)
+        BaseConfig.add_attribute("cn=admin,cn=config","cn=module{1},cn=config",add_record,ROOTDNPASSWORD)
