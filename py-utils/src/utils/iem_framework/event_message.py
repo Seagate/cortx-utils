@@ -34,15 +34,15 @@ class EventMessage(metaclass=Singleton):
 
     # VALID VALUES for IEC Components
     _SEVERITY_LEVELS = {
-        'A': 'Alert',
-        'X': 'Critical',
-        'E': 'Error',
-        'W': 'Warning',
-        'N': 'Notice',
-        'C': 'Configuration',
-        'I': 'Informational',
-        'D': 'Detail',
-        'B': 'Debug'
+        'A': 'alert',
+        'X': 'critical',
+        'E': 'error',
+        'W': 'warning',
+        'N': 'notice',
+        'C': 'configuration',
+        'I': 'informational',
+        'D': 'detail',
+        'B': 'debug'
     }
     _SOURCE = {
         'H': 'Hardware',
@@ -71,6 +71,7 @@ class EventMessage(metaclass=Singleton):
             cls._site_id = ids['site_id']
             cls._rack_id = ids['rack_id']
             cls._node_id = ids['node_id']
+            cls._cluster_id = ids['cluster_id']
         except Exception as e:
             raise EventMessageError(errno.EINVAL, "Invalid config in %s. %s", \
                 cls._conf_file, e)
@@ -89,7 +90,8 @@ class EventMessage(metaclass=Singleton):
     @classmethod
     def send(cls, module: str, event_id: str, severity: str, message_blob: str,\
         problem_site_id: str = None, problem_rack_id: str = None, \
-        problem_node_id: str = None, event_time: float = None):
+        problem_node_id: str = None, cluster_id: str = None, \
+        event_time: float = None):
         """
         Sends IEM alert message
 
@@ -109,6 +111,9 @@ class EventMessage(metaclass=Singleton):
         event_time        Time of the event
         """
 
+        import socket
+        host_id = socket.gethostname()
+
         if cls._producer is None:
             raise EventMessageError(errors.ERR_SERVICE_NOT_INITIALIZED, \
                 "Producer is not initialised")
@@ -119,6 +124,8 @@ class EventMessage(metaclass=Singleton):
             cls._rack_id
         node_id = problem_node_id if problem_node_id is not None else \
             cls._node_id
+        cluster_id = cluster_id if cluster_id is not None else \
+            cls._cluster_id
         event_time = event_time if event_time is not None else time.time()
 
         # Validate attributes before sending
@@ -143,7 +150,9 @@ class EventMessage(metaclass=Singleton):
                 'location': {
                     'site_id': site_id,
                     'node_id': node_id,
-                    'rack_id': rack_id
+                    'rack_id': rack_id,
+                    'host_id': host_id,
+                    'cluster_id': cluster_id
                     },
                 'source': {
                     'site_id': cls._site_id,
