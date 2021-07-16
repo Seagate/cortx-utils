@@ -70,11 +70,10 @@ class BaseConfig:
             for f in files:
                 BaseConfig.safe_remove(f)
 
-    def modify_attribute(dn,attribute,value,ROOTDNPASSWORD):
+    def modify_attribute(dn,attribute,value):
         # Open a connection
         ldap_conn = ldap.initialize("ldapi:///")
         # Bind/authenticate with a user with apropriate rights to add objects
-        ldap_conn.simple_bind_s("cn=admin,dc=seagate,dc=com",ROOTDNPASSWORD)
         ldap_conn.sasl_non_interactive_bind_s('EXTERNAL')
         mod_attrs = [(ldap.MOD_REPLACE, attribute, bytes(str(value), 'utf-8'))]
         try:
@@ -106,12 +105,12 @@ class BaseConfig:
         #restart slapd post cleanup
         os.system('systemctl restart slapd')
         dn="olcDatabase={0}config,cn=config"
-        BaseConfig.modify_attribute(dn,'olcRootDN','cn=admin,cn=config',ROOTDNPASSWORD)
-        BaseConfig.modify_attribute(dn,'olcRootPW',pwd,ROOTDNPASSWORD)
-        BaseConfig.modify_attribute(dn,'olcAccess','{0}to * by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" write by self write by * read',ROOTDNPASSWORD)
+        BaseConfig.modify_attribute(dn,'olcRootDN','cn=admin,cn=config')
+        BaseConfig.modify_attribute(dn,'olcRootPW',pwd)
+        BaseConfig.modify_attribute(dn,'olcAccess','{0}to * by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" write by self write by * read')
         dn="olcDatabase={2}mdb,cn=config"
-        BaseConfig.modify_attribute(dn,'olcSuffix', 'dc=seagate,dc=com',ROOTDNPASSWORD)
-        BaseConfig.modify_attribute(dn,'olcRootDN', 'cn=admin,dc=seagate,dc=com',ROOTDNPASSWORD)
+        BaseConfig.modify_attribute(dn,'olcSuffix', 'dc=seagate,dc=com')
+        BaseConfig.modify_attribute(dn,'olcRootDN', 'cn=admin,dc=seagate,dc=com')
         ldap_conn = ldap.initialize("ldapi:///")
         ldap_conn.simple_bind_s("cn=admin,dc=seagate,dc=com",ROOTDNPASSWORD)
         ldap_conn.sasl_non_interactive_bind_s('EXTERNAL')
@@ -122,11 +121,9 @@ class BaseConfig:
             Log.error('Error while modifying olcDbMaxSize attribute for olcDatabase={2}mdb')
             raise Exception('Error while modifying olcDbMaxSize attribute for olcDatabase={2}mdb')
         ldap_conn.unbind_s()
-        BaseConfig.modify_attribute(dn,'olcRootPW',pwd,ROOTDNPASSWORD)
-        BaseConfig.modify_attribute(dn,'olcAccess','{0}to attrs=userPassword by self write by dn.base="cn=admin,dc=seagate,dc=com" write by anonymous auth by * none',ROOTDNPASSWORD)
-        BaseConfig.modify_attribute(dn,'olcAccess','{1}to * by dn.base="cn=admin,dc=seagate,dc=com" write by self write by * none',ROOTDNPASSWORD)
-        BaseConfig.modify_attribute(dn,'olcAccess','{0}to attrs=userPassword by self write by dn.base="cn=sgiamadmin,dc=seagate,dc=com" write by anonymous auth by * none',ROOTDNPASSWORD)
-        BaseConfig.modify_attribute(dn,'olcAccess','{1}to * by dn.base="cn=sgiamadmin,dc=seagate,dc=com" write by self write by * none',ROOTDNPASSWORD)
+        BaseConfig.modify_attribute(dn,'olcRootPW',pwd)
+        BaseConfig.modify_attribute(dn,'olcAccess','{0}to attrs=userPassword by self write by dn.base="cn=admin,dc=seagate,dc=com" write by anonymous auth by * none')
+        BaseConfig.modify_attribute(dn,'olcAccess','{1}to * by dn.base="cn=admin,dc=seagate,dc=com" write by self write by * none')
 
         #add_s - init.ldif
         add_record = [
