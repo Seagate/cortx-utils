@@ -38,7 +38,6 @@ class Test(SetupCmd):
         if self.test_openldap_replication() > 1:
             self.test_olcsyncrepl(passwd)
             self.test_olcserverId(passwd)
-        print("came here")
 
     def test_base_dn(self,pwd):
         baseDN = self.get_confvalue(self.get_confkey('TEST>OPENLDAP_BASE_DN'))
