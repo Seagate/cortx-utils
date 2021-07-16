@@ -85,7 +85,7 @@ class Replication:
         except:
             Log.error('Exception while deleting '+attr_to_delete+ ' from dn '+ dn  )
 
-    def setreplication(hostfile, pwd):
+    def setreplication(hostfile, pwd, config_values):
         Replication.readinputhostfile(hostfile)
         totalhostcount = Replication.checkhostvalidity()
         id = Replication.getserveridfromhostfile()
@@ -93,10 +93,10 @@ class Replication:
             Log.debug('Current host-'+socket.gethostname()+' is not present in input host file')
             quit()
         conn = ldap.initialize("ldapi://")
-        conn.simple_bind_s("cn=admin,dc=seagate,dc=com","seagate")
+        conn.simple_bind_s(config_values.get('bind_base_dn'),"seagate")
         conn.sasl_non_interactive_bind_s('EXTERNAL')
         
-        dn="cn=config"
+        dn=config_values.get('serverid_base_dn')
         Replication.deleteattribute(conn, dn, 'olcserverid')
         Replication.addattribute(conn,dn,'olcserverid',id)
         
@@ -124,12 +124,12 @@ class Replication:
             Log.error('Exception while adding olcOverlay to data')
             raise Exception('Exception while adding olcOverlay to data')
 
-        dn="olcDatabase={2}mdb,cn=config"
+        dn=config_values.get('sync_repl_base_dn')
         Replication.deleteattribute(conn, dn, 'olcSyncrepl')
         ridnum = 0
         for host in hostlist :
             ridnum = ridnum + 1
-            value="rid=00"+str(ridnum)+" provider=ldap://"+host+":389/ bindmethod=simple binddn=\"cn=admin,dc=seagate,dc=com\" credentials="+pwd+" searchbase=\"dc=seagate,dc=com\" scope=sub schemachecking=on type=refreshAndPersist retry=\"30 5 300 3\" interval=00:00:05:00"
+            value="rid=00"+str(ridnum)+" provider=ldap://"+host+":389/ bindmethod=simple binddn=\""+config_values.get('bind_base_dn')+"\" credentials="+pwd+" searchbase=\""+config_values.get('base_dn')+"\" scope=sub schemachecking=on type=refreshAndPersist retry=\"30 5 300 3\" interval=00:00:05:00"
             Replication.addattribute(conn,dn,'olcSyncrepl',value)
         Replication.deleteattribute(conn,dn,'olcMirrorMode')
         Replication.addattribute(conn,dn,'olcMirrorMode','TRUE')

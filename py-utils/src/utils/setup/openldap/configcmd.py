@@ -112,6 +112,6 @@ class ConfigCmd(SetupCmd):
             host_name = self.get_confvalue(f'server_node>{node_machine_id}>hostname')
             f.write(f'{host_name}\n')
         f.close()
-        Replication.setreplication(ldap_hosts_list_file,self.rootdn_passwd.decode("utf-8"))
+        Replication.setreplication(ldap_hosts_list_file,self.rootdn_passwd.decode("utf-8"),confvalues)
         os.remove(ldap_hosts_list_file)
       index += 1
