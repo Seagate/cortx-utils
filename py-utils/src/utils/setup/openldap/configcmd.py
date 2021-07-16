@@ -56,7 +56,17 @@ class ConfigCmd(SetupCmd):
     """Install and Configure Openldap over Non-SSL."""
     Log.debug("Inside config phaze, starting openldap base configuration")
     # Perform base configuration
-    BaseConfig.performbaseconfig(self.rootdn_passwd.decode("utf-8"),'True')
+    base_dn = self.get_confvalue(self.get_confkey('CONFIG>OPENLDAP_BASE_DN'))
+    bind_base_dn = self.get_confvalue(self.get_confkey('CONFIG>OPENLDAP_BIND_BASE_DN'))
+    sync_repl_base_dn = self.get_confvalue(self.get_confkey('CONFIG>OPENLDAP_SYNCREPL_BASE_DN'))
+    sync_repl_bind_base_dn = self.get_confvalue(self.get_confkey('CONFIG>OPENLDAP_SYNCREPL_BIND_BASE_DN'))
+    serverid_base_dn = self.get_confvalue(self.get_confkey('CONFIG>OPENLDAP_SERVERID_BASE_DN'))
+    serverid_bind_base_dn = self.get_confvalue(self.get_confkey('CONFIG>OPENLDAP_SERVERID_BIND_BASE_DN'))
+    sync_repl_config_dn = self.get_confvalue(self.get_confkey('CONFIG>OPENLDAP_SYNCREPL_CONFIG_DN'))
+    confvalues = {'base_dn':base_dn , 'bind_base_dn':bind_base_dn, 'sync_repl_base_dn':sync_repl_base_dn, \
+        'sync_repl_bind_base_dn':sync_repl_bind_base_dn, 'serverid_base_dn':serverid_base_dn, \
+        'serverid_bind_base_dn':serverid_bind_base_dn, 'sync_repl_config_dn':sync_repl_config_dn} 
+    BaseConfig.performbaseconfig(self.rootdn_passwd.decode("utf-8"),'True',confvalues)
     Log.debug("openldap base configuration completed successfully")
     if os.path.isfile("/opt/seagate/cortx/s3/install/ldap/rsyslog.d/slapdlog.conf"):
       try:
