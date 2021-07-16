@@ -96,7 +96,7 @@ class Replication:
         conn.simple_bind_s(config_values.get('bind_base_dn'),"seagate")
         conn.sasl_non_interactive_bind_s('EXTERNAL')
         
-        dn=config_values.get('serverid_base_dn')
+        dn="cn=config"
         Replication.deleteattribute(conn, dn, 'olcserverid')
         Replication.addattribute(conn,dn,'olcserverid',id)
         
@@ -124,7 +124,7 @@ class Replication:
             Log.error('Exception while adding olcOverlay to data')
             raise Exception('Exception while adding olcOverlay to data')
 
-        dn=config_values.get('sync_repl_base_dn')
+        dn="olcDatabase={2}mdb,cn=config"
         Replication.deleteattribute(conn, dn, 'olcSyncrepl')
         ridnum = 0
         for host in hostlist :
