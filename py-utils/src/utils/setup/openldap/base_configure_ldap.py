@@ -83,7 +83,7 @@ class BaseConfig:
             raise Exception('Error while modifying attribute' + attribute)
         ldap_conn.unbind_s()
 
-    def performbaseconfig(rootpassword,forcecleanup):
+    def performbaseconfig(rootpassword,forcecleanup,config_values):
         forceclean=False
         ROOTDNPASSWORD=None
         ROOTDNPASSWORD = rootpassword
@@ -104,15 +104,15 @@ class BaseConfig:
         pwd.replace('/','\/')
         #restart slapd post cleanup
         os.system('systemctl restart slapd')
-        dn="olcDatabase={0}config,cn=config"
-        BaseConfig.modify_attribute(dn,'olcRootDN','cn=admin,cn=config')
+        dn=config_values.get('sync_repl_config_dn')
+        BaseConfig.modify_attribute(dn,'olcRootDN',config_values.get('sync_repl_bind_base_dn'))
         BaseConfig.modify_attribute(dn,'olcRootPW',pwd)
         BaseConfig.modify_attribute(dn,'olcAccess','{0}to * by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" write by self write by * read')
-        dn="olcDatabase={2}mdb,cn=config"
-        BaseConfig.modify_attribute(dn,'olcSuffix', 'dc=seagate,dc=com')
-        BaseConfig.modify_attribute(dn,'olcRootDN', 'cn=admin,dc=seagate,dc=com')
+        dn=config_values.get('sync_repl_base_dn')
+        BaseConfig.modify_attribute(dn,'olcSuffix', config_values.get('base_dn'))
+        BaseConfig.modify_attribute(dn,'olcRootDN', config_values.get('bind_base_dn'))
         ldap_conn = ldap.initialize("ldapi:///")
-        ldap_conn.simple_bind_s("cn=admin,dc=seagate,dc=com",ROOTDNPASSWORD)
+        ldap_conn.simple_bind_s(config_values.get('bind_base_dn'),ROOTDNPASSWORD)
         ldap_conn.sasl_non_interactive_bind_s('EXTERNAL')
         mod_attrs = [( ldap.MOD_ADD, 'olcDbMaxSize', [b'10737418240'] )]
         try:
@@ -122,8 +122,8 @@ class BaseConfig:
             raise Exception('Error while modifying olcDbMaxSize attribute for olcDatabase={2}mdb')
         ldap_conn.unbind_s()
         BaseConfig.modify_attribute(dn,'olcRootPW',pwd)
-        BaseConfig.modify_attribute(dn,'olcAccess','{0}to attrs=userPassword by self write by dn.base="cn=admin,dc=seagate,dc=com" write by anonymous auth by * none')
-        BaseConfig.modify_attribute(dn,'olcAccess','{1}to * by dn.base="cn=admin,dc=seagate,dc=com" write by self write by * none')
+        BaseConfig.modify_attribute(dn,'olcAccess','{0}to attrs=userPassword by self write by dn.base="'+config_values.get('bind_base_dn')+'" write by anonymous auth by * none')
+        BaseConfig.modify_attribute(dn,'olcAccess','{1}to * by dn.base="'+config_values.get('bind_base_dn')+'" write by self write by * none')
 
         #add_s - init.ldif
         add_record = [
@@ -132,7 +132,7 @@ class BaseConfig:
          ('description', [b'Root entry for seagate.com.']),
          ('objectClass', [b'top',b'dcObject',b'organization'])
         ]
-        BaseConfig.add_attribute("cn=admin,dc=seagate,dc=com","dc=seagate,dc=com",add_record,ROOTDNPASSWORD)
+        BaseConfig.add_attribute(config_values.get('bind_base_dn'),config_values.get('base_dn'),add_record,ROOTDNPASSWORD)
 
         #add iam constraint
         add_record = [
@@ -141,14 +141,14 @@ class BaseConfig:
          ('olcModuleLoad', [b'unique.la'] ),
          ('objectClass', [b'olcModuleList'])
         ]
-        BaseConfig.add_attribute("cn=admin,cn=config","cn=module{0},cn=config",add_record,ROOTDNPASSWORD)
+        BaseConfig.add_attribute(config_values.get('sync_repl_bind_base_dn'),"cn=module{0},cn=config",add_record,ROOTDNPASSWORD)
 
         add_record = [
          ('olcUniqueUri', [b'ldap:///?mail?sub?'] ),
          ('olcOverlay', [b'unique'] ),
          ('objectClass', [b'olcOverlayConfig',b'olcUniqueConfig'])
         ]
-        BaseConfig.add_attribute("cn=admin,cn=config","olcOverlay=unique,olcDatabase={2}mdb,cn=config",add_record,ROOTDNPASSWORD)
+        BaseConfig.add_attribute(config_values.get('sync_repl_bind_base_dn'),"olcOverlay=unique,olcDatabase={2}mdb,cn=config",add_record,ROOTDNPASSWORD)
 
         add_record = [
          ('cn', [b'module{1}'] ),
@@ -156,4 +156,4 @@ class BaseConfig:
          ('olcModuleLoad', [b'ppolicy.la'] ),
          ('objectClass', [b'olcModuleList'])
         ]
-        BaseConfig.add_attribute("cn=admin,cn=config","cn=module{1},cn=config",add_record,ROOTDNPASSWORD)
+        BaseConfig.add_attribute(config_values.get('sync_repl_bind_base_dn'),"cn=module{1},cn=config",add_record,ROOTDNPASSWORD)
