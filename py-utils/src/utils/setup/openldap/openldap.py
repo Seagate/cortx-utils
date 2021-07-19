@@ -43,7 +43,7 @@ class Openldap:
     prov = "provisioning"
     _preqs_conf_file = "/opt/seagate/cortx/utils/conf/openldapsetup_prereqs.json"
     _prov_conf_file = "/opt/seagate/cortx/utils/conf/openldap_prov_config.yaml"
-    Log.init('OpenldapConfigLog','/var/log/seagate/s3',level='DEBUG')
+    Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',level='DEBUG')
     url = ""
 
     def __init__(self, conf_url):
@@ -72,12 +72,9 @@ class Openldap:
                 rpms = Conf.get(phase, f'{phase}>rpms')
                 if rpms:
                     PkgV().validate('rpms', rpms)
-                files = Conf.get(phase, f'{phase}>files')
-                if files:
-                    PkgV().validate('files', files)
                 services = Conf.get(phase, f'{phase}>services')
                 if services:
-                    PkgV().validate('services', services)
+                    ServiceV().validate('isrunning', services)
             Log.debug("%s - pre-requisite validation complete\n" % phase)
         except OpenldapSetupError as e:
             raise OpenldapSetupError({"message":"prereqs validation failed"})
@@ -127,6 +124,7 @@ class Openldap:
         max array size for storage set.
         """
         storage_set_count_key = "cluster>cluster-id>site>storage_set_count"
+        storage_set_count_str = ""
         if self.cluster_id is not None:
             storage_set_count_key = storage_set_count_key.\
                 replace("cluster-id", cluster_id_val)
