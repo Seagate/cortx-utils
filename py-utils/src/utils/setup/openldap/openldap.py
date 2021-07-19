@@ -21,6 +21,7 @@ import traceback
 from cortx.utils.errors import BaseError 
 from cortx.utils.validator.v_pkg import PkgV
 from cortx.utils.validator.v_network import NetworkV
+from cortx.utils.validator.v_service import ServiceV
 from cortx.utils.conf_store import Conf
 from cortx.utils.log import Log
 from test import Test
@@ -43,7 +44,7 @@ class Openldap:
     prov = "provisioning"
     _preqs_conf_file = "/opt/seagate/cortx/utils/conf/openldapsetup_prereqs.json"
     _prov_conf_file = "/opt/seagate/cortx/utils/conf/openldap_prov_config.yaml"
-    Log.init('OpenldapConfigLog','/var/log/seagate/s3',level='DEBUG')
+    Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',level='DEBUG')
     url = ""
 
     def __init__(self, conf_url):
@@ -72,12 +73,9 @@ class Openldap:
                 rpms = Conf.get(phase, f'{phase}>rpms')
                 if rpms:
                     PkgV().validate('rpms', rpms)
-                files = Conf.get(phase, f'{phase}>files')
-                if files:
-                    PkgV().validate('files', files)
                 services = Conf.get(phase, f'{phase}>services')
                 if services:
-                    PkgV().validate('services', services)
+                    ServiceV().validate('isrunning', services)
             Log.debug("%s - pre-requisite validation complete\n" % phase)
         except OpenldapSetupError as e:
             raise OpenldapSetupError({"message":"prereqs validation failed"})
@@ -127,6 +125,7 @@ class Openldap:
         max array size for storage set.
         """
         storage_set_count_key = "cluster>cluster-id>site>storage_set_count"
+        storage_set_count_str = None
         if self.cluster_id is not None:
             storage_set_count_key = storage_set_count_key.\
                 replace("cluster-id", cluster_id_val)
@@ -239,8 +238,11 @@ class Openldap:
     def init(self):
         """ Perform initialization. Raises exception on error """
 
-        self.validate("init")
-        self._keys_validate("init")
+        phase_name = "init"
+        Log.debug("%s - Starting\n" % phase_name)
+        self.validate(phase_name)
+        self._keys_validate(phase_name)
+        Log.debug("%s - Successful" % phase_name)
         # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
         return 0
 

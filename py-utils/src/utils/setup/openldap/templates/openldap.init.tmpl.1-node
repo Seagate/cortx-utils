@@ -1,0 +1,25 @@
+server_node:
+  TMPL_MACHINE_ID:
+    cluster_id: "TMPL_CLUSTER_ID"
+    hostname: "TMPL_HOSTNAME"
+    network:
+      data:
+        public_fqdn: "TMPL_PUBLIC_FQDN"
+        private_fqdn: "TMPL_PRIVATE_FQDN"
+cortx:
+  software:
+    openldap:
+      base_dn: "TMPL_BASE_DN"
+      bind_base_dn: "TMPL_BIND_BASE_DN"
+      root:
+        user: "TMPL_ROOT_USER"
+        secret: "TMPL_ROOT_SECRET_KEY"
+      sgiam:
+        user: "TMPL_SGIAM_USER"
+        secret: "TMPL_SGIAM_SECRET_KEY"
+cluster:
+  TMPL_CLUSTER_ID:
+    site:
+      storage_set_count: "TMPL_STORAGE_SET_COUNT"
+    storage_set:
+    - server_nodes: "['TMPL_MACHINE_ID']"
