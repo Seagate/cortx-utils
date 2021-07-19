@@ -16,6 +16,8 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 COMPONENTS:
+  utils:
+    - '/opt/seagate/cortx/utils/conf/setup.yaml'
   health_map:
     - '/opt/seagate/health_view/conf/setup.yaml'
   os:

@@ -27,7 +27,7 @@ from cortx.utils.errors import DataAccessExternalError
 from cortx.utils.schema.providers import Response
 from cortx.utils.conf_store.conf_store import Conf
 from cortx.utils.log import Log
-from cortx.utils.support.services import ProvisionerServices
+# from cortx.utils.support.services import ProvisionerServices
 from cortx.utils.schema import database
 
 class SupportBundle:
@@ -83,10 +83,10 @@ class SupportBundle:
             response_msg = "Support Bundle Command requires root privileges"
             return Response(output = response_msg, rc = errno.EACCES)
         bundle_id = SupportBundle._generate_bundle_id()
-        provisioner = ProvisionerServices()
-        if not provisioner:
-            return Response(output = "Provisioner package not found.",
-                            rc = errno.ENOENT)
+        # provisioner = ProvisionerServices()
+        # if not provisioner:
+        #     return Response(output = "Provisioner package not found.",
+        #                     rc = errno.ENOENT)
         # Get Arguments From Command
         comment = command.options.get(const.SB_COMMENT)
         components = command.options.get(const.SB_COMPONENTS)

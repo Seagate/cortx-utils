@@ -210,4 +210,5 @@ class ComponentsBundle:
             if os.path.isdir(bundle_path):
                 shutil.rmtree(bundle_path)
         msg = "Support bundle generation completed."
+        print(msg+'\nGenerated tar file on path -> ', tar_file_name)
         ComponentsBundle._publish_log(msg, INFO, bundle_id, node_name, comment)
