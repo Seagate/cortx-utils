@@ -21,6 +21,7 @@ import traceback
 from cortx.utils.errors import BaseError 
 from cortx.utils.validator.v_pkg import PkgV
 from cortx.utils.validator.v_network import NetworkV
+from cortx.utils.validator.v_service import ServiceV
 from cortx.utils.conf_store import Conf
 from cortx.utils.log import Log
 from test import Test
