@@ -63,4 +63,4 @@ utils:
             when: {{ level in ('node', 'cluster') }}
 
 support_bundle:
-    - python3 /opt/seagate/cortx/utils/conf/utils_support_bundle.py
+    - python3 /opt/seagate/cortx/utils/conf/support/utils_support_bundle.py

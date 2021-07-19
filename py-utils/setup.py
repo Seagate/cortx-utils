@@ -50,9 +50,6 @@ for root, directories, filenames in os.walk(_ROOT):
 # Get the list of template files
 tmpl_files = glob.glob('src/setup/templates/*.*')
 
-# Get the support files
-support_files = glob.glob('support/*.*')
-
 with open('LICENSE', 'r') as lf:
     license = lf.read()
 
@@ -83,7 +80,7 @@ setup(name='cortx-py-utils',
       description='Common Python utilities for CORTX',
       package_dir={'cortx': 'src'},
       packages=['cortx', 'cortx.utils',
-                'cortx.template',
+                'cortx.template', 'cortx.support',
                 'cortx.utils.amqp', 'cortx.utils.amqp.rabbitmq',
                 'cortx.utils.cleanup', 'cortx.utils.data',
                 'cortx.utils.data.access', 'cortx.utils.data.db',
@@ -116,7 +113,6 @@ setup(name='cortx-py-utils',
       },
       data_files = [ ('/var/lib/cortx/ha/specs', specs),
                      ('/opt/seagate/cortx/utils/conf', tmpl_files),
-                     ('/opt/seagate/cortx/utils/conf', support_files),
                      ('/opt/seagate/cortx/utils/conf', get_requirements_files()),
                      ('/var/lib/cortx/ha', ['src/utils/ha/hac/args.yaml',
                                             'src/utils/ha/hac/re_build.sh']),

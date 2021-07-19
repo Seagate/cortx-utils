@@ -14,8 +14,8 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-## Replace <INSTALL_PATH> with cortx installation path example: /opt/seagate
-install_path=<INSTALL_PATH>
+## Replace /opt/seagate with cortx installation path example: /opt/seagate
+install_path=/opt/seagate
 cortx_path=$install_path/cortx/
 utils_path=$cortx_path/utils
 # Create /etc/cortx. This will be used for storing message_bus.conf file
@@ -32,6 +32,10 @@ utils_path=$cortx_path/utils
 
 # Copy cortx.conf file to /etc/cortx
 [ -f "/etc/cortx/cortx.conf" ] || cp -n $utils_path/conf/cortx.conf.sample /etc/cortx/cortx.conf
+
+# Copy support/utils_support_bundle.py to $utils_path/conf
+/bin/ln -s /usr/lib/python3.6/site-packages/cortx/support $utils_path/conf/support
+/bin/chmod +x $utils_path/conf/support
 
 # Replace cortx path to support.yaml
 sed -i -e "s|<CORTX_PATH>|${cortx_path}|g" $utils_path/conf/support.yaml
