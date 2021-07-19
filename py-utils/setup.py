@@ -126,7 +126,9 @@ setup(name='cortx-py-utils',
                      'src/utils/setup/openldap/templates/openldap.prepare.tmpl.1-node',
                      'src/utils/setup/openldap/templates/openldap.test.tmpl.1-node',
                      'src/utils/setup/openldap/templates/openldap.post_install.tmpl.1-node',
-                     'src/utils/setup/openldap/templates/openldap.config.tmpl.1-node']),
+                     'src/utils/setup/openldap/templates/openldap.config.tmpl.1-node',
+                     'src/utils/setup/openldap/config/openldap_config.yaml.sample',
+                     'src/utils/setup/openldap/config/openldap_config_unsafe_attributes.yaml']),
                      ('/etc/systemd/system', ['src/utils/message_bus/'
                                               'cortx_message_bus.service']),
                      ('/var/cortx/resources/mocked_data', [
