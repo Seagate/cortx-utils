@@ -9,8 +9,8 @@ server_node:
 cortx:
   software:
     openldap:
-      base_dn: "dc=seagate,dc=com"
-      bind_base_dn: "cn=admin,dc=seagate,dc=com"
+      base_dn: "TMPL_BASE_DN"
+      bind_base_dn: "TMPL_BIND_BASE_DN"
       root:
         user: "TMPL_ROOT_USER"
         secret: "TMPL_ROOT_SECRET_KEY"
