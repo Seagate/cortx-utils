@@ -246,7 +246,12 @@ class Openldap:
 
     def test(self, plan, config: str):
         """ Perform configuration testing. Raises exception on error """
+        phase_name = "test"
+        Log.debug("%s - Starting\n" % phase_name)
+        self.validate(phase_name)
+        self._keys_validate(phase_name) 
         Test(config, "seagate")
+        Log.debug("%s - Successful" % phase_name)
         return 0
 
     def reset(self):
