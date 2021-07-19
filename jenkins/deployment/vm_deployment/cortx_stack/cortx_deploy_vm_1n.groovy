@@ -382,14 +382,12 @@ def getBuild(buildURL) {
 // Get build id from build url
 def getActualBuild(buildURL) {
 
-    buildRoot = "http://cortx-storage.colo.seagate.com/releases/cortx/github"
+    buildRoot = sh(script: "echo $buildURL | cut -d'/' -f1-8", returnStdout: true).trim()  
     buildID = sh(script: "curl -s  $buildURL/RELEASE.INFO  | grep BUILD | cut -d':' -f2 | tr -d '\"' | xargs", returnStdout: true).trim()
-    if ( buildURL.contains("/cortx/github/main/") ) {
-        buildURL = "${buildRoot}/main/centos-7.8.2003/${buildID}/prod"
-    } else if ( buildURL.contains("/cortx/github/stable/") ) {
-        buildURL = "${buildRoot}/stable/centos-7.8.2003/${buildID}/prod"
+    if ( buildURL.contains("/cortx/github/main/") || buildURL.contains("/cortx/github/stable/") ) {
+        buildURL = "${buildRoot}/${buildID}/prod"
     } else if ( buildURL.contains("/cortx/github/integration-custom-ci/")) {
-        buildURL = "${buildRoot}/integration-custom-ci/centos-7.8.2003/custom-build-${buildID}"
+        buildURL = "${buildRoot}/custom-build-${buildID}"
     }
 
  return buildURL  
