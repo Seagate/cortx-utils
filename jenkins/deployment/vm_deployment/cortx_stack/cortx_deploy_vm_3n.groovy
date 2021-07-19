@@ -494,7 +494,7 @@ def createJiraIssue(String failedStage, String failedComponent, String failureLo
                         issuetype: [name: 'Bug'],
                         priority: [name: "Blocker"],
                         versions: [[name: "LDR-R2"]],
-                        labels: ["PI-1"],
+                        labels: ["PI-2"],
                         components: [[name: "${failedComponent}"]],
                         summary: "3N VM-Deployment Failed in ${failedComponent} for the build ${build_id}",
                         description: "{panel}VM Deployment is failed in ${failedStage} for the build [${build_id}|${CORTX_BUILD}]. Please check Jenkins console log and deployment log for more info.\n"+
