@@ -6,10 +6,11 @@ server_node:
       data:
         public_fqdn: "TMPL_PUBLIC_FQDN"
         private_fqdn: "TMPL_PRIVATE_FQDN"
-    s3_instances: "TMPL_SERVER_INSTANCES"
 cortx:
   software:
     openldap:
+      base_dn: "dc=seagate,dc=com"
+      bind_base_dn: "cn=admin,dc=seagate,dc=com"
       root:
         user: "TMPL_ROOT_USER"
         secret: "TMPL_ROOT_SECRET_KEY"
