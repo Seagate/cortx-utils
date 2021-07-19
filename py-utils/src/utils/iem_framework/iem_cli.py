@@ -148,8 +148,8 @@ class SendCmd:
         req_s_parser.add_argument('-s', '--source', help='component:module')
         req_s_parser.add_argument('-i', '--info', help='source_type:severity')
         req_s_parser.add_argument('-c', '--contents', help='event_id:message')
-        req_s_parser.add_argument('-l', '--location',
-                                  help='site_id:node_id:rack_id:cluster_id')
+        req_s_parser.add_argument('-l', '--location', \
+            help='site_id:node_id:rack_id:cluster_id')
 
 
 class ReceiveCmd:
