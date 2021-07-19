@@ -337,13 +337,15 @@ class ElasticSearchDB(GenericDataBase):
                                                         self._query_converter)
 
     @classmethod
-    async def create_database(cls, config, model_settings, model: Type[BaseModel]) -> IDataBase:
+    async def create_database(cls, config, collection: str, model: Type[BaseModel],
+                              create_schema=True) -> IDataBase:
         """
         Creates new instance of ElasticSearch DB and performs necessary initializations
 
         :param DBSettings config: configuration for elasticsearch server
         :param :param model_settings: Model settings
         :param Type[BaseModel] model: model which instances will be stored in DB
+        :param bool create_schema: if the flag is true, the collection will be created.
         :return:
         """
         # NOTE: please, be sure that you avoid using this method twice (or more times) for the same
@@ -368,7 +370,7 @@ class ElasticSearchDB(GenericDataBase):
         es_db = cls(cls.elastic_instance, model, collection, cls.thread_pool, cls.loop)
 
         try:
-            if model_settings.create_schema:
+            if create_schema:
                 await es_db.attach_to_index(config.replication)
         except DataAccessExternalError:
             raise  # forward error to upper caller
