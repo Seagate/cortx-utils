@@ -65,7 +65,7 @@ class ModelSettings(Model):
     Configuration for base model like collection as example
     """
     collection = StringType(required=True)
-    create_schema = BooleanType(default=True)
+    create_schema = BooleanType(required=False, default=True)
 
 
 class DBModelConfig(Model):
@@ -158,8 +158,9 @@ class AsyncDataBase:
         self._database_status = ServiceStatus.IN_PROGRESS
         try:
             self._database = await self._database_module.create_database(self._db_config.config,
-                                                                         self._model_settings,
-                                                                         self._model)
+                                                                         self._model_settings.collection,
+                                                                         self._model, 
+                                                                         self._model_settings.create_schema)
         except DataAccessError:
             raise
         except Exception as e:
