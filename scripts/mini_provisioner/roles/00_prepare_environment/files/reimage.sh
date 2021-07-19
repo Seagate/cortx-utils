@@ -171,9 +171,10 @@ _wait_for_vm_state_change() {
     current_vm_state=$(_cloudform 'GET_VM_STATUS')
 
     n=0
-    _console_log " [ _wait_for_vm_state_change ] :" 1
-
-    # wait for ~ 30 mins
+    _console_log " [ _wait_for_vm_state_change ] : Waiting for VM state (On/Off) change. Execution might take some time...." 1
+    # Wait for 2 mins before getting vm status.
+    sleep 120
+    # Check power state after every 30 seconds for ~ 30 mins.
     while [ "$n" -lt 60 ] && [ "${expected_vm_state}" != "${current_vm_state}" ]; do
         current_vm_state=$(_cloudform 'GET_VM_STATUS')
         _console_log "=>" 1
@@ -231,9 +232,12 @@ _change_vm_state(){
 # Revert VM Sanpshot by calling cloudform rest api
 _revert_vm_snapshot(){
     CF_TASK_ENDPOINT=$(_cloudform 'REVERT_VM_SNAPSHOT')
+    # Wait for 5 mins before getting vm status.
+    sleep 300
     expected_task_state="Finished"
     expected_task_status="Ok"
     mins=0
+    # Check revrt task status after every 60 seconds for ~ 30 mins.
     while [ "$mins" -lt 30 ] && [ "${expected_task_state}" != "${current_task_state}" ] && [ "${expected_task_status}" != "${current_task_status}" ]; do
         task_response=$(_cloudform 'GET_TASK_STATUS')
         current_task_state=$(_get_response "${task_response}" 'state')
@@ -353,7 +357,7 @@ _refresh_vm
 _console_log "[2] - Stop VM Initiated : ${VM_NAME}" 0
 _change_vm_state "off" "1"
 
-_console_log "[3] - VM Snapshot Reverte Initiated : ${VM_NAME}" 0
+_console_log "[3] - VM Snapshot Revert Initiated : ${VM_NAME}" 0
 _revert_vm_snapshot
 
 _console_log "[4] - Start VM Initiated : ${VM_NAME}" 0
