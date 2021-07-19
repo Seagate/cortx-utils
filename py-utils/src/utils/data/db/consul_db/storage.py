@@ -230,7 +230,7 @@ class ConsulDB(GenericDataBase):
 
     @classmethod
     async def create_database(cls, config, collection: str,
-                              model: Type[BaseModel], 
+                              model: Type[BaseModel],
                               create_schema: bool=True) -> IDataBase:
         """
         Creates new instance of Consul KV DB and performs necessary initializations

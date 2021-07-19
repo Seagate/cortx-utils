@@ -331,7 +331,7 @@ class ElasticSearchDB(GenericDataBase):
                                                         self._query_converter)
 
     @classmethod
-    async def create_database(cls, config, collection: str, model: Type[BaseModel], 
+    async def create_database(cls, config, collection: str, model: Type[BaseModel],
                               create_schema=True) -> IDataBase:
         """
         Creates new instance of ElasticSearch DB and performs necessary initializations
