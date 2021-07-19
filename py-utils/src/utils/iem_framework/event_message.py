@@ -89,26 +89,28 @@ class EventMessage(metaclass=Singleton):
 
     @classmethod
     def send(cls, module: str, event_id: str, severity: str, message_blob: str,\
-        problem_site_id: str = None, problem_rack_id: str = None, \
-        problem_node_id: str = None, cluster_id: str = None, \
+        problem_site_id: int = None, problem_rack_id: int = None, \
+        problem_node_id: int = None, problem_cluster_id: int = None, \
         event_time: float = None):
         """
         Sends IEM alert message
 
         Parameters:
-        module            Indicates the sub module of a component that generated
-                          the IEM. i.e SSPL submodule like HPI.
-        event_id          A numerical value that uniquely identifies an event.
-        severity          The degree of impact an event has on the operation of
-                          a component.
-        message_blob      Blob alert message.
-        problem_site_id   Uniquely identifies a single data center site.
-                          (Sender Location)
-        problem_rack_id   A numerical value that identifies a single Rack in a
-                          single site (Sender Location)
-        problem_node_id   A numerical value that indicates node ID (UUID)
-                          (Sender Location)
-        event_time        Time of the event
+        module              Indicates the sub module of a component that
+                            generated the IEM. i.e SSPL submodule like HPI.
+        event_id            A numerical value that uniquely identifies an event.
+        severity            The degree of impact an event has on the operation
+                            of a component.
+        message_blob        Blob alert message.
+        problem_site_id     Uniquely identifies a single data center site.
+                            (Sender Location)
+        problem_rack_id     A numerical value that identifies a single Rack in a
+                            single site (Sender Location)
+        problem_node_id     A numerical value that indicates node ID (UUID)
+                            (Sender Location)
+        problem_cluster_id  A numerical value that indicates cluster ID
+                            (Sender Location)
+        event_time          Time of the event
         """
 
         import socket
@@ -124,13 +126,13 @@ class EventMessage(metaclass=Singleton):
             cls._rack_id
         node_id = problem_node_id if problem_node_id is not None else \
             cls._node_id
-        cluster_id = cluster_id if cluster_id is not None else \
+        cluster_id = problem_cluster_id if problem_cluster_id is not None else \
             cls._cluster_id
         event_time = event_time if event_time is not None else time.time()
 
         # Validate attributes before sending
         for attribute in [module, event_id, message_blob, site_id, rack_id, \
-            node_id]:
+            node_id, cluster_id]:
             if attribute is None:
                 raise EventMessageError(errno.EINVAL, "Invalid IEM attributes \
                     %s", attribute)
@@ -149,15 +151,15 @@ class EventMessage(metaclass=Singleton):
                     },
                 'location': {
                     'site_id': site_id,
-                    'node_id': node_id,
                     'rack_id': rack_id,
+                    'node_id': node_id,
                     'host_id': host_id,
                     'cluster_id': cluster_id
                     },
                 'source': {
                     'site_id': cls._site_id,
-                    'node_id': cls._node_id,
                     'rack_id': cls._rack_id,
+                    'node_id': cls._node_id,
                     'component': cls._component,
                     'module': module
                     },

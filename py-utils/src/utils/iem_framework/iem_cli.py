@@ -46,6 +46,7 @@ class IemCli:
             'problem_site_id': None,
             'problem_rack_id': None,
             'problem_node_id': None,
+            'problem_cluster_id': None,
             'event_time': None
         }
         return blank_send_args
@@ -70,10 +71,11 @@ class IemCli:
             raise EventMessageError(errno.EINVAL, "Invalid send arguments!")
 
         if args.location:
-            site_id, node_id, rack_id = args.location.split(':')
+            site_id, node_id, rack_id, cluster_id = args.location.split(':')
             send_args['problem_site_id'] = site_id
             send_args['problem_node_id'] = node_id
             send_args['problem_rack_id'] = rack_id
+            send_args['problem_cluster_id'] = cluster_id
 
         return send_args
 
@@ -99,6 +101,7 @@ class IemCli:
             problem_site_id=send_args['problem_site_id'],
             problem_rack_id=send_args['problem_rack_id'],
             problem_node_id=send_args['problem_node_id'],
+            problem_cluster_id=send_args['problem_cluster_id'],
             event_time=send_args['event_time']
         )
 
@@ -146,7 +149,7 @@ class SendCmd:
         req_s_parser.add_argument('-i', '--info', help='source_type:severity')
         req_s_parser.add_argument('-c', '--contents', help='event_id:message')
         req_s_parser.add_argument('-l', '--location',
-                                  help='site_id:node_id:rack_id')
+                                  help='site_id:node_id:rack_id:cluster_id')
 
 
 class ReceiveCmd:
