@@ -125,7 +125,7 @@ class Openldap:
         max array size for storage set.
         """
         storage_set_count_key = "cluster>cluster-id>site>storage_set_count"
-        storage_set_count_str = ""
+        storage_set_count_str = None
         if self.cluster_id is not None:
             storage_set_count_key = storage_set_count_key.\
                 replace("cluster-id", cluster_id_val)
@@ -238,8 +238,11 @@ class Openldap:
     def init(self):
         """ Perform initialization. Raises exception on error """
 
-        self.validate("init")
-        self._keys_validate("init")
+        phase_name = "init"
+        Log.debug("%s - Starting\n" % phase_name)
+        self.validate(phase_name)
+        self._keys_validate(phase_name)
+        Log.debug("%s - Successful" % phase_name)
         # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
         return 0
 
