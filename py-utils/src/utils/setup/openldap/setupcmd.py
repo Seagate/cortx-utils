@@ -96,29 +96,22 @@ class SetupCmd(object):
       Conf.load(index_id, f'yaml://{self.openldap_config_file}')
 
       # Read the cluster id from openldap_config file
-      self.cluster_id = Conf.get_config(index_id, f'{self.cluster_id_key}')
-      sys.stdout.write(f'self.cluster_id -> {self.cluster_id}\n')
+      self.cluster_id = Conf.get(index_id, f'{self.cluster_id_key}')
 
       cipher_key = Cipher.generate_key(self.cluster_id , self.get_confkey('CONFSTORE_OPENLDAP_CONST_KEY'))
 
       # sgiam username/password
-      self.ldap_user = Conf.get_config(index_id, f'{self.sgiam_user_key}')
-      sys.stdout.write(f'self.ldap_user -> {self.ldap_user}\n')
+      self.ldap_user = Conf.get(index_id, f'{self.sgiam_user_key}')
 
-      encrypted_ldapadmin_pass = Conf.get_config(index_id, f'{self.sgiam_pass_key}')
-      sys.stdout.write(f'self.encrypted_ldapadmin_pass -> {self.encrypted_ldapadmin_pass}\n')
+      encrypted_ldapadmin_pass = Conf.get(index_id, f'{self.sgiam_pass_key}')
       if encrypted_ldapadmin_pass != None:
         self.ldap_passwd = Cipher.decrypt(cipher_key, bytes(str(encrypted_ldapadmin_pass), 'utf-8'))
-        sys.stdout.write(f'self.ldap_passwd -> {self.ldap_passwd}\n')
 
       # rootdn username/password
-      self.ldap_root_user = Conf.get_config(index_id, f'{self.rootdn_user_key}')
-      sys.stdout.write(f'self.ldap_root_user -> {self.ldap_root_user}\n')
-      encrypted_rootdn_pass = Conf.get_config(index_id, f'{self.rootdn_pass_key}')
-      sys.stdout.write(f'self.encrypted_rootdn_pass -> {self.encrypted_rootdn_pass}\n')
+      self.ldap_root_user = Conf.get(index_id, f'{self.rootdn_user_key}')
+      encrypted_rootdn_pass = Conf.get(index_id, f'{self.rootdn_pass_key}')
       if encrypted_rootdn_pass != None:
         self.rootdn_passwd = Cipher.decrypt(cipher_key, bytes(str(encrypted_rootdn_pass),'utf-8'))
-        sys.stdout.write(f'self.rootdn_passwd -> {self.rootdn_passwd}\n')
 
     except Exception as e:
       sys.stderr.write(f'read ldap credentials failed, error: {e}\n')
@@ -135,7 +128,7 @@ class SetupCmd(object):
         Conf.load(index_id, f'yaml://{self.openldap_config_file}')
         Conf.set(index_id, f'{key}', f'{self.cluster_id}')
         Conf.save(index_id)
-        updated_cluster_id = Conf.get_config(index_id, f'{key}')
+        updated_cluster_id = Conf.get(index_id, f'{key}')
 
         if updated_cluster_id != self.cluster_id:
           raise Exception(f'failed to set {key}: {self.cluster_id} in {self.openldap_config_file} ')
