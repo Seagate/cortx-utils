@@ -77,18 +77,18 @@ class UtilsSupportBundle:
         target_path = target_path if target_path is not None \
             else UtilsSupportBundle._default_path
         tar_file_name = os.path.join(target_path,
-            UtilsSupportBundle._tar_name + ".tar.gz")
+            UtilsSupportBundle._tar_name + '.tar.gz')
         if not os.path.exists(target_path):
             os.makedirs(target_path)
-        with tarfile.open(tar_file_name, "w:gz") as tar:
+        with tarfile.open(tar_file_name, 'w:gz') as tar:
             tar.add(UtilsSupportBundle._tmp_src,
                 arcname=os.path.basename(UtilsSupportBundle._tmp_src))
 
     @staticmethod
     def __collect_kafka_logs():
         files_lst = UtilsSupportBundle._files_to_bundle
-        if os.path.exists(files_lst["kafka_server"]) and os.path.exists(
-                files_lst["kafka_zookeeper"]):
+        if os.path.exists(files_lst['kafka_server']) and os.path.exists(
+                files_lst['kafka_zookeeper']):
             to_be_collected = {}
             Conf.load('kafka_server',
                 'properties://' + files_lst['kafka_server'], fail_reload=False)
@@ -103,6 +103,8 @@ class UtilsSupportBundle:
             to_be_collected['zookeeper_data_dir'] = Conf.get(
                 'kafka_zookeeper', 'dataDir', '/var/zookeeper')
             # Copy entire kafka and zookeeper logs
+            if os.path.exists(UtilsSupportBundle._tmp_src):
+                shutil.rmtree(dst) 
             for key, value in to_be_collected.items():
                 if value and os.path.exists(value):
                     shutil.copytree(value,
@@ -117,9 +119,6 @@ def main():
     target = None
     if len(sys.argv) > 1:
         target = sys.argv[1]
-    else:
-        msg = "error: invalid argument %s"
-        raise SupportBundleError(errno.EINVAL, msg , sys.argv)
     UtilsSupportBundle.generate(target_path=target)
 
 
