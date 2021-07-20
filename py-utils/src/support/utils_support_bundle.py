@@ -21,6 +21,7 @@ import os.path
 import shutil
 import tarfile
 import errno
+import argparse
 
 from cortx.utils.conf_store import Conf
 from cortx.utils.errors import UtilsError
@@ -48,13 +49,13 @@ class UtilsSupportBundle:
     }
 
     @staticmethod
-    def generate(target_path=None):
+    def generate(bundle_id: str, target_path: str):
         """ Generate a tar file """
         for value in UtilsSupportBundle._files_to_bundle.values():
             if os.path.exists(value):
                 UtilsSupportBundle.__copy_file(value)
         UtilsSupportBundle.__collect_kafka_logs()
-        UtilsSupportBundle.__generate_tar(target_path)
+        UtilsSupportBundle.__generate_tar(bundle_id, target_path)
         UtilsSupportBundle.__clear_tmp_files()
 
     @staticmethod
@@ -72,12 +73,12 @@ class UtilsSupportBundle:
             raise SupportBundleError(errno.ENOENT, "File not found %s", fe)
 
     @staticmethod
-    def __generate_tar(target_path=None):
+    def __generate_tar(bundle_id: str, target_path: str):
         """ Generate tar.gz file at given path """
         target_path = target_path if target_path is not None \
             else UtilsSupportBundle._default_path
-        tar_file_name = os.path.join(target_path,
-            UtilsSupportBundle._tar_name + '.tar.gz')
+        tar_name = bundle_id if bundle_id else UtilsSupportBundle._tar_name
+        tar_file_name = os.path.join(target_path, tar_name + '.tar.gz')
         if not os.path.exists(target_path):
             os.makedirs(target_path)
         with tarfile.open(tar_file_name, 'w:gz') as tar:
@@ -115,11 +116,17 @@ class UtilsSupportBundle:
         """ Clean temporary files created by the support bundle """
         shutil.rmtree(UtilsSupportBundle._tmp_src)
 
+    @staticmethod
+    def parse_args():
+        parser = argparse.ArgumentParser(description='''Bundle utils logs ''')
+        parser.add_argument('bundle_id', help='Unique bundle id')
+        parser.add_argument('path', help='Path to store the created bundle', nargs='?', default="/var/seagate/cortx/support_bundle/")
+        args=parser.parse_args()
+        return args
+
 def main():
-    target = None
-    if len(sys.argv) > 1:
-        target = sys.argv[1]
-    UtilsSupportBundle.generate(target_path=target)
+    args = UtilsSupportBundle.parse_args()
+    UtilsSupportBundle.generate(bundle_id=args.bundle_id, target_path=args.path)
 
 
 if __name__ == '__main__':
@@ -127,4 +134,8 @@ if __name__ == '__main__':
     argument:
         path: targeted path where py-utils.tar.gz should be created
     """
-    sys.exit(main())
+    try:
+        main()
+    except KeyboardInterrupt as e:
+        print("\n\nWARNING: User aborted command. Partial data save/corruption might occur. It is advised to re-run the command.")
+        sys.exit(1)
