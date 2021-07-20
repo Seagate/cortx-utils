@@ -140,5 +140,5 @@ if __name__ == '__main__':
     except KeyboardInterrupt as e:
         print(f"\n\nWARNING: User aborted command. Partial data " \
             f"save/corruption might occur. It is advised to re-run the" \
-            f"command.")
+            f"command. {e}")
         sys.exit(1)
