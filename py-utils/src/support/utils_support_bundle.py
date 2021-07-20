@@ -104,7 +104,7 @@ class UtilsSupportBundle:
                 'kafka_zookeeper', 'dataDir', '/var/zookeeper')
             # Copy entire kafka and zookeeper logs
             if os.path.exists(UtilsSupportBundle._tmp_src):
-                shutil.rmtree(dst) 
+                shutil.rmtree(UtilsSupportBundle._tmp_src) 
             for key, value in to_be_collected.items():
                 if value and os.path.exists(value):
                     shutil.copytree(value,
