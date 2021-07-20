@@ -26,7 +26,7 @@ class SupportBundleScript:
             'output': {}, 'need_confirmation': False, 'sub_command_name': \
             'bundle_generate'}
 
-        cmd_obj = Command("bundle_generate", options, [])
+        cmd_obj = Command('bundle_generate', options, [])
         loop = asyncio.get_event_loop()
         loop.run_until_complete(ComponentsBundle.init(cmd_obj))
         return bundle_id
@@ -50,7 +50,7 @@ class SupportBundleScript:
         loop.close()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     bundle_id = SupportBundleScript.generate(
         comment='Test support bundle generation', node_name='srvnode-1',
         components=['utils'])
