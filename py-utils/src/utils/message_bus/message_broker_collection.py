@@ -177,6 +177,7 @@ class KafkaMessageBroker(MessageBroker):
         if err.code() == KafkaError._ALL_BROKERS_DOWN:
             raise MessageBusError(errors.ERR_SERVICE_UNAVAILABLE, \
                 "Kafka service(s) unavailable. %s", err)
+            break
 
     def list_message_types(self, admin_id: str) -> list:
         """
