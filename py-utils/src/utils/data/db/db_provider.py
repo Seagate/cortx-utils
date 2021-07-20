@@ -159,8 +159,7 @@ class AsyncDataBase:
         try:
             self._database = await self._database_module.create_database(self._db_config.config,
                                                                          self._model_settings.collection,
-                                                                         self._model,
-                                                                         self._model_settings.create_schema)
+                                                                         self._model, self._model_settings.create_schema)
         except DataAccessError:
             raise
         except Exception as e:
