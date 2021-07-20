@@ -105,7 +105,7 @@ class UtilsSupportBundle:
                 'kafka_zookeeper', 'dataDir', '/var/zookeeper')
             # Copy entire kafka and zookeeper logs
             if os.path.exists(UtilsSupportBundle._tmp_src):
-                shutil.rmtree(UtilsSupportBundle._tmp_src) 
+                shutil.rmtree(UtilsSupportBundle._tmp_src)
             for key, value in to_be_collected.items():
                 if value and os.path.exists(value):
                     shutil.copytree(value,
@@ -120,7 +120,8 @@ class UtilsSupportBundle:
     def parse_args():
         parser = argparse.ArgumentParser(description='''Bundle utils logs ''')
         parser.add_argument('bundle_id', help='Unique bundle id')
-        parser.add_argument('path', help='Path to store the created bundle', nargs='?', default="/var/seagate/cortx/support_bundle/")
+        parser.add_argument('path', help='Path to store the created bundle',
+            nargs='?', default="/var/seagate/cortx/support_bundle/")
         args=parser.parse_args()
         return args
 
@@ -137,5 +138,7 @@ if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt as e:
-        print("\n\nWARNING: User aborted command. Partial data save/corruption might occur. It is advised to re-run the command.")
+        print(f"\n\nWARNING: User aborted command. Partial data " \
+            f"save/corruption might occur. It is advised to re-run the" \
+            f"command.")
         sys.exit(1)
