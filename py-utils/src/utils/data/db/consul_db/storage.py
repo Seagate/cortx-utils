@@ -258,7 +258,8 @@ class ConsulDB(GenericDataBase):
                         cls.loop)
 
         try:
-            await consul_db.create_object_root()
+            if create_schema:
+                await consul_db.create_object_root()
         except ClientConnectorError as e:
             raise DataAccessExternalError(f"{e}")
         except Exception as e:
