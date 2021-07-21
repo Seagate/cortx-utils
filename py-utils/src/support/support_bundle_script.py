@@ -51,7 +51,10 @@ class SupportBundleScript:
 
 
 if __name__ == '__main__':
+    from cortx.utils.conf_store import Conf
+    Conf.load('cortx_cluster', 'json:///etc/cortx/cluster.conf')
+    node_name = Conf.get('cortx_cluster', 'server_node>name')
     bundle_id = SupportBundleScript.generate(
-        comment='Test support bundle generation', node_name='srvnode-1',
+        comment='Test support bundle generation', node_name=node_name,
         components=['utils'])
     SupportBundleScript.get_bundle_status(bundle_id=bundle_id)
