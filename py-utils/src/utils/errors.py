@@ -123,4 +123,4 @@ class StorageNotFoundError(DataAccessError):
 
 class AmqpConnectionError(Exception):
 
-    """Amqp connection problems"""
+    """ Amqp connection problems """
