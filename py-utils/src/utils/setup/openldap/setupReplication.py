@@ -30,10 +30,10 @@ from cortx.utils.log import Log
 
 class Replication:
     hostlist = []
-    Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',level='DEBUG')
+    Log.init('OpenldapProvisioning', '/var/log/seagate/utils/openldap', level='DEBUG')
     def readinputhostfile(host_file_path):
         global hostlist
-        hostlist=[]
+        hostlist = []
         file = open(host_file_path, 'r')
         Lines = file.readlines()
         for line in Lines :
@@ -61,7 +61,7 @@ class Replication:
     def addattribute(conn, dn, attr_to_add, value):
         mod_attrs = [(ldap.MOD_ADD, attr_to_add, bytes(str(value), 'utf-8'))]
         try:
-            conn.modify_s(dn,mod_attrs)
+            conn.modify_s(dn, mod_attrs)
         except:
             Log.error('Exception while adding '+ attr_to_add + ' to dn '+ dn)
             raise Exception('Exception while adding '+ attr_to_add + ' to dn '+ dn)
@@ -74,14 +74,14 @@ class Replication:
                     if(value):
                         mod_attrs = [( ldap.MOD_DELETE, attr_to_delete,value )]
                         try:
-                            conn.modify_s(dn,mod_attrs)
+                            conn.modify_s(dn, mod_attrs)
                         except:
                             Log.error('Exception while deleting '+attr_to_delete+ ' from dn '+ dn + ' value '+str(value) )
 
     def deleteattribute(conn, dn, attr_to_delete):
-        mod_attrs = [( ldap.MOD_DELETE, attr_to_delete, None  )]
+        mod_attrs = [(ldap.MOD_DELETE, attr_to_delete, None)]
         try:
-            conn.modify_s(dn,mod_attrs)
+            conn.modify_s(dn, mod_attrs)
         except:
             Log.error('Exception while deleting '+attr_to_delete+ ' from dn '+ dn  )
 
@@ -93,14 +93,14 @@ class Replication:
             Log.debug('Current host-'+socket.gethostname()+' is not present in input host file')
             quit()
         conn = ldap.initialize("ldapi://")
-        conn.simple_bind_s(config_values.get('bind_base_dn'),"seagate")
+        conn.simple_bind_s(config_values.get('bind_base_dn'), "seagate")
         conn.sasl_non_interactive_bind_s('EXTERNAL')
         
-        dn="cn=config"
+        dn = "cn=config"
         Replication.deleteattribute(conn, dn, 'olcserverid')
-        Replication.addattribute(conn,dn,'olcserverid',id)
+        Replication.addattribute(conn, dn, 'olcserverid', id)
         
-        dn="cn=module,cn=config"
+        dn = "cn=module,cn=config"
         add_record = [
          ('objectClass', [b'olcModuleList']),
          ('cn', [b'module'] ),
@@ -112,7 +112,7 @@ class Replication:
         except:
             Log.error('Exception while adding syncprov_mod')
 
-        dn="olcOverlay=syncprov,olcDatabase={2}mdb,cn=config"
+        dn = "olcOverlay=syncprov,olcDatabase={2}mdb,cn=config"
         add_record = [
          ('objectClass', [b'olcOverlayConfig', b'olcSyncProvConfig']),
          ('olcOverlay', [b'syncprov'] ),
@@ -124,13 +124,13 @@ class Replication:
             Log.error('Exception while adding olcOverlay to data')
             raise Exception('Exception while adding olcOverlay to data')
 
-        dn="olcDatabase={2}mdb,cn=config"
+        dn = "olcDatabase={2}mdb,cn=config"
         Replication.deleteattribute(conn, dn, 'olcSyncrepl')
         ridnum = 0
         for host in hostlist :
             ridnum = ridnum + 1
             value="rid=00"+str(ridnum)+" provider=ldap://"+host+":389/ bindmethod=simple binddn=\""+config_values.get('bind_base_dn')+"\" credentials="+pwd+" searchbase=\""+config_values.get('base_dn')+"\" scope=sub schemachecking=on type=refreshAndPersist retry=\"30 5 300 3\" interval=00:00:05:00"
-            Replication.addattribute(conn,dn,'olcSyncrepl',value)
-        Replication.deleteattribute(conn,dn,'olcMirrorMode')
-        Replication.addattribute(conn,dn,'olcMirrorMode','TRUE')
+            Replication.addattribute(conn, dn, 'olcSyncrepl', value)
+        Replication.deleteattribute(conn, dn, 'olcMirrorMode')
+        Replication.addattribute(conn, dn, 'olcMirrorMode', 'TRUE')
         conn.unbind_s()
