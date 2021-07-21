@@ -209,5 +209,5 @@ class ComponentsBundle:
         finally:
             if os.path.isdir(bundle_path):
                 shutil.rmtree(bundle_path)
-        msg = "Support bundle generation completed."    
+        msg = "Support bundle generation completed."
         ComponentsBundle._publish_log(msg, INFO, bundle_id, node_name, comment)

@@ -10,7 +10,7 @@ from cortx.utils.schema.providers import Response
 
 class SupportBundleScript:
     @staticmethod
-    def generate(node_name: str, comment: str, components: list):
+    def generate(comment: str, node_name: str, components: list):
         current_user = str(getpass.getuser())
         # Check if User is Root User.
         if current_user.lower() != 'root':
