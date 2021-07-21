@@ -153,13 +153,13 @@ class EventMessage(metaclass=Singleton):
                     'site_id': site_id,
                     'rack_id': rack_id,
                     'node_id': node_id,
-                    'host_id': host_id,
                     'cluster_id': cluster_id
                     },
                 'source': {
                     'site_id': cls._site_id,
                     'rack_id': cls._rack_id,
                     'node_id': cls._node_id,
+                    'host_id': host_id,
                     'component': cls._component,
                     'module': module
                     },
