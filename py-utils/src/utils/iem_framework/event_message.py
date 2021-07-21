@@ -34,15 +34,15 @@ class EventMessage(metaclass=Singleton):
 
     # VALID VALUES for IEC Components
     _SEVERITY_LEVELS = {
-        'A': 'Alert',
-        'X': 'Critical',
-        'E': 'Error',
-        'W': 'Warning',
-        'N': 'Notice',
-        'C': 'Configuration',
-        'I': 'Informational',
-        'D': 'Detail',
-        'B': 'Debug'
+        'A': 'alert',
+        'X': 'critical',
+        'E': 'error',
+        'W': 'warning',
+        'N': 'notice',
+        'C': 'configuration',
+        'I': 'informational',
+        'D': 'detail',
+        'B': 'debug'
     }
     _SOURCE = {
         'H': 'Hardware',
@@ -71,6 +71,7 @@ class EventMessage(metaclass=Singleton):
             cls._site_id = ids['site_id']
             cls._rack_id = ids['rack_id']
             cls._node_id = ids['node_id']
+            cls._cluster_id = ids['cluster_id']
         except Exception as e:
             raise EventMessageError(errno.EINVAL, "Invalid config in %s. %s", \
                 cls._conf_file, e)
@@ -88,26 +89,34 @@ class EventMessage(metaclass=Singleton):
 
     @classmethod
     def send(cls, module: str, event_id: str, severity: str, message_blob: str,\
-        problem_site_id: str = None, problem_rack_id: str = None, \
-        problem_node_id: str = None, event_time: float = None):
+        problem_cluster_id: str = None, problem_site_id: int = None, \
+        problem_rack_id: int = None, problem_node_id: int = None, \
+        problem_host: str = None, event_time: float = None):
         """
         Sends IEM alert message
 
         Parameters:
-        module            Indicates the sub module of a component that generated
-                          the IEM. i.e SSPL submodule like HPI.
-        event_id          A numerical value that uniquely identifies an event.
-        severity          The degree of impact an event has on the operation of
-                          a component.
-        message_blob      Blob alert message.
-        problem_site_id   Uniquely identifies a single data center site.
-                          (Sender Location)
-        problem_rack_id   A numerical value that identifies a single Rack in a
-                          single site (Sender Location)
-        problem_node_id   A numerical value that indicates node ID (UUID)
-                          (Sender Location)
-        event_time        Time of the event
+        module              Indicates the sub module of a component that
+                            generated the IEM. i.e SSPL submodule like HPI.
+        event_id            A numerical value that uniquely identifies an event.
+        severity            The degree of impact an event has on the operation
+                            of a component.
+        message_blob        Blob alert message.
+        problem_cluster_id  A alpha numerical value that indicates cluster ID.
+                            (Problem Location)
+        problem_site_id     Uniquely identifies a single data center site.
+                            (Problem Location)
+        problem_rack_id     A numerical value that identifies a single Rack in a
+                            single site. (Problem Location)
+        problem_node_id     A numerical value that indicates node ID. (UUID)
+                            (Problem Location)
+        problem_host        A string that indicates the hostname.
+                            (Problem Location)
+        event_time          Time of the event
         """
+
+        import socket
+        sender_host = socket.gethostname()
 
         if cls._producer is None:
             raise EventMessageError(errors.ERR_SERVICE_NOT_INITIALIZED, \
@@ -119,11 +128,15 @@ class EventMessage(metaclass=Singleton):
             cls._rack_id
         node_id = problem_node_id if problem_node_id is not None else \
             cls._node_id
+        cluster_id = problem_cluster_id if problem_cluster_id is not None else \
+            cls._cluster_id
+        host = problem_host if problem_host is not None else sender_host
+
         event_time = event_time if event_time is not None else time.time()
 
         # Validate attributes before sending
         for attribute in [module, event_id, message_blob, site_id, rack_id, \
-            node_id]:
+            node_id, cluster_id]:
             if attribute is None:
                 raise EventMessageError(errno.EINVAL, "Invalid IEM attributes \
                     %s", attribute)
@@ -141,14 +154,16 @@ class EventMessage(metaclass=Singleton):
                     'event_time': event_time
                     },
                 'location': {
+                    'cluster_id': cluster_id,
                     'site_id': site_id,
+                    'rack_id': rack_id,
                     'node_id': node_id,
-                    'rack_id': rack_id
+                    'host': host
                     },
                 'source': {
                     'site_id': cls._site_id,
-                    'node_id': cls._node_id,
                     'rack_id': cls._rack_id,
+                    'node_id': cls._node_id,
                     'component': cls._component,
                     'module': module
                     },
