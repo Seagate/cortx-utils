@@ -89,7 +89,7 @@ class EventMessage(metaclass=Singleton):
 
     @classmethod
     def send(cls, module: str, event_id: str, severity: str, message_blob: str,\
-        problem_cluster_id: int = None, problem_site_id: int = None, \
+        problem_cluster_id: str = None, problem_site_id: int = None, \
         problem_rack_id: int = None, problem_node_id: int = None, \
         problem_host: str = None, event_time: float = None):
         """
@@ -102,7 +102,7 @@ class EventMessage(metaclass=Singleton):
         severity            The degree of impact an event has on the operation
                             of a component.
         message_blob        Blob alert message.
-        problem_cluster_id  A numerical value that indicates cluster ID.
+        problem_cluster_id  A alpha numerical value that indicates cluster ID.
                             (Problem Location)
         problem_site_id     Uniquely identifies a single data center site.
                             (Problem Location)
