@@ -122,6 +122,7 @@ class SetupCmd(object):
     """Update 'cluster_id' to openldap_config file."""
     try:
       if path.isfile(f'{self.openldap_config_file}') == False:
+        Log.error(f'{self.openldap_config_file} must be present')
         raise Exception(f'{self.openldap_config_file} must be present')
       else:
         key = 'cluster_config>cluster_id'
