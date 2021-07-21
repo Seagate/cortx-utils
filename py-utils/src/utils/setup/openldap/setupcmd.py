@@ -92,7 +92,7 @@ class SetupCmd(object):
     """Read ldap credentials (rootdn, sgiam) from the openldap_config file"""
     try:
       # Load the openldap config file
-      index_id = 'openldap_config_file_read_index' 
+      index_id = 'openldap_config_file_read_index'
       Conf.load(index_id, f'yaml://{self.openldap_config_file}')
 
       # Read the cluster id from openldap_config file
@@ -124,7 +124,7 @@ class SetupCmd(object):
         raise Exception(f'{self.openldap_config_file} must be present')
       else:
         key = 'cluster_config>cluster_id'
-        index_id = 'openldap_config_file_cluster_id_index' 
+        index_id = 'openldap_config_file_cluster_id_index'
         Conf.load(index_id, f'yaml://{self.openldap_config_file}')
         Conf.set(index_id, f'{key}', f'{self.cluster_id}')
         Conf.save(index_id)
@@ -139,10 +139,8 @@ class SetupCmd(object):
     """Update ldap credentials (rootdn, sgiam) to openldap_config file."""
     try:
       # Load the openldap config file
-      index_id = 'openldap_config_file_write_index' 
+      index_id = 'openldap_config_file_write_index'
       Conf.load(index_id, f'yaml://{self.openldap_config_file}')
-
-      cipher_key = Cipher.generate_key(self.cluster_id , self.get_confkey('CONFSTORE_OPENLDAP_CONST_KEY'))
 
       # get the sgiam credentials from provisoner config file
       # set the sgiam credentials in to openldap_config file
