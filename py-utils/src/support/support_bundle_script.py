@@ -1,44 +1,42 @@
 import asyncio
-import getpass
-import errno
 
 from cortx.utils.support.bundle_generate import ComponentsBundle
 from cortx.utils.support.support_bundle import SupportBundle
 from cortx.utils.cli_framework.command import Command
 from cortx.utils.schema.providers import Response
+from cortx.utils.log import Log
 
 
 class SupportBundleScript:
     @staticmethod
-    def generate(comment: str, node_name: str, components: list):
-        current_user = str(getpass.getuser())
-        # Check if User is Root User.
-        if current_user.lower() != 'root':
-            response_msg = "Support Bundle Command requires root privileges"
-            return Response(output=response_msg, rc=errno.EACCES)
+    def generate(comment: str, **kwargs):
+        Log.init('support_bundle', '/var/log/cortx/utils/support', level='INFO',
+            backup_count=5, file_size_in_mb=5)
 
-        bundle_id = SupportBundle._generate_bundle_id()
+        components = ''
+        for key, value in kwargs.items():
+            if key == 'components':
+                components = value   
 
-        options = {'bundle_id': bundle_id, 'comment': comment, 'node_name': \
-            node_name, 'components': components, 'comm': {'type': 'direct', \
-            'target': 'csm.cli.support_bundle', 'method': 'init', 'class': \
-            'ComponentsBundle', 'is_static': True, 'params': {}, 'json': {}}, \
+        options = {'comment': comment,'components':components, 'comm': {'type': 'direct', \
+            'target': 'csm.cli.support_bundle', 'method': 'generate_bundle', 'class': \
+            'SupportBundle', 'is_static': True, 'params': {}, 'json': {}}, \
             'output': {}, 'need_confirmation': False, 'sub_command_name': \
-            'bundle_generate'}
+            'generate_bundle'}
 
-        cmd_obj = Command('bundle_generate', options, [])
+        cmd_obj = Command('generate_bundle', options, [])
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(ComponentsBundle.init(cmd_obj))
-        return bundle_id
+        res = loop.run_until_complete(SupportBundle.generate_bundle(cmd_obj))
+        return res
 
     @staticmethod
     def get_bundle_status(bundle_id: str):
         # status
         import time
-        time.sleep(3)
+        time.sleep(5)
 
         options = {'bundle_id': bundle_id, 'comm': {'type': 'direct', \
-            'target': 'csm.cli.support_bundle', 'method': 'init', 'class': \
+            'target': 'csm.cli.support_bundle', 'method': 'get_bundle_status', 'class': \
             'SupportBundle', 'is_static': True, 'params': {}, 'json': {}}, \
             'output': {}, 'need_confirmation': False, 'sub_command_name': \
             'get_bundle_status'}
@@ -51,10 +49,9 @@ class SupportBundleScript:
 
 
 if __name__ == '__main__':
-    from cortx.utils.conf_store import Conf
-    Conf.load('cortx_cluster', 'json:///etc/cortx/cluster.conf')
-    node_name = Conf.get('cortx_cluster', 'server_node>name')
+    # componets parameter is optional, if not specified support bundle 
+    # will be created for all components. You can specify multiple 
+    # components like components = ['utils', 'provisioner']
     bundle_id = SupportBundleScript.generate(
-        comment='Test support bundle generation', node_name=node_name,
-        components=['utils'])
+        comment='Test support bundle generation')
     SupportBundleScript.get_bundle_status(bundle_id=bundle_id)
