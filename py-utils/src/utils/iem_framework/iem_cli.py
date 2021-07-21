@@ -105,7 +105,7 @@ class IemCli:
             problem_site_id=send_args['problem_site_id'],
             problem_rack_id=send_args['problem_rack_id'],
             problem_node_id=send_args['problem_node_id'],
-            problem_host=send_args['host'],
+            problem_host=send_args['problem_host'],
             event_time=send_args['event_time']
         )
 
