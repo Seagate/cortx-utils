@@ -1,12 +1,12 @@
 #!/usr/bin/env groovy
 pipeline {
-	 	 
+          
     agent {
-		node {
-			label 'docker-cp-centos-7.8.2003-node'
-		}
-	}
-	
+        node {
+            label 'docker-cp-centos-7.8.2003-node'
+        }
+    }
+    
     environment {
         version = "2.0.0"
         third_party_version = "2.0.0-latest"
@@ -20,40 +20,40 @@ pipeline {
         passphrase = credentials('rpm-sign-passphrase')
         ARTIFACT_LOCATION = "http://cortx-storage.colo.seagate.com/releases/cortx/github/$branch/$os_version"
         third_party_dir = "$release_dir/third-party-deps/centos/centos-7.8.2003-$third_party_version/"
-		python_deps = "$release_dir/third-party-deps/python-deps/python-packages-2.0.0-latest"
+        python_deps = "$release_dir/third-party-deps/python-deps/python-packages-2.0.0-latest"
         cortx_os_iso = "/mnt/bigstorage/releases/cortx_builds/custom-os-iso/cortx-2.0.0/cortx-os-2.0.0-7.iso"
         // WARNING : 'rm' command where used in this dir path, be conscious while changing the value  
-		cortx_build_dir = "$release_dir/github/$branch/$os_version/cortx_builds" 
+        cortx_build_dir = "$release_dir/github/$branch/$os_version/cortx_builds" 
     }
-	
-	options {
-		timeout(time: 120, unit: 'MINUTES')
-		timestamps()
+    
+    options {
+        timeout(time: 120, unit: 'MINUTES')
+        timestamps()
         ansiColor('xterm')
-		disableConcurrentBuilds()  
-	}
-		
-	stages {	
-	
-		stage('Install Dependecies') {
-			steps {
+        disableConcurrentBuilds()  
+    }
+        
+    stages {    
+    
+        stage('Install Dependecies') {
+            steps {
                 script { build_stage = env.STAGE_NAME }
                 sh label: 'Installed Dependecies', script: '''
                     yum install -y expect rpm-sign rng-tools genisoimage python3-pip
                     systemctl start rngd
-                '''	
-			}
-		}
+                '''    
+            }
+        }
 
         stage('Checkout Release scripts') {
-			steps {
-        	    script { build_stage = env.STAGE_NAME }
+            steps {
+                script { build_stage = env.STAGE_NAME }
                 checkout([$class: 'GitSCM', branches: [[name: 'main']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'AuthorInChangelog']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: 'https://github.com/Seagate/cortx-re.git']]])
-			}
-		}
-			
-		stage ('Collect Component RPMS') {
-			steps {
+            }
+        }
+            
+        stage ('Collect Component RPMS') {
+            steps {
                 script { build_stage = env.STAGE_NAME }
                 sh label: 'Copy RPMS', script:'''
                     for env in "dev";
@@ -74,18 +74,18 @@ pipeline {
                     cp -n -r $integration_dir/$release_tag/dev/* $integration_dir/$release_tag/prod/
 
                     pushd $integration_dir/$release_tag/prod
-                        rm -f *-debuginfo-*.rpm 
+                        rm -rf cortx-[hlp]*-debuginfo-*.rpm 
                         rm -f cortx-s3iamcli*.rpm
                         rm -f cortx-s3-test*.rpm
                     popd
                 '''
-			}
-		}
+            }
+        }
 
         stage('RPM Validation') {
-			steps {
+            steps {
                 script { build_stage = env.STAGE_NAME }
-				sh label: 'Validate RPMS for Motr Dependency', script:'''
+                sh label: 'Validate RPMS for Motr Dependency', script:'''
                 for env in "dev" "prod";
                 do
                     set +x
@@ -106,30 +106,30 @@ pipeline {
                             if [ "$motr_dep" = "$motr_rpm_release_version" ]; then
                                 echo "\033[1;32m $component Motr version matches with integration Motr rpm ($motr_rpm_release_version) Good to Go - Validation Success \033[0m "
                             else
-                                echo "\033[1;31m $component Motr version ( $motr_dep ) mismatchs with integration Motr rpm ( $motr_rpm_release_version ) - Validation Failed \033[0m"		
+                                echo "\033[1;31m $component Motr version ( $motr_dep ) mismatchs with integration Motr rpm ( $motr_rpm_release_version ) - Validation Failed \033[0m"        
                                 exit 1
                             fi
                         fi
                     done
                 done
                 '''
-			}
-		}
-		
-		stage ('Sign rpm') {
-			steps {
+            }
+        }
+        
+        stage ('Sign rpm') {
+            steps {
                 script { build_stage = env.STAGE_NAME }
                                 
                 sh label: 'Generate Key', script: '''
                     set +x
-					pushd scripts/rpm-signing
+                    pushd scripts/rpm-signing
                     cat gpgoptions >>  ~/.rpmmacros
                     sed -i 's/passphrase/'${passphrase}'/g' genkey-batch
                     gpg --batch --gen-key genkey-batch
                     gpg --export -a 'Seagate'  > RPM-GPG-KEY-Seagate
                     rpm --import RPM-GPG-KEY-Seagate
-					popd
-				'''
+                    popd
+                '''
 
                 sh label: 'Sign RPM', script: '''
                     set +x
@@ -142,14 +142,14 @@ pipeline {
                             do
                             ./rpm-sign.sh ${passphrase} $rpm
                             done
-					    popd
+                        popd
                     done    
                 '''
-			}
-		}
-				
-		stage ('Repo Creation') {
-			steps {
+            }
+        }
+                
+        stage ('Repo Creation') {
+            steps {
                 script { build_stage = env.STAGE_NAME }
         
                 sh label: 'Repo Creation', script: '''
@@ -163,15 +163,15 @@ pipeline {
                     done
                     
                 '''
-			}
-		}	
+            }
+        }    
 
         stage('Release cortx_build') {
             steps {
                 script { build_stage = env.STAGE_NAME }
                 sh label: 'Release cortx_build', script: '''
-					mkdir -p $cortx_build_dir
-					pushd $cortx_build_dir
+                    mkdir -p $cortx_build_dir
+                    pushd $cortx_build_dir
                         test -d $release_tag && rm -f $release_tag
                         mkdir $release_tag && pushd $release_tag
                             ln -s $(readlink -f $third_party_dir) 3rd_party
@@ -179,22 +179,22 @@ pipeline {
                         popd
                     popd
                 '''
-			}
+            }
         }
-		
-		stage ('Build Release Info') {
-			steps {
+        
+        stage ('Build Release Info') {
+            steps {
                 script { build_stage = env.STAGE_NAME }
                 sh label: 'Build Release Info', script: """
-				    pushd scripts/release_support
+                    pushd scripts/release_support
                         sh build_release_info.sh -b $branch -v $version -l $integration_dir/$release_tag/dev -t $cortx_build_dir/$release_tag/3rd_party
                         sh build_release_info.sh -b $branch -v $version -l $integration_dir/$release_tag/prod -t $cortx_build_dir/$release_tag/3rd_party
-						sh build_readme.sh $integration_dir/$release_tag
-					popd
-					
-					cp $integration_dir/$release_tag/README.txt .
+                        sh build_readme.sh $integration_dir/$release_tag
+                    popd
+                    
+                    cp $integration_dir/$release_tag/README.txt .
                     cp $integration_dir/$release_tag/dev/RELEASE.INFO .
-					
+                    
                 """
                 sh label: 'Generate Changelog', script: """
                     pushd scripts/release_support
@@ -204,16 +204,16 @@ pipeline {
                     cp CHANGESET.txt $integration_dir/$release_tag/dev
                     cp CHANGESET.txt $integration_dir/$release_tag/prod
                 """
-			}
-		}
-		
+            }
+        }
+        
 
-		stage ('Generate Release ISO') {
-		    steps {
+        stage ('Generate Release ISO') {
+            steps {
 
                 sh label: 'Release ISO', script: '''
-				mkdir -p $cortx_build_dir/$release_tag/cortx_iso
-		        mv $integration_dir/$release_tag/prod/* $cortx_build_dir/$release_tag/cortx_iso
+                mkdir -p $cortx_build_dir/$release_tag/cortx_iso
+                mv $integration_dir/$release_tag/prod/* $cortx_build_dir/$release_tag/cortx_iso
                 mkdir -p $integration_dir/$release_tag/prod/iso
                 
                 genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -hide-rr-moved -publisher Seagate -o $integration_dir/$release_tag/prod/iso/cortx-$version-$BUILD_NUMBER-single.iso $cortx_build_dir/$release_tag
@@ -224,16 +224,16 @@ pipeline {
                 mkdir -p $cortx_build_dir/$release_tag/sw_upgrade/{3rd_party,cortx_iso,python_deps}
                 createrepo -v $cortx_build_dir/$release_tag/sw_upgrade/3rd_party/
                 find $cortx_build_dir/$release_tag/3rd_party/ -not -path '*repodata*' -type d  -printf '%P\n' | xargs -t -I % sh -c '{ mkdir -p $cortx_build_dir/$release_tag/sw_upgrade/3rd_party/%; createrepo -v $cortx_build_dir/$release_tag/sw_upgrade/3rd_party/%; }'
-		        
+                
                 #Copy all component packages
                 cp -r $cortx_build_dir/$release_tag/cortx_iso/* $cortx_build_dir/$release_tag/sw_upgrade/cortx_iso
                 
                 #Copy RELEASE.INFO, Third Party RPM and Python index files.
                 cp $cortx_build_dir/$release_tag/3rd_party/THIRD_PARTY_RELEASE.INFO $cortx_build_dir/$release_tag/sw_upgrade/3rd_party
                 sed -i -e /tar/d -e /rpm/d -e /tgz/d $cortx_build_dir/$release_tag/sw_upgrade/3rd_party/THIRD_PARTY_RELEASE.INFO
-				cp $cortx_build_dir/$release_tag/python_deps/index.html $cortx_build_dir/$release_tag/sw_upgrade/python_deps/index.html
-				sed -i /href/d $cortx_build_dir/$release_tag/sw_upgrade/python_deps/index.html
-				cp $cortx_build_dir/$release_tag/cortx_iso/RELEASE.INFO $cortx_build_dir/$release_tag/sw_upgrade/
+                cp $cortx_build_dir/$release_tag/python_deps/index.html $cortx_build_dir/$release_tag/sw_upgrade/python_deps/index.html
+                sed -i /href/d $cortx_build_dir/$release_tag/sw_upgrade/python_deps/index.html
+                cp $cortx_build_dir/$release_tag/cortx_iso/RELEASE.INFO $cortx_build_dir/$release_tag/sw_upgrade/
                 
                 genisoimage -input-charset iso8859-1 -f -J -joliet-long -r -allow-lowercase -allow-multidot -hide-rr-moved -publisher Seagate -o $integration_dir/$release_tag/prod/iso/cortx-$version-$BUILD_NUMBER-upgrade.iso $cortx_build_dir/$release_tag/sw_upgrade
                 rm -rf $cortx_build_dir/$release_tag/sw_upgrade
@@ -247,7 +247,7 @@ pipeline {
                 popd
                 '''
 
-		        sh label: 'Additional Files', script:'''
+                sh label: 'Additional Files', script:'''
                 cortx_prvsnr_preq=$(ls "$cortx_build_dir/$release_tag/cortx_iso" | grep "python36-cortx-prvsnr" | cut -d- -f5 | cut -d_ -f2 | cut -d. -f1 | sed s/"git"//)
                     
                 wget -O $integration_dir/$release_tag/prod/iso/install-$version-$BUILD_NUMBER.sh https://raw.githubusercontent.com/Seagate/cortx-prvsnr/$cortx_prvsnr_preq/srv/components/provisioner/scripts/cortx_prep.sh
@@ -256,14 +256,14 @@ pipeline {
  
                 mv $cortx_build_dir/$release_tag/* $integration_dir/$release_tag/prod
                 cp $integration_dir/$release_tag/prod/*/*.INFO $integration_dir/$release_tag/prod
-                		
+                        
                 rm -rf "$cortx_build_dir/$release_tag"
-		        '''
-		    }
-		}
-    		
-		stage ('Tag last_successful') {
-			steps {
+                '''
+            }
+        }
+            
+        stage ('Tag last_successful') {
+            steps {
                 script { build_stage = env.STAGE_NAME }
                 sh label: 'Tag last_successful', script: '''
                     pushd $integration_dir
@@ -273,13 +273,13 @@ pipeline {
                     ln -s $integration_dir/$release_tag/prod last_successful_prod
                     popd
                 '''
-			}
-		}
+            }
+        }
 
         stage ("Deploy") {
             steps {
                 script { build_stage = env.STAGE_NAME }
-				script {
+                script {
                     build job: 'Main Deploy 1N', propagate: false, wait: false, parameters: [
                             string(name: 'CORTX_BUILD', value: "http://cortx-storage.colo.seagate.com/releases/cortx/github/${branch}/${os_version}/${env.release_tag}/prod"),
                             booleanParam(name: 'CREATE_JIRA_ISSUE_ON_FAILURE', value: true),
@@ -298,16 +298,16 @@ pipeline {
                             string(name: 'CORTX_BUILD', value: "http://cortx-storage.colo.seagate.com/releases/cortx/github/${branch}/${os_version}/${env.release_tag}/prod"),
                             booleanParam(name: 'AUTOMATED', value: true)
                         ]       
-				}
+                }
             }
         }
-	}
-	
-	post {
-	
-		always {
+    }
+    
+    post {
+    
+        always {
             script {
-                	
+                    
                 currentBuild.upstreamBuilds?.each { b -> env.upstream_project = "${b.getProjectName()}";env.upstream_build = "${b.getId()}" }
                 env.release_build_location = "http://cortx-storage.colo.seagate.com/releases/cortx/github/${branch}/${os_version}/${env.release_tag}"
                 env.release_build = "${env.release_tag}"
@@ -324,7 +324,7 @@ pipeline {
                         attachmentsPattern: 'CHANGESET.txt'
                     )
 
-				archiveArtifacts artifacts: "README.txt, RELEASE.INFO, CHANGESET.txt", onlyIfSuccessful: false, allowEmptyArchive: true
+                archiveArtifacts artifacts: "README.txt, RELEASE.INFO, CHANGESET.txt", onlyIfSuccessful: false, allowEmptyArchive: true
             }
         }
     }
