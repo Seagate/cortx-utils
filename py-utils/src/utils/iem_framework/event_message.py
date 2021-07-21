@@ -158,7 +158,7 @@ class EventMessage(metaclass=Singleton):
                     'site_id': site_id,
                     'rack_id': rack_id,
                     'node_id': node_id,
-                    'host_id': host
+                    'host': host
                     },
                 'source': {
                     'site_id': cls._site_id,
