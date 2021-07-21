@@ -302,3 +302,38 @@ class KvPayload:
         if rc == True and key in self._keys:
             del self._keys[self._keys.index(key)]
         return rc
+
+
+class ConsulKvPayload:
+    """ backend adapter for consul api """
+
+    def __init__(self, consul, delim):
+        self._consul = consul
+        if len(delim) > 1:
+            raise KvError(errno.EINVAL, "Invalid delim %s", delim)
+        self._delim = delim
+
+    def get(self, key: str) -> str:
+        """ get value for consul key """
+        index, data = self._consul.kv.get(key)
+        if isinstance(data, dict):
+            return data['Value'].decode()
+        elif data is None:
+            return None
+        else:
+            raise KvError(errno.EINVAL,
+                          "Invalid response from consul: %d:%s", index, data)
+
+    def set(self, key: str, val: str):
+        """ set the value to the key in consul kv """
+        return self._consul.kv.put(key, val)
+
+    def delete(self, key: str):
+        """ delete the key:value for the input key """
+        return self._consul.kv.delete(key)
+
+    def get_keys(self) -> list:
+        """ Return a list of all the keys present"""
+        keys =  self._consul.kv.get("", keys=True)[1]
+        return keys
+

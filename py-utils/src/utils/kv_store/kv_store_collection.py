@@ -22,6 +22,7 @@ import os
 from cortx.utils.kv_store.error import KvError
 from cortx.utils.kv_store.kv_store import KvStore
 from cortx.utils.kv_store.kv_payload import KvPayload
+from cortx.utils.kv_store.kv_payload import ConsulKvPayload
 from cortx.utils.process import SimpleProcess
 
 
@@ -395,3 +396,21 @@ class PillarStore(KvStore):
     def delete(self, key):
         # TODO: Implement
         pass
+
+
+class ConsulStore(KvStore):
+    """ Consul basedKV store """
+
+    name = 'consul'
+
+    def __init__(self, store_loc, store_path, delim='>'):
+        KvStore.__init__(self, store_loc, store_path, delim)
+        from consul import Consul
+        self.c = Consul()
+
+    def load(self, **kwargs -> ConsulKvPayload:
+        return ConsulKvPayload(self.c, self._delim)
+
+    def dump(self):
+        raise KvError(errno.ENOSYS, f"%s:dump() not implemented",
+                      type(self).__name__)
