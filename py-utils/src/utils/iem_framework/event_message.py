@@ -150,10 +150,10 @@ class EventMessage(metaclass=Singleton):
                     'event_time': event_time
                     },
                 'location': {
+                    'cluster_id': cluster_id,
                     'site_id': site_id,
                     'rack_id': rack_id,
-                    'node_id': node_id,
-                    'cluster_id': cluster_id
+                    'node_id': node_id
                     },
                 'source': {
                     'site_id': cls._site_id,
