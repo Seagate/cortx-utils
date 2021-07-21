@@ -230,13 +230,15 @@ class ConsulDB(GenericDataBase):
 
     @classmethod
     async def create_database(cls, config, collection: str,
-                              model: Type[BaseModel]) -> IDataBase:
+                              model: Type[BaseModel],
+                              create_schema: bool=True) -> IDataBase:
         """
         Creates new instance of Consul KV DB and performs necessary initializations
 
         :param DBSettings config: configuration for consul kv server
         :param str collection: collection for storing model onto db
         :param Type[BaseModel] model: model which instances will be stored in DB
+        :param bool create_schema: if the flag is true, the collection will be created.
         :return:
         """
         # NOTE: please, be sure that you avoid using this method twice (or more times) for the same
@@ -256,7 +258,8 @@ class ConsulDB(GenericDataBase):
                         cls.loop)
 
         try:
-            await consul_db.create_object_root()
+            if create_schema:
+                await consul_db.create_object_root()
         except ClientConnectorError as e:
             raise DataAccessExternalError(f"{e}")
         except Exception as e:

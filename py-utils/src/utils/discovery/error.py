@@ -25,3 +25,12 @@ class DiscoveryError(BaseError):
         """Initialize DiscoveryError"""
         super(DiscoveryError, self).__init__(
               rc, '%s' % desc, message_id, message_args)
+
+
+class ResourceMapError(BaseError):
+    """Generic Exception with error code and output."""
+
+    def __init__(self, rc=0, desc=None, message_id=None, message_args=None):
+        """Initialize ResourceMapError."""
+        super(ResourceMapError, self).__init__(
+              rc, '%s' % desc, message_id, message_args)
