@@ -123,8 +123,9 @@ class UtilsSupportBundle:
         for key, cmd in _cli.items():
             cmd_proc = SimpleProcess(cmd)
             result_data = cmd_proc.run()
-            Conf.set('kafka_and_zookeeper_status', key, str(result_data[1],
-                'utf-8'))
+            err_msg = str(result_data[1], 'utf-8')
+            result = err_msg if err_msg else str(result_data[0], 'utf-8')
+            Conf.set('kafka_and_zookeeper_status', key, result)
         Conf.save('kafka_and_zookeeper_status')
 
     @staticmethod
