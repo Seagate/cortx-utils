@@ -55,7 +55,6 @@ class SetupCmd(object):
 
   config_file_path = "/etc/cortx/cortx.conf"
   Conf.load('config_file', f'yaml:///{config_file_path}')
-  mdb_dir = Conf.get(index='config_file', key='install_path') + '/cortx/utils/conf'
   openldap_prov_config = Conf.get(index='config_file', key='install_path') + '/cortx/utils/conf/' + 'openldap_prov_config.yaml'
   openldap_config_file = Conf.get(index='config_file', key='install_path') + '/cortx/utils/conf/' + "openldap_config.yaml"
 
