@@ -21,7 +21,7 @@
                   ]
               },
               "hw":{
-                  "disks":[
+                  "disk":[
                     {
                         "uid":"disk_1",
                         "fru":"true",
@@ -111,7 +111,7 @@
                         }
                     }
                   ],
-                  "psus":[
+                  "psu":[
                     {
                         "uid":"psu_1",
                         "fru":"true",
@@ -153,7 +153,7 @@
                         }
                     }
                   ],
-                  "fans":[
+                  "fan":[
                     {
                         "uid":"fan_1",
                         "fru":"true",
@@ -206,7 +206,7 @@
                         }
                     }
                   ],
-                  "platform_sensors":{
+                  "platform_sensor":{
                     "temperature_sensors":[
                         {
                           "uid":"CPU1_Temp",
@@ -303,7 +303,7 @@
                         }
                     }
                   ],
-                  "sas_ports":[
+                  "sas_port":[
                     {
                         "uid":"sas_port_1",
                         "fru":"false",
@@ -350,7 +350,7 @@
                         }
                     }
                   ],
-                  "nw_ports":[
+                  "nw_port":[
                     {
                         "uid":"br0",
                         "fru":"false",
@@ -632,7 +632,7 @@
                   ]
               },
               "hw":{
-                  "disks":[
+                  "disk":[
                     {
                         "uid":"disk_001",
                         "fru":"true",
@@ -676,7 +676,7 @@
                         }
                     }
                   ],
-                  "psus":[
+                  "psu":[
                     {
                         "uid":"psu_001",
                         "fru":"true",
@@ -720,7 +720,7 @@
                         }
                     }
                   ],
-                  "controllers":[
+                  "controller":[
                     {
                         "uid":"controller_a",
                         "fru":"true",
@@ -764,7 +764,7 @@
                         }
                     }
                   ],
-                  "fanmodules":[
+                  "fanmodule":[
                     {
                         "uid":"fanmodule_001",
                         "fru":"true",
@@ -872,7 +872,7 @@
                         }
                     }
                   ],
-                  "sas_ports":[
+                  "sas_port":[
                     {
                         "uid":"expport_universal_0.A0",
                         "fru":"false",
@@ -906,8 +906,8 @@
                         }
                     }
                   ],
-                  "platform_sensors":{
-                    "temperature_sensors":[
+                  "platform_sensor":{
+                    "temperature":[
                         {
                           "uid":"sensor_temp_ctrl_B.1",
                           "fru":"false",
@@ -945,7 +945,7 @@
                           }
                         }
                     ],
-                    "voltage_sensors":[
+                    "voltage":[
                         {
                           "uid":"sensor_volt_ctrl_B.0",
                           "fru":"false",
@@ -983,7 +983,7 @@
                           }
                         }
                     ],
-                    "current_sensors":[
+                    "current":[
                         {
                           "uid":"sensor_curr_psu_0.1.0",
                           "fru":"false",
@@ -1026,7 +1026,7 @@
               "fw":{
                   "fw":"GNS265R14-01",
                   "base_version":"G265",
-                  "disk_groups":[
+                  "disk_group":[
                     {
                         "uid":"diskgroup-dg01",
                         "fru":"false",
@@ -1076,7 +1076,7 @@
                         }
                     }
                   ],
-                  "logical_volumes":[
+                  "logical_volume":[
                     {
                         "uid":"logical_volumes-V0",
                         "fru":"false",

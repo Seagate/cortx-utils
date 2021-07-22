@@ -34,7 +34,7 @@ common_config.load()
 #valid_rpath = "node"
 #valid_rpath = "node>compute[0]"
 #valid_rpath = "node>storage[0]"
-valid_rpath = "node>storage[0]>hw>controllers"
+valid_rpath = "node>storage[0]>hw>controller"
 invalid_rpath = "node>notexist[0]"
 
 

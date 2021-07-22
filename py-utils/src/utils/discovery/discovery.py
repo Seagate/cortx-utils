@@ -49,10 +49,10 @@ class Discovery:
             If rpath is not given, it will fetch whole Cortx Node
             data health.
             Examples:
-                node>compute[0]>hw>disks
+                node>compute[0]>hw>disk
                 node>compute[0]
                 node>storage[0]
-                node>storage[0]>hw>psus
+                node>storage[0]>hw>psu
         store_url: Path to store resource health information
         """
         request_id = datetime.strftime(datetime.utcnow(),

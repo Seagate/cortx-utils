@@ -39,14 +39,14 @@ class Server:
     def get_health_info(self, rpath):
         """
         Fetch health information for given FRU
-        rpath: Resource id (Example: node>compute[0]>hw>disks)
+        rpath: Resource id (Example: node>compute[0]>hw>disk)
         """
         return Conf.get(mock_index, rpath)
 
     def get_manifest_info(self, rpath):
         """
         Fetch manifest information for given FRU
-        rpath: Resource id (Example: node>compute[0]>hw>disks)
+        rpath: Resource id (Example: node>compute[0]>hw>disk)
         """
         return Conf.get(mock_index, rpath)
 
@@ -59,14 +59,14 @@ class Storage:
     def get_health_info(self, rpath):
         """
         Fetch health information for given FRU
-        rpath: Resource id (Example: node>storage[0]>hw>controllers)
+        rpath: Resource id (Example: node>storage[0]>hw>controller)
         """
         return Conf.get(mock_index, rpath)
 
     def get_manifest_info(self, rpath):
         """
         Fetch manifest for given FRU
-        rpath: Resource id (Example: node>storage[0]>hw>controllers)
+        rpath: Resource id (Example: node>storage[0]>hw>controller)
         """
         return Conf.get(mock_index, rpath)
 
@@ -74,4 +74,4 @@ class Storage:
 
 if __name__ == "__main__":
     storage = Storage()
-    storage.get_health_info(rpath="node>storage[0]>hw>controllers")
+    storage.get_health_info(rpath="node>storage[0]>hw>controller")
