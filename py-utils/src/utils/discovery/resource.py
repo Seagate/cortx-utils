@@ -84,7 +84,8 @@ class Resource:
         except ModuleNotFoundError:
             raise DiscoveryError(
                 errno.ENOENT,
-                "Failed to import health provider module from configured path - %s" % path)
+                "Failed to import backend resource provider module " \
+                    "from configured path - %s" % path)
         return module
 
     def get_health_info(self, rpath):

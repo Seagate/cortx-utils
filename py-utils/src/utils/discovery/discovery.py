@@ -16,16 +16,28 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
-import os
 import threading
 import time
+from datetime import datetime
 
 from cortx.utils.discovery.error import DiscoveryError
-from cortx.utils.discovery.node_health import NodeHealth, common_config
+from cortx.utils.discovery.request_handler import RequestHandler, common_config
 
 
 class Discovery:
     """Common interfaces of Discovery Library"""
+
+    @staticmethod
+    def __generate__(args, kwargs):
+        """Start processing the request."""
+        t = threading.Thread(target=RequestHandler.process,
+                             args=args,
+                             kwargs=kwargs)
+        t.start()
+
+        # When multiple requests gets registered, KV load throws decoding error
+        # due to key scanning happening at the same time by other requests.
+        time.sleep(0.5)
 
     @staticmethod
     def generate_node_health(rpath: str = None, store_url: str = None):
@@ -43,29 +55,12 @@ class Discovery:
                 node>storage[0]>hw>psus
         store_url: Path to store resource health information
         """
-        request_id = str(time.time()).replace(".", "")
-        t = threading.Thread(
-            target=NodeHealth.generate, args=(rpath, request_id, store_url))
-        t.start()
-
-        # When multiple requests gets registered, KV load throws decoding error
-        # due to key scanning happening at the same time by other requests.
-        time.sleep(0.5)
-
+        request_id = datetime.strftime(datetime.utcnow(),
+                                       '%Y%m%d%H%M%S%f')
+        args = (rpath, request_id, store_url)
+        kwargs = {"req_type": 'health'}
+        Discovery.__generate__(args, kwargs)
         return request_id
-
-    @staticmethod
-    def get_gen_node_health_status(request_id):
-        """
-        Returns processing status of the given request id.
-
-        "In-progress" if health generation request is being processed
-        "Success" if health generation request is completed
-        "Failed (with reason)" if request is failed
-        """
-        if not request_id:
-            raise DiscoveryError(errno.EINVAL, "Invalid request ID.")
-        return NodeHealth.get_processing_status(request_id)
 
     @staticmethod
     def get_node_health(request_id=None):
@@ -77,7 +72,8 @@ class Discovery:
         store url.
         URL format: "json://<file_path>/<file_name>"
         """
-        return NodeHealth.get_resource_map_location(request_id)
+        return RequestHandler.get_resource_map_location(
+            request_id, "health")
 
     @staticmethod
     def generate_manifest(rpath: str = None, store_url: str = None):
@@ -87,31 +83,12 @@ class Discovery:
 
         If no rpath given it generates manifest for all resources.
         """
-        request_id = str(time.time()).replace(".", "")
-        t = threading.Thread(
-            target=NodeHealth.generate,
-            args=(rpath, request_id, store_url),
-            kwargs={"manifest": True})
-        t.start()
-
-        # When multiple requests get registered, KV load throws decoding error
-        # due to key scanning happening at the same time by other requests.
-        time.sleep(0.5)
-
+        request_id = datetime.strftime(datetime.utcnow(),
+                                       '%Y%m%d%H%M%S%f')
+        args = (rpath, request_id, store_url)
+        kwargs = {"req_type": 'manifest'}
+        Discovery.__generate__(args, kwargs)
         return request_id
-
-    @staticmethod
-    def get_gen_manifest_status(request_id):
-        """
-        Returns processing status of the given request id.
-
-        "In-progress" if manifest request is being processed
-        "Success" if manifest request is completed
-        "Failed (with reason)" if request is failed
-        """
-        if not request_id:
-            raise DiscoveryError(errno.EINVAL, "Invalid request ID.")
-        return NodeHealth.get_processing_status(request_id)
 
     @staticmethod
     def get_manifest(request_id=None):
@@ -123,4 +100,18 @@ class Discovery:
         store url.
         URL format: "json://<file_path>/<file_name>"
         """
-        return NodeHealth.get_resource_map_location(request_id)
+        return RequestHandler.get_resource_map_location(
+            request_id, "manifest")
+
+    @staticmethod
+    def get_request_status(request_id):
+        """
+        Returns processing status of the given request id.
+
+        "In-progress" if request is being processed
+        "Success" if request is completed
+        "Failed (with reason)" if request is failed
+        """
+        if not request_id:
+            raise DiscoveryError(errno.EINVAL, "Invalid request ID.")
+        return RequestHandler.get_processing_status(request_id)

@@ -48,8 +48,8 @@ req_register = KvStoreFactory.get_instance(requests_url)
 req_register.load()
 
 
-class NodeHealth:
-    """This generates node health information and updates map"""
+class RequestHandler:
+    """This handles resource map generation requests"""
 
     ROOT_NODE = "node"
     INPROGRESS = "In-progress"
@@ -73,7 +73,7 @@ class NodeHealth:
     def add_discovery_request(rpath, req_id, url):
         """Updates new request information"""
         req_register.set(["%s>rpath" % req_id], [rpath])
-        req_register.set(["%s>status" % req_id], [NodeHealth.INPROGRESS])
+        req_register.set(["%s>status" % req_id], [RequestHandler.INPROGRESS])
         req_register.set(["%s>url" % req_id], [url])
         req_register.set(["%s>time" % req_id], [int(time.time())])
 
@@ -84,84 +84,98 @@ class NodeHealth:
         req_register.set(["%s>time" % req_id], [int(time.time())])
 
     @staticmethod
-    def update_resource_map(rpath, manifest):
-        """Update resource map for resources in rpath"""
+    def update_resource_map(rpath, request_type):
+        """
+        Fetch information based on request type and update
+        resource map for given rpath.
+        """
         # Parse rpath and find left node
         nodes = rpath.strip().split(">")
-        leaf_node, _ = NodeHealth.get_node_details(nodes[-1])
+        leaf_node, _ = RequestHandler.get_node_details(nodes[-1])
 
         for num, node in enumerate(nodes, 1):
-            node, _ = NodeHealth.get_node_details(node)
+            node, _ = RequestHandler.get_node_details(node)
             resource = ResourceFactory.get_instance(node, rpath)
 
             # Validate next node is its child
             child_found = False
             if node != leaf_node:
-                next_node, _ = NodeHealth.get_node_details(nodes[num])
+                next_node, _ = RequestHandler.get_node_details(nodes[num])
                 child_found = resource.has_child(next_node)
                 if resource.childs and not child_found:
                     raise DiscoveryError(
                         errno.EINVAL, "Invalid rpath '%s'" % rpath)
 
-            # Fetch node health information
+            # Fetch resource information and update store file
             if node == leaf_node and len(resource.childs) != 0:
                 for child in resource.childs:
                     child_inst = ResourceFactory.get_instance(child, rpath)
                     main = resource(child_resource=child_inst)
                     joined_rpath = rpath + ">" + child
-                    if manifest:
-                        main.set(joined_rpath, main.get_manifest_info(joined_rpath))
-                    else:
-                        main.set(joined_rpath, main.get_health_info(joined_rpath))
+                    request_func_map = {
+                        "health": main.get_health_info,
+                        "manifest": main.get_manifest_info
+                        }
+                    main.set(joined_rpath,
+                             request_func_map[request_type](joined_rpath))
                 break
             elif node == leaf_node or len(resource.childs) == 0:
                 main = resource(child_resource=None)
-                if manifest:
-                    main.set(rpath, main.get_manifest_info(rpath))
-                else:
-                    main.set(rpath, main.get_health_info(rpath))
+                request_func_map = {
+                    "health": main.get_health_info,
+                    "manifest": main.get_manifest_info
+                    }
+                main.set(rpath, request_func_map[request_type](rpath))
                 break
 
     @staticmethod
-    def generate(rpath: str, req_id: str, store_url: str, manifest: bool = False):
-        """Generates node health information and updates resource map"""
+    def process(rpath: str, req_id: str, store_url: str, req_type: str = "health"):
+        """
+        Creates resource map and updates resource information
+        for given req_type.
+
+        rpath: Resource path for information fetched
+        req_id: Request ID to be processed and used in store url format
+        store_url: Location to update resource information
+        req_type: Request type, i.e 'health' or 'manifest' or ...
+        """
         if not store_url and not rpath:
             # Create static store url
-            rpath = NodeHealth.ROOT_NODE
+            rpath = RequestHandler.ROOT_NODE
             store_type = common_config.get(["discovery>resource_map>store_type"])[0]
             resource_map_loc = common_config.get(["discovery>resource_map>location"])[0]
-            data_file = os.path.join(resource_map_loc,
-                "node_health_info.%s" % (store_type))
-            if manifest:
-                data_file = os.path.join(resource_map_loc,
-                    "manifest_info.%s" % (store_type))
+            data_file_map = {
+                "health": "node_health_info.%s" % (store_type),
+                "manifest": "manifest_info.%s" % (store_type)
+                }
+            data_file = os.path.join(resource_map_loc, data_file_map[req_type])
             store_url = "%s://%s" % (store_type, data_file)
 
         elif not store_url and rpath:
             # Create request_id based store_url
             store_type = common_config.get(["discovery>resource_map>store_type"])[0]
             resource_map_loc = common_config.get(["discovery>resource_map>location"])[0]
-            data_file = os.path.join(resource_map_loc,
-                "node_health_info_%s.%s" % (req_id, store_type))
-            if manifest:
-                data_file = os.path.join(resource_map_loc,
-                    "manifest_%s.%s" % (req_id, store_type))
+            data_file_map = {
+                "health": "node_health_info_%s.%s" % (req_id, store_type),
+                "manifest": "manifest_info.%s" % (store_type)
+                }
+            data_file = os.path.join(resource_map_loc, data_file_map[req_type])
             store_url = "%s://%s" % (store_type, data_file)
 
         else:
             # Use given store url
-            rpath = rpath if rpath else NodeHealth.ROOT_NODE
+            rpath = rpath if rpath else RequestHandler.ROOT_NODE
 
         try:
             # Initialize resource map
             Resource.init(store_url)
             # Process request
-            NodeHealth.add_discovery_request(rpath, req_id, store_url)
-            NodeHealth.update_resource_map(rpath, manifest)
-            NodeHealth.set_discovery_request_processed(req_id, NodeHealth.SUCCESS)
+            RequestHandler.add_discovery_request(rpath, req_id, store_url)
+            RequestHandler.update_resource_map(rpath, req_type)
+            RequestHandler.set_discovery_request_processed(req_id, RequestHandler.SUCCESS)
         except Exception as err:
-            status = NodeHealth.FAILED + f" - {err}"
-            NodeHealth.set_discovery_request_processed(req_id, status)
+            status = RequestHandler.FAILED + f" - {err}"
+            RequestHandler.set_discovery_request_processed(req_id, status)
 
     @staticmethod
     def get_processing_status(req_id):
@@ -184,16 +198,16 @@ class NodeHealth:
             current_time = int(time.time())
             is_req_expired = (current_time - req_start_time) > expiry_sec
             if (last_reboot > req_start_time or is_req_expired) and \
-                status is NodeHealth.INPROGRESS:
+                status is RequestHandler.INPROGRESS:
                 # Set request state as failed
-                NodeHealth.set_discovery_request_processed(
+                RequestHandler.set_discovery_request_processed(
                     req_id, "Failed - request is expired.")
             status = req_register.get(["%s>status" % req_id])[0]
 
         return status
 
     @staticmethod
-    def get_resource_map_location(req_id):
+    def get_resource_map_location(req_id, req_type):
         """Returns backend store URL"""
         if req_id:
             url_list = req_register.get(["%s>url" % req_id])
@@ -205,13 +219,17 @@ class NodeHealth:
             # Look for static data or cached file
             store_type = common_config.get(["discovery>resource_map>store_type"])[0]
             resource_map_loc = common_config.get(["discovery>resource_map>location"])[0]
-            data_file = os.path.join(resource_map_loc,
-                "node_health_info.%s" % (store_type))
-
+            data_file_map = {
+                "health": "node_health_info.%s" % (store_type),
+                "manifest": "manifest_info.%s" % (store_type)
+                }
+            data_file = os.path.join(
+                resource_map_loc, data_file_map[req_type])
             if not os.path.exists(data_file):
                 raise DiscoveryError(
                     errno.ENOENT,
-                    "Resource health map is unavailable. Please generate.")
+                    "%s resource map is unavailable. " \
+                        "Please generate." % req_type.title())
 
             store_url = "%s://%s" % (store_type, data_file)
 
