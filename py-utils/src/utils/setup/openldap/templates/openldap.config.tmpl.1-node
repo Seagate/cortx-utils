@@ -2,10 +2,6 @@ server_node:
   TMPL_MACHINE_ID:
     cluster_id: "TMPL_CLUSTER_ID"
     hostname: "TMPL_HOSTNAME"
-    network:
-      data:
-        public_fqdn: "TMPL_PUBLIC_FQDN"
-        private_fqdn: "TMPL_PRIVATE_FQDN"
 cortx:
   software:
     openldap:
