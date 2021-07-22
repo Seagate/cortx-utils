@@ -16,11 +16,11 @@ class SupportBundleScript:
             if key == 'components':
                 components = value
 
-        options = {'comment': comment,'components':components, 'comm': {'type': 'direct', \
-            'target': 'csm.cli.support_bundle', 'method': 'generate_bundle', 'class': \
-            'SupportBundle', 'is_static': True, 'params': {}, 'json': {}}, \
-            'output': {}, 'need_confirmation': False, 'sub_command_name': \
-            'generate_bundle'}
+        options = {'comment': comment,'components':components, 'comm': \
+            {'type': 'direct', 'target': 'csm.cli.support_bundle', 'method': \
+            'generate_bundle', 'class': 'SupportBundle', 'is_static': True, \
+            'params': {}, 'json': {}}, 'output': {}, 'need_confirmation': \
+            False, 'sub_command_name': 'generate_bundle'}
 
         cmd_obj = Command('generate_bundle', options, [])
         loop = asyncio.get_event_loop()
@@ -34,10 +34,10 @@ class SupportBundleScript:
         time.sleep(5)
 
         options = {'bundle_id': bundle_id, 'comm': {'type': 'direct', \
-            'target': 'csm.cli.support_bundle', 'method': 'get_bundle_status', 'class': \
-            'SupportBundle', 'is_static': True, 'params': {}, 'json': {}}, \
-            'output': {}, 'need_confirmation': False, 'sub_command_name': \
-            'get_bundle_status'}
+            'target': 'csm.cli.support_bundle', 'method': 'get_bundle_status', \
+            'class': 'SupportBundle', 'is_static': True, 'params': {}, \
+            'json': {}}, 'output': {}, 'need_confirmation': False, \
+            'sub_command_name': 'get_bundle_status'}
 
         cmd_obj = Command('get_bundle_status', options, [])
         loop = asyncio.get_event_loop()
@@ -50,7 +50,8 @@ if __name__ == '__main__':
     # componets parameter is optional, if not specified support bundle
     # will be created for all components. You can specify multiple
     # components like components = ['utils', 'provisioner']
-    bundle_obj = SupportBundleScript.generate(comment='Test support bundle generation')
+    bundle_obj = SupportBundleScript.generate(
+        comment='Test support bundle generation')
     print(bundle_obj)
     bundle_id = str(bundle_obj).split('|')[1].strip()
     SupportBundleScript.get_bundle_status(bundle_id=bundle_id)
