@@ -20,9 +20,18 @@
     "services": ["slapd"]
   },
   "test" : {
+    "rpms": ["openldap-servers", "openldap-clients", "openldap-devel"],
+    "pip3s": ["cryptography", "python-ldap"],
+    "services": ["slapd"]
   },
   "reset": {
+    "rpms": ["openldap-servers", "openldap-clients", "openldap-devel"],
+    "pip3s": ["cryptography", "python-ldap"],
+    "services": ["slapd"]
   },
   "cleanup": {
+    "rpms": ["openldap-servers", "openldap-clients", "openldap-devel"],
+    "pip3s": ["cryptography", "python-ldap"],
+    "services": ["slapd"]
   }
 }
