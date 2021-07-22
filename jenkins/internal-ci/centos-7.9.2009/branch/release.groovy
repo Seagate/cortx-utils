@@ -3,15 +3,13 @@ pipeline {
           
     agent {
         node {
-            label 'docker-centos-7.9.2009-node'
+            label "docker-${os_version}-node"
         }
     }
     
     environment {
         version = "2.0.0"
         third_party_version = "2.0.0-latest"
-        os_version = "centos-7.9.2009"
-        branch = "main"
         release_dir = "/mnt/bigstorage/releases/cortx"
         integration_dir = "$release_dir/github/$branch/$os_version"
         components_dir = "$release_dir/components/github/$branch/$os_version"
@@ -48,7 +46,7 @@ pipeline {
         stage('Checkout Release scripts') {
             steps {
                 script { build_stage = env.STAGE_NAME }
-                checkout([$class: 'GitSCM', branches: [[name: 'main']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'AuthorInChangelog']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: 'https://github.com/Seagate/cortx-re.git']]])
+                checkout([$class: 'GitSCM', branches: [[name: "${branch}"]], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'AuthorInChangelog']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: 'https://github.com/Seagate/cortx-re.git']]])
             }
         }
             

@@ -1,21 +1,19 @@
 #!/usr/bin/env groovy
-pipeline {
+pipeline { 
     agent {
         node {
-            label 'docker-centos-7.9.2009-node'
+            label "docker-${os_version}-node"
         }
     }
-
+    
     triggers {
         pollSCM '*/5 * * * *'
     }
-
+    
     environment {
         version = "2.0.0"
         env = "dev"
-        component = "sspl"
-        branch = "main"
-        os_version = "centos-7.9.2009"
+        component = "provisioner"
         release_dir = "/mnt/bigstorage/releases/cortx"
         build_upload_dir = "$release_dir/components/github/$branch/$os_version/$env/$component"
     }
@@ -23,45 +21,45 @@ pipeline {
     options {
         timeout(time: 120, unit: 'MINUTES')
         timestamps()
-        ansiColor('xterm')  
-        disableConcurrentBuilds()  
+        ansiColor('xterm') 
+        disableConcurrentBuilds()   
     }
-
+    
     stages {
 
         stage('Checkout') {
             steps {
                 script { build_stage = env.STAGE_NAME }
-                dir ('cortx-sspl') {
-                    checkout([$class: 'GitSCM', branches: [[name: "*/${branch}"]], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'AuthorInChangelog']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: 'https://github.com/Seagate/cortx-monitor']]])
-                }
+                    checkout([$class: 'GitSCM', branches: [[name: "${branch}"]], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'AuthorInChangelog']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cortx-admin-github', url: 'https://github.com/Seagate/cortx-prvsnr.git']]])
             }
         }
-        
+
         stage('Build') {
             steps {
                 script { build_stage = env.STAGE_NAME }
-                sh label: 'Build', returnStatus: true, script: '''
-                    set -xe
-                    pushd cortx-sspl
-                    VERSION=$(cat VERSION)
-                    export build_number=${BUILD_ID}
-                    #Execute build script
-                    echo "Executing build script"
-                    echo "VERSION:$VERSION"
-                    ./jenkins/build.sh -v $version -l DEBUG
-                    popd
-                '''    
+                sh encoding: 'utf-8', label: 'Provisioner RPMS', returnStdout: true, script: """
+                    sh ./devops/rpms/buildrpm.sh -g \$(git rev-parse --short HEAD) -e $version -b ${BUILD_NUMBER}
+                """
+                sh encoding: 'utf-8', label: 'Provisioner CLI RPMS', returnStdout: true, script: """
+                    sh ./cli/buildrpm.sh -g \$(git rev-parse --short HEAD) -e $version -b ${BUILD_NUMBER}
+                """
+                
+                sh encoding: 'UTF-8', label: 'api', script: '''
+                    bash ./devops/rpms/api/build_python_api.sh -vv --out-dir /root/rpmbuild/RPMS/x86_64/ --pkg-ver ${BUILD_NUMBER}_git$(git rev-parse --short HEAD)
+                '''
+
+                sh encoding: 'UTF-8', label: 'cortx-setup', script: '''
+                    bash ./devops/rpms/lr-cli/build_python_cortx_setup.sh -vv --out-dir /root/rpmbuild/RPMS/x86_64/ --pkg-ver ${BUILD_NUMBER}_git$(git rev-parse --short HEAD)
+                '''
             }
         }
-        
+
         stage ('Upload') {
             steps {
                 script { build_stage = env.STAGE_NAME }
                 sh label: 'Copy RPMS', script: '''
                     mkdir -p $build_upload_dir/$BUILD_NUMBER
                     cp /root/rpmbuild/RPMS/x86_64/*.rpm $build_upload_dir/$BUILD_NUMBER
-                    cp /root/rpmbuild/RPMS/noarch/*.rpm $build_upload_dir/$BUILD_NUMBER
                 '''
                 sh label: 'Repo Creation', script: '''pushd $build_upload_dir/$BUILD_NUMBER
                     rpm -qi createrepo || yum install -y createrepo
@@ -70,41 +68,31 @@ pipeline {
                 '''
             }
         }
-        
+            
         stage ('Tag last_successful') {
             steps {
                 script { build_stage = env.STAGE_NAME }
-                sh label: 'Tag last_successful', script: '''
-                pushd $build_upload_dir/
+                sh label: 'Tag last_successful', script: '''pushd $build_upload_dir/
                     test -d $build_upload_dir/last_successful && rm -f last_successful
                     ln -s $build_upload_dir/$BUILD_NUMBER last_successful
                     popd
                 '''
             }
         }
+
         stage ("Release") {
             when { triggeredBy 'SCMTrigger' }
             steps {
                 script { build_stage = env.STAGE_NAME }
                 script {
-                    def releaseBuild = build job: 'Main Release', propagate: true
+                    def releaseBuild = build job: 'Release', propagate: true
                      env.release_build = releaseBuild.number
                     env.release_build_location="http://cortx-storage.colo.seagate.com/releases/cortx/github/$branch/$os_version/${env.release_build}"
                 }
             }
-        } 
-        
-        stage ("Test") {
-            when { triggeredBy 'SCMTrigger' }
-            steps {
-                script { build_stage = env.STAGE_NAME }
-                script {
-                    build job: '../../SSPL/SSPL_Build_Sanity', propagate: false, wait: false,  parameters: [string(name: 'TARGET_BUILD', value: "main:${env.release_build}")]
-                }
-            }
-        }    
+        }
     stage('Update Jira') {
-        when { expression { return env.release_build != null } }
+        when { expression { return env.release_build != null } }    
         steps {
             script { build_stage=env.STAGE_NAME }
                 script {
@@ -114,7 +102,7 @@ pipeline {
                         jiraAddComment(
                             idOrKey: issue,
                             site: "SEAGATE_JIRA",
-                            comment: "{panel:bgColor=#c1c7d0}"+
+                                        comment: "{panel:bgColor=#c1c7d0}"+
                                 "h2. ${component} - ${branch} branch build pipeline SUCCESS\n"+
                                 "h3. Build Info:  \n"+
                                     author+
@@ -126,24 +114,23 @@ pipeline {
                             failOnError: false,
                             auditLog: false
                         )
-                        //def jiraFileds = jiraGetIssue idOrKey: issue, site: "SEAGATE_JIRA", failOnError: false
-                        //if(jiraFileds.data != null){
-                        //def labels_data =  jiraFileds.data.fields.labels + "cortx_stable_b${release_build}"
-                         //jiraEditIssue idOrKey: issue, issue: [fields: [ labels: labels_data ]], site: "SEAGATE_JIRA", failOnError: false
-                        //}
+                                     //def jiraFileds = jiraGetIssue idOrKey: issue, site: "SEAGATE_JIRA", failOnError: false
+                                    //if(jiraFileds.data != null){
+                                   //def labels_data =  jiraFileds.data.fields.labels + "cortx_stable_b${release_build}"
+                              //jiraEditIssue idOrKey: issue, issue: [fields: [ labels: labels_data ]], site: "SEAGATE_JIRA", failOnError: false
+                              // }
                     }
                 }
         }
-    }
+    }    
     }
 
     post {
-        always {
-            script  {        
-
+        always {                
+            script {
                 env.release_build = (env.release_build != null) ? env.release_build : "" 
                 env.release_build_location = (env.release_build_location != null) ? env.release_build_location : ""
-                env.component = (env.component).toUpperCase()
+                env.component = (env.component).capitalize()
                 env.build_stage = "${build_stage}"
 
                 env.vm_deployment = (env.deployVMURL != null) ? env.deployVMURL : "" 
@@ -167,7 +154,7 @@ pipeline {
                     recipientProviders: recipientProvidersClass
                 )
             }
-        }    
+        }
     }
 }
 
