@@ -52,6 +52,8 @@ if __name__ == '__main__':
     # componets parameter is optional, if not specified support bundle 
     # will be created for all components. You can specify multiple 
     # components like components = ['utils', 'provisioner']
-    bundle_id = SupportBundleScript.generate(
-        comment='Test support bundle generation')
+    bundle_obj = SupportBundleScript.generate(
+        comment='Test support bundle generation', components=['provisioner', 'csm'])
+    print(bundle_obj)
+    bundle_id = str(bundle_obj).split('|')[1].strip()
     SupportBundleScript.get_bundle_status(bundle_id=bundle_id)
