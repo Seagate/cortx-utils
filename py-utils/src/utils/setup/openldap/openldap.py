@@ -81,14 +81,15 @@ class Openldap:
             raise OpenldapSetupError({"message":"prereqs validation failed"})
         return 0
 
-    def _key_value_verify(self, key: str):
+    def _key_value_verify(self, key: str, phase: str):
         """Verify if there exists a corresponding value for given key."""
 
         value = Conf.get(self.index, key)
         if not value:
-            raise OpenldapSetupError({"message":"Empty value for key"})
+            Log.debug("Validation failed for %s in %s phase\n" % (key ,phase))
+            raise Exception("Validation failed for %s in %s phase" % (key ,phase))
         else:
-            address_token = ["hostname", "public_fqdn", "private_fqdn"]
+            address_token = ["hostname"]
             for token in address_token:
                 if key.find(token) != -1:
                     NetworkV().validate('connectivity',[value])
@@ -113,9 +114,10 @@ class Openldap:
         else:
             return []
 
-    def _expand_keys(self, key: str):
+    def _expand_keys(self, key: str, phase_name: str):
         """Substitute any occurence of machine-id or other such values."""
-
+        cluster_id_val = None
+        machine_id_val = None
         if self.machine_id is not None:
             machine_id_val = self.machine_id
         if self.cluster_id is not None:
@@ -129,16 +131,21 @@ class Openldap:
         if self.cluster_id is not None:
             storage_set_count_key = storage_set_count_key.\
                 replace("cluster-id", cluster_id_val)
-            storage_set_count_str = Conf.get(self.index, storage_set_count_key)
+            try:
+                storage_set_count_str = Conf.get(self.index, storage_set_count_key)
+            except:
+                Log.debug("Validation failed for storage_set_count in %s phase\n" % phase_name)
+                raise Exception("Validation failed for storage_set_count in %s phase" % phase_name)
+
         if storage_set_count_str is not None:
             storage_set_val = int(storage_set_count_str) - 1
         else:
             storage_set_val = 0
 
         if key.find("machine-id") != -1:
-            key = key.replace("machine-id", machine_id_val)
+            key = key.replace("machine-id", str(machine_id_val))
         if key.find("cluster-id") != -1:
-            key = key.replace("cluster-id", cluster_id_val)
+            key = key.replace("cluster-id", str(cluster_id_val))
         if key.find("storage-set-count") != -1:
             key = key.replace("storage-set-count", str(storage_set_val))
 
@@ -168,7 +175,7 @@ class Openldap:
                 phase_key_list = self._get_keys_for_phase(phase)
                 yardstick_list.extend(phase_key_list)
             for key in yardstick_list:
-                new_key = self._expand_keys(key)
+                new_key = self._expand_keys(key, phase_name)
                 yardstick_list_exp.append(new_key)
 
             """
@@ -190,7 +197,7 @@ class Openldap:
                     full_arg_keys_list.append(key)
 
             for key in full_arg_keys_list:
-                self._key_value_verify(key)
+                self._key_value_verify(key,phase_name)
 
             if set(yardstick_list_exp).issubset(set(full_arg_keys_list)):
                 Log.debug("%s - keys validation complete\n" % phase_name.lower())
@@ -204,24 +211,20 @@ class Openldap:
 
     def post_install(self):
         """ Performs post install operations. Raises exception on error """
-
         phase_name = "post_install"
         Log.debug("%s - Starting\n" % phase_name)
         self.validate(phase_name)
         self._keys_validate(phase_name)
         Log.debug("%s - Successful" % phase_name)
-        # Perform actual operation. Obtain inputs using Conf.get(index, ..)
         return 0
 
     def prepare(self):
         """ Perform prepare operations. Raises exception on error """
-
         phase_name = "prepare"
         Log.debug("%s - Starting\n" % phase_name)
         self.validate(phase_name)
         self._keys_validate(phase_name)
         Log.debug("%s - Successful" % phase_name)
-        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
         return 0
 
     def config(self):
@@ -237,13 +240,11 @@ class Openldap:
 
     def init(self):
         """ Perform initialization. Raises exception on error """
-
         phase_name = "init"
         Log.debug("%s - Starting\n" % phase_name)
         self.validate(phase_name)
         self._keys_validate(phase_name)
         Log.debug("%s - Successful" % phase_name)
-        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
         return 0
 
     def test(self, plan, config: str):
@@ -257,7 +258,12 @@ class Openldap:
         return 0
 
     def reset(self):
-        """ Performs Configuraiton reset. Raises exception on error """
-
-        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
+        """ Performs Configuration reset. Raises exception on error """
+        phase_name = "reset"
+        Log.debug("%s - Starting\n" % phase_name)
+        self.validate(phase_name)
+        self._keys_validate(phase_name) 
+        from resetcmd import ResetCmd
+        ResetCmd().process()
+        Log.debug("%s - Successful" % phase_name)
         return 0

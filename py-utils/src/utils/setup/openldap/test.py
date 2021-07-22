@@ -33,7 +33,7 @@ class Test(SetupCmd):
         except Exception as e:
             raise OpenldapPROVError(f'exception: {e}\n')
 
-        Log.init('test_log','/var/log/seagate/s3/openldap_prv',level='DEBUG')
+        Log.init('OpenldapProvisioning', '/var/log/seagate/utils/openldap', level='DEBUG')
         self.test_base_dn(passwd)
         if self.test_openldap_replication() > 1:
             self.test_olcsyncrepl(passwd)
@@ -72,8 +72,8 @@ class Test(SetupCmd):
         return no_nodes
 
     def test_olcsyncrepl(self, pwd):
-        baseDN = self.get_confvalue(self.get_confkey('TEST>OPENLDAP_SYNCREPL_BASE_DN'))
-        bind_base_DN = self.get_confvalue(self.get_confkey('TEST>OPENLDAP_SYNCREPL_BIND_BASE_DN'))
+        baseDN = "olcDatabase={2}mdb,cn=config"
+        bind_base_DN = "cn=admin,cn=config"
         searchScope = ldap.SCOPE_BASE
         retrieveAttributes = ['olcSyncrepl']
         searchFilter = None
@@ -93,8 +93,8 @@ class Test(SetupCmd):
         ldap_conn.unbind_s()
 
     def test_olcserverId(self, pwd):
-        baseDN = self.get_confvalue(self.get_confkey('TEST>OPENLDAP_SERVERID_BASE_DN'))
-        bind_base_DN = self.get_confvalue(self.get_confkey('TEST>OPENLDAP_SERVERID_BIND_BASE_DN'))
+        baseDN = "cn=config"
+        bind_base_DN = "cn=admin,cn=config"
         searchScope = ldap.SCOPE_BASE
         retrieveAttributes = ['olcServerID']
         searchFilter = None
