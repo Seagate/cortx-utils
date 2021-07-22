@@ -15,10 +15,15 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import errno
 import inspect
-from cortx.utils.log import Log
-from cortx.utils.message_bus.error import MessageBusError
+
 from cortx.utils import errors
+from cortx.utils.log import Log
+from cortx.utils.conf_store import Conf
+from cortx.utils.common.errors import SetupError
+from cortx.utils.validator.v_confkeys import ConfKeysV
+from cortx.utils.message_bus.error import MessageBusError
 
 
 class MessageBrokerFactory:
@@ -46,6 +51,41 @@ class MessageBrokerFactory:
             f" Invalid service name {broker_type}.")
         raise MessageBusError(errors.ERR_INVALID_SERVICE_NAME, \
             "Invalid service name %s.", broker_type)
+
+    @staticmethod
+    def get_server_list(conf_url: str):
+        """Returns ([server_list], [port_list])."""
+        Conf.load('cluster_config', conf_url)
+        key_list = ['cortx>software>kafka>servers',
+                    'cortx>software>common>message_bus_type']
+        ConfKeysV().validate('exists', 'cluster_config', key_list)
+        msg_bus_type = Conf.get('cluster_config', key_list[0])
+
+        if msg_bus_type != 'kafka':
+            Log.error(f"Message bus type {msg_bus_type} is not supported")
+            raise SetupError(errno.EINVAL, "Message bus type %s is not"\
+                " supported", msg_bus_type)
+
+        # Read the required keys
+        all_servers = Conf.get('cluster_config', key_list[1])
+        kafka_server_list = []
+        port_list = []
+        for i in range(len(all_servers)):
+            # check if port is mentioned
+            rc = all_servers[i].find(':')
+            if rc == -1:
+                port_list.append('9092')
+                kafka_server_list.append(all_servers[i])
+            else:
+                port_list.append(all_servers[i][rc + 1:])
+                kafka_server_list.append(all_servers[i][:rc])
+        if not kafka_server_list:
+            Log.error(f"Missing config entry {key_list} in config file "\
+                f"{conf_url}")
+            raise SetupError(errno.EINVAL, "Missing config entry %s in config"
+                " file %s", key_list, conf_url)
+
+        return kafka_server_list, port_list
 
 
 class MessageBroker:
