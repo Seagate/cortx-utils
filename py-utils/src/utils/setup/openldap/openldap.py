@@ -211,24 +211,20 @@ class Openldap:
 
     def post_install(self):
         """ Performs post install operations. Raises exception on error """
-
         phase_name = "post_install"
         Log.debug("%s - Starting\n" % phase_name)
         self.validate(phase_name)
         self._keys_validate(phase_name)
         Log.debug("%s - Successful" % phase_name)
-        # Perform actual operation. Obtain inputs using Conf.get(index, ..)
         return 0
 
     def prepare(self):
         """ Perform prepare operations. Raises exception on error """
-
         phase_name = "prepare"
         Log.debug("%s - Starting\n" % phase_name)
         self.validate(phase_name)
         self._keys_validate(phase_name)
         Log.debug("%s - Successful" % phase_name)
-        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
         return 0
 
     def config(self):
@@ -244,13 +240,11 @@ class Openldap:
 
     def init(self):
         """ Perform initialization. Raises exception on error """
-
         phase_name = "init"
         Log.debug("%s - Starting\n" % phase_name)
         self.validate(phase_name)
         self._keys_validate(phase_name)
         Log.debug("%s - Successful" % phase_name)
-        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
         return 0
 
     def test(self, plan, config: str):
@@ -264,7 +258,12 @@ class Openldap:
         return 0
 
     def reset(self):
-        """ Performs Configuraiton reset. Raises exception on error """
-
-        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
+        """ Performs Configuration reset. Raises exception on error """
+        phase_name = "reset"
+        Log.debug("%s - Starting\n" % phase_name)
+        self.validate(phase_name)
+        self._keys_validate(phase_name) 
+        from resetcmd import ResetCmd
+        ResetCmd().process()
+        Log.debug("%s - Successful" % phase_name)
         return 0
