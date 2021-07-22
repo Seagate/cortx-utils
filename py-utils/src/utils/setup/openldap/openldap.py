@@ -270,6 +270,7 @@ class Openldap:
         Log.debug("%s - Starting\n" % phase_name)
         self.validate(phase_name)
         self._keys_validate(phase_name) 
+        from resetcmd import ResetCmd
         ResetCmd().process()
         Log.debug("%s - Successful" % phase_name)
         # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)

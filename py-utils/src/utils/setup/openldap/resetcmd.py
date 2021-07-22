@@ -18,9 +18,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 #
 
-import sys
 import os
-import ldap
 from cortx.utils.log import Log
 from setupcmd import SetupCmd, OpenldapPROVError
 
@@ -49,7 +47,7 @@ class ResetCmd(SetupCmd):
         if os.path.exists(filepath):
             try:
                 os.remove(filepath)
-            except Exception as e:
+            except Exception:
                 Log.debug("Failed deleting log file")
 
     def delete_log_files(self):
