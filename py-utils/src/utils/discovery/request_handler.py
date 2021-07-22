@@ -21,6 +21,7 @@ import os
 import psutil
 import re
 import time
+from datetime import datetime
 
 from cortx.utils import const
 from cortx.utils.discovery.error import DiscoveryError
@@ -72,16 +73,25 @@ class RequestHandler:
     @staticmethod
     def add_discovery_request(rpath, req_id, url):
         """Updates new request information"""
-        req_register.set(["%s>rpath" % req_id], [rpath])
-        req_register.set(["%s>status" % req_id], [RequestHandler.INPROGRESS])
-        req_register.set(["%s>url" % req_id], [url])
-        req_register.set(["%s>time" % req_id], [int(time.time())])
+        req_info = {
+            "rpath": rpath,
+            "status": RequestHandler.INPROGRESS,
+            "url": url,
+            "time": datetime.strftime(
+                datetime.now(), '%Y-%m-%d %H:%M:%S')
+        }
+        req_register.set(["%s" % req_id], [req_info])
 
     @staticmethod
     def set_discovery_request_processed(req_id, status):
         """Updates processed request information"""
-        req_register.set(["%s>status" % req_id], [status])
-        req_register.set(["%s>time" % req_id], [int(time.time())])
+        req_info = req_register.get(["%s" % req_id])[0]
+        req_info.update({
+            "status": status,
+             "time": datetime.strftime(
+                datetime.now(), '%Y-%m-%d %H:%M:%S')
+        })
+        req_register.set(["%s" % req_id], [req_info])
 
     @staticmethod
     def update_resource_map(rpath, request_type):
@@ -194,11 +204,13 @@ class RequestHandler:
             expiry_sec = int(common_config.get(["discovery>resource_map>expiry_sec"])[0])
             last_reboot = int(psutil.boot_time())
             # Set request is expired if processing time exceeds
-            req_start_time = int(req_register.get(["%s>time" % req_id])[0])
+            system_time = time.strptime(
+                req_register.get(["%s>time" % req_id])[0], '%Y-%m-%d %H:%M:%S')
+            req_start_time = int(time.mktime(system_time))
             current_time = int(time.time())
             is_req_expired = (current_time - req_start_time) > expiry_sec
-            if (last_reboot > req_start_time or is_req_expired) and \
-                status is RequestHandler.INPROGRESS:
+            if (last_reboot > req_start_time and status is RequestHandler.INPROGRESS) \
+                or is_req_expired:
                 # Set request state as failed
                 RequestHandler.set_discovery_request_processed(
                     req_id, "Failed - request is expired.")

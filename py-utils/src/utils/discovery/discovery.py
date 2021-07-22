@@ -21,7 +21,7 @@ import time
 from datetime import datetime
 
 from cortx.utils.discovery.error import DiscoveryError
-from cortx.utils.discovery.request_handler import RequestHandler, common_config
+from cortx.utils.discovery.request_handler import RequestHandler
 
 
 class Discovery:
@@ -55,8 +55,7 @@ class Discovery:
                 node>storage[0]>hw>psu
         store_url: Path to store resource health information
         """
-        request_id = datetime.strftime(datetime.utcnow(),
-                                       '%Y%m%d%H%M%S%f')
+        request_id = datetime.strftime(datetime.now(), '%Y%m%d%H%M%S%f')
         args = (rpath, request_id, store_url)
         kwargs = {"req_type": 'health'}
         Discovery.__generate__(args, kwargs)
@@ -83,8 +82,7 @@ class Discovery:
 
         If no rpath given it generates manifest for all resources.
         """
-        request_id = datetime.strftime(datetime.utcnow(),
-                                       '%Y%m%d%H%M%S%f')
+        request_id = datetime.strftime(datetime.now(), '%Y%m%d%H%M%S%f')
         args = (rpath, request_id, store_url)
         kwargs = {"req_type": 'manifest'}
         Discovery.__generate__(args, kwargs)
