@@ -266,5 +266,11 @@ class Openldap:
     def reset(self):
         """ Performs Configuraiton reset. Raises exception on error """
 
+        phase_name = "reset"
+        Log.debug("%s - Starting\n" % phase_name)
+        self.validate(phase_name)
+        self._keys_validate(phase_name) 
+        ResetCmd().process()
+        Log.debug("%s - Successful" % phase_name)
         # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
         return 0
