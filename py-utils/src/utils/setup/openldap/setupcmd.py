@@ -44,16 +44,20 @@ class SetupCmd(object):
   cluster_id = None
   machine_id = None
   ldap_mdb_folder = "/var/lib/ldap"
-  openldap_prov_config = "/opt/seagate/cortx/utils/conf/openldap_prov_config.yaml"
   _preqs_conf_file = "openldapsetup_prereqs.json"
   ha_service_map = {}
-  openldap_config_file = "/opt/seagate/cortx/utils/conf/openldap_config.yaml"
   sgiam_user_key = 'cluster_config>sgiam_user'
   sgiam_pass_key = 'cluster_config>sgiam_password'
   rootdn_user_key = 'cluster_config>rootdn_user'
   rootdn_pass_key = 'cluster_config>rootdn_password'
   cluster_id_key = 'cluster_config>cluster_id'
   Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',level='DEBUG')
+
+  config_file_path = "/etc/cortx/cortx.conf"
+  Conf.load('config_file', f'yaml:///{config_file_path}')
+  mdb_dir = Conf.get(index='config_file', key='install_path') + '/cortx/utils/conf'
+  openldap_prov_config = Conf.get(index='config_file', key='install_path') + '/cortx/utils/conf/' + 'openldap_prov_config.yaml'
+  openldap_config_file = Conf.get(index='config_file', key='install_path') + '/cortx/utils/conf/' + "openldap_config.yaml"
 
   def __init__(self, config: str):
     """Constructor."""
