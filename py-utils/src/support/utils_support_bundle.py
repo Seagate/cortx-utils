@@ -111,7 +111,6 @@ class UtilsSupportBundle:
                 if value and os.path.exists(value):
                     shutil.copytree(value,
                         os.path.join(UtilsSupportBundle._tmp_src, key))
-
         # Collect systemctl status of kafka and kafka-zookeeper
         _cli = {'kafka_systemctl_status': "systemctl status kafka",
                 'zookeeper_systemctl_status':
