@@ -1,9 +1,7 @@
 import asyncio
 
-from cortx.utils.support.bundle_generate import ComponentsBundle
 from cortx.utils.support.support_bundle import SupportBundle
 from cortx.utils.cli_framework.command import Command
-from cortx.utils.schema.providers import Response
 from cortx.utils.log import Log
 
 
@@ -16,7 +14,7 @@ class SupportBundleScript:
         components = ''
         for key, value in kwargs.items():
             if key == 'components':
-                components = value   
+                components = value
 
         options = {'comment': comment,'components':components, 'comm': {'type': 'direct', \
             'target': 'csm.cli.support_bundle', 'method': 'generate_bundle', 'class': \
@@ -49,11 +47,10 @@ class SupportBundleScript:
 
 
 if __name__ == '__main__':
-    # componets parameter is optional, if not specified support bundle 
-    # will be created for all components. You can specify multiple 
+    # componets parameter is optional, if not specified support bundle
+    # will be created for all components. You can specify multiple
     # components like components = ['utils', 'provisioner']
-    bundle_obj = SupportBundleScript.generate(
-        comment='Test support bundle generation', components=['provisioner', 'csm'])
+    bundle_obj = SupportBundleScript.generate(comment='Test support bundle generation')
     print(bundle_obj)
     bundle_id = str(bundle_obj).split('|')[1].strip()
     SupportBundleScript.get_bundle_status(bundle_id=bundle_id)
