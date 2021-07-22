@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # CORTX Python common library.
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -17,7 +17,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import sys
-import os.path
+import os
 import shutil
 import tarfile
 import errno
@@ -25,6 +25,7 @@ import argparse
 
 from cortx.utils.conf_store import Conf
 from cortx.utils.errors import UtilsError
+from cortx.utils.process import SimpleProcess
 
 
 class SupportBundleError(UtilsError):
@@ -41,7 +42,7 @@ class UtilsSupportBundle:
     _tmp_src = '/tmp/cortx/py-utils/'
     _files_to_bundle = {
         'message_bus': '/var/log/cortx/utils/message_bus/message_bus.log',
-        'iem_and_rest':
+        'utils_server':
             '/var/log/cortx/utils/utils_server/utils_server.log',
         'utils_setup': '/var/log/cortx/utils/utils_setup.log',
         'kafka_server': '/opt/kafka/config/server.properties',
@@ -51,6 +52,8 @@ class UtilsSupportBundle:
     @staticmethod
     def generate(bundle_id: str, target_path: str):
         """ Generate a tar file """
+        if os.path.exists(UtilsSupportBundle._tmp_src):
+            UtilsSupportBundle.__clear_tmp_files()
         for value in UtilsSupportBundle._files_to_bundle.values():
             if os.path.exists(value):
                 UtilsSupportBundle.__copy_file(value)
@@ -104,12 +107,25 @@ class UtilsSupportBundle:
             to_be_collected['zookeeper_data_dir'] = Conf.get(
                 'kafka_zookeeper', 'dataDir', '/var/zookeeper')
             # Copy entire kafka and zookeeper logs
-            if os.path.exists(UtilsSupportBundle._tmp_src):
-                shutil.rmtree(UtilsSupportBundle._tmp_src)
             for key, value in to_be_collected.items():
                 if value and os.path.exists(value):
                     shutil.copytree(value,
                         os.path.join(UtilsSupportBundle._tmp_src, key))
+        # Collect systemctl status of kafka and kafka-zookeeper
+        _cli = {'kafka_systemctl_status': "systemctl status kafka",
+                'zookeeper_systemctl_status':
+                "systemctl status kafka-zookeeper"}
+        file_name = 'kafka_zookeeper_status.yaml'
+        path = f'yaml://{os.path.join(UtilsSupportBundle._tmp_src, file_name)}'
+        if not os.path.exists(UtilsSupportBundle._tmp_src):
+            os.makedirs(UtilsSupportBundle._tmp_src, exist_ok=True)
+        Conf.load('kafka_and_zookeeper_status', path)
+        for key, cmd in _cli.items():
+            cmd_proc = SimpleProcess(cmd)
+            result_data = cmd_proc.run()
+            Conf.set('kafka_and_zookeeper_status', key, str(result_data[1],
+                'utf-8'))
+        Conf.save('kafka_and_zookeeper_status')
 
     @staticmethod
     def __clear_tmp_files():
@@ -124,6 +140,7 @@ class UtilsSupportBundle:
             nargs='?', default="/var/seagate/cortx/support_bundle/")
         args=parser.parse_args()
         return args
+
 
 def main():
     args = UtilsSupportBundle.parse_args()
