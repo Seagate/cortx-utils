@@ -267,3 +267,27 @@ class Openldap:
         ResetCmd().process()
         Log.debug("%s - Successful" % phase_name)
         return 0
+
+    def preupgrade(self):
+        """ Perform pre upgrade action. Raises exception on error """
+
+        phase_name = "preupgrade"
+        Log.debug("%s - Starting\n" % phase_name)
+        self.validate(phase_name)
+        self._keys_validate(phase_name)
+        from preupgradecmd import PreUpgradeCmd
+        PreUpgradeCmd(self.url).process()
+        Log.debug("%s - Successful" % phase_name)
+        return 0
+
+    def postupgrade(self):
+        """ Perform post upgrade action. Raises exception on error """
+
+        phase_name = "postupgrade"
+        Log.debug("%s - Starting\n" % phase_name)
+        self.validate(phase_name)
+        self._keys_validate(phase_name)
+        from postupgradecmd import PostUpgradeCmd
+        PostUpgradeCmd(self.url).process()
+        Log.debug("%s - Successful" % phase_name)
+        return 0

@@ -38,3 +38,10 @@ openldap:
         cmd: openldap_setup reset
         args: --config $URL
 
+    upgrade:
+        pre:
+            cmd: openldap_setup preupgrade
+            when: {{ level == 'node' and flow == 'upgrade-offline' }}
+        post:
+            cmd: openldap_setup postupgrade
+            when: {{ level == 'node' and flow == 'upgrade-offline' }}
