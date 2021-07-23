@@ -24,11 +24,15 @@ from cortx.utils.discovery.node_health import common_config
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-store_path = os.path.join(dir_path, 'mocked_node_health.json')
+health_store_path = os.path.join(dir_path, 'mocked_node_health.json')
+manifest_store_path = os.path.join(dir_path, 'mocked_manifest.json')
 store_type = "json"
-mock_data_url = "%s://%s" % (store_type, store_path)
-mock_index = "mock_index"
-Conf.load(mock_index, mock_data_url)
+mock_health_data_url = "%s://%s" % (store_type, health_store_path)
+mock_manifest_data_url = "%s://%s" % (store_type, manifest_store_path)
+mock_health = "health"
+mock_manifest = "manifest"
+Conf.load(mock_health, mock_health_data_url)
+Conf.load(mock_manifest, mock_manifest_data_url)
 
 
 class Server:
@@ -41,14 +45,14 @@ class Server:
         Fetch health information for given FRU
         rpath: Resource id (Example: node>compute[0]>hw>disk)
         """
-        return Conf.get(mock_index, rpath)
+        return Conf.get(mock_health, rpath)
 
     def get_manifest_info(self, rpath):
         """
         Fetch manifest information for given FRU
         rpath: Resource id (Example: node>compute[0]>hw>disk)
         """
-        return Conf.get(mock_index, rpath)
+        return Conf.get(mock_manifest, rpath)
 
 
 class Storage:
@@ -61,14 +65,14 @@ class Storage:
         Fetch health information for given FRU
         rpath: Resource id (Example: node>storage[0]>hw>controller)
         """
-        return Conf.get(mock_index, rpath)
+        return Conf.get(mock_health, rpath)
 
     def get_manifest_info(self, rpath):
         """
         Fetch manifest for given FRU
         rpath: Resource id (Example: node>storage[0]>hw>controller)
         """
-        return Conf.get(mock_index, rpath)
+        return Conf.get(mock_manifest, rpath)
 
 
 
