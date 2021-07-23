@@ -53,10 +53,10 @@ class TestDiscovery(unittest.TestCase):
         request_id = Discovery.generate_node_health(valid_rpath)
         self.assertIsNotNone(request_id)
 
-    def test_get_request_status_success_on_health(self):
+    def test_get_gen_node_health_status_success_on_health(self):
         """Check for node health status using valid request_id"""
         request_id = Discovery.generate_node_health(valid_rpath)
-        status = Discovery.get_request_status(request_id)
+        status = Discovery.get_gen_node_health_status(request_id)
         self.assertEqual(status, "Success")
 
     def test_get_node_health(self):
@@ -74,15 +74,15 @@ class TestDiscovery(unittest.TestCase):
     def test_generate_node_health_on_invalid_rpath(self):
         """Check for failed status on invalid rpath"""
         req_id = Discovery.generate_node_health(invalid_rpath)
-        status = Discovery.get_request_status(req_id)
+        status = Discovery.get_gen_node_health_status(req_id)
         self.assertIn("Failed", status)
         self.assertIn("Invalid rpath", status)
 
-    def test_get_request_status_with_invalid_id(self):
+    def test_get_gen_node_health_status_with_invalid_id(self):
         """Check for node health status with invalid request id"""
         request_id = "xxxxxxxxxxx"
         self.assertRaises(
-            DiscoveryError, Discovery.get_request_status, request_id)
+            DiscoveryError, Discovery.get_gen_node_health_status, request_id)
 
     def test_get_node_health_with_invalid_id(self):
         """Check for node health backend url with invalid id"""
@@ -95,10 +95,10 @@ class TestDiscovery(unittest.TestCase):
         request_id = Discovery.generate_manifest(valid_rpath)
         self.assertIsNotNone(request_id)
 
-    def test_get_request_success_on_manifest(self):
+    def test_get_gen_manifest_success_on_manifest(self):
         """Check for manifest request status using valid request_id"""
         request_id = Discovery.generate_manifest(valid_rpath)
-        status = Discovery.get_request_status(request_id)
+        status = Discovery.get_gen_manifest_status(request_id)
         self.assertEqual(status, "Success")
 
     def test_get_manifest(self):

@@ -57,8 +57,5 @@ class Node(Resource):
     def has_child(child_resource):
         return child_resource in Node.childs
 
-    def get_health_info(self, rpath):
-        return self.child.get_health_info(rpath)
-
-    def get_manifest_info(self, rpath):
-        return self.child.get_manifest_info(rpath)
+    def get_data(self, rpath, request_type):
+        return self.child.get_data(rpath, request_type)

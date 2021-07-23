@@ -88,47 +88,31 @@ class Resource:
                     "from configured path - %s" % path)
         return module
 
-    def get_health_info(self, rpath):
-        """Initialize health provider module and fetch health information"""
-        from cortx.utils.discovery.node_health import common_config
-        monitor_path = common_config.get(
-            ["discovery>solution_platform_monitor"])[0]
-        product_id = common_config.get(["product_id"])[0].lower()
-        module = self.get_module_from_path(monitor_path, product_id)
-        members = inspect.getmembers(module, inspect.isclass)
-        for _, cls in members:
-            if hasattr(cls, 'name') and \
-                self.resource_provider_map[self.name] == cls.name:
-                try:
-                    return cls().get_health_info(rpath)
-                except Exception as err:
-                    raise DiscoveryError(
-                        errno.EINVAL, f"{cls.name} - {err}")
-        raise DiscoveryError(
-            errno.EINVAL,
-            "%s health provider not found in configured path %s" % (
-                self.resource_provider_map[self.name].title(),
-                monitor_path))
-
-    def get_manifest_info(self, rpath):
+    def get_data(self, rpath, request_type):
         """Initialize manifest module and fetch resource information"""
         from cortx.utils.discovery.node_health import common_config
+
         monitor_path = common_config.get(
             ["discovery>solution_platform_monitor"])[0]
         product_id = common_config.get(["product_id"])[0].lower()
         module = self.get_module_from_path(monitor_path, product_id)
         members = inspect.getmembers(module, inspect.isclass)
+
         for _, cls in members:
             if hasattr(cls, 'name') and \
-                self.resource_provider_map[self.name] == cls.name:
+                self.resource_provider_map.get(self.name) == cls.name:
                 try:
-                    return cls().get_manifest_info(rpath)
+                    if request_type == "health":
+                        return cls().get_health_info(rpath)
+                    elif request_type == "manifest":
+                        return cls().get_manifest_info(rpath)
                 except Exception as err:
                     raise DiscoveryError(
                         errno.EINVAL, f"{cls.name} - {err}")
+
         raise DiscoveryError(
             errno.EINVAL,
-            "%s health provider not found in configured path %s" % (
+            "%s resource provider not found in configured solution path %s" % (
                 self.resource_provider_map[self.name].title(),
                 monitor_path))
 

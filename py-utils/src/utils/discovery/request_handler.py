@@ -110,7 +110,8 @@ class RequestHandler:
             # Validate next node is its child
             child_found = False
             if node != leaf_node:
-                next_node, _ = RequestHandler.get_node_details(nodes[num])
+                next_node, _ = RequestHandler.get_node_details(
+                    nodes[num])
                 child_found = resource.has_child(next_node)
                 if resource.childs and not child_found:
                     raise DiscoveryError(
@@ -122,27 +123,19 @@ class RequestHandler:
                     child_inst = ResourceFactory.get_instance(child, rpath)
                     main = resource(child_resource=child_inst)
                     joined_rpath = rpath + ">" + child
-                    request_func_map = {
-                        "health": main.get_health_info,
-                        "manifest": main.get_manifest_info
-                        }
                     main.set(joined_rpath,
-                             request_func_map[request_type](joined_rpath))
+                             main.get_data(joined_rpath, request_type))
                 break
             elif node == leaf_node or len(resource.childs) == 0:
                 main = resource(child_resource=None)
-                request_func_map = {
-                    "health": main.get_health_info,
-                    "manifest": main.get_manifest_info
-                    }
-                main.set(rpath, request_func_map[request_type](rpath))
+                main.set(rpath, main.get_data(rpath, request_type))
                 break
 
     @staticmethod
     def process(rpath: str, req_id: str, store_url: str, req_type: str = "health"):
         """
-        Creates resource map and updates resource information
-        for given req_type.
+        Creates resource map and updates resource information for given
+        request type.
 
         rpath: Resource path for information fetched
         req_id: Request ID to be processed and used in store url format
@@ -158,7 +151,8 @@ class RequestHandler:
                 "health": "node_health_info.%s" % (store_type),
                 "manifest": "manifest_info.%s" % (store_type)
                 }
-            data_file = os.path.join(resource_map_loc, data_file_map[req_type])
+            data_file = os.path.join(resource_map_loc,
+                                     data_file_map[req_type])
             store_url = "%s://%s" % (store_type, data_file)
 
         elif not store_url and rpath:
@@ -166,10 +160,13 @@ class RequestHandler:
             store_type = common_config.get(["discovery>resource_map>store_type"])[0]
             resource_map_loc = common_config.get(["discovery>resource_map>location"])[0]
             data_file_map = {
-                "health": "node_health_info_%s.%s" % (req_id, store_type),
-                "manifest": "manifest_info.%s" % (store_type)
+                "health": "node_health_info_%s.%s" % (
+                    req_id, store_type),
+                "manifest": "manifest_info_%s.%s" % (
+                    req_id, store_type)
                 }
-            data_file = os.path.join(resource_map_loc, data_file_map[req_type])
+            data_file = os.path.join(resource_map_loc,
+                                     data_file_map[req_type])
             store_url = "%s://%s" % (store_type, data_file)
 
         else:
@@ -182,10 +179,12 @@ class RequestHandler:
             # Process request
             RequestHandler.add_discovery_request(rpath, req_id, store_url)
             RequestHandler.update_resource_map(rpath, req_type)
-            RequestHandler.set_discovery_request_processed(req_id, RequestHandler.SUCCESS)
+            RequestHandler.set_discovery_request_processed(
+                req_id,RequestHandler.SUCCESS)
         except Exception as err:
             status = RequestHandler.FAILED + f" - {err}"
-            RequestHandler.set_discovery_request_processed(req_id, status)
+            RequestHandler.set_discovery_request_processed(
+                req_id, status)
 
     @staticmethod
     def get_processing_status(req_id):
@@ -205,12 +204,13 @@ class RequestHandler:
             last_reboot = int(psutil.boot_time())
             # Set request is expired if processing time exceeds
             system_time = time.strptime(
-                req_register.get(["%s>time" % req_id])[0], '%Y-%m-%d %H:%M:%S')
+                req_register.get(["%s>time" % req_id])[0],
+                '%Y-%m-%d %H:%M:%S')
             req_start_time = int(time.mktime(system_time))
             current_time = int(time.time())
             is_req_expired = (current_time - req_start_time) > expiry_sec
-            if (last_reboot > req_start_time and status is RequestHandler.INPROGRESS) \
-                or is_req_expired:
+            if is_req_expired or (last_reboot > req_start_time and \
+                status is RequestHandler.INPROGRESS):
                 # Set request state as failed
                 RequestHandler.set_discovery_request_processed(
                     req_id, "Failed - request is expired.")

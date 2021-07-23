@@ -35,9 +35,17 @@ class Discovery:
                              kwargs=kwargs)
         t.start()
 
-        # When multiple requests gets registered, KV load throws decoding error
-        # due to key scanning happening at the same time by other requests.
+        # When multiple requests gets registered, KV load throws
+        # decoding error due to key scanning happening at the same
+        # time by other requests.
         time.sleep(0.5)
+
+    @staticmethod
+    def __get_request_status__(request_id):
+        """Returns processing status of the given request id."""
+        if not request_id:
+            raise DiscoveryError(errno.EINVAL, "Invalid request ID.")
+        return RequestHandler.get_processing_status(request_id)
 
     @staticmethod
     def generate_node_health(rpath: str = None, store_url: str = None):
@@ -55,7 +63,8 @@ class Discovery:
                 node>storage[0]>hw>psu
         store_url: Path to store resource health information
         """
-        request_id = datetime.strftime(datetime.now(), '%Y%m%d%H%M%S%f')
+        request_id = datetime.strftime(datetime.now(),
+                                       '%Y%m%d%H%M%S%f')
         args = (rpath, request_id, store_url)
         kwargs = {"req_type": 'health'}
         Discovery.__generate__(args, kwargs)
@@ -82,7 +91,8 @@ class Discovery:
 
         If no rpath given it generates manifest for all resources.
         """
-        request_id = datetime.strftime(datetime.now(), '%Y%m%d%H%M%S%f')
+        request_id = datetime.strftime(datetime.now(),
+                                       '%Y%m%d%H%M%S%f')
         args = (rpath, request_id, store_url)
         kwargs = {"req_type": 'manifest'}
         Discovery.__generate__(args, kwargs)
@@ -102,14 +112,21 @@ class Discovery:
             request_id, "manifest")
 
     @staticmethod
-    def get_request_status(request_id):
+    def get_gen_node_health_status(request_id):
         """
         Returns processing status of the given request id.
-
-        "In-progress" if request is being processed
-        "Success" if request is completed
+        "In-progress" if health generation request is being processed
+        "Success" if health generation request is completed
         "Failed (with reason)" if request is failed
         """
-        if not request_id:
-            raise DiscoveryError(errno.EINVAL, "Invalid request ID.")
-        return RequestHandler.get_processing_status(request_id)
+        return Discovery.__get_request_status__(request_id)
+
+    @staticmethod
+    def get_gen_manifest_status(request_id):
+        """
+        Returns processing status of the given request id.
+        "In-progress" if manifest generation request is being processed
+        "Success" if manifest generation request is completed
+        "Failed (with reason)" if request is failed
+        """
+        return Discovery.__get_request_status__(request_id)
