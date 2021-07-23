@@ -68,7 +68,14 @@ class Resource:
 
     @staticmethod
     def get_module_from_path(path, product_id):
-        """Look for solution specific __init__ module in given path"""
+        """
+        Using the configured solution monitor path, import
+        solution specific module to collect data.
+
+        The module communicate with resources such as compute
+        and storage, etc,. in the solution path.
+        Example: lr2.__init__
+        """
         module = None
         try:
             if path.startswith("/"):
@@ -90,7 +97,7 @@ class Resource:
 
     def get_data(self, rpath, request_type):
         """Initialize manifest module and fetch resource information"""
-        from cortx.utils.discovery.node_health import common_config
+        from cortx.utils.discovery.request_handler import common_config
 
         monitor_path = common_config.get(
             ["discovery>solution_platform_monitor"])[0]
@@ -131,8 +138,8 @@ class ResourceFactory:
         """
         Returns instance of ResourceFactory for given rpath.
 
-        Created cls instance will be reused if generate node
-        health is called for same rpath again.
+        Created cls instance will be reused if request to generate
+        resource information for the same rpath again.
         """
         # Get corresponding class instance
         from cortx.utils.discovery import resource_collection

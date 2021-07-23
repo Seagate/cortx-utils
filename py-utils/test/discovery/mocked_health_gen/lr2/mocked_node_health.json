@@ -764,7 +764,7 @@
                         }
                     }
                   ],
-                  "fanmodule":[
+                  "fan":[
                     {
                         "uid":"fanmodule_001",
                         "fru":"true",
