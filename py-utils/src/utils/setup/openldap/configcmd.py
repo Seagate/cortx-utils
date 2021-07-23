@@ -41,6 +41,8 @@ class ConfigCmd(SetupCmd):
     try:
       super(ConfigCmd, self).__init__(config)
       Log.debug("Inside config phaze, reading credentials from input file")
+      self.update_cluster_id()
+      self.update_ldap_credentials()
       self.read_ldap_credentials()
     except Exception as e:
       raise OpenldapPROVError(f'exception: {e}\n')
