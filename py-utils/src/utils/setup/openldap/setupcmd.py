@@ -29,6 +29,7 @@ from cortx.utils.validator.v_pkg import PkgV
 from cortx.utils.validator.v_service import ServiceV
 from cortx.utils.validator.v_path import PathV
 from cortx.utils.process import SimpleProcess
+from cortx.utils.log import Log
 
 class OpenldapPROVError(Exception):
   """Parent class for the openldap provisioner error classes."""
@@ -43,9 +44,19 @@ class SetupCmd(object):
   cluster_id = None
   machine_id = None
   ldap_mdb_folder = "/var/lib/ldap"
-  openldap_prov_config = "/opt/seagate/cortx/utils/conf/openldap_prov_config.yaml"
   _preqs_conf_file = "openldapsetup_prereqs.json"
   ha_service_map = {}
+  sgiam_user_key = 'cluster_config>sgiam_user'
+  sgiam_pass_key = 'cluster_config>sgiam_password'
+  rootdn_user_key = 'cluster_config>rootdn_user'
+  rootdn_pass_key = 'cluster_config>rootdn_password'
+  cluster_id_key = 'cluster_config>cluster_id'
+  Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',level='DEBUG')
+
+  config_file_path = "/etc/cortx/cortx.conf"
+  Conf.load('config_file', f'yaml:///{config_file_path}')
+  openldap_prov_config = Conf.get(index='config_file', key='install_path') + '/cortx/utils/conf/' + 'openldap_prov_config.yaml'
+  openldap_config_file = Conf.get(index='config_file', key='install_path') + '/cortx/utils/conf/' + "openldap_config.yaml"
 
   def __init__(self, config: str):
     """Constructor."""
@@ -82,28 +93,88 @@ class SetupCmd(object):
       self.endpoint = self.get_confvalue(self.get_confkey('TEST>CONFSTORE_ENDPOINT_KEY'))
 
   def read_ldap_credentials(self):
-    """Get 'ldapadmin' user name and password from confstore."""
+    """Read ldap credentials (rootdn, sgiam) from the openldap_config file"""
     try:
+      # Load the openldap config file
+      index_id = 'openldap_config_file_read_index'
+      Conf.load(index_id, f'yaml://{self.openldap_config_file}')
+
+      # Read the cluster id from openldap_config file
+      self.cluster_id = Conf.get(index_id, f'{self.cluster_id_key}')
 
       cipher_key = Cipher.generate_key(self.cluster_id , self.get_confkey('CONFSTORE_OPENLDAP_CONST_KEY'))
 
-      self.ldap_user = self.get_confvalue(self.get_confkey('CONFIG>CONFSTORE_LDAPADMIN_USER_KEY'))
+      # sgiam username/password
+      self.ldap_user = Conf.get(index_id, f'{self.sgiam_user_key}')
 
-      encrypted_ldapadmin_pass = self.get_confvalue(self.get_confkey('CONFIG>CONFSTORE_LDAPADMIN_PASSWD_KEY'))
-
-      self.ldap_root_user = self.get_confvalue(self.get_confkey('CONFIG>CONFSTORE_ROOTDN_USER_KEY'))
-
-      encrypted_rootdn_pass = self.get_confvalue(self.get_confkey('CONFIG>CONFSTORE_ROOTDN_PASSWD_KEY'))
-
+      encrypted_ldapadmin_pass = Conf.get(index_id, f'{self.sgiam_pass_key}')
       if encrypted_ldapadmin_pass != None:
         self.ldap_passwd = Cipher.decrypt(cipher_key, bytes(str(encrypted_ldapadmin_pass), 'utf-8'))
 
+      # rootdn username/password
+      self.ldap_root_user = Conf.get(index_id, f'{self.rootdn_user_key}')
+      encrypted_rootdn_pass = Conf.get(index_id, f'{self.rootdn_pass_key}')
       if encrypted_rootdn_pass != None:
         self.rootdn_passwd = Cipher.decrypt(cipher_key, bytes(str(encrypted_rootdn_pass),'utf-8'))
 
     except Exception as e:
-      sys.stderr.write(f'read ldap credentials failed, error: {e}\n')
+      Log.error(f'read ldap credentials failed, error: {e}')
       raise e
+
+  def update_cluster_id(self):
+    """Update 'cluster_id' to openldap_config file."""
+    try:
+      if path.isfile(f'{self.openldap_config_file}') == False:
+        Log.error(f'{self.openldap_config_file} must be present')
+        raise Exception(f'{self.openldap_config_file} must be present')
+      else:
+        key = 'cluster_config>cluster_id'
+        index_id = 'openldap_config_file_cluster_id_index'
+        Conf.load(index_id, f'yaml://{self.openldap_config_file}')
+        Conf.set(index_id, f'{key}', f'{self.cluster_id}')
+        Conf.save(index_id)
+        updated_cluster_id = Conf.get(index_id, f'{key}')
+
+        if updated_cluster_id != self.cluster_id:
+          Log.error(f'failed to set {key}: {self.cluster_id} in {self.openldap_config_file} ')
+          raise Exception(f'failed to set {key}: {self.cluster_id} in {self.openldap_config_file} ')
+    except Exception as e:
+      Log.error(f'Update cluster id failed, error: {e}')
+      raise Exception(f'exception: {e}')
+
+  def update_ldap_credentials(self):
+    """Update ldap credentials (rootdn, sgiam) to openldap_config file."""
+    try:
+      # Load the openldap config file
+      index_id = 'openldap_config_file_write_index'
+      Conf.load(index_id, f'yaml://{self.openldap_config_file}')
+
+      # get the sgiam credentials from provisoner config file
+      # set the sgiam credentials in to openldap_config file
+      ldap_user = self.get_confvalue(self.get_confkey('CONFIG>CONFSTORE_LDAPADMIN_USER_KEY'))
+      encrypted_ldapadmin_pass = self.get_confvalue(self.get_confkey('CONFIG>CONFSTORE_LDAPADMIN_PASSWD_KEY'))
+      if encrypted_ldapadmin_pass is None:
+        Log.error('sgiam password cannot be None.')
+        raise Exception('sgiam password cannot be None.')
+      Conf.set(index_id, f'{self.sgiam_user_key}', f'{ldap_user}')
+      Conf.set(index_id, f'{self.sgiam_pass_key}', f'{encrypted_ldapadmin_pass}')
+
+      # get the rootdn credentials from provisoner config file
+      # set the rootdn credentials in to openldap_config file
+      ldap_root_user = self.get_confvalue(self.get_confkey('CONFIG>CONFSTORE_ROOTDN_USER_KEY'))
+      encrypted_rootdn_pass = self.get_confvalue(self.get_confkey('CONFIG>CONFSTORE_ROOTDN_PASSWD_KEY'))
+      if encrypted_rootdn_pass is None:
+        Log.error('rootdn password cannot be None.')
+        raise Exception('rootdn password cannot be None.')
+      Conf.set(index_id, f'{self.rootdn_user_key}', f'{ldap_root_user}')
+      Conf.set(index_id, f'{self.rootdn_pass_key}', f'{encrypted_rootdn_pass}')
+
+      # save openldap config file
+      Conf.save(index_id)
+
+    except Exception as e:
+      Log.error(f'update rootdn credentials failed, error: {e}')
+      raise Exception(f'update rootdn credentials failed, error: {e}')
 
   def restart_services(self, s3services_list):
     """Restart services specified as parameter."""
@@ -308,4 +379,3 @@ class SetupCmd(object):
 
     except Exception as e:
       raise Exception(f'ERROR : Validating keys failed, exception {e}\n')
-

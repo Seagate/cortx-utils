@@ -34,5 +34,8 @@ utils_path=$install_path/cortx/utils
 /bin/ln -s /usr/lib/python3.6/site-packages/cortx/utils/setup/openldap/openldap_setup.py $utils_path/bin/openldap_setup
 /bin/chmod +x $utils_path/bin/openldap_setup
 
+# Copy openldap_config.yaml.sample to openldap_config.yaml
+[ -f "$utils_path/conf/openldap_config.yaml" ] || cp -n $utils_path/conf/openldap_config.yaml.sample $utils_path/conf/openldap_config.yaml
+
 # Copy cortx.conf file to /etc/cortx
 [ -f "/etc/cortx/cortx.conf" ] || cp -n $utils_path/conf/cortx.conf.sample /etc/cortx/cortx.conf
