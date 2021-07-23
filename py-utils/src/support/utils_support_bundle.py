@@ -149,10 +149,6 @@ def main():
 
 
 if __name__ == '__main__':
-    """
-    argument:
-        path: targeted path where py-utils.tar.gz should be created
-    """
     try:
         main()
     except KeyboardInterrupt as e:
