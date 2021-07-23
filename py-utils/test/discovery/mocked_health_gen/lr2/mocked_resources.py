@@ -36,7 +36,7 @@ Conf.load(mock_manifest, mock_manifest_data_url)
 
 
 class Server:
-    """Provides health information of FRUs in storage"""
+    """Provides health and manifest information of FRUs in server"""
 
     name = "server"
 
@@ -56,7 +56,7 @@ class Server:
 
 
 class Storage:
-    """Provides health information of FRUs in storage"""
+    """Provides health and manifest information of FRUs in storage"""
 
     name = "storage"
 

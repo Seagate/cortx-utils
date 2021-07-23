@@ -96,7 +96,7 @@ class Resource:
         return module
 
     def get_data(self, rpath, request_type):
-        """Initialize manifest module and fetch resource information"""
+        """Initialize manifest module and fetch resource information."""
         from cortx.utils.discovery.request_handler import common_config
 
         monitor_path = common_config.get(

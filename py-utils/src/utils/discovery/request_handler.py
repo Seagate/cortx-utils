@@ -50,6 +50,7 @@ req_register.load()
 
 
 class RequestHandler:
+
     """This handles resource map generation requests"""
 
     ROOT_NODE = "node"
