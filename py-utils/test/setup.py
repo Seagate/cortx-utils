@@ -64,4 +64,9 @@ setup(
             "mocked_health_gen/*.json",
         ]
     },
+    entry_points={
+        'console_scripts': [
+            'run_test = cortx.utils.test.run_test:tmain'
+        ]
+    }
 )

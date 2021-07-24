@@ -273,25 +273,25 @@ class Utils:
     @staticmethod
     def test(plan):
         """ Perform configuration testing """
-        #Runs cortx-py-utils unittests
+        # Runs cortx-py-utils unittests as per test plan
         try:
             Log.info("Validating cortx-py-utils-test rpm")
             PkgV().validate('rpms', ['cortx-py-utils-test'])
-            import cortx.utils.test as test_module
-            plan_path = os.path.join(os.path.dirname(test_module.__file__), \
+            import cortx.utils.test as test_dir
+            plan_path = os.path.join(os.path.dirname(test_dir.__file__), \
                 'plans/', plan + '.pln')
             Log.info("Running test plan: %s", plan)
             cmd = "%s/run_test -t  %s" %(RUN_TEST_DIR, plan_path)
             _output, _err, _rc = SimpleProcess(cmd).run(realtime_output=True)
             if _rc != 0:
                 Log.error("Py-utils Test Failed")
-                raise SetupError(errno.EINVAL,"Py-utils Test Failed \n \
-                    Output : %s \n Error : %s \n Return Code : %s" \
-                        %(_output, _err, _rc))
+                raise SetupError(errno.EINVAL,"Py-utils Test Failed"\
+                    "\n Output : %s \n Error : %s \n Return Code : %s",\
+                        _output, _err, _rc)
         except VError as ve:
             Log.error("Failed at package Validation: %s", ve)
-            raise SetupError(errno.EINVAL, "Failed at package Validation: \
-                %s", ve)
+            raise SetupError(errno.EINVAL, "Failed at package Validation:"\
+                " %s", ve)
         return 0
 
     @staticmethod

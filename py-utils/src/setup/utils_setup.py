@@ -145,7 +145,7 @@ class TestCmd(Cmd):
 
     def __init__(self, args):
         super().__init__(args)
-        #Default test_plan is 'sanity'
+        # Default test_plan is 'sanity'
         self.test_plan = args.plan
 
     def process(self):

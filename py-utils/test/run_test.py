@@ -17,87 +17,17 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
-import re
-import time
+import sys
 import argparse
 import traceback
 
+from cortx.test_framework.main import TestRunner
 
-result = {}
+sys.path.append(os.path.join(os.path.dirname(__file__)))
 
-def main(argp):
-    """ Prepare testsuite to run the test, all or subset as \
-        per plan passed in command line args """
-    ts_list = []
-    if argp.t is not None:
-        if not os.path.exists(argp.t):
-            raise TestFailed("Missing file %s , Unable to run test plan. \
-                Possibly invalid name. Check and confirm the plan name is \
-                    correct" %argp.t)
-        with open(argp.t) as f:
-            content = f.readlines()
-            for x in content:
-                if not x.startswith('#'):
-                    ts_list.append(x.strip())
-    else:
-        file_path = os.path.dirname(os.path.realpath(__file__))
-        for root, _directories, filenames in os.walk(file_path):
-            for filename in filenames:
-                print("filename: %s" %filename)
-                if re.match(r'test_.*\.py$', filename):
-                    file = os.path.join(root, filename).rsplit('.', 1)[0]\
-                         .replace(file_path + "/", "").replace("/", ".")
-                    ts_list.append(file)
 
-    ts_count = test_count = pass_count = fail_count = 0
-    ts_start_time = time.time()
-
-    for ts in ts_list:
-        print("\n###### Test Suite: %s ######" %ts)
-        ts_count += 1
-        ts_module = __import__(ts, fromlist=[ts])
-        # Actual test execution
-        found_failed_test = False
-        duration = 0
-        for test in ts_module.test_list:
-            if (test.__name__).startswith('test_'):
-                test_count += 1
-            try:
-                start_time = time.time()
-                test()
-                duration += time.time() - start_time
-                if (test.__name__).startswith('test_'):
-                    print("%s:%s: SUCCESS (Time: %ds)" \
-                        %(ts, test.__name__, duration))
-                    pass_count += 1
-            except (TestFailed, Exception) as e:
-                if (test.__name__).startswith('test_'):
-                    print("%s:%s: FAILED #@#@#@#" %(ts, test.__name__))
-                    print("    %s\n" %e)
-                    fail_count += 1
-                found_failed_test = True
-        if not found_failed_test:
-            result.update({ts: {'Pass': duration}})
-        else:
-            result.update({ts: {'Fail': duration}})
-
-    # View of consolidated test suite status
-    print('\n' + '*'*90)
-    print('{:60} {:10} {:10}'.format('TestSuite', 'Status', 'Duration(secs)'))
-    print('*'*90)
-    for k,v in result.items():
-        print('{:60} {:10} {:10}s'.format(k, list(v.keys())[0], \
-            int(list(v.values())[0])))
-
-    # View of consolidated tests run status
-    duration = time.time() - ts_start_time
-    print('\n'*2 + '*'*90)
-    print("TestSuite: %s  Tests: %s  Passed: %s  Failed: %s  TimeTaken: %ds" \
-        %(ts_count, test_count, pass_count, fail_count, duration))
-    print('*'*90)
-
-if __name__ == '__main__':
-    from cortx.utils.errors import TestFailed
+def tmain():
+    """ Wrapper function to execute testsuites """
     try:
         argParser = argparse.ArgumentParser(
             usage = "%(prog)s [-h] [-t]",
@@ -105,7 +35,11 @@ if __name__ == '__main__':
         argParser.add_argument("-t",
                 help="Enter path of plan file")
         args = argParser.parse_args()
-
-        main(args)
     except Exception as e:
         print(e, traceback.format_exc())
+
+    TestRunner.execute_tests(args)
+
+
+if __name__ == '__main__':
+    tmain()
