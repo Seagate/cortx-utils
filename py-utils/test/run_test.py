@@ -27,7 +27,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__)))
 
 
 def tmain():
-    """ Wrapper function to execute testsuites """
+    """Wrapper function to execute testsuites."""
     try:
         argParser = argparse.ArgumentParser(
             usage = "%(prog)s [-h] [-t]",

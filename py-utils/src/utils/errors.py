@@ -123,11 +123,13 @@ class StorageNotFoundError(DataAccessError):
 
 class AmqpConnectionError(Exception):
 
-    """Amqp connection problems"""
+    """ Amqp connection problems """
 
 
 class TestFailed(Exception):
-    """ Errors related to test execution """
+    """
+    Errors related to test execution
+    """
     def __init__(self, desc):
-        desc = '[%s] %s' %(inspect.stack()[1][3], desc)
+        self.desc = '[%s] %s' %(inspect.stack()[1][3], desc)
         super(TestFailed, self).__init__(desc)

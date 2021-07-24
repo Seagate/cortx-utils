@@ -19,7 +19,7 @@ please email opensource@seagate.com or cortx-questions@seagate.com.
 
 ---
 
-### Clone
+## Clone
 
 ```bash
 git clone https://github.com/Seagate/cortx-utils.git
@@ -27,26 +27,21 @@ git clone https://github.com/Seagate/cortx-utils.git
 
 ## Prerequisite for running tests
 
-1. cortx-py-utils must be installed, if not follow [Link](https://github.com/Seagate/cortx-utils/blob/main/py-utils/README.md "cortx-py-utils installation").
-2. Kafka server must be installed and service should be up and running, if not follow [Link](https://github.com/Seagate/cortx-utils/wiki/Kafka-Server-Setup "Kafka installation")
-3. cortx-py-utils-test must be installed, if not follow [Link](https://github.com/Seagate/cortx-utils/blob/main/py-utils/test/README.md "cortx-py-utils installation")
+1.  cortx-py-utils, Kafka server and cortx-py-utils-test must be installed, if not please follow [Link](https://github.com/Seagate/cortx-utils/blob/main/py-utils/test/README.md)
 
 ## Procedure to run tests
 
-- Running tests from entrypoint by passing path of a plan:
-
+*   Running tests from entrypoint by passing path of a plan
 ```bash
 run_test -t /usr/lib/python3.6/site-packages/cortx/utils/test/plans/<plan_name>.pln
 ```
 
-- Running tests through utils_setup Test phase by passing plan name:
-
+*   Running tests through utils_setup Test phase by passing plan name
 ```bash
 /opt/seagate/cortx/utils/bin/utils_setup test --plan <plan_name>
 ```
 
-- Running tests through executable file run_test by passing path of a plan:
-
+*   Running tests through executable file run_test by passing path of a plan
 ```bash
 /opt/seagate/cortx/utils/bin/run_test -t /usr/lib/python3.6/site-packages/cortx/utils/test/plans/<plan_name>.pln
 ```
@@ -55,16 +50,16 @@ run_test -t /usr/lib/python3.6/site-packages/cortx/utils/test/plans/<plan_name>.
 
 ## Test command structure in <plane_name>.pln file
 
-- To run a single test:
-
+*   To run a single test
 ```bash
 <directory_name>.<test_file_name>.<class_name>.<test_name>
 ```
+> Ex: conf_store.test_conf_cli.TestConfCli.test_conf_cli_properties_wrong_format_kv
 
-- To run all the tests from a test_file.py
-
+*   To run all the tests from a test_file.py
 ```bash
 <directory_name>.<test_file_name>
 ```
+> Ex: conf_store.test_conf_cli
 
-**Note:** Here, directory_name is the name of directories under /py-utils/test
+**Note:** Here, `<plane_name>.pln` file can have a combination of both the test command structures. Directory_name is the name of directories under /py-utils/test

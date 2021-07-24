@@ -26,15 +26,18 @@ from cortx.utils.errors import TestFailed
 
 
 class TestRunner:
-    """ Loads tests according to various criteria and returns them wrapped
-     in a TestSuite and displays results in textual form. It prints out the 
-     names of tests as they are run, errors as they occur, and a summary of 
-     the results at the end of the test run. """
+    """
+    Loads tests according to various criteria and returns them wrapped
+    in a TestSuite and displays results in textual form. It prints out the
+    names of tests as they are run, errors as they occur, and a summary of
+    the results at the end of the test run.
+    """
 
     @staticmethod
     def _run_class_setup_method(test_class):
-        """ Runs class setup for test """
-
+        """
+        Runs class setup for test
+        """
         for method_name, obj in inspect.getmembers(test_class):
             if inspect.ismethod(obj) and method_name.startswith('set'):
                 setup_class = method_name
@@ -46,8 +49,9 @@ class TestRunner:
 
     @staticmethod
     def _run_class_teardown_method(test_class):
-        """ Runs class teardown for test """
-
+        """
+        Runs class teardown for test
+        """
         for method_name, obj in inspect.getmembers(test_class):
             if inspect.ismethod(obj) and method_name.startswith('tear'):
                 teardown_class = method_name
@@ -59,8 +63,9 @@ class TestRunner:
 
     @staticmethod
     def _run_test_setup_method(test_class):
-        """ Runs test setup for test """
-
+        """
+        Runs test setup for test
+        """
         for func_name, obj in inspect.getmembers(test_class):
             if inspect.isfunction(obj) and func_name.startswith('set'):
                 setup_test = func_name
@@ -72,8 +77,9 @@ class TestRunner:
 
     @staticmethod
     def _run_test_teardown_method(test_class):
-        """ Runs test teardown for test """
-
+        """
+        Runs test teardown for test
+        """
         for func_name, obj in inspect.getmembers(test_class):
             if inspect.isfunction(obj) and func_name.startswith('tear'):
                 teardown_test = func_name
@@ -85,8 +91,9 @@ class TestRunner:
 
     @staticmethod
     def get_tests_from_testname(ts):
-        """ Loads test based on class and test name """
-
+        """
+        Loads test based on class and test name
+        """
         try:
             ts_module = importlib.import_module(ts.rsplit('.', 2)[0])
             class_name = ts.rsplit('.', 2)[1]
@@ -98,8 +105,9 @@ class TestRunner:
 
     @staticmethod
     def get_tests_from_modules(ts):
-        """ load test from modules """
-
+        """
+        load test from modules
+        """
         test_classes = []
         tests = []
         try:
@@ -117,20 +125,24 @@ class TestRunner:
 
     @staticmethod
     def create_test_suite(argp):
-        """ Prepare testsuite to run the test, all or subset as \
-            per plan passed in command line args """
-
+        """
+        Prepare testsuite to run the test, all or subset as
+        per plan passed in command line args.
+        """
         ts_list = []
         if argp.t is not None:
             if not os.path.exists(argp.t):
-                raise TestFailed("Missing file %s, Unable to run test plan."\
-                    "Possibly invalid name. Check and confirm the plan name"\
+                raise TestFailed("Missing file: %s, Unable to run test plan."\
+                    " Possibly invalid name. Check and confirm the plan name"\
                         " is correct" %argp.t)
-            with open(argp.t) as f:
-                content = f.readlines()
-                for line in content:
-                    if not line.startswith('#') and line != '\n':
-                        ts_list.append(line.strip())
+            try:
+                with open(argp.t) as f:
+                    content = f.readlines()
+                    for line in content:
+                        if not line.startswith('#') and line != '\n':
+                            ts_list.append(line.strip())
+            except Exception as err:
+                raise TestFailed("Can not open the file:" %err)
         else:
             # Below code returns a list of all files under test directory \
             # if plan file is not passed in command line args
@@ -148,8 +160,9 @@ class TestRunner:
     @staticmethod
     def _test_report(ts_count, test_count, pass_count, fail_count, \
         total_start_time, result):
-        """ Prints summary of tests and testsuites ran """
-
+        """
+        Prints summary of tests and testsuites ran
+        """
         #View of consolidated test suite status
         print('\n' + '*'*120)
         print('{:90} {:10} {:10}'.format('TestSuites', 'Status', 'Duration(secs)'))
@@ -168,21 +181,22 @@ class TestRunner:
 
     @staticmethod
     def execute_tests(argp):
-        """ Runs the given tests and testsuites """
-
+        """
+        Runs the given tests and testsuites
+        """
         result = {}
         ts_count = test_count = pass_count = fail_count = ts_duration = 0
-        total_start_time = time.time()  
+        total_start_time = time.time()
         ts_list = TestRunner.create_test_suite(argp)
 
-        print("********* Starting Test Execution *********")
+        print("\n********* Starting Test Execution *********")
         for ts in ts_list:
             ts_count += 1
             found_failed_test = False
             print("\n### Running Test Suite: %s ###" %ts)
             # Below code will differentiate whether to run single test
             # or all tests from module.
-            if len(ts.split('.')) >= 3: 
+            if len(ts.split('.')) >= 3:
                 # can be '== 4', if all tests were in respective directories
                 # under test.
                 test_class, tests = TestRunner.get_tests_from_testname(ts)

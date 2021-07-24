@@ -278,7 +278,13 @@ class ElasticSearchQueryService:
             search = search.extra(**extra_params)
 
         if q.order_by is not None:
-            sort_by[field_to_str(q.order_by.field)] = {ESWords.ORDER: convert(q.order_by.order)}
+            string_field_type = q.order_by.kwargs.get("string_field_type")
+            if string_field_type is not None and \
+                isinstance(q.order_by.field, StringType):
+                sort_by[f"{field_to_str(q.order_by.field)}.{string_field_type}"] = \
+                    {ESWords.ORDER: convert(q.order_by.order)}
+            else:
+                sort_by[field_to_str(q.order_by.field)] = {ESWords.ORDER: convert(q.order_by.order)}
             search = search.sort(sort_by)
 
         return search
@@ -331,13 +337,15 @@ class ElasticSearchDB(GenericDataBase):
                                                         self._query_converter)
 
     @classmethod
-    async def create_database(cls, config, collection, model: Type[BaseModel]) -> IDataBase:
+    async def create_database(cls, config, collection: str, model: Type[BaseModel],
+                              create_schema=True) -> IDataBase:
         """
         Creates new instance of ElasticSearch DB and performs necessary initializations
 
         :param DBSettings config: configuration for elasticsearch server
         :param str collection: collection for storing model onto db
         :param Type[BaseModel] model: model which instances will be stored in DB
+        :param bool create_schema: if the flag is true, the collection will be created.
         :return:
         """
         # NOTE: please, be sure that you avoid using this method twice (or more times) for the same
@@ -361,7 +369,8 @@ class ElasticSearchDB(GenericDataBase):
         es_db = cls(cls.elastic_instance, model, collection, cls.thread_pool, cls.loop)
 
         try:
-            await es_db.attach_to_index(config.replication)
+            if create_schema:
+                await es_db.attach_to_index(config.replication)
         except DataAccessExternalError:
             raise  # forward error to upper caller
         except Exception as e:

@@ -45,7 +45,7 @@ class KafkaMessageBroker(MessageBroker):
     _max_list_message_type_count = 15
 
     # Polling timeout
-    _default_timeout = 0.5
+    _default_timeout = 2
 
     # Socket timeout
     _kafka_socket_timeout = 15000
@@ -499,6 +499,8 @@ class KafkaMessageBroker(MessageBroker):
         timeout         Time in seconds to wait for the message. Timeout of 0
                         will lead to blocking indefinitely for the message
         """
+        blocking = False
+
         consumer = self._clients['consumer'][consumer_id]
         Log.debug(f"Receiving list of messages from kafka Message server of" \
             f" consumer_id {consumer_id}, and timeout is {timeout}")
@@ -510,13 +512,16 @@ class KafkaMessageBroker(MessageBroker):
 
         if timeout is None:
             timeout = self._default_timeout
+        if timeout == 0:
+            timeout = self._default_timeout
+            blocking = True
 
         try:
             while True:
                 msg = consumer.poll(timeout=timeout)
                 if msg is None:
                     # if blocking (timeout=0), NoneType messages are ignored
-                    if timeout > 0:
+                    if not blocking:
                         return None
                 elif msg.error():
                     Log.error(f"MessageBusError: {errors.ERR_OP_FAILED}" \
