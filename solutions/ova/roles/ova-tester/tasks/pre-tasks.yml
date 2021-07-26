@@ -61,6 +61,12 @@
   shell: "sh /opt/seagate/cortx/provisioner/cli/virtual_appliance/bootstrap.sh"
   delegate_to: "{{ ansible_host }}"
 
+- name: Install s3cmd and s3iamcli for sanity
+  yum:
+    name:
+      - s3cmd
+#      - s3iamcli
+
 - include_role:
     name: vm-service-checker
     apply:

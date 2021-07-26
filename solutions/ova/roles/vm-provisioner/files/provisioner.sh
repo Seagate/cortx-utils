@@ -1,6 +1,7 @@
 #!/bin/bash
 
 CORTX_RELEASE_REPO="$1"
+CORTX_BASE_PATH=${CORTX_RELEASE_REPO//\/prod\//''}
 
 yum install -y yum-utils
 yum-config-manager --add-repo "${CORTX_RELEASE_REPO}/3rd_party/"
@@ -30,3 +31,5 @@ rm -rf /etc/pip.conf
 
 
 ./script
+
+yum-config-manager --add-repo "${CORTX_BASE_PATH}/dev/"

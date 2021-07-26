@@ -88,6 +88,26 @@
     state: absent
     regexp: '^--'
 
+- name: Install s3cmd for sanity
+  yum:
+    name:
+      - s3cmd
+    state: present
+
+- name: Install s3iamcli for sanity
+  yum:
+    name:
+      - cortx-s3iamcli
+      - cortx-s3-test
+    state: present
+    disable_gpg_check: true
+
+- name: Copy s3 sanity template
+  copy:
+    src: /opt/seagate/cortx/s3/conf/s3.test.tmpl.1-node
+    dest: /etc/s3-test.conf
+    remote_src: yes
+
 - name: Get the .repo files list
   find:
     paths: /etc/yum.repos.d
@@ -102,6 +122,9 @@
 
 - name: Clean bash history
   shell: cat /dev/null > /root/.bash_history
+
+- name: S3 sanity configuration
+  shell: conf "yaml:///etc/s3-test.conf" set "cortx>software>openldap>sgiam>secret=`s3confstore properties:///opt/seagate/cortx/auth/resources/authserver.properties getkey --key ldapLoginPW`;endpoint_fqdn=`hostname -I | awk '{print $2}'`"
 
 - name: Check /etc/hosts file data
   shell: "cat /etc/hosts"
