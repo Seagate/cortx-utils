@@ -16,7 +16,6 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
-import json
 import os
 import psutil
 import re
@@ -50,8 +49,7 @@ req_register.load()
 
 
 class RequestHandler:
-
-    """This handles resource map generation requests"""
+    """This handles resource map generation requests."""
 
     ROOT_NODE = "node"
     INPROGRESS = "In-progress"
@@ -62,6 +60,7 @@ class RequestHandler:
     def _get_node_details(node):
         """
         Parse node information and returns left string and instance.
+
         Example
             "storage"    -> ("storage", "*")
             "storage[0]" -> ("storage", "0")
@@ -73,7 +72,7 @@ class RequestHandler:
 
     @staticmethod
     def _add_discovery_request(rpath, req_id, url):
-        """Updates new request information"""
+        """Updates new request information."""
         req_info = {
             "rpath": rpath,
             "status": RequestHandler.INPROGRESS,
@@ -85,7 +84,7 @@ class RequestHandler:
 
     @staticmethod
     def _set_discovery_request_processed(req_id, status):
-        """Updates processed request information"""
+        """Updates processed request information."""
         req_info = req_register.get(["%s" % req_id])[0]
         req_info.update({
             "status": status,
@@ -150,7 +149,7 @@ class RequestHandler:
             resource_map_loc = common_config.get(["discovery>resource_map>location"])[0]
             data_file_map = {
                 "health": "node_health_info.%s" % (store_type),
-                "manifest": "manifest_info.%s" % (store_type)
+                "manifest": "node_manifest_info.%s" % (store_type)
                 }
             data_file = os.path.join(resource_map_loc,
                                      data_file_map[req_type])
@@ -163,7 +162,7 @@ class RequestHandler:
             data_file_map = {
                 "health": "node_health_info_%s.%s" % (
                     req_id, store_type),
-                "manifest": "manifest_info_%s.%s" % (
+                "manifest": "node_manifest_info_%s.%s" % (
                     req_id, store_type)
                 }
             data_file = os.path.join(resource_map_loc,
@@ -221,7 +220,7 @@ class RequestHandler:
 
     @staticmethod
     def get_resource_map_location(req_id, req_type):
-        """Returns backend store URL"""
+        """Returns backend store URL."""
         if req_id:
             url_list = req_register.get(["%s>url" % req_id])
             store_url = url_list[0] if url_list else None
@@ -234,7 +233,7 @@ class RequestHandler:
             resource_map_loc = common_config.get(["discovery>resource_map>location"])[0]
             data_file_map = {
                 "health": "node_health_info.%s" % (store_type),
-                "manifest": "manifest_info.%s" % (store_type)
+                "manifest": "node_manifest_info.%s" % (store_type)
                 }
             data_file = os.path.join(
                 resource_map_loc, data_file_map[req_type])

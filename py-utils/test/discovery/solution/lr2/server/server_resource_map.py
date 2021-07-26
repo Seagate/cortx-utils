@@ -15,9 +15,6 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com
 
-import sys
-import os
-
 from cortx.utils.conf_store import Conf
 
 # Test loads mock data and this module access it using the index
@@ -30,14 +27,16 @@ class ServerResourceMap:
 
     name = "server"
 
-    def get_health_info(self, rpath):
+    @staticmethod
+    def get_health_info(rpath):
         """
         Fetch health information for given FRU
         rpath: Resource id (Example: node>compute[0]>hw>disk)
         """
         return Conf.get(mock_health, rpath)
 
-    def get_manifest_info(self, rpath):
+    @staticmethod
+    def get_manifest_info(rpath):
         """
         Fetch manifest information for given FRU
         rpath: Resource id (Example: node>compute[0]>hw>disk)
