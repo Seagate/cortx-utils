@@ -89,6 +89,13 @@ class Openldap:
             Log.debug("Validation failed for %s in %s phase\n" % (key ,phase))
             raise Exception("Validation failed for %s in %s phase" % (key ,phase))
         else:
+            if (("cortx>software>openldap>base_dn" == key) and (not bool(re.match("^dc=[a-zA-Z0-9]+,dc=[a-zA-Z0-9]+$", value)))):
+                Log.debug("Validation failed for %s in %s phase\n" % (key ,phase))
+                raise Exception("Validation failed for %s in %s phase" % (key ,phase))
+            if (("cortx>software>openldap>bind_base_dn" == key) and (not bool(re.match("^cn=[a-zA-Z0-9]+,dc=[a-zA-Z0-9]+,dc=[a-zA-Z0-9]+$", value)))):
+                Log.debug("Validation failed for %s in %s phase\n" % (key ,phase))
+                raise Exception("Validation failed for %s in %s phase" % (key ,phase))
+
             address_token = ["hostname"]
             for token in address_token:
                 if key.find(token) != -1:
@@ -117,28 +124,32 @@ class Openldap:
     def _expand_keys(self, key: str, phase_name: str):
         """Substitute any occurence of machine-id or other such values."""
         cluster_id_val = None
-        machine_id_val = None
-        if self.machine_id is not None:
-            machine_id_val = self.machine_id
+        machine_id_val = self.machine_id
         if self.cluster_id is not None:
             cluster_id_val = self.cluster_id
+        else:
+            Log.debug("Validation failed for either cluster_id or machine_id in %s phase\n" % phase_name)
+            raise Exception("Validation failed for either cluster_id or machine_id in %s phase" % phase_name)
         """
         The 'storage_set_count' is read using below hard-coded key which is the
         max array size for storage set.
         """
         storage_set_count_key = "cluster>cluster-id>site>storage_set_count"
         storage_set_count_str = None
-        if self.cluster_id is not None:
-            storage_set_count_key = storage_set_count_key.\
-                replace("cluster-id", cluster_id_val)
-            try:
-                storage_set_count_str = Conf.get(self.index, storage_set_count_key)
-            except:
-                Log.debug("Validation failed for storage_set_count in %s phase\n" % phase_name)
-                raise Exception("Validation failed for storage_set_count in %s phase" % phase_name)
+        storage_set_count_key = storage_set_count_key.\
+            replace("cluster-id", cluster_id_val)
+        try:
+            storage_set_count_str = Conf.get(self.index, storage_set_count_key)
+        except:
+            Log.debug("Validation failed for storage_set_count in %s phase\n" % phase_name)
+            raise Exception("Validation failed for storage_set_count in %s phase" % phase_name)
 
-        if storage_set_count_str is not None:
-            storage_set_val = int(storage_set_count_str) - 1
+        if (storage_set_count_str is not None):
+            try:
+                storage_set_val = int(storage_set_count_str) - 1
+            except ValueError:
+                Log.debug("Validation failed for %s in %s phase\n" % (storage_set_count_key , phase_name))
+                raise Exception("Validation failed for %s in %s phase" % (storage_set_count_key , phase_name))
         else:
             storage_set_val = 0
 
@@ -177,33 +188,8 @@ class Openldap:
             for key in yardstick_list:
                 new_key = self._expand_keys(key, phase_name)
                 yardstick_list_exp.append(new_key)
-
-            """
-            Since get_all_keys misses out listing entries inside an array, the
-            below code is required to fetch such array entries. The result will
-            be stored in a full list which will be complete and will be used to
-            verify keys required for each phase.
-            """
-            arg_keys_list = Conf.get_keys(self.index)
-            full_arg_keys_list = []
-            for key in arg_keys_list:
-                if ((key.find('[') != -1) and (key.find(']') != -1)):
-                    storage_set = Conf.get(self.index, key)
-                    base_key = key
-                    for set_key in storage_set:
-                        key = base_key + ">" + set_key
-                        full_arg_keys_list.append(key)
-                else:
-                    full_arg_keys_list.append(key)
-
-            for key in full_arg_keys_list:
+            for key in yardstick_list_exp:
                 self._key_value_verify(key,phase_name)
-
-            if set(yardstick_list_exp).issubset(set(full_arg_keys_list)):
-                Log.debug("%s - keys validation complete\n" % phase_name.lower())
-            else:
-                Log.debug("Validation failed\n")
-                raise Exception("Validation failed for %s" % phase_name)
 
         except OpenldapSetupError as e:
             raise OpenldapSetupError({"message":"ERROR : Validating keys \
