@@ -55,7 +55,6 @@ class Utils:
     @staticmethod
     def _set_to_conf_file(key, value):
         """ Add key value pair to cortx.conf file """
-
         config_file = 'yaml:///etc/cortx/cortx.conf'
         Conf.load("config_file", config_file, skip_reload=True)
         Conf.set("config_file", key, value)
@@ -64,7 +63,6 @@ class Utils:
     @staticmethod
     def _get_from_conf_file(key) -> str:
         """ Fetch and return value for the key from cortx.conf file """
-
         config_file = 'yaml:///etc/cortx/cortx.conf'
         Conf.load('config_file', config_file, skip_reload=True)
         val = Conf.get('config_file', key)
@@ -189,7 +187,6 @@ class Utils:
     @staticmethod
     def post_install():
         """ Performs post install operations """
-
         # check whether zookeeper and kafka are running
         ServiceV().validate('isrunning', ['kafka-zookeeper.service', \
             'kafka.service'])
@@ -219,13 +216,11 @@ class Utils:
         Utils._set_to_conf_file('shared_storage>type', 'GlusterFS')
         Utils._set_to_conf_file('shared_storage>path', \
             '/var/lib/seagate/cortx/provisioner/shared/')
-            
         return 0
 
     @staticmethod
     def init():
         """ Perform initialization """
-
         # Create message_type for Event Message
         from cortx.utils.message_bus import MessageBusAdmin
         try:

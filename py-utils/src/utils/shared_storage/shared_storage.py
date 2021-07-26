@@ -22,6 +22,7 @@ from cortx.utils.shared_storage import SharedStorageError
 from cortx.utils.shared_storage.shared_storage_agent import SharedStorageFactory
 
 class Storage:
+
     """ Shared Storage Framework over various types of Shared Storages  """
 
     config_file = 'yaml:///etc/cortx/cortx.conf'
@@ -29,15 +30,15 @@ class Storage:
     def __init__(self):
         """ Initialize and load shared storage backend """
         try:
-            Conf.load('config', config_file, skip_reload=True)
+            Conf.load('config', Storage.config_file, skip_reload=True)
             shared_storage_type = Conf.get('config', 'shared_storage>type')
             shared_storage_path = Conf.get('config', 'shared_storage>path')
             if None in (shared_storage_type, shared_storage_path):
                 raise SharedStorageError(errno.EINVAL, \
-                "shared_path not found in %s" % config_file)
+                "shared storage info not found in %s" % Storage.config_file)
         except Exception as e:
             raise SharedStorageError(errno.EINVAL, \
-                "Error while parsing %s" % config_file, e)
+                "Error while parsing %s" % Storage.config_file, e)
         
         self.shared_storage_agent = SharedStorageFactory.get_instance( \
                                         shared_storage_type, \
@@ -45,6 +46,5 @@ class Storage:
 
     def get_path(self):
         """ return shared storage mountpoint """
-
         shared_path = self.shared_storage_agent.get_path()
         return shared_path

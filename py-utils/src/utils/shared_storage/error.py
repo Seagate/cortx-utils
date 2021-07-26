@@ -16,9 +16,11 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 class SharedStorageError(Exception):
+
     """ Generic Exception with error code and output """
 
     def __init__(self, rc, message, *args):
+        """ Construct SharedStorageError object """
         self._rc = rc
         self._desc = message % (args)
 
@@ -31,5 +33,6 @@ class SharedStorageError(Exception):
         return self._desc
 
     def __str__(self):
+        """ Returns the str representation of a SharedStorageError object """
         if self._rc == 0: return self._desc
         return "error(%d): %s" %(self._rc, self._desc)

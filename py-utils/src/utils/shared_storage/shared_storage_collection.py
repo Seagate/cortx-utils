@@ -17,8 +17,6 @@
 
 import errno
 
-from cortx.utils import errors
-from cortx.utils.conf_store import Conf
 from cortx.utils.shared_storage import SharedStorageAgent
 from cortx.utils.shared_storage import SharedStorageError
 
@@ -28,14 +26,14 @@ class GlusterSharedStorage(SharedStorageAgent):
     name = "GlusterFS"
 
     def __init__(self, shared_path: str  = ""):
+        """ Construct an object for GlusterSharedStorage class """
         self.shared_path = shared_path
 
     def _fetch_path(self):
         """ fetch path from confstore """
-        
         shared_path = self.shared_path
 
         if not shared_path:
             raise SharedStorageError(errno.EINVAL, \
-                "shared_path not found in %s" % config_file_path)
+                "shared_path not found!")
         return shared_path

@@ -15,9 +15,13 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import inspect
+
+from cortx.utils import errors
 from cortx.utils.shared_storage import SharedStorageError
 
 class SharedStorageAgent:
+
     """ A common interface over all shared storage agents """
 
     def _fetch_path(self):
@@ -32,6 +36,7 @@ class SharedStorageAgent:
 
 
 class SharedStorageFactory:
+
     """ Factory class for shared storage types """
 
     _storages = {}
@@ -39,12 +44,10 @@ class SharedStorageFactory:
     @staticmethod
     def get_instance(storage_type: str, shared_path: str) -> SharedStorageAgent:
         """ Obtain instance of SharedStorageAgent for given file_type """
-
         if storage_type in SharedStorageFactory._storages:
             return SharedStorageFactory._storages[storage_type]
 
         from cortx.utils.shared_storage import shared_storage_collection
-        
         agents = inspect.getmembers(shared_storage_collection, inspect.isclass)
         for name, cls in agents:
             if name.endswith('Storage'):
