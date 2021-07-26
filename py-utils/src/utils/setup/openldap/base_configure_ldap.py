@@ -92,9 +92,7 @@ class BaseConfig:
             quit()
         if forcecleanup != None :
             forceclean = forcecleanup
-        config_file_path = "/etc/cortx/cortx.conf"
-        Conf.load('config_file', f'yaml:///{config_file_path}')
-        mdb_dir = Conf.get(index='config_file', key='install_path') + '/cortx/utils/conf'
+        mdb_dir = Conf.get(index= 'util_config_file_index', key='install_path') + '/cortx/utils/conf'
         BaseConfig.cleanup(forceclean)
         copyfile(mdb_dir + '/olcDatabase={2}mdb.ldif' ,\
         '/etc/openldap/slapd.d/cn=config/olcDatabase={2}mdb.ldif')
