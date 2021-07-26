@@ -1,6 +1,5 @@
-#!/bin/python3
-
-# CORTX Python common library.
+#!/bin/bash
+#
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -15,8 +14,11 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-__title__ = "shared_storage"
+# Replace /opt/seagate with cortx installation path example: /opt/seagate
+install_path=/opt/seagate
+cortx_path=$install_path/cortx/
+utils_path=$cortx_path/utils
 
-from cortx.utils.shared_storage.error import SharedStorageError
-from cortx.utils.shared_storage.shared_storage_agent import SharedStorageAgent
-from cortx.utils.shared_storage.shared_storage import Storage
+# Copy the run_test.py as run_test
+/bin/ln -s /usr/lib/python3.6/site-packages/cortx/utils/test/run_test.py $utils_path/bin/run_test
+/bin/chmod +x $utils_path/bin/run_test

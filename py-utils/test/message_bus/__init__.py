@@ -1,6 +1,4 @@
-#!/bin/python3
-
-# CORTX Python common library.
+# CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -14,9 +12,3 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
-
-__title__ = "shared_storage"
-
-from cortx.utils.shared_storage.error import SharedStorageError
-from cortx.utils.shared_storage.shared_storage_agent import SharedStorageAgent
-from cortx.utils.shared_storage.shared_storage import Storage

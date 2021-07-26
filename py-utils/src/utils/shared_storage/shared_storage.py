@@ -25,7 +25,7 @@ class Storage:
 
     """ Shared Storage Framework over various types of Shared Storages  """
 
-    config_file = 'yaml:///etc/cortx/cortx.conf'
+    config_file = 'json:///etc/cortx/cortx.conf'
 
     def __init__(self):
         """ Initialize and load shared storage backend """
@@ -44,7 +44,9 @@ class Storage:
                                         shared_storage_type, \
                                         shared_storage_path)
 
-    def get_path(self):
+    @staticmethod
+    def get_path():
         """ return shared storage mountpoint """
-        shared_path = self.shared_storage_agent.get_path()
+        storage = Storage()
+        shared_path = storage.shared_storage_agent.get_path()
         return shared_path
