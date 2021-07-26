@@ -21,6 +21,7 @@ from cortx.utils.shared_storage import SharedStorageAgent
 from cortx.utils.shared_storage import SharedStorageError
 
 class GlusterSharedStorage(SharedStorageAgent):
+
     """ GlusterFS based shared storage implementation """
 
     name = "GlusterFS"
