@@ -38,11 +38,14 @@ setup(
     package_dir={"cortx.utils.test": "."},
     packages=[
         "cortx.utils.test",
+        "cortx.utils.test.plans",
         "cortx.utils.test.validator",
         "cortx.utils.test.kv_store",
         "cortx.utils.test.message_bus",
         "cortx.utils.test.conf_store",
         "cortx.utils.test.schema",
+        "cortx.utils.test.cli_framework",
+        "cortx.utils.test.discovery",
         "cortx.utils.test.iem_framework",
         "cortx.utils.test.discovery",
         "cortx.utils.test.discovery.mocked_health_gen",
@@ -51,12 +54,19 @@ setup(
     package_data={
         "": [
             "*.json",
+            "plans/*.pln",
             "schema/*.json",
             "kv_store/*.json",
             "conf_store/*.json",
             "message_bus/*.conf",
+            "cli_framework/test_data/*.json",
             "iem_framework/*.json",
             "mocked_health_gen/*.json",
         ]
     },
+    entry_points={
+        'console_scripts': [
+            'run_test = cortx.utils.test.run_test:tmain'
+        ]
+    }
 )
