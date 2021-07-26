@@ -25,6 +25,8 @@ from cortx.utils.validator.v_service import ServiceV
 from cortx.utils.conf_store import Conf
 from cortx.utils.log import Log
 from test import Test
+from resetcmd import ResetCmd
+from cleanupcmd import CleanupCmd
 
 class OpenldapSetupError(BaseError):
     """ Generic Exception with error code and output """
@@ -263,7 +265,16 @@ class Openldap:
         Log.debug("%s - Starting\n" % phase_name)
         self.validate(phase_name)
         self._keys_validate(phase_name) 
-        from resetcmd import ResetCmd
         ResetCmd().process()
+        Log.debug("%s - Successful" % phase_name)
+        return 0
+
+    def cleanup(self):
+        """ Performs Configuration cleanup. Raises exception on error """
+        phase_name = "cleanup"
+        Log.debug("%s - Starting\n" % phase_name)
+        self.validate(phase_name)
+        self._keys_validate(phase_name) 
+        CleanupCmd().process()
         Log.debug("%s - Successful" % phase_name)
         return 0

@@ -46,8 +46,7 @@ class BaseConfig:
             Log.error('Error while deleting ' + filename)
 
     def cleanup(forceclean):
-	# Removing schemas
-        BaseConfig.safe_remove('/etc/openldap/slapd.d/cn\=config/cn\=schema/cn\=\{1\}s3user.ldif')
+        # Removing schemas
         filelist = glob.glob('/etc/openldap/slapd.d/cn=config/cn=schema/*ppolicy.ldif')
         for policyfile in filelist:
             BaseConfig.safe_remove(policyfile)
