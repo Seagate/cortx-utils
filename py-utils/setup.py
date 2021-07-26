@@ -96,7 +96,7 @@ setup(name='cortx-py-utils',
                 'cortx.utils.setup', 'cortx.utils.setup.kafka',
                 'cortx.utils.cli_framework', 'cortx.utils.support',
                 'cortx.utils.utils_server', 'cortx.utils.iem_framework',
-                'cortx.utils.discovery'
+                'cortx.utils.discovery', 'cortx.utils.shared_storage'
                 ],
       package_data={
         'cortx': ['py.typed'],

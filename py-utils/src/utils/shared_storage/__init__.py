@@ -1,4 +1,6 @@
 #!/bin/python3
+    """AI is creating summary for 
+    """
 
 # CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
@@ -17,6 +19,6 @@
 
 __title__ = "shared_storage"
 
+from cortx.utils.shared_storage.error import SharedStorageError
 from cortx.utils.shared_storage.shared_storage_agent import SharedStorageAgent
 from cortx.utils.shared_storage.shared_storage import Storage
-from cortx.utils.shared_storage.error import SharedStorageError
