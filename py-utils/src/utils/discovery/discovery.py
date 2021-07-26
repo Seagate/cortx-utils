@@ -84,7 +84,7 @@ class Discovery:
             request_id, "health")
 
     @staticmethod
-    def generate_manifest(rpath: str = None, store_url: str = None):
+    def generate_node_manifest(rpath: str = None, store_url: str = None):
         """
         This generates manifest for given rpath. This returns
         unique id for any accepted request.
@@ -99,7 +99,7 @@ class Discovery:
         return request_id
 
     @staticmethod
-    def get_manifest(request_id=None):
+    def get_node_manifest(request_id=None):
         """
         Returns resource manifest backend URL.
 
@@ -122,7 +122,7 @@ class Discovery:
         return Discovery.__get_request_status__(request_id)
 
     @staticmethod
-    def get_gen_manifest_status(request_id):
+    def get_gen_node_manifest_status(request_id):
         """
         Returns processing status of the given request id.
         "In-progress" if manifest generation request is being processed

@@ -8,7 +8,7 @@
     "support_bundle_path": "/var/log/seagate/support_bundle/"
   },
   "discovery": {
-    "solution_platform_monitor": "/opt/seagate/cortx/sspl/bin/solution",
+    "solution_platform_monitor": "/opt/seagate/cortx/sspl/extension/solution",
     "resource_map": {
       "location": "/var/cortx/resources/",
       "store_type": "json",

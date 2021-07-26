@@ -16,9 +16,12 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import os
 import unittest
+import sys
 
 from cortx.utils import const
+from cortx.utils.conf_store import Conf
 from cortx.utils.discovery import Discovery
 from cortx.utils.discovery.error import DiscoveryError
 from cortx.utils.kv_store import KvStoreFactory
@@ -28,6 +31,17 @@ store_type = "json"
 config_url = "%s://%s" % (store_type, const.CORTX_CONF_FILE)
 common_config = KvStoreFactory.get_instance(config_url)
 common_config.load()
+
+# Load mock data
+test_dir = os.path.dirname(os.path.realpath(__file__))
+health_store_path = os.path.join(test_dir, 'solution/lr2/health.json')
+manifest_store_path = os.path.join(test_dir, 'solution/lr2/manifest.json')
+mock_health_data_url = "%s://%s" % (store_type, health_store_path)
+mock_manifest_data_url = "%s://%s" % (store_type, manifest_store_path)
+mock_health = "mock-health"
+mock_manifest = "mock-manifest"
+Conf.load(mock_health, mock_health_data_url)
+Conf.load(mock_manifest, mock_manifest_data_url)
 
 # Sample rpaths
 #valid_rpath = "node"
@@ -46,7 +60,7 @@ class TestDiscovery(unittest.TestCase):
         # Set platform monitor path to mocked data path
         common_config.set(
             ["discovery>solution_platform_monitor"],
-            ["cortx/utils/test/discovery/mocked_health_gen"])
+            ["cortx/utils/test/discovery/solution"])
 
     def test_generate_node_health(self):
         """Check for immediate request id"""
@@ -90,21 +104,21 @@ class TestDiscovery(unittest.TestCase):
         self.assertRaises(
             DiscoveryError, Discovery.get_node_health, request_id)
 
-    def test_generate_manifest(self):
+    def test_generate_node_manifest(self):
         """Check for immediate request id"""
-        request_id = Discovery.generate_manifest(valid_rpath)
+        request_id = Discovery.generate_node_manifest(valid_rpath)
         self.assertIsNotNone(request_id)
 
-    def test_get_gen_manifest_success_on_manifest(self):
+    def test_get_gen_node_manifest_success_on_manifest(self):
         """Check for manifest request status using valid request_id"""
-        request_id = Discovery.generate_manifest(valid_rpath)
-        status = Discovery.get_gen_manifest_status(request_id)
+        request_id = Discovery.generate_node_manifest(valid_rpath)
+        status = Discovery.get_gen_node_manifest_status(request_id)
         self.assertEqual(status, "Success")
 
-    def test_get_manifest(self):
+    def test_get_node_manifest(self):
         """Check for generated manifest location"""
-        req_id = Discovery.generate_node_health(valid_rpath)
-        url = Discovery.get_manifest(req_id)
+        req_id = Discovery.generate_node_manifest(valid_rpath)
+        url = Discovery.get_node_manifest(req_id)
         self.assertIsNotNone(url)
 
     def tearDown(self):

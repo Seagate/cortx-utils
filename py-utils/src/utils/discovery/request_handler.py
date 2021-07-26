@@ -59,7 +59,7 @@ class RequestHandler:
     FAILED = "Failed"
 
     @staticmethod
-    def get_node_details(node):
+    def _get_node_details(node):
         """
         Parse node information and returns left string and instance.
         Example
@@ -72,7 +72,7 @@ class RequestHandler:
         return node, inst
 
     @staticmethod
-    def add_discovery_request(rpath, req_id, url):
+    def _add_discovery_request(rpath, req_id, url):
         """Updates new request information"""
         req_info = {
             "rpath": rpath,
@@ -84,7 +84,7 @@ class RequestHandler:
         req_register.set(["%s" % req_id], [req_info])
 
     @staticmethod
-    def set_discovery_request_processed(req_id, status):
+    def _set_discovery_request_processed(req_id, status):
         """Updates processed request information"""
         req_info = req_register.get(["%s" % req_id])[0]
         req_info.update({
@@ -95,23 +95,23 @@ class RequestHandler:
         req_register.set(["%s" % req_id], [req_info])
 
     @staticmethod
-    def update_resource_map(rpath, request_type):
+    def _update_resource_map(rpath, request_type):
         """
         Fetch information based on request type and update
         resource map for given rpath.
         """
         # Parse rpath and find left node
         nodes = rpath.strip().split(">")
-        leaf_node, _ = RequestHandler.get_node_details(nodes[-1])
+        leaf_node, _ = RequestHandler._get_node_details(nodes[-1])
 
         for num, node in enumerate(nodes, 1):
-            node, _ = RequestHandler.get_node_details(node)
+            node, _ = RequestHandler._get_node_details(node)
             resource = ResourceFactory.get_instance(node, rpath)
 
             # Validate next node is its child
             child_found = False
             if node != leaf_node:
-                next_node, _ = RequestHandler.get_node_details(
+                next_node, _ = RequestHandler._get_node_details(
                     nodes[num])
                 child_found = resource.has_child(next_node)
                 if resource.childs and not child_found:
@@ -178,13 +178,13 @@ class RequestHandler:
             # Initialize resource map
             Resource.init(store_url)
             # Process request
-            RequestHandler.add_discovery_request(rpath, req_id, store_url)
-            RequestHandler.update_resource_map(rpath, req_type)
-            RequestHandler.set_discovery_request_processed(
+            RequestHandler._add_discovery_request(rpath, req_id, store_url)
+            RequestHandler._update_resource_map(rpath, req_type)
+            RequestHandler._set_discovery_request_processed(
                 req_id,RequestHandler.SUCCESS)
         except Exception as err:
             status = RequestHandler.FAILED + f" - {err}"
-            RequestHandler.set_discovery_request_processed(
+            RequestHandler._set_discovery_request_processed(
                 req_id, status)
 
     @staticmethod
@@ -213,7 +213,7 @@ class RequestHandler:
             if is_req_expired or (last_reboot > req_start_time and \
                 status is RequestHandler.INPROGRESS):
                 # Set request state as failed
-                RequestHandler.set_discovery_request_processed(
+                RequestHandler._set_discovery_request_processed(
                     req_id, "Failed - request is expired.")
             status = req_register.get(["%s>status" % req_id])[0]
 
