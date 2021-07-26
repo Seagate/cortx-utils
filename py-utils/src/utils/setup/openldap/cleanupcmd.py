@@ -27,10 +27,11 @@ from setupReplication import Replication
 
 class CleanupCmd(SetupCmd):
     """Cleanup cmd initialization"""
+
     Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',\
              level='DEBUG')
     def __init__(self):
-        """Constructor"""
+        """Constructor."""
         try:
             super(CleanupCmd, self).__init__()
         except Exception as e:
@@ -47,6 +48,7 @@ class CleanupCmd(SetupCmd):
         except Exception as e:
             raise OpenldapPROVError(f'exception: {e}\n')
 
+    @staticmethod
     def _delete_file(self, filepath: str):
         """Delete file."""
         if os.path.exists(filepath):
@@ -64,6 +66,7 @@ class CleanupCmd(SetupCmd):
             self._delete_file(logFile)
         Log.debug("Cleanup completed, empty log file")
 
+    @staticmethod
     def delete_replication_config(self):
         """Cleanup replication related config."""
         Log.debug("Starting replication cleanup")
