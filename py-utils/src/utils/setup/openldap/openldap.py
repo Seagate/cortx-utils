@@ -270,7 +270,7 @@ class Openldap:
         return 0
 
     def cleanup(self):
-        """Performs Configuration cleanup. Raises exception on error"""
+        """ Performs Configuration cleanup. Raises exception on error """
         phase_name = "cleanup"
         Log.debug("%s - Starting\n" % phase_name)
         self.validate(phase_name)

@@ -27,7 +27,6 @@ from setupReplication import Replication
 
 class CleanupCmd(SetupCmd):
     """Cleanup cmd initialization"""
-
     Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',\
              level='DEBUG')
     def __init__(self):
@@ -73,10 +72,6 @@ class CleanupCmd(SetupCmd):
 
         dn = "cn=config"
         Replication.deleteattribute(conn, dn, "olcServerID")
-
-        dn = "olcDatabase={0}config,cn=config"
-        Replication.deleteattribute(conn, dn, "olcSyncrepl")
-        Replication.deleteattribute(conn, dn, "olcMirrorMode")
 
         dn = "olcDatabase={2}mdb,cn=config"
         Replication.deleteattribute(conn, dn, "olcSyncrepl")
