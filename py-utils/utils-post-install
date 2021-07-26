@@ -37,8 +37,11 @@ utils_path=$cortx_path/utils
 /bin/ln -s /usr/lib/python3.6/site-packages/cortx/support $utils_path/conf/support
 /bin/chmod +x $utils_path/conf/support
 
-# Replace cortx path to support.yaml
+# Replace cortx path to command.yaml
 sed -i -e "s|<CORTX_PATH>|${cortx_path}|g" $utils_path/conf/command.yaml
+
+# Replace cortx path to support.yaml
+sed -i -e "s|<CORTX_PATH>|${cortx_path}|g" $utils_path/conf/support.yaml
 
 # Copy rsyslog config to /etc/rsyslog.d
 [ ! -d "/etc/rsyslog.d" ] && mkdir "/etc/rsyslog.d"

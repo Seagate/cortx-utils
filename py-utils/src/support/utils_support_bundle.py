@@ -136,16 +136,21 @@ class UtilsSupportBundle:
     @staticmethod
     def parse_args():
         parser = argparse.ArgumentParser(description='''Bundle utils logs ''')
+        parser.add_argument('action', help='Action can be create| status|"\
+            + "delete| cancel')
         parser.add_argument('bundle_id', help='Unique bundle id')
         parser.add_argument('path', help='Path to store the created bundle',
             nargs='?', default="/var/seagate/cortx/support_bundle/")
+        parser.add_argument('--modules', help="list of sub-modules that need"\
+            +"to be specifically bundled")
         args=parser.parse_args()
         return args
 
 
 def main():
     args = UtilsSupportBundle.parse_args()
-    UtilsSupportBundle.generate(bundle_id=args.bundle_id, target_path=args.path)
+    if args.action == 'create':
+        UtilsSupportBundle.generate(bundle_id=args.bundle_id, target_path=args.path)
 
 
 if __name__ == '__main__':

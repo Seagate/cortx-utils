@@ -16,6 +16,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
+from sys import modules
 import threading
 import shutil
 from typing import List
@@ -76,7 +77,7 @@ class ComponentsBundle:
 
     @staticmethod
     def _exc_components_cmd(commands: List, bundle_id: str, path: str,
-            component: str, node_name: str, comment: str):
+            component: str, node_name: str, comment: str, modules):
         """
         Executes the Command for Bundle Generation of Every Component.
         :param commands: Command of the component :type:str
@@ -89,8 +90,8 @@ class ComponentsBundle:
         :return:
         """
         for command in commands:
-            Log.info(f"Executing command -> {command} {bundle_id} {path}")
-            cmd_proc = SimpleProcess(f"{command} {bundle_id} {path}")
+            Log.info(f"Executing command -> {command} {bundle_id} {path} {modules}")
+            cmd_proc = SimpleProcess(f"{command} {bundle_id} {path} {f'--modules={modules}' if modules else ''}")
             output, err, return_code = cmd_proc.run()
             Log.debug(f"Command Output -> {output} {err}, {return_code}")
             if return_code != 0:
@@ -111,30 +112,21 @@ class ComponentsBundle:
         :return:
         """
         # Fetch Command Arguments.
-        Log.init("support_bundle",
-                syslog_server="localhost",
+        Log.init('support_bundle',
+                syslog_server='localhost',
                 syslog_port=514,
-                log_path=Conf.get("cortx_conf","support>support_bundle_path"),
-                level="INFO")
-
+                log_path=Conf.get('cortx_conf', 'support>support_bundle_path'),
+                level='INFO')
         bundle_id = command.options.get(const.SB_BUNDLE_ID, "")
         node_name = command.options.get(const.SB_NODE_NAME, "")
         comment = command.options.get(const.SB_COMMENT, "")
         components = command.options.get(const.SB_COMPONENTS, [])
-
         Log.debug((f"{const.SB_BUNDLE_ID}: {bundle_id}, {const.SB_NODE_NAME}: {node_name}, "
                    f" {const.SB_COMMENT}: {comment}, {const.SB_COMPONENTS}: {components},"
                    f" {const.SOS_COMP}"))
-        # Read Commands.Yaml and Check's If It Exists.
-        cmd_setup_file = os.path.join(Conf.get("cortx_conf", "install_path"),
-                                "cortx/utils/conf/command.yaml")
-        support_bundle_config = Yaml(cmd_setup_file).load()
-        if not support_bundle_config:
-            ComponentsBundle._publish_log(f"No such file {cmd_setup_file}",
-                                         ERROR, bundle_id, node_name, comment)
-            return None
+
         # Path Location for creating Support Bundle.
-        path = os.path.join(Conf.get("cortx_conf","support>support_bundle_path"))
+        path = os.path.join(Conf.get('cortx_conf', 'support>support_bundle_path'))
 
         if os.path.isdir(path):
             try:
@@ -146,31 +138,41 @@ class ComponentsBundle:
         os.makedirs(bundle_path)
         # Start Execution for each Component Command.
         threads = []
-        command_files_info = support_bundle_config.get("COMPONENTS")
-        # OS Logs are specifically generated hence here Even When All is Selected O.S. Logs Will Be Skipped.
+        avail_components =  next(os.walk('/opt/seagate/cortx/'))[1]
+        # OS Logs are specifically generated hence here Even 
+        # When All is Selected O.S. Logs Will Be Skipped.
+        cmpt_wo_flt = {}
         if components:
-            if "all" not in components:
-                components_list = list(set(command_files_info.keys()).intersection(set(components)))
+            for each in components:
+                comp_kv = each.split(':', 1)
+                cmpt_wo_flt[comp_kv[0]] = comp_kv[1] if len(comp_kv)>1 else ''
+            if 'all' not in components:
+                components_list = list(set(avail_components).intersection(set(cmpt_wo_flt.keys())))
             else:
-                components_list = list(command_files_info.keys())
+                components_list = list(avail_components)
                 components_list.remove(const.SOS_COMP)
         Log.debug(
             f"Generating for {const.SB_COMPONENTS} {' '.join(components_list)}")
-        for each_component in components_list:
+        for component in components_list:
             components_commands = []
-            components_files = command_files_info[each_component]
-            for file_path in components_files:
-                file_data = Yaml(file_path).load()
-                if file_data:
-                    components_commands = file_data.get(const.SUPPORT_BUNDLE.lower(), [])
+            component_path = os.path.join(Conf.get('cortx_conf',
+                'install_path'), f'cortx/{component}/conf/support.yaml')
+
+            if os.path.exists(component_path):
+                Conf.load('support_commands', f'yaml://{component_path}', fail_reload=False)
+                raw_command = Conf.get('support_commands', f'bundle>create>url')
+                components_commands.append(raw_command)
                 if components_commands:
+                    modules = cmpt_wo_flt[component]
                     thread_obj = threading.Thread(
-                        ComponentsBundle._exc_components_cmd(components_commands,
-                            bundle_id, f"{bundle_path}{os.sep}", each_component,
-                            node_name, comment))
+                        ComponentsBundle._exc_components_cmd(
+                            components_commands, f"{bundle_id}_{component}",
+                            f"{bundle_path}{os.sep}", component, node_name,
+                            comment, modules))
                     thread_obj.start()
-                    Log.debug(f"Started thread -> {thread_obj.ident}  Component -> {each_component}")
+                    Log.debug(f"Started thread -> {thread_obj.ident}  Component -> {component}")
                     threads.append(thread_obj)
+
         directory_path = Conf.get("cortx_conf","support>support_bundle_path")
         tar_file_name = os.path.join(directory_path,
                                      f"{bundle_id}_{node_name}.tar.gz")
