@@ -5,7 +5,7 @@ from cortx.utils.cli_framework.command import Command
 from cortx.utils.log import Log
 
 
-class SupportBundleScript:
+class SupportBundleCli:
     @staticmethod
     def generate(comment: str, **kwargs):
         Log.init('support_bundle', '/var/log/cortx/utils/support', level='INFO',
@@ -50,9 +50,9 @@ if __name__ == '__main__':
     # componets parameter is optional, if not specified support bundle
     # will be created for all components. You can specify multiple
     # components like components = ['utils', 'provisioner']
-    bundle_obj = SupportBundleScript.generate(
-        comment='Test support bundle generation', components=['provisioner'])
+    bundle_obj = SupportBundleCli.generate(comment= \
+        'Support Bundle generation')
     print(bundle_obj)
     bundle_id = str(bundle_obj).split('|')[1].strip()
-    status = SupportBundleScript.get_status(bundle_id=bundle_id)
+    status = SupportBundleCli.get_status(bundle_id=bundle_id)
     print(status)
