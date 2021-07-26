@@ -104,7 +104,7 @@ class ComponentsBundle:
 
     @staticmethod
     async def init(command: List):
-        """ 
+        """
         Initializes the Process of Support Bundle Generation for Every Component.
 
         :param command: cli Command Object :type: command

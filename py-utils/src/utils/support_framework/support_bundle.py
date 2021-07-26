@@ -13,7 +13,6 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import sys
 import string
 import random
 import getpass
@@ -33,12 +32,13 @@ from cortx.utils.cli_framework.command import Command
 
 
 class SupportBundle:
-    """ This Class initializes the Support Bundle Generation for CORTX. """
 
+    """ This Class initializes the Support Bundle Generation for CORTX. """
     @staticmethod
     async def get_active_nodes():
         """
         This Method is for reading hostnames, node_list information.
+
         :return: hostnames : List of Hostname :type: List
         :return: node_list : : List of Node Name :type: List
         """
@@ -128,6 +128,7 @@ class SupportBundle:
     async def get_bundle_status(command):
         """
         Initializes the process for Displaying the Status for Support Bundle.
+
         :param command: Csm_cli Command Object :type: command
         :return: None   
         """
@@ -158,7 +159,7 @@ class SupportBundle:
 
     @staticmethod
     def generate(comment: str, **kwargs):
-        """ 
+        """
         Initializes the process for Generating Support Bundle on EachCORTX Node.
         :param comment:     Mandatory parameter, reason why we are generating
                             support bundle
@@ -187,7 +188,7 @@ class SupportBundle:
 
     @staticmethod
     def get_status(bundle_id: str = None):
-        """ 
+        """
         Initializes the process for Displaying the Status for Support Bundle
         
         :param bundle_id: Using this will fetch bundle status :type: string

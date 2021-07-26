@@ -18,9 +18,10 @@ from cortx.utils.errors import BaseError
 class BundleError(BaseError):
 
     def __init__(self, rc=None, desc=None, message_id=None, message_args=None):
-        """ Error class for support bundle related errors """
+        """Error class for support bundle related errors"""
         super(BundleError, self).__init__(
             rc, desc, message_id, message_args)
 
     def __str__(self):
+        """returns bundle_error in formatted way"""
         return f"BundleError: {self._rc}: {self._desc}"

@@ -15,14 +15,14 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-SUPPORT_BUNDLE_TAG = "support_bundle;"
+SUPPORT_BUNDLE_TAG = 'support_bundle;'
 SUPPORT_BUNDLE = 'SUPPORT_BUNDLE'
 SOS_COMP = 'os'
-SB_COMPONENTS = "components"
+SB_COMPONENTS = 'components'
 SB_COMMENT = "comment"
-SB_NODE_NAME = "node_name"
-SB_BUNDLE_ID = "bundle_id"
-SB_BUNDLE_PATH = "bundle_path"
-SB_SYMLINK_PATH = "symlink_path"
-SYMLINK_PATH = "/tmp/support_bundle/"
+SB_NODE_NAME = 'node_name'
+SB_BUNDLE_ID = 'bundle_id'
+SB_BUNDLE_PATH = 'bundle_path'
+SB_SYMLINK_PATH = 'symlink_path'
+SYMLINK_PATH = '/tmp/support_bundle/'
 PERMISSION_ERROR_MSG = "Failed to cleanup {path} due to insufficient permissions"
