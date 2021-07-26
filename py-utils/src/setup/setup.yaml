@@ -32,7 +32,7 @@ utils:
 
     test:
         cmd: /opt/seagate/cortx/utils/bin/utils_setup test
-        args: --config $URL
+        args: --config $URL --plan sanity
 
     reset:
         cmd: /opt/seagate/cortx/utils/bin/utils_setup reset
