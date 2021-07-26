@@ -33,9 +33,7 @@ from cortx.utils.cli_framework.command import Command
 
 
 class SupportBundle:
-    """
-    This Class initializes the Support Bundle Generation for CORTX.
-    """
+    """ This Class initializes the Support Bundle Generation for CORTX. """
 
     @staticmethod
     async def get_active_nodes():
@@ -72,7 +70,7 @@ class SupportBundle:
         return f" -c {shell_args}"
 
     @staticmethod
-    async def generate_bundle(command) -> sys.stdout:
+    async def generate_bundle(command):
         """
         Initializes the process for Generating Support Bundle on Each CORTX
         Node.
@@ -131,7 +129,7 @@ class SupportBundle:
         """
         Initializes the process for Displaying the Status for Support Bundle.
         :param command: Csm_cli Command Object :type: command
-        :return: None
+        :return: None   
         """
         try:
             bundle_id = command.options.get(const.SB_BUNDLE_ID)
@@ -160,8 +158,8 @@ class SupportBundle:
 
     @staticmethod
     def generate(comment: str, **kwargs):
-        """ Initializes the process for Generating Support Bundle on Each
-            CORTX Node.
+        """ 
+        Initializes the process for Generating Support Bundle on EachCORTX Node.
         :param comment:     Mandatory parameter, reason why we are generating
                             support bundle
         :param components:  Optional paramter, If not specified SB will be
@@ -170,14 +168,13 @@ class SupportBundle:
                             Eg: components = ['utils', 'provisioner']
         :return:            bundle_obj
         """
-
         components = ''
         for key, value in kwargs.items():
             if key == 'components':
                 components = value
 
         options = {'comment': comment,'components':components, 'comm': \
-            {'type': 'direct', 'target': 'csm.cli.support_bundle', 'method': \
+            {'type': 'direct', 'target': 'utils.support_framework', 'method': \
             'generate_bundle', 'class': 'SupportBundle', 'is_static': True, \
             'params': {}, 'json': {}}, 'output': {}, 'need_confirmation': \
             False, 'sub_command_name': 'generate_bundle'}
@@ -190,16 +187,14 @@ class SupportBundle:
 
     @staticmethod
     def get_status(bundle_id: str = None):
-        """ Initializes the process for Displaying the Status for Support Bundle
-            :param bundle_id: Using this will fetch bundle status :type: string
-            :return: dict
-                """
+        """ 
+        Initializes the process for Displaying the Status for Support Bundle
+        
+        :param bundle_id: Using this will fetch bundle status :type: string
+        """
         if bundle_id:
-            import time
-            time.sleep(10)
-
             options = {'bundle_id': bundle_id, 'comm': {'type': 'direct', \
-            'target': 'csm.cli.support_bundle', 'method': 'get_bundle_status', \
+            'target': 'utils.support_framework', 'method': 'get_bundle_status', \
             'class': 'SupportBundle', 'is_static': True, 'params': {}, \
             'json': {}}, 'output': {}, 'need_confirmation': False, \
             'sub_command_name': 'get_bundle_status'}
@@ -212,7 +207,8 @@ class SupportBundle:
             return res
         else:
             # list generated support bundles
-            pass
+            # TODO
+            return {'bundle_list': []}
 
     @staticmethod
     def delete(bundle):

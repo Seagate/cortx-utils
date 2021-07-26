@@ -24,6 +24,7 @@ from cortx.utils.errors import BaseError
 class PackageValidationError(BaseError):
     pass
 
+
 class ProvisionerServices:
     """
     TODO: Class can be removed when Remote communication framework is done
@@ -40,6 +41,7 @@ class ProvisionerServices:
     """
 
     def __init__(self):
+        """ Initialises provisioner services """
         try:
             self.provisioner = provisioner
             Log.info("Provisioner plugin is loaded")

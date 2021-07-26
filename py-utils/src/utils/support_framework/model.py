@@ -32,6 +32,7 @@ class SupportBundleModel(BaseModel):
 
 class SupportBundleRepository:
     def __init__(self, storage: DataBaseProvider):
+        """ Initiallises the SupportBundleRepository """
         self.db = storage
 
     async def retrieve_all(self, bundle_id) -> [SupportBundleModel]:

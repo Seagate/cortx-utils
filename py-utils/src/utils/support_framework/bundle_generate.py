@@ -31,9 +31,8 @@ INFO = "info"
 
 
 class ComponentsBundle:
-    """
-    This class handles generation for support bundles for different components.
-    """
+    """ This class handles generation for support bundles for different components. """
+
     @staticmethod
     def _publish_log(msg, level, bundle_id, node_name, comment):
         """
@@ -105,10 +104,11 @@ class ComponentsBundle:
 
     @staticmethod
     async def init(command: List):
-        """
+        """ 
         Initializes the Process of Support Bundle Generation for Every Component.
-        :param command: Csm_cli Command Object :type: command
-        :return:
+
+        :param command: cli Command Object :type: command
+        :return: None
         """
         # Fetch Command Arguments.
         Log.init("support_bundle",
