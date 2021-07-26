@@ -17,7 +17,7 @@ class SupportBundleScript:
                 components = value
 
         options = {'comment': comment,'components':components, 'comm': \
-            {'type': 'direct', 'target': 'csm.cli.support_bundle', 'method': \
+            {'type': 'direct', 'target': 'utils.support', 'method': \
             'generate_bundle', 'class': 'SupportBundle', 'is_static': True, \
             'params': {}, 'json': {}}, 'output': {}, 'need_confirmation': \
             False, 'sub_command_name': 'generate_bundle'}
@@ -28,13 +28,13 @@ class SupportBundleScript:
         return res
 
     @staticmethod
-    def get_bundle_status(bundle_id: str):
+    def get_status(bundle_id: str):
         # status
         import time
         time.sleep(5)
 
         options = {'bundle_id': bundle_id, 'comm': {'type': 'direct', \
-            'target': 'csm.cli.support_bundle', 'method': 'get_bundle_status', \
+            'target': 'utils.support', 'method': 'get_bundle_status', \
             'class': 'SupportBundle', 'is_static': True, 'params': {}, \
             'json': {}}, 'output': {}, 'need_confirmation': False, \
             'sub_command_name': 'get_bundle_status'}
@@ -42,8 +42,8 @@ class SupportBundleScript:
         cmd_obj = Command('get_bundle_status', options, [])
         loop = asyncio.get_event_loop()
         res = loop.run_until_complete(SupportBundle.get_bundle_status(cmd_obj))
-        print('\n\nStatus - ', res, '\n')
         loop.close()
+        return res
 
 
 if __name__ == '__main__':
@@ -51,7 +51,8 @@ if __name__ == '__main__':
     # will be created for all components. You can specify multiple
     # components like components = ['utils', 'provisioner']
     bundle_obj = SupportBundleScript.generate(
-        comment='Test support bundle generation')
+        comment='Test support bundle generation', components=['provisioner'])
     print(bundle_obj)
     bundle_id = str(bundle_obj).split('|')[1].strip()
-    SupportBundleScript.get_bundle_status(bundle_id=bundle_id)
+    status = SupportBundleScript.get_status(bundle_id=bundle_id)
+    print(status)
