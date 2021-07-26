@@ -54,9 +54,9 @@ class SetupCmd(object):
   Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',level='DEBUG')
 
   config_file_path = "/etc/cortx/cortx.conf"
-  Conf.load('config_file', f'yaml:///{config_file_path}')
-  openldap_prov_config = Conf.get(index='config_file', key='install_path') + '/cortx/utils/conf/' + 'openldap_prov_config.yaml'
-  openldap_config_file = Conf.get(index='config_file', key='install_path') + '/cortx/utils/conf/' + "openldap_config.yaml"
+  Conf.load('config_file_install_path', f'yaml:///{config_file_path}')
+  openldap_prov_config = Conf.get(index='config_file_install_path', key='install_path') + '/cortx/utils/conf/' + 'openldap_prov_config.yaml'
+  openldap_config_file = Conf.get(index='config_file_install_path', key='install_path') + '/cortx/utils/conf/' + "openldap_config.yaml"
 
   def __init__(self, config: str):
     """Constructor."""
