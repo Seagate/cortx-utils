@@ -30,6 +30,10 @@ utils_path=$cortx_path/utils
 /bin/ln -s /usr/lib/python3.6/site-packages/cortx/utils/utils_server/utils_server.py $utils_path/bin/utils_server
 /bin/chmod +x $utils_path/bin/utils_server
 
+# Copy the support_bundle_cli.py as support_bundle_cli
+/bin/ln -s /usr/lib/python3.6/site-packages/cortx/support/support_bundle_cli.py $utils_path/bin/support_bundle
+/bin/chmod +x $utils_path/bin/support_bundle
+
 # Copy cortx.conf file to /etc/cortx
 [ -f "/etc/cortx/cortx.conf" ] || cp -n $utils_path/conf/cortx.conf.sample /etc/cortx/cortx.conf
 

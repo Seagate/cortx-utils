@@ -15,6 +15,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import asyncio
+import sys
 
 from cortx.utils.support.support_bundle import SupportBundle
 from cortx.utils.cli_framework.command import Command
@@ -61,14 +62,24 @@ class SupportBundleCli:
         loop.close()
         return res
 
-
-if __name__ == '__main__':
-    # componets parameter is optional, if not specified support bundle
-    # will be created for all components. You can specify multiple
-    # components like components = ['utils', 'provisioner']
-    bundle_obj = SupportBundleCli.generate(comment= \
-        'Support Bundle generation')
+def main(argv):
+    components = argv[3] if len(argv)>3 else []
+    if components:
+        components = [component for component in components.split(',')]
+    cmd = f"SupportBundleCli.{argv[1]}(comment='{argv[2]}', components={components})"
+    bundle_obj = eval(cmd)
     print(bundle_obj)
     bundle_id = str(bundle_obj).split('|')[1].strip()
     status = SupportBundleCli.get_status(bundle_id=bundle_id)
-    print(status)
+    return status
+
+
+if __name__ == '__main__':
+    # componets parameter is optional, if not specified support bundle
+    # will be created for all components. 
+    # Usage eg:
+    # $sudo /opt/seagate/cortx/utils/bin/support_bundle generate 'Creating support bundle generation'
+    # $sudo /opt/seagate/cortx/utils/bin/support_bundle generate 'Creating support bundle generation' 'utils,csm'
+    # support_bundle bin path is temporary and  will be replaced with support_bundle command 
+    # while implementing support_bundle cli
+    sys.exit(main(sys.argv))

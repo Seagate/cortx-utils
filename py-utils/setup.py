@@ -92,7 +92,7 @@ setup(name='cortx-py-utils',
                 'cortx.utils.conf_store', 'cortx.utils.message_bus',
                 'cortx.utils.product_features', 'cortx.utils.security',
                 'cortx.utils.schema', 'cortx.utils.appliance_info',
-                'cortx.setup', 'cortx.utils.service',
+                'cortx.setup', 'cortx.support', 'cortx.utils.service',
                 'cortx.utils.setup', 'cortx.utils.setup.kafka',
                 'cortx.utils.cli_framework', 'cortx.utils.support',
                 'cortx.utils.utils_server', 'cortx.utils.iem_framework',
@@ -108,7 +108,7 @@ setup(name='cortx-py-utils',
             'utils_setup = cortx.setup.utils_setup:main',
             'iem = cortx.utils.iem_framework.iem_cli:main',
             'kafka_setup = cortx.utils.setup.kafka.kafka_setup:main'
-        ]
+            ]
       },
       data_files = [ ('/var/lib/cortx/ha/specs', specs),
                      ('/opt/seagate/cortx/utils/conf', tmpl_files),
