@@ -31,7 +31,7 @@ class TestSharedStorage(unittest.TestCase):
         shared_path = Storage.get_path()
         self.assertTrue(os.access(shared_path, os.R_OK))
 
-    def test_shared_path_read_access(self):
+    def test_shared_path_write_access(self):
         """ test if shared storage path exists and is writable """
         shared_path = Storage.get_path()
         self.assertTrue(os.access(shared_path, os.W_OK))

@@ -39,7 +39,7 @@ class Storage:
         except Exception as e:
             raise SharedStorageError(errno.EINVAL, \
                 "Error while parsing %s" % Storage.config_file, e)
-        
+
         self.shared_storage_agent = SharedStorageFactory.get_instance( \
                                         shared_storage_type, \
                                         shared_storage_path)

@@ -195,7 +195,7 @@ class Utils:
             'kafka.service'])
 
         # Check required python packages
-        install_path = Utils._get_from_conf_file('install_path') 
+        install_path = Utils._get_from_conf_file('install_path')
         utils_path = install_path + '/cortx/utils'
         with open(f"{utils_path}/conf/python_requirements.txt") as file:
             req_pack = []

@@ -30,7 +30,6 @@ class SharedStorageAgent:
 
     def get_path(self):
         """ return fetched path of shared storage mountpoint """
-
         shared_path = self._fetch_path()
         return shared_path
 
