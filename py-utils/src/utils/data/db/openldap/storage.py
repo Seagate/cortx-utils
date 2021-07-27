@@ -18,9 +18,11 @@
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
+from distutils.util import strtobool
 import ldap
 import ldap.modlist
 import multiprocessing
+from schematics.types import BooleanType, DateTimeType
 from typing import Dict, List, Type
 
 from cortx.utils.data.access import BaseModel, IDataBase, Query
@@ -146,6 +148,17 @@ class OpenLdap(GenericDataBase):
         return field_name.translate(str.maketrans('_', '-'))
 
     @staticmethod
+    def _pythonize_attr_name(attr_name: str) -> str:
+        """
+        Converts the LDAP attribute's name to an field name of a Python model.
+
+        :param attr_name: attribute name.
+        :returns: field name as a string.
+        """
+
+        return attr_name.translate(str.maketrans('-', '_'))
+
+    @staticmethod
     def _generalize_datetime(timestamp: datetime) -> str:
         """
         Converts the datetime to format stored in LDAP.
@@ -155,6 +168,28 @@ class OpenLdap(GenericDataBase):
         """
 
         return timestamp.strftime('%Y%m%d%H%M%SZ')
+
+    @staticmethod
+    def _pythonize_datetime(attr_timestamp: str) -> datetime:
+        """
+        Converts an OpenLdap's timestamp to Python datetime.
+
+        :param attr_timestamp: timestamp from OpenLdap's attribute.
+        :returns: datetime object.
+        """
+
+        return datetime.strptime(attr_timestamp, '%Y%m%d%H%M%SZ')
+
+    @staticmethod
+    def _pythonize_bool(attr_bool: str) -> bool:
+        """
+        Converts an OpenLdap's boolean string to Python bool.
+
+        :param attr_bool: Boolean string from OpenLdap's attribute.
+        :returns: bool object.
+        """
+
+        return bool(strtobool(attr_bool))
 
     @staticmethod
     def _generalize_field_value(value: object) -> str:
@@ -174,6 +209,25 @@ class OpenLdap(GenericDataBase):
         # OpenLdap expects a list of bytes objects
         return [converter(value).encode('utf-8')]
 
+    def _pythonize_attr_value(self, attr_name, attr_value: str) -> object:
+        """
+        Converts an OpenLdap attribute's value to Python model's field value.
+
+        :param value: attribute value.
+        :returns: object for model's field.
+        """
+
+        special_converters = {
+            DateTimeType: OpenLdap._pythonize_datetime,
+            BooleanType: OpenLdap._pythonize_bool,
+        }
+
+        model_field = getattr(self._model, attr_name)
+        converter = special_converters.get(type(model_field), lambda x: x)
+        # OpenLdap returns attributes as lists of bytes objects
+        attr_value = attr_value[0].decode('utf-8')
+        return converter(attr_value)
+
     @staticmethod
     def _model_to_ldif(model: BaseModel) -> ldap.modlist.addModlist:
         """
@@ -186,12 +240,28 @@ class OpenLdap(GenericDataBase):
         """
 
         attrs = {}
-        attrs['objectclass'] = OpenLdap._generalize_field_value(type(model).__name__)
+        attrs['objectClass'] = OpenLdap._generalize_field_value(type(model).__name__)
         for field, value in model.to_native().items():
             attr_name = OpenLdap._generalize_field_name(field)
             attr_value = OpenLdap._generalize_field_value(value)
             attrs[attr_name] = attr_value
         return ldap.modlist.addModlist(attrs)
+
+    def _ldif_to_model(self, attrs: Dict[str, str]) -> BaseModel:
+        """
+        Converts LDIF from OpenLdap to Model object.
+
+        :param attrs: object attributes from OpenLdap.
+        :returns: BaseModel object.
+        """
+
+        model_attrs = {}
+        del(attrs['objectClass'])
+        for attr_name, attr_value in attrs.items():
+            model_attr_name = OpenLdap._pythonize_attr_name(attr_name)
+            model_attr_value = self._pythonize_attr_value(model_attr_name, attr_value)
+            model_attrs[model_attr_name] = model_attr_value
+        return self._model(model_attrs)
 
     def _get_object_dn(self, obj: BaseModel) -> str:
         """
@@ -231,10 +301,10 @@ class OpenLdap(GenericDataBase):
         base_scope = ldap.SCOPE_ONELEVEL
         items = await self._loop.run_in_executor(
             self._thread_pool, self._client.search_s, base_dn, base_scope)
-        return items
-        # TODO: convert list of dictionaries back to objects
-        # objects = [self._model(attrs) for dn, attrs in items]
-        # return objects
+        models = []
+        for _, attrs in items:
+            models.append(self._ldif_to_model(attrs))
+        return models
 
     async def update(self, filter_obj: IFilter, to_update: Dict) -> int:
         pass
