@@ -32,7 +32,7 @@ utils:
 
     test:
         cmd: /opt/seagate/cortx/utils/bin/utils_setup test
-        args: --config $URL
+        args: --config $URL --plan sanity
 
     reset:
         cmd: /opt/seagate/cortx/utils/bin/utils_setup reset
@@ -61,6 +61,3 @@ utils:
             cmd: /opt/seagate/cortx/utils/bin/utils_setup pre_upgrade cluster
             {% endif %}
             when: {{ level in ('node', 'cluster') }}
-
-support_bundle:
-    - python3 /opt/seagate/cortx/utils/conf/support/utils_support_bundle.py

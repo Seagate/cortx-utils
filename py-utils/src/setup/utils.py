@@ -26,7 +26,9 @@ from cortx.utils.validator.v_service import ServiceV
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.service.service_handler import Service
-
+from cortx.utils.validator.v_pkg import PkgV
+from cortx.utils.validator.error import VError
+from cortx.utils.errors import TestFailed
 
 class SetupError(Exception):
     """ Generic Exception with error code and output """
@@ -201,7 +203,6 @@ class Utils:
         except Exception:
             Log.info("Not found: "+f"{utils_path}/conf/python_requirements.ext.txt")
 
-        from cortx.utils.validator.v_pkg import PkgV
         PkgV().validate(v_type='pip3s', args=req_pack)
         return 0
 
@@ -269,19 +270,27 @@ class Utils:
         return 0
 
     @staticmethod
-    def test():
+    def test(plan: str):
         """ Perform configuration testing """
-
-        from cortx.setup import MessageBusTest
-        msg_test = MessageBusTest()
-        # Send a message
-        msg_test.send_msg(["Test Message"])
-        # Receive the same & validate
-        msg = msg_test.receive_msg()
-        if str(msg.decode('utf-8')) != "Test Message":
-            Log.error(f"Unable to test the config. Received message is {msg}")
-            raise SetupError(errno.EINVAL, "Unable to test the config. Received\
-                message is %s", msg)
+        # Runs cortx-py-utils unittests as per test plan
+        try:
+            Log.info("Validating cortx-py-utils-test rpm")
+            PkgV().validate('rpms', ['cortx-py-utils-test'])
+            utils_path = Utils._get_utils_path()
+            import cortx.utils.test as test_dir
+            plan_path = os.path.join(os.path.dirname(test_dir.__file__), \
+                'plans/', plan + '.pln')
+            Log.info("Running test plan: %s", plan)
+            cmd = "%s/bin/run_test -t  %s" %(utils_path, plan_path)
+            _output, _err, _rc = SimpleProcess(cmd).run(realtime_output=True)
+            if _rc != 0:
+                Log.error("Py-utils Test Failed")
+                raise TestFailed("Py-utils Test Failed. \n Output : %s "\
+                    "\n Error : %s \n Return Code : %s" %(_output, _err, _rc))
+        except VError as ve:
+            Log.error("Failed at package Validation: %s", ve)
+            raise SetupError(errno.EINVAL, "Failed at package Validation:"\
+                " %s", ve)
         return 0
 
     @staticmethod

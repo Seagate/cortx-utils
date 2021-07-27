@@ -23,13 +23,13 @@ modules:
 
 bundle: 
     create:
-      url: "python3 /opt/seagate/cortx/utils/conf/support/utils_support_bundle.py create"
+      url: "/opt/seagate/cortx/utils/bin/utils_support_bundle create"
 
     status:
-      url: "python3 /opt/seagate/cortx/utils/conf/support/utils_support_bundle.py status"
+      url: "/opt/seagate/cortx/utils/bin/utils_support_bundle status"
 
     delete:
-      url: "python3 /opt/seagate/cortx/utils/conf/support/utils_support_bundle.py delete"
+      url: "/opt/seagate/cortx/utils/bin/utils_support_bundle delete"
 
     cancel:
-      url: "python3 /opt/seagate/cortx/utils/conf/support/utils_support_bundle.py cancel"
+      url: "/opt/seagate/cortx/utils/bin/utils_support_bundle cancel"

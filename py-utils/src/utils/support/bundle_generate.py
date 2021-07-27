@@ -124,7 +124,6 @@ class ComponentsBundle:
         Log.debug((f"{const.SB_BUNDLE_ID}: {bundle_id}, {const.SB_NODE_NAME}: {node_name}, "
                    f" {const.SB_COMMENT}: {comment}, {const.SB_COMPONENTS}: {components},"
                    f" {const.SOS_COMP}"))
-
         # Path Location for creating Support Bundle.
         path = os.path.join(Conf.get('cortx_conf', 'support>support_bundle_path'))
 
