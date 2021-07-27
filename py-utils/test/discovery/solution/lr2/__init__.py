@@ -15,7 +15,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com
 
-"""Mock solution platform monitor for test"""
+"""Mock solution platform monitor for test."""
 
 from cortx.utils.test.discovery.solution.lr2.server.server_resource_map import ServerResourceMap
 from cortx.utils.test.discovery.solution.lr2.storage.storage_resource_map import StorageResourceMap
