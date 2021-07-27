@@ -1,6 +1,4 @@
-#!/bin/env python3
-
-# CORTX Python common library.
+# CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -14,23 +12,3 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
-
-from cortx.utils.errors import BaseError
-
-
-class DiscoveryError(BaseError):
-    """Generic Exception with error code and output."""
-
-    def __init__(self, rc=0, desc=None, message_id=None, message_args=None):
-        """Initialize DiscoveryError"""
-        super(DiscoveryError, self).__init__(
-              rc, '%s' % desc, message_id, message_args)
-
-
-class ResourceMapError(BaseError):
-    """Generic Exception with error code and output."""
-
-    def __init__(self, rc=0, desc=None, message_id=None, message_args=None):
-        """Initialize ResourceMapError."""
-        super(ResourceMapError, self).__init__(
-              rc, '%s' % desc, message_id, message_args)

@@ -43,9 +43,11 @@ class IemCli:
             'source_type': None,
             'severity': None,
             'message': None,
+            'problem_cluster_id': None,
             'problem_site_id': None,
             'problem_rack_id': None,
             'problem_node_id': None,
+            'problem_host': None,
             'event_time': None
         }
         return blank_send_args
@@ -70,10 +72,13 @@ class IemCli:
             raise EventMessageError(errno.EINVAL, "Invalid send arguments!")
 
         if args.location:
-            site_id, node_id, rack_id = args.location.split(':')
+            cluster_id, site_id, node_id, rack_id, host = \
+                args.location.split(':')
+            send_args['problem_cluster_id'] = cluster_id
             send_args['problem_site_id'] = site_id
             send_args['problem_node_id'] = node_id
             send_args['problem_rack_id'] = rack_id
+            send_args['problem_host'] = host
 
         return send_args
 
@@ -96,9 +101,11 @@ class IemCli:
             event_id=send_args['event_id'],
             severity=send_args['severity'],
             message_blob=send_args['message'],
+            problem_cluster_id=send_args['problem_cluster_id'],
             problem_site_id=send_args['problem_site_id'],
             problem_rack_id=send_args['problem_rack_id'],
             problem_node_id=send_args['problem_node_id'],
+            problem_host=send_args['problem_host'],
             event_time=send_args['event_time']
         )
 
@@ -145,8 +152,8 @@ class SendCmd:
         req_s_parser.add_argument('-s', '--source', help='component:module')
         req_s_parser.add_argument('-i', '--info', help='source_type:severity')
         req_s_parser.add_argument('-c', '--contents', help='event_id:message')
-        req_s_parser.add_argument('-l', '--location',
-                                  help='site_id:node_id:rack_id')
+        req_s_parser.add_argument('-l', '--location', \
+            help='cluster_id:site_id:node_id:rack_id:host')
 
 
 class ReceiveCmd:
