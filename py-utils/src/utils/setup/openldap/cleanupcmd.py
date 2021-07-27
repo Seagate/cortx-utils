@@ -19,25 +19,31 @@
 #
 
 import os
+import ldap
 from cortx.utils.log import Log
 from setupcmd import SetupCmd, OpenldapPROVError
+from base_configure_ldap import BaseConfig
+from setupReplication import Replication
 
-class ResetCmd(SetupCmd):
-    """Reset cmd initialization"""
+class CleanupCmd(SetupCmd):
+    """Cleanup cmd initialization"""
     Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',\
              level='DEBUG')
     def __init__(self):
-        """Constructor"""
+        """Constructor."""
         try:
-            super(ResetCmd, self).__init__()
+            super(CleanupCmd, self).__init__()
         except Exception as e:
-            Log.debug("Initializing reset phase failed")
+            Log.debug("Initializing cleanup phase failed")
             raise OpenldapPROVError(f'exception: {e}')
 
     def process(self):
         """Main processing function."""
         try:
             self.delete_log_files()
+            BaseConfig.cleanup(True)
+            os.system('systemctl restart slapd')
+            self.delete_replication_config()
         except Exception as e:
             raise OpenldapPROVError(f'exception: {e}\n')
 
@@ -51,10 +57,22 @@ class ResetCmd(SetupCmd):
 
     def delete_log_files(self):
         """Delete log files."""
-        #delete log files
         Log.debug("Starting log file deletion")
         logFiles = ["/var/log/seagate/utils/openldap/OpenldapProvisioning",
                     "/var/log/slapd.log"]
         for logFile in logFiles:
             self._delete_file(logFile)
-        Log.debug("Reset completed, empty log file")
+        Log.debug("Cleanup completed, empty log file")
+
+    def delete_replication_config(self):
+        """Cleanup replication related config."""
+        Log.debug("Starting replication cleanup")
+        conn = ldap.initialize("ldapi://")
+        conn.sasl_non_interactive_bind_s('EXTERNAL')
+
+        dn = "cn=config"
+        Replication.deleteattribute(conn, dn, "olcServerID")
+
+        dn = "olcDatabase={2}mdb,cn=config"
+        Replication.deleteattribute(conn, dn, "olcSyncrepl")
+        Replication.deleteattribute(conn, dn, "olcMirrorMode")
