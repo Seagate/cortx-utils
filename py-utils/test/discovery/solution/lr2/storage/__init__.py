@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/bin/python3
 
 # CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
@@ -13,6 +13,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 # For any questions about this software or licensing,
-# please email opensource@seagate.com or cortx-questions@seagate.com.
+# please email opensource@seagate.com or cortx-questions@seagate.com
 
-"""Test discovery library."""
+"""Mock storage resource map."""
