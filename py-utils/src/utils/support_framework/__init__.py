@@ -17,9 +17,6 @@
 
 from cortx.utils.support_framework.bundle import Bundle
 from cortx.utils.support_framework.support_bundle import SupportBundle
-# adds all above defined packages in import *
-__all__ = ('Bundle', 'SupportBundle')
-
 from cortx.utils.conf_store.conf_store import Conf
 from cortx.utils.log import Log
 

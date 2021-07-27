@@ -32,24 +32,22 @@ from cortx.utils.cli_framework.command import Command
 
 
 class SupportBundle:
-
     """ This Class initializes the Support Bundle Generation for CORTX. """
+
     @staticmethod
     async def _get_active_nodes():
         """
         This Method is for reading hostnames, node_list information.
 
-        :return: hostnames : List of Hostname :type: List
-        :return: node_list : : List of Node Name :type: List
+        return:     hostnames : List of Hostname :type: List
+        return:     node_list : List of Node Name :type: List
         """
         Log.info("Reading hostnames, node_list information")
         Conf.load('cortx_cluster', 'json:///etc/cortx/cluster.conf')
         node_hostname_map = Conf.get('cortx_cluster', 'cluster')
         if not node_hostname_map:
             response_msg = "Node list and hostname not found."
-            return Response(output=response_msg,
-                            rc=errno.ENODATA), None
-
+            return Response(output=response_msg, rc=errno.ENODATA), None
         return node_hostname_map
 
     @staticmethod
@@ -60,40 +58,40 @@ class SupportBundle:
 
     @staticmethod
     def _get_components(components):
-        """Get Components to Generate Support Bundle."""
-        if components and "all" not in components:
+        """ Get Components to Generate Support Bundle."""
+        if components and 'all' not in components:
             Log.info(f"Generating bundle for  {' '.join(components)}")
             shell_args = f"{' '.join(components)}"
         else:
             Log.info("Generating bundle for all CORTX components.")
-            shell_args = "all"
+            shell_args = 'all'
         return f" -c {shell_args}"
 
     @staticmethod
     async def _generate_bundle(command):
         """
-        Initializes the process for Generating Support Bundle on Each CORTX
-        Node.
-        :param command: Csm_cli Command Object :type: command
-        :return: None.
+        Initializes the process for Generating Support Bundle on Each CORTX Node.
+
+        command:    Command Object :type: command
+        return:     None.
         """
         current_user = str(getpass.getuser())
         # Check if User is Root User.
-        if current_user.lower() != "root":
+        if current_user.lower() != 'root':
             response_msg = "Support Bundle Command requires root privileges"
             return Response(output=response_msg, rc=errno.EACCES)
         bundle_id = SupportBundle._generate_bundle_id()
         provisioner = ProvisionerServices()
         if not provisioner:
-            return Response(output="Provisioner package not found.",
-                            rc=errno.ENOENT)
+            return Response(output="Provisioner package not found.", \
+                rc=errno.ENOENT)
         # Get Arguments From Command
         comment = command.options.get(const.SB_COMMENT)
         components = command.options.get(const.SB_COMPONENTS)
         if not components:
             components = []
-        if command.options.get(const.SOS_COMP, False) == "true":
-            components.append("os")
+        if command.options.get(const.SOS_COMP, False) == 'true':
+            components.append('os')
         comp_list = SupportBundle._get_components(components)
 
         # Get HostNames and Node Names.
@@ -110,18 +108,17 @@ class SupportBundle:
                     f"'{hostname}' {comp_list}", nodename)
             except BundleError as be:
                 Log.error(f"Bundle generation failed.{be}")
-                return Response(output="Bundle generation failed.\nPlease "
-                                       "check CLI for details.",
-                                rc=errno.EINVAL)
+                return Response(output="Bundle generation failed.\nPlease " \
+                    "check CLI for details.", rc=errno.EINVAL)
             except Exception as e:
                 Log.error(f"Provisioner API call failed : {e}")
-                return Response(output="Bundle Generation Failed.",
-                                rc=errno.ENOENT)
+                return Response(output="Bundle Generation Failed.", \
+                    rc=errno.ENOENT)
 
         symlink_path = const.SYMLINK_PATH
         from cortx.utils.support_framework import Bundle
-        bundle_obj = Bundle(bundle_id=bundle_id, bundle_path=symlink_path,
-                            comment=comment)
+        bundle_obj = Bundle(bundle_id=bundle_id, bundle_path=symlink_path, \
+            comment=comment)
         return bundle_obj
 
     @staticmethod
@@ -129,8 +126,8 @@ class SupportBundle:
         """
         Initializes the process for Displaying the Status for Support Bundle.
 
-        :param command: Csm_cli Command Object :type: command
-        :return: None   
+        command:    Command Object :type: command
+        return:     None
         """
         try:
             bundle_id = command.options.get(const.SB_BUNDLE_ID)
@@ -138,43 +135,38 @@ class SupportBundle:
             db = DataBaseProvider(conf)
             repo = SupportBundleRepository(db)
             all_nodes_status = await repo.retrieve_all(bundle_id)
-            response = {"status": [each_status.to_primitive() for each_status in
+            response = {'status': [each_status.to_primitive() for each_status in
                                    all_nodes_status]}
             return response
         except DataAccessExternalError as e:
             Log.warn(f"Failed to connect to elasticsearch: {e}")
-            return Response(
-                output=("Support Bundle status is not available currently"
-                        " as required services are not running."
-                        " Please wait and check the /tmp/support_bundle"
-                        " folder for newly generated support bundle."),
-                rc=str(errno.ECONNREFUSED))
+            return Response(output=("Support Bundle status is not available " \
+                "currently as required services are not running. Please wait " \
+                "and check the /tmp/support_bundle folder for newly generated " \
+                "support bundle."), rc=str(errno.ECONNREFUSED))
         except Exception as e:
             Log.error(f"Failed to get bundle status: {e}")
-            return Response(
-                output=("Support Bundle status is not available currently"
-                        " as required services are not running."
-                        " Failed to get status of bundle."),
-                rc=str(errno.ENOENT))
+            return Response(output=("Support Bundle status is not available " \
+                "currently as required services are not running. Failed to " \
+                "get status of bundle."), rc=str(errno.ENOENT))
 
     @staticmethod
     def generate(comment: str, **kwargs):
         """
         Initializes the process for Generating Support Bundle on EachCORTX Node.
-        :param comment:     Mandatory parameter, reason why we are generating
-                            support bundle
-        :param components:  Optional paramter, If not specified SB will be
-                            generated for all components. You can specify
-                            multiple components also
-                            Eg: components = ['utils', 'provisioner']
-        :return:            bundle_obj
+
+        comment:        Mandatory parameter, reason why we are generating
+                        support bundle
+        components:     Optional paramter, If not specified SB will be generated
+                        for all components. You can specify multiple components
+                        also Eg: components = ['utils', 'provisioner']
+        return:         bundle_obj
         """
         components = ''
         for key, value in kwargs.items():
             if key == 'components':
                 components = value
-
-        options = {'comment': comment,'components':components, 'comm': \
+        options = {'comment': comment, 'components': components, 'comm': \
             {'type': 'direct', 'target': 'utils.support_framework', 'method': \
             'generate_bundle', 'class': 'SupportBundle', 'is_static': True, \
             'params': {}, 'json': {}}, 'output': {}, 'need_confirmation': \
@@ -190,15 +182,16 @@ class SupportBundle:
     def get_status(bundle_id: str = None):
         """
         Initializes the process for Displaying the Status for Support Bundle
-        
-        :param bundle_id: Using this will fetch bundle status :type: string
+
+        bundle_id:  Using this will fetch bundle status :type: string
         """
         if bundle_id:
             options = {'bundle_id': bundle_id, 'comm': {'type': 'direct', \
-            'target': 'utils.support_framework', 'method': 'get_bundle_status', \
-            'class': 'SupportBundle', 'is_static': True, 'params': {}, \
-            'json': {}}, 'output': {}, 'need_confirmation': False, \
-            'sub_command_name': 'get_bundle_status'}
+                'target': 'utils.support_framework', 'method': 'get_bundle_status', \
+                'class': 'SupportBundle', \
+                'is_static': True, 'params': {}, 'json': {}},'output': {},\
+                'need_confirmation': False, 'sub_command_name': \
+                'get_bundle_status'}
 
             cmd_obj = Command('get_bundle_status', options, [])
             loop = asyncio.get_event_loop()

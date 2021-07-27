@@ -26,8 +26,8 @@ from cortx.utils.process import SimpleProcess
 from cortx.utils.conf_store.conf_store import Conf
 from cortx.utils.log import Log
 
-ERROR = "error"
-INFO = "info"
+ERROR = 'error'
+INFO = 'info'
 
 
 class ComponentsBundle:
@@ -37,23 +37,25 @@ class ComponentsBundle:
     def _publish_log(msg, level, bundle_id, node_name, comment):
         """
         Format and Publish Log to ElasticSearch via Rsyslog.
-        :param msg: Message to Be added :type: str.
-        :param bundle_id: Unique Bundle Id for the Bundle :type:str.
-        :param level: Level for the Log. :type: Log.ERROR/LOG.INFO.
-        :param node_name: Name of the Node where this is running :type:str.
-        :param comment: Comment Added by user to Generate the Bundle :type:str.
-        :return: None.
+
+        msg:            Message to Be added :type: str.
+        bundle_id:      Unique Bundle Id for the Bundle :type:str.
+        level:          Level for the Log. :type: Log.ERROR/LOG.INFO.
+        node_name:      Name of the Node where this is running :type:str.
+        comment:        Comment Added by user to Generate the Bundle :type:str.
+        return:         None.
         """
-        result = "Success"
+        result = 'Success'
         if level == ERROR:
             result = ERROR.capitalize()
-        message = (f"{const.SUPPORT_BUNDLE_TAG}|{bundle_id}|{node_name}|{comment}|{result}|{msg}")
+        message = (f"{const.SUPPORT_BUNDLE_TAG}|{bundle_id}|{node_name}|\
+            {comment}|{result}|{msg}")
         Log.support_bundle(message)
 
     @staticmethod
     def _create_summary_file(bundle_id, node_name, comment, bundle_path):
         # Create Summary File for Tar.
-        summary_file_path = os.path.join(bundle_path, "summary.yaml")
+        summary_file_path = os.path.join(bundle_path, 'summary.yaml')
         Log.info(f"Adding summary file at {summary_file_path}")
         summary_data = {
             const.SB_BUNDLE_ID: str(bundle_id),
@@ -64,28 +66,27 @@ class ComponentsBundle:
         try:
             Yaml(summary_file_path).dump(summary_data)
         except PermissionError as e:
-            ComponentsBundle._publish_log(f"Permission denied for creating summary file {e}",
-                                         ERROR, bundle_id, node_name, comment)
+            ComponentsBundle._publish_log(f"Permission denied for creating \
+                summary file {e}", ERROR, bundle_id, node_name, comment)
             return None
         except Exception as e:
-            ComponentsBundle._publish_log(f"{e}", ERROR, bundle_id, node_name,
+            ComponentsBundle._publish_log(f'{e}', ERROR, bundle_id, node_name, \
                 comment)
             return None
-        Log.debug('Summary file created')
+        Log.debug("Summary file created")
 
     @staticmethod
-    def _exc_components_cmd(commands: List, bundle_id: str, path: str,
+    def _exc_components_cmd(commands: List, bundle_id: str, path: str, \
             component: str, node_name: str, comment: str):
         """
         Executes the Command for Bundle Generation of Every Component.
-        :param commands: Command of the component :type:str
-        :param bundle_id: Unique Bundle ID of the generation process. :type:str
-        :param path: Path to create the tar by components :type:str
-        :param component: Name of Component to be executed :type: str
-        :param node_name:Name of Node where the Command is being Executed
-        :type:str
-        :param comment: :User Comment: type:str
-        :return:
+
+        commands:       Command of the component :type:str
+        bundle_id:      Unique Bundle ID of the generation process. :type:str
+        path:           Path to create the tar by components :type:str
+        component:      Name of Component to be executed :type: str
+        node_name:      Name of Node where the Command is being Executed :type:str
+        comment:        User Comment: type:str
         """
         for command in commands:
             Log.info(f"Executing command -> {command} {bundle_id} {path}")
@@ -107,34 +108,28 @@ class ComponentsBundle:
         """
         Initializes the Process of Support Bundle Generation for Every Component.
 
-        :param command: cli Command Object :type: command
-        :return: None
+        command:    cli Command Object :type: command
+        return:     None
         """
-        # Fetch Command Arguments.
-        Log.init("support_bundle",
-                syslog_server="localhost",
-                syslog_port=514,
-                log_path=Conf.get("cortx_config","support>support_bundle_path"),
-                level="INFO")
-
-        bundle_id = command.options.get(const.SB_BUNDLE_ID, "")
-        node_name = command.options.get(const.SB_NODE_NAME, "")
-        comment = command.options.get(const.SB_COMMENT, "")
+        bundle_id = command.options.get(const.SB_BUNDLE_ID, '')
+        node_name = command.options.get(const.SB_NODE_NAME, '')
+        comment = command.options.get(const.SB_COMMENT, '')
         components = command.options.get(const.SB_COMPONENTS, [])
 
-        Log.debug((f"{const.SB_BUNDLE_ID}: {bundle_id}, {const.SB_NODE_NAME}: {node_name}, "
-                   f" {const.SB_COMMENT}: {comment}, {const.SB_COMPONENTS}: {components},"
-                   f" {const.SOS_COMP}"))
+        Log.debug((f"{const.SB_BUNDLE_ID}: {bundle_id}, {const.SB_NODE_NAME}: "
+            f"{node_name}, {const.SB_COMMENT}: {comment}, "
+            f"{const.SB_COMPONENTS}: {components}, {const.SOS_COMP}"))
         # Read Commands.Yaml and Check's If It Exists.
-        cmd_setup_file = os.path.join(Conf.get("cortx_config", "install_path"),
-                                "cortx/utils/conf/support.yaml")
+        cmd_setup_file = os.path.join(Conf.get('cortx_config', 'install_path'),\
+            'cortx/utils/conf/support.yaml')
         support_bundle_config = Yaml(cmd_setup_file).load()
         if not support_bundle_config:
-            ComponentsBundle._publish_log(f"No such file {cmd_setup_file}",
-                                         ERROR, bundle_id, node_name, comment)
+            ComponentsBundle._publish_log(f"No such file {cmd_setup_file}", \
+                ERROR, bundle_id, node_name, comment)
             return None
         # Path Location for creating Support Bundle.
-        path = os.path.join(Conf.get("cortx_config","support>support_bundle_path"))
+        path = os.path.join(Conf.get('cortx_config', \
+            'support>support_bundle_path'))
 
         if os.path.isdir(path):
             try:
@@ -146,11 +141,13 @@ class ComponentsBundle:
         os.makedirs(bundle_path)
         # Start Execution for each Component Command.
         threads = []
-        command_files_info = support_bundle_config.get("COMPONENTS")
-        # OS Logs are specifically generated hence here Even When All is Selected O.S. Logs Will Be Skipped.
+        command_files_info = support_bundle_config.get('COMPONENTS')
+        # OS Logs are specifically generated hence here Even
+        # When All is Selected O.S. Logs Will Be Skipped.
         if components:
-            if "all" not in components:
-                components_list = list(set(command_files_info.keys()).intersection(set(components)))
+            if 'all' not in components:
+                components_list = list(set(command_files_info.keys()\
+                    ).intersection(set(components)))
             else:
                 components_list = list(command_files_info.keys())
                 components_list.remove(const.SOS_COMP)
@@ -162,28 +159,31 @@ class ComponentsBundle:
             for file_path in components_files:
                 file_data = Yaml(file_path).load()
                 if file_data:
-                    components_commands = file_data.get(const.SUPPORT_BUNDLE.lower(), [])
+                    components_commands = file_data.get(
+                        const.SUPPORT_BUNDLE.lower(), [])
                 if components_commands:
-                    thread_obj = threading.Thread(
-                        ComponentsBundle._exc_components_cmd(components_commands,
-                            bundle_id, f"{bundle_path}{os.sep}", each_component,
-                            node_name, comment))
+                    thread_obj = threading.Thread(\
+                        ComponentsBundle._exc_components_cmd(\
+                        components_commands, bundle_id, f"{bundle_path}{os.sep}"\
+                        , each_component, node_name, comment))
                     thread_obj.start()
-                    Log.debug(f"Started thread -> {thread_obj.ident}  Component -> {each_component}")
+                    Log.debug(f"Started thread -> {thread_obj.ident} " \
+                        f"Component -> {each_component}")
                     threads.append(thread_obj)
-        directory_path = Conf.get("cortx_config","support>support_bundle_path")
-        tar_file_name = os.path.join(directory_path,
-                                     f"{bundle_id}_{node_name}.tar.gz")
+        directory_path = Conf.get('cortx_config', 'support>support_bundle_path')
+        tar_file_name = os.path.join(directory_path, \
+            f'{bundle_id}_{node_name}.tar.gz')
 
-        ComponentsBundle._create_summary_file(bundle_id, node_name, comment, bundle_path)
+        ComponentsBundle._create_summary_file(bundle_id, node_name, \
+            comment, bundle_path)
 
         symlink_path = const.SYMLINK_PATH
         if os.path.exists(symlink_path):
             try:
                 shutil.rmtree(symlink_path)
             except PermissionError:
-                Log.warn(const.PERMISSION_ERROR_MSG.format(path = symlink_path))
-        os.makedirs(symlink_path, exist_ok = True)
+                Log.warn(const.PERMISSION_ERROR_MSG.format(path=symlink_path))
+        os.makedirs(symlink_path, exist_ok=True)
 
         # Wait Until all the Threads Execution is not Complete.
         for each_thread in threads:
@@ -191,21 +191,22 @@ class ComponentsBundle:
                 f"Waiting for thread - {each_thread.ident} to complete process")
             each_thread.join(timeout=1800)
         try:
-            Log.debug(f"Generating tar.gz file on path {tar_file_name} from {bundle_path}")
+            Log.debug(f"Generating tar.gz file on path {tar_file_name} "
+                f"from {bundle_path}")
             Tar(tar_file_name).dump([bundle_path])
         except Exception as e:
-            ComponentsBundle._publish_log(f"Could not generate tar file {e}", ERROR, bundle_id,
-                                         node_name, comment)
+            ComponentsBundle._publish_log(f"Could not generate tar file {e}", \
+                ERROR, bundle_id, node_name, comment)
             return None
         try:
             Log.debug("Create soft-link for generated tar.")
-            os.symlink(tar_file_name, os.path.join(symlink_path,
-                                                   f"{const.SUPPORT_BUNDLE}.{bundle_id}"))
-            ComponentsBundle._publish_log(f"Tar file linked at location - {symlink_path}", INFO, bundle_id, node_name,
-                                         comment)
+            os.symlink(tar_file_name, os.path.join(symlink_path, \
+                f"{const.SUPPORT_BUNDLE}.{bundle_id}"))
+            ComponentsBundle._publish_log(f"Tar file linked at location - " \
+                f"{symlink_path}", INFO, bundle_id, node_name, comment)
         except Exception as e:
-            ComponentsBundle._publish_log(f"Linking failed {e}", ERROR, bundle_id,
-                                         node_name, comment)
+            ComponentsBundle._publish_log(f"Linking failed {e}", ERROR, \
+                bundle_id, node_name, comment)
         finally:
             if os.path.isdir(bundle_path):
                 shutil.rmtree(bundle_path)
