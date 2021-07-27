@@ -15,47 +15,31 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com
 
-from cortx.utils.discovery.resource import Resource
+from cortx.utils.conf_store import Conf
+
+# Test loads mock data and this module access it using the index
+mock_health = "mock-health"
+mock_manifest = "mock-manifest"
 
 
-class Server(Resource):
+class StorageResourceMap:
 
-    name = "compute"
-    childs = []
-
-    def __init__(self, child_resource=None):
-        super().__init__(self.name, child_resource)
-
-    @staticmethod
-    def has_child(child_resource):
-        return child_resource in Server.childs
-
-
-class Storage(Resource):
+    """Provides health and manifest information of FRUs in storage."""
 
     name = "storage"
-    childs = []
-
-    def __init__(self, child_resource=None):
-        super().__init__(self.name, child_resource)
 
     @staticmethod
-    def has_child(child_resource):
-        return child_resource in Storage.childs
-
-
-class Node(Resource):
-
-    name = "node"
-    childs = ["compute", "storage"]
-
-    def __init__(self, child_resource=None):
-        super().__init__(self.name, child_resource)
-        self.child = child_resource()
+    def get_health_info(rpath):
+        """
+        Fetch health information for given FRU
+        rpath: Resource id (Example: node>storage[0]>hw>controller)
+        """
+        return Conf.get(mock_health, rpath)
 
     @staticmethod
-    def has_child(child_resource):
-        return child_resource in Node.childs
-
-    def get_data(self, rpath, request_type):
-        return self.child.get_data(rpath, request_type)
+    def get_manifest_info(rpath):
+        """
+        Fetch manifest for given FRU
+        rpath: Resource id (Example: node>storage[0]>hw>controller)
+        """
+        return Conf.get(mock_manifest, rpath)
