@@ -35,7 +35,7 @@ class SupportBundle:
 
     """ This Class initializes the Support Bundle Generation for CORTX. """
     @staticmethod
-    async def get_active_nodes():
+    async def _get_active_nodes():
         """
         This Method is for reading hostnames, node_list information.
 
@@ -70,7 +70,7 @@ class SupportBundle:
         return f" -c {shell_args}"
 
     @staticmethod
-    async def generate_bundle(command):
+    async def _generate_bundle(command):
         """
         Initializes the process for Generating Support Bundle on Each CORTX
         Node.
@@ -97,7 +97,7 @@ class SupportBundle:
         comp_list = SupportBundle._get_components(components)
 
         # Get HostNames and Node Names.
-        node_hostname_map = await SupportBundle.get_active_nodes()
+        node_hostname_map = await SupportBundle._get_active_nodes()
         if not isinstance(node_hostname_map, dict):
             return node_hostname_map
 
@@ -125,7 +125,7 @@ class SupportBundle:
         return bundle_obj
 
     @staticmethod
-    async def get_bundle_status(command):
+    async def _get_bundle_status(command):
         """
         Initializes the process for Displaying the Status for Support Bundle.
 
@@ -183,7 +183,7 @@ class SupportBundle:
         cmd_obj = Command('generate_bundle', options, [])
         loop = asyncio.get_event_loop()
         bundle_obj = loop.run_until_complete( \
-            SupportBundle.generate_bundle(cmd_obj))
+            SupportBundle._generate_bundle(cmd_obj))
         return bundle_obj
 
     @staticmethod
@@ -203,7 +203,7 @@ class SupportBundle:
             cmd_obj = Command('get_bundle_status', options, [])
             loop = asyncio.get_event_loop()
             res = loop.run_until_complete(
-                SupportBundle.get_bundle_status(cmd_obj))
+                SupportBundle._get_bundle_status(cmd_obj))
             loop.close()
             return res
         else:
