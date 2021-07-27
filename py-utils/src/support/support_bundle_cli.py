@@ -67,8 +67,7 @@ def main(argv):
     if components:
         components = [component for component in components.split(',')]
     cmd = f"SupportBundleCli.{argv[1]}(comment='{argv[2]}', components={components})"
-    import ast
-    bundle_obj = ast.literal_eval(cmd)
+    bundle_obj = eval(cmd)
     print(bundle_obj)
     bundle_id = str(bundle_obj).split('|')[1].strip()
     status = SupportBundleCli.get_status(bundle_id=bundle_id)
@@ -81,6 +80,6 @@ if __name__ == '__main__':
     # Usage eg:
     # $sudo /opt/seagate/cortx/utils/bin/support_bundle generate 'Creating support bundle generation'
     # $sudo /opt/seagate/cortx/utils/bin/support_bundle generate 'Creating support bundle generation' 'utils,csm'
-    # support_bundle bin path is temporary and  will be replaced with support_bundle command 
+    # support_bundle bin path is temporary and  will be replaced with support_bundle command
     # while implementing support_bundle cli
     sys.exit(main(sys.argv))
