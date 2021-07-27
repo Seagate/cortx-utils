@@ -47,9 +47,9 @@ setup(
         "cortx.utils.test.cli_framework",
         "cortx.utils.test.discovery",
         "cortx.utils.test.iem_framework",
-        "cortx.utils.test.discovery",
         "cortx.utils.test.discovery.mocked_health_gen",
         "cortx.utils.test.discovery.mocked_health_gen.lr2",
+        "cortx.utils.test.shared_storage",
     ],
     package_data={
         "": [
