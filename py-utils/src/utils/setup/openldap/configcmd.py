@@ -80,13 +80,12 @@ class ConfigCmd(SetupCmd):
       sys.stderr.write(f'Failed to restart rsyslog service, error: {e}\n')
       raise e
     # set openldap-replication
-    # Log.debug("Starting openldap replication")
-    # Temporarily commented
-    #self.configure_openldap_replication()
-    #Log.debug("Openldap replication configured successfully")
+    Log.debug("Starting openldap replication")
+    self.configure_openldap_replication(confvalues)
+    Log.debug("Openldap replication configured successfully")
     
 
-  def configure_openldap_replication(self):
+  def configure_openldap_replication(self,confvalues):
     """Configure openldap replication within a storage set."""
     storage_set_count = self.get_confvalue(self.get_confkey(
         'CONFIG>CONFSTORE_STORAGE_SET_COUNT_KEY').replace("cluster-id", self.cluster_id))
