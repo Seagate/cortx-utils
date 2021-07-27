@@ -23,8 +23,8 @@ import sys
 
 
 def print_items(items):
-    for dn, attrs in items:
-        print(f"DN: {dn}: {attrs}")
+    for item in items:
+        print(item.to_primitive())
 
 
 async def example():
