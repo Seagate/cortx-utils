@@ -17,7 +17,7 @@
 import os
 import re
 import traceback
-
+from  ast import literal_eval
 from cortx.utils.errors import BaseError 
 from cortx.utils.validator.v_pkg import PkgV
 from cortx.utils.validator.v_network import NetworkV
@@ -97,12 +97,16 @@ class Openldap:
             if ((Conf.get(self.prov, 'CONFIG>OPENLDAP_BIND_BASE_DN') == key) and (not bool(re.match("^cn=[a-zA-Z0-9]+(,dc=[a-zA-Z0-9]+)+[a-zA-Z0-9]$", value)))):
                 Log.debug("Validation failed for %s in %s phase\n" % (key ,phase))
                 raise Exception("Validation failed for %s in %s phase" % (key ,phase))
-
-            address_token = ["hostname"]
-            for token in address_token:
-                if key.find(token) != -1:
-                    NetworkV().validate('connectivity',[value])
-                    break
+            if (key.endswith("server_nodes")):
+                if type(value) is str:
+                    value = literal_eval(value)
+                for node_machine_id in value:
+                    host_name = Conf.get(self.index, f'server_node>{node_machine_id}>hostname')
+                    try:
+                        NetworkV().validate('connectivity',[host_name])
+                    except:
+                        Log.debug("Validation failed for %s>%s>%s in %s phase\n" % (key, node_machine_id, host_name, phase))
+                        raise Exception("Validation failed for %s>%s>%s in %s phase" % (key, node_machine_id, host_name, phase))
 
     def _get_list_of_phases_to_validate(self, phase_name: str):
         """Get list of all the phases which follow hierarchy pattern."""
