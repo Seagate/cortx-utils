@@ -18,3 +18,13 @@ __title__ = 'shared_storage'
 from cortx.utils.shared_storage.error import SharedStorageError
 from cortx.utils.shared_storage.shared_storage_agent import SharedStorageAgent
 from cortx.utils.shared_storage.shared_storage import Storage
+
+__doc__ = """
+Shared storage framework
+
+This framework is a tool to fetch the shared storage available in the environment.
+It fetches the shared path from a conf file and returns it to the caller. 
+
+module: Storage"""
+
+__all__ = [SharedStorageError, SharedStorageAgent, Storage]
