@@ -89,10 +89,10 @@ class Openldap:
             Log.debug("Validation failed for %s in %s phase\n" % (key ,phase))
             raise Exception("Validation failed for %s in %s phase" % (key ,phase))
         else:
-            if (("cortx>software>openldap>base_dn" == key) and (not bool(re.match("^dc=[a-zA-Z0-9]+,dc=[a-zA-Z0-9]+$", value)))):
+            if ((Conf.get(self.prov, 'CONFIG>OPENLDAP_BASE_DN') == key) and (not bool(re.match("^dc=[a-zA-Z0-9]+(,dc=[a-zA-Z0-9]+)+[a-zA-Z0-9]$", value)))):
                 Log.debug("Validation failed for %s in %s phase\n" % (key ,phase))
                 raise Exception("Validation failed for %s in %s phase" % (key ,phase))
-            if (("cortx>software>openldap>bind_base_dn" == key) and (not bool(re.match("^cn=[a-zA-Z0-9]+,dc=[a-zA-Z0-9]+,dc=[a-zA-Z0-9]+$", value)))):
+            if ((Conf.get(self.prov, 'CONFIG>OPENLDAP_BIND_BASE_DN') == key) and (not bool(re.match("^cn=[a-zA-Z0-9]+(,dc=[a-zA-Z0-9]+)+[a-zA-Z0-9]$", value)))):
                 Log.debug("Validation failed for %s in %s phase\n" % (key ,phase))
                 raise Exception("Validation failed for %s in %s phase" % (key ,phase))
 
