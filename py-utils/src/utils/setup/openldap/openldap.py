@@ -118,6 +118,10 @@ class Openldap:
             return ['RESET']
         elif phase_name == 'CLEANUP':
             return ['CLEANUP']
+        elif phase_name == 'PREUPGRADE':
+            return ['PREUPGRADE']
+        elif phase_name == 'POSTUPGRADE':
+            return ['POSTUPGRADE']
         else:
             return []
 
@@ -251,5 +255,27 @@ class Openldap:
         self._keys_validate(phase_name) 
         from resetcmd import ResetCmd
         ResetCmd().process()
+        Log.debug("%s - Successful" % phase_name)
+        return 0
+
+    def preupgrade(self):
+        """ Perform pre upgrade action."""
+        phase_name = "preupgrade"
+        Log.debug("%s - Starting\n" % phase_name)
+        self.validate(phase_name)
+        self._keys_validate(phase_name)
+        from preupgradecmd import PreUpgradeCmd
+        PreUpgradeCmd(self.url).process()
+        Log.debug("%s - Successful" % phase_name)
+        return 0
+
+    def postupgrade(self):
+        """ Perform post upgrade action."""
+        phase_name = "postupgrade"
+        Log.debug("%s - Starting\n" % phase_name)
+        self.validate(phase_name)
+        self._keys_validate(phase_name)
+        from postupgradecmd import PostUpgradeCmd
+        PostUpgradeCmd(self.url).process()
         Log.debug("%s - Successful" % phase_name)
         return 0
