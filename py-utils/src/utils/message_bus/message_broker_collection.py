@@ -48,7 +48,7 @@ class KafkaMessageBroker(MessageBroker):
     _default_timeout = 2
 
     # Socket timeout
-    _kafka_socket_timeout = 15000
+    _socket_timeout = 15000
 
     # Message timeout
     _message_timeout = 5000
@@ -99,7 +99,7 @@ class KafkaMessageBroker(MessageBroker):
 
         if client_type == 'admin' or self._clients['admin'] == {}:
             if client_type != 'consumer':
-                kafka_conf['socket.timeout.ms'] = self._kafka_socket_timeout
+                kafka_conf['socket.timeout.ms'] = self._socket_timeout
                 self.admin = AdminClient(kafka_conf)
                 self._clients['admin'][client_conf['client_id']] = self.admin
 

@@ -70,16 +70,18 @@ class Utils:
         return install_path + "/cortx/utils"
 
     @staticmethod
-    def _create_msg_bus_config(kafka_server_list: list, port_list: list):
+    def _create_msg_bus_config(message_server_list: list, port_list: list, \
+        config: dict):
         """ Create the config file required for message bus """
 
         with open(r'/etc/cortx/message_bus.conf.sample', 'w+') as file:
             json.dump({}, file, indent=2)
         Conf.load('index', 'json:///etc/cortx/message_bus.conf.sample')
         Conf.set('index', 'message_broker>type', 'kafka')
-        for i in range(len(kafka_server_list)):
+        for i in range(len(message_server_list)):
             Conf.set('index', f'message_broker>cluster[{i}]', \
-                {'server': kafka_server_list[i], 'port': port_list[i]})
+                {'server': message_server_list[i], 'port': port_list[i]})
+        Conf.set('index', 'message_broker>config',  config)
         Conf.save('index')
         # copy this conf file as message_bus.conf
         try:
@@ -90,11 +92,11 @@ class Utils:
                 /etc/cortx/message_bus.conf %s", e)
 
     @staticmethod
-    def _get_kafka_server_list(conf_url: str):
+    def _get_message_server_list(conf_url: str):
         """ Reads the ConfStore and derives keys related to message bus """
         Conf.load('cluster_config', conf_url)
-        key_list = ['cortx>software>common>message_bus_type',
-                   'cortx>software>kafka>servers']
+        key_list = ['cortx>software>common>message_bus_type', \
+            'cortx>software>kafka>servers', 'cortx>software>kafka>config']
         ConfKeysV().validate('exists', 'cluster_config', key_list)
         msg_bus_type = Conf.get('cluster_config', key_list[0])
         if msg_bus_type != 'kafka':
@@ -104,23 +106,26 @@ class Utils:
         # Read the required keys
         all_servers = Conf.get('cluster_config', key_list[1])
         no_servers = len(all_servers)
-        kafka_server_list = []
+        message_server_list = []
         port_list = []
         for i in range(no_servers):
             # check if port is mentioned
             rc = all_servers[i].find(':')
             if rc == -1:
                 port_list.append('9092')
-                kafka_server_list.append(all_servers[i])
+                message_server_list.append(all_servers[i])
             else:
                 port_list.append(all_servers[i][rc + 1:])
-                kafka_server_list.append(all_servers[i][:rc])
-        if len(kafka_server_list) == 0:
+                message_server_list.append(all_servers[i][:rc])
+        if len(message_server_list) == 0:
             Log.error(f"Missing config entry {key_list} in config file "\
                 f"{conf_url}")
             raise SetupError(errno.EINVAL, "Missing config entry %s in config"
                 " file %s", key_list, conf_url)
-        return kafka_server_list, port_list
+
+        # Read the default config
+        config = Conf.get('cluster_config', key_list[2])
+        return message_server_list, port_list, config
 
     @staticmethod
     def _get_server_info(conf_url: str, machine_id: str) -> dict:
@@ -243,12 +248,14 @@ class Utils:
         # Message Bus Config
         Conf.load('cluster', 'json:///etc/cortx/cluster.conf')
 
-        kafka_server_list, port_list = Utils._get_kafka_server_list(conf_url)
-        if kafka_server_list is None:
-            Log.error(f"Could not find kafka server information in {conf_url}")
-            raise SetupError(errno.EINVAL, "Could not find kafka server " +\
+        message_server_list, port_list, config = \
+            Utils._get_message_server_list(conf_url)
+        if message_server_list is None:
+            Log.error(f"Could not find message server information in {conf_url}")
+            raise SetupError(errno.EINVAL, "Could not find message server " + \
                 "information in %s", conf_url)
-        Utils._create_msg_bus_config(kafka_server_list, port_list)
+        Utils._create_msg_bus_config(message_server_list, port_list, config)
+
         # Cluster config
         server_info = Utils._get_server_info(conf_url, Conf.machine_id)
         if server_info is None:
@@ -256,6 +263,7 @@ class Utils:
             raise SetupError(errno.EINVAL, "Could not find server " +\
                 "information in %s", conf_url)
         Utils._create_cluster_config(server_info)
+
         #set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map()
         Utils._configure_rsyslog()
