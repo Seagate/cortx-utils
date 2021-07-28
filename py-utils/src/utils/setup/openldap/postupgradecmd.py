@@ -29,7 +29,6 @@ class PostUpgradeCmd(SetupCmd):
   """Post Upgrade Setup Cmd."""
 
   name = "postupgrade"
-  utils_tmp_dir = "/opt/seagate/cortx/utils/tmp"
   Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',level='DEBUG')
 
   def __init__(self):
@@ -37,15 +36,15 @@ class PostUpgradeCmd(SetupCmd):
     try:
       super(PostUpgradeCmd, self).__init__(None)
     except Exception as e:
-      raise OpenldapPROVError(f'exception: {e}\n')
+      raise OpenldapPROVError(f'exception: {e}')
 
   def process(self):
     """Main processing function."""
     try:
-      configFile = "/opt/seagate/cortx/utils/conf/openldap_config.yaml"
+      configFile = os.path.join(self.util_install_path, "cortx/utils/conf", "openldap_config.yaml")
       oldSampleFile = os.path.join(self.utils_tmp_dir, "openldap_config.yaml.sample.old")
-      newSampleFile = "/opt/seagate/cortx/utils/conf/openldap_config.yaml.sample"
-      unsafeAttributesFile = "/opt/seagate/cortx/utils/conf/openldap_config_unsafe_attributes.yaml"
+      newSampleFile = os.path.join(self.util_install_path, "cortx/utils/conf", "openldap_config.yaml.sample")
+      unsafeAttributesFile = os.path.join(self.util_install_path, "cortx/utils/conf", "openldap_config_unsafe_attributes.yaml")
       fileType = 'yaml://'
       # Upgrade config files
       Log.info("merge config started")
@@ -59,7 +58,7 @@ class PostUpgradeCmd(SetupCmd):
       Log.info("Remove sample.old file completed")
 
     except Exception as e:
-      raise OpenldapPROVError(f'exception: {e}\n')
+      raise OpenldapPROVError(f'exception: {e}')
 
   def merge_config(self, configFile:str, oldSampleFile:str, newSampleFile:str, unsafeAttributesFile:str, filetype:str):
     """Core logic for updating config files during upgrade using conf store.
@@ -74,10 +73,10 @@ class PostUpgradeCmd(SetupCmd):
     - All the arrays in yaml are always overwritten"""
     #If config file is not present then abort merging.
     if not os.path.isfile(configFile):
-        Log.error(f'config file {configFile} does not exist')
-        raise Exception(f'ERROR: config file {configFile} does not exist')
+        Log.error("config file %s does not exist" % configFile)
+        raise Exception("ERROR: config file %s does not exist" % configFile)
 
-    Log.info(f'config file {str(configFile)} upgrade started.')
+    Log.info("config file %s upgrade started." % configFile)
 
     # old sample file
     conf_old_sample = filetype + oldSampleFile
@@ -120,4 +119,4 @@ class PostUpgradeCmd(SetupCmd):
 
     Conf.copy(conf_new_sample_index, conf_file_index, keys_to_overwrite)
     Conf.save(conf_file_index)
-    Log.info(f'config file {str(configFile)} upgrade completed')
+    Log.info("config file %s upgrade completed" % configFile)

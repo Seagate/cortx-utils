@@ -22,11 +22,15 @@ from cortx.utils.errors import BaseError
 from cortx.utils.validator.v_pkg import PkgV
 from cortx.utils.validator.v_network import NetworkV
 from cortx.utils.validator.v_service import ServiceV
+from cortx.utils.validator.v_path import PathV
 from cortx.utils.conf_store import Conf
 from cortx.utils.log import Log
+from configcmd import ConfigCmd
 from test import Test
 from resetcmd import ResetCmd
 from cleanupcmd import CleanupCmd
+from preupgradecmd import PreUpgradeCmd
+from postupgradecmd import PostUpgradeCmd
 
 class OpenldapSetupError(BaseError):
     """ Generic Exception with error code and output """
@@ -84,6 +88,9 @@ class Openldap:
                 services = Conf.get(phase, f'{phase}>services')
                 if services:
                     ServiceV().validate('isrunning', services)
+                files = Conf.get(phase, f'{phase}>files')
+                if files:
+                    PathV().validate('exists', files)
             Log.debug("%s - pre-requisite validation complete" % phase)
         except OpenldapSetupError as e:
             raise OpenldapSetupError({"message":"prereqs validation failed"})
@@ -235,7 +242,6 @@ class Openldap:
         Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)
         self._keys_validate(phase_name)
-        from configcmd import ConfigCmd
         ConfigCmd(self.url).process()
         Log.debug("%s - Successful" % phase_name)
         return 0
@@ -282,10 +288,9 @@ class Openldap:
     def preupgrade(self):
         """Perform pre upgrade action."""
         phase_name = "preupgrade"
-        Log.debug("%s - Starting\n" % phase_name)
+        Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)
         self._keys_validate(phase_name)
-        from preupgradecmd import PreUpgradeCmd
         PreUpgradeCmd().process()
         Log.debug("%s - Successful" % phase_name)
         return 0
@@ -293,10 +298,9 @@ class Openldap:
     def postupgrade(self):
         """Perform post upgrade action."""
         phase_name = "postupgrade"
-        Log.debug("%s - Starting\n" % phase_name)
+        Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)
         self._keys_validate(phase_name)
-        from postupgradecmd import PostUpgradeCmd
         PostUpgradeCmd().process()
         Log.debug("%s - Successful" % phase_name)
         return 0

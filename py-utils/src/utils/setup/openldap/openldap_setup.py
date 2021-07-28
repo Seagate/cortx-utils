@@ -47,7 +47,7 @@ class Cmd:
         sys.stderr.write(
             f"usage: {prog} [-h] <cmd> --config <url> <args>...\n"
             f"where:\n"
-            f"cmd   post_install, config, init, reset, test, preupgrade, postupgrade\n"
+            f"cmd   post_install, prepare, config, init, test, preupgrade, postupgrade, reset, cleanup\n"
             f"url   Config URL\n")
 
     @staticmethod

@@ -56,8 +56,10 @@ class SetupCmd(object):
   util_config_file_path = "/etc/cortx/cortx.conf"
   util_config_file_index = "util_config_file_index"
   Conf.load(util_config_file_index, f'yaml:///{util_config_file_path}')
-  openldap_prov_config = Conf.get(index= util_config_file_index, key='install_path') + '/cortx/utils/conf/' + 'openldap_prov_config.yaml'
-  openldap_config_file = Conf.get(index= util_config_file_index, key='install_path') + '/cortx/utils/conf/' + "openldap_config.yaml"
+  util_install_path = Conf.get(index= util_config_file_index, key='install_path')
+  openldap_prov_config = path.join(util_install_path, "cortx/utils/conf", "openldap_prov_config.yaml")
+  openldap_config_file = path.join(util_install_path, "cortx/utils/conf", "openldap_config.yaml")
+  utils_tmp_dir = path.join(util_install_path, "cortx/utils/tmp")
 
   def __init__(self, config: str):
     """Constructor."""

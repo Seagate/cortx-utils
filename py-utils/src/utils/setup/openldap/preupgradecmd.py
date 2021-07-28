@@ -30,7 +30,6 @@ class PreUpgradeCmd(SetupCmd):
   """Pre Upgrade Setup Cmd."""
 
   name = "preupgrade"
-  utils_tmp_dir = "/opt/seagate/cortx/utils/tmp"
   Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',level='DEBUG')
 
   def __init__(self):
@@ -38,7 +37,7 @@ class PreUpgradeCmd(SetupCmd):
     try:
       super(PreUpgradeCmd, self).__init__(None)
     except Exception as e:
-      raise OpenldapPROVError(f'exception: {e}\n')
+      raise OpenldapPROVError(f'exception: {e}')
 
   def process(self):
     """Main processing function."""
@@ -47,7 +46,7 @@ class PreUpgradeCmd(SetupCmd):
         self.backup_sample_file()
         Log.info("Backup .sample to .old completed")
     except Exception as e:
-      raise OpenldapPROVError(f'exception: {e}\n')
+      raise OpenldapPROVError(f'exception: {e}')
 
   def backup_sample_file(self):
     """function to backup .sample config file to .old."""
@@ -60,7 +59,7 @@ class PreUpgradeCmd(SetupCmd):
     if os.path.isfile(sampleconfigfile):
       #backup .sample to .old at utils temporary location
       copyfile(sampleconfigfile, os.path.join(self.utils_tmp_dir, ntpath.basename(sampleconfigfile) + ".old"))
-      Log.info(f"sample config file {sampleconfigfile} backup successfully")
+      Log.info("sample config file %s backup successfully" % sampleconfigfile)
     else:
-        Log.error(f"sample config file {sampleconfigfile} does not exist")
-        raise Exception(f"sample config file {sampleconfigfile} does not exist")
+        Log.error("sample config file %s does not exist" % sampleconfigfile)
+        raise Exception("sample config file %s does not exist" % sampleconfigfile)
