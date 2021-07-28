@@ -21,7 +21,7 @@ from cortx.utils.data.db.db_provider import DataBaseProvider
 
 
 class SupportBundleModel(BaseModel):
-    _id = "bundle_id"
+    _id = 'bundle_id'
     bundle_id = StringType()
     node_name = StringType()
     comment = StringType()

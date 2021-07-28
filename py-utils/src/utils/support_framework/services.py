@@ -44,9 +44,9 @@ class ProvisionerServices:
             self.provisioner = provisioner
             Log.info("Provisioner plugin is loaded")
             self.provisioner.auth_init(
-                username="<username>",
-                password="<password>",
-                eauth="pam"
+                username='<username>',
+                password='<password>',
+                eauth='pam'
             )
         except Exception as error:
             self.provisioner = None

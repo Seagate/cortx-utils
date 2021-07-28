@@ -15,10 +15,4 @@
 
 from cortx.utils.support_framework.bundle import Bundle
 from cortx.utils.support_framework.support_bundle import SupportBundle
-from cortx.utils.conf_store.conf_store import Conf
-from cortx.utils.log import Log
 
-Conf.load('cortx_config', 'json:///etc/cortx/cortx.conf')
-log_level = Conf.get('cortx_config', 'utils>log_level', 'INFO')
-Log.init('support_bundle', '/var/log/cortx/utils/support', level=log_level, \
-    backup_count=5, file_size_in_mb=5)
