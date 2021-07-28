@@ -50,7 +50,7 @@ class PreUpgradeCmd(SetupCmd):
 
   def backup_sample_file(self):
     """function to backup .sample config file to .old."""
-    sampleconfigfile = "/opt/seagate/cortx/utils/conf/openldap_config.yaml.sample"
+    sampleconfigfile = os.path.join(self.util_install_path, "cortx/utils/conf", "openldap_config.yaml.sample")
 
     # make utils temp dir if does not exist
     Path(self.utils_tmp_dir).mkdir(parents=True, exist_ok=True)
