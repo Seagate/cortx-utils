@@ -54,6 +54,7 @@ class TestMessageBus(unittest.TestCase):
 
     def test_unknown_message_type(self):
         """Test invalid message type """
+        """Test invalid message type """
         with self.assertRaises(MessageBusError):
             MessageProducer(producer_id='send', \
                 message_type='', method='sync')
@@ -100,7 +101,7 @@ class TestMessageBus(unittest.TestCase):
         self.assertEqual(unread_count, (TestMessageBus._bulk_count - \
             TestMessageBus._receive_limit))
 
-    def test_bulk_receive(self):
+    def test_receive_bulk(self):
         """Test receive bulk messages"""
         count = 0
         while True:
@@ -218,7 +219,7 @@ if __name__ == '__main__':
     suite.addTest(TestMessageBus('test_bulk_send'))
     suite.addTest(TestMessageBus('test_producer_unread_count'))
     suite.addTest(TestMessageBus('test_consumer_unread_count'))
-    suite.addTest(TestMessageBus('test_bulk_receive'))
+    suite.addTest(TestMessageBus('test_receive_bulk'))
     suite.addTest(TestMessageBus('test_receive_different_consumer_group'))
     suite.addTest(TestMessageBus('test_register_message_type_exist'))
     suite.addTest(TestMessageBus('test_deregister_message_type_not_exist'))
