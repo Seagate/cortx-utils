@@ -1,0 +1,60 @@
+{
+  "node": {
+    "storage": [
+      {
+        "hw": {
+          "controller": [
+            {
+              "uid": "controller_a",
+              "type": "NA",
+              "description": "N/A",
+              "product": "controllers",
+              "manufacturer": "",
+              "serial_number": "DHSIFTJ-18203C577C",
+              "version": "8.1",
+              "part_number": "60-00000442-08-02",
+              "last_updated": 1627022443,
+              "specifics": [
+                {
+                  "disks": 68,
+                  "virtual_disks": 2,
+                  "host_ports": 4,
+                  "drive_channels": 2,
+                  "drive_bus_type": "SAS",
+                  "fw": "GNS265R14-01",
+                  "model": "5565",
+                  "mfg_date": "2018-06-02 14:30:00",
+                  "status": "Operational"
+                }
+              ]
+            },
+            {
+              "uid": "controller_b",
+              "type": "NA",
+              "description": "N/A",
+              "product": "controllers",
+              "manufacturer": "",
+              "serial_number": "DHSILTC-162627CA8D",
+              "version": "4.0",
+              "part_number": "FRUKC82-01",
+              "last_updated": 1627022443,
+              "specifics": [
+                {
+                  "disks": 68,
+                  "virtual_disks": 2,
+                  "host_ports": 4,
+                  "drive_channels": 2,
+                  "drive_bus_type": "SAS",
+                  "fw": "GNS265R14-01",
+                  "model": "5565",
+                  "mfg_date": "2018-06-02 14:30:00",
+                  "status": "Operational"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
