@@ -32,17 +32,19 @@ class PreUpgradeCmd(SetupCmd):
   utils_tmp_dir = "/opt/seagate/cortx/utils/tmp"
   Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',level='DEBUG')
 
-  def __init__(self, config: str):
+  def __init__(self):
     """Constructor."""
     try:
-      super(PreUpgradeCmd, self).__init__(config)
+      super(PreUpgradeCmd, self).__init__(None)
     except Exception as e:
       raise OpenldapPROVError(f'exception: {e}\n')
 
   def process(self):
     """Main processing function."""
     try:
-      self.backup_sample_file()
+        Log.info(f"Backup .sample to .old started")
+        self.backup_sample_file()
+        Log.info(f"Backup .sample to .old completed")
     except Exception as e:
       raise OpenldapPROVError(f'exception: {e}\n')
 

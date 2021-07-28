@@ -45,14 +45,20 @@ class Openldap:
     _preqs_conf_file = "/opt/seagate/cortx/utils/conf/openldapsetup_prereqs.json"
     _prov_conf_file = "/opt/seagate/cortx/utils/conf/openldap_prov_config.yaml"
     Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',level='DEBUG')
-    url = ""
+    url = None
+    machine_id = None
+    cluster_id = None
+    cluster_id_key = None
 
     def __init__(self, conf_url):
+        Conf.load(self.prov, f'yaml://{self._prov_conf_file}')
         if not os.path.isfile(self._preqs_conf_file):
             raise OpenldapSetupError({"message":"pre-requisite json file \
                 not found"})
+        if conf_url is None:
+            Log.debug("Config file is None")
+            return
         Conf.load(self.index, f'yaml://{conf_url}')
-        Conf.load(self.prov, f'yaml://{self._prov_conf_file}')
         self.url = conf_url
         self.machine_id = Conf.machine_id
 
@@ -265,7 +271,7 @@ class Openldap:
         self.validate(phase_name)
         self._keys_validate(phase_name)
         from preupgradecmd import PreUpgradeCmd
-        PreUpgradeCmd(self.url).process()
+        PreUpgradeCmd().process()
         Log.debug("%s - Successful" % phase_name)
         return 0
 
@@ -276,6 +282,6 @@ class Openldap:
         self.validate(phase_name)
         self._keys_validate(phase_name)
         from postupgradecmd import PostUpgradeCmd
-        PostUpgradeCmd(self.url).process()
+        PostUpgradeCmd().process()
         Log.debug("%s - Successful" % phase_name)
         return 0

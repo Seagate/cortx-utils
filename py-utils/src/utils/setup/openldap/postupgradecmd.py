@@ -31,10 +31,10 @@ class PostUpgradeCmd(SetupCmd):
   utils_tmp_dir = "/opt/seagate/cortx/utils/tmp"
   Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',level='DEBUG')
 
-  def __init__(self, config: str):
+  def __init__(self):
     """Constructor."""
     try:
-      super(PostUpgradeCmd, self).__init__(config)
+      super(PostUpgradeCmd, self).__init__(None)
     except Exception as e:
       raise OpenldapPROVError(f'exception: {e}\n')
 
@@ -43,8 +43,8 @@ class PostUpgradeCmd(SetupCmd):
     try:
       configFile = "/opt/seagate/cortx/utils/conf/openldap_config.yaml"
       oldSampleFile = os.path.join(self.utils_tmp_dir, "openldap_config.yaml.sample.old")
-      newSampleFile = "/opt/seagate/cortx/s3/conf/openldap_config.yaml.sample"
-      unsafeAttributesFile = "/opt/seagate/cortx/s3/conf/openldap_config_unsafe_attributes.yaml"
+      newSampleFile = "/opt/seagate/cortx/utils/conf/openldap_config.yaml.sample"
+      unsafeAttributesFile = "/opt/seagate/cortx/utils/conf/openldap_config_unsafe_attributes.yaml"
       fileType = 'yaml://'
       # Upgrade config files
       Log.info("merge config started")
@@ -60,7 +60,7 @@ class PostUpgradeCmd(SetupCmd):
     except Exception as e:
       raise OpenldapPROVError(f'exception: {e}\n')
 
-def merge_config(configFile:str, oldSampleFile:str, newSampleFile:str, unsafeAttributesFile:str, filetype:str):
+  def merge_config(self, configFile:str, oldSampleFile:str, newSampleFile:str, unsafeAttributesFile:str, filetype:str):
     """
     Core logic for updating config files during upgrade using conf store.
     Following is algorithm from merge:
@@ -89,19 +89,19 @@ def merge_config(configFile:str, oldSampleFile:str, newSampleFile:str, unsafeAtt
     conf_new_sample = filetype + newSampleFile
     conf_new_sample_index = "conf_new_sample_index"
     Conf.load(conf_new_sample_index, conf_new_sample)
-    conf_new_sample_keys = Conf.get_keys(conf_new_sample_index, recurse = True)
+    conf_new_sample_keys = Conf.get_keys(conf_new_sample_index)
 
     # unsafe attribute file
     conf_unsafe_file = filetype + unsafeAttributesFile
     conf_unsafe_file_index = "conf_unsafe_file_index"
     Conf.load(conf_unsafe_file_index, conf_unsafe_file)
-    conf_unsafe_file_keys = Conf.get_keys(conf_unsafe_file_index, recurse = True)
+    conf_unsafe_file_keys = Conf.get_keys(conf_unsafe_file_index)
 
     # active config file
     conf_file =  filetype + configFile
     conf_file_index = "conf_file_index"
     Conf.load(conf_file_index, conf_file)
-    conf_file_keys = Conf.get_keys(conf_file_index, recurse = True)
+    conf_file_keys = Conf.get_keys(conf_file_index)
 
     #logic to determine which keys to merge.
     keys_to_overwrite = []
@@ -119,6 +119,6 @@ def merge_config(configFile:str, oldSampleFile:str, newSampleFile:str, unsafeAtt
         else:
             continue
 
-    Conf.copy(conf_new_sample_index, conf_file_index, keys_to_overwrite, recurse = True)
+    Conf.copy(conf_new_sample_index, conf_file_index, keys_to_overwrite)
     Conf.save(conf_file_index)
     Log.info(f'config file {str(configFile)} upgrade completed')

@@ -176,7 +176,7 @@ class PreUpgradeCmd(Cmd):
 
     def __init__(self, args):
         super().__init__(args)
-        self.openldap = Openldap(args.config)
+        self.openldap = Openldap(None)
 
     def process(self):
         # TODO: Add actions here
@@ -190,7 +190,7 @@ class PostUpgradeCmd(Cmd):
 
     def __init__(self, args):
         super().__init__(args)
-        self.openldap = Openldap(args.config)
+        self.openldap = Openldap(None)
 
     def process(self):
         # TODO: Add actions here
