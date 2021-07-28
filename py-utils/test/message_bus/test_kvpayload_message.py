@@ -19,17 +19,25 @@
 import unittest
 from cortx.utils.kv_store import KvPayload
 from cortx.utils.message_bus.error import MessageBusError
-from cortx.utils.message_bus import MessageBus, MessageProducer, MessageConsumer
+from cortx.utils.message_bus import MessageBus, MessageBusAdmin, \
+    MessageProducer, MessageConsumer
 
 
 class TestKVPayloadMessage(unittest.TestCase):
     """ Test Send/Receive KvPayload as message """
 
     _message_type = 'kv_payloads'
-    _consumer = MessageConsumer(consumer_id='kv_consumer', consumer_group='kv', \
-        message_types=[_message_type], auto_ack=True, offset='earliest')
-    _producer = MessageProducer(producer_id='kv_producer', \
-        message_type=_message_type, method='sync')
+    _admin = MessageBusAdmin(admin_id='register')
+
+    @classmethod
+    def setUpClass(cls):
+        cls._admin.register_message_type(message_types= \
+            [TestKVPayloadMessage._message_type], partitions=1)
+        cls._consumer = MessageConsumer(consumer_id='kv_consumer',
+            consumer_group='kv', message_types=[TestKVPayloadMessage.\
+                _message_type], auto_ack=True, offset='earliest')
+        cls._producer = MessageProducer(producer_id='kv_producer', \
+            message_type=TestKVPayloadMessage._message_type, method='sync')
 
     def test_json_kv_send(self):
         """ Load json as payload """
@@ -75,6 +83,15 @@ class TestKVPayloadMessage(unittest.TestCase):
         message = MessageBus()
         with self.assertRaises(MessageBusError):
             TestKVPayloadMessage._producer.send([message])
+
+    @classmethod
+    def tearDownClass(cls):
+        """ Delete the test message_type """
+        cls._admin.deregister_message_type(message_types= \
+            [TestKVPayloadMessage._message_type])
+        message_type_list = TestKVPayloadMessage._admin.list_message_types()
+        cls.assertTrue(cls, TestKVPayloadMessage._message_type not in \
+            message_type_list)
 
 
 if __name__ == '__main__':
