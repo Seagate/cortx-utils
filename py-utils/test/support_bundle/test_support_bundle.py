@@ -49,6 +49,7 @@ class TestSupportBundle(unittest.TestCase):
     def test_003status(self):
         status = SupportBundle.get_status(bundle_id=self.bundle_obj.bundle_id)
         self.assertNotEqual(status, {})
+        self.assertIsInstance(status, dict)
        
 
 if __name__ == '__main__':

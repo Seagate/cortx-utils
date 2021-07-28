@@ -1,5 +1,5 @@
-# CORTX-CSM: CORTX Management web and CLI interface.
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# CORTX-Py-Utils: CORTX Python common library.
+# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 # For any questions about this software or licensing,
-# please email opensource@seagate.com or cortx-questions@seagate.com.
+# please email opensource@seagate.com or cortx-questions@seagate.com
 
 import string
 import random
@@ -75,11 +75,6 @@ class SupportBundle:
         command:    Command Object :type: command
         return:     None.
         """
-        current_user = str(getpass.getuser())
-        # Check if User is Root User.
-        if current_user.lower() != 'root':
-            response_msg = "Support Bundle Command requires root privileges"
-            return Response(output=response_msg, rc=errno.EACCES)
         bundle_id = SupportBundle._generate_bundle_id()
         provisioner = ProvisionerServices()
         if not provisioner:
@@ -162,6 +157,11 @@ class SupportBundle:
                         also Eg: components = ['utils', 'provisioner']
         return:         bundle_obj
         """
+        current_user = str(getpass.getuser())
+        # Check if User is Root User.
+        if current_user.lower() != 'root':
+            response_msg = "Support Bundle Command requires root privileges"
+            return Response(output=response_msg, rc=errno.EACCES)
         components = ''
         for key, value in kwargs.items():
             if key == 'components':

@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
