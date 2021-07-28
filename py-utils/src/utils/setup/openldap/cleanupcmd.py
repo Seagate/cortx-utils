@@ -29,10 +29,10 @@ class CleanupCmd(SetupCmd):
     """Cleanup cmd initialization"""
     Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',\
              level='DEBUG')
-    def __init__(self):
+    def __init__(self, config: str):
         """Constructor."""
         try:
-            super(CleanupCmd, self).__init__()
+            super(CleanupCmd, self).__init__(config)
         except Exception as e:
             Log.debug("Initializing cleanup phase failed")
             raise OpenldapPROVError(f'exception: {e}')
@@ -53,7 +53,7 @@ class CleanupCmd(SetupCmd):
             try:
                 os.remove(filepath)
             except Exception:
-                Log.debug("Failed deleting log file")
+                Log.debug("Failed deleting log file : %s" % filepath)
 
     def delete_log_files(self):
         """Delete log files."""
