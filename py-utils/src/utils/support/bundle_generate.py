@@ -16,7 +16,6 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
-from sys import modules
 import threading
 import shutil
 from string import Template
@@ -144,7 +143,7 @@ class ComponentsBundle:
         # Start Execution for each Component Command.
         threads = []
         avail_components =  next(os.walk('/opt/seagate/cortx/'))[1]
-        # OS Logs are specifically generated hence here Even 
+        # OS Logs are specifically generated hence here Even
         # When All is Selected O.S. Logs Will Be Skipped.
         cmpt_wo_flt = {}
         if components:
@@ -166,8 +165,8 @@ class ComponentsBundle:
 
             if os.path.exists(component_path):
                 Conf.load('support_commands', f'yaml://{component_path}', fail_reload=False)
-                raw_command = Conf.get('support_commands', f'bundle>create>url')
-                cmd_args = Conf.get('support_commands', f'bundle>create>args')
+                raw_command = Conf.get('support_commands', 'bundle>create>url')
+                cmd_args = Conf.get('support_commands', 'bundle>create>args')
                 components_commands.append(f"{raw_command} {cmd_args}")
                 if components_commands:
                     modules = cmpt_wo_flt[component]

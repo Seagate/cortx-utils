@@ -135,14 +135,27 @@ class UtilsSupportBundle:
 
     @staticmethod
     def parse_args():
+        """
+        Parameters:
+        action: used to create| delete| status| cancel the support bundle 
+                script.
+        bundle_id: Unique bundle id
+        path: Path where the generated support bundle tar file should 
+              be stored.
+        modules: (Optional parameter) list the number of submodules
+                 that need to be bundled. By Default all the modules
+                 in the components will be bundled.
+        """
         parser = argparse.ArgumentParser(description='''Bundle utils logs ''')
-        parser.add_argument('action', help='Action can be create| status|"\
-            + "delete| cancel')
+        parser.add_argument('action', help="Action can be create| status|"\
+            + "delete| cancel")
         parser.add_argument('bundle_id', help='Unique bundle id')
-        parser.add_argument('path', help='Path to store the created bundle',
-            nargs='?', default="/var/seagate/cortx/support_bundle/")
-        parser.add_argument('--modules', help="list of sub-modules that need"\
-            +"to be specifically bundled")
+        parser.add_argument('path', help='Path where the generated support'\
+            +'bundle tar file should be stored', nargs='?', 
+            default="/var/seagate/cortx/support_bundle/")
+        parser.add_argument('--modules', help="(Optional parameter) list the"\
+            +"number of submodules that need to be bundled. By Default all"\
+            +"the modules in the components will be bundled.")
         args=parser.parse_args()
         return args
 
@@ -154,10 +167,6 @@ def main():
 
 
 if __name__ == '__main__':
-    """
-    argument:
-        path: targeted path where py-utils.tar.gz should be created
-    """
     try:
         main()
     except KeyboardInterrupt as e:
