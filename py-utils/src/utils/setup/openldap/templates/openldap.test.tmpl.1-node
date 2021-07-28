@@ -1,6 +1,7 @@
 server_node:
   TMPL_MACHINE_ID:
     cluster_id: "TMPL_CLUSTER_ID"
+    hostname: "TMPL_HOSTNAME"
 cortx:
   software:
     openldap:
