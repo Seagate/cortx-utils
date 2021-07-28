@@ -39,7 +39,7 @@ git clone https://github.com/Seagate/cortx-utils.git
 ```bash
 # NOTE: Do not use rpm if cortx-py-utils is installed using wheel & pip
 cd cortx-utils/py-utils/test
-sudo python3 setup.py bdist_rpm  --requires cortx-py-utils --version=1.0.0
+sudo python3 setup.py bdist_rpm  --requires cortx-py-utils --version=1.0.0 --post-install test-post-install --post-uninstall test-post-uninstall
 ```
 
 - Create pip Package
