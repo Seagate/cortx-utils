@@ -53,37 +53,47 @@ class MessageBrokerFactory:
             "Invalid service name %s.", broker_type)
 
     @staticmethod
-    def get_server_list(conf_url: str):
-        """Returns ([server_list], [port_list])."""
-        Conf.load('cluster_config', conf_url)
-        key_list = ['cortx>software>kafka>servers',
-                    'cortx>software>common>message_bus_type']
-        ConfKeysV().validate('exists', 'cluster_config', key_list)
-        msg_bus_type = Conf.get('cluster_config', key_list[0])
+    def get_server_list(cluster_conf_index: str) -> tuple:
+        """Fetches info of nodes in cluster from passed template file.
+
+        Args:
+            cluster_conf_index (str): index for loaded input template file
+
+        Raises:
+            SetupError: if message bus type not kafka or missing required keys
+
+        Returns:
+            tuple: ([server_list], [port_list])
+        """
+        key_list = ['cortx>software>common>message_bus_type',
+                    'cortx>software>kafka>servers']
+
+        ConfKeysV().validate('exists', cluster_conf_index, key_list)
+        msg_bus_type = Conf.get(cluster_conf_index, key_list[0])
 
         if msg_bus_type != 'kafka':
             Log.error(f"Message bus type {msg_bus_type} is not supported")
-            raise SetupError(errno.EINVAL, "Message bus type %s is not"\
-                " supported", msg_bus_type)
+            raise SetupError(errno.EINVAL, \
+                "Message bus type %s is not supported", msg_bus_type)
 
-        # Read the required keys
-        all_servers = Conf.get('cluster_config', key_list[1])
+        all_servers = Conf.get(cluster_conf_index, key_list[1])
         kafka_server_list = []
         port_list = []
-        for i in range(len(all_servers)):
-            # check if port is mentioned
-            rc = all_servers[i].find(':')
-            if rc == -1:
-                port_list.append('9092')
-                kafka_server_list.append(all_servers[i])
+
+        for server in all_servers:
+            # Value of server can be <server_fqdn:port> or <server_fqdn>
+            if ':' in server:
+                server_fqdn, port = server.split(':')
+                kafka_server_list.append(server_fqdn)
+                port_list.append(port)
             else:
-                port_list.append(all_servers[i][rc + 1:])
-                kafka_server_list.append(all_servers[i][:rc])
+                kafka_server_list.append(server)
+                port_list.append('9092')   # 90992 is default kafka server port
+
         if not kafka_server_list:
-            Log.error(f"Missing config entry {key_list} in config file "\
-                f"{conf_url}")
-            raise SetupError(errno.EINVAL, "Missing config entry %s in config"
-                " file %s", key_list, conf_url)
+            Log.error(f"Missing config entry {key_list} in input file")
+            raise SetupError(errno.EINVAL, \
+                "Missing config entry %s in config", key_list)
 
         return kafka_server_list, port_list
 

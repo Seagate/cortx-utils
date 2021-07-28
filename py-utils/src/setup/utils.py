@@ -14,7 +14,6 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-
 import os
 import json
 import errno
@@ -32,8 +31,7 @@ from cortx.utils.validator.v_service import ServiceV
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.service.service_handler import Service
 from cortx.utils.message_bus.error import MessageBusError
-from cortx.utils.message_bus.message_broker import MessageBrokerFactory
-
+from cortx.utils.message_bus import MessageBrokerFactory
 
 
 class Utils:
@@ -75,13 +73,19 @@ class Utils:
                 /etc/cortx/message_bus.conf %s", e)
 
     @staticmethod
-    def _get_server_info(conf_url: str, machine_id: str) -> dict:
-        """ Reads the ConfStore and derives keys related to Event Message """
+    def _get_server_info(conf_url_index: str, machine_id: str) -> dict:
+        """Reads the ConfStore and derives keys related to Event Message.
 
-        Conf.load('server_info', conf_url)
+        Args:
+            conf_url_index (str): Index for loaded conf_url
+            machine_id (str): Machine_id
+
+        Returns:
+            dict: Server Information
+        """
         key_list = [f'server_node>{machine_id}']
-        ConfKeysV().validate('exists', 'server_info', key_list)
-        server_info = Conf.get('server_info', key_list[0])
+        ConfKeysV().validate('exists', conf_url_index, key_list)
+        server_info = Conf.get(conf_url_index, key_list[0])
         return server_info
 
     @staticmethod
@@ -187,27 +191,32 @@ class Utils:
         return 0
 
     @staticmethod
-    def config(conf_url: str):
-        """ Performs configurations """
-        # copy cluster.conf.sample file to /etc/cortx/cluster.conf
+    def config(config_template: str):
+        """Performs configurations."""
+        # Copy cluster.conf.sample file to /etc/cortx/cluster.conf
         Utils._copy_conf_sample_to_conf()
 
-        # Message Bus Config
+        # Load required files
+        config_template_index = 'cluster_config'
         Conf.load('cluster', 'json:///etc/cortx/cluster.conf')
+        Conf.load(config_template_index, config_template)
 
-        server_list, port_list = \
-            MessageBrokerFactory.get_server_list(conf_url)
-        if server_list is None:
-            Log.error(f"Could not find kafka server information in {conf_url}")
-            raise SetupError(errno.EINVAL, "Could not find kafka server " +\
-                "information in %s", conf_url)
+        try:
+            server_list, port_list = \
+                MessageBrokerFactory.get_server_list(config_template_index)
+        except SetupError:
+            Log.error(f"Could not find server information in {config_template}")
+            raise SetupError(errno.EINVAL, \
+                "Could not find server information in %s", config_template)
+
         Utils._create_msg_bus_config(server_list, port_list)
         # Cluster config
-        server_info = Utils._get_server_info(conf_url, Conf.machine_id)
+        server_info = \
+            Utils._get_server_info(config_template_index, Conf.machine_id)
         if server_info is None:
-            Log.error(f"Could not find server information in {conf_url}")
+            Log.error(f"Could not find server information in {config_template}")
             raise SetupError(errno.EINVAL, "Could not find server " +\
-                "information in %s", conf_url)
+                "information in %s", config_template)
         Utils._create_cluster_config(server_info)
         #set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map()
