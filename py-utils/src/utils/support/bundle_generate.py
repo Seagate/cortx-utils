@@ -115,6 +115,10 @@ class ComponentsBundle:
         :param command: Csm_cli Command Object :type: command
         :return:
         """
+        from cortx.utils.shared_storage import Storage
+        shared_path = Storage.get_path()
+        # Path Location for creating Support Bundle.
+        path = os.path.join(shared_path, 'support_bundle')
         # Fetch Command Arguments.
         Log.init('support_bundle',
                 syslog_server='localhost',
@@ -128,8 +132,6 @@ class ComponentsBundle:
         Log.debug((f"{const.SB_BUNDLE_ID}: {bundle_id}, {const.SB_NODE_NAME}: {node_name}, "
                    f" {const.SB_COMMENT}: {comment}, {const.SB_COMPONENTS}: {components},"
                    f" {const.SOS_COMP}"))
-        # Path Location for creating Support Bundle.
-        path = os.path.join(Conf.get('cortx_conf', 'support>support_bundle_path'))
 
         if os.path.isdir(path):
             try:
@@ -146,6 +148,7 @@ class ComponentsBundle:
         # When All is Selected O.S. Logs Will Be Skipped.
         cmpt_wo_flt = {}
         if components:
+            # segregate components and modules into kv
             for each in components:
                 comp_kv = each.split(':', 1)
                 cmpt_wo_flt[comp_kv[0]] = comp_kv[1] if len(comp_kv)>1 else ''
@@ -170,16 +173,15 @@ class ComponentsBundle:
                     modules = cmpt_wo_flt[component]
                     thread_obj = threading.Thread(
                         ComponentsBundle._exc_components_cmd(
-                            components_commands, f"{bundle_id}_{component}",
-                            f"{bundle_path}{os.sep}", component, node_name,
+                            components_commands, f'{bundle_id}_{component}',
+                            f'{bundle_path}{os.sep}', component, node_name,
                             comment, modules))
                     thread_obj.start()
                     Log.debug(f"Started thread -> {thread_obj.ident}  Component -> {component}")
                     threads.append(thread_obj)
 
-        directory_path = Conf.get("cortx_conf","support>support_bundle_path")
-        tar_file_name = os.path.join(directory_path,
-                                     f"{bundle_id}_{node_name}.tar.gz")
+        tar_file_name = os.path.join(path,
+                                     f'{bundle_id}_{node_name}.tar.gz')
 
         ComponentsBundle._create_summary_file(bundle_id, node_name, comment, bundle_path)
 
@@ -206,7 +208,7 @@ class ComponentsBundle:
         try:
             Log.debug("Create soft-link for generated tar.")
             os.symlink(tar_file_name, os.path.join(symlink_path,
-                                                   f"{const.SUPPORT_BUNDLE}.{bundle_id}"))
+                                                   f'{const.SUPPORT_BUNDLE}.{bundle_id}'))
             ComponentsBundle._publish_log(f"Tar file linked at location - {symlink_path}", INFO, bundle_id, node_name,
                                          comment)
         except Exception as e:
