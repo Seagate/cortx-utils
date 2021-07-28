@@ -157,11 +157,6 @@ class SupportBundle:
                         also Eg: components = ['utils', 'provisioner']
         return:         bundle_obj
         """
-        current_user = str(getpass.getuser())
-        # Check if User is Root User.
-        if current_user.lower() != 'root':
-            response_msg = "Support Bundle Command requires root privileges"
-            return Response(output=response_msg, rc=errno.EACCES)
         components = ''
         for key, value in kwargs.items():
             if key == 'components':
