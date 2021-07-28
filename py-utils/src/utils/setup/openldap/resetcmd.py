@@ -26,10 +26,10 @@ class ResetCmd(SetupCmd):
     """Reset cmd initialization"""
     Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',\
              level='DEBUG')
-    def __init__(self):
+    def __init__(self, config: str):
         """Constructor"""
         try:
-            super(ResetCmd, self).__init__()
+            super(ResetCmd, self).__init__(config)
         except Exception as e:
             Log.debug("Initializing reset phase failed")
             raise OpenldapPROVError(f'exception: {e}')
@@ -47,11 +47,10 @@ class ResetCmd(SetupCmd):
             try:
                 os.remove(filepath)
             except Exception:
-                Log.debug("Failed deleting log file")
+                Log.debug("Failed deleting log file : %s" % filepath)
 
     def delete_log_files(self):
         """Delete log files."""
-        #delete log files
         Log.debug("Starting log file deletion")
         logFiles = ["/var/log/seagate/utils/openldap/OpenldapProvisioning",
                     "/var/log/slapd.log"]

@@ -169,6 +169,19 @@ class ResetCmd(Cmd):
         rc = self.openldap.reset()
         return rc
 
+class CleanupCmd(Cmd):
+    """ Cleanup Setup Cmd """
+    name = "cleanup"
+
+    def __init__(self, args):
+        super().__init__(args)
+        self.openldap = Openldap(args.config)
+
+    def process(self):
+        # TODO: Add actions here
+        rc = self.openldap.cleanup()
+        return rc
+
 
 def main(argv: dict):
     try:

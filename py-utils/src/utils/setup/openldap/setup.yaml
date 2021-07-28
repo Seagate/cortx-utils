@@ -38,3 +38,7 @@ openldap:
         cmd: openldap_setup reset
         args: --config $URL
 
+    cleanup:
+        cmd: openldap_setup cleanup
+        args: --config $URL
+
