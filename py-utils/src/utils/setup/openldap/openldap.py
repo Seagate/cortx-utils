@@ -300,5 +300,3 @@ class Openldap:
         PostUpgradeCmd().process()
         Log.debug("%s - Successful" % phase_name)
         return 0
-
-
