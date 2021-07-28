@@ -17,7 +17,7 @@
 import asyncio
 import sys
 
-from cortx.utils.support.support_bundle import SupportBundle
+from cortx.utils.support_framework import SupportBundle
 from cortx.utils.cli_framework.command import Command
 from cortx.utils.log import Log
 
@@ -25,24 +25,21 @@ from cortx.utils.log import Log
 class SupportBundleCli:
     @staticmethod
     def generate(comment: str, **kwargs):
-        Log.init('support_bundle', '/var/log/cortx/utils/support', level='INFO',
-            backup_count=5, file_size_in_mb=5)
-
         components = ''
         for key, value in kwargs.items():
             if key == 'components':
                 components = value
-
-        options = {'comment': comment,'components':components, 'comm': \
-            {'type': 'direct', 'target': 'utils.support', 'method': \
+        options = {'comment': comment, 'components': components, 'comm': \
+            {'type': 'direct', 'target': 'utils.support_framework', 'method': \
             'generate_bundle', 'class': 'SupportBundle', 'is_static': True, \
             'params': {}, 'json': {}}, 'output': {}, 'need_confirmation': \
             False, 'sub_command_name': 'generate_bundle'}
 
         cmd_obj = Command('generate_bundle', options, [])
         loop = asyncio.get_event_loop()
-        res = loop.run_until_complete(SupportBundle.generate_bundle(cmd_obj))
-        return res
+        bundle_obj = loop.run_until_complete( \
+            SupportBundle._generate_bundle(cmd_obj))
+        return bundle_obj
 
     @staticmethod
     def get_status(bundle_id: str):
@@ -51,26 +48,35 @@ class SupportBundleCli:
         time.sleep(5)
 
         options = {'bundle_id': bundle_id, 'comm': {'type': 'direct', \
-            'target': 'utils.support', 'method': 'get_bundle_status', \
-            'class': 'SupportBundle', 'is_static': True, 'params': {}, \
-            'json': {}}, 'output': {}, 'need_confirmation': False, \
-            'sub_command_name': 'get_bundle_status'}
+            'target': 'utils.support_framework', 'method': 'get_bundle_status', \
+            'class': 'SupportBundle', \
+            'is_static': True, 'params': {}, 'json': {}},'output': {},\
+            'need_confirmation': False, 'sub_command_name': \
+            'get_bundle_status'}
 
         cmd_obj = Command('get_bundle_status', options, [])
         loop = asyncio.get_event_loop()
-        res = loop.run_until_complete(SupportBundle.get_bundle_status(cmd_obj))
+        res = loop.run_until_complete(
+            SupportBundle._get_bundle_status(cmd_obj))
         loop.close()
         return res
 
 def main(argv):
+    from cortx.utils.conf_store.conf_store import Conf
+    from cortx.utils.log import Log
+
+    Conf.load('cortx_config', 'json:///etc/cortx/cortx.conf')
+    log_level = Conf.get('cortx_config', 'utils>log_level', 'INFO')
+    Log.init('support_bundle', '/var/log/cortx/utils/support', level=log_level, \
+        backup_count=5, file_size_in_mb=5)
+    
     components = argv[3] if len(argv)>3 else []
     if components:
         components = [component for component in components.split(',')]
     cmd = f"SupportBundleCli.{argv[1]}(comment='{argv[2]}', components={components})"
     bundle_obj = eval(cmd)
-    print(bundle_obj)
-    bundle_id = str(bundle_obj).split('|')[1].strip()
-    status = SupportBundleCli.get_status(bundle_id=bundle_id)
+    print('bundle_id', bundle_obj.bundle_id)
+    status = SupportBundleCli.get_status(bundle_id=bundle_obj.bundle_id)
     return status
 
 
