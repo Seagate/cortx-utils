@@ -136,7 +136,7 @@ class UtilsSupportBundle:
     @staticmethod
     def parse_args():
         """
-        Argument parser
+        Parse and return available argument
 
         Parameters:
         action: used to create| delete| status| cancel the support bundle
