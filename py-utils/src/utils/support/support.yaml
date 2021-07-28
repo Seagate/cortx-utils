@@ -23,13 +23,17 @@ modules:
 
 bundle: 
     create:
-      url: "/opt/seagate/cortx/utils/bin/utils_support_bundle create"
+      url: /opt/seagate/cortx/utils/bin/utils_support_bundle
+      args: create $BUNDLE_ID $PATH --modules=$MODULES
 
     status:
-      url: "/opt/seagate/cortx/utils/bin/utils_support_bundle status"
+      url: /opt/seagate/cortx/utils/bin/utils_support_bundle
+      args: status
 
     delete:
-      url: "/opt/seagate/cortx/utils/bin/utils_support_bundle delete"
+      url: /opt/seagate/cortx/utils/bin/utils_support_bundle
+      args: delete
 
     cancel:
-      url: "/opt/seagate/cortx/utils/bin/utils_support_bundle cancel"
+      url: /opt/seagate/cortx/utils/bin/utils_support_bundle
+      args: cancel

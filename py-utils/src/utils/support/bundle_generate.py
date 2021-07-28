@@ -19,10 +19,12 @@ import os
 from sys import modules
 import threading
 import shutil
+from string import Template
 from typing import List
+from datetime import datetime
+
 from cortx.utils.schema.payload import Yaml, Tar
 from cortx.utils.support import const
-from datetime import datetime
 from cortx.utils.process import SimpleProcess
 from cortx.utils.conf_store.conf_store import Conf
 from cortx.utils.log import Log
@@ -77,7 +79,7 @@ class ComponentsBundle:
 
     @staticmethod
     def _exc_components_cmd(commands: List, bundle_id: str, path: str,
-            component: str, node_name: str, comment: str, modules):
+            component: str, node_name: str, comment: str, modules: str):
         """
         Executes the Command for Bundle Generation of Every Component.
         :param commands: Command of the component :type:str
@@ -91,7 +93,9 @@ class ComponentsBundle:
         """
         for command in commands:
             Log.info(f"Executing command -> {command} {bundle_id} {path} {modules}")
-            cmd_proc = SimpleProcess(f"{command} {bundle_id} {path} {f'--modules={modules}' if modules else ''}")
+            cmd_temp = Template(command)
+            command = cmd_temp.substitute(BUNDLE_ID=bundle_id, PATH=path, MODULES=modules)
+            cmd_proc = SimpleProcess(command)
             output, err, return_code = cmd_proc.run()
             Log.debug(f"Command Output -> {output} {err}, {return_code}")
             if return_code != 0:
@@ -160,7 +164,8 @@ class ComponentsBundle:
             if os.path.exists(component_path):
                 Conf.load('support_commands', f'yaml://{component_path}', fail_reload=False)
                 raw_command = Conf.get('support_commands', f'bundle>create>url')
-                components_commands.append(raw_command)
+                cmd_args = Conf.get('support_commands', f'bundle>create>args')
+                components_commands.append(f"{raw_command} {cmd_args}")
                 if components_commands:
                     modules = cmpt_wo_flt[component]
                     thread_obj = threading.Thread(
