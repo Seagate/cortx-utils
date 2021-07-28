@@ -268,7 +268,7 @@ class Openldap:
         ResetCmd().process()
         Log.debug("%s - Successful" % phase_name)
         return 0
-      
+
     def cleanup(self):
         """ Performs Configuration cleanup. Raises exception on error """
         phase_name = "cleanup"
