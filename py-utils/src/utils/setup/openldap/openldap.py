@@ -17,7 +17,7 @@
 import os
 import re
 import traceback
-
+from  ast import literal_eval
 from cortx.utils.errors import BaseError 
 from cortx.utils.validator.v_pkg import PkgV
 from cortx.utils.validator.v_network import NetworkV
@@ -25,6 +25,8 @@ from cortx.utils.validator.v_service import ServiceV
 from cortx.utils.conf_store import Conf
 from cortx.utils.log import Log
 from test import Test
+from resetcmd import ResetCmd
+from cleanupcmd import CleanupCmd
 
 class OpenldapSetupError(BaseError):
     """ Generic Exception with error code and output """
@@ -101,12 +103,16 @@ class Openldap:
             if ((Conf.get(self.prov, 'CONFIG>OPENLDAP_BIND_BASE_DN') == key) and (not bool(re.match("^cn=[a-zA-Z0-9]+(,dc=[a-zA-Z0-9]+)+[a-zA-Z0-9]$", value)))):
                 Log.debug("Validation failed for %s in %s phase\n" % (key ,phase))
                 raise Exception("Validation failed for %s in %s phase" % (key ,phase))
-
-            address_token = ["hostname"]
-            for token in address_token:
-                if key.find(token) != -1:
-                    NetworkV().validate('connectivity',[value])
-                    break
+            if (key.endswith("server_nodes")):
+                if type(value) is str:
+                    value = literal_eval(value)
+                for node_machine_id in value:
+                    host_name = Conf.get(self.index, f'server_node>{node_machine_id}>hostname')
+                    try:
+                        NetworkV().validate('connectivity',[host_name])
+                    except:
+                        Log.debug("Validation failed for %s>%s>%s in %s phase\n" % (key, node_machine_id, host_name, phase))
+                        raise Exception("Validation failed for %s>%s>%s in %s phase" % (key, node_machine_id, host_name, phase))
 
     def _get_list_of_phases_to_validate(self, phase_name: str):
         """Get list of all the phases which follow hierarchy pattern."""
@@ -200,7 +206,7 @@ class Openldap:
                 yardstick_list_exp.append(new_key)
             for key in yardstick_list_exp:
                 self._key_value_verify(key,phase_name)
-
+            Log.debug("%s - keys validation complete" % phase_name.lower())
         except OpenldapSetupError as e:
             raise OpenldapSetupError({"message":"ERROR : Validating keys \
                 failed"})
@@ -259,8 +265,17 @@ class Openldap:
         Log.debug("%s - Starting\n" % phase_name)
         self.validate(phase_name)
         self._keys_validate(phase_name) 
-        from resetcmd import ResetCmd
         ResetCmd().process()
+        Log.debug("%s - Successful" % phase_name)
+        return 0
+      
+    def cleanup(self):
+        """ Performs Configuration cleanup. Raises exception on error """
+        phase_name = "cleanup"
+        Log.debug("%s - Starting\n" % phase_name)
+        self.validate(phase_name)
+        self._keys_validate(phase_name) 
+        CleanupCmd().process()
         Log.debug("%s - Successful" % phase_name)
         return 0
 
@@ -285,3 +300,5 @@ class Openldap:
         PostUpgradeCmd().process()
         Log.debug("%s - Successful" % phase_name)
         return 0
+
+
