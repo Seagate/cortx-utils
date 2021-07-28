@@ -183,7 +183,7 @@ class CleanupCmd(Cmd):
         return rc
 
 class PreUpgradeCmd(Cmd):
-    """ Pre Upgrade Setup Cmd"""
+    """Pre Upgrade Setup Cmd."""
 
     name = "preupgrade"
 
@@ -197,7 +197,7 @@ class PreUpgradeCmd(Cmd):
         return rc
 
 class PostUpgradeCmd(Cmd):
-    """ Post Upgrade Setup Cmd."""
+    """Post Upgrade Setup Cmd."""
 
     name = "postupgrade"
 

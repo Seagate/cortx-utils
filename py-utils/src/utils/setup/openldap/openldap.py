@@ -280,7 +280,7 @@ class Openldap:
         return 0
 
     def preupgrade(self):
-        """ Perform pre upgrade action."""
+        """Perform pre upgrade action."""
         phase_name = "preupgrade"
         Log.debug("%s - Starting\n" % phase_name)
         self.validate(phase_name)
@@ -291,7 +291,7 @@ class Openldap:
         return 0
 
     def postupgrade(self):
-        """ Perform post upgrade action."""
+        """Perform post upgrade action."""
         phase_name = "postupgrade"
         Log.debug("%s - Starting\n" % phase_name)
         self.validate(phase_name)

@@ -25,6 +25,7 @@ from setupcmd import SetupCmd, OpenldapPROVError
 
 
 class PostUpgradeCmd(SetupCmd):
+
   """Post Upgrade Setup Cmd."""
 
   name = "postupgrade"
@@ -61,8 +62,7 @@ class PostUpgradeCmd(SetupCmd):
       raise OpenldapPROVError(f'exception: {e}\n')
 
   def merge_config(self, configFile:str, oldSampleFile:str, newSampleFile:str, unsafeAttributesFile:str, filetype:str):
-    """
-    Core logic for updating config files during upgrade using conf store.
+    """Core logic for updating config files during upgrade using conf store.
     Following is algorithm from merge:
     Iterate over all parameters sample.new file
     for every parameter, check
@@ -71,8 +71,7 @@ class PostUpgradeCmd(SetupCmd):
         - diff the value in config and sample.old - if it is changed, skip
         - if it is not changed,  we will overwrite the value in cfg file from sample.new
         - if it does not exist in cfg file add the value from sample.new file to cfg file
-    - All the arrays in yaml are always overwritten
-    """
+    - All the arrays in yaml are always overwritten"""
     #If config file is not present then abort merging.
     if not os.path.isfile(configFile):
         Log.error(f'config file {configFile} does not exist')

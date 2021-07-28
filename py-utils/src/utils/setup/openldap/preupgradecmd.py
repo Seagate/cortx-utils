@@ -26,6 +26,7 @@ from cortx.utils.log import Log
 from setupcmd import SetupCmd, OpenldapPROVError
 
 class PreUpgradeCmd(SetupCmd):
+
   """Pre Upgrade Setup Cmd."""
 
   name = "preupgrade"
@@ -42,9 +43,9 @@ class PreUpgradeCmd(SetupCmd):
   def process(self):
     """Main processing function."""
     try:
-        Log.info(f"Backup .sample to .old started")
+        Log.info("Backup .sample to .old started")
         self.backup_sample_file()
-        Log.info(f"Backup .sample to .old completed")
+        Log.info("Backup .sample to .old completed")
     except Exception as e:
       raise OpenldapPROVError(f'exception: {e}\n')
 
