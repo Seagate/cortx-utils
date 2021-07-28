@@ -19,7 +19,6 @@ import sys
 
 from cortx.utils.support_framework import SupportBundle
 from cortx.utils.cli_framework.command import Command
-from cortx.utils.log import Log
 
 
 class SupportBundleCli:
@@ -43,7 +42,7 @@ class SupportBundleCli:
 
     @staticmethod
     def get_status(bundle_id: str):
-        # status
+         # Get the status of bundle
         import time
         time.sleep(5)
 
