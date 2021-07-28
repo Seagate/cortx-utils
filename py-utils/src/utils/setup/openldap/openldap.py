@@ -84,7 +84,7 @@ class Openldap:
                 services = Conf.get(phase, f'{phase}>services')
                 if services:
                     ServiceV().validate('isrunning', services)
-            Log.debug("%s - pre-requisite validation complete\n" % phase)
+            Log.debug("%s - pre-requisite validation complete" % phase)
         except OpenldapSetupError as e:
             raise OpenldapSetupError({"message":"prereqs validation failed"})
         return 0
@@ -94,14 +94,14 @@ class Openldap:
 
         value = Conf.get(self.index, key)
         if not value:
-            Log.debug("Validation failed for %s in %s phase\n" % (key ,phase))
+            Log.debug("Validation failed for %s in %s phase" % (key ,phase))
             raise Exception("Validation failed for %s in %s phase" % (key ,phase))
         else:
             if ((Conf.get(self.prov, 'CONFIG>OPENLDAP_BASE_DN') == key) and (not bool(re.match("^dc=[a-zA-Z0-9]+(,dc=[a-zA-Z0-9]+)+[a-zA-Z0-9]$", value)))):
-                Log.debug("Validation failed for %s in %s phase\n" % (key ,phase))
+                Log.debug("Validation failed for %s in %s phase" % (key ,phase))
                 raise Exception("Validation failed for %s in %s phase" % (key ,phase))
             if ((Conf.get(self.prov, 'CONFIG>OPENLDAP_BIND_BASE_DN') == key) and (not bool(re.match("^cn=[a-zA-Z0-9]+(,dc=[a-zA-Z0-9]+)+[a-zA-Z0-9]$", value)))):
-                Log.debug("Validation failed for %s in %s phase\n" % (key ,phase))
+                Log.debug("Validation failed for %s in %s phase" % (key ,phase))
                 raise Exception("Validation failed for %s in %s phase" % (key ,phase))
             if (key.endswith("server_nodes")):
                 if type(value) is str:
@@ -111,7 +111,7 @@ class Openldap:
                     try:
                         NetworkV().validate('connectivity',[host_name])
                     except:
-                        Log.debug("Validation failed for %s>%s>%s in %s phase\n" % (key, node_machine_id, host_name, phase))
+                        Log.debug("Validation failed for %s>%s>%s in %s phase" % (key, node_machine_id, host_name, phase))
                         raise Exception("Validation failed for %s>%s>%s in %s phase" % (key, node_machine_id, host_name, phase))
 
     def _get_list_of_phases_to_validate(self, phase_name: str):
@@ -144,7 +144,7 @@ class Openldap:
         if self.cluster_id is not None:
             cluster_id_val = self.cluster_id
         else:
-            Log.debug("Validation failed for either cluster_id or machine_id in %s phase\n" % phase_name)
+            Log.debug("Validation failed for either cluster_id or machine_id in %s phase" % phase_name)
             raise Exception("Validation failed for either cluster_id or machine_id in %s phase" % phase_name)
         """
         The 'storage_set_count' is read using below hard-coded key which is the
@@ -157,14 +157,14 @@ class Openldap:
         try:
             storage_set_count_str = Conf.get(self.index, storage_set_count_key)
         except:
-            Log.debug("Validation failed for storage_set_count in %s phase\n" % phase_name)
+            Log.debug("Validation failed for storage_set_count in %s phase" % phase_name)
             raise Exception("Validation failed for storage_set_count in %s phase" % phase_name)
 
         if (storage_set_count_str is not None):
             try:
                 storage_set_val = int(storage_set_count_str) - 1
             except ValueError:
-                Log.debug("Validation failed for %s in %s phase\n" % (storage_set_count_key , phase_name))
+                Log.debug("Validation failed for %s in %s phase" % (storage_set_count_key , phase_name))
                 raise Exception("Validation failed for %s in %s phase" % (storage_set_count_key , phase_name))
         else:
             storage_set_val = 0
@@ -214,7 +214,7 @@ class Openldap:
     def post_install(self):
         """ Performs post install operations. Raises exception on error """
         phase_name = "post_install"
-        Log.debug("%s - Starting\n" % phase_name)
+        Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)
         self._keys_validate(phase_name)
         Log.debug("%s - Successful" % phase_name)
@@ -223,7 +223,7 @@ class Openldap:
     def prepare(self):
         """ Perform prepare operations. Raises exception on error """
         phase_name = "prepare"
-        Log.debug("%s - Starting\n" % phase_name)
+        Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)
         self._keys_validate(phase_name)
         Log.debug("%s - Successful" % phase_name)
@@ -232,7 +232,7 @@ class Openldap:
     def config(self):
         """ Performs configurations. Raises exception on error """
         phase_name = "config"
-        Log.debug("%s - Starting\n" % phase_name)
+        Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)
         self._keys_validate(phase_name)
         from configcmd import ConfigCmd
@@ -243,7 +243,7 @@ class Openldap:
     def init(self):
         """ Perform initialization. Raises exception on error """
         phase_name = "init"
-        Log.debug("%s - Starting\n" % phase_name)
+        Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)
         self._keys_validate(phase_name)
         Log.debug("%s - Successful" % phase_name)
@@ -252,7 +252,7 @@ class Openldap:
     def test(self, plan, config: str):
         """ Perform configuration testing. Raises exception on error """
         phase_name = "test"
-        Log.debug("%s - Starting\n" % phase_name)
+        Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)
         self._keys_validate(phase_name) 
         Test(config, "seagate")
@@ -262,20 +262,20 @@ class Openldap:
     def reset(self):
         """ Performs Configuration reset. Raises exception on error """
         phase_name = "reset"
-        Log.debug("%s - Starting\n" % phase_name)
+        Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)
         self._keys_validate(phase_name) 
-        ResetCmd().process()
+        ResetCmd(self.url).process()
         Log.debug("%s - Successful" % phase_name)
         return 0
 
     def cleanup(self):
         """ Performs Configuration cleanup. Raises exception on error """
         phase_name = "cleanup"
-        Log.debug("%s - Starting\n" % phase_name)
+        Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)
         self._keys_validate(phase_name) 
-        CleanupCmd().process()
+        CleanupCmd(self.url).process()
         Log.debug("%s - Successful" % phase_name)
         return 0
 
