@@ -196,7 +196,7 @@ class Openldap:
                 yardstick_list_exp.append(new_key)
             for key in yardstick_list_exp:
                 self._key_value_verify(key,phase_name)
-
+            Log.debug("%s - keys validation complete" % phase_name.lower())
         except OpenldapSetupError as e:
             raise OpenldapSetupError({"message":"ERROR : Validating keys \
                 failed"})
