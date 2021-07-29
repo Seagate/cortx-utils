@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # CORTX Python common library.
-# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
+# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -22,12 +22,13 @@ from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus import MessageBus, MessageBusAdmin, \
     MessageProducer, MessageConsumer
 
-# Declared global to track threaded consumers
+# Total messages to be received by consumer threads
 total = 0
 
 
 class TestMessageBus(unittest.TestCase):
-    """ Test MessageBus related functionality """
+
+    """Test MessageBus related functionality."""
 
     _message_type = 'test'
     _bulk_count = 25
