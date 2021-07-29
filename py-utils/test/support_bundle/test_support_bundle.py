@@ -24,6 +24,7 @@ from cortx.utils.support_framework import Bundle
 
 
 class TestSupportBundle(unittest.TestCase):
+
     """ Test Support Bundle related functionality. """
 
     sb_description = "Test support bundle generation"
@@ -37,7 +38,7 @@ class TestSupportBundle(unittest.TestCase):
         self.assertNotEqual(self.bundle_obj.bundle_id, '')
         self.assertNotEqual(self.bundle_obj.bundle_path, '')
         self.assertEqual(self.bundle_obj.comment, self.sb_description)
-    
+
     def test_002generated_path(self):
         from cortx.utils.conf_store import Conf
         Conf.load('index', 'json:///etc/cortx/cluster.conf')

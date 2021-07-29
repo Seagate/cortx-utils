@@ -15,7 +15,6 @@
 
 import string
 import random
-import getpass
 import errno
 import asyncio
 from cortx.utils.support_framework import const
@@ -32,7 +31,8 @@ from cortx.utils.cli_framework.command import Command
 
 
 class SupportBundle:
-    """ This Class initializes the Support Bundle Generation for CORTX. """
+
+    """This Class initializes the Support Bundle Generation for CORTX."""
 
     @staticmethod
     async def _get_active_nodes():
@@ -58,7 +58,7 @@ class SupportBundle:
 
     @staticmethod
     def _get_components(components):
-        """ Get Components to Generate Support Bundle."""
+        """Get Components to Generate Support Bundle."""
         if components and 'all' not in components:
             Log.info(f"Generating bundle for  {' '.join(components)}")
             shell_args = f"{' '.join(components)}"
@@ -181,6 +181,8 @@ class SupportBundle:
         bundle_id:  Using this will fetch bundle status :type: string
         """
         if bundle_id:
+            import time
+            time.sleep(5)
             options = {'bundle_id': bundle_id, 'comm': {'type': 'direct', \
                 'target': 'utils.support_framework', 'method': 'get_bundle_status', \
                 'class': 'SupportBundle', \

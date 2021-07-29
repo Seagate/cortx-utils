@@ -18,10 +18,10 @@
 import os
 import threading
 import shutil
+from datetime import datetime
 from typing import List
 from cortx.utils.schema.payload import Yaml, Tar
 from cortx.utils.support_framework import const
-from datetime import datetime
 from cortx.utils.process import SimpleProcess
 from cortx.utils.conf_store.conf_store import Conf
 from cortx.utils.log import Log
@@ -31,7 +31,8 @@ INFO = 'info'
 
 
 class ComponentsBundle:
-    """ This class handles generation for support bundles for different components. """
+
+    """This class handles generation for support bundles for different components."""
 
     @staticmethod
     def _publish_log(msg, level, bundle_id, node_name, comment):
@@ -108,8 +109,8 @@ class ComponentsBundle:
         """
         Initializes the Process of Support Bundle Generation for Every Component.
 
-        command:    cli Command Object :type: command
-        return:     None
+        command:        cli Command Object :type: command
+        return:         None
         """
         bundle_id = command.options.get(const.SB_BUNDLE_ID, '')
         node_name = command.options.get(const.SB_NODE_NAME, '')

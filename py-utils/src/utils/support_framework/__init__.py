@@ -13,6 +13,13 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+"""
+support_framework package will be having modules
+
+support_bundle and bundle.
+"""
+
 from cortx.utils.support_framework.bundle import Bundle
 from cortx.utils.support_framework.support_bundle import SupportBundle
 
+__all__ = ('Bundle', 'SupportBundle')

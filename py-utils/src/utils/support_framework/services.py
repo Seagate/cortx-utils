@@ -24,6 +24,7 @@ class PackageValidationError(BaseError):
 
 
 class ProvisionerServices:
+
     """
     TODO: Class can be removed when Remote communication framework is done
     Added this functionality so there will be no dependecy on CSM.
@@ -39,7 +40,7 @@ class ProvisionerServices:
     """
 
     def __init__(self):
-        """ Initialises provisioner services """
+        """Initialises provisioner services."""
         try:
             self.provisioner = provisioner
             Log.info("Provisioner plugin is loaded")
@@ -55,9 +56,10 @@ class ProvisionerServices:
     async def begin_bundle_generation(self, command_args, target_node_id):
         """
         Execute Bundle Generation via Salt Script.
-        :param command_args: Arguments to be parsed to Bundle Generate Command. :type: String
-        :param target_node_id: Node_id for target node intended. :type: String
-        :return:
+
+        command_args:       Arguments to be parsed to Bundle Generate Command. :type: String
+        target_node_id:     Node_id for target node intended. :type: String
+        return:             Timestamp :type: String
         """
         if not self.provisioner:
             raise PackageValidationError("Provisioner is not instantiated.")
