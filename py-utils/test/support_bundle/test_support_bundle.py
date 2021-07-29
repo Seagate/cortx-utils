@@ -25,7 +25,12 @@ from cortx.utils.support_framework import Bundle
 class TestSupportBundle(unittest.TestCase):
 
     """Test Support Bundle related functionality."""
-
+    from cortx.utils.log import Log
+    from pathlib import Path
+    home = str(Path.home())
+    os.makedirs(f'{home}/test_sb', exist_ok=True)
+    Log.init('support_bundle', f'{home}/test_sb', level='DEBUG', \
+        backup_count=5, file_size_in_mb=5)
     sb_description = "Test support bundle generation"
     bundle_obj = SupportBundle.generate(comment=sb_description, components=['provisioner'])
 
@@ -44,7 +49,7 @@ class TestSupportBundle(unittest.TestCase):
         node_name = Conf.get('index', 'server_node>hostname')
         tar_file_name = f"{self.bundle_obj.bundle_id}_{node_name}.tar.gz"
         sb_file_path = f'/var/log/seagate/support_bundle/{tar_file_name}'
-        self.assertTrue(os.path.exists(sb_file_path))
+        self.assertTrue(os.path.exists(sb_file_path.strip()))
 
     def test_003status(self):
         status = SupportBundle.get_status(bundle_id=self.bundle_obj.bundle_id)
