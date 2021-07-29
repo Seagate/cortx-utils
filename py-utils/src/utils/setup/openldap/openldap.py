@@ -22,11 +22,15 @@ from cortx.utils.errors import BaseError
 from cortx.utils.validator.v_pkg import PkgV
 from cortx.utils.validator.v_network import NetworkV
 from cortx.utils.validator.v_service import ServiceV
+from cortx.utils.validator.v_path import PathV
 from cortx.utils.conf_store import Conf
 from cortx.utils.log import Log
+from configcmd import ConfigCmd
 from test import Test
 from resetcmd import ResetCmd
 from cleanupcmd import CleanupCmd
+from preupgradecmd import PreUpgradeCmd
+from postupgradecmd import PostUpgradeCmd
 
 class OpenldapSetupError(BaseError):
     """ Generic Exception with error code and output """
@@ -47,14 +51,20 @@ class Openldap:
     _preqs_conf_file = "/opt/seagate/cortx/utils/conf/openldapsetup_prereqs.json"
     _prov_conf_file = "/opt/seagate/cortx/utils/conf/openldap_prov_config.yaml"
     Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',level='DEBUG')
-    url = ""
+    url = None
+    machine_id = None
+    cluster_id = None
+    cluster_id_key = None
 
     def __init__(self, conf_url):
+        Conf.load(self.prov, f'yaml://{self._prov_conf_file}')
         if not os.path.isfile(self._preqs_conf_file):
             raise OpenldapSetupError({"message":"pre-requisite json file \
                 not found"})
+        if conf_url is None:
+            Log.debug("Config file is None")
+            return
         Conf.load(self.index, f'yaml://{conf_url}')
-        Conf.load(self.prov, f'yaml://{self._prov_conf_file}')
         self.url = conf_url
         self.machine_id = Conf.machine_id
 
@@ -78,6 +88,9 @@ class Openldap:
                 services = Conf.get(phase, f'{phase}>services')
                 if services:
                     ServiceV().validate('isrunning', services)
+                files = Conf.get(phase, f'{phase}>files')
+                if files:
+                    PathV().validate('exists', files)
             Log.debug("%s - pre-requisite validation complete" % phase)
         except OpenldapSetupError as e:
             raise OpenldapSetupError({"message":"prereqs validation failed"})
@@ -124,6 +137,10 @@ class Openldap:
             return ['RESET']
         elif phase_name == 'CLEANUP':
             return ['CLEANUP']
+        elif phase_name == 'PREUPGRADE':
+            return ['PREUPGRADE']
+        elif phase_name == 'POSTUPGRADE':
+            return ['POSTUPGRADE']
         else:
             return []
 
@@ -225,7 +242,6 @@ class Openldap:
         Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)
         self._keys_validate(phase_name)
-        from configcmd import ConfigCmd
         ConfigCmd(self.url).process()
         Log.debug("%s - Successful" % phase_name)
         return 0
@@ -266,5 +282,25 @@ class Openldap:
         self.validate(phase_name)
         self._keys_validate(phase_name) 
         CleanupCmd(self.url).process()
+        Log.debug("%s - Successful" % phase_name)
+        return 0
+
+    def preupgrade(self):
+        """Perform pre upgrade action."""
+        phase_name = "preupgrade"
+        Log.debug("%s - Starting" % phase_name)
+        self.validate(phase_name)
+        self._keys_validate(phase_name)
+        PreUpgradeCmd().process()
+        Log.debug("%s - Successful" % phase_name)
+        return 0
+
+    def postupgrade(self):
+        """Perform post upgrade action."""
+        phase_name = "postupgrade"
+        Log.debug("%s - Starting" % phase_name)
+        self.validate(phase_name)
+        self._keys_validate(phase_name)
+        PostUpgradeCmd().process()
         Log.debug("%s - Successful" % phase_name)
         return 0

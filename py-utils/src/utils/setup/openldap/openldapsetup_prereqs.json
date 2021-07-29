@@ -33,5 +33,17 @@
     "rpms": ["openldap-servers", "openldap-clients", "openldap-devel"],
     "pip3s": ["cryptography", "python-ldap"],
     "services": ["slapd"]
+  },
+  "preupgrade" : {
+    "rpms": ["openldap-servers", "openldap-clients", "openldap-devel"],
+    "pip3s": ["cryptography", "python-ldap"],
+    "files": ["file:/opt/seagate/cortx/utils/conf/openldap_config.yaml",
+              "file:/opt/seagate/cortx/utils/conf/openldap_config.yaml.sample"]
+  },
+  "postupgrade" : {
+    "rpms": ["openldap-servers", "openldap-clients", "openldap-devel"],
+    "pip3s": ["cryptography", "python-ldap"],
+    "files": ["file:/opt/seagate/cortx/utils/conf/openldap_config.yaml",
+              "file:/opt/seagate/cortx/utils/conf/openldap_config.yaml.sample"]
   }
 }
