@@ -44,21 +44,19 @@ class KafkaMessageBroker(MessageBroker):
     _max_purge_retry_count = 5
     _max_list_message_type_count = 15
 
-    # Polling timeout
-    _default_timeout = 2
-
-    # Socket timeout
-    _socket_timeout = 15000
-
-    # Message timeout
-    _message_timeout = 5000
-
     def __init__(self, broker_conf: dict):
         """ Initialize Kafka based Configurations """
         super().__init__(broker_conf)
         Log.debug(f"KafkaMessageBroker: initialized with broker " \
             f"configurations broker_conf: {broker_conf}")
         self._clients = {'admin': {}, 'producer': {}, 'consumer': {}}
+
+        # Polling timeout
+        self._default_timeout = broker_conf['config']['default_timeout']
+        # Socket timeout
+        self._socket_timeout = broker_conf['config']['socket_timeout']
+        # Message timeout
+        self._message_timeout = broker_conf['config']['message_timeout']
 
     def init_client(self, client_type: str, **client_conf: dict):
         """ Obtain Kafka based Producer/Consumer """
