@@ -24,7 +24,8 @@ from cortx.utils.message_bus import MessageBusAdmin
 
 
 class TestMessage(unittest.TestCase):
-    """ Test MessageBus rest server functionality. """
+
+    """Test MessageBus rest server functionality."""
 
     _base_url = 'http://127.0.0.1:28300/MessageBus/message/'
     _admin = MessageBusAdmin(admin_id='register')
@@ -33,11 +34,12 @@ class TestMessage(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        """Register the test message_type."""
         cls._admin.register_message_type(message_types= \
             [TestMessage._message_type], partitions=1)
 
     def test_post(self):
-        """ Test send message. """
+        """Test send message."""
         url = self._base_url + self._message_type
         data = json.dumps({'messages': ['hello', 'how are you']})
         headers = {'content-type': 'application/json'}
@@ -46,14 +48,14 @@ class TestMessage(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_get(self):
-        """ Test receive message. """
+        """Test receive message."""
         response = requests.get(self._base_url + self._message_type
             + '?consumer_group=' + self._consumer_group)
         self.assertEqual(response.status_code, 200)
 
     @classmethod
     def tearDownClass(cls):
-        """ Delete the test message_type """
+        """Deregister the test message_type."""
         cls._admin.deregister_message_type(message_types= \
             [TestMessage._message_type])
         message_type_list = TestMessage._admin.list_message_types()

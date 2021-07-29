@@ -39,6 +39,7 @@ class TestMessageBus(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        """Register the test message_type."""
         cls._admin.register_message_type(message_types= \
             [TestMessageBus._message_type], partitions=1)
         cls._producer = MessageProducer(producer_id='send', \
@@ -201,7 +202,7 @@ class TestMessageBus(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        """Delete the test message_type."""
+        """Deregister the test message_type."""
         cls._admin.deregister_message_type(message_types=\
             [TestMessageBus._message_type])
         message_type_list = TestMessageBus._admin.list_message_types()
