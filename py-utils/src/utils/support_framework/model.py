@@ -34,6 +34,9 @@ class SupportBundleRepository:
         self.db = storage
 
     async def retrieve_all(self, bundle_id) -> [SupportBundleModel]:
-        query = Query().filter_by(Compare(SupportBundleModel.bundle_id, '=', \
-            bundle_id))
+        if bundle_id:
+            query = Query().filter_by(Compare(SupportBundleModel.bundle_id, \
+                '=', bundle_id))
+        else:
+            query = Query()
         return await self.db(SupportBundleModel).get(query)
