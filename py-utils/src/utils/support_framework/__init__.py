@@ -16,7 +16,8 @@
 """
 support_framework package will be having modules
 
-support_bundle and bundle.
+module:     support_bundle
+module:     bundle
 """
 
 from cortx.utils.support_framework.bundle import Bundle

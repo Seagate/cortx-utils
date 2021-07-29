@@ -22,10 +22,9 @@ from cortx.utils.support_framework import SupportBundle
 from cortx.utils.support_framework import Bundle
 
 
-
 class TestSupportBundle(unittest.TestCase):
 
-    """ Test Support Bundle related functionality. """
+    """Test Support Bundle related functionality."""
 
     sb_description = "Test support bundle generation"
     bundle_obj = SupportBundle.generate(comment=sb_description, components=['provisioner'])
@@ -51,7 +50,7 @@ class TestSupportBundle(unittest.TestCase):
         status = SupportBundle.get_status(bundle_id=self.bundle_obj.bundle_id)
         self.assertNotEqual(status, {})
         self.assertIsInstance(status, dict)
-       
+
 
 if __name__ == '__main__':
     unittest.main()

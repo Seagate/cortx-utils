@@ -37,7 +37,7 @@ class SupportBundle:
     @staticmethod
     async def _get_active_nodes():
         """
-        This Method is for reading hostnames, node_list information.
+        This Method is for reading hostnames, node_list information
 
         return:     hostnames : List of Hostname :type: List
         return:     node_list : List of Node Name :type: List
