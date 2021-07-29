@@ -47,7 +47,7 @@ class Cmd:
         sys.stderr.write(
             f"usage: {prog} [-h] <cmd> --config <url> <args>...\n"
             f"where:\n"
-            f"cmd   post_install, config, init, reset, test\n"
+            f"cmd   post_install, prepare, config, init, test, preupgrade, postupgrade, reset, cleanup\n"
             f"url   Config URL\n")
 
     @staticmethod
@@ -182,6 +182,33 @@ class CleanupCmd(Cmd):
         rc = self.openldap.cleanup()
         return rc
 
+class PreUpgradeCmd(Cmd):
+    """Pre Upgrade Setup Cmd."""
+
+    name = "preupgrade"
+
+    def __init__(self, args):
+        super().__init__(args)
+        self.openldap = Openldap(None)
+
+    def process(self):
+        # TODO: Add actions here
+        rc = self.openldap.preupgrade()
+        return rc
+
+class PostUpgradeCmd(Cmd):
+    """Post Upgrade Setup Cmd."""
+
+    name = "postupgrade"
+
+    def __init__(self, args):
+        super().__init__(args)
+        self.openldap = Openldap(None)
+
+    def process(self):
+        # TODO: Add actions here
+        rc = self.openldap.postupgrade()
+        return rc
 
 def main(argv: dict):
     try:
