@@ -98,7 +98,7 @@ setup(name='cortx-py-utils',
                 'cortx.utils.support', 'cortx.utils.cli_framework',
                 'cortx.utils.utils_server', 'cortx.utils.iem_framework',
                 'cortx.utils.discovery', 'cortx.utils.common',
-                'cortx.utils.support_framework'
+                'cortx.utils.shared_storage', 'cortx.utils.support_framework'
                 ],
       package_data={
         'cortx': ['py.typed'],
