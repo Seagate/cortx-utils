@@ -79,16 +79,16 @@ class KafkaMessageBroker(MessageBroker):
                         Log.error(f"MessageBusError: message_type " \
                             f"{client_conf['message_type']} not found in " \
                             f"{available_message_types} for {client_type}")
-                        raise MessageBusError(errors.ERR_INVALID_MESSAGE_TYPE, \
-                            "Unknown Topic or Partition. %s", KafkaError(3))
+                        raise MessageBusError(errno.EINVAL, "Unknown Topic or \
+                            Partition. %s", KafkaError(3))
                 elif client_type == 'consumer':
                     if not any(each_message_type in available_message_types for\
                         each_message_type in client_conf['message_types']):
                         Log.error(f"MessageBusError: message_type " \
                             f"{client_conf['message_types']} not found in " \
                             f"{available_message_types} for {client_type}")
-                        raise MessageBusError(errors.ERR_INVALID_MESSAGE_TYPE, \
-                            "Unknown Topic or Partition. %s", KafkaError(3))
+                        raise MessageBusError(errno.EINVAL, "Unknown Topic or \
+                            Partition. %s", KafkaError(3))
                 return
 
         kafka_conf = {}
