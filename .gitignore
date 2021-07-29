@@ -13,6 +13,6 @@ dist
 __pycache__
 .idea
 .vscode
-./py-utils/VERSION
-./py-utils/utils-pre-install
-./py-utils/utils-post-install
+py-utils/VERSION
+py-utils/utils-pre-install
+py-utils/utils-post-install
