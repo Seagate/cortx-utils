@@ -24,6 +24,7 @@ from cortx.utils.message_bus import MessageBus, MessageBusAdmin, \
 
 
 class TestKVPayloadMessage(unittest.TestCase):
+
     """Test Send/Receive KvPayload as message."""
 
     _message_type = 'kv_payloads'
