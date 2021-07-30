@@ -22,6 +22,8 @@ from cortx.utils.data.db.db_provider import DataBaseProvider
 
 class SupportBundleModel(BaseModel):
     _id = 'bundle_id'
+    # maximum limit imposed by elasticsearch
+    max_count = 10000
     bundle_id = StringType()
     node_name = StringType()
     comment = StringType()
@@ -38,5 +40,5 @@ class SupportBundleRepository:
             query = Query().filter_by(Compare(SupportBundleModel.bundle_id, \
                 '=', bundle_id))
         else:
-            query = Query()
+            query = Query().limit(SupportBundleModel.max_count)
         return await self.db(SupportBundleModel).get(query)
