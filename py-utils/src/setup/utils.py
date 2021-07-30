@@ -18,37 +18,20 @@ import os
 import json
 import errno
 from pathlib import Path
+
 from cortx.utils import errors
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
+from cortx.utils.common import SetupError
+from cortx.utils.errors import TestFailed
+from cortx.utils.validator.v_pkg import PkgV
 from cortx.utils.process import SimpleProcess
+from cortx.utils.validator.error import VError
 from cortx.utils.validator.v_service import ServiceV
 from cortx.utils.validator.v_confkeys import ConfKeysV
-from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.service.service_handler import Service
-from cortx.utils.validator.v_pkg import PkgV
-from cortx.utils.validator.error import VError
-from cortx.utils.errors import TestFailed
-
-class SetupError(Exception):
-    """ Generic Exception with error code and output """
-
-    def __init__(self, rc, message, *args):
-        self._rc = rc
-        self._desc = message % (args)
-
-    @property
-    def rc(self):
-        return self._rc
-
-    @property
-    def desc(self):
-        return self._desc
-
-    def __str__(self):
-        if self._rc == 0:
-            return self._desc
-        return "error(%d): %s" % (self._rc, self._desc)
+from cortx.utils.message_bus.error import MessageBusError
+from cortx.utils.message_bus import MessageBrokerFactory
 
 
 class Utils:
@@ -90,46 +73,19 @@ class Utils:
                 /etc/cortx/message_bus.conf %s", e)
 
     @staticmethod
-    def _get_kafka_server_list(conf_url: str):
-        """ Reads the ConfStore and derives keys related to message bus """
-        Conf.load('cluster_config', conf_url)
-        key_list = ['cortx>software>common>message_bus_type',
-                   'cortx>software>kafka>servers']
-        ConfKeysV().validate('exists', 'cluster_config', key_list)
-        msg_bus_type = Conf.get('cluster_config', key_list[0])
-        if msg_bus_type != 'kafka':
-            Log.error(f"Message bus type {msg_bus_type} is not supported")
-            raise SetupError(errno.EINVAL, "Message bus type %s is not"\
-                " supported", msg_bus_type)
-        # Read the required keys
-        all_servers = Conf.get('cluster_config', key_list[1])
-        no_servers = len(all_servers)
-        kafka_server_list = []
-        port_list = []
-        for i in range(no_servers):
-            # check if port is mentioned
-            rc = all_servers[i].find(':')
-            if rc == -1:
-                port_list.append('9092')
-                kafka_server_list.append(all_servers[i])
-            else:
-                port_list.append(all_servers[i][rc + 1:])
-                kafka_server_list.append(all_servers[i][:rc])
-        if len(kafka_server_list) == 0:
-            Log.error(f"Missing config entry {key_list} in config file "\
-                f"{conf_url}")
-            raise SetupError(errno.EINVAL, "Missing config entry %s in config"
-                " file %s", key_list, conf_url)
-        return kafka_server_list, port_list
+    def _get_server_info(conf_url_index: str, machine_id: str) -> dict:
+        """Reads the ConfStore and derives keys related to Event Message.
 
-    @staticmethod
-    def _get_server_info(conf_url: str, machine_id: str) -> dict:
-        """ Reads the ConfStore and derives keys related to Event Message """
+        Args:
+            conf_url_index (str): Index for loaded conf_url
+            machine_id (str): Machine_id
 
-        Conf.load('server_info', conf_url)
+        Returns:
+            dict: Server Information
+        """
         key_list = [f'server_node>{machine_id}']
-        ConfKeysV().validate('exists', 'server_info', key_list)
-        server_info = Conf.get('server_info', key_list[0])
+        ConfKeysV().validate('exists', conf_url_index, key_list)
+        server_info = Conf.get(conf_url_index, key_list[0])
         return server_info
 
     @staticmethod
@@ -235,26 +191,32 @@ class Utils:
         return 0
 
     @staticmethod
-    def config(conf_url: str):
-        """ Performs configurations """
-        # copy cluster.conf.sample file to /etc/cortx/cluster.conf
+    def config(config_template: str):
+        """Performs configurations."""
+        # Copy cluster.conf.sample file to /etc/cortx/cluster.conf
         Utils._copy_conf_sample_to_conf()
 
-        # Message Bus Config
+        # Load required files
+        config_template_index = 'cluster_config'
         Conf.load('cluster', 'json:///etc/cortx/cluster.conf')
+        Conf.load(config_template_index, config_template)
 
-        kafka_server_list, port_list = Utils._get_kafka_server_list(conf_url)
-        if kafka_server_list is None:
-            Log.error(f"Could not find kafka server information in {conf_url}")
-            raise SetupError(errno.EINVAL, "Could not find kafka server " +\
-                "information in %s", conf_url)
-        Utils._create_msg_bus_config(kafka_server_list, port_list)
+        try:
+            server_list, port_list = \
+                MessageBrokerFactory.get_server_list(config_template_index)
+        except SetupError:
+            Log.error(f"Could not find server information in {config_template}")
+            raise SetupError(errno.EINVAL, \
+                "Could not find server information in %s", config_template)
+
+        Utils._create_msg_bus_config(server_list, port_list)
         # Cluster config
-        server_info = Utils._get_server_info(conf_url, Conf.machine_id)
+        server_info = \
+            Utils._get_server_info(config_template_index, Conf.machine_id)
         if server_info is None:
-            Log.error(f"Could not find server information in {conf_url}")
+            Log.error(f"Could not find server information in {config_template}")
             raise SetupError(errno.EINVAL, "Could not find server " +\
-                "information in %s", conf_url)
+                "information in %s", config_template)
         Utils._create_cluster_config(server_info)
         #set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map()
