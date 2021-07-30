@@ -6,10 +6,10 @@ cortx:
       servers:
       # Value should be in format <FQDN>:<port>. Port is optional
       - TMPL_KAFKA_SERVER1_FQDN:TMPL_KAFKA_SERVER1_PORT
-      config:
-        default_timeout: 2
-        socket_timeout: 15000
-        message_timeout: 5000
+    message_bus:
+      default_poll_timeout: 2 # Timeout to poll for messages
+      controller_socket_timeout: 15000 # Socket timeout for broker
+      send_message_timeout: 5000 # Wait for messages to deliver
 server_node:
   TMPL_MACHINE_ID:
     cluster_id: TMPL_CLUSTER_ID

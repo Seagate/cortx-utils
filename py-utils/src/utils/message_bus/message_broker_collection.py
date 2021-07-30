@@ -52,11 +52,14 @@ class KafkaMessageBroker(MessageBroker):
         self._clients = {'admin': {}, 'producer': {}, 'consumer': {}}
 
         # Polling timeout
-        self._default_timeout = broker_conf['config']['default_timeout']
+        self._default_poll_timeout = \
+            broker_conf['message_bus']['default_poll_timeout']
         # Socket timeout
-        self._socket_timeout = broker_conf['config']['socket_timeout']
+        self._controller_socket_timeout = \
+            broker_conf['message_bus']['controller_socket_timeout']
         # Message timeout
-        self._message_timeout = broker_conf['config']['message_timeout']
+        self._send_message_timeout = \
+            broker_conf['message_bus']['send_message_timeout']
 
     def init_client(self, client_type: str, **client_conf: dict):
         """ Obtain Kafka based Producer/Consumer """
@@ -97,12 +100,12 @@ class KafkaMessageBroker(MessageBroker):
 
         if client_type == 'admin' or self._clients['admin'] == {}:
             if client_type != 'consumer':
-                kafka_conf['socket.timeout.ms'] = self._socket_timeout
+                kafka_conf['socket.timeout.ms'] = self._controller_socket_timeout
                 self.admin = AdminClient(kafka_conf)
                 self._clients['admin'][client_conf['client_id']] = self.admin
 
         if client_type == 'producer':
-            kafka_conf['message.timeout.ms'] = self._message_timeout
+            kafka_conf['message.timeout.ms'] = self._send_message_timeout
             producer = Producer(**kafka_conf)
             self._clients[client_type][client_conf['client_id']] = producer
 
@@ -520,9 +523,9 @@ class KafkaMessageBroker(MessageBroker):
                 "Consumer %s is not initialized.", consumer_id)
 
         if timeout is None:
-            timeout = self._default_timeout
+            timeout = self._default_poll_timeout
         if timeout == 0:
-            timeout = self._default_timeout
+            timeout = self._default_poll_timeout
             blocking = True
 
         try:

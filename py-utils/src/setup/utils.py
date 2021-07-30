@@ -81,7 +81,7 @@ class Utils:
         for i in range(len(message_server_list)):
             Conf.set('index', f'message_broker>cluster[{i}]', \
                 {'server': message_server_list[i], 'port': port_list[i]})
-        Conf.set('index', 'message_broker>config',  config)
+        Conf.set('index', 'message_broker>message_bus',  config)
         Conf.save('index')
         # copy this conf file as message_bus.conf
         try:
@@ -96,7 +96,7 @@ class Utils:
         """ Reads the ConfStore and derives keys related to message bus """
         Conf.load('cluster_config', conf_url)
         key_list = ['cortx>software>common>message_bus_type', \
-            'cortx>software>kafka>servers', 'cortx>software>kafka>config']
+            'cortx>software>kafka>servers', 'cortx>software>message_bus']
         ConfKeysV().validate('exists', 'cluster_config', key_list)
         msg_bus_type = Conf.get('cluster_config', key_list[0])
         if msg_bus_type != 'kafka':
