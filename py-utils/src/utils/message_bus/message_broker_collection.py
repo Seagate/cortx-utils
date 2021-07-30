@@ -52,8 +52,8 @@ class KafkaMessageBroker(MessageBroker):
         self._clients = {'admin': {}, 'producer': {}, 'consumer': {}}
 
         # Polling timeout
-        self._default_poll_timeout = \
-            broker_conf['message_bus']['default_poll_timeout']
+        self._recv_message_timeout = \
+            broker_conf['message_bus']['recv_message_timeout']
         # Socket timeout
         self._controller_socket_timeout = \
             broker_conf['message_bus']['controller_socket_timeout']
@@ -523,9 +523,9 @@ class KafkaMessageBroker(MessageBroker):
                 "Consumer %s is not initialized.", consumer_id)
 
         if timeout is None:
-            timeout = self._default_poll_timeout
+            timeout = self._recv_message_timeout
         if timeout == 0:
-            timeout = self._default_poll_timeout
+            timeout = self._recv_message_timeout
             blocking = True
 
         try:
