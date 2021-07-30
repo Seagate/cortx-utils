@@ -180,26 +180,21 @@ class SupportBundle:
 
         bundle_id:  Using this will fetch bundle status :type: string
         """
-        if bundle_id:
-            import time
-            time.sleep(5)
-            options = {'bundle_id': bundle_id, 'comm': {'type': 'direct', \
-                'target': 'utils.support_framework', 'method': 'get_bundle_status', \
-                'class': 'SupportBundle', \
-                'is_static': True, 'params': {}, 'json': {}},'output': {},\
-                'need_confirmation': False, 'sub_command_name': \
-                'get_bundle_status'}
+        import time
+        time.sleep(5)
+        options = {'bundle_id': bundle_id, 'comm': {'type': 'direct', \
+            'target': 'utils.support_framework', 'method': 'get_bundle_status', \
+            'class': 'SupportBundle', \
+            'is_static': True, 'params': {}, 'json': {}},'output': {},\
+            'need_confirmation': False, 'sub_command_name': \
+            'get_bundle_status'}
 
-            cmd_obj = Command('get_bundle_status', options, [])
-            loop = asyncio.get_event_loop()
-            res = loop.run_until_complete(
-                SupportBundle._get_bundle_status(cmd_obj))
-            loop.close()
-            return res
-        else:
-            # list generated support bundles
-            # TODO
-            return {'bundle_list': []}
+        cmd_obj = Command('get_bundle_status', options, [])
+        loop = asyncio.get_event_loop()
+        res = loop.run_until_complete(
+            SupportBundle._get_bundle_status(cmd_obj))
+        loop.close()
+        return res
 
     @staticmethod
     def delete(bundle):
