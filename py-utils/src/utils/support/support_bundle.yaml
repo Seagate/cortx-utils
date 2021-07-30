@@ -42,3 +42,5 @@ COMPONENTS:
     - '<CORTX_PATH>/cli/conf/elasticsearch_setup.yaml'
   ha:
     - '<CORTX_PATH>/ha/conf/setup.yaml'
+  utils:
+    - '<CORTX_PATH>/utils/conf/setup.yaml'

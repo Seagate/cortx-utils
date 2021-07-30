@@ -48,8 +48,10 @@ setup(
         "cortx.utils.test.discovery",
         "cortx.utils.test.iem_framework",
         "cortx.utils.test.discovery",
-        "cortx.utils.test.discovery.mocked_health_gen",
-        "cortx.utils.test.discovery.mocked_health_gen.lr2",
+        "cortx.utils.test.discovery.solution",
+        "cortx.utils.test.discovery.solution.lr2",
+        "cortx.utils.test.discovery.solution.lr2.server",
+        "cortx.utils.test.discovery.solution.lr2.storage",
     ],
     package_data={
         "": [
@@ -61,7 +63,7 @@ setup(
             "message_bus/*.conf",
             "cli_framework/test_data/*.json",
             "iem_framework/*.json",
-            "mocked_health_gen/*.json",
+            "discovery/solution/lr2/*.json",
         ]
     },
     entry_points={
