@@ -93,6 +93,7 @@ class Openldap:
                     PathV().validate('exists', files)
             Log.debug("%s - pre-requisite validation complete" % phase)
         except OpenldapSetupError as e:
+            Log.debug("%s - pre-requisite validation failed" % phase)
             raise OpenldapSetupError({"message":"prereqs validation failed"})
         return 0
 

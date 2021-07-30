@@ -51,14 +51,16 @@ class CleanupCmd(SetupCmd):
         """Delete file."""
         if os.path.exists(filepath):
             try:
-                os.remove(filepath)
+                file_shrink = open(filepath, "w")
+                file_shrink.truncate()
+                file_shrink.close()
             except Exception:
                 Log.debug("Failed deleting log file : %s" % filepath)
 
     def delete_log_files(self):
         """Delete log files."""
         Log.debug("Starting log file deletion")
-        logFiles = ["/var/log/seagate/utils/openldap/OpenldapProvisioning",
+        logFiles = ["/var/log/seagate/utils/openldap/OpenldapProvisioning.log",
                     "/var/log/slapd.log"]
         for logFile in logFiles:
             self._delete_file(logFile)
