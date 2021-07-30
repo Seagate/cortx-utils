@@ -54,20 +54,27 @@ class SetupError(Exception):
 class Utils:
     """ Represents Utils and Performs setup related actions """
 
+    @staticmethod
+    def _set_to_conf_file(key, value):
+        """ Add key value pair to cortx.conf file """
+        config_file = 'json:///etc/cortx/cortx.conf'
+        Conf.load('config_file', config_file, skip_reload=True)
+        Conf.set('config_file', key, value)
+        Conf.save('config_file')
+
     # Utils private methods
     @staticmethod
-    def _get_utils_path() -> str:
-        """ Gets install path from cortx.conf and returns utils path """
+    def _get_from_conf_file(key) -> str:
+        """ Fetch and return value for the key from cortx.conf file """
+        config_file = 'json:///etc/cortx/cortx.conf'
+        Conf.load('config_file', config_file, skip_reload=True)
+        val = Conf.get('config_file', key)
 
-        config_file_path = "/etc/cortx/cortx.conf"
-        Conf.load('config_file', f'yaml:///{config_file_path}')
-        install_path = Conf.get(index='config_file', key='install_path')
-
-        if not install_path:
-            error_msg = f"install_path not found in {config_file_path}"
+        if not val:
+            error_msg = f"Value for key: {key}, not found in {config_file}"
             raise SetupError(errno.EINVAL, error_msg)
 
-        return install_path + "/cortx/utils"
+        return val
 
     @staticmethod
     def _create_msg_bus_config(kafka_server_list: list, port_list: list):
@@ -183,13 +190,13 @@ class Utils:
     @staticmethod
     def post_install():
         """ Performs post install operations """
-
         # check whether zookeeper and kafka are running
         ServiceV().validate('isrunning', ['kafka-zookeeper.service', \
             'kafka.service'])
 
         # Check required python packages
-        utils_path = Utils._get_utils_path()
+        install_path = Utils._get_from_conf_file('install_path')
+        utils_path = install_path + '/cortx/utils'
         with open(f"{utils_path}/conf/python_requirements.txt") as file:
             req_pack = []
             for package in file.readlines():
@@ -204,12 +211,18 @@ class Utils:
             Log.info("Not found: "+f"{utils_path}/conf/python_requirements.ext.txt")
 
         PkgV().validate(v_type='pip3s', args=req_pack)
+
+        # Add Shared storage type and path to cortx.conf file
+        # this should be removed once it is there in confstore
+        # config file
+        Utils._set_to_conf_file('shared_storage>type', 'GlusterFS')
+        Utils._set_to_conf_file('shared_storage>path', \
+            '/var/lib/seagate/cortx/provisioner/shared/')
         return 0
 
     @staticmethod
     def init():
         """ Perform initialization """
-
         # Create message_type for Event Message
         from cortx.utils.message_bus import MessageBusAdmin
         try:
