@@ -212,12 +212,12 @@ class Utils:
 
         PkgV().validate(v_type='pip3s', args=req_pack)
 
-        # Add Shared storage type and path to cortx.conf file
+"""        # Add Shared storage type and path to cortx.conf file
         # this should be removed once it is there in confstore
         # config file
         Utils._set_to_conf_file('shared_storage>type', 'GlusterFS')
         Utils._set_to_conf_file('shared_storage>path', \
-            '/var/lib/seagate/cortx/provisioner/shared/')
+            '/var/lib/seagate/cortx/provisioner/shared/')"""
         return 0
 
     @staticmethod
@@ -272,6 +272,13 @@ class Utils:
         #set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map()
         Utils._configure_rsyslog()
+
+        # get shared storage info from config phase input conf template file
+        shared_storage = Conf.get('cluster_config', 'shared_storage')
+
+        # set shared storage info to cortx.conf conf file
+        Utils._set_to_conf_file('shared_storage', shared_storage)
+
         # temporary fix for a common message bus log file
         # The issue happend when some user other than root:root is trying
         # to write logs in these log dir/files. This needs to be removed soon!
@@ -289,7 +296,8 @@ class Utils:
         try:
             Log.info("Validating cortx-py-utils-test rpm")
             PkgV().validate('rpms', ['cortx-py-utils-test'])
-            utils_path = Utils._get_utils_path()
+            install_path = Utils._get_from_conf_file('install_path')
+            utils_path = install_path + '/cortx/utils'
             import cortx.utils.test as test_dir
             plan_path = os.path.join(os.path.dirname(test_dir.__file__), \
                 'plans/', plan + '.pln')

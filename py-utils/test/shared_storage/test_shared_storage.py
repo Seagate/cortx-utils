@@ -21,21 +21,49 @@ import unittest
 
 from cortx.utils.shared_storage import Storage
 
+def get_shared_path(name=None):
+    """ Fetch shared path and return. """
+
+    return Storage.get_path(name)
+
+def del_storage_dir(name=None):
+    """ Delete mentioned directory. """
+
+    os.rmdir(get_shared_path(name))
 
 class TestSharedStorage(unittest.TestCase):
 
     """ Unit test class to test shared storage. """
 
+    shared_path = Storage.get_path()
+
     def test_shared_path_read_access(self):
-        """ test if shared storage path exists and is readable """
+        """ test if shared storage path exists and is readable. """
         shared_path = Storage.get_path()
         self.assertTrue(os.access(shared_path, os.R_OK))
 
     def test_shared_path_write_access(self):
-        """ test if shared storage path exists and is writable """
+        """ test if shared storage path exists and is writable. """
         shared_path = Storage.get_path()
         self.assertTrue(os.access(shared_path, os.W_OK))
 
+    def test_shared_path_with_dir_read_access(self):
+        """ test if shared storage path with a dir exists and is readable. """
+        shared_path = Storage.get_path('test_path')
+        self.assertTrue(os.access(shared_path, os.R_OK))
+        del_storage_dir('test_dir')
+
+    def test_shared_path_with_dir_write_access(self):
+        """ test if shared storage path with a dir exists and is writable. """
+        shared_path = Storage.get_path('test_dir')
+        self.assertTrue(os.access(shared_path, os.W_OK))
+        del_storage_dir('test_dir')
+
+     def test_shared_path_with_dir_with_exist_ok_False(self):
+        """ test if shared storage path with when thealready dir exists. """
+        get_shared_path('test_dir')
+        get_shared_path('test_dir')
+        del_storage_dir('test_dir')
 
 
 if __name__ == '__main__':

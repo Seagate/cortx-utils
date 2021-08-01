@@ -31,8 +31,4 @@ class GlusterSharedStorage(SharedStorageAgent):
     def _fetch_path(self):
         """ fetch path from confstore """
         shared_path = self.shared_path
-
-        if not shared_path:
-            raise SharedStorageError(errno.EINVAL, \
-                "shared_path not found!")
         return shared_path

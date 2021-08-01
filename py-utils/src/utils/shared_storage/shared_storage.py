@@ -14,6 +14,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
+import os
 
 from cortx.utils.conf_store import Conf
 from cortx.utils.shared_storage import SharedStorageError
@@ -28,19 +29,26 @@ class Storage:
     def __init__(self):
         """ Initialize and load shared storage backend """
 
-        Conf.load('config', Storage.config_file, skip_reload=True)
-        shared_storage_type = Conf.get('config', 'shared_storage>type')
-        shared_storage_path = Conf.get('config', 'shared_storage>path')
-        if None in (shared_storage_type, shared_storage_path):
-            raise SharedStorageError(errno.EINVAL, \
-            "shared storage info not found in %s" % Storage.config_file)
+        Conf.load('cotrx_config', Storage.config_file, skip_reload=True)
+        shared_storage_url = Conf.get('cotrx_config', 'shared_storage')
 
         self.shared_storage_agent = SharedStorageFactory.get_instance( \
-            shared_storage_type, shared_storage_path)
+            shared_storage_url)
 
     @staticmethod
-    def get_path():
+    def get_path(name: str = None, exist_ok: Bool = True) -> str:
         """ return shared storage mountpoint """
         storage = Storage()
         shared_path = storage.shared_storage_agent.get_path()
+        if shared_path is None:
+            return None
+        if name:
+            try:
+                spec_path = shared_path + '/' + name + '/'
+                os.makedirs(spec_path, exist_ok = exist_ok)
+                shared_path = spec_path
+            except OSError as e:
+                raise SharedStorageError(errno.EINVAL, \
+                "dir already exists, (use exist_ok as True) %s" % e)
+
         return shared_path
