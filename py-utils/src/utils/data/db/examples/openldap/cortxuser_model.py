@@ -15,7 +15,30 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.data.db.generic_storage import GenericDataBase, GenericQueryConverter
-from cortx.utils.data.db.elasticsearch_db import ElasticSearchDB
-from cortx.utils.data.db.consul_db import ConsulDB
-from cortx.utils.data.db.openldap import OpenLdap
+
+from datetime import datetime, timezone
+from schematics.types import (StringType, DateTimeType, BooleanType)
+
+from cortx.utils.data.access import BaseModel
+
+
+class CortxUser(BaseModel):
+    _id = "user_id"
+
+    user_id = StringType()
+    user_type = StringType()
+    user_role = StringType()
+    password_hash = StringType()
+    email = StringType()
+    alert_notification = BooleanType()
+    updated_time = DateTimeType()
+    created_time = DateTimeType()
+
+    def update(self, new_values: dict):
+        if 'password' in new_values:
+            self.password_hash = 'dummyhash'
+            new_values.pop('password')
+        for key in new_values:
+            setattr(self, key, new_values[key])
+
+        self.updated_time = datetime.now(timezone.utc)
