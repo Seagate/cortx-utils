@@ -257,7 +257,7 @@ class Utils:
 
     @staticmethod
     def reset():
-        """ Remove/Delete all the data that was created after post install """
+        """ Remove/Delete all the data/logs that was created by user/testing """
         # TODO
         return 0
 
