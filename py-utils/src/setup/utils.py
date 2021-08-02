@@ -257,8 +257,8 @@ class Utils:
 
     @staticmethod
     def reset():
-        """ Remove/Delete all the data/logs that was created by user/testing """
-        # TODO
+        """Remove/Delete all the data/logs that was created by user/testing."""
+        # TODO # deleting all messages from all message_types
         return 0
 
     @staticmethod
