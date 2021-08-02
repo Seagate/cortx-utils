@@ -258,32 +258,27 @@ class Utils:
     @staticmethod
     def reset():
         """ Remove/Delete all the data that was created after post install """
-        conf_file = '/etc/cortx/message_bus.conf'
-        if os.path.exists(conf_file):
-            # delete message_types
-            from cortx.utils.message_bus import MessageBusAdmin
-            try:
-                mb = MessageBusAdmin(admin_id='reset')
-                message_types_list = mb.list_message_types()
-                if message_types_list:
-                    mb.deregister_message_type(message_types_list)
-            except MessageBusError as e:
-                raise SetupError(e.rc, "Can not reset Message Bus. %s", e)
-            except Exception as e:
-                raise SetupError(errors.ERR_OP_FAILED, "Can not reset Message  \
-                    Bus. %s", e)
-
-        # Stop MessageBus Service
-        cmd = SimpleProcess("systemctl stop cortx_message_bus")
-        _, stderr, res_rc = cmd.run()
-        if res_rc != 0:
-            raise SetupError(res_rc, "Unable to stop MessageBus Service. \
-                %s", stderr.decode('utf-8'))
+        # TODO
         return 0
 
     @staticmethod
     def cleanup():
-        """ Cleanup configs and logs. """
+        """Remove/Delete all the data that was created after post install."""
+        conf_file = '/etc/cortx/message_bus.conf'
+        if os.path.exists(conf_file):
+            # delete message_types
+            try:
+                from cortx.utils.message_bus import MessageBusAdmin
+                mb = MessageBusAdmin(admin_id='cleanup')
+                message_types_list = mb.list_message_types()
+                if message_types_list:
+                    mb.deregister_message_type(message_types_list)
+            except MessageBusError as e:
+                raise SetupError(e.rc, "Can not cleanup Message Bus. %s", e)
+            except Exception as e:
+                raise SetupError(errors.ERR_OP_FAILED, "Can not cleanup Message  \
+                    Bus. %s", e)
+
         config_files = ['/etc/cortx/message_bus.conf', \
             '/etc/cortx/cluster.conf']
         for each_file in config_files:
