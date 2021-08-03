@@ -457,7 +457,41 @@ class OpenLdap(GenericDataBase):
         return models[model_slice]
 
     async def update(self, filter_obj: IFilter, to_update: Dict) -> int:
-        pass
+        """
+        Update filtered objects in OpenLdap.
+
+        :param filter_obj: filter.
+        :param to_update: attributes with new values.
+        :returns: number of updated entries.
+        """
+
+        models = await self._get_ldap(filter_obj)
+        key_generalizer = OpenLdapSyntaxTools.generalize_field_name
+        val_generalizer = OpenLdapSyntaxTools.generalize_field_value
+        to_update_generalized = {
+            key_generalizer(key): val_generalizer(val) for key, val in to_update.items()
+        }
+        for model in models:
+            dn = self._get_object_dn(model)
+            old_attrs = {
+                key_generalizer(key): val_generalizer(val)
+                for key, val in model.to_primitive().items()
+                if key in to_update.keys()
+            }
+            ldif = ldap.modlist.modifyModlist(old_attrs, to_update_generalized)
+            await self._loop.run_in_executor(self._thread_pool, self._client.modify_s, dn, ldif)
+        return len(models)
 
     async def delete(self, filter_obj: IFilter) -> int:
-        pass
+        """
+        Delete objects from OpenLdap by filter.
+
+        :param filter_obj: filter object.
+        :returns: number of deleted entries.
+        """
+
+        models = await self._get_ldap(filter_obj)
+        for model in models:
+            dn = self._get_object_dn(model)
+            await self._loop.run_in_executor(self._thread_pool, self._client.delete_s, dn)
+        return len(models)
