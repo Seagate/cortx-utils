@@ -15,48 +15,31 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com
 
-import sys
-import os
-
 from cortx.utils.conf_store import Conf
-from cortx.utils.discovery.node_health import common_config
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
-
-dir_path = os.path.dirname(os.path.realpath(__file__))
-store_path = os.path.join(dir_path, 'mocked_node_health.json')
-store_type = "json"
-mock_data_url = "%s://%s" % (store_type, store_path)
-mock_index = "mock_index"
-Conf.load(mock_index, mock_data_url)
+# Test loads mock data and this module access it using the index
+mock_health = "mock-health"
+mock_manifest = "mock-manifest"
 
 
-class Server:
-    """Provides health information of FRUs in storage"""
+class ServerResourceMap:
+
+    """Provides health and manifest information of FRUs in server."""
 
     name = "server"
 
-    def get_health_info(self, rpath):
+    @staticmethod
+    def get_health_info(rpath):
         """
         Fetch health information for given FRU
-        rpath: Resource id (Example: node>compute[0]>hw>disks)
+        rpath: Resource id (Example: node>compute[0]>hw>disk)
         """
-        return Conf.get(mock_index, rpath)
+        return Conf.get(mock_health, rpath)
 
-
-class Storage:
-    """Provides health information of FRUs in storage"""
-
-    name = "storage"
-
-    def get_health_info(self, rpath):
+    @staticmethod
+    def get_manifest_info(rpath):
         """
-        Fetch health information for given FRU
-        rpath: Resource id (Example: node>storage[0]>hw>controllers)
+        Fetch manifest information for given FRU
+        rpath: Resource id (Example: node>compute[0]>hw>disk)
         """
-        return Conf.get(mock_index, rpath)
-
-
-if __name__ == "__main__":
-    storage = Storage()
-    storage.get_health_info(rpath="node>storage[0]>hw>controllers")
+        return Conf.get(mock_manifest, rpath)

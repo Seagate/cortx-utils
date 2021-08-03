@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/bin/python3
 
 # CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
@@ -14,3 +14,8 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com
+
+"""Mock solution platform monitor for test."""
+
+from cortx.utils.test.discovery.solution.lr2.server.server_resource_map import ServerResourceMap
+from cortx.utils.test.discovery.solution.lr2.storage.storage_resource_map import StorageResourceMap

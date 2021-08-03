@@ -1,6 +1,4 @@
-#!/usr/bin/env python3
-
-# CORTX Python common library.
+# CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -15,4 +13,12 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-"""Test discovery library."""
+from cortx.utils.errors import UtilsError
+
+
+class SetupError(UtilsError):
+    """Generic Exception with error code and output."""
+
+    def __init__(self, rc, message, *args):
+        """Initialize SetupError."""
+        super().__init__(rc, message, *args)
