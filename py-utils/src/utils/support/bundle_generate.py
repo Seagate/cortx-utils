@@ -114,10 +114,6 @@ class ComponentsBundle:
         :param command: Csm_cli Command Object :type: command
         :return:
         """
-        from cortx.utils.shared_storage import Storage
-        shared_path = Storage.get_path()
-        # Path Location for creating Support Bundle.
-        path = os.path.join(shared_path, 'support_bundle')
         # Fetch Command Arguments.
         Log.init('support_bundle',
                 syslog_server='localhost',
@@ -131,6 +127,11 @@ class ComponentsBundle:
         Log.debug((f"{const.SB_BUNDLE_ID}: {bundle_id}, {const.SB_NODE_NAME}: {node_name}, "
                    f" {const.SB_COMMENT}: {comment}, {const.SB_COMPONENTS}: {components},"
                    f" {const.SOS_COMP}"))
+        # Path Location for creating Support Bundle.
+        from cortx.utils.shared_storage import Storage
+        path = Storage.get_path('support_bundle')
+        if not os.path.exists(path):
+            path = os.path.join(Conf.get('cortx_conf', 'support>support_bundle_path'))
 
         if os.path.isdir(path):
             try:
@@ -138,7 +139,7 @@ class ComponentsBundle:
             except PermissionError:
                 Log.warn(f"Incorrect permissions for path:{path}")
 
-        bundle_path = os.path.join(path, bundle_id)
+        bundle_path = os.path.join(path, bundle_id, node_name)
         os.makedirs(bundle_path)
         # Start Execution for each Component Command.
         threads = []
