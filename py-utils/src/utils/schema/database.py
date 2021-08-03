@@ -56,7 +56,7 @@ DATABASE = {
             }
         },
         {
-            "import_path": "cortx.utils.support_framework.model.SupportBundleModel",
+            "import_path": "cortx.utils.support.model.SupportBundleModel",
             "database": "es_db",
             "config": {
                 "es_db": {
