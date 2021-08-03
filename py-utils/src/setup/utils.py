@@ -62,8 +62,9 @@ class Utils:
         Conf.load('index', 'json:///etc/cortx/message_bus.conf.sample')
         Conf.set('index', 'message_broker>type', 'kafka')
         for i in range(len(message_server_list)):
-            Conf.set('index', f'message_broker>cluster[{i}]', \
-                {'server': message_server_list[i], 'port': port_list[i]})
+            Conf.set('index', f'message_broker>cluster[{i}]>server', \
+                     message_server_list[i])
+            Conf.set('index', f'message_broker>cluster[{i}]>port', port_list[i])
         Conf.set('index', 'message_broker>message_bus',  config)
         Conf.save('index')
         # copy this conf file as message_bus.conf
