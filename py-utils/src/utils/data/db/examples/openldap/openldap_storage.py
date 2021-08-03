@@ -63,19 +63,96 @@ async def example():
         'alert_notification': True
     }
 
+    SAMPLE_USER2 = {
+        "user_id": "test1",
+        'user_type': 'csm',
+        'email': 'test1@test.com',
+        'password_hash': '987dfsg231sdg234GG',
+        'user_role': 'manage',
+        'created_time': datetime.strptime("20210801045500Z", '%Y%m%d%H%M%SZ'),
+        'updated_time': datetime.now(),
+        'alert_notification': True
+    }
+
+    SAMPLE_USER3 = {
+        "user_id": "test2",
+        'user_type': 'csm',
+        'email': 'test2@test.com',
+        'password_hash': '12358ZHGJDhhasdfG',
+        'user_role': 'manage',
+        'created_time': datetime.strptime("20200103125530Z", '%Y%m%d%H%M%SZ'),
+        'updated_time': datetime.now(),
+        'alert_notification': True
+    }
+
+    SAMPLE_USER4 = {
+        "user_id": "s3sampleuser",
+        'user_type': 's3',
+        'email': 's3sampleuser@s3.com',
+        'password_hash': 'asghuoanmnxcbg',
+        'user_role': 'monitor',
+        'created_time': datetime.strptime("20210803120030Z", '%Y%m%d%H%M%SZ'),
+        'updated_time': datetime.now(),
+        'alert_notification': False
+    }
+
+    sample_users = [SAMPLE_USER, SAMPLE_USER2, SAMPLE_USER3, SAMPLE_USER4]
+
     db = DataBaseProvider(conf)
 
     items = await db(CortxUser).get(Query())
-    print('Collection status before addition')
+    print('Users collection')
     print_items(items)
     print(20 * '-')
 
-    sample_user = CortxUser(SAMPLE_USER)
-    await db(CortxUser).store(sample_user)
+    for user in sample_users:
+        user_obj = CortxUser(user)
+        try:
+            await db(CortxUser).store(user_obj)
+        except:
+            pass
 
     print('Collection status after addition')
     updated_items = await db(CortxUser).get(Query())
     print_items(updated_items)
+    print(20 * '-')
+
+    print('Query search')
+    filter_obj = And(
+        Or(
+            Compare(CortxUser.user_role, '=', 'manage'),
+            Compare(CortxUser.user_role, "=", "admin")),
+        Compare(CortxUser.user_type, '=', 'csm')
+    )
+    query = Query().filter_by(filter_obj).order_by(CortxUser.user_id, SortOrder.DESC)
+    queried_items = await db(CortxUser).get(query)
+    print_items(queried_items)
+    print(20 * '-')
+
+    print('Query generalized')
+    filter_obj = And(
+        Compare(CortxUser.created_time, '>=', datetime.strptime('20210827000005Z', '%Y%m%d%H%M%SZ')),
+        Compare(CortxUser.alert_notification, '=', True)
+    )
+    query = Query().filter_by(filter_obj)
+    queried_items = await db(CortxUser).get(query)
+    print_items(queried_items)
+    print(20 * '-')
+
+    filter_obj = Compare(CortxUser.user_type, '=', 's3')
+    to_update = {
+        'user_role': 'admin'
+    }
+    num = await db(CortxUser).update(filter_obj, to_update)
+    items = await db(CortxUser).get(Query())
+    print(f'Updated - {num}')
+    print_items(items)
+    print(20 * '-')
+
+    num = await db(CortxUser).delete(None)
+    items = await db(CortxUser).get(Query())
+    print(f'Deleted - {num}')
+    print_items(items)
     print(20 * '-')
 
 
@@ -83,7 +160,7 @@ if __name__ == "__main__":
     py_utils_rel_path = os.path.join(os.path.dirname(pathlib.Path(__file__)), '../../../../../..')
     sys.path.insert(1, py_utils_rel_path)
 
-    from cortx.utils.data.access import Query
+    from cortx.utils.data.access import Query, And, Or, Compare, SortOrder
     from cortx.utils.data.db.db_provider import (DataBaseProvider, GeneralConfig)
     from cortx.utils.data.db.examples.openldap.cortxuser_model import CortxUser
 
