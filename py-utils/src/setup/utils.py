@@ -91,13 +91,13 @@ class Utils:
         return server_info
 
     @staticmethod
-    def _copy_cluster_map():
-        cluster_data = Conf.get("server_info", "server_node")
+    def _copy_cluster_map(conf_url_index: str):
+        cluster_data = Conf.get(conf_url_index, 'server_node')
         for _, node_data in cluster_data.items():
-            hostname = node_data.get("hostname")
-            node_name = node_data.get("name")
-            Conf.set("cluster", f"cluster>{node_name}", hostname)
-        Conf.save("cluster")
+            hostname = node_data.get('hostname')
+            node_name = node_data.get('name')
+            Conf.set('cluster', f'cluster>{node_name}', hostname)
+        Conf.save('cluster')
 
     @staticmethod
     def _create_cluster_config(server_info: dict):
@@ -222,7 +222,7 @@ class Utils:
         Utils._create_cluster_config(server_info)
 
         #set cluster nodename:hostname mapping to cluster.conf
-        Utils._copy_cluster_map()
+        Utils._copy_cluster_map(config_template_index)
         Utils._configure_rsyslog()
         # temporary fix for a common message bus log file
         # The issue happend when some user other than root:root is trying
