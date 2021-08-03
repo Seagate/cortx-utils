@@ -96,11 +96,11 @@ class KafkaMessageBroker(MessageBroker):
         kafka_conf['client.id'] = client_conf['client_id']
         kafka_conf['error_cb'] = self._error_cb
 
-        if client_type == 'admin' or self._clients['admin'] == {}:
+        if client_type == 'admin' or client_type == 'producer':
             if client_type != 'consumer':
                 kafka_conf['socket.timeout.ms'] = self._kafka_socket_timeout
-                self.admin = AdminClient(kafka_conf)
-                self._clients['admin'][client_conf['client_id']] = self.admin
+                admin = AdminClient(kafka_conf)
+                self._clients['admin'][client_conf['client_id']] = admin
 
         if client_type == 'producer':
             producer = Producer(**kafka_conf)
@@ -108,7 +108,8 @@ class KafkaMessageBroker(MessageBroker):
 
             self._resource = ConfigResource('topic', \
                 client_conf['message_type'])
-            conf = self.admin.describe_configs([self._resource])
+            admin = self._clients['admin'][client_conf['client_id']]
+            conf = admin.describe_configs([self._resource])
             default_configs = list(conf.values())[0].result()
             for params in ['retention.ms']:
                 if params not in default_configs:
