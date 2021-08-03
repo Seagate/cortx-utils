@@ -52,9 +52,8 @@ class ServiceV:
 				cmd = f"ssh {host} systemctl status {service}"
 			else:
 				cmd = f"systemctl status {service}"
-			# print(f"Running {cmd}")
 			handler = SimpleProcess(cmd)
-			stdout, stderr, retcode = handler.run()
+			_, stderr, retcode = handler.run()
 			if retcode != 0:
 				raise VError(errno.EINVAL,
 					     "cmd: %s failed with error code: %d"
@@ -63,5 +62,3 @@ class ServiceV:
 				raise VError(errno.EINVAL,
 					     "cmd: %s failed with stderr: %s"
 					     %(cmd, stderr))
-			# To calm down codacy.
-			stdout = stdout
