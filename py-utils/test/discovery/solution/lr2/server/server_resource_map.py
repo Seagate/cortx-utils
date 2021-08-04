@@ -32,7 +32,7 @@ class ServerResourceMap:
     def get_health_info(rpath):
         """
         Fetch health information for given FRU
-        rpath: Resource id (Example: node>compute[0]>hw>disk)
+        rpath: Resource id (Example: node>server[0]>hw>disk)
         """
         return Conf.get(mock_health, rpath)
 
@@ -40,6 +40,6 @@ class ServerResourceMap:
     def get_manifest_info(rpath):
         """
         Fetch manifest information for given FRU
-        rpath: Resource id (Example: node>compute[0]>hw>disk)
+        rpath: Resource id (Example: node>server[0]>hw>disk)
         """
         return Conf.get(mock_manifest, rpath)
