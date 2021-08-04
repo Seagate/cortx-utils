@@ -20,7 +20,7 @@ from cortx.utils.discovery.resource import Resource
 
 class Server(Resource):
 
-    name = "compute"
+    name = "server"
     childs = []
 
     def __init__(self, child_resource=None):
@@ -47,7 +47,7 @@ class Storage(Resource):
 class Node(Resource):
 
     name = "node"
-    childs = ["compute", "storage"]
+    childs = ["server", "storage"]
 
     def __init__(self, child_resource=None):
         super().__init__(self.name, child_resource)
