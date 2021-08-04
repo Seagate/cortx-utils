@@ -4,7 +4,7 @@
       {
         "uid":"cortx_node_1",
         "last_updated":"1615290352",
-        "compute":[
+        "server":[
             {
               "node_type":"server",
               "uid":"sm_001",
