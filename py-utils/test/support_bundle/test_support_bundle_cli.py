@@ -21,7 +21,8 @@ from cortx.utils.process import SimpleProcess
 
 
 class TestSupportBundleCli(unittest.TestCase):
-    """Test case will test available API's of Support Bundle"""
+
+    """Test case will test available API's of Support Bundle."""
 
     def test_001generate_1_component(self):
         cmd = "support_bundle generate 'sample comment' -c 'provisioner'"

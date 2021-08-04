@@ -26,11 +26,12 @@ from cortx.utils.support_framework import SupportBundle
 
 
 class SupportBundleCli:
-    """ CLI for the Support Bundle Framework. """
+
+    """CLI for the Support Bundle Framework."""
 
     @staticmethod
     def generate(args):
-        """ Generates support bundle for specified components. """
+        """Generates support bundle for specified components."""
         from cortx.utils.support_framework.errors import BundleError
         if not args.comment:  # no comment provided
             raise BundleError("Please provide comment, Why you are generating \
@@ -49,14 +50,15 @@ class SupportBundleCli:
     
     @staticmethod
     def get_status(args):
-        """ Get status of generated support bundle """
+        """Get status of generated support bundle."""
         bundle_id = args.bundle_id[0] if args.bundle_id else None
         status = SupportBundle.get_status(bundle_id=bundle_id)
         return status
 
 
 class GenerateCmd:
-    """ Get Generate Cmd Structure """
+
+    """Get Generate Cmd Structure."""
 
     @staticmethod
     def add_args(sub_parser) -> None:
@@ -77,7 +79,8 @@ class GenerateCmd:
             help='Optional, Specified component support bundle will be generated')
 
 class StatusCmd:
-    """ Get Status Cmd Structure """
+
+    """Get Status Cmd Structure."""
 
     @staticmethod
     def add_args(sub_parser) -> None:
