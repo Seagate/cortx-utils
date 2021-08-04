@@ -18,9 +18,10 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 #
 
-BUILD_LOCATION=$1
+BUILD_PATH="$1"
+BUILD_LOCATION=$(echo "$BUILD_PATH" | sed 's|/mnt/bigstorage/|http://cortx-storage.colo.seagate.com|g')
 echo -e "Generating README.txt file"
-pushd $BUILD_LOCATION
+pushd "$BUILD_PATH"
 cat <<EOF > README.txt
 CONTENTS OF THIS FILE
 ---------------------
@@ -28,7 +29,6 @@ CONTENTS OF THIS FILE
  * Introduction
  * Artifacts
  * Provisioner Guide
- * Known Issues
 
 
 Introduction
@@ -41,25 +41,22 @@ Artifacts
 ------------
 Release Build location:
 
-http://cortx-storage.colo.seagate.com/releases/cortx/github/release/rhel-7.7.1908/$ENV/$BUILD_NUMBER/
+$BUILD_LOCATION
 
 Release Info file location:
 
-http://cortx-storage.colo.seagate.com/releases/cortx/github/release/rhel-7.7.1908/$ENV/$BUILD_NUMBER/RELEASE.INFO
+$BUILD_LOCATION/RELEASE.INFO
 
 Installation
 -----------------
 
-Provisioner Guide
+Community Build Guide
 
-https://github.com/Seagate/cortx-prvsnr/wiki/QuickStart-Guide 
+https://github.com/Seagate/cortx/blob/main/doc/community-build/Building-CORTX-From-Source-for-SingleNode.md
 
-Known Issues
-------------
+Cortx Deploy Guide
 
-Known issues are tracked at
-
-https://github.com/Seagate/cortx-prvsnr/wiki/Deploy-Stack#known-deployment-issues
+https://github.com/Seagate/cortx/blob/main/doc/community-build/ProvisionReleaseBuild.md
 
 EOF
 

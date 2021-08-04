@@ -203,7 +203,7 @@ pipeline {
                         sh build_release_info.sh $integration_dir/$release_tag/dev
                         sh build_release_info.sh $integration_dir/$release_tag/prod
 						sh build-3rdParty-release-info.sh $cortx_build_dir/$release_tag/3rd_party
-    					sh build_readme.sh $integration_dir/$release_tag
+    					sh build_readme.sh "$integration_dir/$release_tag"
 					popd
 					
 					cp $integration_dir/$release_tag/README.txt .

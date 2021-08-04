@@ -189,7 +189,7 @@ pipeline {
                     pushd scripts/release_support
                         sh build_release_info.sh -b $branch -v $version -l $integration_dir/$release_tag/dev -t $cortx_build_dir/$release_tag/3rd_party
                         sh build_release_info.sh -b $branch -v $version -l $integration_dir/$release_tag/prod -t $cortx_build_dir/$release_tag/3rd_party
-                        sh build_readme.sh $integration_dir/$release_tag
+                        sh build_readme.sh "$integration_dir/$release_tag"
                     popd
                     
                     cp $integration_dir/$release_tag/README.txt .
