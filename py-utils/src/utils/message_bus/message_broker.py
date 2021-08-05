@@ -66,7 +66,7 @@ class MessageBrokerFactory:
             tuple: ([server_list], [port_list])
         """
         key_list = ['cortx>software>common>message_bus_type', \
-            'cortx>software>kafka>servers', 'cortx>software>message_bus']
+            'cortx>software>kafka>servers']
 
         ConfKeysV().validate('exists', cluster_conf_index, key_list)
         msg_bus_type = Conf.get(cluster_conf_index, key_list[0])
@@ -96,7 +96,9 @@ class MessageBrokerFactory:
                 "Missing config entry %s in config", key_list)
 
         # Read the default config
-        config = Conf.get('cluster_config', key_list[2])
+        config_file_path = "/etc/cortx/cortx.conf"
+        Conf.load('mb_config', f'yaml:///{config_file_path}')
+        config = Conf.get('mb_config', 'message_bus')
         return message_server_list, port_list, config
 
 
