@@ -98,7 +98,6 @@ class StatusCmd:
             help='Bundle ID of generated Support Bundle')
 
 
-
 def main():
     from cortx.utils.log import Log
     from cortx.utils.conf_store import Conf
