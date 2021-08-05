@@ -30,7 +30,7 @@ from cortx.utils.data.access import BaseModel, IDataBase, Query, SortOrder
 from cortx.utils.data.access.filters import (ComparisonOperation, IFilter, FilterOperationAnd,
                                              FilterOperationCompare, FilterOperationOr)
 from cortx.utils.data.db import GenericDataBase, GenericQueryConverter
-from cortx.utils.errors import DataAccessInternalError
+from cortx.utils.errors import DataAccessExternalError, DataAccessInternalError
 
 
 class OpenLdapSyntaxTools:
@@ -133,7 +133,6 @@ class OpenLdapSyntaxTools:
         return converter(attr_value)
 
 
-# TODO: to some generic db helper
 def field_to_str(field: Union[str, BaseType]) -> str:
     """
     Convert model field to its string representation
@@ -311,18 +310,21 @@ class OpenLdap(GenericDataBase):
 
         if not all((cls._client, cls._thread_pool, cls._loop)):
             cls._client = OpenLdap._ldap_init(config.hosts[0], config.port)
-            # TODO: bind & unbind immediately after every operation
-            cls._client.simple_bind_s(config.login, config.password)
+            try:
+                cls._client.simple_bind_s(config.login, config.password)
+            except ldap.LDAPError as le:
+                err = f'Failed to bind to OpenLdap server {le.result}: {le.desc}'
+                raise DataAccessExternalError(err) from None
             cls._loop = asyncio.get_event_loop()
             cls._thread_pool = ThreadPoolExecutor(max_workers=multiprocessing.cpu_count())
 
         ldap_client = cls(cls._client, model, collection, cls._thread_pool, cls._loop)
         if create_schema:
-            # TODO: handle schema creation
+            # Current OpenLdap implementaion in the framework does not support schema creation.
+            # Make sure the schema and collections are created before using the framework.
             pass
 
         return ldap_client
-
 
     @staticmethod
     def _model_to_ldif(model: BaseModel) -> ldap.modlist.addModlist:
@@ -380,11 +382,17 @@ class OpenLdap(GenericDataBase):
         :returns: None.
         """
 
-        # TODO: implement self._model_schema to enable validation
+        # Current OpenLdap implementation in the framework does not retrieve schema details
+        # from the server.
+        # Make sure the model corresponds to the pre-created collection before using the framework.
         # await super().store(obj)
         dn = self._get_object_dn(obj)
         ldif = OpenLdap._model_to_ldif(obj)
-        await self._loop.run_in_executor(self._thread_pool, self._client.add_s, dn, ldif)
+        try:
+            await self._loop.run_in_executor(self._thread_pool, self._client.add_s, dn, ldif)
+        except ldap.LDAPError as le:
+            err = f'Failed to execute add operation with OpenLdap server {le.result}: {le.desc}'
+            raise DataAccessExternalError(err) from None
 
     async def _get_ldap(self, filter_obj: Optional[IFilter]) -> List[Dict[str, str]]:
         """
@@ -401,8 +409,12 @@ class OpenLdap(GenericDataBase):
         # Query the OpenLdap
         base_dn = self._collection
         base_scope = ldap.SCOPE_ONELEVEL
-        raw_attributes = await self._loop.run_in_executor(
-            self._thread_pool, self._client.search_s, base_dn, base_scope, ldap_filter)
+        try:
+            raw_attributes = await self._loop.run_in_executor(
+                self._thread_pool, self._client.search_s, base_dn, base_scope, ldap_filter)
+        except ldap.LDAPError as le:
+            err = f'Failed to execute search operation with OpenLdap server {le.result}: {le.desc}'
+            raise DataAccessExternalError(err) from None
         models = [self._ldif_to_model(attrs) for _, attrs in raw_attributes]
         return models
 
@@ -423,7 +435,7 @@ class OpenLdap(GenericDataBase):
             :param _field_type: type of the field which will be used for sorting
             :return:
             """
-            # TODO: for other types we can define other wrapper-functions
+
             wrapper = str.lower if _field_type is StringType else lambda x: x
             return lambda x: wrapper(getattr(x, _by_field))
 
@@ -479,7 +491,12 @@ class OpenLdap(GenericDataBase):
                 if key in to_update.keys()
             }
             ldif = ldap.modlist.modifyModlist(old_attrs, to_update_generalized)
-            await self._loop.run_in_executor(self._thread_pool, self._client.modify_s, dn, ldif)
+            try:
+                await self._loop.run_in_executor(self._thread_pool, self._client.modify_s, dn, ldif)
+            except ldap.LDAPError as le:
+                err = (f'Failed to execute update operation with OpenLdap server {le.result}:'
+                       f' {le.desc}')
+                raise DataAccessExternalError(err) from None
         return len(models)
 
     async def delete(self, filter_obj: IFilter) -> int:
@@ -493,5 +510,10 @@ class OpenLdap(GenericDataBase):
         models = await self._get_ldap(filter_obj)
         for model in models:
             dn = self._get_object_dn(model)
-            await self._loop.run_in_executor(self._thread_pool, self._client.delete_s, dn)
+            try:
+                await self._loop.run_in_executor(self._thread_pool, self._client.delete_s, dn)
+            except ldap.LDAPError as le:
+                err = (f'Failed to execute delete operation wtih OpenLdap server {le.result}:'
+                       f' {le.desc}')
+                raise DataAccessExternalError(err) from None
         return len(models)
