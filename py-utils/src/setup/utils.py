@@ -274,7 +274,6 @@ class Utils:
             raise SetupError(errors.ERR_OP_FAILED, "Internal error, can not \
                 reset Message Bus. %s", e)
         # Clear the logs
-        from cortx.utils.process import SimpleProcess
         cmd = "find /var/log/cortx/utils/ -type f -name '*.log' -exec truncate -s 0 {} +"
         cmd_proc = SimpleProcess(cmd)
         _, stderr, rc = cmd_proc.run()
