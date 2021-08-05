@@ -19,7 +19,7 @@
 #
 
 BUILD_PATH="$1"
-BUILD_LOCATION=$(echo "$BUILD_PATH" | sed 's|/mnt/bigstorage/|http://cortx-storage.colo.seagate.com|g')
+BUILD_LOCATION=$(echo "$BUILD_PATH" | sed 's|/mnt/bigstorage|http://cortx-storage.colo.seagate.com|g')
 echo -e "Generating README.txt file"
 pushd "$BUILD_PATH"
 cat <<EOF > README.txt
