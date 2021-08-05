@@ -17,9 +17,12 @@ import string
 import random
 import errno
 import asyncio
+
 from cortx.utils.support_framework import const
 from cortx.utils.support_framework.model import SupportBundleRepository
 from cortx.utils.support_framework.errors import BundleError
+from cortx.utils.shared_storage import Storage
+
 from cortx.utils.data.db.db_provider import (DataBaseProvider, GeneralConfig)
 from cortx.utils.errors import DataAccessExternalError
 from cortx.utils.schema.providers import Response
@@ -110,9 +113,11 @@ class SupportBundle:
                 return Response(output="Bundle Generation Failed.", \
                     rc=errno.ENOENT)
 
-        symlink_path = const.SYMLINK_PATH
+        shared_path = Storage.get_path('support_bundle')
+        if shared_path is None:
+            shared_path = '/var/log/seagate/support_bundle'
         from cortx.utils.support_framework import Bundle
-        bundle_obj = Bundle(bundle_id=bundle_id, bundle_path=symlink_path, \
+        bundle_obj = Bundle(bundle_id=bundle_id, bundle_path=shared_path, \
             comment=comment)
         return bundle_obj
 
