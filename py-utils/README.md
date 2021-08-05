@@ -50,6 +50,8 @@ $ ./jenkins/build.sh -v 2.0.0 -b 2
 
 ## Install the RPM package
  
+-   Note : The rpm package installation will fail if any dependent python package is not installed.
+
 ```bash
 $ cd ./py-utils/dist
 $ sudo yum install -y cortx-py-utils-*.noarch.rpm
