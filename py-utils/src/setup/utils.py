@@ -168,7 +168,7 @@ class Utils:
     @staticmethod
     def init():
         """ Perform initialization """
-        Log.info(f"MessageBus init: {json.loads(open('/etc/cortx/message_bus.conf', 'r').read())}")
+
         # Create message_type for Event Message
         from cortx.utils.message_bus import MessageBusAdmin
         try:
@@ -225,7 +225,6 @@ class Utils:
         #set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map(config_template_index)
         Utils._configure_rsyslog()
-        Log.info(f"MessageBus config: {json.loads(open('/etc/cortx/message_bus.conf', 'r').read())}")
         # temporary fix for a common message bus log file
         # The issue happend when some user other than root:root is trying
         # to write logs in these log dir/files. This needs to be removed soon!
@@ -241,7 +240,6 @@ class Utils:
         """ Perform configuration testing """
         # Runs cortx-py-utils unittests as per test plan
         try:
-            Log.info(f"MessageBus test: {json.loads(open('/etc/cortx/message_bus.conf', 'r').read())}")
             Log.info("Validating cortx-py-utils-test rpm")
             PkgV().validate('rpms', ['cortx-py-utils-test'])
             utils_path = Utils._get_utils_path()
@@ -264,14 +262,12 @@ class Utils:
     @staticmethod
     def reset():
         """Remove/Delete all the data/logs that was created by user/testing."""
-        Log.info(f"MessageBus reset: {json.loads(open('/etc/cortx/message_bus.conf', 'r').read())}")
         # TODO # deleting all messages from all message_types
         return 0
 
     @staticmethod
     def cleanup():
         """Remove/Delete all the data that was created after post install."""
-        Log.info(f"MessageBus cleanup: {json.loads(open('/etc/cortx/message_bus.conf', 'r').read())}")
         conf_file = '/etc/cortx/message_bus.conf'
         if os.path.exists(conf_file):
             # delete message_types
