@@ -96,7 +96,7 @@ class MessageBrokerFactory:
                 "Missing config entry %s in config", key_list)
 
         # Read the default config
-        config_file_path = "/etc/cortx/cortx.conf"
+        config_file_path = '/etc/cortx/cortx.conf'
         Conf.load('mb_config', f'yaml:///{config_file_path}')
         config = Conf.get('mb_config', 'message_bus')
         return message_server_list, port_list, config
