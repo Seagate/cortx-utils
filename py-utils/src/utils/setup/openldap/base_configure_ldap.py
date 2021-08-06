@@ -148,9 +148,55 @@ class BaseConfig:
         BaseConfig.add_attribute("cn=admin,cn=config", "olcOverlay=unique,olcDatabase={2}mdb,cn=config", add_record, ROOTDNPASSWORD)
 
         add_record = [
+('objectClass', [b'olcSchemaConfig']), ('cn', [b'ppolicy']), ('olcAttributeTypes', [b"{0}( 1.3.6.1.4.1.42.2.27.8.1.1 NAME 'pwdAttribute' EQUALITY objectIdentifierMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.38 )", b"{1}( 1.3.6.1.4.1.42.2.27.8.1.2 NAME 'pwdMinAge' EQUALITY integerMatch ORDERING integerOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE )", b"{2}( 1.3.6.1.4.1.42.2.27.8.1.3 NAME 'pwdMaxAge' EQUALITY integerMatch ORDERING integerOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE )", b"{3}( 1.3.6.1.4.1.42.2.27.8.1.4 NAME 'pwdInHistory' EQUALITY integerMatch ORDERING integerOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE )", b"{4}( 1.3.6.1.4.1.42.2.27.8.1.5 NAME 'pwdCheckQuality' EQUALITY integerMatch ORDERING integerOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE )", b"{5}( 1.3.6.1.4.1.42.2.27.8.1.6 NAME 'pwdMinLength' EQUALITY integerMatch ORDERING integerOrderingMatch  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE )", b"{6}( 1.3.6.1.4.1.42.2.27.8.1.7 NAME 'pwdExpireWarning' EQUALITY integerMatch ORDERING integerOrderingMatch  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE )", b"{7}( 1.3.6.1.4.1.42.2.27.8.1.8 NAME 'pwdGraceAuthNLimit' EQUALITY integerMatch ORDERING integerOrderingMatch  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE )", b"{8}( 1.3.6.1.4.1.42.2.27.8.1.9 NAME 'pwdLockout' EQUALITY booleanMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE )", b"{9}( 1.3.6.1.4.1.42.2.27.8.1.10 NAME 'pwdLockoutDuration' EQUALITY integerMatch ORDERING integerOrderingMatch  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE )", b"{10}( 1.3.6.1.4.1.42.2.27.8.1.11 NAME 'pwdMaxFailure' EQUALITY integerMatch ORDERING integerOrderingMatch  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE )", b"{11}( 1.3.6.1.4.1.42.2.27.8.1.12 NAME 'pwdFailureCountInterval' EQUALITY integerMatch ORDERING integerOrderingMatch  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE )", b"{12}( 1.3.6.1.4.1.42.2.27.8.1.13 NAME 'pwdMustChange' EQUALITY booleanMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE )", b"{13}( 1.3.6.1.4.1.42.2.27.8.1.14 NAME 'pwdAllowUserChange' EQUALITY booleanMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE )", b"{14}( 1.3.6.1.4.1.42.2.27.8.1.15 NAME 'pwdSafeModify' EQUALITY booleanMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE )", b'{15}( 1.3.6.1.4.1.4754.1.99.1 NAME \'pwdCheckModule\' DESC \'Loadable module that instantiates "check_password() function\' EQUALITY caseExactIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE )', b"{16}( 1.3.6.1.4.1.42.2.27.8.1.30 NAME 'pwdMaxRecordedFailure' EQUALITY integerMatch ORDERING integerOrderingMatch  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE )"]), ('olcObjectClasses', [b"{0}( 1.3.6.1.4.1.4754.2.99.1 NAME 'pwdPolicyChecker' SUP top AUXILIARY MAY pwdCheckModule )", b"{1}( 1.3.6.1.4.1.42.2.27.8.2.1 NAME 'pwdPolicy' SUP top AUXILIARY MUST pwdAttribute MAY ( pwdMinAge $ pwdMaxAge $ pwdInHistory $ pwdCheckQuality $ pwdMinLength $ pwdExpireWarning $ pwdGraceAuthNLimit $ pwdLockout $ pwdLockoutDuration $ pwdMaxFailure $ pwdFailureCountInterval $ pwdMustChange $ pwdAllowUserChange $ pwdSafeModify $ pwdMaxRecordedFailure ) )"])
+]
+        BaseConfig.add_attribute("cn=admin,cn=config", "cn=ppolicy,cn=schema,cn=config", add_record, ROOTDNPASSWORD)
+
+        add_record = [
          ('cn', [b'module{1}'] ),
          ('olcModulePath', [b'/usr/lib64/openldap/'] ),
          ('olcModuleLoad', [b'ppolicy.la'] ),
          ('objectClass', [b'olcModuleList'])
         ]
         BaseConfig.add_attribute("cn=admin,cn=config", "cn=module{1},cn=config", add_record, ROOTDNPASSWORD)
+
+
+        add_record = [
+         ('objectClass', [b'olcOverlayConfig',b'olcPPolicyConfig']),
+         ('olcOverlay',[b'ppolicy']),
+         ('olcPPolicyDefault',[b'cn=passwordDefault,ou=Policies,dc=seagate,dc=com']),
+         ('olcPPolicyHashCleartext',[b'FALSE']),
+         ('olcPPolicyUseLockout',[b'FALSE']),
+         ('olcPPolicyForwardUpdates',[b'FALSE'])
+        ]
+        BaseConfig.add_attribute("cn=admin,cn=config", "olcOverlay=ppolicy,olcDatabase={2}mdb,cn=config", add_record, ROOTDNPASSWORD)
+
+        add_record = [
+         ('objectClass', [b'organizationalUnit']),
+         ('ou',[b'Policies'])
+        ]
+        BaseConfig.add_attribute("cn=admin,dc=seagate,dc=com", "ou=Policies,dc=seagate,dc=com", add_record, ROOTDNPASSWORD)
+
+        add_record = [
+         ('objectClass', [b'pwdPolicy',b'person',b'top']),
+         ('cn',[b'passwordDefault']),
+         ('sn',[b'passwordDefault']),
+         ('pwdAttribute',[b'userPassword']),
+         ('pwdReset',[b'TRUE']),
+         ('pwdCheckQuality',[b'0']),
+         ('pwdMinAge',[b'0']),
+         ('pwdMaxAge',[b'0']),
+         ('pwdMinLength',[b'0']),
+         ('pwdInHistory',[b'0']),
+         ('pwdMaxFailure',[b'0']),
+         ('pwdFailureCountInterval',[b'0']),
+         ('pwdLockout',[b'FALSE']),
+         ('pwdLockoutDuration',[b'0']),
+         ('pwdAllowUserChange',[b'TRUE']),
+         ('pwdExpireWarning',[b'0']),
+         ('pwdGraceAuthNLimit',[b'0']),
+         ('pwdMustChange',[b'FALSE']),
+         ('pwdSafeModify',[b'FALSE'])
+        ]
+        BaseConfig.add_attribute("cn=admin,dc=seagate,dc=com", "cn=passwordDefault,ou=Policies,dc=seagate,dc=com", add_record, ROOTDNPASSWORD)
+
