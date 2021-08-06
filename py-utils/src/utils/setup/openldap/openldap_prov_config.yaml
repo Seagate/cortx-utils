@@ -20,6 +20,7 @@
 POST_INSTALL:
 PREPARE:
 CONFIG:
+  CONFSTORE_HOSTNAME_KEY: "server_node>machine-id>hostname"
   CONFSTORE_ROOTDN_USER_KEY: "cortx>software>openldap>root>user"
   CONFSTORE_ROOTDN_PASSWD_KEY: "cortx>software>openldap>root>secret"
   CONFSTORE_LDAPADMIN_USER_KEY: "cortx>software>openldap>sgiam>user"
@@ -29,7 +30,6 @@ CONFIG:
   CONFSTORE_CLUSTER_ID_KEY: "server_node>machine-id>cluster_id"
   OPENLDAP_BASE_DN: "cortx>software>openldap>base_dn"
   OPENLDAP_BIND_BASE_DN: "cortx>software>openldap>bind_base_dn"
-  CONFSTORE_HOSTNAME_KEY: "server_node>machine-id>hostname"
 INIT:
 TEST:
   CONFSTORE_CLUSTER_ID_KEY: "server_node>machine-id>cluster_id"
