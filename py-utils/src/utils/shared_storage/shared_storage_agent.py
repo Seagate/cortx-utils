@@ -14,6 +14,8 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import inspect
+import errno
+from urllib.parse import urlparse
 
 from cortx.utils import errors
 from cortx.utils.shared_storage import SharedStorageError
@@ -24,7 +26,8 @@ class SharedStorageAgent:
 
     def _fetch_path(self):
         """ fetch path from source """
-        pass
+        raise SharedStorageError(errno.EINVAL, \
+                "_fetch_path not implemented")
 
     def get_path(self):
         """ return fetched path of shared storage mountpoint """
@@ -39,8 +42,18 @@ class SharedStorageFactory:
     _storages = {}
 
     @staticmethod
-    def get_instance(storage_type: str, shared_path: str) -> SharedStorageAgent:
+    def get_instance(shared_storage_url: str) -> SharedStorageAgent:
         """ Obtain instance of SharedStorageAgent for given file_type """
+
+        try:
+            url_spec = urlparse(shared_storage_url)
+        except Exception as e:
+            raise SharedStorageError(errno.EINVAL, \
+                "Invalid path: %s. %s", shared_storage_url, e)
+        storage_type = url_spec.scheme
+        shared_loc = url_spec.netloc
+        shared_path = url_spec.path
+
         if storage_type in SharedStorageFactory._storages:
             return SharedStorageFactory._storages[storage_type]
 

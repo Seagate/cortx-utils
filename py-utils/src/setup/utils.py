@@ -234,6 +234,13 @@ class Utils:
         #set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map()
         Utils._configure_rsyslog()
+
+        # get shared storage info from config phase input conf template file
+        shared_storage = Conf.get('cluster_config', 'support')
+
+        # set shared storage info to cortx.conf conf file
+        Utils._set_to_conf_file('support', shared_storage)
+
         # temporary fix for a common message bus log file
         # The issue happend when some user other than root:root is trying
         # to write logs in these log dir/files. This needs to be removed soon!
