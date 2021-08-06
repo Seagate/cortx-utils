@@ -274,12 +274,14 @@ class Utils:
             raise SetupError(errors.ERR_OP_FAILED, "Internal error, can not \
                 reset Message Bus. %s", e)
         # Clear the logs
-        cmd = "find /var/log/cortx/utils/ -type f -name '*.log' -exec truncate -s 0 {} +"
-        cmd_proc = SimpleProcess(cmd)
-        _, stderr, rc = cmd_proc.run()
-        if rc != 0:
-            raise SetupError(errors.ERR_OP_FAILED, \
-                "Can not reset log files. %s", stderr)
+        utils_log_path = '/var/log/cortx/utils/'
+        if os.path.exists(utils_log_path):
+            cmd = "find %s -type f -name '*.log' -exec truncate -s 0 {} +" % utils_log_path
+            cmd_proc = SimpleProcess(cmd)
+            _, stderr, rc = cmd_proc.run()
+            if rc != 0:
+                raise SetupError(errors.ERR_OP_FAILED, \
+                    "Can not reset log files. %s", stderr)
         return 0
 
     @staticmethod
