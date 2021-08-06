@@ -101,7 +101,7 @@ class KafkaMessageBroker(MessageBroker):
         kafka_conf['error_cb'] = self._error_cb
 
         if client_type == 'admin' or client_type == 'producer':
-                kafka_conf['socket.timeout.ms'] = self._kafka_socket_timeout
+                kafka_conf['socket.timeout.ms'] = self._controller_socket_timeout
                 admin = AdminClient(kafka_conf)
                 self._clients['admin'][client_conf['client_id']] = admin
 
