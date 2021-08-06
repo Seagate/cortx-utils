@@ -107,10 +107,7 @@ async def example():
 
     for user in sample_users:
         user_obj = CortxUser(user)
-        try:
-            await db(CortxUser).store(user_obj)
-        except:
-            pass
+        await db(CortxUser).store(user_obj)
 
     print('Collection status after addition')
     updated_items = await db(CortxUser).get(Query())

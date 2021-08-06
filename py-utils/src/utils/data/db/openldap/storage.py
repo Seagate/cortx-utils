@@ -313,7 +313,7 @@ class OpenLdap(GenericDataBase):
             try:
                 cls._client.simple_bind_s(config.login, config.password)
             except ldap.LDAPError as le:
-                err = f'Failed to bind to OpenLdap server {le.result}: {le.desc}'
+                err = f'Failed to bind to OpenLdap server {le}'
                 raise DataAccessExternalError(err) from None
             cls._loop = asyncio.get_event_loop()
             cls._thread_pool = ThreadPoolExecutor(max_workers=multiprocessing.cpu_count())
