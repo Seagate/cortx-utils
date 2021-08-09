@@ -15,9 +15,11 @@
 
 
 class BundleError(Exception):
-    """ Generic Exception with error code and output """
+
+    """Generic Exception with error code and output."""
 
     def __init__(self, rc, message, *args):
+        """Initialises generic exception with error code and output."""
         self._rc = rc
         self._desc = message % (args)
 

@@ -152,7 +152,7 @@ class ComponentsBundle:
             Log.error(f"Incorrect permissions for path:{bundle_path} - {e}")
             ComponentsBundle._publish_log(f"Incorrect permissions for path: {bundle_path} - {e}", \
                     ERROR, bundle_id, node_name, comment)
-        
+
         # Start Execution for each Component Command.
         threads = []
         command_files_info = support_bundle_config.get('COMPONENTS')
