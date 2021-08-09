@@ -37,7 +37,7 @@ cleanup() {
         local file="$DES_DIR/utils_python_coverage.xml"
 
         if [ -f "$file" ]; then
-                rm -f $file
+                rm -f "$file"
         fi
 }
 
@@ -57,7 +57,7 @@ run_coverage() {
   do
     coverage run -a "$test_file"
   done
-  coverage report -m $SRC_DIR/utils/test/"$FRAMEWORK"/test_*
+  coverage report -m "$SRC_DIR"/utils/test/"$FRAMEWORK"/test_*
 
   # Generate xml report
   coverage xml -o "$DES_DIR/utils_python_coverage.xml"
