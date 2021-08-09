@@ -12,16 +12,24 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
-from cortx.utils.errors import BaseError
 
 
-class BundleError(BaseError):
+class BundleError(Exception):
+    """ Generic Exception with error code and output """
 
-    def __init__(self, rc=None, desc=None, message_id=None, message_args=None):
-        """Error class for support bundle related errors."""
-        super(BundleError, self).__init__(
-            rc, desc, message_id, message_args)
+    def __init__(self, rc, message, *args):
+        self._rc = rc
+        self._desc = message % (args)
+
+    @property
+    def rc(self):
+        return self._rc
+
+    @property
+    def desc(self):
+        return self._desc
 
     def __str__(self):
-        """Returns bundle_error in formatted way."""
-        return f"BundleError: {self._rc}: {self._desc}"
+        if self._rc == 0:
+            return self._desc
+        return "BundleError(%d): %s" % (self._rc, self._desc)

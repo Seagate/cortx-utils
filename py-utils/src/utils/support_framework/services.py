@@ -44,9 +44,12 @@ class ProvisionerServices:
         try:
             self.provisioner = provisioner
             Log.info("Provisioner plugin is loaded")
+            from cortx.utils.conf_store import Conf
+            Conf.load('index', 'json:///opt/seagate/cortx_configs/provisioner_cluster.json', \
+                skip_reload=True)
             self.provisioner.auth_init(
-                username='<username>',
-                password='<password>',
+                username=Conf.get('index', 'support>user'),
+                password=Conf.get('index', 'support>password'),
                 eauth='pam'
             )
         except Exception as error:

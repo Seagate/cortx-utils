@@ -122,8 +122,13 @@ class ComponentsBundle:
             f"{const.SB_COMPONENTS}: {components}, {const.SOS_COMP}"))
         # Read Commands.Yaml and Check's If It Exists.
         cmd_setup_file = os.path.join(Conf.get('cortx_config', 'install_path'),\
-            'cortx/utils/conf/support.yaml')
-        support_bundle_config = Yaml(cmd_setup_file).load()
+            'cortx/utils/conf/support_bundle.yaml')
+        try:
+            support_bundle_config = Yaml(cmd_setup_file).load()
+        except Exception as e:
+            Log.error(f"Internal error while parsing YAML file {cmd_setup_file}{e}")
+            ComponentsBundle._publish_log(f"Internal error while parsing YAML file \
+                {cmd_setup_file}{e}", ERROR, bundle_id, node_name, comment)
         if not support_bundle_config:
             ComponentsBundle._publish_log(f"No such file {cmd_setup_file}", \
                 ERROR, bundle_id, node_name, comment)
@@ -135,11 +140,19 @@ class ComponentsBundle:
         if os.path.isdir(path):
             try:
                 shutil.rmtree(path)
-            except PermissionError:
-                Log.warn(f"Incorrect permissions for path:{path}")
+            except PermissionError as e:
+                Log.error(f"Incorrect permissions for path:{path} - {e}")
+                ComponentsBundle._publish_log(f"Incorrect permissions for path: {path} - {e}", \
+                    ERROR, bundle_id, node_name, comment)
 
         bundle_path = os.path.join(path, bundle_id)
-        os.makedirs(bundle_path)
+        try:
+            os.makedirs(bundle_path)
+        except PermissionError as e:
+            Log.error(f"Incorrect permissions for path:{bundle_path} - {e}")
+            ComponentsBundle._publish_log(f"Incorrect permissions for path: {bundle_path} - {e}", \
+                    ERROR, bundle_id, node_name, comment)
+        
         # Start Execution for each Component Command.
         threads = []
         command_files_info = support_bundle_config.get('COMPONENTS')
@@ -158,7 +171,13 @@ class ComponentsBundle:
             components_commands = []
             components_files = command_files_info[each_component]
             for file_path in components_files:
-                file_data = Yaml(file_path).load()
+                try:
+                    file_data = Yaml(file_path).load()
+                except Exception as e:
+                    Log.error(f"Internal error while parsing YAML file {file_path}{e}")
+                    file_data = None
+                    ComponentsBundle._publish_log(f"Incorrect permissions for path: \
+                        {bundle_path} - {e}", ERROR, bundle_id, node_name, comment)
                 if file_data:
                     components_commands = file_data.get(
                         const.SUPPORT_BUNDLE.lower(), [])
@@ -182,9 +201,11 @@ class ComponentsBundle:
         if os.path.exists(symlink_path):
             try:
                 shutil.rmtree(symlink_path)
-            except PermissionError:
-                Log.warn(const.PERMISSION_ERROR_MSG.format(path=symlink_path))
-        os.makedirs(symlink_path, exist_ok=True)
+                os.makedirs(symlink_path, exist_ok=True)
+            except PermissionError as e:
+                Log.error(const.PERMISSION_ERROR_MSG.format(path=symlink_path))
+                ComponentsBundle._publish_log(f"Incorrect permissions for path: \
+                    {symlink_path} - {e}", ERROR, bundle_id, node_name, comment)
 
         # Wait Until all the Threads Execution is not Complete.
         for each_thread in threads:

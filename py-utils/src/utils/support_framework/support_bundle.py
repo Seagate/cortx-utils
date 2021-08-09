@@ -28,6 +28,7 @@ from cortx.utils.log import Log
 from cortx.utils.support_framework.services import ProvisionerServices
 from cortx.utils.schema import database
 from cortx.utils.cli_framework.command import Command
+from cortx.utils.support_framework.bundle_generate import ComponentsBundle
 
 
 class SupportBundle:
@@ -43,7 +44,6 @@ class SupportBundle:
         return:     node_list : List of Node Name :type: List
         """
         Log.info("Reading hostnames, node_list information")
-        Conf.load('cortx_cluster', 'json:///etc/cortx/cluster.conf')
         node_hostname_map = Conf.get('cortx_cluster', 'cluster')
         if not node_hostname_map:
             response_msg = "Node list and hostname not found."
@@ -103,12 +103,12 @@ class SupportBundle:
                     f"'{hostname}' {comp_list}", nodename)
             except BundleError as be:
                 Log.error(f"Bundle generation failed.{be}")
-                return Response(output="Bundle generation failed.\nPlease " \
-                    "check CLI for details.", rc=errno.EINVAL)
+                ComponentsBundle._publish_log(f"Bundle generation failed.{be}", \
+                    'error', bundle_id, nodename, comment)
             except Exception as e:
-                Log.error(f"Provisioner API call failed : {e}")
-                return Response(output="Bundle Generation Failed.", \
-                    rc=errno.ENOENT)
+                Log.error(f"Internal error, bundle generation failed {e}")
+                ComponentsBundle._publish_log(f"Internal error, bundle generation failed \
+                    {e}", 'error', bundle_id, nodename, comment)
 
         symlink_path = const.SYMLINK_PATH
         from cortx.utils.support_framework import Bundle
@@ -193,7 +193,6 @@ class SupportBundle:
         loop = asyncio.get_event_loop()
         res = loop.run_until_complete(
             SupportBundle._get_bundle_status(cmd_obj))
-        loop.close()
         return res
 
     @staticmethod
