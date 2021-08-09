@@ -136,8 +136,7 @@ class ComponentsBundle:
                 ERROR, bundle_id, node_name, comment)
             return None
         # Path Location for creating Support Bundle.
-        path = os.path.join(Conf.get('cortx_conf', \
-            'support>support_bundle_path'))
+        path = Conf.get('cortx_conf', 'support>support_bundle_path')
 
         # This part of the code should be under "delete"
         # if os.path.isdir(path):
