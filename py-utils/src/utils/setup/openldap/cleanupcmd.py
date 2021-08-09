@@ -40,10 +40,10 @@ class CleanupCmd(SetupCmd):
     def process(self):
         """Main processing function."""
         try:
+            self.delete_replication_config()
             self.delete_log_files()
             BaseConfig.cleanup(True)
             os.system('systemctl restart slapd')
-            self.delete_replication_config()
         except Exception as e:
             raise OpenldapPROVError(f'exception: {e}\n')
 
