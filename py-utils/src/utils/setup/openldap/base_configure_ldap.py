@@ -23,6 +23,7 @@ import glob
 from shutil import copyfile
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
+from setupReplication import Replication
 
 class BaseConfig:
     Log.init('OpenldapProvisioning', '/var/log/seagate/utils/openldap', level='DEBUG')
@@ -68,6 +69,11 @@ class BaseConfig:
             files = glob.glob('/var/lib/ldap/*')
             for f in files:
                 BaseConfig.safe_remove(f)
+        #Clear the password set in config
+        conn = ldap.initialize("ldapi:///")
+        conn.sasl_non_interactive_bind_s('EXTERNAL')
+        Replication.deleteattribute(conn, "olcDatabase={0}config,cn=config", "olcRootPW")
+        conn.unbind_s()
 
     def modify_attribute(dn, attribute, value):
         # Open a connection
