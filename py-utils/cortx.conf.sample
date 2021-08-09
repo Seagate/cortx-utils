@@ -14,5 +14,10 @@
       "store_type": "json",
       "expiry_sec": 1800
     }
+  },
+  "message_bus": {
+    "recv_message_timeout": 2,
+    "controller_socket_timeout": 15000,
+    "send_message_timeout": 5000
   }
 }
