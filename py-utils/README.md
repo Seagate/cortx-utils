@@ -51,6 +51,7 @@ $ ./jenkins/build.sh -v 2.0.0 -b 2
 ## Install the RPM package
  
 -   Note : The rpm package installation will fail if any dependent python package is not installed.
+-   Please refer to WIKI (https://github.com/Seagate/cortx-utils/wiki/%22cortx-py-utils%22-single-node-manual-provisioning)
 
 ```bash
 $ cd ./py-utils/dist
