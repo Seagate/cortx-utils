@@ -17,11 +17,12 @@
 
 
 class Bundle:
-    def __init__(self, bundle_id, bundle_path, comment):
+    def __init__(self, bundle_id, bundle_path, is_shared, comment):
         """Initialiases bundle object, which will have support bundle information."""
         self._bundle_id = bundle_id
         self._bundle_path = bundle_path
         self._comment = comment
+        self._is_shared = is_shared
 
     @property
     def bundle_id(self):
@@ -30,6 +31,10 @@ class Bundle:
     @property
     def bundle_path(self):
         return self._bundle_path
+
+    @property
+    def is_shared(self):
+        return self._is_shared
 
     @property
     def comment(self):
