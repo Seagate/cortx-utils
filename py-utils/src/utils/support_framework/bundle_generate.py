@@ -121,7 +121,9 @@ class ComponentsBundle:
             f"{node_name}, {const.SB_COMMENT}: {comment}, "
             f"{const.SB_COMPONENTS}: {components}, {const.SOS_COMP}"))
         # Read Commands.Yaml and Check's If It Exists.
-        cmd_setup_file = os.path.join(Conf.get('cortx_config', 'install_path'),\
+        Conf.load('cortx_conf', 'json:///etc/cortx/cortx.conf', \
+            skip_reload=True)
+        cmd_setup_file = os.path.join(Conf.get('cortx_conf', 'install_path'),\
             'cortx/utils/conf/support_bundle.yaml')
         try:
             support_bundle_config = Yaml(cmd_setup_file).load()
@@ -134,16 +136,17 @@ class ComponentsBundle:
                 ERROR, bundle_id, node_name, comment)
             return None
         # Path Location for creating Support Bundle.
-        path = os.path.join(Conf.get('cortx_config', \
+        path = os.path.join(Conf.get('cortx_conf', \
             'support>support_bundle_path'))
 
-        if os.path.isdir(path):
-            try:
-                shutil.rmtree(path)
-            except PermissionError as e:
-                Log.error(f"Incorrect permissions for path:{path} - {e}")
-                ComponentsBundle._publish_log(f"Incorrect permissions for path: {path} - {e}", \
-                    ERROR, bundle_id, node_name, comment)
+        # This part of the code should be under "delete"
+        # if os.path.isdir(path):
+        #     try:
+        #         shutil.rmtree(path)
+        #     except PermissionError as e:
+        #         Log.error(f"Incorrect permissions for path:{path} - {e}")
+        #         ComponentsBundle._publish_log(f"Incorrect permissions for path: {path} - {e}", \
+        #             ERROR, bundle_id, node_name, comment)
 
         bundle_path = os.path.join(path, bundle_id)
         try:
@@ -190,7 +193,7 @@ class ComponentsBundle:
                     Log.debug(f"Started thread -> {thread_obj.ident} " \
                         f"Component -> {each_component}")
                     threads.append(thread_obj)
-        directory_path = Conf.get('cortx_config', 'support>support_bundle_path')
+        directory_path = Conf.get('cortx_conf', 'support>support_bundle_path')
         tar_file_name = os.path.join(directory_path, \
             f'{bundle_id}_{node_name}.tar.gz')
 
@@ -198,14 +201,20 @@ class ComponentsBundle:
             comment, bundle_path)
 
         symlink_path = const.SYMLINK_PATH
-        if os.path.exists(symlink_path):
-            try:
-                shutil.rmtree(symlink_path)
-                os.makedirs(symlink_path, exist_ok=True)
-            except PermissionError as e:
-                Log.error(const.PERMISSION_ERROR_MSG.format(path=symlink_path))
-                ComponentsBundle._publish_log(f"Incorrect permissions for path: \
-                    {symlink_path} - {e}", ERROR, bundle_id, node_name, comment)
+        # This part of the code should be under "delete"
+        # if os.path.exists(symlink_path):
+        #     try:
+        #         shutil.rmtree(symlink_path)
+        #     except PermissionError as e:
+        #         Log.error(const.PERMISSION_ERROR_MSG.format(path=symlink_path))
+        #         ComponentsBundle._publish_log(f"Incorrect permissions for path: \
+        #             {symlink_path} - {e}", ERROR, bundle_id, node_name, comment)
+        try:
+            os.makedirs(symlink_path, exist_ok=True)
+        except PermissionError as e:
+            Log.error(const.PERMISSION_ERROR_MSG.format(path=symlink_path))
+            ComponentsBundle._publish_log(f"Incorrect permissions for path: \
+                {symlink_path} - {e}", ERROR, bundle_id, node_name, comment)
 
         # Wait Until all the Threads Execution is not Complete.
         for each_thread in threads:

@@ -44,6 +44,8 @@ class SupportBundle:
         return:     node_list : List of Node Name :type: List
         """
         Log.info("Reading hostnames, node_list information")
+        Conf.load('cortx_cluster', 'json:///etc/cortx/cluster.conf', \
+            skip_reload=True)
         node_hostname_map = Conf.get('cortx_cluster', 'cluster')
         if not node_hostname_map:
             response_msg = "Node list and hostname not found."

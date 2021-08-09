@@ -25,7 +25,5 @@ from cortx.utils.support_framework.support_bundle import SupportBundle
 from cortx.utils.support_framework.bundle_generate import ComponentsBundle
 from cortx.utils.conf_store import Conf
 
-Conf.load('cortx_cluster', 'json:///etc/cortx/cluster.conf', skip_reload=True)
-Conf.load('cortx_config', 'json:///etc/cortx/cortx.conf', skip_reload=True)
 
 __all__ = ('Bundle', 'SupportBundle', 'ComponentsBundle')
