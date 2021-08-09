@@ -78,6 +78,7 @@ class GenerateCmd:
         s_parser.add_argument('-c', '--component', nargs='+', default=[], \
             help='Optional, Specified component support bundle will be generated')
 
+
 class StatusCmd:
 
     """Get Status Cmd Structure."""
