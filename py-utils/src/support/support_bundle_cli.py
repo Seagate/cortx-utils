@@ -1,5 +1,6 @@
-#!/bin/env python3
+#!/usr/bin/env python3
 
+# CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -14,77 +15,126 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import asyncio
-import sys
 
+import errno
+import argparse
+import inspect
+import sys
+import traceback
+from argparse import RawTextHelpFormatter
 from cortx.utils.support_framework import SupportBundle
-from cortx.utils.cli_framework.command import Command
 
 
 class SupportBundleCli:
-    @staticmethod
-    def generate(comment: str, **kwargs):
-        components = ''
-        for key, value in kwargs.items():
-            if key == 'components':
-                components = value
-        options = {'comment': comment, 'components': components, 'comm': \
-            {'type': 'direct', 'target': 'utils.support_framework', 'method': \
-            'generate_bundle', 'class': 'SupportBundle', 'is_static': True, \
-            'params': {}, 'json': {}}, 'output': {}, 'need_confirmation': \
-            False, 'sub_command_name': 'generate_bundle'}
 
-        cmd_obj = Command('generate_bundle', options, [])
-        loop = asyncio.get_event_loop()
-        bundle_obj = loop.run_until_complete( \
-            SupportBundle._generate_bundle(cmd_obj))
-        return bundle_obj
+    """CLI for the Support Bundle Framework."""
 
     @staticmethod
-    def get_status(bundle_id: str):
-         # Get the status of bundle
-        import time
-        time.sleep(5)
-
-        options = {'bundle_id': bundle_id, 'comm': {'type': 'direct', \
-            'target': 'utils.support_framework', 'method': 'get_bundle_status', \
-            'class': 'SupportBundle', \
-            'is_static': True, 'params': {}, 'json': {}},'output': {},\
-            'need_confirmation': False, 'sub_command_name': \
-            'get_bundle_status'}
-
-        cmd_obj = Command('get_bundle_status', options, [])
-        loop = asyncio.get_event_loop()
-        res = loop.run_until_complete(
-            SupportBundle._get_bundle_status(cmd_obj))
-        loop.close()
-        return res
-
-def main(argv):
-    from cortx.utils.conf_store.conf_store import Conf
-    from cortx.utils.log import Log
-
-    Conf.load('cortx_config', 'json:///etc/cortx/cortx.conf')
-    log_level = Conf.get('cortx_config', 'utils>log_level', 'INFO')
-    Log.init('support_bundle', '/var/log/cortx/utils/support', level=log_level, \
-        backup_count=5, file_size_in_mb=5)
+    def generate(args):
+        """Generates support bundle for specified components."""
+        from cortx.utils.support_framework.errors import BundleError
+        if not args.comment:  # no comment provided
+            raise BundleError("Please provide comment, Why you are generating \
+                Support Bundle!")
+        components = args.component[0].split(';') if args.component else []
+        bundle_obj = SupportBundle.generate(comment=args.comment, \
+            components=components)
+        display_string_len = len(bundle_obj.bundle_id) + 4
+        response_msg = (
+            f"Please use the below bundle id for checking the status of support bundle."
+            f"\n{'-' * display_string_len}"
+            f"\n| {bundle_obj.bundle_id} |"
+            f"\n{'-' * display_string_len}"
+            f"\nPlease Find the file on -> {bundle_obj.bundle_path} .\n")
+        return response_msg
     
-    components = argv[3] if len(argv)>3 else []
-    if components:
-        components = [component for component in components.split(',')]
-    cmd = f"SupportBundleCli.{argv[1]}(comment='{argv[2]}', components={components})"
-    bundle_obj = eval(cmd)
-    print('bundle_id', bundle_obj.bundle_id)
-    status = SupportBundleCli.get_status(bundle_id=bundle_obj.bundle_id)
-    return status
+    @staticmethod
+    def get_status(args):
+        """Get status of generated support bundle."""
+        bundle_id = args.bundle_id[0] if args.bundle_id else None
+        status = SupportBundle.get_status(bundle_id=bundle_id)
+        return status
 
 
-if __name__ == '__main__':
-    # componets parameter is optional, if not specified support bundle
-    # will be created for all components.
-    # Usage eg:
-    # $sudo /opt/seagate/cortx/utils/bin/support_bundle generate 'Creating support bundle generation'
-    # $sudo /opt/seagate/cortx/utils/bin/support_bundle generate 'Creating support bundle generation' 'utils,csm'
-    # support_bundle bin path is temporary and  will be replaced with support_bundle command
-    # while implementing support_bundle cli
-    sys.exit(main(sys.argv))
+class GenerateCmd:
+
+    """Get Generate Cmd Structure."""
+
+    @staticmethod
+    def add_args(sub_parser) -> None:
+        s_parser = sub_parser.add_parser(
+            'generate',
+            help="generates suppport bundle for specified component.\n"
+                "components is optional parameter, if components is not specified\n"
+                "support bundle will be generated for all components\n"
+                "Example components passed: 'utils', 'utils;csm;provisioner'\n\n"
+                "Example command:\n"
+                "#$ support_bundle generate 'sample comment'\n"
+                "#$ support_bundle generate 'sample comment' -c 'utils'\n"
+                "#$ support_bundle generate 'sample comment' -c 'utils;csm'\n\n"
+                "For more help checkout support_bundle generate -h\n\n")
+        s_parser.set_defaults(func=SupportBundleCli.generate)
+        s_parser.add_argument('comment', nargs='+', help='Comment - Reason for generating Support Bundle')
+        s_parser.add_argument('-c', '--component', nargs='+', default=[], \
+            help='Optional, Specified component support bundle will be generated')
+
+
+class StatusCmd:
+
+    """Get Status Cmd Structure."""
+
+    @staticmethod
+    def add_args(sub_parser) -> None:
+        s_parser = sub_parser.add_parser(
+            'get_status',
+            help="Get status of generated suppport bundle.\n"
+                "bundle_id is optional, if bundle id is specified, only specified\n"
+                "support bundle status is fetched else will fetch all generated support bundle status.\n\n"
+                "Example command:\n"
+                "#$ support_bundle get_status -b 'SBag8s1f10' #Fetch status of SBag8s1f10\n"
+                "#$ support_bundle get_status #Fetch status of all support bundles\n\n"
+                "For more help checkout support_bundle get_status -h\n\n")
+        s_parser.set_defaults(func=SupportBundleCli.get_status)
+        s_parser.add_argument('-b', '--bundle_id', nargs='+', default='', \
+            help='Bundle ID of generated Support Bundle')
+
+
+def main():
+    from cortx.utils.log import Log
+    from cortx.utils.conf_store import Conf
+
+    Conf.load('cortx_conf', 'json:///etc/cortx/cortx.conf')
+    log_level = Conf.get('cortx_conf', 'utils>log_level', 'INFO')
+    Log.init('support_bundle', '/var/log/cortx/utils/support/', \
+        level=log_level, backup_count=5, file_size_in_mb=5, \
+             syslog_server='localhost', syslog_port=514)
+    # Setup Parser
+    parser = argparse.ArgumentParser(description='Support Bundle CLI', \
+        formatter_class=RawTextHelpFormatter)
+    sub_parser = parser.add_subparsers(title='command', \
+        help='represents the action from: generate, get_status\n\n', \
+        dest='command')
+
+    # Add Command Parsers
+    members = inspect.getmembers(sys.modules[__name__])
+    for name, cls in members:
+        if name != "Cmd" and name.endswith("Cmd"):
+            cls.add_args(sub_parser)
+
+    # Parse and Process Arguments
+    try:
+        args = parser.parse_args()
+        out = args.func(args)
+        if out is not None and len(out) > 0:
+            print(out)
+        return 0
+
+    except Exception as e:
+        sys.stderr.write("%s\n\n" % str(e))
+        sys.stderr.write("%s\n" % traceback.format_exc())
+        return errno.EINVAL
+
+
+if __name__ == "__main__":
+    rc = main()
+    sys.exit(rc)
