@@ -10,6 +10,7 @@ cortx:
       - TMPL_KAFKA_SERVER3_FQDN:TMPL_KAFKA_SERVER3_PORT
 server_node:
   TMPL_MACHINE_ID:
+    cluster_id: TMPL_CLUSTER_ID
     site_id: TMPL_SITE_ID
     rack_id: TMPL_RACK_ID
     node_id: TMPL_NODE_ID

@@ -8,11 +8,16 @@
     "support_bundle_path": "/var/log/seagate/support_bundle/"
   },
   "discovery": {
-    "solution_platform_monitor": "/opt/seagate/cortx/sspl/bin/resource_map",
+    "solution_platform_monitor": "/opt/seagate/cortx/sspl/extension/solution",
     "resource_map": {
       "location": "/var/cortx/resources/",
       "store_type": "json",
       "expiry_sec": 1800
     }
+  },
+  "message_bus": {
+    "recv_message_timeout": 2,
+    "controller_socket_timeout": 15000,
+    "send_message_timeout": 5000
   }
 }
