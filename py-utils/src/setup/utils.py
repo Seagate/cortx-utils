@@ -262,7 +262,30 @@ class Utils:
     @staticmethod
     def reset():
         """Remove/Delete all the data/logs that was created by user/testing."""
-        # TODO # deleting all messages from all message_types
+        try:
+            from cortx.utils.message_bus import MessageBusAdmin
+            from cortx.utils.message_bus.message_bus_client import MessageProducer
+            mb = MessageBusAdmin(admin_id='reset')
+            message_types_list = mb.list_message_types()
+            if message_types_list:
+                for message_type in message_types_list:
+                    producer = MessageProducer(producer_id=message_type, \
+                        message_type=message_type, method='sync')
+                    producer.delete()
+        except MessageBusError as e:
+            raise SetupError(e.rc, "Can not reset Message Bus. %s", e)
+        except Exception as e:
+            raise SetupError(errors.ERR_OP_FAILED, "Internal error, can not \
+                reset Message Bus. %s", e)
+        # Clear the logs
+        utils_log_path = '/var/log/cortx/utils/'
+        if os.path.exists(utils_log_path):
+            cmd = "find %s -type f -name '*.log' -exec truncate -s 0 {} +" % utils_log_path
+            cmd_proc = SimpleProcess(cmd)
+            _, stderr, rc = cmd_proc.run()
+            if rc != 0:
+                raise SetupError(errors.ERR_OP_FAILED, \
+                    "Can not reset log files. %s", stderr)
         return 0
 
     @staticmethod
