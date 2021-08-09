@@ -44,18 +44,22 @@ class KafkaMessageBroker(MessageBroker):
     _max_purge_retry_count = 5
     _max_list_message_type_count = 15
 
-    # Polling timeout
-    _default_timeout = 2
-
-    # Socket timeout
-    _kafka_socket_timeout = 15000
-
     def __init__(self, broker_conf: dict):
         """ Initialize Kafka based Configurations """
         super().__init__(broker_conf)
         Log.debug(f"KafkaMessageBroker: initialized with broker " \
             f"configurations broker_conf: {broker_conf}")
         self._clients = {'admin': {}, 'producer': {}, 'consumer': {}}
+
+        # Polling timeout
+        self._recv_message_timeout = \
+            broker_conf['message_bus']['recv_message_timeout']
+        # Socket timeout
+        self._controller_socket_timeout = \
+            broker_conf['message_bus']['controller_socket_timeout']
+        # Message timeout
+        self._send_message_timeout = \
+            broker_conf['message_bus']['send_message_timeout']
 
     def init_client(self, client_type: str, **client_conf: dict):
         """ Obtain Kafka based Producer/Consumer """
@@ -97,11 +101,12 @@ class KafkaMessageBroker(MessageBroker):
         kafka_conf['error_cb'] = self._error_cb
 
         if client_type == 'admin' or client_type == 'producer':
-                kafka_conf['socket.timeout.ms'] = self._kafka_socket_timeout
+                kafka_conf['socket.timeout.ms'] = self._controller_socket_timeout
                 admin = AdminClient(kafka_conf)
                 self._clients['admin'][client_conf['client_id']] = admin
 
         if client_type == 'producer':
+            kafka_conf['message.timeout.ms'] = self._send_message_timeout
             producer = Producer(**kafka_conf)
             self._clients[client_type][client_conf['client_id']] = producer
 
@@ -300,6 +305,12 @@ class KafkaMessageBroker(MessageBroker):
         Log.debug(f"Successfully Increased the partitions for a " \
             f"{message_type} to {concurrency_count}")
 
+    @staticmethod
+    def delivery_callback(err, _):
+        if err:
+            raise MessageBusError(errno.ETIMEDOUT, "Message delivery failed. \
+                %s", err)
+
     def send(self, producer_id: str, message_type: str, method: str, \
         messages: list, timeout=0.1):
         """
@@ -324,7 +335,8 @@ class KafkaMessageBroker(MessageBroker):
                 "Producer %s is not initialized", producer_id)
 
         for message in messages:
-            producer.produce(message_type, bytes(message, 'utf-8'))
+            producer.produce(message_type, bytes(message, 'utf-8'), \
+                callback=self.delivery_callback)
             if method == 'sync':
                 producer.flush()
             else:
@@ -513,9 +525,9 @@ class KafkaMessageBroker(MessageBroker):
                 "Consumer %s is not initialized.", consumer_id)
 
         if timeout is None:
-            timeout = self._default_timeout
+            timeout = self._recv_message_timeout
         if timeout == 0:
-            timeout = self._default_timeout
+            timeout = self._recv_message_timeout
             blocking = True
 
         try:
