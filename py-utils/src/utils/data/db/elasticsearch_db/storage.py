@@ -159,7 +159,7 @@ class ElasticSearchQueryConverter(GenericQueryConverter):
     @staticmethod
     def _wildcard_query(model):
         def _make_query(field: str, target):
-            if isinstance(getattr(model, field), StringType):
+            if not isinstance(getattr(model, field), StringType):
                 raise DataAccessInternalError("Can only use like operator with keyword and text fields")
             else:
                 target = "*" + target + "*"
