@@ -201,13 +201,13 @@ class ComponentsBundle:
 
         symlink_path = const.SYMLINK_PATH
         # This part of the code should be under "delete"
-        # if os.path.exists(symlink_path):
-        #     try:
-        #         shutil.rmtree(symlink_path)
-        #     except PermissionError as e:
-        #         Log.error(const.PERMISSION_ERROR_MSG.format(path=symlink_path))
-        #         ComponentsBundle._publish_log(f"Incorrect permissions for path: \
-        #             {symlink_path} - {e}", ERROR, bundle_id, node_name, comment)
+        if os.path.exists(symlink_path):
+            try:
+                shutil.rmtree(symlink_path)
+            except PermissionError as e:
+                Log.error(const.PERMISSION_ERROR_MSG.format(path=symlink_path))
+                ComponentsBundle._publish_log(f"Incorrect permissions for path: \
+                    {symlink_path} - {e}", ERROR, bundle_id, node_name, comment)
         try:
             os.makedirs(symlink_path, exist_ok=True)
         except PermissionError as e:
