@@ -133,8 +133,12 @@ class ComponentsBundle:
             ComponentsBundle._publish_log(f"No such file {cmd_setup_file}",
                                          ERROR, bundle_id, node_name, comment)
             return None
-        # Path Location for creating Support Bundle.
-        path = os.path.join(Conf.get("cortx_conf","support>support_bundle_path"))
+        # Shared/Local path Location for creating Support Bundle.
+        from cortx.utils.shared_storage import Storage
+        path = Storage.get_path('support_bundle')
+        if not path:
+            path = os.path.join(Conf.get('cortx_conf',
+                'support>support_bundle_path'))
 
         if os.path.isdir(path):
             try:
@@ -142,7 +146,7 @@ class ComponentsBundle:
             except PermissionError:
                 Log.warn(f"Incorrect permissions for path:{path}")
 
-        bundle_path = os.path.join(path, bundle_id)
+        bundle_path = os.path.join(path, bundle_id, node_name)
         os.makedirs(bundle_path)
         # Start Execution for each Component Command.
         threads = []
@@ -166,24 +170,14 @@ class ComponentsBundle:
                 if components_commands:
                     thread_obj = threading.Thread(
                         ComponentsBundle._exc_components_cmd(components_commands,
-                            bundle_id, f"{bundle_path}{os.sep}", each_component,
-                            node_name, comment))
+                            f'{bundle_id}_{each_component}', f'{bundle_path}{os.sep}',
+                            each_component, node_name, comment))
                     thread_obj.start()
                     Log.debug(f"Started thread -> {thread_obj.ident}  Component -> {each_component}")
                     threads.append(thread_obj)
-        directory_path = Conf.get("cortx_conf","support>support_bundle_path")
-        tar_file_name = os.path.join(directory_path,
-                                     f"{bundle_id}_{node_name}.tar.gz")
-
+        tar_file_name = os.path.join(path,
+                                     f'{bundle_id}_{node_name}.tar.gz')
         ComponentsBundle._create_summary_file(bundle_id, node_name, comment, bundle_path)
-
-        symlink_path = const.SYMLINK_PATH
-        if os.path.exists(symlink_path):
-            try:
-                shutil.rmtree(symlink_path)
-            except PermissionError:
-                Log.warn(const.PERMISSION_ERROR_MSG.format(path = symlink_path))
-        os.makedirs(symlink_path, exist_ok = True)
 
         # Wait Until all the Threads Execution is not Complete.
         for each_thread in threads:
@@ -197,17 +191,9 @@ class ComponentsBundle:
             ComponentsBundle._publish_log(f"Could not generate tar file {e}", ERROR, bundle_id,
                                          node_name, comment)
             return None
-        try:
-            Log.debug("Create soft-link for generated tar.")
-            os.symlink(tar_file_name, os.path.join(symlink_path,
-                                                   f"{const.SUPPORT_BUNDLE}.{bundle_id}"))
-            ComponentsBundle._publish_log(f"Tar file linked at location - {symlink_path}", INFO, bundle_id, node_name,
-                                         comment)
-        except Exception as e:
-            ComponentsBundle._publish_log(f"Linking failed {e}", ERROR, bundle_id,
-                                         node_name, comment)
-        finally:
-            if os.path.isdir(bundle_path):
-                shutil.rmtree(bundle_path)
+        ComponentsBundle._publish_log(f"Tar file created at location"\
+            f" - {bundle_path}", INFO, bundle_id, node_name, comment)
+        if os.path.isdir(os.path.join(path, bundle_id)):
+            shutil.rmtree(os.path.join(path, bundle_id))
         msg = "Support bundle generation completed."
         ComponentsBundle._publish_log(msg, INFO, bundle_id, node_name, comment)

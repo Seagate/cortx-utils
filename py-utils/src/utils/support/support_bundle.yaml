@@ -43,4 +43,4 @@ COMPONENTS:
   ha:
     - '<CORTX_PATH>/ha/conf/setup.yaml'
   utils:
-    - '<CORTX_PATH>/utils/conf/setup.yaml'
+    - '<CORTX_PATH>/utils/conf/support.yaml'
