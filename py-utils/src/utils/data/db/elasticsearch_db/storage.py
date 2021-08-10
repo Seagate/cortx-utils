@@ -138,6 +138,7 @@ class ElasticSearchQueryConverter(GenericQueryConverter):
     def __init__(self, model):
         self.comparison_conversion = {
             ComparisonOperation.OPERATION_EQ: self._match_query,
+            ComparisonOperation.OPERATION_LIKE: self._wildcard_query(model),
             ComparisonOperation.OPERATION_LT: self._range_generator('lt'),
             ComparisonOperation.OPERATION_GT: self._range_generator('gt'),
             ComparisonOperation.OPERATION_LEQ: self._range_generator('lte'),
@@ -154,6 +155,19 @@ class ElasticSearchQueryConverter(GenericQueryConverter):
         }
 
         return Q("match", **obj)
+
+    @staticmethod
+    def _wildcard_query(model):
+        def _make_query(field: str, target):
+            if not isinstance(getattr(model, field), StringType):
+                raise DataAccessInternalError("Can only use like operator with keyword and text fields")
+            else:
+                target = "*" + target + "*"
+                obj = {
+                    field: target
+                }
+            return Q("wildcard", **obj)
+        return _make_query
 
     @staticmethod
     def _range_generator(op_string: str):
