@@ -1,7 +1,7 @@
 #!/bin/python3
 
 # CORTX Python common library.
-# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
+# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -409,7 +409,7 @@ class ConsulKvPayload(KvPayload):
         self._delim = delim
         self._data = {}
         self._keys = []
-        self._get_keys(self._keys)
+        self.get_keys(self._keys)
 
 
     def get(self, key: str, *args, **kwargs) -> str:
@@ -420,8 +420,8 @@ class ConsulKvPayload(KvPayload):
         elif data is None:
             return None
         else:
-            raise KvError(errno.EINVAL,
-                          "Invalid response from consul: %d:%s", index, data)
+            raise KvError(errno.EINVAL, \
+                "Invalid response from consul: %d:%s", index, data)
 
     def _set(self, key: str, val: str, *args, **kwargs) -> Union[bool, None]:
         """ Set the value to the key in consul kv. """
@@ -431,19 +431,19 @@ class ConsulKvPayload(KvPayload):
         """ Delete the key:value for the input key. """
         return self._consul.kv.delete(key)
 
-    def get_data(
-        self, format_type: str = None, starts_with: str = '', *args, **kwargs):
+    def get_data(self, format_type: str = None, *args, **kwargs):
         """ Return a dict of kv pair. """
+        self._data = {}
         from cortx.utils.schema import Format
-        for kv in self._consul.kv.get(starts_with, recurse=True)[1]:
+        for kv in self._consul.kv.get('', recurse=True)[1]:
             self._data[kv['Key']] = kv['Value'].decode('utf-8')
         if not format_type:
             return self._data
         return Format.dump(self._data, format_type)
 
-    def get_keys(self, keys: list, starts_with: str = '', 
-        *args, **kwargs) -> list:
+    def get_keys(self, starts_with: str = '', *args, **kwargs) -> list:
         """ Return a list of all the keys present. """
+        keys=[]
         if starts_with:
             if not isinstance(starts_with, str):
                 raise KvError(errno.EINVAL, "key should be a string, \
@@ -453,7 +453,8 @@ class ConsulKvPayload(KvPayload):
                     starts_with, recurse=True, keys=True)[1]
         else:
             key_list =  self._consul.kv.get('', keys=True)[1]
-        keys.extend(key_list)      
+        if key_list:
+            keys.extend(key_list)      
         return keys
 
 
@@ -471,5 +472,5 @@ class ConsulKVStore(KvStore):
         """ Return ConsulKvPayload object. """
         return self._payload
 
-    def dump(self, *args, **kwargs):
+    def dump(self, data, *args, **kwargs):
         pass
