@@ -137,16 +137,6 @@ class ComponentsBundle:
             return None
         # Path Location for creating Support Bundle.
         path = Conf.get('cortx_conf', 'support>support_bundle_path')
-
-        # This part of the code should be under "delete"
-        # if os.path.isdir(path):
-        #     try:
-        #         shutil.rmtree(path)
-        #     except PermissionError as e:
-        #         Log.error(f"Incorrect permissions for path:{path} - {e}")
-        #         ComponentsBundle._publish_log(f"Incorrect permissions for path: {path} - {e}", \
-        #             ERROR, bundle_id, node_name, comment)
-
         bundle_path = os.path.join(path, bundle_id)
         try:
             os.makedirs(bundle_path)
@@ -199,22 +189,6 @@ class ComponentsBundle:
         ComponentsBundle._create_summary_file(bundle_id, node_name, \
             comment, bundle_path)
 
-        symlink_path = const.SYMLINK_PATH
-        # This part of the code should be under "delete"
-        if os.path.exists(symlink_path):
-            try:
-                shutil.rmtree(symlink_path)
-            except PermissionError as e:
-                Log.error(const.PERMISSION_ERROR_MSG.format(path=symlink_path))
-                ComponentsBundle._publish_log(f"Incorrect permissions for path: \
-                    {symlink_path} - {e}", ERROR, bundle_id, node_name, comment)
-        try:
-            os.makedirs(symlink_path, exist_ok=True)
-        except PermissionError as e:
-            Log.error(const.PERMISSION_ERROR_MSG.format(path=symlink_path))
-            ComponentsBundle._publish_log(f"Incorrect permissions for path: \
-                {symlink_path} - {e}", ERROR, bundle_id, node_name, comment)
-
         # Wait Until all the Threads Execution is not Complete.
         for each_thread in threads:
             Log.debug(
@@ -228,15 +202,6 @@ class ComponentsBundle:
             ComponentsBundle._publish_log(f"Could not generate tar file {e}", \
                 ERROR, bundle_id, node_name, comment)
             return None
-        try:
-            Log.debug("Create soft-link for generated tar.")
-            os.symlink(tar_file_name, os.path.join(symlink_path, \
-                f"{const.SUPPORT_BUNDLE}.{bundle_id}"))
-            ComponentsBundle._publish_log(f"Tar file linked at location - " \
-                f"{symlink_path}", INFO, bundle_id, node_name, comment)
-        except Exception as e:
-            ComponentsBundle._publish_log(f"Linking failed {e}", ERROR, \
-                bundle_id, node_name, comment)
         finally:
             if os.path.isdir(bundle_path):
                 shutil.rmtree(bundle_path)
