@@ -53,11 +53,11 @@ check_prerequisite() {
 # Run the coverage.py over UTs and generate coverage report
 run_coverage() {
   # Running coverage.py tool over UTs
-  for test_file in "$SRC_DIR"/utils/test/"$FRAMEWORK"/test_*
+  for test_file in "$SRC_DIR"/py-utils/test/"$FRAMEWORK"/test_*.py
   do
     coverage run -a "$test_file"
   done
-  coverage report -m "$SRC_DIR"/utils/test/"$FRAMEWORK"/test_*
+  coverage report -m "$SRC_DIR"/py-utils/test/"$FRAMEWORK"/test_*.py
 
   # Generate xml report
   coverage xml -o "$DES_DIR/utils_python_coverage.xml"
