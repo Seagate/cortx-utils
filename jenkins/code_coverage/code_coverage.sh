@@ -22,9 +22,13 @@ set -e
 SCRIPT_PATH=$(readlink -f "$0")
 SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
 SRC_DIR="$(dirname "$(dirname "$SCRIPT_DIR" )")"
-FRAMEWORK="$1"
 
 DES_DIR=${DES_DIR:-"$SRC_DIR/.code_coverage"}
+
+usage() {
+    echo """usage: $SCRIPT_PATH [-f framework]""" 1>&2;
+    exit 1;
+}
 
 die() {
         echo "${*}"
@@ -69,6 +73,18 @@ check_report() {
 }
 
 ############################# Main ################################
+
+# Pass the framework
+while getopts ":f:" o; do
+    case "${o}" in
+        f)
+            FRAMEWORK=${OPTARG}
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
 
 cleanup
 check_prerequisite
