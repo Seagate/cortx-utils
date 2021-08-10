@@ -132,7 +132,6 @@ class ComponentsBundle:
         path = Storage.get_path('support_bundle')
         if not os.path.exists(path):
             path = os.path.join(Conf.get('cortx_conf', 'support>support_bundle_path'))
-
         if os.path.isdir(path):
             try:
                 shutil.rmtree(path)
