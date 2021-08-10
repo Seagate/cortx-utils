@@ -75,6 +75,8 @@
     replace: "{{ item.val }}"
   with_items:  
     - { tempval: "TMPL_CLUSTER_ID", val: "{{ CLUSTER_ID }}" }
+    - { tempval: "TMPL_CVG_COUNT", val: "1" }
+    - { tempval: "TMPL_STORAGE_SET_ID", val: "storage-set-1" }
     - { tempval: "TMPL_STORAGESET_COUNT", val: "1" }
     - { tempval: "TMPL_DATA_UNITS_COUNT", val: "1" }
     - { tempval: "TMPL_PARITY_UNITS_COUNT", val: "0" }

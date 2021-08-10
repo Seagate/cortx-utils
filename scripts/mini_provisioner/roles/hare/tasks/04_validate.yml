@@ -1,5 +1,11 @@
 # Reference : https://github.com/Seagate/cortx-hare/wiki/Hare-provisioning-for-single-node-deployment#test
 
 # Execute Hare:Test
+- name: "[mini_provisioning] : Bootstrap Cluster"
+  shell: hctl bootstrap --mkfs /var/lib/hare/cluster.yaml 
+
 - name: "[mini_provisioning] : Hare Test" 
-  shell: /opt/seagate/cortx/hare/bin/hare_setup test --config 'json:///opt/seagate/cortx/hare/conf/hare.test.conf.tmpl.1-node'
+  shell: /opt/seagate/cortx/hare/bin/hare_setup test --config 'json:///opt/seagate/cortx/hare/conf/hare.test.conf.tmpl.1-node' --plan sanity
+
+- name: "[mini_provisioning] : Stop cluster"
+  shell: hctl shutdown

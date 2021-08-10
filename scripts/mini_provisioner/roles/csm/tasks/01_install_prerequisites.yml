@@ -22,9 +22,43 @@
 - name: "[install_prereq] : Install RE pre-req"
   shell: "curl -s -L http://cortx-storage.colo.seagate.com/releases/cortx/third-party-deps/rpm/install-cortx-prereq.sh | bash"
 
-# Start and enable elasticsearch
+# Setup elasticsearch
+- name: "[install_prereq] : Collect private ip address"
+  shell: "ifconfig eth3 | grep 'inet ' | awk -F'[: ]+' '{ print $3 }'"
+  register: pvt_ip
+
+- set_fact:
+    PVT_IP_ADDR: "{{ pvt_ip.stdout }}"
+
+- name: "[install_prereq] : Delete the opendistro_security plugin"
+  file:
+    path: /usr/share/elasticsearch/plugins/opendistro_security
+    state: absent
+
+- name: "[install_prereq] : Remove opendistro_security configuration"
+  shell: "sed -i '/######## Start/,+23 d' {{ ELASTICSEARCH_CONFIG_PATH }}"
+
+- name: "[install_prereq] : Updated elasticsearch Config"
+  lineinfile:
+    path: "{{ ELASTICSEARCH_CONFIG_PATH }}"
+    line: "{{ item }}"
+  with_items:
+    - "cluster.name: odfe-cluster"
+    - "node.name: srvnode-1"
+    - "network.bind_host: ['localhost', '{{ PVT_IP_ADDR }}']"
+    - "network.publish_host: ['{{ PVT_IP_ADDR }}']"
+    - "discovery.seed_hosts: ['{{ PVT_IP_ADDR }}']"
+    - "cluster.initial_master_nodes: ['srvnode-1']"
+
+- name: "[install_prereq] : Reload daemon process"
+  command: systemctl daemon-reload
+
+- name: "[install_prereq] : Enable elasticsearch"
+  shell: systemctl enable elasticsearch.service
+  ignore_errors: true
+
 - name: "[install_prereq] : Start elasticsearch"
-  shell: systemctl restart elasticsearch
+  shell: systemctl restart elasticsearch.service
   register: elasticsearch_status
   ignore_errors: true
 
@@ -86,6 +120,20 @@
     sleep 10
     systemctl status kafka-zookeeper.service
     systemctl status kafka.service
+
+- name: "[install_prereq] : Install NodeJS"
+  shell: |
+    wget  https://nodejs.org/dist/v12.13.0/node-v12.13.0-linux-x64.tar.xz 
+    tar -xvf node-v12.13.0-linux-x64.tar.xz
+    mkdir /opt/nodejs
+    cp -r node-v12.13.0-linux-x64 /opt/nodejs/
+    mkdir -p /var/log/seagate/csm
+    mkdir -p /etc/ssl/stx
+
+- name: "[install_prereq] : Install certs"
+  shell: |    
+    wget https://raw.githubusercontent.com/Seagate/cortx-manager/main/cicd/auxiliary/stx.pem
+    mv stx.pem /etc/ssl/stx
 
 - name: "[install_prereq] : Install csm agent, csm web, cortx-py-utils, python36-cortx-prvsnr and cli"
   yum: 

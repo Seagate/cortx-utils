@@ -1,5 +1,5 @@
----
-- name: "[mini_provisioning] : Run Sanity Test"
-  shell: csm_setup test -t /opt/seagate/cortx/csm/test/plans/self_test.pln -f /opt/seagate/cortx/csm/test/test_data/args.yaml -l /tmp/csm_test -o /tmp/test.out
-  register: csm_test_out
-  failed_when: '"PASS" not in csm_test_out.stdout'
+# ---
+# - name: "[mini_provisioning] : Run Sanity Test"
+#   shell: csm_setup test -t /opt/seagate/cortx/csm/test/plans/self_test.pln -f /opt/seagate/cortx/csm/test/test_data/args.yaml -l /tmp/csm_test -o /tmp/test.out
+#   register: csm_test_out
+#   failed_when: '"PASS" not in csm_test_out.stdout'

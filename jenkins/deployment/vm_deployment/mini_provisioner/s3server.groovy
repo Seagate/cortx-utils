@@ -3,13 +3,13 @@ pipeline {
     agent {
         node {
             // Run deployment on mini_provisioner nodes (vm deployment nodes)
-            label params.HOST == "-" ? "mini_provisioner_s3 && !cleanup_req" : "mini_provisioner_s3_user_host"
+            label params.HOST == "-" ? "mini_provisioner_7_9 && !cleanup_req" : "mini_provisioner_s3_user_host"
             customWorkspace "/var/jenkins/mini_provisioner/${JOB_NAME}_${BUILD_NUMBER}"
         }
     }
 	
     parameters {
-        string(name: 'CORTX_BUILD', defaultValue: 'http://cortx-storage.colo.seagate.com/releases/cortx/github/main/centos-7.8.2003/last_successful_prod/', trim: true, description: '''<pre>
+        string(name: 'CORTX_BUILD', defaultValue: 'http://cortx-storage.colo.seagate.com/releases/cortx/github/main/centos-7.9.2009/last_successful_prod/', trim: true, description: '''<pre>
 Target build URL  
 Example: The URL should contain directory structure like,  
 3rd_party/  
@@ -42,7 +42,7 @@ yes -> Preserve host for troublshooting [ WARNING ! Automated Deployment May be 
 FQDN of ssc-vm
 
 Recommended VM specification:
-- Cloudform VM Template : LDRr2 - CentOS 7.8  
+- Cloudform VM Template : LDRr2 - CentOS 7.9  
 - vCPUs                 : 1  
 - Memory (RAM)          : 4GB  
 - Additional Disks      : 2   
