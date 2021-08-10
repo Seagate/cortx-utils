@@ -49,6 +49,6 @@ class Storage:
                 shared_path = spec_path
             except OSError as e:
                 raise SharedStorageError(errno.EINVAL, \
-                "dir already exists, (use exist_ok as True) %s" % e)
+                    "dir already exists, (use exist_ok as True) %s" % e)
 
         return shared_path
