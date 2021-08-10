@@ -20,7 +20,7 @@ DATABASE = {
         "consul_db": {
             "import_path": "ConsulDB",
             "config": {
-                "host": "localhost",
+                "hosts": ["127.0.0.1"],
                 "port": 8500,
                 "login": "",
                 "password": ""
@@ -29,7 +29,7 @@ DATABASE = {
         "es_db": {
             "import_path": "ElasticSearchDB",
             "config": {
-                "host": "localhost",
+                "hosts": ["127.0.0.1"],
                 "port": 9200,
                 "login": "",
                 "password": "",
@@ -52,6 +52,15 @@ DATABASE = {
             "config": {
                 "es_db": {
                     "collection": "config"
+                }
+            }
+        },
+        {
+            "import_path": "cortx.utils.support.model.SupportBundleModel",
+            "database": "es_db",
+            "config": {
+                "es_db": {
+                    "collection": "supportbundle"
                 }
             }
         }

@@ -15,11 +15,13 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import os, errno
-import logging.handlers
+import os
+import errno
 import inspect
 import traceback
+import logging.handlers
 from functools import wraps
+
 
 class Log:
     CRITICAL = logging.CRITICAL
@@ -60,7 +62,7 @@ class Log:
         :param log_level: Log Class Instance :type: Class(Log)
         :return: Logger Object
         """
-        log_format = "%(asctime)s %(name)s %(levelname)s %(message)s"
+        log_format = "%(asctime)s %(name)s [%(process)d]: %(levelname)s %(message)s"
         logger_name = f"{file_name}"
         formatter = logging.Formatter(log_format, "%Y-%m-%d %H:%M:%S")
         if logger_type == "audit":
@@ -80,7 +82,8 @@ class Log:
                                   maxBytes=max_bytes, backupCount=backup_count)
             file_handler.setFormatter(formatter)
             logger.setLevel(log_level)
-            logger.addHandler(file_handler)
+            if not logger.hasHandlers():
+                logger.addHandler(file_handler)
   
         return logger
 

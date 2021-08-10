@@ -49,14 +49,29 @@ done
 [ -z "$BUILD_NUMBER" ] && BUILD_NUMBER=1
 REL="${BUILD_NUMBER}_${GIT_VER}"
 
+# Change wd to py-utils
 cd "$BASE_DIR"
+
+# Create version file
+echo $VER > VERSION
+/bin/chmod +rx VERSION
+
+# Fetch install_path
+INSTALL_PATH=$(jq .install_path cortx.conf.sample |  tr -d '"')
+
+# Put install_path in utils-post-install
+sed -i -e "s|<INSTALL_PATH>|${INSTALL_PATH}|g" utils-post-install
+
 echo "Creating cortx-py-utils RPM with version $VER, release $REL"
 
 # Create the utils-pre-install
 echo "#!/bin/bash" > utils-pre-install
 echo ""  >> utils-pre-install
 echo "PACKAGE_LIST=\""  >> utils-pre-install
-/bin/cat requirements.txt >> utils-pre-install
+/bin/cat python_requirements.txt >> utils-pre-install
+if [ -f "python_requirements.ext.txt" ]; then
+    /bin/cat python_requirements.ext.txt >> utils-pre-install
+fi
 echo "\""  >> utils-pre-install
 echo "rc=0
 for package in \$PACKAGE_LIST
@@ -78,5 +93,9 @@ exit \$rc " >> utils-pre-install
 /bin/chmod +x utils-pre-install
 
 # Create the rpm
-/bin/python3.6 setup.py bdist_rpm --version="$VER" --release="$REL" --pre-install \
-utils-pre-install --post-install utils-post-install --post-uninstall utils-post-uninstall
+/bin/python3.6 setup.py bdist_rpm --release="$REL" --pre-install utils-pre-install \
+ --post-install utils-post-install --post-uninstall utils-post-uninstall
+if [ $? -ne 0 ]; then
+  echo "build failed"
+  exit 1
+fi

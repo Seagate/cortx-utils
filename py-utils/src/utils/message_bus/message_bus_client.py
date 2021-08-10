@@ -15,7 +15,11 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import errno
+
+from cortx.utils.log import Log
 from cortx.utils.message_bus import MessageBus
+from cortx.utils.message_bus.error import MessageBusError
 
 
 class MessageBusClient:
@@ -27,11 +31,16 @@ class MessageBusClient:
             client_conf['message_bus']
         self._message_bus.init_client(client_type, **client_conf)
         self._client_conf = client_conf
+        Log.debug(f"MessageBusClient: initialized with arguments" \
+            f" client_type: {client_type}, kwargs: {client_conf}")
 
     def _get_conf(self, key: str):
         """ To get the client configurations """
         if key not in self._client_conf.keys():
-            raise MessageBusError(errno.EINVAL, "Invalid entry %s", key) 
+            Log.error(f"MessageBusError: {errno.ENOENT}. Could not" \
+                f" find key {key} in conf file {self._message_bus.conf_file}")
+            raise MessageBusError(errno.ENOENT, "Could not find key %s in " +\
+                "conf file %s", key, self._message_bus.conf_file)
         return self._client_conf[key]
 
     def list_message_types(self) -> list:
@@ -77,6 +86,22 @@ class MessageBusClient:
         self._message_bus.add_concurrency(client_id, message_type, \
             concurrency_count)
 
+    @staticmethod
+    def _get_str_message_list(messages: list) -> list:
+        """ Convert the format of message to string """
+        from cortx.utils.kv_store import KvPayload
+
+        message_list = []
+        for message in messages:
+            if isinstance(message, KvPayload):
+                message = message.json
+
+            if not isinstance(message, str):
+                raise MessageBusError(errno.EINVAL, "Invalid message format, \
+                    not of type KvPayload or str. %s", message)
+            message_list.append(message)
+        return message_list
+
     def send(self, messages: list):
         """
         Sends list of messages to the Message Bus
@@ -87,6 +112,7 @@ class MessageBusClient:
         message_type = self._get_conf('message_type')
         method = self._get_conf('method')
         client_id = self._get_conf('client_id')
+        messages = self._get_str_message_list(messages)
         self._message_bus.send(client_id, message_type, method, messages)
 
     def delete(self):

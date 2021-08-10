@@ -23,69 +23,51 @@ A common utils framework which includes common modules across components
 
 ## Prerequisites for build
 ```bash
-$ sudo yum install gcc
-$ sudo yum install rpm-build
-$ sudo yum install python36
-$ sudo yum install python36-pip
-$ sudo yum install python36-devel
-$ sudo yum install python36-setuptools
-$ sudo yum install openssl-devel
-$ sudo yum install libffi-devel
+sudo yum install -y gcc jq rpm-build python36 python36-pip python36-devel python36-setuptools openssl-devel libffi-devel python36-dbus
 ```
 
 ## Clone
-$ git clone --recursive https://github.com/Seagate/cortx-utils -b main
-
-
-## Build
-**Note:** Use one of following method to create build package
-
-  - Create pip package
-    - It will create `cortx_py_utils-1.0.0-py3-none-any.whl`
-```bash
-$ pip3 install wheel
-$ cd ./cortx-utils/py-utils
-$ python3 setup.py bdist_wheel
+```
+git clone --recursive https://github.com/Seagate/cortx-utils -b main
 ```
 
-  - Create RPM Package
+## Install python dependencies
+
+```bash
+$ cd ./py-utils/
+$ sudo pip3 install -r python_requirements.txt
+$ sudo pip3 install -r python_requirements.ext.txt
+```
+
+## Build
+
 It will create `cortx-py-utils-1.0.0-1_<git-version>.noarch.rpm` by default. One can change the version by passing extra `-v <version_string>` parameter.
 Below command passes version string as 2.0.0 and build number 2, which creates `cortx-py-utils-2.0.0-2_<git-version>.noarch.rpm`
 Run below command from repo root (cortx-utils).
 ```bash
-$ ./jenkins/build.sh -v 2.0.0 -b 2
+cd cortx-utils
+./jenkins/build.sh -v 2.0.0 -b 2
 ```
 
-## Installation
-  - Installation with pip package
+## Install the RPM package
+ 
+-   Note : The rpm package installation will fail if any dependent python package is not installed.
+-   Please refer to WIKI (https://github.com/Seagate/cortx-utils/wiki/%22cortx-py-utils%22-single-node-manual-provisioning)
+
 ```bash
-$ cd ./py-utils/dist
-$ pip3 install cortx_py_utils-1.0.0-py3-none-any.whl
+cd ./py-utils/dist
+sudo yum install -y cortx-py-utils-*.noarch.rpm
 ```
 
-  - Installation with RPM package
-Note : The rpm package installation will fail if any dependent python package is not installed.
-Please refer to WIKI (https://github.com/Seagate/cortx-utils/wiki/%22cortx-py-utils%22-single-node-manual-provisioning)
+## Uninstallation
+
 ```bash
-$ cd ./py-utils/dist
-$ yum install -y cortx-py-utils-1.0.0-1.noarch.rpm
-```
-
-## Uninstall
-
-- Pip package uninstall
-```bash
-$ pip3 uninstall cortx-py-utils
-```
-
-  - RPM uninstall
-```
-$ yum remove cortx-py-utils
+yum remove cortx-py-utils
 ```
 
 ## Update new dependency package
 
-  - Add package in `requirements.txt`.
+  - Add package in `python_requirements.txt`.
 
 <hr>
 

@@ -1,5 +1,5 @@
 # CORTX-Py-Utils: CORTX Python common library.
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -14,19 +14,32 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
-import sys
 import glob
-from typing import List
+from fnmatch import fnmatch
 from setuptools import setup
+import json
+import sys
 
-# Get the version string from command line
-utils_version = "1.0.0"    #default version
-for argument in sys.argv:
-    if argument.startswith("--version"):
-        utils_version = argument.split("=")[1]
-        # remove the argument as it is not recognized argument for setup
-        sys.argv.remove(argument)
+if not os.path.isfile("./cortx.conf.sample"):
+    print("error: cortx.conf.sample file not found!", file=sys.stderr)
+    sys.exit(1)
 
+with open("cortx.conf.sample") as conf_file:
+    build_data = json.load(conf_file)
+
+# Fetch install_path
+install_path = build_data["install_path"]
+utils_path = "%s/cortx/utils" % install_path
+
+if not os.path.isfile("./VERSION"):
+    print("error: VERSION file not found!", file=sys.stderr)
+    sys.exit(1)
+
+# Fetch version
+with open("VERSION") as v_file:
+    utils_version = v_file.read().strip()
+
+# Fetch ha spec file list
 SPEC_DIR = "src/utils/ha/hac/specs/"
 _ROOT = os.path.abspath(os.path.dirname(__file__)) + "/" + SPEC_DIR
 specs = []
@@ -44,10 +57,19 @@ with open('README.md', 'r') as rf:
     long_description = rf.read()
 
 def get_install_requirements() -> list:
-    install_requires = []
-    with open('requirements.txt') as r:
-        install_requires = [line.strip() for line in r]
+    with open('python_requirements.txt') as req:
+        install_requires = [line.strip() for line in req]
+    try:
+        with open('python_requirements.ext.txt') as extreq:
+            install_requires = install_requires + [line.strip() for line in extreq]
+    except Exception:
+        pass  ## log it!
     return install_requires
+
+def get_requirements_files() -> list:
+    req_file_list = [req_file for req_file in os.listdir(".") \
+        if fnmatch(req_file, "python_requirements.*txt")]
+    return req_file_list
 
 setup(name='cortx-py-utils',
       version=utils_version,
@@ -58,7 +80,8 @@ setup(name='cortx-py-utils',
       description='Common Python utilities for CORTX',
       package_dir={'cortx': 'src'},
       packages=['cortx', 'cortx.utils',
-                'cortx.template',
+                'cortx.template', 'cortx.support',
+                'cortx.test_framework',
                 'cortx.utils.amqp', 'cortx.utils.amqp.rabbitmq',
                 'cortx.utils.cleanup', 'cortx.utils.data',
                 'cortx.utils.data.access', 'cortx.utils.data.db',
@@ -71,7 +94,10 @@ setup(name='cortx-py-utils',
                 'cortx.utils.product_features', 'cortx.utils.security',
                 'cortx.utils.schema', 'cortx.utils.appliance_info',
                 'cortx.setup', 'cortx.utils.service',
-		'cortx.utils.setup', 'cortx.utils.setup.kafka'
+                'cortx.utils.setup', 'cortx.utils.setup.kafka',
+                'cortx.utils.support', 'cortx.utils.cli_framework',
+                'cortx.utils.utils_server', 'cortx.utils.iem_framework',
+                'cortx.utils.discovery', 'cortx.utils.common'
                 ],
       package_data={
         'cortx': ['py.typed'],
@@ -81,15 +107,23 @@ setup(name='cortx-py-utils',
             'hac = cortx.utils.ha.hac.hac:main',
             'conf = cortx.utils.conf_store.conf_cli:main',
             'utils_setup = cortx.setup.utils_setup:main',
-            'kafka_setup = cortx.utils.setup.kafka.kafka_setup:main'
+            'iem = cortx.utils.iem_framework.iem_cli:main',
+            'kafka_setup = cortx.utils.setup.kafka.kafka_setup:main',
+            'utils_support_bundle = cortx.support.utils_support_bundle:main'
         ]
       },
       data_files = [ ('/var/lib/cortx/ha/specs', specs),
+                     ('/opt/seagate/cortx/utils/conf', tmpl_files),
+                     ('/opt/seagate/cortx/utils/conf', get_requirements_files()),
                      ('/var/lib/cortx/ha', ['src/utils/ha/hac/args.yaml',
                                             'src/utils/ha/hac/re_build.sh']),
-                     ('/opt/seagate/cortx/utils/conf',
-                          ['requirements.txt', 'src/setup/setup.yaml']),
-                     ('/opt/seagate/cortx/utils/conf', tmpl_files)],
+                     ('%s/conf' % utils_path, ['src/setup/setup.yaml',
+                                 'cortx.conf.sample', 'VERSION',
+                                 'src/utils/support/support_bundle.yaml',
+                                 'src/utils/support/0-support_bundle.conf']),
+                     ('%s/conf' % utils_path, tmpl_files),
+                     ('/etc/systemd/system', ['src/utils/message_bus/'
+                                              'cortx_message_bus.service'])],
       long_description=long_description,
       zip_safe=False,
       python_requires='>=3.6',

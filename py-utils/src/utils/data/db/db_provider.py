@@ -21,7 +21,7 @@ from enum import Enum
 from typing import Type
 
 from schematics import Model
-from schematics.types import DictType, StringType, ListType, ModelType, IntType
+from schematics.types import DictType, StringType, ListType, ModelType, IntType, BooleanType
 
 from cortx.utils.data.access import BaseModel
 from cortx.utils.errors import MalformedConfigurationError, DataAccessInternalError, DataAccessError
@@ -31,7 +31,7 @@ import cortx.utils.data.db as db_module
 from cortx.utils.synchronization import ThreadSafeEvent
 
 
-DEFAULT_HOST = "127.0.0.1"
+DEFAULT_HOST = ["127.0.0.1"]
 
 
 class ServiceStatus(Enum):
@@ -44,8 +44,7 @@ class DBSettings(Model):
     """
     Settings for database server
     """
-
-    host = StringType(required=True, default=DEFAULT_HOST)
+    hosts = ListType(StringType, required=True, default=DEFAULT_HOST)
     port = IntType(required=True, default=None)
     login = StringType()
     password = StringType()
@@ -66,6 +65,7 @@ class ModelSettings(Model):
     Configuration for base model like collection as example
     """
     collection = StringType(required=True)
+    create_schema = BooleanType(required=False, default=True)
 
 
 class DBModelConfig(Model):
@@ -159,7 +159,7 @@ class AsyncDataBase:
         try:
             self._database = await self._database_module.create_database(self._db_config.config,
                                                                          self._model_settings.collection,
-                                                                         self._model)
+                                                                         self._model, self._model_settings.create_schema)
         except DataAccessError:
             raise
         except Exception as e:

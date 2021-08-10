@@ -17,6 +17,33 @@ import inspect
 
 OPERATION_SUCESSFUL = 0x0000
 INTERNAL_ERROR = 0x1005
+ERR_OP_FAILED = 0x1100
+ERR_INVALID_CLIENT_TYPE = 0x1501
+ERR_INVALID_SERVICE_NAME = 0x1502
+ERR_SERVICE_UNAVAILABLE = 0x1503
+ERR_SERVICE_NOT_INITIALIZED = 0x1504
+ERR_NOT_INITIALIZED = 0x1505
+
+
+class UtilsError(Exception):
+    """ Generic Exception with error code and output """
+
+    def __init__(self, rc, message, *args):
+        self._rc = rc
+        self._desc = message % (args)
+
+    @property
+    def rc(self):
+        return self._rc
+
+    @property
+    def desc(self):
+        return self._desc
+
+    def __str__(self):
+        if self._rc == 0:
+            return self._desc
+        return "error(%d): %s" %(self._rc, self._desc)
 
 
 class BaseError(Exception):
@@ -64,7 +91,6 @@ class InternalError(BaseError):
               INTERNAL_ERROR, 'Internal error: %s' % desc,
               message_id, message_args)
 
-
 class DataAccessError(InternalError):
 
     """Base Data Access Error"""
@@ -94,6 +120,16 @@ class StorageNotFoundError(DataAccessError):
 
     """Model object is not associated with any storage"""
 
+
 class AmqpConnectionError(Exception):
 
-    """Amqp connection problems"""
+    """ Amqp connection problems """
+
+
+class TestFailed(Exception):
+    """
+    Errors related to test execution
+    """
+    def __init__(self, desc):
+        self.desc = '[%s] %s' %(inspect.stack()[1][3], desc)
+        super(TestFailed, self).__init__(desc)

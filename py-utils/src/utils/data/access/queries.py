@@ -44,9 +44,10 @@ class OrderBy:
 
     """Class to represent order by parameters for DB"""
 
-    def __init__(self, field, order: SortOrder = SortOrder.ASC):
+    def __init__(self, field, order: SortOrder = SortOrder.ASC, **kwargs):
         self.field = field
         self.order = order
+        self.kwargs = kwargs
 
 
 class Query:
@@ -72,7 +73,7 @@ class Query:
         self.data = self.Data(order_by, filter_by, limit, offset)
 
     # TODO: order_by can be chained and we can store an array of fields to sort by them
-    def order_by(self, by_field: BaseType, by_order: SortOrder = SortOrder.ASC):
+    def order_by(self, by_field: BaseType, by_order: SortOrder = SortOrder.ASC, **kwargs):
         """
         Set Query order_by parameter
 
@@ -80,7 +81,7 @@ class Query:
         :param int by_order: direction of ordering
 
         """
-        self.data.order_by = OrderBy(by_field, by_order)
+        self.data.order_by = OrderBy(by_field, by_order, **kwargs)
         return self
 
     def filter_by(self, by_filter: IFilter):
