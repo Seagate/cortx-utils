@@ -13,22 +13,27 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com
 
+import os
+import errno
 import string
 import random
-import errno
 import asyncio
-from cortx.utils.support_framework import const
-from cortx.utils.support_framework.model import SupportBundleRepository
-from cortx.utils.support_framework.errors import BundleError
-from cortx.utils.data.db.db_provider import (DataBaseProvider, GeneralConfig)
-from cortx.utils.errors import DataAccessExternalError
+
+from cortx.utils.log import Log
+from cortx.utils.schema import database
+from cortx.utils.process import SimpleProcess
+from cortx.utils.shared_storage import Storage
 from cortx.utils.schema.providers import Response
 from cortx.utils.conf_store.conf_store import Conf
-from cortx.utils.log import Log
-from cortx.utils.support_framework.services import ProvisionerServices
-from cortx.utils.schema import database
 from cortx.utils.cli_framework.command import Command
+from cortx.utils.errors import DataAccessExternalError
+from cortx.utils.support_framework import const
+from cortx.utils.support_framework import Bundle
+from cortx.utils.support_framework.errors import BundleError
+from cortx.utils.support_framework.services import ProvisionerServices
+from cortx.utils.support_framework.model import SupportBundleRepository
 from cortx.utils.support_framework.bundle_generate import ComponentsBundle
+from cortx.utils.data.db.db_provider import (DataBaseProvider, GeneralConfig)
 
 
 class SupportBundle:
@@ -36,12 +41,12 @@ class SupportBundle:
     """This Class initializes the Support Bundle Generation for CORTX."""
 
     @staticmethod
-    async def _get_active_nodes():
-        """
-        This Method is for reading hostnames, node_list information
+    async def _get_active_nodes() -> dict:
+        """This Method is for reading hostnames, node_list information
 
-        return:     hostnames : List of Hostname :type: List
-        return:     node_list : List of Node Name :type: List
+        Returns:
+            dict:     hosts in cluster eg {node1:fqd1}
+            Response: Response object if no host found in config file
         """
         Log.info("Reading hostnames, node_list information")
         Conf.load('cortx_cluster', 'json:///etc/cortx/cluster.conf', \
@@ -96,10 +101,21 @@ class SupportBundle:
         if not isinstance(node_hostname_map, dict):
             return node_hostname_map
 
+        shared_path = Storage.get_path(name='support_bundle')
+        path = shared_path if shared_path else Conf.get('cortx_conf',\
+            'support>support_bundle_path')
+
+        bundle_path = os.path.join(path,bundle_id)
+        os.makedirs(bundle_path)
+        
+        bundle_obj = Bundle(bundle_id=bundle_id, bundle_path=path, \
+            comment=comment,is_shared=True if shared_path else False)
+
         # Start SB Generation on all Nodes.
         for nodename, hostname in node_hostname_map.items():
             Log.debug(f"Connect to {hostname}")
             try:
+                # TODO: pass bundle_path to bundle_generation when args implemented
                 await provisioner.begin_bundle_generation(
                     f"bundle_generate '{bundle_id}' '{comment}' "
                     f"'{hostname}' {comp_list}", nodename)
@@ -112,10 +128,19 @@ class SupportBundle:
                 ComponentsBundle._publish_log(f"Internal error, bundle generation failed \
                     {e}", 'error', bundle_id, nodename, comment)
 
-        symlink_path = const.SYMLINK_PATH
-        from cortx.utils.support_framework import Bundle
-        bundle_obj = Bundle(bundle_id=bundle_id, bundle_path=symlink_path, \
-            comment=comment)
+        if bundle_obj.is_shared:
+            # create common tar
+            tar_cmd = f"cd {bundle_path} && tar -cvzf"
+            tar_dest_file = f"{bundle_id}.tar.gz"
+            final_tar_cmd = f"{tar_cmd} {tar_dest_file} * --remove_files"
+            Log.debug(f"Merging all bundle to {bundle_path}/{tar_dest_file}")
+            _, _, rc = SimpleProcess(final_tar_cmd).run()
+            if rc != 0:
+                Log.debug("Merging of node support bundle failed")
+                return Response(output="Bundle Generation Failed in merging",
+                rc=errno.EINVAL)
+
+
         return bundle_obj
 
     @staticmethod
