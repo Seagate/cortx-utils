@@ -278,12 +278,12 @@ pipeline {
             steps {
                 script { build_stage = env.STAGE_NAME }
                 script {
-                    build job: 'Main Deploy 1N', propagate: false, wait: false, parameters: [
+                    build job: 'main deploy 1n', propagate: false, wait: false, parameters: [
                             string(name: 'CORTX_BUILD', value: "http://cortx-storage.colo.seagate.com/releases/cortx/github/${branch}/${os_version}/${env.release_tag}/prod"),
                             booleanParam(name: 'CREATE_JIRA_ISSUE_ON_FAILURE', value: true),
                             booleanParam(name: 'AUTOMATED', value: true)
                     ]
-                    build job: 'Main Deploy 3N', propagate: false, wait: false, parameters: [
+                    build job: 'main deploy 3n', propagate: false, wait: false, parameters: [
                             string(name: 'CORTX_BUILD', value: "http://cortx-storage.colo.seagate.com/releases/cortx/github/${branch}/${os_version}/${env.release_tag}/prod"),
                             booleanParam(name: 'CREATE_JIRA_ISSUE_ON_FAILURE', value: true),
                             booleanParam(name: 'AUTOMATED', value: true)
