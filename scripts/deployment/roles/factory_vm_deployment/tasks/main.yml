@@ -1,0 +1,15 @@
+---
+- include: 01_deploy_prereq.yml 
+  tags: ['01_DEPLOY_PREREQ']
+
+- include: 02_factory_manufacturing.yml
+  tags: ['02_FACTORY_MANUFACTURING']
+
+- include: 03_field_deployment.yml
+  tags: ['03_FIELD_DEPLOYMENT']
+
+- include: 04_component_deployment.yml
+  tags: ['04_COMPONENT_DEPLOYMENT']
+
+- include: 05_validate_cluster.yml
+  tags: ['05_VALIDTAE_CLUSTER']

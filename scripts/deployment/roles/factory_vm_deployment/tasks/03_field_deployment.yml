@@ -1,0 +1,67 @@
+---
+- include: gather_node_info.yml 
+
+- name: "[Field Deployment] : Prepare Nodes"
+  shell: cortx_setup node prepare server --site_id 1 --rack_id 1 --node_id "{{ item.0|int + 1 }}"
+  delegate_to: "{{ item.1 }}"
+  with_indexed_items: "{{ groups['srvnodes'] }}"
+
+- name: "[Field Deployment] : Configure Network"
+  shell: |
+    cortx_setup node prepare network --hostname $(hostname -f) --dns_servers {{ DNS_SERVERS }} --search_domains {{ SEARCH_DOMAINS }}
+    cortx_setup node prepare network --type management --ip_address {{  vars['NODE' + (item.0 + 1) | string + '_MGMT_ITF_ADDR'] }} --netmask {{  vars['NODE' + (item.0 + 1) | string + '_MGMT_ITF_NETMASK'] }} --gateway {{  vars['NODE' + (item.0 + 1) | string + '_MGMT_ITF_GATEWAY'] }} 
+    cortx_setup node prepare network --type data --ip_address {{  vars['NODE' + (item.0 + 1) | string + '_PUB_ITF_ADDR'] }} --netmask {{  vars['NODE' + (item.0 + 1) | string + '_PUB_ITF_NETMASK'] }} --gateway "{{ SECONDARY_GATEWAY }}"
+    cortx_setup node prepare network --type private --ip_address {{  vars['NODE' + (item.0 + 1) | string + '_PVT_ITF_ADDR'] }} --netmask {{  vars['NODE' + (item.0 + 1) | string + '_PVT_ITF_NETMASK'] }} --gateway "{{ SECONDARY_GATEWAY }}"
+  delegate_to: "{{ item.1 }}"
+  with_indexed_items: "{{ groups['srvnodes'] }}"
+
+- name: "[Field Deployment] : Configure Firewall"
+  shell: cortx_setup node prepare firewall --config yaml:///opt/seagate/cortx_configs/firewall_config.yaml
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+
+- name: "[Field Deployment] : Configure the Network Time Server"
+  shell: cortx_setup node prepare time --server {{ SEAGATE_TIME_SERVER }} --timezone UTC
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+
+- name: "[Field Deployment] : Finalize Node"
+  shell: cortx_setup node prepare finalize
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+
+- name: "[Field Deployment] : Create Cluster Definition"
+  script: files/create_3n_cluster.sh "{{ HOST.split(',')[0] }}" "{{ HOST.split(',')[1] }}" "{{ HOST.split(',')[2] }}" "{{ MGMT_VIP }}" "{{ CORTX_BUILD }}" "{{ CLUSTER_PASS }}" 
+  delegate_to: "srvnode-1"
+  when: SETUP_TYPE == '3_node'
+
+- name: "[Field Deployment] : Create Cluster Definition"
+  script: files/create_1n_cluster.sh "{{ HOST }}" "{{ CORTX_BUILD }}" "{{ CLUSTER_PASS }}" 
+  delegate_to: "srvnode-1"
+  when: SETUP_TYPE == 'single'
+
+- name: "[Field Deployment] : Show Cluster Details"
+  shell: cortx_setup cluster show
+  delegate_to: "srvnode-1"
+
+- name: "[Field Deployment] : Define Storage Set"
+  shell: |
+    cortx_setup storageset create --name storage-set-1 --count 3
+    cortx_setup storageset add node storage-set-1 srvnode-1 srvnode-2 srvnode-3
+    cortx_setup storageset add enclosure storage-set-1 srvnode-1 srvnode-2 srvnode-3
+    cortx_setup storageset config durability storage-set-1 --type sns --data 4 --parity 2 --spare 0
+  delegate_to: "srvnode-1"
+  when: SETUP_TYPE == '3_node'
+
+- name: "[Field Deployment] : Define Storage Set"
+  shell: |
+    cortx_setup storageset create --name storage-set-1 --count 1
+    cortx_setup storageset add node storage-set-1 srvnode-1
+    cortx_setup storageset add enclosure storage-set-1 srvnode-1
+    cortx_setup storageset config durability storage-set-1 --type sns --data 4 --parity 2 --spare 0
+  delegate_to: "srvnode-1"
+  when: SETUP_TYPE == 'single'  
+
+- name: "[Field Deployment] : Prepare Cluster"
+  shell: cortx_setup cluster prepare
+  delegate_to: "srvnode-1"

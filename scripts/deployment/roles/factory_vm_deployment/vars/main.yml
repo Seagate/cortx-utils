@@ -1,0 +1,9 @@
+---
+CORXT_DEPLOYMENT_PATH: "/root/cortx_deployment"
+CORXT_DEPLOYMENT_LOG_PATH: "/root/cortx_deployment/log/"
+CORXT_DEPLOYMENT_SCRIPT_PATH: "/root/cortx_deployment/script"
+CORXT_DEPLOYMENT_CONFIG_PATH: "/root/cortx_deployment/config"
+CORTX_DIR_PATH: "/mnt/cortx"
+SECONDARY_GATEWAY: "0.0.0.0"
+CLUSTER_NAME: "cortx_cluster"
+REQUIRED_PARTITION: 4

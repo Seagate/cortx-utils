@@ -1,0 +1,61 @@
+---
+- name: "[ Component Deployment ] : Start Components Deployment"
+  block:
+    - name: "[ Component Deployment ] : Foundation Deployment"
+      shell: cortx_setup cluster config component --type foundation
+      delegate_to: "srvnode-1"
+
+    - name: "[ Component Deployment ] : IO-Path Deployment"
+      shell: cortx_setup cluster config component --type iopath
+      delegate_to: "srvnode-1"
+
+    - name: "[ Component Deployment ] : Controlpath Deployment"
+      shell: cortx_setup cluster config component --type controlpath
+      delegate_to: "srvnode-1"
+
+    - name: "[ Component Deployment ] : HA Deployment"
+      shell: cortx_setup cluster config component --type ha
+      delegate_to: "srvnode-1"
+  rescue:
+    - set_fact:
+        FAILED: "True"
+      tags: ['VALIDATE_DEPLOYMENT']  
+
+    - name: "[ Validate Deployment ] : Get journalctl Log" 
+      shell: "journalctl 2>&1 > {{ CORXT_DEPLOYMENT_LOG_PATH }}/journalctl.log"
+      ignore_errors: true
+      delegate_to: "{{ hostvars[item]['ansible_host'] }}"
+      loop: "{{ groups['srvnodes'] }}"
+      tags: ['VALIDATE_DEPLOYMENT']
+
+    - name: "[ Validate Deployment ] : Get installed rpm package info"
+      shell: yum list installed | grep 'cortx' 2>&1 > {{ CORXT_DEPLOYMENT_LOG_PATH }}/installed_cortx_rpm_list.log
+      ignore_errors: true
+      tags: ['VALIDATE_DEPLOYMENT']
+
+    - name: "[ Validate Deployment ] : Get installed pip package info"
+      shell: pip3 freeze 2>&1 > {{ CORXT_DEPLOYMENT_LOG_PATH }}/installed_pip_packages_list.log
+      ignore_errors: true
+      tags: ['VALIDATE_DEPLOYMENT']
+
+    - name: "[ Validate Deployment ] : Create Support Bundles"
+      shell: |
+        /usr/bin/sspl_bundle_generate support_bundle "{{ CORXT_DEPLOYMENT_LOG_PATH }}" || true
+        sh /opt/seagate/cortx/s3/scripts/s3_bundle_generate.sh support_bundle "{{ CORXT_DEPLOYMENT_LOG_PATH }}" || true
+        /opt/seagate/cortx/motr/libexec/m0reportbug-bundler support_bundle "{{ CORXT_DEPLOYMENT_LOG_PATH }}" || true
+        /opt/seagate/cortx/hare/bin/hare_setup support_bundle support_bundle "{{ CORXT_DEPLOYMENT_LOG_PATH }}" || true
+        /opt/seagate/cortx/provisioner/cli/provisioner-bundler support_bundle "{{ CORXT_DEPLOYMENT_LOG_PATH }}" || true
+        cortx support_bundle create support_bundle "{{ CORXT_DEPLOYMENT_LOG_PATH }}" || true
+        /usr/bin/manifest_support_bundle support_bundle "{{ CORXT_DEPLOYMENT_LOG_PATH }}" || true
+        cortxcli csm_bundle_generate csm support_bundle "{{ CORXT_DEPLOYMENT_LOG_PATH }}" || true
+      delegate_to: "{{ hostvars[item]['ansible_host'] }}"
+      loop: "{{ groups['srvnodes'] }}"  
+      tags: ['VALIDATE_DEPLOYMENT']
+
+    - name: "[ Validate Deployment ] : Component Deployment Failure"
+      fail:
+        msg: "Component deployment failed !!"
+      when: "{{ FAILED }} == True"
+      tags: ['VALIDATE_DEPLOYMENT']         
+
+  

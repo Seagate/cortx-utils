@@ -1,0 +1,84 @@
+---
+
+- name: "[ Pre-Validation ] : Check node SSH connection status"
+  shell: "echo '{{ item }} : SSH Connection Ok'"
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+
+- name: "[ Pre-Validation ] : Install tools [expect, curl, bc, jq]"
+  yum:
+    name: [ 'expect', 'curl']
+    state: latest
+    update_cache: yes
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+
+- set_fact:
+    REQUIRED_HOST: "{% if SETUP_TYPE=='single' %}1{% elif SETUP_TYPE=='3_node'%}3{% else %}1{% endif %}"
+    REQUIRED_DEVICES:  "{% if SETUP_TYPE=='single' %}2{% elif SETUP_TYPE=='3_node'%}4{% else %}2{% endif %}"
+
+- name: "[ Pre-Validation ] : Validate the input arguments"
+  fail: msg="Provided Host count not matching with setup type"
+  when: "REQUIRED_HOST|int !=  HOST.count(',') + 1" 
+
+- name: "[ Pre-Validation ] : Check VM has required number of disks"
+  shell: "test {{ REQUIRED_DEVICES }} -le $(lsblk -nd -o NAME -e 11|grep -v sda|wc -l)"
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+
+- name: "[ Pre-Validation ] : Check node provided in clean state"
+  shell: |
+    for folder in "/var/log/seagate" "/opt/seagate" "/mnt/cortx";
+    do
+        if [[ ! -d "${folder}" ]]; then
+            echo "OK - Folder does not exists ( ${folder} )";
+        else 
+            echo "NOT_OK - Folder exists ${folder}";
+            exit 1
+        fi
+    done
+    if [[ ! $(yum list installed | grep "cortx" | grep -v "compat-lua-libs") ]]; then
+        echo "OK - System in clean state no cortx component installed";
+    else
+        echo "NOT_OK - Cortx component already installed";
+        exit 1
+    fi 
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+
+- name: "[ Deploy Prerequisite ] : Create Deployment log/script/config Dir"
+  shell: |
+    rm -rf "{{ CORXT_DEPLOYMENT_PATH }}"
+    mkdir -p "{{ CORXT_DEPLOYMENT_LOG_PATH }}"
+    mkdir -p "{{ CORXT_DEPLOYMENT_CONFIG_PATH }}"
+    mkdir -p "{{ CORXT_DEPLOYMENT_SCRIPT_PATH }}"
+    mkdir -p "{{ CORTX_DIR_PATH }}"
+    touch {{ CORXT_DEPLOYMENT_LOG_PATH }}/deploymet_latest.log
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"  
+
+- name: "[ Deploy Prerequisite ] : Download install.sh script"
+  get_url:
+    url: https://raw.githubusercontent.com/Seagate/cortx-prvsnr/stable/srv/components/provisioner/scripts/install.sh
+    dest: "{{ CORTX_DIR_PATH }}"
+    mode: 0755
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"  
+
+- name: "[ Deploy Prerequisite ] : Execute setup script"
+  shell: "{{ CORTX_DIR_PATH }}/install.sh -t {{ CORTX_BUILD }} 2>&1 | tee -a {{ CORXT_DEPLOYMENT_LOG_PATH }}/00_cortx_install_script.log"
+  async: 1800
+  poll: 0
+  register: setup_async
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+
+- name: "[ Deploy Prerequisite ] : Wait for Async job to complete"
+  async_status:
+    jid: "{{  setup_async['results'][item.0]['ansible_job_id'] }}"
+  register: job_result
+  until: job_result.finished
+  retries: 60
+  delay: 30
+  delegate_to: "{{ item.1 }}"
+  with_indexed_items: "{{ groups['srvnodes'] }}"  

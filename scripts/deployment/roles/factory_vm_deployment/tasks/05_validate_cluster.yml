@@ -1,0 +1,56 @@
+---
+- name: "[ Validate Cluster ] : Get journalctl Log" 
+  shell: "journalctl 2>&1 > {{ CORXT_DEPLOYMENT_LOG_PATH }}/journalctl.log"
+  ignore_errors: true
+  delegate_to: "{{ hostvars[item]['ansible_host'] }}"
+  loop: "{{ groups['srvnodes'] }}"
+
+- name: "[ Validate Cluster ] : Get installed rpm package info"
+  shell: yum list installed | grep 'cortx' 2>&1 > {{ CORXT_DEPLOYMENT_LOG_PATH }}/installed_cortx_rpm_list.log
+  ignore_errors: true
+
+- name: "[ Validate Cluster ] : Get installed pip package info"
+  shell: pip3 freeze 2>&1 > {{ CORXT_DEPLOYMENT_LOG_PATH }}/installed_pip_packages_list.log
+  ignore_errors: true
+
+- pause:
+    seconds: 20
+
+- name: "[ Validate Cluster ] : Start Cluster"
+  shell: cortx cluster start
+  delegate_to: "srvnode-1"
+
+# Wait for services to start
+- name: "[ Validate Deployment ] : Check cluster status"
+  command: "hctl status"
+  register: hctl_status
+  until:
+    - "'[started]  hax' in hctl_status.stdout"
+    - "'[started]  confd' in hctl_status.stdout"
+    - "'[started]  ioservice' in hctl_status.stdout"
+    - "'[started]  ioservice' in hctl_status.stdout"
+    - "'[started]  s3server' in hctl_status.stdout"
+  retries: 5
+  delay: 40
+  ignore_errors: true  
+
+- name: "[ Validate Cluster ] : Check Cluster Status"
+  shell: pcs status --full 2>&1 | tee -a {{ CORXT_DEPLOYMENT_LOG_PATH }}/pcs_status.log 
+  delegate_to: "srvnode-1"
+
+- name: "[ Validate Cluster ] : Check Cluster Status - Alternate Way"
+  shell: hctl status 2>&1 | tee -a {{ CORXT_DEPLOYMENT_LOG_PATH }}/hctl_status.log
+  delegate_to: "srvnode-1"
+
+- name: "[ Validate Cluster ] : Validate Cluster Status"
+  script: files/validate_deployment.sh
+  register: pcs_status
+  delegate_to: "srvnode-1"
+
+- name: "[ Validate Cluster ] : pcs status"  
+  fail: msg="Deployment failed. 'pcs status' returns unhealthy response"
+  when: "\"Failed Service\" in pcs_status.stdout"
+
+- name: "[ Validate Cluster ] : hctl status"
+  fail: msg="Deployment failed. 'hctl status' returns unhealthy response"
+  when: "\"[offline]\" in hctl_status.stdout"

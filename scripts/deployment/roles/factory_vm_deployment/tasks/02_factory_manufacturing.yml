@@ -1,0 +1,62 @@
+---
+- include: gather_node_info.yml
+
+- name: "[Factory Manufacturing ] : Configure Nodes"
+  shell: "cortx_setup server config --name  {{ item }} --type VM"
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+
+- name: "[Factory Manufacturing ] : Configure lnet"
+  shell: cortx_setup network config --transport lnet --mode tcp
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+
+- name: "[Factory Manufacturing ] : Configure interfaces"
+  shell: |
+    cortx_setup network config --interfaces {{  vars['NODE' + (item.0 + 1) | string + '_MGMT_ITF'] }} --type management
+    cortx_setup network config --interfaces {{  vars['NODE' + (item.0 + 1) | string + '_PUB_ITF'] }} --type data
+    cortx_setup network config --interfaces {{  vars['NODE' + (item.0 + 1) | string + '_PVT_ITF'] }} --type private
+    cortx_setup network config --bmc 127.0.0.1 --user {{ CONTROLLER_USERNAME }} --password {{ CONTROLLER_PASSWORD }}
+  delegate_to: "{{ item.1 }}"
+  with_indexed_items: "{{ groups['srvnodes'] }}"
+    
+- name: "[Factory Manufacturing ] : Configure Storage"
+  shell: |
+    cortx_setup storage config --name enclosure-1 --type virtual
+    cortx_setup storage config --controller virtual --mode primary --ip 127.0.0.1 --port 80 --user {{ CONTROLLER_USERNAME }} --password {{ CONTROLLER_PASSWORD }}
+    cortx_setup storage config --controller virtual --mode secondary --ip 127.0.0.1 --port 80 --user {{ CONTROLLER_USERNAME }} --password {{ CONTROLLER_PASSWORD }}
+    cortx_setup storage config --cvg 0 --data-devices {{  vars['NODE' + (item.0 + 1) | string + '_CVG0_DATA_DEVICES'] }} --metadata-devices {{  vars['NODE' + (item.0 + 1) | string + '_CVG0_METADATA_DEVICES'] }}
+    cortx_setup storage config --cvg 1 --data-devices {{  vars['NODE' + (item.0 + 1) | string + '_CVG1_DATA_DEVICES'] }} --metadata-devices {{  vars['NODE' + (item.0 + 1) | string + '_CVG1_METADATA_DEVICES'] }}
+  delegate_to: "{{ item.1 }}"
+  with_indexed_items: "{{ groups['srvnodes'] }}"
+
+- name: "[Factory Manufacturing ] : Configure Security"
+  shell: cortx_setup security config --certificate /opt/seagate/cortx/provisioner/srv/components/misc_pkgs/ssl_certs/files/stx.pem
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+
+- name: "[Factory Manufacturing ] : Configure Feature"
+  shell: |
+    cortx_setup config set --key 'cortx>software>s3>service>instances' --val 1
+    cortx_setup config set --key 'cortx>software>s3>io>max_units' --val 8
+    cortx_setup config set --key 'cortx>software>motr>service>client_instances' --val 2
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+
+- name: "[Factory Manufacturing ] : Initialize Nodes"
+  shell: cortx_setup node initialize
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+
+- name: "[Factory Manufacturing ] : Setup Nodes Signature"
+  shell: |
+    cortx_setup signature set --key LR_SIGNATURE --value HP1_5U84
+    cortx_setup signature get --key LR_SIGNATURE 
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+
+- name: "[Factory Manufacturing ] : Finalize Nodes Configuration"
+  shell: cortx_setup node finalize --force
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+

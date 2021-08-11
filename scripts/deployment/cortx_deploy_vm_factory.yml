@@ -1,0 +1,13 @@
+---
+- name: Prepare Environment
+  hosts: localhost
+  gather_facts: True
+  roles:
+    - role: 00_prepare_environment
+      tags: ['00_PREPARE']
+
+- name: Prepare Environment 
+  hosts: srvnode-1 # Assuming 00_PREPARE creates host entries
+  gather_facts: True
+  roles:
+    - factory_vm_deployment
