@@ -284,7 +284,7 @@ class Kafka:
 
         if single_node_pre_config_checks:
             Kafka._set_kafka_single_node_config(servers[0], ports[0])
-        elif len(servers) > 1
+        elif len(servers) > 1:
             for host, prt in zip(servers, ports):
                 if host in  [curr_host_fqdn, curr_host_ip]:
                     # multi node setup
