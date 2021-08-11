@@ -135,9 +135,12 @@ class ComponentsBundle:
             ComponentsBundle._publish_log(f"No such file {cmd_setup_file}", \
                 ERROR, bundle_id, node_name, comment)
             return None
-        # Path Location for creating Support Bundle.
-        path = Conf.get('cortx_conf', 'support>support_bundle_path')
-        bundle_path = os.path.join(path, bundle_id)
+        # Shared/Local path Location for creating Support Bundle.
+        from cortx.utils.shared_storage import Storage
+        path = Storage.get_path('support_bundle')
+        if not path:
+            path = os.path.join(Conf.get('cortx_conf', 'support'))
+        bundle_path = os.path.join(path, bundle_id, node_name)
         try:
             os.makedirs(bundle_path)
         except PermissionError as e:
@@ -176,14 +179,15 @@ class ComponentsBundle:
                 if components_commands:
                     thread_obj = threading.Thread(\
                         ComponentsBundle._exc_components_cmd(\
-                        components_commands, bundle_id, f"{bundle_path}{os.sep}"\
-                        , each_component, node_name, comment))
+                        components_commands, f'{bundle_id}_{each_component}',
+                            f'{bundle_path}{os.sep}', each_component,
+                            node_name, comment))
                     thread_obj.start()
                     Log.debug(f"Started thread -> {thread_obj.ident} " \
                         f"Component -> {each_component}")
                     threads.append(thread_obj)
-        directory_path = Conf.get('cortx_conf', 'support>support_bundle_path')
-        tar_file_name = os.path.join(directory_path, \
+        # directory_path = Conf.get('cortx_conf', 'support')
+        tar_file_name = os.path.join(path, \
             f'{bundle_id}_{node_name}.tar.gz')
 
         ComponentsBundle._create_summary_file(bundle_id, node_name, \
@@ -202,8 +206,8 @@ class ComponentsBundle:
             ComponentsBundle._publish_log(f"Could not generate tar file {e}", \
                 ERROR, bundle_id, node_name, comment)
             return None
-        finally:
-            if os.path.isdir(bundle_path):
-                shutil.rmtree(bundle_path)
+        # finally:
+        #     if os.path.isdir(bundle_path):
+        #         shutil.rmtree(bundle_path)
         msg = "Support bundle generation completed."
         ComponentsBundle._publish_log(msg, INFO, bundle_id, node_name, comment)

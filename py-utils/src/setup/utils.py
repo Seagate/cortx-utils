@@ -240,7 +240,7 @@ class Utils:
         Utils._configure_rsyslog()
 
         # get shared storage info from config phase input conf template file
-        shared_storage = Conf.get('cluster_config', 'support')
+        shared_storage = Conf.get('cluster_config', 'cortx>support')
 
         # set shared storage info to cortx.conf conf file
         Utils._set_to_conf_file('support', shared_storage)
