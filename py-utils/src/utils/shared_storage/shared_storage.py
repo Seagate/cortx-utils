@@ -30,7 +30,7 @@ class Storage:
         """ Initialize and load shared storage backend """
 
         Conf.load('cotrx_config', Storage.config_file, skip_reload=True)
-        shared_storage_url = Conf.get('cotrx_config', 'support')
+        shared_storage_url = Conf.get('cotrx_config', 'support>shared_path')
 
         self.shared_storage_agent = SharedStorageFactory.get_instance( \
             shared_storage_url)

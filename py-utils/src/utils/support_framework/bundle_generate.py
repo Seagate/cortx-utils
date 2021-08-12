@@ -139,10 +139,10 @@ class ComponentsBundle:
         from cortx.utils.shared_storage import Storage
         path = Storage.get_path('support_bundle')
         if not path:
-            path = os.path.join(Conf.get('cortx_conf', 'support'))
+            path = Conf.get('cortx_conf', 'support>local_path')
         bundle_path = os.path.join(path, bundle_id, node_name)
         try:
-            os.makedirs(bundle_path)
+            os.makedirs(bundle_path, exist_ok=True)
         except PermissionError as e:
             Log.error(f"Incorrect permissions for path:{bundle_path} - {e}")
             ComponentsBundle._publish_log(f"Incorrect permissions for path: {bundle_path} - {e}", \

@@ -103,7 +103,7 @@ class SupportBundle:
 
         shared_path = Storage.get_path(name='support_bundle')
         path = shared_path if shared_path else Conf.get('cortx_conf',\
-            'support>support_bundle_path')
+            'support>local_path')
 
         bundle_path = os.path.join(path,bundle_id)
         os.makedirs(bundle_path)
