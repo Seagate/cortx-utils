@@ -99,8 +99,8 @@ class Utils:
         return server_info
 
     @staticmethod
-    def _copy_cluster_map(conf_url_index: str):
-        cluster_data = Conf.get(conf_url_index, 'server_node')
+    def _copy_cluster_map(url_index: str):
+        cluster_data = Conf.get(url_index, 'server_node')
         for _, node_data in cluster_data.items():
             hostname = node_data.get('hostname')
             node_name = node_data.get('name')
@@ -147,7 +147,7 @@ class Utils:
         pass
 
     @staticmethod
-    def post_install():
+    def post_install(post_install_template: str):
         """ Performs post install operations """
         # check whether zookeeper and kafka are running
         ServiceV().validate('isrunning', ['kafka-zookeeper.service', \
@@ -170,13 +170,19 @@ class Utils:
             Log.info("Not found: "+f"{utils_path}/conf/python_requirements.ext.txt")
 
         PkgV().validate(v_type='pip3s', args=req_pack)
+        default_sb_path = '/var/log/cortx/support_bundle'
+        Utils._set_to_conf_file('suport>local_path', default_sb_path)
+        os.makedirs(default_sb_path, exist_ok=True)
 
-        # Add Shared storage type and path to cortx.conf file
-        # this should be removed once it is there in confstore
-        # config file
-        Utils._set_to_conf_file('shared_storage>type', 'GlusterFS')
-        Utils._set_to_conf_file('shared_storage>path', \
-            '/var/lib/seagate/cortx/provisioner/shared/')
+        machine_id = Conf.machine_id
+        key_list = [f'server_node>{machine_id}>hostname', f'server_node>{machine_id}>name']
+        ConfKeysV().validate('exists', post_install_template, key_list)
+
+        post_install_template_index = "post_install_index"
+        Conf.load(post_install_template_index, post_install_template)
+        #set cluster nodename:hostname mapping to cluster.conf (needed for Support Bundle)
+        Utils._copy_cluster_map(post_install_template_index)
+
         return 0
 
     @staticmethod
@@ -214,7 +220,7 @@ class Utils:
 
         # Load required files
         config_template_index = 'cluster_config'
-        Conf.load('cluster', 'json:///etc/cortx/cluster.conf')
+        Conf.load('cluster', 'json:///etc/cortx/cluster.conf', skip_reload=True)
         Conf.load(config_template_index, config_template)
 
         try:
@@ -243,7 +249,7 @@ class Utils:
         shared_storage = Conf.get('cluster_config', 'cortx>support')
 
         # set shared storage info to cortx.conf conf file
-        Utils._set_to_conf_file('support', shared_storage)
+        Utils._set_to_conf_file('support>shared_path', shared_storage)
 
         # temporary fix for a common message bus log file
         # The issue happend when some user other than root:root is trying
