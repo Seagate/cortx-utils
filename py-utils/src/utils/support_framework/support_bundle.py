@@ -24,6 +24,7 @@ from cortx.utils.schema import database
 from cortx.utils.process import SimpleProcess
 from cortx.utils.shared_storage import Storage
 from cortx.utils.schema.providers import Response
+from cortx.utils.schema.payload import Tar
 from cortx.utils.conf_store.conf_store import Conf
 from cortx.utils.cli_framework.command import Command
 from cortx.utils.errors import DataAccessExternalError
@@ -132,10 +133,10 @@ class SupportBundle:
             # create common tar
             tar_cmd = f"cd {bundle_path} && tar -cvzf"
             tar_dest_file = f"{bundle_id}.tar.gz"
-            final_tar_cmd = f"{tar_cmd} {tar_dest_file} * --remove_files"
             Log.debug(f"Merging all bundle to {bundle_path}/{tar_dest_file}")
-            _, _, rc = SimpleProcess(final_tar_cmd).run()
-            if rc != 0:
+            try:
+                Tar(os.path.join(bundle_path, tar_dest_file)).dump([bundle_path])
+            except:
                 Log.debug("Merging of node support bundle failed")
                 return Response(output="Bundle Generation Failed in merging",
                 rc=errno.EINVAL)
