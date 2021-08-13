@@ -21,7 +21,6 @@ import asyncio
 
 from cortx.utils.log import Log
 from cortx.utils.schema import database
-from cortx.utils.process import SimpleProcess
 from cortx.utils.shared_storage import Storage
 from cortx.utils.schema.providers import Response
 from cortx.utils.schema.payload import Tar
@@ -129,17 +128,16 @@ class SupportBundle:
                 ComponentsBundle._publish_log(f"Internal error, bundle generation failed \
                     {e}", 'error', bundle_id, nodename, comment)
 
-        if bundle_obj.is_shared:
-            # create common tar
-            tar_cmd = f"cd {bundle_path} && tar -cvzf"
-            tar_dest_file = f"{bundle_id}.tar.gz"
-            Log.debug(f"Merging all bundle to {bundle_path}/{tar_dest_file}")
-            try:
-                Tar(os.path.join(bundle_path, tar_dest_file)).dump([bundle_path])
-            except:
-                Log.debug("Merging of node support bundle failed")
-                return Response(output="Bundle Generation Failed in merging",
-                rc=errno.EINVAL)
+        # Create common tar.
+        #if bundle_obj.is_shared:
+        #    tar_dest_file = f"{bundle_id}.tar.gz"
+        #    Log.debug(f"Merging all bundle to {bundle_path}/{tar_dest_file}")
+        #    try:
+        #        Tar(os.path.join(bundle_path, tar_dest_file)).dump([bundle_path])
+        #    except:
+        #        Log.debug("Merging of node support bundle failed")
+        #        return Response(output="Bundle Generation Failed in merging",
+        #        rc=errno.EINVAL)
 
 
         return bundle_obj
