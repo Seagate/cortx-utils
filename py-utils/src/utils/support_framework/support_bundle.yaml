@@ -23,9 +23,9 @@ COMPONENTS:
   sspl:
     - '<CORTX_PATH>/sspl/conf/setup.yaml'
   s3server:
-    - '<CORTX_PATH>/s3/conf/setup.yaml'
+    - '<CORTX_PATH>/s3/conf/support.yaml'
   motr:
-    - '<CORTX_PATH>/motr/conf/setup.yaml'
+    - '<CORTX_PATH>/motr/conf/support.yaml'
   hare:
     - '<CORTX_PATH>/hare/conf/setup.yaml'
   provisioner:
