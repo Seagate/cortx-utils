@@ -18,7 +18,6 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 #
 
-import sys
 import os
 import ldap
 from cortx.utils.log import Log
@@ -48,7 +47,7 @@ class Test(SetupCmd):
         ldap_conn = ldap.initialize("ldapi://")
         ldap_conn.simple_bind_s(bind_base_DN, pwd)
         try:
-            ldap_result_id = ldap_conn.search_s(baseDN, searchScope, searchFilter, retrieveAttributes)
+            ldap_conn.search_s(baseDN, searchScope, searchFilter, retrieveAttributes)
         except ldap.LDAPError as e:
             Log.error(repr(e))
             raise e
