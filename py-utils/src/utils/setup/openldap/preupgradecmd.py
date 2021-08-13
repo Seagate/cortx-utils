@@ -49,7 +49,7 @@ class PreUpgradeCmd(SetupCmd):
       raise OpenldapPROVError(f'exception: {e}')
 
   def backup_sample_file(self):
-    """function to backup .sample config file to .old."""
+    """Function to backup .sample config file to .old."""
     sampleconfigfile = os.path.join(self.util_install_path, "cortx/utils/conf", "openldap_config.yaml.sample")
 
     # make utils temp dir if does not exist
