@@ -23,11 +23,12 @@ from cortx.utils.log import Log
 from setupcmd import SetupCmd, OpenldapPROVError
 
 class ResetCmd(SetupCmd):
+
     """Reset cmd initialization"""
     Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',\
              level='DEBUG')
     def __init__(self, config: str):
-        """Constructor"""
+        """Constructor."""
         try:
             super(ResetCmd, self).__init__(config)
         except Exception as e:

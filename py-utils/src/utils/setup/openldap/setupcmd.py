@@ -21,7 +21,6 @@
 import sys
 import os
 import re
-import shutil
 from os import path
 from cortx.utils.security.cipher import Cipher
 from cortx.utils.conf_store import Conf
@@ -262,7 +261,6 @@ class SetupCmd(object):
     # list for the phase passed here.
     yardstick_list = []
     prev_phase = True
-    curr_phase = False
     next_phase = False
     for key in prov_keys_list:
       # If PHASE is not relevant, skip the key.
@@ -273,7 +271,6 @@ class SetupCmd(object):
         break
       if key.find(phase_name) == 0:
         prev_phase = False
-        curr_phase = True
       else:
         if (
              phase_name == "TEST" or
@@ -282,7 +279,6 @@ class SetupCmd(object):
            ):
             continue
         if not prev_phase:
-          curr_phase = False
           next_phase = True
           break
       value = self.get_confkey(key)

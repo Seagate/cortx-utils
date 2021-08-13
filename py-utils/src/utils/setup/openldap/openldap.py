@@ -40,6 +40,7 @@ class OpenldapSetupError(BaseError):
         self._desc = message % (args)
 
     def __str__(self):
+        """Set error codes appropriately."""
         if self._rc == 0: return self._desc
         return "error(%d): %s\n\n%s" %(self._rc, self._desc,
             traceback.format_exc())
@@ -59,8 +60,7 @@ class Openldap:
     def __init__(self, conf_url):
         Conf.load(self.prov, f'yaml://{self._prov_conf_file}')
         if not os.path.isfile(self._preqs_conf_file):
-            raise OpenldapSetupError({"message":"pre-requisite json file \
-                not found"})
+            raise Exception("%s file file not found" % (self._preqs_conf_file))
         if conf_url is None:
             Log.debug("Config file is None")
             return
@@ -92,14 +92,13 @@ class Openldap:
                 if files:
                     PathV().validate('exists', files)
             Log.debug("%s - pre-requisite validation complete" % phase)
-        except OpenldapSetupError as e:
+        except:
             Log.debug("%s - pre-requisite validation failed" % phase)
-            raise OpenldapSetupError({"message":"prereqs validation failed"})
+            raise Exception("prereqs validation failed")
         return 0
 
     def _key_value_verify(self, key: str, phase: str):
         """Verify if there exists a corresponding value for given key."""
-
         value = Conf.get(self.index, key)
         if not value:
             Log.debug("Validation failed for %s in %s phase" % (key ,phase))
@@ -215,7 +214,7 @@ class Openldap:
             for key in yardstick_list_exp:
                 self._key_value_verify(key,phase_name)
             Log.debug("%s - keys validation complete" % phase_name.lower())
-        except OpenldapSetupError as e:
+        except:
             raise OpenldapSetupError({"message":"ERROR : Validating keys \
                 failed"})
 
@@ -261,7 +260,7 @@ class Openldap:
         phase_name = "test"
         Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)
-        self._keys_validate(phase_name) 
+        self._keys_validate(phase_name)
         Test(config, "seagate")
         Log.debug("%s - Successful" % phase_name)
         return 0
