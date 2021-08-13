@@ -40,7 +40,7 @@ class OpenldapSetupError(BaseError):
         self._desc = message % (args)
 
     def __str__(self):
-        """ Set error codes appropriately."""
+        """Set error codes appropriately."""
         if self._rc == 0: return self._desc
         return "error(%d): %s\n\n%s" %(self._rc, self._desc,
             traceback.format_exc())
