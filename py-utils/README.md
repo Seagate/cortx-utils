@@ -34,9 +34,9 @@ git clone --recursive https://github.com/Seagate/cortx-utils -b main
 ## Install python dependencies
 
 ```bash
-$ cd ./py-utils/
-$ sudo pip3 install -r python_requirements.txt
-$ sudo pip3 install -r python_requirements.ext.txt
+cd cortx-utils/py-utils/
+sudo pip3 install -r python_requirements.txt
+sudo pip3 install -r python_requirements.ext.txt
 ```
 
 ## Build
@@ -45,7 +45,7 @@ It will create `cortx-py-utils-1.0.0-1_<git-version>.noarch.rpm` by default. One
 Below command passes version string as 2.0.0 and build number 2, which creates `cortx-py-utils-2.0.0-2_<git-version>.noarch.rpm`
 Run below command from repo root (cortx-utils).
 ```bash
-cd cortx-utils
+cd ..
 ./jenkins/build.sh -v 2.0.0 -b 2
 ```
 
@@ -55,7 +55,7 @@ cd cortx-utils
 -   Please refer to WIKI (https://github.com/Seagate/cortx-utils/wiki/%22cortx-py-utils%22-single-node-manual-provisioning)
 
 ```bash
-cd ./py-utils/dist
+cd py-utils/dist
 sudo yum install -y cortx-py-utils-*.noarch.rpm
 ```
 
