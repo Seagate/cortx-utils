@@ -98,8 +98,8 @@ class Kafka:
                 raise KafkaSetupError(
                     errno.EINVAL,"Failed in creating kafka user and group")
     @staticmethod
-    def _set_kafka_multi_node_config(hostname: list, port: list,
-        kafka_server: str) -> int:
+    def _set_kafka_multi_node_config(hostname: list, kafka_server: str,
+        port: str) -> int:
         """
         Sets configration of kafka multi-node
 
@@ -111,8 +111,7 @@ class Kafka:
         Returns:
             int: Returns 0 after successfully updating properties
         """
-
-        kafka._set_kafka_single_node_config(hostname, port)
+        Kafka._set_kafka_single_node_config(kafka_server, port)
         server_properties_file = '/opt/kafka/config/server.properties'
         zookeeper_connect = ", ".join(f'{h}:2181' for h in hostname)
         server_properties = {'zookeeper.connect': zookeeper_connect}
@@ -133,8 +132,8 @@ class Kafka:
             if host == kafka_server:
                 server_properties['broker.id'] = hst_ind - 1
                 # /var/lib/zookeeper myid file
-                with open('/var/lib/zookeeper', 'a') as f:
-                        fd.write(hst_ind)
+                with open('/var/lib/zookeeper/myid', 'w+') as myid_f:
+                        myid_f.write(str(hst_ind))
 
         # update kafka server properties file
         Kafka._update_properties_file(
@@ -272,8 +271,7 @@ class Kafka:
 
         if not Kafka._kafka_user_and_group_exists():
             Kafka._set_kafka_user_and_group()
-
-        servers, ports = \
+        servers, ports, _ = \
             MessageBrokerFactory.get_server_list(self.input_config_index)
         # Proceed with configration change if current node in kafka server list,
         # rpm is installed and kafka user and group created
@@ -288,7 +286,7 @@ class Kafka:
             for host, prt in zip(servers, ports):
                 if host in  [curr_host_fqdn, curr_host_ip]:
                     # multi node setup
-                    Kafka._set_kafka_multi_node_config(servers, prt, host)
+                    Kafka._set_kafka_multi_node_config(servers, host, prt)
 
         return 0
 
