@@ -21,10 +21,8 @@
 import sys
 import os
 import ldap
-import ldap.modlist as modlist
 import shutil
 import glob
-from shutil import copyfile
 import socket
 from cortx.utils.log import Log
 
@@ -88,8 +86,8 @@ class Replication:
     def setreplication(hostfile, pwd, config_values):
         Replication.readinputhostfile(hostfile)
         totalhostcount = Replication.checkhostvalidity()
-        id = Replication.getserveridfromhostfile()
-        if id > totalhostcount :
+        server_id = Replication.getserveridfromhostfile()
+        if server_id > totalhostcount :
             Log.debug('Current host-'+socket.gethostname()+' is not present in input host file')
             quit()
         conn = ldap.initialize("ldapi://")
@@ -98,7 +96,7 @@ class Replication:
         
         dn = "cn=config"
         Replication.deleteattribute(conn, dn, 'olcserverid')
-        Replication.addattribute(conn, dn, 'olcserverid', id)
+        Replication.addattribute(conn, dn, 'olcserverid', server_id)
         
         dn = "cn=module,cn=config"
         add_record = [
