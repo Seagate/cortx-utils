@@ -25,6 +25,7 @@ from cortx.utils.setup.openldap import OpenldapSetupError
 
 
 class Cmd:
+
     """ Setup Command """
     _index = "setup"
 
@@ -43,7 +44,6 @@ class Cmd:
     @staticmethod
     def usage(prog: str):
         """ Print usage instructions """
-
         sys.stderr.write(
             f"usage: {prog} [-h] <cmd> --config <url> <args>...\n"
             f"where:\n"
@@ -53,7 +53,6 @@ class Cmd:
     @staticmethod
     def get_command(desc: str, argv: dict):
         """ Return the Command after parsing the command line. """
-
         parser = argparse.ArgumentParser(desc)
 
         subparsers = parser.add_subparsers()
@@ -73,7 +72,6 @@ class Cmd:
     @staticmethod
     def add_args(parser: str, cls: str, name: str):
         """ Add Command args for parsing """
-
         parser1 = parser.add_parser(cls.name, help='setup %s' % name)
         parser1.add_argument('--config', help='Conf Store URL', type=str)
         cls._add_extended_args(parser1)
@@ -82,6 +80,7 @@ class Cmd:
 
 
 class PostInstallCmd(Cmd):
+
     """ PostInstall Setup Cmd """
     name = "post_install"
 
@@ -96,6 +95,7 @@ class PostInstallCmd(Cmd):
 
 
 class PrepareCmd(Cmd):
+
     """ Prepare Setup Cmd """
     name = "prepare"
 
@@ -110,6 +110,7 @@ class PrepareCmd(Cmd):
 
 
 class ConfigCmd(Cmd):
+
     """ Setup Config Cmd """
     name = "config"
 
@@ -124,6 +125,7 @@ class ConfigCmd(Cmd):
 
 
 class InitCmd(Cmd):
+
     """ Init Setup Cmd """
     name = "init"
 
@@ -138,6 +140,7 @@ class InitCmd(Cmd):
 
 
 class TestCmd(Cmd):
+
     """ Test Setup Cmd """
     name = "test"
 
@@ -157,6 +160,7 @@ class TestCmd(Cmd):
 
 
 class ResetCmd(Cmd):
+
     """ Reset Setup Cmd """
     name = "reset"
 
@@ -170,6 +174,7 @@ class ResetCmd(Cmd):
         return rc
 
 class CleanupCmd(Cmd):
+
     """ Cleanup Setup Cmd """
     name = "cleanup"
 
@@ -183,6 +188,7 @@ class CleanupCmd(Cmd):
         return rc
 
 class PreUpgradeCmd(Cmd):
+
     """Pre Upgrade Setup Cmd."""
 
     name = "preupgrade"
@@ -197,6 +203,7 @@ class PreUpgradeCmd(Cmd):
         return rc
 
 class PostUpgradeCmd(Cmd):
+
     """Post Upgrade Setup Cmd."""
 
     name = "postupgrade"

@@ -25,12 +25,12 @@ import shutil
 from  ast import literal_eval
 from cortx.utils.log import Log
 from setupcmd import SetupCmd, OpenldapPROVError
-from cortx.utils.process import SimpleProcess
 from base_configure_ldap import BaseConfig
 from setupReplication import Replication
 from pathlib import Path
 
 class ConfigCmd(SetupCmd):
+
   """Config Setup Cmd."""
   name = "config"
   utils_tmp_dir = "/opt/seagate/cortx/utils/tmp"
@@ -83,7 +83,7 @@ class ConfigCmd(SetupCmd):
     Log.debug("Starting openldap replication")
     self.configure_openldap_replication(confvalues)
     Log.debug("Openldap replication configured successfully")
-    
+
 
   def configure_openldap_replication(self,confvalues):
     """Configure openldap replication within a storage set."""
