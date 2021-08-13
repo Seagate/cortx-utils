@@ -24,7 +24,7 @@ from cortx.utils.schema import database
 from cortx.utils.process import SimpleProcess
 from cortx.utils.shared_storage import Storage
 from cortx.utils.schema.providers import Response
-from cortx.utils.schema.payload import Yaml, Tar
+from cortx.utils.schema.payload import Tar
 from cortx.utils.conf_store.conf_store import Conf
 from cortx.utils.cli_framework.command import Command
 from cortx.utils.errors import DataAccessExternalError
