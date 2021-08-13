@@ -187,7 +187,7 @@ class ComponentsBundle:
                         f"Component -> {each_component}")
                     threads.append(thread_obj)
         # directory_path = Conf.get('cortx_conf', 'support')
-        tar_file_name = os.path.join(path, \
+        tar_file_name = os.path.join(bundle_path, \
             f'{bundle_id}_{node_name}.tar.gz')
 
         ComponentsBundle._create_summary_file(bundle_id, node_name, \
