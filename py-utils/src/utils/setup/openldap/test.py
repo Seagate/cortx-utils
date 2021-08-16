@@ -18,10 +18,8 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 #
 
-import os
 import ldap
 from cortx.utils.log import Log
-from cortx.utils.conf_store import Conf
 from setupcmd import SetupCmd, OpenldapPROVError
 from  ast import literal_eval
 
@@ -87,7 +85,7 @@ class Test(SetupCmd):
                     else:
                         raise Exception("olcSyncrepl is not configured.")
         except (ldap.LDAPError, Exception) as e:
-            Log.error(repr(e)) 
+            Log.error(repr(e))
             raise e
         ldap_conn.unbind_s()
 

@@ -31,6 +31,7 @@ from cortx.utils.process import SimpleProcess
 from cortx.utils.log import Log
 
 class OpenldapPROVError(Exception):
+
   """Parent class for the openldap provisioner error classes."""
   pass
 

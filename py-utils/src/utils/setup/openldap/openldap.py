@@ -33,7 +33,7 @@ from preupgradecmd import PreUpgradeCmd
 from postupgradecmd import PostUpgradeCmd
 
 class OpenldapSetupError(BaseError):
-    """ Generic Exception with error code and output """
+    """Generic Exception with error code and output."""
 
     def __init__(self, rc, message, *args):
         self._rc = rc
@@ -46,7 +46,7 @@ class OpenldapSetupError(BaseError):
             traceback.format_exc())
 
 class Openldap:
-    """ Represents Openldap and Performs setup related actions."""
+    """Represents Openldap and Performs setup related actions."""
     index = "openldap"
     prov = "provisioning"
     _preqs_conf_file = "/opt/seagate/cortx/utils/conf/openldapsetup_prereqs.json"
@@ -74,7 +74,7 @@ class Openldap:
         self.cluster_id = Conf.get(self.index, self.cluster_id_key)
 
     def validate(self, phase: str):
-        """ Perform validations for phase."""
+        """Perform validations for phase."""
         try:
             Conf.load(phase, f'json://{self._preqs_conf_file}')
             prereqs_block = Conf.get(phase, f'{phase}')
@@ -219,7 +219,7 @@ class Openldap:
                 failed"})
 
     def post_install(self):
-        """ Performs post install operations. Raises exception on error """
+        """Performs post install operations. Raises exception on error."""
         phase_name = "post_install"
         Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)
@@ -228,7 +228,7 @@ class Openldap:
         return 0
 
     def prepare(self):
-        """ Perform prepare operations. Raises exception on error """
+        """Perform prepare operations. Raises exception on error."""
         phase_name = "prepare"
         Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)
@@ -237,7 +237,7 @@ class Openldap:
         return 0
 
     def config(self):
-        """ Performs configurations. Raises exception on error """
+        """Performs configurations. Raises exception on error."""
         phase_name = "config"
         Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)
@@ -247,7 +247,7 @@ class Openldap:
         return 0
 
     def init(self):
-        """ Perform initialization. Raises exception on error """
+        """Perform initialization. Raises exception on error."""
         phase_name = "init"
         Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)
@@ -256,7 +256,7 @@ class Openldap:
         return 0
 
     def test(self, plan, config: str):
-        """ Perform configuration testing. Raises exception on error """
+        """Perform configuration testing. Raises exception on error."""
         phase_name = "test"
         Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)
@@ -266,17 +266,17 @@ class Openldap:
         return 0
 
     def reset(self):
-        """ Performs Configuration reset. Raises exception on error """
+        """Performs Configuration reset. Raises exception on error."""
         phase_name = "reset"
         Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)
-        self._keys_validate(phase_name) 
+        self._keys_validate(phase_name)
         ResetCmd(self.url).process()
         Log.debug("%s - Successful" % phase_name)
         return 0
 
     def cleanup(self):
-        """ Performs Configuration cleanup. Raises exception on error """
+        """Performs Configuration cleanup. Raises exception on error."""
         phase_name = "cleanup"
         Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)

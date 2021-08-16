@@ -30,7 +30,6 @@ from setupReplication import Replication
 from pathlib import Path
 
 class ConfigCmd(SetupCmd):
-
   """Config Setup Cmd."""
   name = "config"
   utils_tmp_dir = "/opt/seagate/cortx/utils/tmp"

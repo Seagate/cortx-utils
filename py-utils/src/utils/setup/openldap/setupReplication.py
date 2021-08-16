@@ -18,7 +18,6 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 #
 
-import sys
 import os
 import ldap
 import shutil
