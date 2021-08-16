@@ -39,3 +39,14 @@ utils_path=$cortx_path/utils
 
 # Copy cortx.conf file to /etc/cortx
 [ -f "/etc/cortx/cortx.conf" ] || cp -n $utils_path/conf/cortx.conf.sample /etc/cortx/cortx.conf
+
+# Copy support/utils_support_bundle.py to $utils_path/bin
+/bin/ln -s /usr/lib/python3.6/site-packages/cortx/support/utils_support_bundle.py $utils_path/bin/utils_support_bundle
+/bin/chmod +x $utils_path/bin/utils_support_bundle
+
+# Replace cortx path to support_bundle.yaml
+sed -i -e "s|<CORTX_PATH>|${cortx_path}|g" $utils_path/conf/support_bundle.yaml
+
+# Copy rsyslog config to /etc/rsyslog.d
+[ ! -d "/etc/rsyslog.d" ] && mkdir "/etc/rsyslog.d"
+cp -n "$utils_path/conf/0-support_bundle.conf" "/etc/rsyslog.d"

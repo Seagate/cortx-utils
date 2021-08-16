@@ -29,7 +29,7 @@ class PostUpgradeCmd(SetupCmd):
   """Post Upgrade Setup Cmd."""
 
   name = "postupgrade"
-  Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',level='DEBUG')
+  Log.init('OpenldapProvisioning','/var/log/cortx/utils/openldap',level='DEBUG')
 
   def __init__(self):
     """Constructor."""
@@ -51,7 +51,7 @@ class PostUpgradeCmd(SetupCmd):
       self.merge_config(configFile, oldSampleFile, newSampleFile, unsafeAttributesFile, fileType)
       Log.info("merge config completed")
 
-      # Remove temporary .old files from S3 temporary location
+      # Remove temporary .old files from temporary location
       Log.info("Remove sample.old file started")
       if os.path.isfile(oldSampleFile):
         os.remove(oldSampleFile)

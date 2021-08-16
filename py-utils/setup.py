@@ -49,6 +49,8 @@ for root, directories, filenames in os.walk(_ROOT):
 
 # Get the list of template files
 tmpl_files = glob.glob('src/setup/templates/*.*')
+# Get the list of all openldap template files
+openldap_tmpl_files = glob.glob('src/utils/setup/openldap/templates/*.*')
 
 with open('LICENSE', 'r') as lf:
     license = lf.read()
@@ -80,7 +82,7 @@ setup(name='cortx-py-utils',
       description='Common Python utilities for CORTX',
       package_dir={'cortx': 'src'},
       packages=['cortx', 'cortx.utils',
-                'cortx.template','cortx.support',
+                'cortx.template', 'cortx.support',
                 'cortx.test_framework',
                 'cortx.utils.amqp', 'cortx.utils.amqp.rabbitmq',
                 'cortx.utils.cleanup', 'cortx.utils.data',
@@ -108,7 +110,9 @@ setup(name='cortx-py-utils',
             'hac = cortx.utils.ha.hac.hac:main',
             'conf = cortx.utils.conf_store.conf_cli:main',
             'utils_setup = cortx.setup.utils_setup:main',
+            'iem = cortx.utils.iem_framework.iem_cli:main',
             'kafka_setup = cortx.utils.setup.kafka.kafka_setup:main',
+            'utils_support_bundle = cortx.support.utils_support_bundle:main',
             'openldap_setup = cortx.utils.setup.openldap.openldap_setup:main'
         ]
       },
@@ -122,20 +126,11 @@ setup(name='cortx-py-utils',
                                  'src/utils/support/support_bundle.yaml',
                                  'src/utils/support/0-support_bundle.conf']),
                      ('%s/conf' % utils_path, tmpl_files),
+                     ('%s/conf' % utils_path, openldap_tmpl_files),
                      ('%s/conf' % utils_path, [
                      'src/utils/setup/openldap/openldapsetup_prereqs.json',
                      'src/utils/setup/openldap/openldap_prov_config.yaml',
                      'src/utils/setup/openldap/olcDatabase={2}mdb.ldif',
-                     'src/utils/setup/openldap/templates/openldap.prepare.tmpl',
-                     'src/utils/setup/openldap/templates/openldap.post_install.tmpl',
-                     'src/utils/setup/openldap/templates/openldap.config.tmpl.1-node',
-                     'src/utils/setup/openldap/templates/openldap.config.tmpl.3-node',
-                     'src/utils/setup/openldap/templates/openldap.init.tmpl.1-node',
-                     'src/utils/setup/openldap/templates/openldap.init.tmpl.3-node',
-                     'src/utils/setup/openldap/templates/openldap.test.tmpl.1-node',
-                     'src/utils/setup/openldap/templates/openldap.test.tmpl.3-node',
-                     'src/utils/setup/openldap/templates/openldap.reset.tmpl',
-                     'src/utils/setup/openldap/templates/openldap.cleanup.tmpl',
                      'src/utils/setup/openldap/config/openldap_config.yaml.sample',
                      'src/utils/setup/openldap/config/openldap_config_unsafe_attributes.yaml']),
                      ('/etc/systemd/system', ['src/utils/message_bus/'

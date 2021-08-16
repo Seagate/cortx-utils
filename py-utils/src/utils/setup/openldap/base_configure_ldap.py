@@ -26,7 +26,7 @@ from cortx.utils.conf_store import Conf
 from setupReplication import Replication
 
 class BaseConfig:
-    Log.init('OpenldapProvisioning', '/var/log/seagate/utils/openldap', level='DEBUG')
+    Log.init('OpenldapProvisioning', '/var/log/cortx/utils/openldap', level='DEBUG')
     def add_attribute(binddn, dn, record, pwd):
         #add_s - init.ldif
         # Open a connection
@@ -35,7 +35,7 @@ class BaseConfig:
         ldap_conn.simple_bind_s(binddn, pwd)
         try:
             ldap_conn.add_s(dn, record)
-        except:
+        except Exception:
             Log.error('Error while adding attribute')
             raise Exception('Error while adding attribute')
         ldap_conn.unbind_s()
@@ -43,7 +43,7 @@ class BaseConfig:
     def safe_remove(filename):
         try:
             os.remove(filename)
-        except:
+        except Exception:
             Log.error('Error while deleting ' + filename)
 
     def cleanup(forceclean):
@@ -60,7 +60,7 @@ class BaseConfig:
             files = glob.glob('/etc/openldap/slapd.d/cn=config/olcDatabase={2}mdb/*')
             for f in files:
                 BaseConfig.safe_remove(f)
-        except:
+        except Exception:
             Log.error('Error while deleting '+ mdb_directory)
         mdbfile = '/etc/openldap/slapd.d/cn=config/olcDatabase={2}mdb.ldif'
         BaseConfig.safe_remove(mdbfile)
@@ -83,12 +83,12 @@ class BaseConfig:
         mod_attrs = [(ldap.MOD_REPLACE, attribute, bytes(str(value), 'utf-8'))]
         try:
             ldap_conn.modify_s(dn, mod_attrs)
-        except:
-            Log.error('Error while modifying attribute- '+ attribute )
+        except Exception:
+            Log.error('Error while modifying attribute- '+ attribute)
             raise Exception('Error while modifying attribute' + attribute)
         ldap_conn.unbind_s()
 
-    def performbaseconfig(rootpassword, forcecleanup, config_values):
+    def perform_base_config(rootpassword, forcecleanup, config_values):
         forceclean = False
         ROOTDNPASSWORD = None
         ROOTDNPASSWORD = rootpassword
@@ -120,7 +120,7 @@ class BaseConfig:
         mod_attrs = [( ldap.MOD_ADD, 'olcDbMaxSize', [b'10737418240'] )]
         try:
             ldap_conn.modify_s(dn, mod_attrs)
-        except:
+        except Exception:
             Log.error('Error while modifying olcDbMaxSize attribute for olcDatabase={2}mdb')
             raise Exception('Error while modifying olcDbMaxSize attribute for olcDatabase={2}mdb')
         ldap_conn.unbind_s()

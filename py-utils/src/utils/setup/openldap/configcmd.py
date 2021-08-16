@@ -20,8 +20,6 @@
 
 import sys
 import os
-import errno
-import shutil
 from  ast import literal_eval
 from cortx.utils.log import Log
 from setupcmd import SetupCmd, OpenldapPROVError
@@ -32,8 +30,8 @@ from pathlib import Path
 class ConfigCmd(SetupCmd):
   """Config Setup Cmd."""
   name = "config"
-  utils_tmp_dir = "/opt/seagate/cortx/utils/tmp"
-  Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',level='DEBUG')
+  utils_tmp_dir = "/var/tmp"
+  Log.init('OpenldapProvisioning','/var/log/cortx/utils/openldap',level='DEBUG')
 
   def __init__(self, config: str):
     """Constructor."""
@@ -60,24 +58,8 @@ class ConfigCmd(SetupCmd):
     base_dn = self.get_confvalue(self.get_confkey('CONFIG>OPENLDAP_BASE_DN'))
     bind_base_dn = self.get_confvalue(self.get_confkey('CONFIG>OPENLDAP_BIND_BASE_DN'))
     confvalues = {'base_dn':base_dn , 'bind_base_dn':bind_base_dn}
-    BaseConfig.performbaseconfig(self.rootdn_passwd.decode("utf-8"),'True',confvalues)
+    BaseConfig.perform_base_config(self.rootdn_passwd.decode("utf-8"),'True',confvalues)
     Log.debug("openldap base configuration completed successfully")
-    if os.path.isfile("/opt/seagate/cortx/s3/install/ldap/rsyslog.d/slapdlog.conf"):
-      try:
-        os.makedirs("/etc/rsyslog.d")
-      except OSError as e:
-        if e.errno != errno.EEXIST:
-          raise OpenldapPROVError(f"mkdir /etc/rsyslog.d failed with errno: {e.errno}, exception: {e}\n")
-      shutil.copy('/opt/seagate/cortx/s3/install/ldap/rsyslog.d/slapdlog.conf',
-                  '/etc/rsyslog.d/slapdlog.conf')
-    # restart rsyslog service
-    try:
-      Log.debug("Restarting rsyslog service...\n")
-      service_list = ["rsyslog"]
-      self.restart_services(service_list)
-    except Exception as e:
-      sys.stderr.write(f'Failed to restart rsyslog service, error: {e}\n')
-      raise e
     # set openldap-replication
     Log.debug("Starting openldap replication")
     self.configure_openldap_replication(confvalues)

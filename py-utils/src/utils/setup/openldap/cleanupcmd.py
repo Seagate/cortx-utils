@@ -27,7 +27,7 @@ from setupReplication import Replication
 
 class CleanupCmd(SetupCmd):
     """Cleanup cmd initialization."""
-    Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',\
+    Log.init('OpenldapProvisioning','/var/log/cortx/utils/openldap',\
              level='DEBUG')
     def __init__(self, config: str):
         """Constructor."""
@@ -60,7 +60,7 @@ class CleanupCmd(SetupCmd):
     def delete_log_files(self):
         """Delete log files."""
         Log.debug("Starting log file deletion")
-        logFiles = ["/var/log/seagate/utils/openldap/OpenldapProvisioning.log",
+        logFiles = ["/var/log/cortx/utils/openldap/OpenldapProvisioning.log",
                     "/var/log/slapd.log"]
         for logFile in logFiles:
             self._delete_file(logFile)

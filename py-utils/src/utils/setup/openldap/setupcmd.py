@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ class SetupCmd(object):
   rootdn_user_key = 'cluster_config>rootdn_user'
   rootdn_pass_key = 'cluster_config>rootdn_password'
   cluster_id_key = 'cluster_config>cluster_id'
-  Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',level='DEBUG')
+  Log.init('OpenldapProvisioning','/var/log/cortx/utils/openldap',level='DEBUG')
 
   util_config_file_path = "/etc/cortx/cortx.conf"
   util_config_file_index = "util_config_file_index"
@@ -180,9 +180,9 @@ class SetupCmd(object):
       Log.error(f'update rootdn credentials failed, error: {e}')
       raise Exception(f'update rootdn credentials failed, error: {e}')
 
-  def restart_services(self, s3services_list):
+  def restart_services(self, services_list):
     """Restart services specified as parameter."""
-    for service_name in s3services_list:
+    for service_name in services_list:
       try:
         # if service name not found in the ha_service_map then use systemctl
         service_name = self.ha_service_map[service_name]

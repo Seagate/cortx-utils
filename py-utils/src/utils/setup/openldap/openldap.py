@@ -54,7 +54,7 @@ class Openldap:
     prov = "provisioning"
     _preqs_conf_file = "/opt/seagate/cortx/utils/conf/openldapsetup_prereqs.json"
     _prov_conf_file = "/opt/seagate/cortx/utils/conf/openldap_prov_config.yaml"
-    Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',level='DEBUG')
+    Log.init('OpenldapProvisioning','/var/log/cortx/utils/openldap',level='DEBUG')
     url = None
     machine_id = None
     cluster_id = None
@@ -96,7 +96,7 @@ class Openldap:
                 if files:
                     PathV().validate('exists', files)
             Log.debug("%s - pre-requisite validation complete" % phase)
-        except:
+        except Exception:
             Log.debug("%s - pre-requisite validation failed" % phase)
             raise Exception("prereqs validation failed")
         return 0
@@ -121,7 +121,7 @@ class Openldap:
                     host_name = Conf.get(self.index, f'server_node>{node_machine_id}>hostname')
                     try:
                         NetworkV().validate('connectivity',[host_name])
-                    except:
+                    except Exception:
                         Log.debug("Validation failed for %s>%s>%s in %s phase" % (key, node_machine_id, host_name, phase))
                         raise Exception("Validation failed for %s>%s>%s in %s phase" % (key, node_machine_id, host_name, phase))
 
@@ -167,7 +167,7 @@ class Openldap:
             replace("cluster-id", cluster_id_val)
         try:
             storage_set_count_str = Conf.get(self.index, storage_set_count_key)
-        except:
+        except Exception:
             Log.debug("Validation failed for storage_set_count in %s phase" % phase_name)
             raise Exception("Validation failed for storage_set_count in %s phase" % phase_name)
 
@@ -217,7 +217,7 @@ class Openldap:
             for key in yardstick_list_exp:
                 self._key_value_verify(key,phase_name)
             Log.debug("%s - keys validation complete" % phase_name.lower())
-        except:
+        except Exception:
             raise Exception("ERROR : Validating keys failed")
 
     def post_install(self):

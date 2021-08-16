@@ -30,7 +30,7 @@ class PreUpgradeCmd(SetupCmd):
   """Pre Upgrade Setup Cmd."""
 
   name = "preupgrade"
-  Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',level='DEBUG')
+  Log.init('OpenldapProvisioning','/var/log/cortx/utils/openldap',level='DEBUG')
 
   def __init__(self):
     """Constructor."""

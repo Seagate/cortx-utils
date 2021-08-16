@@ -30,7 +30,7 @@ class Test(SetupCmd):
         except Exception as e:
             raise OpenldapPROVError(f'exception: {e}\n')
 
-        Log.init('OpenldapProvisioning', '/var/log/seagate/utils/openldap', level='DEBUG')
+        Log.init('OpenldapProvisioning', '/var/log/cortx/utils/openldap', level='DEBUG')
         self.test_base_dn(passwd)
         if self.test_openldap_replication() > 1:
             self.test_olcsyncrepl(passwd)

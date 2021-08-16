@@ -25,7 +25,7 @@ from cortx.utils.log import Log
 
 class Replication:
     hostlist = []
-    Log.init('OpenldapProvisioning', '/var/log/seagate/utils/openldap', level='DEBUG')
+    Log.init('OpenldapProvisioning', '/var/log/cortx/utils/openldap', level='DEBUG')
     def readinputhostfile(host_file_path):
         global hostlist
         hostlist = []
@@ -35,7 +35,7 @@ class Replication:
             hostlist.append(line.strip())
         hostlist.sort()
 
-    def checkhostvalidity():
+    def checkhostvalidity(self):
         totalhosts = 0;
         for host in hostlist :
             totalhosts = totalhosts + 1
@@ -45,7 +45,7 @@ class Replication:
                 quit()
         return totalhosts
 
-    def getserveridfromhostfile():
+    def getserveridfromhostfile(self):
         serverid = 1
         for host in hostlist :
             if(host == socket.gethostname()):
@@ -57,7 +57,7 @@ class Replication:
         mod_attrs = [(ldap.MOD_ADD, attr_to_add, bytes(str(value), 'utf-8'))]
         try:
             conn.modify_s(dn, mod_attrs)
-        except:
+        except Exception:
             Log.error('Exception while adding '+ attr_to_add + ' to dn '+ dn)
             raise Exception('Exception while adding '+ attr_to_add + ' to dn '+ dn)
 
@@ -70,20 +70,20 @@ class Replication:
                         mod_attrs = [( ldap.MOD_DELETE, attr_to_delete,value )]
                         try:
                             conn.modify_s(dn, mod_attrs)
-                        except:
-                            Log.error('Exception while deleting '+attr_to_delete+ ' from dn '+ dn + ' value '+str(value) )
+                        except Exception:
+                            Log.error('Exception while deleting '+attr_to_delete+ ' from dn '+ dn + ' value '+str(value))
 
     def deleteattribute(conn, dn, attr_to_delete):
         mod_attrs = [(ldap.MOD_DELETE, attr_to_delete, None)]
         try:
             conn.modify_s(dn, mod_attrs)
-        except:
-            Log.error('Exception while deleting '+attr_to_delete+ ' from dn '+ dn  )
+        except Exception:
+            Log.error('Exception while deleting '+attr_to_delete+ ' from dn '+ dn)
 
     def setreplication(hostfile, pwd, config_values):
         Replication.readinputhostfile(hostfile)
-        totalhostcount = Replication.checkhostvalidity()
-        server_id = Replication.getserveridfromhostfile()
+        totalhostcount = self.checkhostvalidity()
+        server_id = self.getserveridfromhostfile()
         if server_id > totalhostcount :
             Log.debug('Current host-'+socket.gethostname()+' is not present in input host file')
             quit()
@@ -104,7 +104,7 @@ class Replication:
         ]
         try:
             conn.add_s(dn, add_record)
-        except:
+        except Exception:
             Log.error('Exception while adding syncprov_mod')
 
         dn = "olcOverlay=syncprov,olcDatabase={2}mdb,cn=config"
@@ -115,7 +115,7 @@ class Replication:
         ]
         try:
             conn.add_s(dn, add_record)
-        except:
+        except Exception:
             Log.error('Exception while adding olcOverlay to data')
             raise Exception('Exception while adding olcOverlay to data')
 
