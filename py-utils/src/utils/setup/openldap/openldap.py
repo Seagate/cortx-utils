@@ -33,6 +33,7 @@ from preupgradecmd import PreUpgradeCmd
 from postupgradecmd import PostUpgradeCmd
 
 class OpenldapSetupError(BaseError):
+
     """Generic Exception with error code and output."""
 
     def __init__(self, rc, message, *args):
@@ -47,6 +48,7 @@ class OpenldapSetupError(BaseError):
             traceback.format_exc())
 
 class Openldap:
+
     """Represents Openldap and Performs setup related actions."""
     index = "openldap"
     prov = "provisioning"
@@ -59,6 +61,7 @@ class Openldap:
     cluster_id_key = None
 
     def __init__(self, conf_url):
+        """Constructor"""
         Conf.load(self.prov, f'yaml://{self._prov_conf_file}')
         if not os.path.isfile(self._preqs_conf_file):
             raise Exception("%s file file not found" % (self._preqs_conf_file))
@@ -200,7 +203,6 @@ class Openldap:
 
     def _keys_validate(self, phase_name: str):
         """Validate keys of each phase against argument file."""
-
         phase_name = phase_name.upper()
         try:
             phase_list = self._get_list_of_phases_to_validate(phase_name)
@@ -216,8 +218,7 @@ class Openldap:
                 self._key_value_verify(key,phase_name)
             Log.debug("%s - keys validation complete" % phase_name.lower())
         except:
-            raise OpenldapSetupError({"message":"ERROR : Validating keys \
-                failed"})
+            raise Exception("ERROR : Validating keys failed")
 
     def post_install(self):
         """Performs post install operations. Raises exception on error."""

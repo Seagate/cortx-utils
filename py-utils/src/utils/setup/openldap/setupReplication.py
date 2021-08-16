@@ -27,6 +27,8 @@ class Replication:
     hostlist = []
     Log.init('OpenldapProvisioning', '/var/log/seagate/utils/openldap', level='DEBUG')
     def readinputhostfile(host_file_path):
+        global hostlist
+        hostlist = []
         file = open(host_file_path, 'r')
         Lines = file.readlines()
         for line in Lines :
