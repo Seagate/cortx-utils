@@ -146,6 +146,13 @@ async def example():
     print_items(items)
     print(20 * '-')
 
+    filter_obj = Or(
+        Compare(CortxUser.user_type, '=', 's3'),
+        Compare(CortxUser.user_id, 'like', 'est'))
+    cnt = await db(CortxUser).count(filter_obj)
+    print(f'Counted - {cnt}')
+    print(20 * '-')
+
     num = await db(CortxUser).delete(None)
     items = await db(CortxUser).get(Query())
     print(f'Deleted - {num}')
