@@ -26,7 +26,7 @@ expect {
         exit 1
     }
 
-    -re \"Enter root user password for.*\" {
+    -re "Enter root user password for.*" {
         send -- "[lindex $argv 2]\r"
         exp_continue
     }
