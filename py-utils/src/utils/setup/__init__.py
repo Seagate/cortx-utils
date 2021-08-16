@@ -18,5 +18,4 @@
 from cortx.utils.setup.kafka import Kafka
 from cortx.utils.setup.kafka import KafkaSetupError
 
-from cortx.utils.setup.openldap import Openldap
 from cortx.utils.setup.openldap import OpenldapSetupError

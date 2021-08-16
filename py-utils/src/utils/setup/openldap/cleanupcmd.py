@@ -26,7 +26,7 @@ from base_configure_ldap import BaseConfig
 from setupReplication import Replication
 
 class CleanupCmd(SetupCmd):
-    """Cleanup cmd initialization"""
+    """Cleanup cmd initialization."""
     Log.init('OpenldapProvisioning','/var/log/seagate/utils/openldap',\
              level='DEBUG')
     def __init__(self, config: str):

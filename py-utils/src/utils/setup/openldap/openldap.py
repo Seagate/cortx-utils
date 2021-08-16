@@ -18,7 +18,7 @@ import os
 import re
 import traceback
 from  ast import literal_eval
-from cortx.utils.errors import BaseError 
+from cortx.utils.errors import BaseError
 from cortx.utils.validator.v_pkg import PkgV
 from cortx.utils.validator.v_network import NetworkV
 from cortx.utils.validator.v_service import ServiceV
@@ -36,6 +36,7 @@ class OpenldapSetupError(BaseError):
     """Generic Exception with error code and output."""
 
     def __init__(self, rc, message, *args):
+        """Constructor."""
         self._rc = rc
         self._desc = message % (args)
 
@@ -280,7 +281,7 @@ class Openldap:
         phase_name = "cleanup"
         Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)
-        self._keys_validate(phase_name) 
+        self._keys_validate(phase_name)
         CleanupCmd(self.url).process()
         Log.debug("%s - Successful" % phase_name)
         return 0
