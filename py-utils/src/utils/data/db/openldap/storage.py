@@ -517,3 +517,14 @@ class OpenLdap(GenericDataBase):
                        f' {le.desc}')
                 raise DataAccessExternalError(err) from None
         return len(models)
+
+    async def count(self, filter_obj: IFilter = None) -> int:
+        """
+        Count the number of entities matching the filter.
+
+        :param filter_obj: filter object.
+        :returns: number of entities.
+        """
+
+        models = await self._get_ldap(filter_obj)
+        return len(models)
