@@ -90,7 +90,7 @@ class Replication:
         conn = ldap.initialize("ldapi://")
         conn.simple_bind_s(config_values.get('bind_base_dn'), "seagate")
         conn.sasl_non_interactive_bind_s('EXTERNAL')
-        
+
         dn = "cn=config"
         Replication.deleteattribute(conn, dn, 'olcserverid')
         Replication.addattribute(conn, dn, 'olcserverid', server_id)
