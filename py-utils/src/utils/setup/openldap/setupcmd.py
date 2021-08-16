@@ -36,6 +36,7 @@ class OpenldapPROVError(Exception):
   pass
 
 class SetupCmd(object):
+
   """Base class for setup commands."""
   ldap_user = None
   ldap_passwd = None
@@ -96,7 +97,7 @@ class SetupCmd(object):
       self.endpoint = self.get_confvalue(self.get_confkey('TEST>CONFSTORE_ENDPOINT_KEY'))
 
   def read_ldap_credentials(self):
-    """Read ldap credentials (rootdn, sgiam) from the openldap_config file"""
+    """Read ldap credentials (rootdn, sgiam) from the openldap_config file."""
     try:
       # Load the openldap config file
       index_id = 'openldap_config_file_read_index'
@@ -293,7 +294,6 @@ class SetupCmd(object):
 
   def phase_keys_validate(self, arg_file: str, phase_name: str):
     # Setting the desired values before we begin
-    token_list = ["machine-id", "cluster-id", "storage-set-count"]
     if self.machine_id is not None:
       machine_id_val = self.machine_id
     if self.cluster_id is not None:

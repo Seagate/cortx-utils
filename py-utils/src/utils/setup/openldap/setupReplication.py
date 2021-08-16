@@ -20,8 +20,6 @@
 
 import os
 import ldap
-import shutil
-import glob
 import socket
 from cortx.utils.log import Log
 
@@ -29,8 +27,6 @@ class Replication:
     hostlist = []
     Log.init('OpenldapProvisioning', '/var/log/seagate/utils/openldap', level='DEBUG')
     def readinputhostfile(host_file_path):
-        global hostlist
-        hostlist = []
         file = open(host_file_path, 'r')
         Lines = file.readlines()
         for line in Lines :
@@ -46,7 +42,7 @@ class Replication:
                 Log.debug(host + ' is either invalid or not reachable.')
                 quit()
         return totalhosts
-    
+
     def getserveridfromhostfile():
         serverid = 1
         for host in hostlist :
