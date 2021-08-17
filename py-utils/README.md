@@ -15,7 +15,6 @@ For any questions about this software or licensing,
 please email opensource@seagate.com or cortx-questions@seagate.com.
 -->
 # CORTX Python Utilities
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/78aafd1230d04cfb859c3fa5e4d9b030)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Seagate/cortx-py-utils&amp;utm_campaign=Badge_Grade)
 
 A common utils framework which includes common modules across components
 
