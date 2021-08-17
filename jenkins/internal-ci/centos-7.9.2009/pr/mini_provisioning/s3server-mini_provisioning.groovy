@@ -222,7 +222,7 @@ Recommended VM specification:
             agent {
                 node {
                     // Run deployment on mini_provisioner nodes (vm deployment nodes)
-                    label params.HOST == "-" ? "mini_provisioner_7_9 && !cleanup_req" : "mini_provisioner_s3_user_host"
+                    label params.HOST == "-" ? "mini_provisioner_s3_7_9 && !cleanup_req" : "mini_provisioner_s3_user_host"
                     customWorkspace "/var/jenkins/mini_provisioner/${JOB_NAME}_${BUILD_NUMBER}"
                 }
             }
