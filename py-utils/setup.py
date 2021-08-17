@@ -100,7 +100,7 @@ setup(name='cortx-py-utils',
                 'cortx.utils.support', 'cortx.utils.cli_framework',
                 'cortx.utils.utils_server', 'cortx.utils.iem_framework',
                 'cortx.utils.discovery', 'cortx.utils.common',
-                'cortx.utils.setup.openldap'
+                'cortx.utils.manifest', 'cortx.utils.setup.openldap'
                 ],
       package_data={
         'cortx': ['py.typed'],
