@@ -134,7 +134,6 @@ class Kafka:
                 # /var/lib/zookeeper myid file
                 with open('/var/lib/zookeeper/myid', 'w+') as myid_f:
                         myid_f.write(str(hst_ind))
-
         # update kafka server properties file
         Kafka._update_properties_file(
             server_properties_file, server_properties)
