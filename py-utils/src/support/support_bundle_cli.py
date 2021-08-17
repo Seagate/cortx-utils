@@ -36,8 +36,9 @@ class SupportBundleCli:
         if not args.comment:  # no comment provided
             raise BundleError("Please provide comment, Why you are generating \
                 Support Bundle!")
+        comment = args.comment[0]
         components = args.component[0].split(';') if args.component else []
-        bundle_obj = SupportBundle.generate(comment=args.comment, \
+        bundle_obj = SupportBundle.generate(comment=comment, \
             components=components)
         display_string_len = len(bundle_obj.bundle_id) + 4
         response_msg = (
