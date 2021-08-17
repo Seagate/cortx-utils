@@ -114,7 +114,13 @@ class Kafka:
         Kafka._set_kafka_single_node_config(kafka_server, port)
         server_properties_file = '/opt/kafka/config/server.properties'
         zookeeper_connect = ", ".join(f'{h}:2181' for h in hostname)
-        server_properties = {'zookeeper.connect': zookeeper_connect}
+        server_properties = {
+            'zookeeper.connect': zookeeper_connect,
+            'default.replication.factor': 3,
+            'offsets.topic.replication.factor': 3,
+            'transaction.state.log.replication.factor': 3,
+            'transaction.state.log.min.isr': 2,
+            }
         
         zookeeper_properties_file = '/opt/kafka/config/zookeeper.properties'
         zookeeper_properties={
@@ -123,18 +129,16 @@ class Kafka:
             'syncLimit': 5,
             'clientPort': 2181,
             'autopurge.snapRetainCount': 3,
-            'autopurge.purgeInterval': 24
+            'autopurge.purgeInterval': 24,
         }
-        myid = None
-        for hst_ind in range(len(hostname)):
-            host = hostname[hst_ind]
-            zookeeper_properties[f'server.{hst_ind + 1}'] = f'{host}:2888:3888'
+        for host_index in range(len(hostname)):
+            host = hostname[host_index]
+            zookeeper_properties[f'server.{host_index + 1}'] = f'{host}:2888:3888'
             if host == kafka_server:
-                server_properties['broker.id'] = hst_ind - 1
+                server_properties['broker.id'] = host_index
                 # /var/lib/zookeeper myid file
                 with open('/var/lib/zookeeper/myid', 'w+') as myid_f:
-                        myid_f.write(str(hst_ind))
-
+                        myid_f.write(str(host_index))
         # update kafka server properties file
         Kafka._update_properties_file(
             server_properties_file, server_properties)
