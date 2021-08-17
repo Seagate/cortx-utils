@@ -1,0 +1,49 @@
+{
+  "post_install": {
+    "rpms": ["symas-openldap-servers", "symas-openldap-clients", "openldap-devel"],
+    "pip3s": ["cryptography", "python-ldap"],
+    "services": ["slapd"]
+  },
+  "prepare": {
+    "rpms": ["symas-openldap-servers", "symas-openldap-clients", "openldap-devel"],
+    "pip3s": ["cryptography", "python-ldap"],
+    "services": ["slapd"]
+  },
+  "config": {
+    "rpms": ["symas-openldap-servers", "symas-openldap-clients", "openldap-devel"],
+    "pip3s": ["cryptography", "python-ldap"],
+    "services": ["slapd"]
+  },
+  "init": {
+    "rpms": ["symas-openldap-servers", "symas-openldap-clients", "openldap-devel"],
+    "pip3s": ["cryptography", "python-ldap"],
+    "services": ["slapd"]
+  },
+  "test" : {
+    "rpms": ["symas-openldap-servers", "symas-openldap-clients", "openldap-devel"],
+    "pip3s": ["cryptography", "python-ldap"],
+    "services": ["slapd"]
+  },
+  "reset": {
+    "rpms": ["symas-openldap-servers", "symas-openldap-clients", "openldap-devel"],
+    "pip3s": ["cryptography", "python-ldap"],
+    "services": ["slapd"]
+  },
+  "cleanup": {
+    "rpms": ["symas-openldap-servers", "symas-openldap-clients", "openldap-devel"],
+    "pip3s": ["cryptography", "python-ldap"],
+    "services": ["slapd"]
+  },
+  "preupgrade" : {
+    "rpms": ["symas-openldap-servers", "symas-openldap-clients", "openldap-devel"],
+    "pip3s": ["cryptography", "python-ldap"],
+    "files": ["file:/opt/seagate/cortx/utils/conf/openldap_config.yaml",
+              "file:/opt/seagate/cortx/utils/conf/openldap_config.yaml.sample"]
+  },
+  "postupgrade" : {
+    "rpms": ["symas-openldap-servers", "symas-openldap-clients", "openldap-devel"],
+    "pip3s": ["cryptography", "python-ldap"],
+    "files": ["file:/opt/seagate/cortx/utils/conf/openldap_config.yaml",
+              "file:/opt/seagate/cortx/utils/conf/openldap_config.yaml.sample"]
+  }
+}
