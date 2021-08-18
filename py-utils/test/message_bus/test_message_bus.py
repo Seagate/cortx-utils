@@ -200,6 +200,17 @@ class TestMessageBus(unittest.TestCase):
         message_bus_2 = MessageBus()
         self.assertTrue(message_bus_1 is message_bus_2)
 
+    def test_multiple_admins(self):
+        """Test multiple instances of admin interface."""
+        message_types_list = TestMessageBus._admin.list_message_types()
+        message_types_list.remove(TestMessageBus._message_type)
+        message_types_list.remove('__consumer_offsets')
+        if message_types_list:
+            for message_type in message_types_list:
+                producer = MessageProducer(producer_id=message_type, \
+                    message_type=message_type, method='sync')
+                producer.delete()
+
     @classmethod
     def tearDownClass(cls):
         """Deregister the test message_type."""
@@ -228,6 +239,7 @@ if __name__ == '__main__':
     suite.addTest(TestMessageBus('test_receive_concurrently'))
     suite.addTest(TestMessageBus('test_reduce_concurrency'))
     suite.addTest(TestMessageBus('test_singleton'))
+    suite.addTest(TestMessageBus('test_multiple_admins'))
 
     runner = unittest.TextTestRunner()
     runner.run(suite)

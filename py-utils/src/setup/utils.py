@@ -53,16 +53,19 @@ class Utils:
         return install_path + "/cortx/utils"
 
     @staticmethod
-    def _create_msg_bus_config(kafka_server_list: list, port_list: list):
+    def _create_msg_bus_config(message_server_list: list, port_list: list, \
+        config: dict):
         """ Create the config file required for message bus """
 
         with open(r'/etc/cortx/message_bus.conf.sample', 'w+') as file:
             json.dump({}, file, indent=2)
         Conf.load('index', 'json:///etc/cortx/message_bus.conf.sample')
         Conf.set('index', 'message_broker>type', 'kafka')
-        for i in range(len(kafka_server_list)):
-            Conf.set('index', f'message_broker>cluster[{i}]', \
-                {'server': kafka_server_list[i], 'port': port_list[i]})
+        for i in range(len(message_server_list)):
+            Conf.set('index', f'message_broker>cluster[{i}]>server', \
+                     message_server_list[i])
+            Conf.set('index', f'message_broker>cluster[{i}]>port', port_list[i])
+        Conf.set('index', 'message_broker>message_bus',  config)
         Conf.save('index')
         # copy this conf file as message_bus.conf
         try:
@@ -202,14 +205,14 @@ class Utils:
         Conf.load(config_template_index, config_template)
 
         try:
-            server_list, port_list = \
+            server_list, port_list, config = \
                 MessageBrokerFactory.get_server_list(config_template_index)
         except SetupError:
             Log.error(f"Could not find server information in {config_template}")
             raise SetupError(errno.EINVAL, \
                 "Could not find server information in %s", config_template)
 
-        Utils._create_msg_bus_config(server_list, port_list)
+        Utils._create_msg_bus_config(server_list, port_list, config)
         # Cluster config
         server_info = \
             Utils._get_server_info(config_template_index, Conf.machine_id)
@@ -218,6 +221,7 @@ class Utils:
             raise SetupError(errno.EINVAL, "Could not find server " +\
                 "information in %s", config_template)
         Utils._create_cluster_config(server_info)
+
         #set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map(config_template_index)
         Utils._configure_rsyslog()
@@ -258,7 +262,30 @@ class Utils:
     @staticmethod
     def reset():
         """Remove/Delete all the data/logs that was created by user/testing."""
-        # TODO # deleting all messages from all message_types
+        try:
+            from cortx.utils.message_bus import MessageBusAdmin
+            from cortx.utils.message_bus.message_bus_client import MessageProducer
+            mb = MessageBusAdmin(admin_id='reset')
+            message_types_list = mb.list_message_types()
+            if message_types_list:
+                for message_type in message_types_list:
+                    producer = MessageProducer(producer_id=message_type, \
+                        message_type=message_type, method='sync')
+                    producer.delete()
+        except MessageBusError as e:
+            raise SetupError(e.rc, "Can not reset Message Bus. %s", e)
+        except Exception as e:
+            raise SetupError(errors.ERR_OP_FAILED, "Internal error, can not \
+                reset Message Bus. %s", e)
+        # Clear the logs
+        utils_log_path = '/var/log/cortx/utils/'
+        if os.path.exists(utils_log_path):
+            cmd = "find %s -type f -name '*.log' -exec truncate -s 0 {} +" % utils_log_path
+            cmd_proc = SimpleProcess(cmd)
+            _, stderr, rc = cmd_proc.run()
+            if rc != 0:
+                raise SetupError(errors.ERR_OP_FAILED, \
+                    "Can not reset log files. %s", stderr)
         return 0
 
     @staticmethod
