@@ -25,6 +25,7 @@ from cortx.utils.support_framework import const
 from cortx.utils.process import SimpleProcess
 from cortx.utils.conf_store.conf_store import Conf
 from cortx.utils.log import Log
+from cortx.utils.manifest import ManifestSupportBundle
 
 ERROR = 'error'
 INFO = 'info'
@@ -162,10 +163,11 @@ class ComponentsBundle:
                 components_list.remove(const.SOS_COMP)
         Log.debug(
             f"Generating for {const.SB_COMPONENTS} {' '.join(components_list)}")
-        from cortx.utils.manifest import ManifestSupportBundle
+        # Manifest component supportbundle generation
         thread_obj=threading.Thread(ManifestSupportBundle.generate(
             f'{bundle_id}_manifiest', f'{bundle_path}{os.sep}'))
         thread_obj.start()
+        threads.append(thread_obj)
         for each_component in components_list:
             components_commands = []
             components_files = command_files_info[each_component]
