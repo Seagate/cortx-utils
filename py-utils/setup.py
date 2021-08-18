@@ -114,8 +114,8 @@ setup(name='cortx-py-utils',
             'iem = cortx.utils.iem_framework.iem_cli:main',
             'kafka_setup = cortx.utils.setup.kafka.kafka_setup:main',
             'utils_support_bundle = cortx.support.utils_support_bundle:main',
-            'support_bundle = cortx.support.support_bundle_cli:main'
-            'openldap_setup = cortx.utils.setup.openldap.openldap_setup:main'
+            'support_bundle = cortx.support.support_bundle_cli:main',
+            'openldap_setup = cortx.utils.setup.openldap.openldap_setup:main',
         ]
       },
       data_files = [ ('/var/lib/cortx/ha/specs', specs),
