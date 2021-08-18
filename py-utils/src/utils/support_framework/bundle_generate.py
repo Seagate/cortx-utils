@@ -162,6 +162,10 @@ class ComponentsBundle:
                 components_list.remove(const.SOS_COMP)
         Log.debug(
             f"Generating for {const.SB_COMPONENTS} {' '.join(components_list)}")
+        from cortx.utils.manifest import ManifestSupportBundle
+        thread_obj=threading.Thread(ManifestSupportBundle.generate(
+            f'{bundle_id}_manifiest', f'{bundle_path}{os.sep}'))
+        thread_obj.start()
         for each_component in components_list:
             components_commands = []
             components_files = command_files_info[each_component]
