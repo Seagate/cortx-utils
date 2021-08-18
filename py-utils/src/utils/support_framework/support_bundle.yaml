@@ -30,8 +30,6 @@ COMPONENTS:
     - '<CORTX_PATH>/hare/conf/setup.yaml'
   provisioner:
     - '<CORTX_PATH>/provisioner/conf/setup.yaml'
-  manifest:
-    - '<CORTX_PATH>/sspl/conf/manifest.yaml'
   alerts:
     - '<CORTX_PATH>/cli/conf/alerts_setup.yaml'
   uds:
