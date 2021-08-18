@@ -35,7 +35,7 @@ class Replication:
             hostlist.append(line.strip())
         hostlist.sort()
 
-    def checkhostvalidity(self):
+    def checkhostvalidity():
         totalhosts = 0;
         for host in hostlist :
             totalhosts = totalhosts + 1
@@ -45,7 +45,7 @@ class Replication:
                 quit()
         return totalhosts
 
-    def getserveridfromhostfile(self):
+    def getserveridfromhostfile():
         serverid = 1
         for host in hostlist :
             if(host == socket.gethostname()):
@@ -82,8 +82,8 @@ class Replication:
 
     def setreplication(hostfile, pwd, config_values):
         Replication.readinputhostfile(hostfile)
-        totalhostcount = self.checkhostvalidity()
-        server_id = self.getserveridfromhostfile()
+        totalhostcount = Replication.checkhostvalidity()
+        server_id = Replication.getserveridfromhostfile()
         if server_id > totalhostcount :
             Log.debug('Current host-'+socket.gethostname()+' is not present in input host file')
             quit()
