@@ -50,8 +50,8 @@ class ComponentsBundle:
         result = 'Success'
         if level == ERROR:
             result = ERROR.capitalize()
-        message = (f"{const.SUPPORT_BUNDLE_TAG}|{bundle_id}|{node_name}|\
-            {comment}|{result}|{msg}")
+        message = (f"{const.SUPPORT_BUNDLE_TAG}|{bundle_id}|{node_name}|" \
+            f"{comment}|{result}|{msg}")
         Log.support_bundle(message)
 
     @staticmethod
@@ -68,13 +68,15 @@ class ComponentsBundle:
         try:
             Yaml(summary_file_path).dump(summary_data)
         except PermissionError as e:
+            Log.error(f"Permission denied for creating " \
+                f"summary file {e}")
             ComponentsBundle._publish_log(f"Permission denied for creating " \
                 f"summary file {e}", ERROR, bundle_id, node_name, comment)
-            return None
         except Exception as e:
+            Log.error(f"Permission denied for creating " \
+                f"summary file {e}")
             ComponentsBundle._publish_log(f'{e}', ERROR, bundle_id, node_name, \
                 comment)
-            return None
         Log.debug("Summary file created")
 
     @staticmethod
@@ -131,7 +133,6 @@ class ComponentsBundle:
         if not support_bundle_config:
             ComponentsBundle._publish_log(f"No such file {cmd_setup_file}", \
                 ERROR, bundle_id, node_name, comment)
-            return None
         # Shared/Local path Location for creating Support Bundle.
         from cortx.utils.shared_storage import Storage
         path = Storage.get_path('support_bundle')
@@ -171,12 +172,14 @@ class ComponentsBundle:
                     file_data = None
                     ComponentsBundle._publish_log(f"Internal error while parsing YAML file: " \
                         f"{file_path} - {e}", ERROR, bundle_id, node_name, comment)
+                    break
                 if file_data:
                     components_commands = file_data.get(
                         const.SUPPORT_BUNDLE.lower(), [])
                 else:
                     ComponentsBundle._publish_log(f"Empty support file/file does not exist: " \
                         f"{file_path}", ERROR, bundle_id, node_name, comment)
+                    break
                 if components_commands:
                     thread_obj = threading.Thread(\
                         ComponentsBundle._exc_components_cmd(\
@@ -198,16 +201,17 @@ class ComponentsBundle:
         for each_thread in threads:
             Log.debug(
                 f"Waiting for thread - {each_thread.ident} to complete process")
-            component, return_code = thread_que.get()
-            if return_code != 0:
-                ComponentsBundle._publish_log(
-                    f"Bundle generation failed for '{component}'", ERROR,
-                    bundle_id, node_name, comment)
-            else:
-                ComponentsBundle._publish_log(
-                    f"Bundle generation started for '{component}'", INFO,
-                    bundle_id, node_name, comment)
             each_thread.join(timeout=1800)
+            if not thread_que.empty():
+                component, return_code = thread_que.get()
+                if return_code != 0:
+                    ComponentsBundle._publish_log(
+                        f"Bundle generation failed for component - '{component}'", ERROR,
+                        bundle_id, node_name, comment)
+                else:
+                    ComponentsBundle._publish_log(
+                        f"Bundle generation started for component - '{component}'", INFO,
+                        bundle_id, node_name, comment)
         try:
             Log.debug(f"Generating tar.gz file on path {tar_file_name} "
                 f"from {bundle_path}")
@@ -215,7 +219,6 @@ class ComponentsBundle:
         except Exception as e:
             ComponentsBundle._publish_log(f"Could not generate tar file {e}", \
                 ERROR, bundle_id, node_name, comment)
-            return None
         # finally:
         #     if os.path.isdir(bundle_path):
         #         shutil.rmtree(bundle_path)
