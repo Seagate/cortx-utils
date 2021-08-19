@@ -24,7 +24,8 @@ from schematics import Model
 from schematics.types import DictType, StringType, ListType, ModelType, IntType, BooleanType
 
 from cortx.utils.data.access import BaseModel
-from cortx.utils.errors import MalformedConfigurationError, DataAccessInternalError, DataAccessError
+from cortx.utils.errors import (MalformedConfigurationError, DataAccessError,
+                                DataAccessInternalError, DataAccessExternalError)
 from cortx.utils.data.access import AbstractDataBaseProvider
 
 import cortx.utils.data.db as db_module
@@ -115,9 +116,15 @@ class ProxyStorageCallDecorator:
                 raise DataAccessInternalError("Database is not created")
             attr = database.__getattribute__(self._attr_name)
             if callable(attr):
-                # may be, first call the function and then check whether we need to await it
-                # DD: I think, we assume that all storage API are async
-                return await attr(*args, **kwargs)
+                try:
+                    result = await attr(*args, **kwargs)
+                    return result
+                except DataAccessError:
+                    raise
+                except Exception as e:
+                    database_name = self._async_storage.database_name
+                    desc = f'Unknown exception in database module {database_name}: {e}'
+                    raise DataAccessExternalError(desc)
             else:
                 return attr
 
@@ -146,6 +153,7 @@ class AsyncDataBase:
         self._model = model
         self._model_settings = model_config.config.get(model_config.database)
         self._db_config = db_config.databases.get(model_config.database)
+        self._database_name = model_config.database
         self._database_status = ServiceStatus.NOT_CREATED
         self._database_module = getattr(db_module, self._db_config.import_path)
         self._database = None
@@ -163,7 +171,8 @@ class AsyncDataBase:
         except DataAccessError:
             raise
         except Exception as e:
-            raise DataAccessError(f"Unexpected message happened: {e}")
+            desc = f'Unknown exception in database module {self._database_name}: {e}'
+            raise DataAccessError(desc)
         else:
             self._database_status = ServiceStatus.READY
         finally:
@@ -179,6 +188,10 @@ class AsyncDataBase:
     @property
     def storage_status(self):
         return self._database_status
+
+    @property
+    def database_name(self):
+        return self._database_name
 
 
 class DataBaseProvider(AbstractDataBaseProvider):
