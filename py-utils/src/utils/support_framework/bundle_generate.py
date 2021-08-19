@@ -161,13 +161,23 @@ class ComponentsBundle:
             else:
                 components_list = list(command_files_info.keys())
                 components_list.remove(const.SOS_COMP)
-        Log.debug(
-            f"Generating for {const.SB_COMPONENTS} {' '.join(components_list)}")
+        Log.debug(f"Generating for {const.SB_COMPONENTS} " \
+            f"{' '.join(components_list)}")
         # Manifest component supportbundle generation
-        thread_obj=threading.Thread(ManifestSupportBundle.generate(
-            f'{bundle_id}_manifiest', f'{bundle_path}{os.sep}'))
-        thread_obj.start()
-        threads.append(thread_obj)
+        try:
+            thread_obj=threading.Thread(ManifestSupportBundle.generate(
+                f'{bundle_id}_manifiest', f'{bundle_path}{os.sep}'))
+            thread_obj.start()
+            Log.debug(f"Started thread -> {thread_obj.ident} " \
+                f"Component -> manifest")
+            threads.append(thread_obj)
+        except Exception as e:
+            Log.error(f"Internal error while calling ManifestSupportBundle"\
+                f" generate api {e}")
+            ComponentsBundle._publish_log(f"Internal error at while bundling"\
+                f" Manifest component: {bundle_path} - {e}", ERROR,
+                bundle_id, node_name, comment)
+        
         for each_component in components_list:
             components_commands = []
             components_files = command_files_info[each_component]
