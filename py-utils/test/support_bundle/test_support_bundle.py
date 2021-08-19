@@ -58,7 +58,7 @@ class TestSupportBundle(unittest.TestCase):
         status = SupportBundle.get_status(bundle_id=bundle_obj.bundle_id)
         self.assertIsInstance(status, str)
         self.assertIsInstance(json.loads(status), dict)
-    
+
     def test_004status(self):
         bundle_obj = SupportBundle.generate(comment=self.sb_description, components=['csm'])
         time.sleep(5)
@@ -66,14 +66,14 @@ class TestSupportBundle(unittest.TestCase):
         self.assertIsNotNone(status)
         status = json.loads(status)
         self.assertEqual(status['status'][0]['result'], "Success")
-    
+
     def test_005status(self):
         bundle_obj = SupportBundle.generate(comment=self.sb_description, components=['wrong'])
         status = SupportBundle.get_status(bundle_id=bundle_obj.bundle_id)
         self.assertIsNotNone(status)
         status = json.loads(status)
         self.assertEqual(status['status'], [])
-    
+
     def test_006status(self):
         # TODO - Once all components are working this test case can be removed
         # Getting error because of some components dont have support.yaml and
