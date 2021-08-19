@@ -92,7 +92,9 @@ class GeneralConfig(Model):
 class ProxyStorageCallDecorator:
     """Class to decorate proxy call"""
 
-    def __init__(self, async_storage, model: Type[BaseModel], attr_name: str, event: ThreadSafeEvent):
+    def __init__(
+        self, async_storage, model: Type[BaseModel], attr_name: str, event: ThreadSafeEvent
+    ):
         self._async_storage = async_storage
         self._model = model
         self._attr_name = attr_name
@@ -165,9 +167,9 @@ class AsyncDataBase:
     async def create_database(self) -> None:
         self._database_status = ServiceStatus.IN_PROGRESS
         try:
-            self._database = await self._database_module.create_database(self._db_config.config,
-                                                                         self._model_settings.collection,
-                                                                         self._model, self._model_settings.create_schema)
+            self._database = await self._database_module.create_database(
+                self._db_config.config, self._model_settings.collection, self._model,
+                self._model_settings.create_schema)
         except DataAccessError:
             raise
         except Exception as e:
