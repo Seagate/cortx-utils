@@ -49,6 +49,8 @@ for root, directories, filenames in os.walk(_ROOT):
 
 # Get the list of template files
 tmpl_files = glob.glob('src/setup/templates/*.*')
+# Get the list of all openldap template files
+openldap_tmpl_files = glob.glob('src/utils/setup/openldap/templates/*.*')
 
 with open('LICENSE', 'r') as lf:
     license = lf.read()
@@ -97,7 +99,8 @@ setup(name='cortx-py-utils',
                 'cortx.utils.setup', 'cortx.utils.setup.kafka',
                 'cortx.utils.support', 'cortx.utils.cli_framework',
                 'cortx.utils.utils_server', 'cortx.utils.iem_framework',
-                'cortx.utils.discovery'
+                'cortx.utils.discovery', 'cortx.utils.common',
+                'cortx.utils.manifest', 'cortx.utils.setup.openldap'
                 ],
       package_data={
         'cortx': ['py.typed'],
@@ -109,7 +112,8 @@ setup(name='cortx-py-utils',
             'utils_setup = cortx.setup.utils_setup:main',
             'iem = cortx.utils.iem_framework.iem_cli:main',
             'kafka_setup = cortx.utils.setup.kafka.kafka_setup:main',
-            'utils_support_bundle = cortx.support.utils_support_bundle:main'
+            'utils_support_bundle = cortx.support.utils_support_bundle:main',
+            'openldap_setup = cortx.utils.setup.openldap.openldap_setup:main'
         ]
       },
       data_files = [ ('/var/lib/cortx/ha/specs', specs),
@@ -122,6 +126,13 @@ setup(name='cortx-py-utils',
                                  'src/utils/support/support_bundle.yaml',
                                  'src/utils/support/0-support_bundle.conf']),
                      ('%s/conf' % utils_path, tmpl_files),
+                     ('%s/conf' % utils_path, openldap_tmpl_files),
+                     ('%s/conf' % utils_path, [
+                     'src/utils/setup/openldap/openldapsetup_prereqs.json',
+                     'src/utils/setup/openldap/openldap_prov_config.yaml',
+                     'src/utils/setup/openldap/olcDatabase={2}mdb.ldif',
+                     'src/utils/setup/openldap/config/openldap_config.yaml.sample',
+                     'src/utils/setup/openldap/config/openldap_config_unsafe_attributes.yaml']),
                      ('/etc/systemd/system', ['src/utils/message_bus/'
                                               'cortx_message_bus.service'])],
       long_description=long_description,

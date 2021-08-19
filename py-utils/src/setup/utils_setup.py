@@ -171,12 +171,20 @@ class CleanupCmd(Cmd):
     """ Cleanup Setup Cmd """
     name = 'cleanup'
 
+    @staticmethod
+    def _add_extended_args(parser):
+        parser.add_argument('--pre-factory', help=' Pre-Factory cleanup',\
+            action='store_true')
+
     def __init__(self, args: dict):
         super().__init__(args)
+        # hifen(-) in argparse is converted to underscore(_)
+        # to make sure string is valid attrtibute
+        self.pre_factory = args.pre_factory
 
     def process(self):
         Utils.validate('cleanup')
-        rc = Utils.cleanup()
+        rc = Utils.cleanup(self.pre_factory)
         return rc
 
 

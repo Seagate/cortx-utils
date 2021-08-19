@@ -57,8 +57,8 @@ class Discovery:
             If rpath is not given, it will fetch whole Cortx Node
             data health.
             Examples:
-                node>compute[0]>hw>disk
-                node>compute[0]
+                node>server[0]>hw>disk
+                node>server[0]
                 node>storage[0]
                 node>storage[0]>hw>psu
         store_url: Path to store resource health information
