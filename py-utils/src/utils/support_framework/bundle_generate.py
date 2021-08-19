@@ -161,7 +161,7 @@ class ComponentsBundle:
             else:
                 components_list = list(command_files_info.keys())
                 components_list.remove(const.SOS_COMP)
-        Log.debug(f"Generating for {const.SB_COMPONENTS} " \
+        Log.debug(f"Generating for manifest and {const.SB_COMPONENTS} " \
             f"{' '.join(components_list)}")
         # Manifest component supportbundle generation
         try:
