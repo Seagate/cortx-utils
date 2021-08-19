@@ -21,9 +21,9 @@
 import os
 import ldap
 from cortx.utils.log import Log
-from setupcmd import SetupCmd, OpenldapPROVError
-from base_configure_ldap import BaseConfig
-from setupReplication import Replication
+from .setupcmd import SetupCmd, OpenldapPROVError
+from .base_configure_ldap import BaseConfig
+from .setupReplication import Replication
 
 class CleanupCmd(SetupCmd):
     """Cleanup cmd initialization."""

@@ -19,3 +19,6 @@ from cortx.utils.setup.kafka import Kafka
 from cortx.utils.setup.kafka import KafkaSetupError
 
 from cortx.utils.setup.openldap import OpenldapSetupError
+
+from cortx.utils.setup.elasticsearch import Elasticsearch
+from cortx.utils.setup.elasticsearch import ElasticsearchSetupError

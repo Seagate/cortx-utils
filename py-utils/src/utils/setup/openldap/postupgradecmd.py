@@ -21,7 +21,7 @@
 import os
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
-from setupcmd import SetupCmd, OpenldapPROVError
+from .setupcmd import SetupCmd, OpenldapPROVError
 
 
 class PostUpgradeCmd(SetupCmd):

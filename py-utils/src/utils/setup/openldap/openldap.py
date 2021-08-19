@@ -25,12 +25,13 @@ from cortx.utils.validator.v_service import ServiceV
 from cortx.utils.validator.v_path import PathV
 from cortx.utils.conf_store import Conf
 from cortx.utils.log import Log
-from configcmd import ConfigCmd
-from test import Test
-from resetcmd import ResetCmd
-from cleanupcmd import CleanupCmd
-from preupgradecmd import PreUpgradeCmd
-from postupgradecmd import PostUpgradeCmd
+from .configcmd import ConfigCmd
+from .test import Test
+from .resetcmd import ResetCmd
+from .cleanupcmd import CleanupCmd
+from .preupgradecmd import PreUpgradeCmd
+from .postupgradecmd import PostUpgradeCmd
+
 
 class OpenldapSetupError(BaseError):
 

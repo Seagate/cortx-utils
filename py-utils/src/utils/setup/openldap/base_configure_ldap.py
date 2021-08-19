@@ -23,8 +23,10 @@ import glob
 from shutil import copyfile
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
-from setupReplication import Replication
+
+from .setupReplication import Replication
 from ldif import LDIFRecordList
+
 
 class BaseConfig:
     Log.init('OpenldapProvisioning', '/var/log/cortx/utils/openldap', level='DEBUG')
