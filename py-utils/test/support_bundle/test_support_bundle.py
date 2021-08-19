@@ -17,6 +17,8 @@
 
 
 import os
+import json
+import time
 import unittest
 from cortx.utils.support_framework import SupportBundle
 from cortx.utils.support_framework import Bundle
@@ -26,36 +28,60 @@ class TestSupportBundle(unittest.TestCase):
 
     """Test Support Bundle related functionality."""
     from cortx.utils.log import Log
-    from pathlib import Path
-    home = str(Path.home())
-    os.makedirs(f'{home}/test_sb', exist_ok=True)
-    Log.init('support_bundle', f'{home}/test_sb', level='DEBUG', \
+    Log.init('support_bundle', '/var/log/cortx/utils/suppoort/', level='DEBUG', \
         backup_count=5, file_size_in_mb=5)
     sb_description = "Test support bundle generation"
-    bundle_obj = SupportBundle.generate(comment=sb_description, components=['provisioner'])
 
     def test_001generate(self):
-        self.assertIsNotNone(self.bundle_obj)
-        self.assertIsInstance(self.bundle_obj, Bundle)
-        self.assertIsInstance(self.bundle_obj.bundle_id, str)
-        self.assertIsInstance(self.bundle_obj.bundle_path, str)
-        self.assertNotEqual(self.bundle_obj.bundle_id, '')
-        self.assertNotEqual(self.bundle_obj.bundle_path, '')
-        self.assertEqual(self.bundle_obj.comment, self.sb_description)
+        bundle_obj = SupportBundle.generate(comment=self.sb_description, components=['provisioner'])
+        self.assertIsNotNone(bundle_obj)
+        self.assertIsInstance(bundle_obj, Bundle)
+        self.assertIsInstance(bundle_obj.bundle_id, str)
+        self.assertIsInstance(bundle_obj.bundle_path, str)
+        self.assertNotEqual(bundle_obj.bundle_id, '')
+        self.assertNotEqual(bundle_obj.bundle_path, '')
+        self.assertEqual(bundle_obj.comment, self.sb_description)
+        self.assertEqual(os.path.exists(f'{bundle_obj.bundle_path}'), True)
 
     def test_002generated_path(self):
+        bundle_obj = SupportBundle.generate(comment=self.sb_description, components=['csm'])
+        time.sleep(5)
         from cortx.utils.conf_store import Conf
-        Conf.load('index', 'json:///etc/cortx/cluster.conf')
-        node_name = Conf.get('index', 'server_node>hostname')
-        tar_file_name = f"{self.bundle_obj.bundle_id}_{node_name}.tar.gz"
-        sb_file_path = f'/var/log/seagate/support_bundle/{tar_file_name}'
-        self.assertTrue(os.path.exists(sb_file_path.strip()))
+        Conf.load('cluster_conf', 'json:///etc/cortx/cluster.conf')
+        node_name = Conf.get('cluster_conf', 'cluster>srvnode-1')
+        tar_file_name = f"{bundle_obj.bundle_id}_{node_name}.tar.gz"
+        sb_file_path = f'{bundle_obj.bundle_path}/{bundle_obj.bundle_id}/{node_name}/{tar_file_name}'
+        self.assertEqual(os.path.exists(sb_file_path), True)
 
     def test_003status(self):
-        status = SupportBundle.get_status(bundle_id=self.bundle_obj.bundle_id)
-        self.assertNotEqual(status, {})
-        self.assertIsInstance(status, dict)
+        bundle_obj = SupportBundle.generate(comment=self.sb_description, components=['csm'])
+        status = SupportBundle.get_status(bundle_id=bundle_obj.bundle_id)
+        self.assertIsInstance(status, str)
+        self.assertIsInstance(json.loads(status), dict)
 
+    def test_004status(self):
+        bundle_obj = SupportBundle.generate(comment=self.sb_description, components=['csm'])
+        time.sleep(5)
+        status = SupportBundle.get_status(bundle_id=bundle_obj.bundle_id)
+        self.assertIsNotNone(status)
+        status = json.loads(status)
+        self.assertEqual(status['status'][0]['result'], "Success")
+
+    def test_005status(self):
+        bundle_obj = SupportBundle.generate(comment=self.sb_description, components=['wrong'])
+        status = SupportBundle.get_status(bundle_id=bundle_obj.bundle_id)
+        self.assertIsNotNone(status)
+        status = json.loads(status)
+        self.assertEqual(status['status'], [])
+
+    def test_006status(self):
+        # TODO - Once all components are working this test case can be removed
+        # Getting error because of some components dont have support.yaml and
+        # empty support.yaml
+        bundle_obj = SupportBundle.generate(comment=self.sb_description)
+        status = SupportBundle.get_status(bundle_id=bundle_obj.bundle_id)
+        status = json.loads(status)
+        self.assertEqual(status['status'][0]['result'], 'Error')
 
 if __name__ == '__main__':
     unittest.main()

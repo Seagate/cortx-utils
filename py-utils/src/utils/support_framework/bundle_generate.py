@@ -19,6 +19,7 @@ import os
 import threading
 import shutil
 from datetime import datetime
+from queue import Queue
 from typing import List
 from cortx.utils.schema.payload import Yaml, Tar
 from cortx.utils.support_framework import const
@@ -50,8 +51,8 @@ class ComponentsBundle:
         result = 'Success'
         if level == ERROR:
             result = ERROR.capitalize()
-        message = (f"{const.SUPPORT_BUNDLE_TAG}|{bundle_id}|{node_name}|\
-            {comment}|{result}|{msg}")
+        message = (f"{const.SUPPORT_BUNDLE_TAG}|{bundle_id}|{node_name}|" \
+            f"{comment}|{result}|{msg}")
         Log.support_bundle(message)
 
     @staticmethod
@@ -68,18 +69,20 @@ class ComponentsBundle:
         try:
             Yaml(summary_file_path).dump(summary_data)
         except PermissionError as e:
-            ComponentsBundle._publish_log(f"Permission denied for creating \
-                summary file {e}", ERROR, bundle_id, node_name, comment)
-            return None
+            Log.error(f"Permission denied for creating " \
+                f"summary file {e}")
+            ComponentsBundle._publish_log(f"Permission denied for creating " \
+                f"summary file {e}", ERROR, bundle_id, node_name, comment)
         except Exception as e:
+            Log.error(f"Permission denied for creating " \
+                f"summary file {e}")
             ComponentsBundle._publish_log(f'{e}', ERROR, bundle_id, node_name, \
                 comment)
-            return None
         Log.debug("Summary file created")
 
     @staticmethod
     def _exc_components_cmd(commands: List, bundle_id: str, path: str, \
-            component: str, node_name: str, comment: str):
+            component: str, node_name: str, comment: str, thread_que: Queue):
         """
         Executes the Command for Bundle Generation of Every Component.
 
@@ -97,13 +100,9 @@ class ComponentsBundle:
             Log.debug(f"Command Output -> {output} {err}, {return_code}")
             if return_code != 0:
                 Log.error(f"Command Output -> {output} {err}, {return_code}")
-                ComponentsBundle._publish_log(
-                    f"Bundle generation failed for '{component}'", ERROR,
-                    bundle_id, node_name, comment)
             else:
-                ComponentsBundle._publish_log(
-                    f"Bundle generation started for '{component}'", INFO,
-                    bundle_id, node_name, comment)
+                Log.debug(f"Command Output -> {output} {err}, {return_code}")
+            thread_que.put((component, return_code))
 
     @staticmethod
     async def init(command: List):
@@ -130,12 +129,11 @@ class ComponentsBundle:
             support_bundle_config = Yaml(cmd_setup_file).load()
         except Exception as e:
             Log.error(f"Internal error while parsing YAML file {cmd_setup_file}{e}")
-            ComponentsBundle._publish_log(f"Internal error while parsing YAML file \
-                {cmd_setup_file}{e}", ERROR, bundle_id, node_name, comment)
+            ComponentsBundle._publish_log(f"Internal error while parsing YAML file " \
+                f"{cmd_setup_file}{e}", ERROR, bundle_id, node_name, comment)
         if not support_bundle_config:
             ComponentsBundle._publish_log(f"No such file {cmd_setup_file}", \
                 ERROR, bundle_id, node_name, comment)
-            return None
         # Shared/Local path Location for creating Support Bundle.
         from cortx.utils.shared_storage import Storage
         path = Storage.get_path('support_bundle')
@@ -163,6 +161,7 @@ class ComponentsBundle:
                 components_list.remove(const.SOS_COMP)
         Log.debug(
             f"Generating for {const.SB_COMPONENTS} {' '.join(components_list)}")
+        thread_que = Queue()
         # Manifest component supportbundle generation
         thread_obj=threading.Thread(ManifestSupportBundle.generate(
             f'{bundle_id}_manifiest', f'{bundle_path}{os.sep}'))
@@ -177,17 +176,22 @@ class ComponentsBundle:
                 except Exception as e:
                     Log.error(f"Internal error while parsing YAML file {file_path}{e}")
                     file_data = None
-                    ComponentsBundle._publish_log(f"Incorrect permissions for path: \
-                        {bundle_path} - {e}", ERROR, bundle_id, node_name, comment)
+                    ComponentsBundle._publish_log(f"Internal error while parsing YAML file: " \
+                        f"{file_path} - {e}", ERROR, bundle_id, node_name, comment)
+                    break
                 if file_data:
                     components_commands = file_data.get(
                         const.SUPPORT_BUNDLE.lower(), [])
+                else:
+                    ComponentsBundle._publish_log(f"Support.yaml file does not exist/empty: " \
+                        f"{file_path}", ERROR, bundle_id, node_name, comment)
+                    break
                 if components_commands:
                     thread_obj = threading.Thread(\
                         ComponentsBundle._exc_components_cmd(\
                         components_commands, f'{bundle_id}_{each_component}',
                             f'{bundle_path}{os.sep}', each_component,
-                            node_name, comment))
+                            node_name, comment, thread_que))
                     thread_obj.start()
                     Log.debug(f"Started thread -> {thread_obj.ident} " \
                         f"Component -> {each_component}")
@@ -204,6 +208,16 @@ class ComponentsBundle:
             Log.debug(
                 f"Waiting for thread - {each_thread.ident} to complete process")
             each_thread.join(timeout=1800)
+            if not thread_que.empty():
+                component, return_code = thread_que.get()
+                if return_code != 0:
+                    ComponentsBundle._publish_log(
+                        f"Bundle generation failed for component - '{component}'", ERROR,
+                        bundle_id, node_name, comment)
+                else:
+                    ComponentsBundle._publish_log(
+                        f"Bundle generation started for component - '{component}'", INFO,
+                        bundle_id, node_name, comment)
         try:
             Log.debug(f"Generating tar.gz file on path {tar_file_name} "
                 f"from {bundle_path}")
@@ -211,7 +225,6 @@ class ComponentsBundle:
         except Exception as e:
             ComponentsBundle._publish_log(f"Could not generate tar file {e}", \
                 ERROR, bundle_id, node_name, comment)
-            return None
         # finally:
         #     if os.path.isdir(bundle_path):
         #         shutil.rmtree(bundle_path)

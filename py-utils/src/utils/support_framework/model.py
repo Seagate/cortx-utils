@@ -37,7 +37,8 @@ class SupportBundleRepository:
 
     async def retrieve_all(self, bundle_id) -> [SupportBundleModel]:
         if bundle_id:
-            query = Query().filter_by(Compare(SupportBundleModel.bundle_id, \
+            query = Query().limit(SupportBundleModel.max_count).filter_by(\
+                Compare(SupportBundleModel.bundle_id, \
                 '=', bundle_id))
         else:
             query = Query().limit(SupportBundleModel.max_count)
