@@ -1,0 +1,11 @@
+[all:vars]
+ansible_connection=ssh
+ansible_user=root
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+
+[srvnodes] 
+{% set count = namespace(value=1) %}
+{% for node in NODES.split(',') %}  
+  srvnode-{{ count.value }} ansible_host={{ node }}
+  {% set count.value = count.value + 1 %}  
+{% endfor %}

@@ -1,0 +1,39 @@
+- include: 00_prepare_environment.yml
+  tags: ['00_PREPARE']
+
+- include: system_reimage.yml
+  when: DEPLOY_TYPE == "REIMAGE" or DEPLOY_TYPE == "DEPLOY-WITH-REIMAGE" 
+  tags: ['REIMAGE']
+
+- include: 01_preparation_startup.yml
+  tags: ['01_PREPARE_STARTUP']
+  
+- include: 02_factory_manufacturing.yml
+  tags: ['02_FACTORY_MANUFACTURING']
+
+- include: 03_security.yml 
+  tags: ['03_SECURITY']
+  
+- include: 04_node_configuration.yml
+  tags: ['04_NODE_CONFIGURATION']
+  
+- include: 05_prepare_node.yml
+  tags: ['05_PREPARE_NODE']
+  
+- include: 06_network_config.yml
+  tags: ['06_NETWORK_CONFIG']
+  
+- include: 07_system_config.yml
+  tags: ['07_SYSTEM_CONFIG']
+  
+- include: 08_cluster_config.yml
+  tags: ['08_CLUSTER_CONFIG']
+  
+- include: 09_storage_set.yml
+  tags: ['09_STORAGE_NETWORK']
+  
+- include: 10_prepare_configure_cluster.yml
+  tags: ['10_PREPARE_CONFIGURE']
+  
+- include: 11_start_cluster.yml
+  tags: ['11_START_CLUSTER']

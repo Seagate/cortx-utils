@@ -1,0 +1,123 @@
+#Hostname configuration
+- name: "Extract Search domain1 from /etc/resolv.conf"
+  shell: cat /etc/resolv.conf | grep search | awk '{print $2}' 
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+  register: searchdomain1
+
+- name: "Extract Search domain2 from /etc/resolv.conf"
+  shell: cat /etc/resolv.conf | grep search | awk '{print $3}' 
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+  register: searchdomain2
+
+- name: "Extract DNS Server1 from /etc/resolv.conf"
+  shell: cat /etc/resolv.conf | grep nameserver | awk 'FNR==1 {print $2}'
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+  register: dnsserver1
+
+- name: "Extract DNS Server2 from /etc/resolv.conf"
+  shell: cat /etc/resolv.conf | grep nameserver | awk 'FNR==2 {print $2}'
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+  register: dnsserver2
+  
+- name: Configure hostname
+  shell: cortx_setup node prepare network --hostname $(hostname -f) --search_domains {{ item.1 }} {{ item.2 }} --dns_servers {{ item.3 }} {{ item.4 }} 
+  delegate_to: "{{ item.0 }}"
+  with_together: 
+    - "{{ groups['srvnodes'] }}" 
+    - "{{searchdomain1.results|map(attribute='stdout')|list}}"
+    - "{{searchdomain2.results|map(attribute='stdout')|list}}"
+    - "{{dnsserver1.results|map(attribute='stdout')|list}}"
+    - "{{dnsserver2.results|map(attribute='stdout')|list}}"
+
+#Network Management Interface configuration
+- name: "IP for network management interface"
+  shell: ifconfig "{{ hostvars[item]['network_mgmt_interfaces'] }}" | grep -w inet |  grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" | sed -n '1p'
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+  register: mgmt_ip
+  
+- name: "Netmask for network management interface" 
+  shell: ifconfig "{{ hostvars[item]['network_mgmt_interfaces'] }}" | grep -w inet |  grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" | sed -n '2p' 
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+  register: netmask_mgmt
+
+- name: "Gateway for network management interface" 
+  shell: route -n | grep "^0\.0\.0\.0" | awk '{print $2}'
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+  register: gateway_mgmt
+  
+- name: Node Static Config for network management interface
+  shell: cortx_setup node prepare network --type management --ip_address {{ item.1 }} --netmask {{ item.2 }} --gateway {{ item.3 }}
+  delegate_to: "{{ item.0 }}"
+  with_together: 
+    - "{{ groups['srvnodes'] }}" 
+    - "{{mgmt_ip.results|map(attribute='stdout')|list}}"
+    - "{{netmask_mgmt.results|map(attribute='stdout')|list}}"
+    - "{{gateway_mgmt.results|map(attribute='stdout')|list}}"
+
+#Public Interface configuration
+- name: "IP for data public interface"
+  shell: ifconfig "{{ hostvars[item]['network_data_public_interfaces'] }}" | grep -w inet |  grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" | sed -n '1p'
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+  register: data_ip
+  
+- name: "Netmask for data public interface" 
+  shell: ifconfig "{{ hostvars[item]['network_data_public_interfaces'] }}" | grep -w inet |  grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" | sed -n '2p' 
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+  register: netmask_data
+
+- name: "Gateway for data public interface"
+  shell: route -n | grep -i "{{ hostvars[item.0]['network_data_public_interfaces'] }}" |  grep "{{item.1}}" | awk '{print $2}'
+  delegate_to: "{{ item.0 }}"
+  with_together: 
+    - "{{ groups['srvnodes'] }}" 
+    - "{{netmask_data.results|map(attribute='stdout')|list}}"
+  register: gateway_data
+    
+- name: Node Static Config for data public interface 
+  shell: cortx_setup node prepare network --type data --ip_address {{ item.1 }} --netmask {{ item.2 }} --gateway {{ item.3 }}
+  delegate_to: "{{ item.0 }}"
+  with_together: 
+    - "{{ groups['srvnodes'] }}" 
+    - "{{data_ip.results|map(attribute='stdout')|list}}"
+    - "{{netmask_data.results|map(attribute='stdout')|list}}" 
+    - "{{gateway_data.results|map(attribute='stdout')|list}}"
+
+#Private Interface configuration
+- name: "IP for date private interface"
+  shell: ifconfig "{{ hostvars[item]['network_data_private_interfaces'] }}" | grep -w inet |  grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" | sed -n '1p'
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+  register: private_ip
+  
+- name: "Netmask for data private interface" 
+  shell: ifconfig "{{ hostvars[item]['network_data_private_interfaces'] }}" | grep -w inet |  grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" | sed -n '2p' 
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+  register: netmask_private
+  
+- name: "Gateway for data private interface"
+  shell: route -n | grep -i "{{ hostvars[item.0]['network_data_private_interfaces'] }}" |  grep "{{item.1}}" | awk '{print $2}'
+  delegate_to: "{{ item.0 }}"
+  with_together: 
+    - "{{ groups['srvnodes'] }}" 
+    - "{{netmask_data.results|map(attribute='stdout')|list}}"
+  register: gateway_private
+  
+- name: Node Static Config for data private interface
+  shell: cortx_setup node prepare network --type private --ip_address {{ item.1 }} --netmask {{ item.2 }} --gateway {{item.3}}
+  delegate_to: "{{ item.0 }}"
+  with_together: 
+    - "{{ groups['srvnodes'] }}" 
+    - "{{private_ip.results|map(attribute='stdout')|list}}"
+    - "{{netmask_private.results|map(attribute='stdout')|list}}" 
+    - "{{gateway_private.results|map(attribute='stdout')|list}}" 
+  

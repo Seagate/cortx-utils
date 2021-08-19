@@ -1,0 +1,20 @@
+---
+
+- name: "[reimage] : Re-Image nodes using satellite API" 
+  command: python3 -u {{ role_path }}/files/autoreimage.py -hw {{ hostvars[item]['ansible_host'] }} -un {{ SATELLITE_UN }} -pw {{ SATELLITE_PW }}
+  with_items: "{{ groups['srvnodes'] }}"
+
+- name: "[reimage] : Wait for server to restart"
+  wait_for:
+      host={{ hostvars[item]['ansible_host'] }}
+      port=22
+      delay=60
+      timeout=2400
+  become: false
+  with_items: "{{ groups['srvnodes'] }}"
+
+- meta: refresh_inventory
+
+- name: "[reimage] : Wait for SSH Connection"
+  pause:
+    minutes: 15

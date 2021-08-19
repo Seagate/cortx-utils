@@ -1,0 +1,19 @@
+- name: Cluster show
+  shell: cortx_setup cluster show
+  delegate_to: "srvnode-1"
+
+- name: Define storage set
+  shell: cortx_setup storageset create --name storage-set-1 --count 3
+  delegate_to: "srvnode-1"
+  
+- name: Storageset add nodes
+  shell: cortx_setup storageset add node storage-set-1 srvnode-1 srvnode-2 srvnode-3
+  delegate_to: "srvnode-1"
+  
+- name: Storageset add enclosure
+  shell: cortx_setup storageset add enclosure storage-set-1 srvnode-1 srvnode-2 srvnode-3
+  delegate_to: "srvnode-1"
+
+- name: Storageset config durability
+  shell: cortx_setup storageset config durability storage-set-1 --type sns --data 4 --parity 2 --spare 2
+  delegate_to: "srvnode-1"

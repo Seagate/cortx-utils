@@ -1,0 +1,32 @@
+---
+
+- include: passwordless_authentication.yml
+
+- name: "[deploy-prep] : Wait for SSH Connection"
+  pause:
+    minutes: 2
+    
+- name: Remove old cortx directory
+  shell: rm -rf /mnt/cortx
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}" 
+
+- name: Create cortx directory
+  shell: mkdir /mnt/cortx
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}" 
+
+- name: Download install.sh
+  shell: (cd /mnt/cortx && curl -O https://raw.githubusercontent.com/Seagate/cortx-prvsnr/stable/srv/components/provisioner/scripts/install.sh)
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}" 
+
+- name: Changing perm of "/mnt/cortx/install.sh", adding "+x"
+  file: dest=/mnt/cortx/install.sh mode=a+x
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}" 
+
+- name: Prepare setup
+  shell: /mnt/cortx/install.sh -t {{ CORTX_BUILD_URL }}
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}" 

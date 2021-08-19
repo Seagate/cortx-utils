@@ -1,0 +1,11 @@
+- name: Prepare node1 over service port
+  shell: cortx_setup node prepare server --site_id 1 --rack_id 1 --node_id 1 
+  delegate_to: "srvnode-1"  
+ 
+- name: Prepare node1 over service port
+  shell: cortx_setup node prepare server --site_id 1 --rack_id 1 --node_id 2
+  delegate_to: "srvnode-2"  
+ 
+- name: Prepare node1 over service port
+  shell: cortx_setup node prepare server --site_id 1 --rack_id 1 --node_id 3
+  delegate_to: "srvnode-3"  

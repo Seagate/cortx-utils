@@ -1,0 +1,19 @@
+---
+
+- name: "[prepare] : Validate the required input arguments for this playbook"
+  fail: msg="Variable '{{ item }}' is not defined"
+  when: item not in vars
+  with_items: "{{required_vars}}"
+
+- name: Download config file
+  get_url:
+    url: "{{CONFIG_URL}}"
+    dest: inventories/factory_deployment/hosts_srvnodes
+    
+- meta: refresh_inventory
+
+- include: passwordless_authentication.yml
+
+- name: "[deploy-prep] : Wait for SSH Connection"
+  pause:
+    minutes: 1 

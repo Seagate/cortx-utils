@@ -1,0 +1,33 @@
+- name: "[prepare] : Install tools [expect] on localhost"
+  shell: yum install -y expect
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}"
+
+- name: Display hostname of srvnode1
+  shell: echo `hostname`
+  delegate_to: "srvnode-1" 
+  register: primary_hostname
+  
+- name: Display hostname of srvnode2
+  shell: echo `hostname`
+  delegate_to: "srvnode-2" 
+  register: secondary_hostname1
+
+- name: Display hostname of srvnode3
+  shell: echo `hostname`
+  delegate_to: "srvnode-3" 
+  register: secondary_hostname2
+  
+- set_fact:
+    primary_host: "{{ primary_hostname.stdout }}"
+
+- set_fact:
+    secondary_host1: "{{ secondary_hostname1.stdout }}"
+    
+- set_fact:
+    secondary_host2: "{{ secondary_hostname2.stdout }}"
+
+- name: Cluster Create
+  script: files/cluster_create_passwordless_ssh.sh  {{ primary_host }} {{ secondary_host1 }} {{ secondary_host2 }} {{ ansible_ssh_pass }} {{ MGMT_VIP }} {{ CORTX_BUILD_URL }}
+  delegate_to: srvnode-1
+  

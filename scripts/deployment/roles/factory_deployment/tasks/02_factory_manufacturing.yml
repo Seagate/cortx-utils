@@ -1,0 +1,211 @@
+---
+
+- name: Install device-mapper-multipath
+  shell: yum install -y device-mapper-multipath
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}" 
+    
+- name: Copy multipath configuration
+  shell: cp /usr/share/doc/device-mapper-multipath-0.4.9/multipath.conf /etc/multipath.conf
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}" 
+ 
+- name: Restart multipath service
+  shell: systemctl restart multipathd
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}" 
+  
+- name: "Server Configuration"
+  command: cortx_setup server config --name "{{item}}" --type HW
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}" 
+  
+- name: "Network Configuration lnet"
+  command: cortx_setup network config --transport lnet --mode tcp
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}" 
+
+- name: "Network Management Configuration"
+  command: cortx_setup network config --interfaces "{{ hostvars[item]['network_mgmt_interfaces'] }}" --type management
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}" 
+
+- name: "Network Configuration data public interface"
+  command: cortx_setup network config --interfaces "{{ hostvars[item]['network_data_public_interfaces'] }}" --type data
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}" 
+
+- name: "Network Configuration data private interface"
+  command: cortx_setup network config --interfaces "{{ hostvars[item]['network_data_private_interfaces'] }}" --type private
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}" 
+  
+- name: Extract BMC IP for all nodes
+  shell: ipmitool lan print 1 | grep  'IP Address' | grep -oE '([0-9]{1,3}.){3}[0-9]{1,3}' | sed -n '1p'
+  register: bmc_ip_add
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}" 
+  
+- name: "Network Configuration bmc"
+  command: cortx_setup network config --bmc "{{item.1}}" --user "{{ hostvars[item.0]['bmc_user'] }}" --password "{{ hostvars[item.0]['bmc_secret'] }}"
+  delegate_to: "{{ item.0 }}"
+  with_together: 
+    - "{{ groups['srvnodes'] }}" 
+    - "{{bmc_ip_add.results|map(attribute='stdout')|list}}"
+
+- name: "Storage Configuration gallium primary"
+  command: cortx_setup storage config --controller gallium --mode primary --ip "{{ hostvars[item]['controller_primary_ip'] }}" --port 80 --user "{{ hostvars[item]['controller_user'] }}" --password "{{ hostvars[item]['controller_secret'] }}"
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}" 
+
+- name: "Storage Configuration gallium secondary"
+  command: cortx_setup storage config --controller gallium --mode secondary --ip "{{ hostvars[item]['controller_secondary_ip'] }}" --port 80 --user "{{ hostvars[item]['controller_user'] }}" --password "{{ hostvars[item]['controller_secret'] }}"
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}" 
+  
+
+- name: "Storage Configuration enclosure-1"
+  command: cortx_setup storage config --name enclosure-1 --type "{{ hostvars[item]['type'] }}"
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}" 
+
+  #cvg0 and cvg1 srvnode-1
+- name: "cvg0 data device list"
+  script: files/cvg0_datalist.py
+  register: cvg0_data_list_node1
+  delegate_to: "srvnode-1" 
+  
+- set_fact:
+    cvg0_data_node1: "{{ item }}"
+  with_items: "{{ cvg0_data_list_node1.stdout_lines }}"
+  
+- name: "cvg0 meta device list"
+  script: files/cvg0_metalist.py
+  register: cvg0_meta_list_node1
+  delegate_to: "srvnode-1" 
+  
+- set_fact:
+    cvg0_meta_node1: "{{ item }}"
+  with_items: "{{ cvg0_meta_list_node1.stdout_lines }}"
+
+- name: "cvg1 data device list"
+  script: files/cvg1_datalist.py
+  register: cvg1_data_list_node1
+  delegate_to: "srvnode-1"
+  
+- set_fact:
+    cvg1_data_node1: "{{ item }}"
+  with_items: " {{ cvg1_data_list_node1.stdout_lines }} "  
+
+- name: "cvg1 meta device list"
+  script: files/cvg1_metalist.py
+  register: cvg1_meta_list_node1
+  delegate_to: "srvnode-1"
+ 
+- set_fact:
+    cvg1_meta_node1: "{{ item }}" 
+  with_items: "{{ cvg1_meta_list_node1.stdout_lines }}"
+
+#cvg0 and cvg1 srvnode-2
+- name: "cvg0 data device list"
+  script: files/cvg0_datalist.py
+  register: cvg0_data_list_node2
+  delegate_to: "srvnode-2" 
+
+- set_fact:
+    cvg0_data_node2: "{{ item }}"
+  with_items: "{{ cvg0_data_list_node2.stdout_lines }}"
+
+- name: "cvg0 meta device list"
+  script: files/cvg0_metalist.py
+  register: cvg0_meta_list_node2
+  delegate_to: "srvnode-2" 
+  
+- set_fact:
+    cvg0_meta_node2: "{{ item }}"
+  with_items: "{{ cvg0_meta_list_node2.stdout_lines }}"
+
+- name: "cvg1 data device list"
+  script: files/cvg1_datalist.py
+  register: cvg1_data_list_node2
+  delegate_to: "srvnode-2"
+  
+- set_fact:
+    cvg1_data_node2: "{{ item }}"
+  with_items: "{{ cvg1_data_list_node2.stdout_lines }}"
+  
+- name: "cvg1 meta device list"
+  script: files/cvg1_metalist.py
+  register: cvg1_meta_list_node2
+  delegate_to: "srvnode-2"
+ 
+- set_fact:
+    cvg1_meta_node2: "{{ item }}"
+  with_items: "{{ cvg1_meta_list_node2.stdout_lines }}"
+  
+#cvg0 and cvg1 srvnode-3
+- name: "cvg0 data device list"
+  script: files/cvg0_datalist.py
+  register: cvg0_data_list_node3
+  delegate_to: "srvnode-3" 
+
+- set_fact:
+    cvg0_data_node3: "{{ item }}"
+  with_items: "{{ cvg0_data_list_node3.stdout_lines }}"
+
+- name: "cvg0 meta device list"
+  script: files/cvg0_metalist.py
+  register: cvg0_meta_list_node3
+  delegate_to: "srvnode-3" 
+  
+- set_fact:
+    cvg0_meta_node3: "{{ item }}"
+  with_items: "{{ cvg0_meta_list_node3.stdout_lines }}"
+
+- name: "cvg1 data device list"
+  script: files/cvg1_datalist.py
+  register: cvg1_data_list_node3
+  delegate_to: "srvnode-3"
+  
+- set_fact:
+    cvg1_data_node3: "{{ item }}"
+  with_items: "{{ cvg1_data_list_node3.stdout_lines }}"
+
+- name: "cvg1 meta device list"
+  script: files/cvg1_metalist.py
+  register: cvg1_meta_list_node3
+  delegate_to: "srvnode-3"
+ 
+- set_fact:
+    cvg1_meta_node3: "{{ item }}"
+  with_items: "{{ cvg1_meta_list_node3.stdout_lines }}"
+
+# cvg0 and cvg1 storage config on srvnode-1
+- name: "Storage Configuration cvg 0 data_devices on srvnode-1"
+  command: cortx_setup storage config --cvg dg01 --data-devices "{{ cvg0_data_node1 }}" --metadata-devices "{{ cvg0_meta_node1 }}"
+  delegate_to: "srvnode-1"
+  
+- name: "Storage Configuration cvg 1 data_devices on srvnode-1 "
+  command: cortx_setup storage config --cvg dg02 --data-devices "{{ cvg1_data_node1 }}" --metadata-devices "{{ cvg1_meta_node1 }}"
+  delegate_to: "srvnode-1"
+  
+# cvg0 and cvg1 storage config on srvnode-2
+- name: "Storage Configuration cvg 0 data_devices on srvnode-2"
+  command: cortx_setup storage config --cvg dg01 --data-devices "{{ cvg0_data_node2 }}" --metadata-devices "{{ cvg0_meta_node2 }}"
+  delegate_to: "srvnode-2"
+
+- name: "Storage Configuration cvg 1 data_devices on srvnode-2 "
+  command: cortx_setup storage config --cvg dg02 --data-devices "{{ cvg1_data_node2 }}" --metadata-devices "{{ cvg1_meta_node2 }}"
+  delegate_to: "srvnode-2"
+
+# cvg0 storage config on srvnode-3
+- name: "Storage Configuration cvg 0 data_devices on srvnode-3"
+  command: cortx_setup storage config --cvg dg01 --data-devices "{{ cvg0_data_node3 }}" --metadata-devices "{{ cvg0_meta_node3 }}"
+  delegate_to: "srvnode-3"
+  
+- name: "Storage Configuration cvg 1 data_devices on srvnode-3 "
+  command: cortx_setup storage config --cvg dg02 --data-devices "{{ cvg1_data_node3 }}" --metadata-devices "{{ cvg1_meta_node3 }}"
+  delegate_to: "srvnode-3"
+
+
+

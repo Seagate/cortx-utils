@@ -1,0 +1,24 @@
+---
+
+- meta: refresh_inventory
+
+- name: Install security certificate
+  command: cortx_setup security config --certificate /opt/seagate/cortx/provisioner/srv/components/misc_pkgs/ssl_certs/files/stx.pem
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}" 
+
+- name: Configure feature set config-key software s3 service
+  command: cortx_setup config set --key 'cortx>software>s3>service>instances' --val 11
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}" 
+  
+- name: Configure feature set config-key software s3 io
+  command: cortx_setup config set --key 'cortx>software>s3>io>max_units' --val 32
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}" 
+  
+- name: Configure feature set config-key software motr
+  command: cortx_setup config set --key 'cortx>software>motr>service>client_instances' --val 2
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}" 
+

@@ -1,0 +1,19 @@
+- name: Prepare cluster
+  shell: cortx_setup cluster prepare
+  delegate_to: "srvnode-1"
+  
+- name: Deploy foundation
+  shell: cortx_setup cluster config component --type foundation
+  delegate_to: "srvnode-1"
+ 
+- name: Deploy IO Path
+  shell: cortx_setup cluster config component --type iopath
+  delegate_to: "srvnode-1"
+  
+- name: Deploy Control Path
+  shell: cortx_setup cluster config component --type controlpath
+  delegate_to: "srvnode-1"
+  
+- name: Deploy High Availability Path
+  shell: cortx_setup cluster config component --type ha
+  delegate_to: "srvnode-1"

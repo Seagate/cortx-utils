@@ -1,0 +1,21 @@
+- name: Copy firewall config
+  copy:
+    src: files/firewall_config.yaml   
+    dest: /root 
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}" 
+   
+- name: Firewall configuration
+  shell: cortx_setup node prepare firewall --config yaml:///opt/seagate/cortx_configs/firewall_config.yaml
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}" 
+  
+- name: Set the time by providing the NTP server and time zone
+  shell: cortx_setup node prepare time --server time.seagate.com --timezone UTC
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}" 
+  
+- name: Finalize the node
+  shell: cortx_setup node prepare finalize
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['srvnodes'] }}" 

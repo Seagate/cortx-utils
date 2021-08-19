@@ -1,0 +1,20 @@
+---
+NODE_ACCESS_WAIT_TIME: 5400
+CORTX_ISO_FOLDER: '/opt/isos/'
+EXPECT_RPM: http://mirror.centos.org/centos/7/os/x86_64/Packages/expect-5.45-14.el7_1.x86_64.rpm
+CORXT_DEPLOYMENT_LOG_PATH: "/root/cortx_deployment/log/"
+CORXT_DEPLOYMENT_SCRIPT_PATH: "/root/cortx_deployment/script"
+REQUIRED_HOST: 3
+REQUIRED_DEVICES: 64
+
+required_vars:
+  - DEPLOY_TYPE
+  - CONFIG_URL
+  - CORTX_BUILD_URL
+  - CORTX_PREP_URL
+  - CORTX_OS_ISO_URL
+  - CLUSTER_PASS
+  - SATELLITE_UN
+  - SATELLITE_PW
+  - MGMT_VIP
+  - USERS
