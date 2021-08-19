@@ -183,7 +183,7 @@ class ComponentsBundle:
                     components_commands = file_data.get(
                         const.SUPPORT_BUNDLE.lower(), [])
                 else:
-                    ComponentsBundle._publish_log(f"Empty support file/file does not exist: " \
+                    ComponentsBundle._publish_log(f"Support.yaml file does not exist/empty: " \
                         f"{file_path}", ERROR, bundle_id, node_name, comment)
                     break
                 if components_commands:
