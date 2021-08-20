@@ -313,7 +313,7 @@ class OpenLdap(GenericDataBase):
             try:
                 cls._client.simple_bind_s(config.login, config.password)
             except ldap.LDAPError as le:
-                err = f'Failed to bind to OpenLdap server {le}'
+                err = f'Failed to bind to OpenLdap server: {le}'
                 raise DataAccessExternalError(err) from None
             cls._loop = asyncio.get_event_loop()
             cls._thread_pool = ThreadPoolExecutor(max_workers=multiprocessing.cpu_count())
@@ -391,7 +391,7 @@ class OpenLdap(GenericDataBase):
         try:
             await self._loop.run_in_executor(self._thread_pool, self._client.add_s, dn, ldif)
         except ldap.LDAPError as le:
-            err = f'Failed to execute add operation with OpenLdap server {le.result}: {le.desc}'
+            err = f'Failed to execute add operation with OpenLdap server: {le}'
             raise DataAccessExternalError(err) from None
 
     async def _get_ldap(self, filter_obj: Optional[IFilter]) -> List[Dict[str, str]]:
@@ -413,7 +413,7 @@ class OpenLdap(GenericDataBase):
             raw_attributes = await self._loop.run_in_executor(
                 self._thread_pool, self._client.search_s, base_dn, base_scope, ldap_filter)
         except ldap.LDAPError as le:
-            err = f'Failed to execute search operation with OpenLdap server {le.result}: {le.desc}'
+            err = f'Failed to execute search operation with OpenLdap server: {le}'
             raise DataAccessExternalError(err) from None
         models = [self._ldif_to_model(attrs) for _, attrs in raw_attributes]
         return models
@@ -494,8 +494,7 @@ class OpenLdap(GenericDataBase):
             try:
                 await self._loop.run_in_executor(self._thread_pool, self._client.modify_s, dn, ldif)
             except ldap.LDAPError as le:
-                err = (f'Failed to execute update operation with OpenLdap server {le.result}:'
-                       f' {le.desc}')
+                err = (f'Failed to execute update operation with OpenLdap server: {le}')
                 raise DataAccessExternalError(err) from None
         return len(models)
 
@@ -513,8 +512,7 @@ class OpenLdap(GenericDataBase):
             try:
                 await self._loop.run_in_executor(self._thread_pool, self._client.delete_s, dn)
             except ldap.LDAPError as le:
-                err = (f'Failed to execute delete operation wtih OpenLdap server {le.result}:'
-                       f' {le.desc}')
+                err = (f'Failed to execute delete operation wtih OpenLdap server: {le}')
                 raise DataAccessExternalError(err) from None
         return len(models)
 
