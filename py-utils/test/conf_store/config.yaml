@@ -1,0 +1,2 @@
+conf_url_list:
+  consul_test_index: 'consul:///'

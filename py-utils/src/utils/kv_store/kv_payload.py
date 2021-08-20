@@ -44,11 +44,12 @@ class KvPayload:
         return Format.dump(self._data, 'json')
 
     def get_data(self, format_type: str = None):
-        if format_type == None:
+        if not format_type:
             return self._data
         return Format.dump(self._data, format_type)
 
-    def get_keys(self, recurse: bool = True, **filters) -> list:
+    def get_keys(
+        self, starts_with: str = '', recurse: bool = True, **filters) -> list:
         """
         Obtains list of keys stored in the payload
         Input Paramters:
@@ -58,13 +59,15 @@ class KvPayload:
                     when True, returns keys including array index
                     e.g. In case of "xxx[0],xxx[1]", only "xxx" is returned
         """
-        if len(filters.items()) == 0:
+        if all([len(filters.items()) == 0, not starts_with]):
             return self._keys
         keys = []
         if recurse:
             self._get_keys(keys, self._data, None, **filters)
         else:
             self._shallow_get_keys(keys, self._data, None, **filters)
+        if starts_with:
+            keys = [key for key in keys if key.startswith(starts_with)]
         return keys
 
     def _get_keys(self, keys: list, data, pkey: str = None,
