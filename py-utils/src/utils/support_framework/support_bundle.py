@@ -219,7 +219,8 @@ class SupportBundle:
         loop = asyncio.get_event_loop()
         res = loop.run_until_complete(
             SupportBundle._get_bundle_status(cmd_obj))
-        return res
+        import json
+        return json.dumps(res, indent=2)
 
     @staticmethod
     def delete(bundle):
