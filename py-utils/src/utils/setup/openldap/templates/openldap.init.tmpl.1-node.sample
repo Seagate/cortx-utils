@@ -10,9 +10,6 @@ cortx:
       root:
         user: "admin"
         secret: "gAAAAABgiBKtyL7Y0QUvbsNeaJRvh7ihTq9EQDCiZlGkO2k2doSEepB0-dYFPM3V12NyjagS3oCU5YcO6JPBTe5pEMaTKbVPDg=="
-      sgiam:
-        user: "sgiamadmin"
-        secret: "gAAAAABgiBLAMBszjHPiWewav73IoXq9Yjk0KKknknOhBaExo8Wc-13oaHQWH4AvuU1kTwomAZibVVxNE_aVZHV4_TIuBL94zg=="
 cluster:
   3f670dd0-17cf-4ef3-9d8b-e1fb6a14c0f6:
     site:

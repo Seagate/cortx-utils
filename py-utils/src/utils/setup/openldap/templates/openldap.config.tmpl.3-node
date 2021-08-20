@@ -16,9 +16,6 @@ cortx:
       root:
         user: TMPL_ROOT_USER
         secret: TMPL_ROOT_SECRET_KEY
-      sgiam:
-        user: TMPL_SGIAM_USER
-        secret: TMPL_SGIAM_SECRET_KEY
 cluster:
   TMPL_CLUSTER_ID:
     site:
