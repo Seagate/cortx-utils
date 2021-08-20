@@ -51,6 +51,8 @@ for root, directories, filenames in os.walk(_ROOT):
 tmpl_files = glob.glob('src/setup/templates/*.*')
 # Get the list of all openldap template files
 openldap_tmpl_files = glob.glob('src/utils/setup/openldap/templates/*.*')
+# Get the list of ldif files
+openldap_ldif_files = glob.glob('src/utils/setup/openldap/*.ldif')
 
 with open('LICENSE', 'r') as lf:
     license = lf.read()
@@ -127,10 +129,10 @@ setup(name='cortx-py-utils',
                                  'src/utils/support/0-support_bundle.conf']),
                      ('%s/conf' % utils_path, tmpl_files),
                      ('%s/conf' % utils_path, openldap_tmpl_files),
+                     ('%s/conf' % utils_path, openldap_ldif_files),
                      ('%s/conf' % utils_path, [
                      'src/utils/setup/openldap/openldapsetup_prereqs.json',
                      'src/utils/setup/openldap/openldap_prov_config.yaml',
-                     'src/utils/setup/openldap/olcDatabase={2}mdb.ldif',
                      'src/utils/setup/openldap/config/openldap_config.yaml.sample',
                      'src/utils/setup/openldap/config/openldap_config_unsafe_attributes.yaml']),
                      ('/etc/systemd/system', ['src/utils/message_bus/'
