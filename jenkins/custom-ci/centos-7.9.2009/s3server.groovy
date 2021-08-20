@@ -8,7 +8,8 @@ pipeline {
 	
 	options {
 		timeout(time: 55, unit: 'MINUTES')
-		timestamps()  
+		timestamps() 
+		buildDiscarder(logRotator(daysToKeepStr: '5', numToKeepStr: '10'))
 	}
 
 	environment {

@@ -9,6 +9,8 @@ pipeline {
 	options {
 		timeout(time: 60, unit: 'MINUTES')
 		timestamps()
+		buildDiscarder(logRotator(daysToKeepStr: '5', numToKeepStr: '10'))
+		parallelsAlwaysFailFast()
 	}
 	
 

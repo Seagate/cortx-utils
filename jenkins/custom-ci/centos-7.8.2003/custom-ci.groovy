@@ -29,6 +29,7 @@ pipeline {
 		ansiColor('xterm')
 		parallelsAlwaysFailFast()
 		quietPeriod(60)
+		buildDiscarder(logRotator(daysToKeepStr: '5', numToKeepStr: '10'))
 	}
 
 	parameters {
@@ -456,7 +457,7 @@ pipeline {
 		success {
 				sh label: 'Delete Old Builds', script: '''
 				set +x
-				find ${integration_dir}/* -maxdepth 0 -mtime +15 -type d -exec rm -rf {} \\;
+				find ${integration_dir}/* -maxdepth 0 -mtime +5 -type d -exec rm -rf {} \\;
 				'''
 		}
 	
