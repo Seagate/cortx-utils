@@ -90,7 +90,7 @@ class TestIemCli(unittest.TestCase):
         SimpleProcess(self.send_with_valid_cmdline_args).run()
         cmd = self.valid_recv
         output, _, rc = SimpleProcess(cmd).run()
-        self.assertTrue('Critical' in output.decode('utf-8'))
+        self.assertTrue('critical' in output.decode('utf-8'))
         self.assertEqual(rc, 0)
 
     def test_iem_receive_with_valid_message_file_arguments(self):
