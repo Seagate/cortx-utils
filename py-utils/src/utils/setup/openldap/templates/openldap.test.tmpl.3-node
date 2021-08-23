@@ -1,24 +1,24 @@
 server_node:
   TMPL_MACHINE_ID1:
-    cluster_id: TMPL_CLUSTER_ID
-    hostname: TMPL_HOSTNAME1
+    cluster_id: "TMPL_CLUSTER_ID"
+    hostname: "TMPL_HOSTNAME1"
   TMPL_MACHINE_ID2:
-    cluster_id: TMPL_CLUSTER_ID
-    hostname: TMPL_HOSTNAME2
+    cluster_id: "TMPL_CLUSTER_ID"
+    hostname: "TMPL_HOSTNAME2"
   TMPL_MACHINE_ID3:
-    cluster_id: TMPL_CLUSTER_ID
-    hostname: TMPL_HOSTNAME3
+    cluster_id: "TMPL_CLUSTER_ID"
+    hostname: "TMPL_HOSTNAME3"
 cortx:
   software:
     openldap:
       base_dn: "dc=seagate,dc=com"
       bind_base_dn: "cn=admin,dc=seagate,dc=com"
       root:
-        user: TMPL_ROOT_USER
-        secret: TMPL_ROOT_SECRET_KEY
+        user: "TMPL_ROOT_USER"
+        secret: "TMPL_ROOT_SECRET_KEY"
 cluster:
   TMPL_CLUSTER_ID:
     site:
-      storage_set_count: TMPL_STORAGE_SET_COUNT
+      storage_set_count: "TMPL_STORAGE_SET_COUNT"
     storage_set:
-    - server_nodes: "[TMPL_MACHINE_ID1,TMPL_MACHINE_ID2,TMPL_MACHINE_ID3]"
+    - server_nodes: "['TMPL_MACHINE_ID1','TMPL_MACHINE_ID2','TMPL_MACHINE_ID3']"
