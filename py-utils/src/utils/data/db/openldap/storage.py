@@ -390,6 +390,8 @@ class OpenLdap(GenericDataBase):
         ldif = OpenLdap._model_to_ldif(obj)
         try:
             await self._loop.run_in_executor(self._thread_pool, self._client.add_s, dn, ldif)
+        except ldap.ALREADY_EXISTS:
+            await self.update_by_id(obj.primary_key_val, obj.to_native())
         except ldap.LDAPError as le:
             err = f'Failed to execute add operation with OpenLdap server: {le}'
             raise DataAccessExternalError(err) from None
@@ -468,6 +470,36 @@ class OpenLdap(GenericDataBase):
 
         return models[model_slice]
 
+    async def _update_ldap(self, model: BaseModel, to_update: Dict) -> None:
+        """
+        Update the existing object in LDAP.
+
+        :param model: object's model.
+        :param to_update: fields to update.
+        :returns: None.
+        """
+
+        obj_attrs = model.to_native()
+        key_generalizer = OpenLdapSyntaxTools.generalize_field_name
+        val_generalizer = OpenLdapSyntaxTools.generalize_field_value
+        to_update_distinct = {
+            key_generalizer(key): val_generalizer(val) for key, val in to_update.items()
+            if val != obj_attrs[key]
+        }
+        old_attrs_distinct = {
+            key_generalizer(key): val_generalizer(val) for key, val in obj_attrs.items()
+            if key_generalizer(key) in to_update_distinct
+        }
+
+        if to_update_distinct:
+            dn = self._get_object_dn(model)
+            ldif = ldap.modlist.modifyModlist(old_attrs_distinct, to_update_distinct)
+            try:
+                await self._loop.run_in_executor(self._thread_pool, self._client.modify_s, dn, ldif)
+            except ldap.LDAPError as le:
+                err = (f'Failed to execute update operation with OpenLdap server: {le}')
+                raise DataAccessExternalError(err) from None
+
     async def update(self, filter_obj: IFilter, to_update: Dict) -> int:
         """
         Update filtered objects in OpenLdap.
@@ -478,24 +510,8 @@ class OpenLdap(GenericDataBase):
         """
 
         models = await self._get_ldap(filter_obj)
-        key_generalizer = OpenLdapSyntaxTools.generalize_field_name
-        val_generalizer = OpenLdapSyntaxTools.generalize_field_value
-        to_update_generalized = {
-            key_generalizer(key): val_generalizer(val) for key, val in to_update.items()
-        }
         for model in models:
-            dn = self._get_object_dn(model)
-            old_attrs = {
-                key_generalizer(key): val_generalizer(val)
-                for key, val in model.to_primitive().items()
-                if key in to_update.keys()
-            }
-            ldif = ldap.modlist.modifyModlist(old_attrs, to_update_generalized)
-            try:
-                await self._loop.run_in_executor(self._thread_pool, self._client.modify_s, dn, ldif)
-            except ldap.LDAPError as le:
-                err = (f'Failed to execute update operation with OpenLdap server: {le}')
-                raise DataAccessExternalError(err) from None
+            await self._update_ldap(model, to_update)
         return len(models)
 
     async def delete(self, filter_obj: IFilter) -> int:
