@@ -18,6 +18,8 @@
 import configparser
 import errno
 import os
+from typing import Union
+from consul import Consul
 
 from cortx.utils.kv_store.error import KvError
 from cortx.utils.kv_store.kv_store import KvStore
@@ -394,4 +396,81 @@ class PillarStore(KvStore):
 
     def delete(self, key):
         # TODO: Implement
+        pass
+
+
+class ConsulKvPayload(KvPayload):
+    """ Backend adapter for consul api. """
+
+    def __init__(self, consul: Consul, delim: str = '>'):
+        self._consul = consul
+        if len(delim) > 1:
+            raise KvError(errno.EINVAL, "Invalid delim %s", delim)
+        self._delim = delim
+        self._data = {}
+        self._keys = []
+        self.get_keys(self._keys)
+
+
+    def get(self, key: str, *args, **kwargs) -> str:
+        """ Get value for consul key. """
+        index, data = self._consul.kv.get(key)
+        if isinstance(data, dict):
+            return data['Value'].decode()
+        elif data is None:
+            return None
+        else:
+            raise KvError(errno.EINVAL, \
+                "Invalid response from consul: %d:%s", index, data)
+
+    def _set(self, key: str, val: str, *args, **kwargs) -> Union[bool, None]:
+        """ Set the value to the key in consul kv. """
+        return self._consul.kv.put(key, val)
+
+    def _delete(self, key: str, *args, **kwargs) -> Union[bool, None]:
+        """ Delete the key:value for the input key. """
+        return self._consul.kv.delete(key)
+
+    def get_data(self, format_type: str = None, *args, **kwargs):
+        """ Return a dict of kv pair. """
+        self._data = {}
+        from cortx.utils.schema import Format
+        for kv in self._consul.kv.get('', recurse=True)[1]:
+            self._data[kv['Key']] = kv['Value'].decode('utf-8')
+        if not format_type:
+            return self._data
+        return Format.dump(self._data, format_type)
+
+    def get_keys(self, starts_with: str = '', *args, **kwargs) -> list:
+        """ Return a list of all the keys present. """
+        keys=[]
+        if starts_with:
+            if not isinstance(starts_with, str):
+                raise KvError(errno.EINVAL, "key should be a string, \
+                    Invalid key: %s" % str(starts_with))
+            else:
+                key_list =  self._consul.kv.get(
+                    starts_with, recurse=True, keys=True)[1]
+        else:
+            key_list =  self._consul.kv.get('', keys=True)[1]
+        if key_list:
+            keys.extend(key_list)      
+        return keys
+
+
+class ConsulKVStore(KvStore):
+    """ Consul basedKV store. """
+
+    name = 'consul'
+
+    def __init__(self, store_loc, store_path, delim='>'):
+        KvStore.__init__(self, store_loc, store_path, delim)
+        self.c = Consul()
+        self._payload = ConsulKvPayload(self.c, self._delim)
+
+    def load(self, **kwargs) -> ConsulKvPayload:
+        """ Return ConsulKvPayload object. """
+        return self._payload
+
+    def dump(self, data, *args, **kwargs):
         pass
