@@ -51,15 +51,10 @@ class Elasticsearch:
     """ Represents Elasticsearch and Performs setup related actions """
 
     index = "Elasticsearch"
-
-    opendistro_security_plugin = "/usr/share/elasticsearch/plugins/opendistro_security"
     elasticsearch_config_path = "/etc/elasticsearch/elasticsearch.yml"
-
-    # config needs to update in elasticsearch.yml file.
-    elasticsearch_cluster_name = "elasticsearch_cluster"
     log_path = "/var/log/elasticsearch"
     data_path = "/var/lib/elasticsearch"
-    http_port = "9200"
+    elasticsearch_file_path = "/opt/seagate/cortx/utils/conf/elasticsearch/"
 
     Log.init(
         'ElasticsearchProvisioning',
@@ -94,15 +89,17 @@ class Elasticsearch:
                 msg = "Validation failed for %s phase with error %s" % (
                     phase, e)
                 Log.error(msg)
-                raise ElasticsearchSetupError(errno.EINVAL, msg)
+                raise
         return 0
 
     def post_install(self):
         """ Performs post install operations. Raises exception on error """
 
+        opendistro_security_plugin = "/usr/share/elasticsearch/plugins/opendistro_security"
+
         try:
             # Remove opendistro_security plugins.
-            Elasticsearch.delete_path(self.opendistro_security_plugin)
+            Elasticsearch.delete_path(opendistro_security_plugin)
 
             # Delete opendistro_security configuration entries from
             # elasticsearch.yml file.
@@ -124,7 +121,7 @@ class Elasticsearch:
         except OSError as e:
             msg = "Exception in in post_install %s" % (e)
             Log.error(msg)
-            raise ElasticsearchSetupError(errno.EINVAL, msg)
+            raise
         Log.info("Post_install done.")
         return 0
 
@@ -134,17 +131,24 @@ class Elasticsearch:
         try:
             rsyslog_conf = "/etc/rsyslog.conf"
 
+            # Create backup of elasticsearch_config file.
+            if not os.path.exists(
+                    f'{self.elasticsearch_file_path}/elasticsearch.yml.bkp'):
+                shutil.copyfile(
+                    self.elasticsearch_config_path,
+                    f'{self.elasticsearch_file_path}/elasticsearch.yml.bkp')
+            else:
+                shutil.copyfile(
+                    f'{self.elasticsearch_file_path}/elasticsearch.yml.bkp',
+                    self.elasticsearch_config_path
+                    )
             # Get config entries that needs to add in elasticsearch.yml
             config_to_add = self.get_config_entries()
             file_contents = Elasticsearch.read_file_contents(
                 self.elasticsearch_config_path)
             with open(self.elasticsearch_config_path, "a+") as f:
                 for line in config_to_add:
-                    if (
-                        (not (any(line in i for i in file_contents))) and (
-                            i.contains(line) and i.startswith('#')
-                                for i in file_contents)):
-                        f.write(f'\n{line}')
+                    f.write(f'\n{line}')
                 f.close()
 
             # load omelasticsearch module in rsyslog.
@@ -165,16 +169,12 @@ class Elasticsearch:
             except ServiceError as err:
                 msg = "Restarting rsyslog.service failed due to error, %s" % err
                 Log.error(msg)
-                raise ElasticsearchSetupError(errno.EINVAL, msg)
+                raise
 
-        except OSError as e:
-            raise ElasticsearchSetupError(
-                errno.EINVAL, "Exception in config stage: %s" % e)
-
-        except Exception as e:
+        except(Exception, OSError ) as e:
             msg = "Failed in config stage due to error %s" % (e)
             Log.error(msg)
-            raise ElasticsearchSetupError(errno.EINVAL, msg)
+            raise
 
         Log.info("Config done.")
         return 0
@@ -199,16 +199,12 @@ class Elasticsearch:
     def cleanup(self, pre_factory=False):
         """ Performs Configuration reset. Raises exception on error """
 
-        # Delete all the entries which we have added in elasticsearch.yml
-        # file at config stage.
-        config_for_delete = self.get_config_entries()
-        file_contents = Elasticsearch.read_file_contents(
+        # Reset config.
+        if not os.path.exists(
+                f'{self.elasticsearch_file_path}/elasticsearch.yml.bkp'):
+            shutil.copyfile(
+                f'{self.elasticsearch_file_path}/elasticsearch.yml.bkp',
                 self.elasticsearch_config_path)
-        with open(self.elasticsearch_config_path, "w") as f:
-            for line in file_contents:
-                if line.strip('\n') not in config_for_delete:
-                    f.write(line)
-            f.close()
 
         if pre_factory:
             # Remove elasticsearch and opendistro package.
@@ -220,7 +216,9 @@ class Elasticsearch:
 
             _, err, rc = SimpleProcess(cmd).run()
             if rc != 0:
-                Log.error("Error while removing packages, Error: %s" % err)
+                msg = "Error while removing packages, Error: %s" % err
+                Log.error(msg)
+                raise ElasticsearchSetupError(errno.EINVAL, msg)
             # Remove data and log and config directory.
             for path in [self.log_path, self.data_path, '/etc/elasticsearch']:
                 Elasticsearch.delete_path(path)
@@ -251,29 +249,34 @@ class Elasticsearch:
         """ Returns config that needs to add in elasticsearch.yml file. """
         # Read required config from provisioner config.
         srvnodes = []
+        server_nodes_id = []
+        elasticsearch_cluster_name = "elasticsearch_cluster"
+        http_port = 9200
         machine_id = Conf.machine_id
         node_name = Conf.get(self.index, f'server_node>{machine_id}>name')
         # Total nodes in cluster.
         cluster_id = Conf.get(
             self.index, f'server_node>{machine_id}>cluster_id')
-        storage_set_list = Conf.get(
+        if cluster_id is None:
+            raise ElasticsearchSetupError(errno.EINVAL, "cluster_id is none.")
+        storage_set = Conf.get(
             self.index, f'cluster>{cluster_id}>storage_set')
-        for storage_set in storage_set_list:
-            nodes = storage_set["server_nodes"]
-        if nodes:
-            for id in nodes:
+        if storage_set:
+            server_nodes_id = storage_set[0]["server_nodes"]
+        if server_nodes_id:
+            for id in server_nodes_id:
                 srvnodes.append(
                     Conf.get(self.index, f'server_node>{id}>name'))
 
         # Config entries needs to add in elasticsearch.yml file.
         config_entries = [
-            f"cluster.name: {self.elasticsearch_cluster_name}",
+            f"cluster.name: {elasticsearch_cluster_name}",
             f"node.name: {node_name}",
             f"network.bind_host: {['localhost', node_name]}",
             f"network.publish_host: {[node_name]}",
             f"discovery.seed_hosts: {srvnodes}",
             f"cluster.initial_master_nodes: {srvnodes}",
-            f"http.port: {self.http_port}"
+            f"http.port: {http_port}"
             ]
         return config_entries
 

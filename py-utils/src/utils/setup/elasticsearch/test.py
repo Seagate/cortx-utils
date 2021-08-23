@@ -47,7 +47,7 @@ class ElasticsearchTest:
             res = requests.get(f'http://{node_name}:9200')
         except requests.RequestException as e:
             Log.error("Elasticsearch is not running. %s" % e)
-            raise e
+            raise
 
         try:
             es = Elasticsearch(host=node_name, port=9200)
@@ -72,4 +72,4 @@ class ElasticsearchTest:
 
         except ElasticsearchException as e:
             Log.error("Exception in test %s" % e)
-            raise e
+            raise

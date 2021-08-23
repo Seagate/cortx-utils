@@ -15,29 +15,29 @@
 
 elasticsearch:
     post_install:
-        cmd: elasticsearch_setup post_install
+        cmd: /opt/seagate/cortx/utils/bin/elasticsearch_setup post_install
         args: --config $URL
 
     prepare:
-        cmd: elasticsearch_setup prepare
+        cmd: /opt/seagate/cortx/utils/bin/elasticsearch_setup prepare
         args: --config $URL
 
     config:
-        cmd: elasticsearch_setup config
+        cmd: /opt/seagate/cortx/utils/bin/elasticsearch_setup config
         args: --config $URL
 
     init:
-        cmd: elasticsearch_setup init
+        cmd: /opt/seagate/cortx/utils/bin/elasticsearch_setup init
         args: --config $URL
 
     test:
-        cmd: elasticsearch_setup test
+        cmd: /opt/seagate/cortx/utils/bin/elasticsearch_setup test
         args: --config $URL
 
     reset:
-        cmd: elasticsearch_setup reset
+        cmd: /opt/seagate/cortx/utils/bin/elasticsearch_setup reset
         args: --config $URL
 
     cleanup:
-        cmd: elasticsearch_setup cleanup
+        cmd: /opt/seagate/cortx/utils/bin/elasticsearch_setup cleanup
         args: --config $URL [--pre-factory]

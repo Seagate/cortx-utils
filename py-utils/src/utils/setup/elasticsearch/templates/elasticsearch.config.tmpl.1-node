@@ -5,4 +5,4 @@ server_node:
 cluster:
   TMPL_CLUSTER_ID:
     storage_set:
-    - server_nodes: "[TMPL_MACHINE_ID1]"
+    - server_nodes: [TMPL_MACHINE_ID1]

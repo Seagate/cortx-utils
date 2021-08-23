@@ -11,4 +11,4 @@ server_node:
 cluster:
   TMPL_CLUSTER_ID:
     storage_set:
-    - server_nodes: "[TMPL_MACHINE_ID1,TMPL_MACHINE_ID2,TMPL_MACHINE_ID3]"
+    - server_nodes: [TMPL_MACHINE_ID1,TMPL_MACHINE_ID2,TMPL_MACHINE_ID3]

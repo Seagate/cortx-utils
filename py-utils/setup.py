@@ -143,9 +143,10 @@ setup(name='cortx-py-utils',
                      'src/utils/setup/openldap/openldap_prov_config.yaml',
                      'src/utils/setup/openldap/config/openldap_config.yaml.sample',
                      'src/utils/setup/openldap/config/openldap_config_unsafe_attributes.yaml']),
-                     ('%s/conf' % utils_path, elasticsearch_tmpl_files),
-                     ('%s/conf' % utils_path, [
-                     'src/utils/setup/elasticsearch/config/elasticsearch.yml.sample']),
+                     ('%s/conf/elasticsearch' % utils_path, elasticsearch_tmpl_files),
+                     ('%s/conf/elasticsearch' % utils_path, [
+                        'src/utils/setup/elasticsearch/config/elasticsearch.yml.sample',
+                        'src/utils/setup/elasticsearch/setup.yaml']),
                      ('/etc/systemd/system', ['src/utils/message_bus/'
                                               'cortx_message_bus.service'])],
       long_description=long_description,

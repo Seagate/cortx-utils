@@ -17,5 +17,3 @@
 
 from cortx.utils.setup.elasticsearch.elasticsearch_service import Elasticsearch
 from cortx.utils.setup.elasticsearch.elasticsearch_service import ElasticsearchSetupError
-
-from .test import ElasticsearchTest

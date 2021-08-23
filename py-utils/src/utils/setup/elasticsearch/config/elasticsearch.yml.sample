@@ -88,10 +88,10 @@
 #action.destructive_requires_name: true
 cluster.name: elasticsearch_cluster
 node.name: srvnode-1
-network.bind_host: ['localhost', hostname ]
-network.publish_host: [hostname]
+network.bind_host: ['localhost', srvnode-1 ]
+network.publish_host: [srvnode-1]
 http.port: 9200
-discovery.seed_hosts: ['hostname']
-cluster.initial_master_nodes: ['hostname']
+discovery.seed_hosts: ['srvnode-1']
+cluster.initial_master_nodes: ['srvnode-1']
 path.data: /var/lib/elasticsearch
 path.logs: /var/log/elasticsearch

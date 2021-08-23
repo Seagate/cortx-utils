@@ -21,6 +21,10 @@ utils_path=$cortx_path/utils
 # Create /etc/cortx. This will be used for storing message_bus.conf file
 /bin/mkdir -p /etc/cortx
 
+# Create $utils_path/conf/elasticsearch directory for storing all config files needed for elasticsearch_setup.
+/bin/mkdir -p $utils_path/conf/elasticsearch
+elasticsearch_conf_path=$utils_path/conf/elasticsearch
+
 # Copy the setup_cli.py as utils_setup
 /bin/mkdir -p $utils_path/bin/
 /bin/ln -s /usr/lib/python3.6/site-packages/cortx/setup/utils_setup.py $utils_path/bin/utils_setup
@@ -44,9 +48,6 @@ utils_path=$cortx_path/utils
 # Copy the elasticsearch_setup.py as elasticsearch_setup
 /bin/ln -s /usr/lib/python3.6/site-packages/cortx/utils/setup/elasticsearch/elasticsearch_setup.py $utils_path/bin/elasticsearch_setup
 /bin/chmod +x $utils_path/bin/elasticsearch_setup
-
-# Copy elasticsearch.yml.sample to openldap_config.yaml
-[ -f "$utils_path/conf/elasticsearch.yml" ] || cp -n $utils_path/conf/elasticsearch.yml.sample $utils_path/conf/elasticsearch.yml
 
 # Copy cortx.conf file to /etc/cortx
 [ -f "/etc/cortx/cortx.conf" ] || cp -n $utils_path/conf/cortx.conf.sample /etc/cortx/cortx.conf
