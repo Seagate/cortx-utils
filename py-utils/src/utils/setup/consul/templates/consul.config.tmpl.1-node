@@ -1,0 +1,22 @@
+cortx:
+ software:
+   consul:
+     config_path: TMPL_CONSUL_CONF_PATH
+     data_path: TMPL_CONSUL_DATA_PATH
+server_node:
+  TMPL_MACHINE_ID:
+    cluster_id: TMPL_CLUSTER_ID
+    network:
+      data:
+        private_fqdn: TMPL_DATA_PRIVATE_FQDN
+        private_interfaces:
+        - TMPL_DATA_PRIVATE_INTERFACE
+    node_id: TMPL_NODE_ID
+cluster:
+  TMPL_CLUSTER_ID:
+    site:
+      storage_set_count: TMPL_STORAGE_SET_COUNT
+    storage_set:
+    - server_nodes: 
+      - TMPL_MACHINE_ID
+

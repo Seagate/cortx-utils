@@ -47,6 +47,7 @@ setup(
         "cortx.utils.test.cli_framework",
         "cortx.utils.test.discovery",
         "cortx.utils.test.iem_framework",
+        "cortx.utils.test.consul",
         "cortx.utils.test.discovery",
         "cortx.utils.test.discovery.solution",
         "cortx.utils.test.discovery.solution.lr2",
