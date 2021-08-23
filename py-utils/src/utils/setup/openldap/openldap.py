@@ -263,7 +263,7 @@ class Openldap:
         Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)
         self._keys_validate(phase_name)
-        Test(config, "seagate")
+        Test(self.url)
         Log.debug("%s - Successful" % phase_name)
         return 0
 
