@@ -171,7 +171,7 @@ class Utils:
 
         PkgV().validate(v_type='pip3s', args=req_pack)
         default_sb_path = '/var/log/cortx/support_bundle'
-        Utils._set_to_conf_file('suport>local_path', default_sb_path)
+        Utils._set_to_conf_file('support>local_path', default_sb_path)
         os.makedirs(default_sb_path, exist_ok=True)
 
         machine_id = Conf.machine_id
