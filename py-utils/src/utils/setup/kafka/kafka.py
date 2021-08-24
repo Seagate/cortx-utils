@@ -138,7 +138,11 @@ class Kafka:
                 server_properties['broker.id'] = host_index
                 # /var/lib/zookeeper myid file
                 with open('/var/lib/zookeeper/myid', 'w+') as myid_f:
+<<<<<<< HEAD
                         myid_f.write(str(host_index))
+=======
+                        myid_f.write(str(hst_ind))
+>>>>>>> a94f6ca8f153e0925b45fa8475f860ad28dffd1a
         # update kafka server properties file
         Kafka._update_properties_file(
             server_properties_file, server_properties)
