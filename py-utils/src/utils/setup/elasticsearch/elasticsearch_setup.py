@@ -20,7 +20,6 @@ import inspect
 import traceback
 import argparse
 
-from cortx.utils.log import Log
 from cortx.utils.setup.elasticsearch import Elasticsearch
 from cortx.utils.setup.elasticsearch import ElasticsearchSetupError
 

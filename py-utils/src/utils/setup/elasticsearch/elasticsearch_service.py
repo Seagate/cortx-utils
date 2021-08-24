@@ -39,6 +39,8 @@ class ElasticsearchSetupError(Exception):
         self._desc = message % (args)
 
     def __str__(self):
+        """ Return error msg."""
+
         if self._rc == 0: return self._desc
         return "error(%d): %s\n\n%s" % (
             self._rc, self._desc, traceback.format_exc())
@@ -51,10 +53,13 @@ class Elasticsearch:
     """ Represents Elasticsearch and Performs setup related actions """
 
     index = "Elasticsearch"
+
+    elasticsearch_cluster_name = "elasticsearch_cluster"
+    http_port = 9200
     elasticsearch_config_path = "/etc/elasticsearch/elasticsearch.yml"
     log_path = "/var/log/elasticsearch"
     data_path = "/var/lib/elasticsearch"
-    elasticsearch_file_path = "/opt/seagate/cortx/utils/conf/elasticsearch/"
+    elasticsearch_file_path = "/opt/seagate/cortx/utils/conf/elasticsearch"
 
     Log.init(
         'ElasticsearchProvisioning',
@@ -62,6 +67,8 @@ class Elasticsearch:
         level='DEBUG')
 
     def __init__(self, conf_url):
+        """ Initialize config."""
+
         Conf.load(self.index, conf_url)
 
     def validate(self, phase: str):
@@ -169,9 +176,8 @@ class Elasticsearch:
             except ServiceError as err:
                 msg = "Restarting rsyslog.service failed due to error, %s" % err
                 Log.error(msg)
-                raise
 
-        except(Exception, OSError ) as e:
+        except(Exception, OSError) as e:
             msg = "Failed in config stage due to error %s" % (e)
             Log.error(msg)
             raise
@@ -200,7 +206,7 @@ class Elasticsearch:
         """ Performs Configuration reset. Raises exception on error """
 
         # Reset config.
-        if not os.path.exists(
+        if os.path.exists(
                 f'{self.elasticsearch_file_path}/elasticsearch.yml.bkp'):
             shutil.copyfile(
                 f'{self.elasticsearch_file_path}/elasticsearch.yml.bkp',
@@ -250,8 +256,6 @@ class Elasticsearch:
         # Read required config from provisioner config.
         srvnodes = []
         server_nodes_id = []
-        elasticsearch_cluster_name = "elasticsearch_cluster"
-        http_port = 9200
         machine_id = Conf.machine_id
         node_name = Conf.get(self.index, f'server_node>{machine_id}>name')
         # Total nodes in cluster.
@@ -264,19 +268,19 @@ class Elasticsearch:
         if storage_set:
             server_nodes_id = storage_set[0]["server_nodes"]
         if server_nodes_id:
-            for id in server_nodes_id:
+            for machine_id in server_nodes_id:
                 srvnodes.append(
-                    Conf.get(self.index, f'server_node>{id}>name'))
+                    Conf.get(self.index, f'server_node>{machine_id}>name'))
 
         # Config entries needs to add in elasticsearch.yml file.
         config_entries = [
-            f"cluster.name: {elasticsearch_cluster_name}",
+            f"cluster.name: {self.elasticsearch_cluster_name}",
             f"node.name: {node_name}",
             f"network.bind_host: {['localhost', node_name]}",
             f"network.publish_host: {[node_name]}",
             f"discovery.seed_hosts: {srvnodes}",
             f"cluster.initial_master_nodes: {srvnodes}",
-            f"http.port: {http_port}"
+            f"http.port: {self.http_port}"
             ]
         return config_entries
 
