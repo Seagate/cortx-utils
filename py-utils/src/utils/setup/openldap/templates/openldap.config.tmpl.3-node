@@ -21,4 +21,4 @@ cluster:
     site:
       storage_set_count: TMPL_STORAGE_SET_COUNT
     storage_set:
-    - server_nodes: "[TMPL_MACHINE_ID1,TMPL_MACHINE_ID2,TMPL_MACHINE_ID3]"
+    - server_nodes: "['TMPL_MACHINE_ID1','TMPL_MACHINE_ID2','TMPL_MACHINE_ID3']"
