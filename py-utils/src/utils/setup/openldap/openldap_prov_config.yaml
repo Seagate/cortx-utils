@@ -24,8 +24,6 @@ CONFIG:
   CONFSTORE_HOSTNAME_KEY: "server_node>machine-id>hostname"
   CONFSTORE_ROOTDN_USER_KEY: "cortx>software>openldap>root>user"
   CONFSTORE_ROOTDN_PASSWD_KEY: "cortx>software>openldap>root>secret"
-  CONFSTORE_LDAPADMIN_USER_KEY: "cortx>software>openldap>sgiam>user"
-  CONFSTORE_LDAPADMIN_PASSWD_KEY: "cortx>software>openldap>sgiam>secret"
   CONFSTORE_STORAGE_SET_COUNT_KEY: "cluster>cluster-id>site>storage_set_count"
   CONFSTORE_STORAGE_SET_SERVER_NODES_KEY: "cluster>cluster-id>storage_set[storage-set-count]>server_nodes"
   OPENLDAP_BASE_DN: "cortx>software>openldap>base_dn"
@@ -33,10 +31,13 @@ CONFIG:
 INIT:
 TEST:
   CONFSTORE_CLUSTER_ID_KEY: "server_node>machine-id>cluster_id"
+  CONFSTORE_HOSTNAME_KEY: "server_node>machine-id>hostname"
+  CONFSTORE_ROOTDN_USER_KEY: "cortx>software>openldap>root>user"
+  CONFSTORE_ROOTDN_PASSWD_KEY: "cortx>software>openldap>root>secret"
+  CONFSTORE_STORAGE_SET_COUNT_KEY: "cluster>cluster-id>site>storage_set_count"
+  CONFSTORE_STORAGE_SET_SERVER_NODES_KEY: "cluster>cluster-id>storage_set[storage-set-count]>server_nodes"
   OPENLDAP_BASE_DN: "cortx>software>openldap>base_dn"
   OPENLDAP_BIND_BASE_DN: "cortx>software>openldap>bind_base_dn"
-  CONFSTORE_STORAGE_SET_SERVER_NODES_KEY: "cluster>cluster-id>storage_set[storage-set-count]>server_nodes"
-  CONFSTORE_STORAGE_SET_COUNT_KEY: "cluster>cluster-id>site>storage_set_count"
 RESET:
 CLEANUP:
 # Unsolicited Keys should be added to the bottom.

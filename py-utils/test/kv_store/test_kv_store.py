@@ -82,6 +82,7 @@ class TestStore(unittest.TestCase):
     loaded_properties = test_current_file(
         'properties:///tmp/example.properties')
     loaded_dir = test_current_file('dir:///tmp/conf_dir_test')
+    loaded_consul = test_current_file('consul:///')
 
     def test_json_file(self):
         """Test Kv JSON store. load json store from json:///tmp/file.json"""
@@ -332,6 +333,38 @@ class TestStore(unittest.TestCase):
         out = TestStore.loaded_dir[0].get(['cloud>cloud_type'])
         self.assertEqual([None], out)
 
-# loaded_dir
+    #consul
+    def test_consul_a_set_get_kv(self):
+        """ Test consul kv set and get a KV. """
+        TestStore.loaded_consul[0].set(['consul_cluster_uuid'], ['#410'])
+        out = TestStore.loaded_consul[0].get(['consul_cluster_uuid'])
+        self.assertEqual('#410', out[0])
+
+    def test_consul_b_query_unknown_key(self):
+        """ Test consul kv query for an absent key. """
+        out = TestStore.loaded_consul[0].get(['Wrong_key'])
+        self.assertIsNone(out[0])
+
+    def test_consul_store_c_set_nested_key(self):
+        """ Test consul kv set a nested key. """
+        TestStore.loaded_consul[0].set(['consul_cluster>uuid'], ['#411'])
+        out = TestStore.loaded_consul[0].get(['consul_cluster>uuid'])
+        self.assertEqual('#411', out[0])
+
+    def test_consul_store_d_set_multiple_kv(self):
+        """ Test consul kv by setting nested key structure """
+        TestStore.loaded_consul[0].set(['cloud>cloud_type', 'kafka>message_type'],
+            ['Azure', 'receive'])
+        out1 = TestStore.loaded_consul[0].get(['kafka>message_type'])
+        out2 = TestStore.loaded_consul[0].get(['cloud>cloud_type'])
+        self.assertEqual('receive', out1[0])
+        self.assertEqual('Azure', out2[0])
+
+    def test_consul_store_e_delete_kv(self):
+        """ Test consul kv by removing given key using delete api """
+        TestStore.loaded_consul[0].delete(['cloud>cloud_type'])
+        out = TestStore.loaded_consul[0].get(['cloud>cloud_type'])
+        self.assertEqual([None], out)
+
 if __name__ == '__main__':
     unittest.main()
