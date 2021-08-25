@@ -46,7 +46,7 @@ class ElasticsearchTest:
         try:
             res = requests.get(f'http://{node_name}:9200')
         except requests.RequestException as e:
-            Log.error("Elasticsearch is not running. %s" % e)
+            Log.error(f"Elasticsearch is not running. {e}")
             raise
 
         try:
@@ -58,18 +58,18 @@ class ElasticsearchTest:
             # Insert data
             res = es.index(index=index, id=1, body=data)
             if res['result'] == "created":
-                Log.info("Inserted data into %s, data - %s" % (index, res))
+                Log.info(f"Inserted data into {index}, data - {res}.")
 
             # Get data
             res = es.get(index=index, id=1)
             if res['found']:
-                Log.info("Found data into %s, data - %s" % (index, res))
+                Log.info(f"Found data into {index}, data - {res}.")
 
             # Delete index
             res = es.indices.delete(index=index)
             if res['acknowledged']:
-                Log.info("Deleted elasticsearch %s index." % index)
+                Log.info(f"Deleted elasticsearch {index} index.")
 
         except ElasticsearchException as e:
-            Log.error("Exception in test %s" % e)
+            Log.error(f"Exception in test {e}.")
             raise

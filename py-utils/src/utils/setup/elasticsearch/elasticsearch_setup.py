@@ -47,7 +47,7 @@ class Cmd:
         sys.stderr.write(
             f"usage: {prog} [-h] <cmd> --config <url> <args>...\n"
             f"where:\n"
-            f"cmd   post_install, config, init, reset, test, cleanup\n"
+            f"cmd   post_install, prepare, config, init, reset, test, cleanup, pre_upgrade, post_upgrade\n"
             f"url   Config URL\n")
 
     @staticmethod
@@ -74,7 +74,7 @@ class Cmd:
     def add_args(parser: str, cls: str, name: str):
         """ Add Command args for parsing """
 
-        parser1 = parser.add_parser(cls.name, help='setup %s' % name)
+        parser1 = parser.add_parser(cls.name, help=f'setup {name}')
         parser1.add_argument('--config', help='Conf Store URL', type=str)
         cls._add_extended_args(parser1)
         parser1.add_argument('args', nargs='*', default=[], help='args')
@@ -184,6 +184,33 @@ class CleanupCmd(Cmd):
         return rc
 
 
+class PreUpgradeCmd(Cmd):
+    """Pre Upgrade Setup Cmd."""
+    name = "pre_upgrade"
+
+    def __init__(self, args):
+        super().__init__(args)
+        self.elasticsearch = Elasticsearch(args.config)
+
+    def process(self):
+        # TODO: Add actions here
+        rc = self.elasticsearch.pre_upgrade()
+        return rc
+
+class PostUpgradeCmd(Cmd):
+    """Post Upgrade Setup Cmd."""
+    name = "post_upgrade"
+
+    def __init__(self, args):
+        super().__init__(args)
+        self.elasticsearch = Elasticsearch(args.config)
+
+    def process(self):
+        # TODO: Add actions here
+        rc = self.elasticsearch.post_upgrade()
+        return rc
+
+
 def main(argv: dict):
     try:
         desc = "CORTX Elasticsearch Setup command"
@@ -193,13 +220,13 @@ def main(argv: dict):
             raise ValueError(f"Failed to run {argv[1]}")
 
     except ElasticsearchSetupError as err:
-        sys.stderr.write("%s\n" % str(err))
+        sys.stderr.write(f"{str(err)}\n")
         Cmd.usage(argv[0])
         return err.rc()
 
     except Exception as err:
-        sys.stderr.write("Error: %s\n\n" % str(err))
-        sys.stderr.write("%s\n" % traceback.format_exc())
+        sys.stderr.write(f"Error: {(str(err))}\n\n")
+        sys.stderr.write(f"{traceback.format_exc()}\n")
         Cmd.usage(argv[0])
         return errno.EINVAL
 

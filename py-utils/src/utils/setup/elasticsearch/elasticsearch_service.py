@@ -24,11 +24,10 @@ from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
 from cortx.utils.validator.v_pkg import PkgV
 from cortx.utils.process import SimpleProcess
-from cortx.utils.service import DbusServiceHandler
+from cortx.utils.service.service_handler import Service
 from cortx.utils.validator.error import VError
 from cortx.utils.service.service_handler import ServiceError
-
-from .test import ElasticsearchTest
+from cortx.utils.setup.elasticsearch.test import ElasticsearchTest
 
 
 class ElasticsearchSetupError(Exception):
@@ -93,8 +92,7 @@ class Elasticsearch:
                     pkgs=rpm_packages, skip_version_check=False)
                 PkgV().validate("rpms", ["java-1.8.0-openjdk-headless"])
             except VError as e:
-                msg = "Validation failed for %s phase with error %s" % (
-                    phase, e)
+                msg = f"Validation failed for {phase} phase with error {e}."
                 Log.error(msg)
                 raise
         return 0
@@ -126,7 +124,7 @@ class Elasticsearch:
                 f.close()
 
         except OSError as e:
-            msg = "Exception in in post_install %s" % (e)
+            msg = f"Exception in in post_install {e}."
             Log.error(msg)
             raise
         Log.info("Post_install done.")
@@ -172,13 +170,14 @@ class Elasticsearch:
                     f.close()
 
             try:
-                DbusServiceHandler().restart('rsyslog.service')
-            except ServiceError as err:
-                msg = "Restarting rsyslog.service failed due to error, %s" % err
+                service_obj = Service('rsyslog.service')
+                service_obj.restart()
+            except ServiceError as e:
+                msg = f"Restarting rsyslog.service failed due to error, {e}."
                 Log.error(msg)
 
         except(Exception, OSError) as e:
-            msg = "Failed in config stage due to error %s" % (e)
+            msg = f"Failed in config stage due to error {e}."
             Log.error(msg)
             raise
 
@@ -189,14 +188,14 @@ class Elasticsearch:
         """ Performs Configuration reset. Raises exception on error """
 
         # Check service status
-        service_state = DbusServiceHandler().get_state('elasticsearch.service')
+        service_obj = Service('elasticsearch.service')
+        service_state = service_obj.get_state()
         if service_state._state == 'active':
-            Log.warn("Elasticsearch service in active state.")
-            Log.warn("Stopping Elasticsearch service now...")
-            DbusServiceHandler().stop('elasticsearch.service')
+            Log.warn(
+                "Elasticsearch service in active state. \n"
+                "Stopping Elasticsearch service now...")
+            service_obj.stop()
 
-        # Remove data directory.
-        Elasticsearch.delete_path(self.data_path)
         # Clear log files.
         Elasticsearch.truncate_log_files(self.log_path)
         Log.info("Reset done.")
@@ -213,21 +212,10 @@ class Elasticsearch:
                 self.elasticsearch_config_path)
 
         if pre_factory:
-            # Remove elasticsearch and opendistro package.
-            cmd = "sudo rpm -e --nodeps opendistroforelasticsearch elasticsearch-oss \
-                opendistro-sql opendistro-alerting opendistro-anomaly-detection \
-                opendistro-index-management opendistro-job-scheduler \
-                opendistro-knn opendistro-knnlib opendistro-performance-analyzer \
-                opendistro-reports-scheduler opendistro-security"
-
-            _, err, rc = SimpleProcess(cmd).run()
-            if rc != 0:
-                msg = "Error while removing packages, Error: %s" % err
-                Log.error(msg)
-                raise ElasticsearchSetupError(errno.EINVAL, msg)
-            # Remove data and log and config directory.
-            for path in [self.log_path, self.data_path, '/etc/elasticsearch']:
-                Elasticsearch.delete_path(path)
+            # No action needed,
+            # log and data directory for Elasticsearch got cleared during
+            # elasticsearch-oss,opendistro rpms removal.
+            pass
         Log.info("Cleanup done.")
         return 0
 
@@ -238,6 +226,18 @@ class Elasticsearch:
         return 0
 
     def init(self):
+        """ Perform initialization. Raises exception on error """
+
+        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
+        return 0
+
+    def pre_upgrade(self):
+        """ Perform initialization. Raises exception on error """
+
+        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
+        return 0
+
+    def post_upgrade(self):
         """ Perform initialization. Raises exception on error """
 
         # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
@@ -288,7 +288,7 @@ class Elasticsearch:
     def read_file_contents(filename):
         """Performs read operation on file."""
         if not os.path.exists(filename):
-            raise OSError("%s file not found." % filename)
+            raise OSError(f"{filename} file not found.")
         with open(filename, "r") as f:
             lines = f.readlines()
             f.close()
@@ -309,6 +309,9 @@ class Elasticsearch:
         if os.path.exists(path):
             for root, _, files in os.walk(path):
                 for file in files:
-                    file = open(file, "w")
-                    file.truncate()
-                    file.close()
+                    cmd = f"truncate -s 0 > {os.path.join(root, file)}"
+                    _, err, rc = SimpleProcess(cmd).run()
+                    if rc != 0:
+                        Log.error(
+                                "Failed to clear file data. "
+                                f"ERROR:{err} CMD:{cmd}")

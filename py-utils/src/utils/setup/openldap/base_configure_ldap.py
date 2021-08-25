@@ -23,7 +23,7 @@ import glob
 from shutil import copyfile
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
-from .setupReplication import Replication
+from cortx.utils.setup.openldap.setupReplication import Replication
 from ldif import LDIFRecordList
 
 

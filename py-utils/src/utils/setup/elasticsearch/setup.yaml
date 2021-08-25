@@ -41,3 +41,12 @@ elasticsearch:
     cleanup:
         cmd: /opt/seagate/cortx/utils/bin/elasticsearch_setup cleanup
         args: --config $URL [--pre-factory]
+
+    upgrade:
+        pre:
+            cmd: elasticsearch_setup pre_upgrade
+            args: --config $URL
+        post:
+            cmd: elasticsearch_setup post_upgrade
+            args: --config $URL
+
