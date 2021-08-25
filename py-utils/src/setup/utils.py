@@ -249,7 +249,8 @@ class Utils:
         shared_storage = Conf.get('cluster_config', 'cortx>support')
 
         # set shared storage info to cortx.conf conf file
-        Utils._set_to_conf_file('support>shared_path', shared_storage)
+        if shared_storage:
+            Utils._set_to_conf_file('support>shared_path', shared_storage)
 
         # temporary fix for a common message bus log file
         # The issue happend when some user other than root:root is trying

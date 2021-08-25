@@ -30,18 +30,20 @@ class Storage:
         """ Initialize and load shared storage backend """
 
         Conf.load('cotrx_config', Storage.config_file, skip_reload=True)
-        shared_storage_url = Conf.get('cotrx_config', 'support>shared_path')
-
-        self.shared_storage_agent = SharedStorageFactory.get_instance( \
-            shared_storage_url)
+        self.shared_storage_url = Conf.get('cotrx_config', 'support>shared_path')
+        if self.shared_storage_url is not None:
+            self.shared_storage_agent = SharedStorageFactory.get_instance( \
+                self.shared_storage_url)
 
     @staticmethod
     def get_path(name: str = None, exist_ok: bool = True) -> str:
         """ return shared storage mountpoint """
+
         storage = Storage()
-        shared_path = storage.shared_storage_agent.get_path()
-        if shared_path is None:
+        if storage.shared_storage_url is None:
             return None
+
+        shared_path = storage.shared_storage_agent.get_path()
         if name:
             try:
                 spec_path = os.path.join(shared_path, name)
