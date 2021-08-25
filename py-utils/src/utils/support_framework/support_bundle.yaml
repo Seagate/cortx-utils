@@ -27,7 +27,7 @@ COMPONENTS:
   motr:
     - '<CORTX_PATH>/motr/conf/support.yaml'
   hare:
-    - '<CORTX_PATH>/hare/conf/setup.yaml'
+    - '<CORTX_PATH>/hare/conf/support.yaml'
   provisioner:
     - '<CORTX_PATH>/provisioner/conf/setup.yaml'
   alerts:
@@ -37,6 +37,6 @@ COMPONENTS:
   elasticsearch:
     - '<CORTX_PATH>/cli/conf/elasticsearch_setup.yaml'
   ha:
-    - '<CORTX_PATH>/ha/conf/setup.yaml'
+    - '<CORTX_PATH>/ha/conf/support.yaml'
   utils:
     - '<CORTX_PATH>/utils/conf/support.yaml'
