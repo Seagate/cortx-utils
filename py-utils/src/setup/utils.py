@@ -15,6 +15,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
+import glob
 import json
 import errno
 from pathlib import Path
@@ -36,6 +37,29 @@ from cortx.utils.message_bus import MessageBrokerFactory
 
 class Utils:
     """ Represents Utils and Performs setup related actions """
+
+    # Utils private methods
+
+
+    @staticmethod
+    def _delete_files(files: list):
+        """
+        Deletes the passed list of files
+
+        Args:
+            files ([str]): List of files to be deleted
+
+        Raises:
+            SetupError: If unable to delete file
+        """
+        for each_file in files:
+            if os.path.exists(each_file):
+                try:
+                    os.remove(each_file)
+                except OSError as e:
+                    raise SetupError(e.errno, "Error deleting file %s, \
+                        %s", each_file, e)
+        return 0
 
     @staticmethod
     def _set_to_conf_file(key, value):
@@ -316,7 +340,7 @@ class Utils:
         return 0
 
     @staticmethod
-    def cleanup():
+    def cleanup(pre_factory: bool):
         """Remove/Delete all the data that was created after post install."""
         conf_file = '/etc/cortx/message_bus.conf'
         if os.path.exists(conf_file):
@@ -335,14 +359,14 @@ class Utils:
 
         config_files = ['/etc/cortx/message_bus.conf', \
             '/etc/cortx/cluster.conf']
-        for each_file in config_files:
-            if os.path.exists(each_file):
-                # delete data/config stored
-                try:
-                    os.remove(each_file)
-                except OSError as e:
-                    raise SetupError(e.errno, "Error deleting config file %s, \
-                        %s", each_file, e)
+        Utils._delete_files(config_files)
+
+        if pre_factory:
+            # deleting all log files as part of pre-factory cleanup
+            cortx_utils_log_regex = '/var/log/cortx/utils/**/*.log'
+            log_files = glob.glob(cortx_utils_log_regex, recursive=True)
+            Utils._delete_files(log_files)
+
         return 0
 
     @staticmethod

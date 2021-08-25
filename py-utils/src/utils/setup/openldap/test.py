@@ -24,12 +24,14 @@ from setupcmd import SetupCmd, OpenldapPROVError
 from  ast import literal_eval
 
 class Test(SetupCmd):
-    def __init__(self, config: str, passwd):
+    def __init__(self, config: str):
         try:
             super(Test, self).__init__(config)
+            self.update_ldap_credentials()
+            self.read_ldap_credentials()
         except Exception as e:
             raise OpenldapPROVError(f'exception: {e}\n')
-
+        passwd = self.rootdn_passwd.decode("utf-8")
         Log.init('OpenldapProvisioning', '/var/log/cortx/utils/openldap', level='DEBUG')
         self.test_base_dn(passwd)
         if self.test_openldap_replication() > 1:

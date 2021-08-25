@@ -40,7 +40,7 @@ utils:
 
     cleanup:
         cmd: /opt/seagate/cortx/utils/bin/utils_setup cleanup
-        args: --config $URL
+        args: --config $URL [--pre-factory]
 
     upgrade:
 

@@ -38,8 +38,6 @@ class OpenldapPROVError(Exception):
 class SetupCmd(object):
 
   """Base class for setup commands."""
-  ldap_user = None
-  ldap_passwd = None
   ldap_root_user = None
   rootdn_passwd = None
   cluster_id = None
@@ -108,13 +106,6 @@ class SetupCmd(object):
 
       cipher_key = Cipher.generate_key(self.cluster_id , self.get_confkey('CONFSTORE_OPENLDAP_CONST_KEY'))
 
-      # sgiam username/password
-      self.ldap_user = Conf.get(index_id, f'{self.sgiam_user_key}')
-
-      encrypted_ldapadmin_pass = Conf.get(index_id, f'{self.sgiam_pass_key}')
-      if encrypted_ldapadmin_pass != None:
-        self.ldap_passwd = Cipher.decrypt(cipher_key, bytes(str(encrypted_ldapadmin_pass), 'utf-8'))
-
       # rootdn username/password
       self.ldap_root_user = Conf.get(index_id, f'{self.rootdn_user_key}')
       encrypted_rootdn_pass = Conf.get(index_id, f'{self.rootdn_pass_key}')
@@ -152,16 +143,6 @@ class SetupCmd(object):
       # Load the openldap config file
       index_id = 'openldap_config_file_write_index'
       Conf.load(index_id, f'yaml://{self.openldap_config_file}')
-
-      # get the sgiam credentials from provisoner config file
-      # set the sgiam credentials in to openldap_config file
-      ldap_user = self.get_confvalue(self.get_confkey('CONFIG>CONFSTORE_LDAPADMIN_USER_KEY'))
-      encrypted_ldapadmin_pass = self.get_confvalue(self.get_confkey('CONFIG>CONFSTORE_LDAPADMIN_PASSWD_KEY'))
-      if encrypted_ldapadmin_pass is None:
-        Log.error('sgiam password cannot be None.')
-        raise Exception('sgiam password cannot be None.')
-      Conf.set(index_id, f'{self.sgiam_user_key}', f'{ldap_user}')
-      Conf.set(index_id, f'{self.sgiam_pass_key}', f'{encrypted_ldapadmin_pass}')
 
       # get the rootdn credentials from provisoner config file
       # set the rootdn credentials in to openldap_config file

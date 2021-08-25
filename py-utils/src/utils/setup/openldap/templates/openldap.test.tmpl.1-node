@@ -10,12 +10,9 @@ cortx:
       root:
         user: TMPL_ROOT_USER
         secret: TMPL_ROOT_SECRET_KEY
-      sgiam:
-        user: TMPL_SGIAM_USER
-        secret: TMPL_SGIAM_SECRET_KEY
 cluster:
   TMPL_CLUSTER_ID:
     site:
       storage_set_count: TMPL_STORAGE_SET_COUNT
     storage_set:
-    - server_nodes: "[TMPL_MACHINE_ID]"
+    - server_nodes: "['TMPL_MACHINE_ID']"
