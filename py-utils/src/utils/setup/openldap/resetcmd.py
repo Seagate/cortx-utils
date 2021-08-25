@@ -20,7 +20,7 @@
 
 import os
 from cortx.utils.log import Log
-from cortx.utils.setup.openldap.setupcmd import SetupCmd, OpenldapPROVError
+from setupcmd import SetupCmd, OpenldapPROVError
 
 class ResetCmd(SetupCmd):
 
