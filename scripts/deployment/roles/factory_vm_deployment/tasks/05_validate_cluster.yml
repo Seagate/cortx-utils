@@ -43,7 +43,7 @@
   delegate_to: "srvnode-1"
 
 - name: "[ Validate Cluster ] : Validate Cluster Status"
-  script: files/validate_deployment.sh
+  script: files/validate_cluster_status.sh
   register: pcs_status
   delegate_to: "srvnode-1"
 

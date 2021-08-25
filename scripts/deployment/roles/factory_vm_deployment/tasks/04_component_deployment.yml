@@ -51,7 +51,11 @@
       delegate_to: "{{ hostvars[item]['ansible_host'] }}"
       loop: "{{ groups['srvnodes'] }}"  
       tags: ['VALIDATE_DEPLOYMENT']
-
+    
+    - name: "[ Validate Deployment ] : Log Deployment Status"  
+      script: files/deployment_status.sh
+      tags: ['VALIDATE_DEPLOYMENT']
+       
     - name: "[ Validate Deployment ] : Component Deployment Failure"
       fail:
         msg: "Component deployment failed !!"
