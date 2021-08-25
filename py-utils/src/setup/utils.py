@@ -15,6 +15,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
+import glob
 import json
 import errno
 from pathlib import Path
@@ -38,6 +39,28 @@ class Utils:
     """ Represents Utils and Performs setup related actions """
 
     # Utils private methods
+
+
+    @staticmethod
+    def _delete_files(files: list):
+        """
+        Deletes the passed list of files
+
+        Args:
+            files ([str]): List of files to be deleted
+
+        Raises:
+            SetupError: If unable to delete file
+        """
+        for each_file in files:
+            if os.path.exists(each_file):
+                try:
+                    os.remove(each_file)
+                except OSError as e:
+                    raise SetupError(e.errno, "Error deleting file %s, \
+                        %s", each_file, e)
+        return 0
+
     @staticmethod
     def _get_utils_path() -> str:
         """ Gets install path from cortx.conf and returns utils path """
@@ -53,16 +76,19 @@ class Utils:
         return install_path + "/cortx/utils"
 
     @staticmethod
-    def _create_msg_bus_config(kafka_server_list: list, port_list: list):
+    def _create_msg_bus_config(message_server_list: list, port_list: list, \
+        config: dict):
         """ Create the config file required for message bus """
 
         with open(r'/etc/cortx/message_bus.conf.sample', 'w+') as file:
             json.dump({}, file, indent=2)
         Conf.load('index', 'json:///etc/cortx/message_bus.conf.sample')
         Conf.set('index', 'message_broker>type', 'kafka')
-        for i in range(len(kafka_server_list)):
-            Conf.set('index', f'message_broker>cluster[{i}]', \
-                {'server': kafka_server_list[i], 'port': port_list[i]})
+        for i in range(len(message_server_list)):
+            Conf.set('index', f'message_broker>cluster[{i}]>server', \
+                     message_server_list[i])
+            Conf.set('index', f'message_broker>cluster[{i}]>port', port_list[i])
+        Conf.set('index', 'message_broker>message_bus',  config)
         Conf.save('index')
         # copy this conf file as message_bus.conf
         try:
@@ -89,13 +115,13 @@ class Utils:
         return server_info
 
     @staticmethod
-    def _copy_cluster_map():
-        cluster_data = Conf.get("server_info", "server_node")
+    def _copy_cluster_map(conf_url_index: str):
+        cluster_data = Conf.get(conf_url_index, 'server_node')
         for _, node_data in cluster_data.items():
-            hostname = node_data.get("hostname")
-            node_name = node_data.get("name")
-            Conf.set("cluster", f"cluster>{node_name}", hostname)
-        Conf.save("cluster")
+            hostname = node_data.get('hostname')
+            node_name = node_data.get('name')
+            Conf.set('cluster', f'cluster>{node_name}', hostname)
+        Conf.save('cluster')
 
     @staticmethod
     def _create_cluster_config(server_info: dict):
@@ -202,14 +228,14 @@ class Utils:
         Conf.load(config_template_index, config_template)
 
         try:
-            server_list, port_list = \
+            server_list, port_list, config = \
                 MessageBrokerFactory.get_server_list(config_template_index)
         except SetupError:
             Log.error(f"Could not find server information in {config_template}")
             raise SetupError(errno.EINVAL, \
                 "Could not find server information in %s", config_template)
 
-        Utils._create_msg_bus_config(server_list, port_list)
+        Utils._create_msg_bus_config(server_list, port_list, config)
         # Cluster config
         server_info = \
             Utils._get_server_info(config_template_index, Conf.machine_id)
@@ -218,8 +244,9 @@ class Utils:
             raise SetupError(errno.EINVAL, "Could not find server " +\
                 "information in %s", config_template)
         Utils._create_cluster_config(server_info)
+
         #set cluster nodename:hostname mapping to cluster.conf
-        Utils._copy_cluster_map()
+        Utils._copy_cluster_map(config_template_index)
         Utils._configure_rsyslog()
         # temporary fix for a common message bus log file
         # The issue happend when some user other than root:root is trying
@@ -257,43 +284,61 @@ class Utils:
 
     @staticmethod
     def reset():
-        """ Remove/Delete all the data that was created after post install """
+        """Remove/Delete all the data/logs that was created by user/testing."""
+        try:
+            from cortx.utils.message_bus import MessageBusAdmin
+            from cortx.utils.message_bus.message_bus_client import MessageProducer
+            mb = MessageBusAdmin(admin_id='reset')
+            message_types_list = mb.list_message_types()
+            if message_types_list:
+                for message_type in message_types_list:
+                    producer = MessageProducer(producer_id=message_type, \
+                        message_type=message_type, method='sync')
+                    producer.delete()
+        except MessageBusError as e:
+            raise SetupError(e.rc, "Can not reset Message Bus. %s", e)
+        except Exception as e:
+            raise SetupError(errors.ERR_OP_FAILED, "Internal error, can not \
+                reset Message Bus. %s", e)
+        # Clear the logs
+        utils_log_path = '/var/log/cortx/utils/'
+        if os.path.exists(utils_log_path):
+            cmd = "find %s -type f -name '*.log' -exec truncate -s 0 {} +" % utils_log_path
+            cmd_proc = SimpleProcess(cmd)
+            _, stderr, rc = cmd_proc.run()
+            if rc != 0:
+                raise SetupError(errors.ERR_OP_FAILED, \
+                    "Can not reset log files. %s", stderr)
+        return 0
+
+    @staticmethod
+    def cleanup(pre_factory: bool):
+        """Remove/Delete all the data that was created after post install."""
         conf_file = '/etc/cortx/message_bus.conf'
         if os.path.exists(conf_file):
             # delete message_types
-            from cortx.utils.message_bus import MessageBusAdmin
             try:
-                mb = MessageBusAdmin(admin_id='reset')
+                from cortx.utils.message_bus import MessageBusAdmin
+                mb = MessageBusAdmin(admin_id='cleanup')
                 message_types_list = mb.list_message_types()
                 if message_types_list:
                     mb.deregister_message_type(message_types_list)
             except MessageBusError as e:
-                raise SetupError(e.rc, "Can not reset Message Bus. %s", e)
+                raise SetupError(e.rc, "Can not cleanup Message Bus. %s", e)
             except Exception as e:
-                raise SetupError(errors.ERR_OP_FAILED, "Can not reset Message  \
+                raise SetupError(errors.ERR_OP_FAILED, "Can not cleanup Message  \
                     Bus. %s", e)
 
-        # Stop MessageBus Service
-        cmd = SimpleProcess("systemctl stop cortx_message_bus")
-        _, stderr, res_rc = cmd.run()
-        if res_rc != 0:
-            raise SetupError(res_rc, "Unable to stop MessageBus Service. \
-                %s", stderr.decode('utf-8'))
-        return 0
-
-    @staticmethod
-    def cleanup():
-        """ Cleanup configs and logs. """
         config_files = ['/etc/cortx/message_bus.conf', \
             '/etc/cortx/cluster.conf']
-        for each_file in config_files:
-            if os.path.exists(each_file):
-                # delete data/config stored
-                try:
-                    os.remove(each_file)
-                except OSError as e:
-                    raise SetupError(e.errno, "Error deleting config file %s, \
-                        %s", each_file, e)
+        Utils._delete_files(config_files)
+
+        if pre_factory:
+            # deleting all log files as part of pre-factory cleanup
+            cortx_utils_log_regex = '/var/log/cortx/utils/**/*.log'
+            log_files = glob.glob(cortx_utils_log_regex, recursive=True)
+            Utils._delete_files(log_files)
+
         return 0
 
     @staticmethod

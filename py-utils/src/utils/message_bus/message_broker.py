@@ -65,8 +65,8 @@ class MessageBrokerFactory:
         Returns:
             tuple: ([server_list], [port_list])
         """
-        key_list = ['cortx>software>common>message_bus_type',
-                    'cortx>software>kafka>servers']
+        key_list = ['cortx>software>common>message_bus_type', \
+            'cortx>software>kafka>servers']
 
         ConfKeysV().validate('exists', cluster_conf_index, key_list)
         msg_bus_type = Conf.get(cluster_conf_index, key_list[0])
@@ -77,25 +77,29 @@ class MessageBrokerFactory:
                 "Message bus type %s is not supported", msg_bus_type)
 
         all_servers = Conf.get(cluster_conf_index, key_list[1])
-        kafka_server_list = []
+        message_server_list = []
         port_list = []
 
         for server in all_servers:
             # Value of server can be <server_fqdn:port> or <server_fqdn>
             if ':' in server:
                 server_fqdn, port = server.split(':')
-                kafka_server_list.append(server_fqdn)
+                message_server_list.append(server_fqdn)
                 port_list.append(port)
             else:
-                kafka_server_list.append(server)
+                message_server_list.append(server)
                 port_list.append('9092')   # 90992 is default kafka server port
 
-        if not kafka_server_list:
+        if not message_server_list:
             Log.error(f"Missing config entry {key_list} in input file")
             raise SetupError(errno.EINVAL, \
                 "Missing config entry %s in config", key_list)
 
-        return kafka_server_list, port_list
+        # Read the default config
+        config_file_path = '/etc/cortx/cortx.conf'
+        Conf.load('mb_config', f'yaml:///{config_file_path}')
+        config = Conf.get('mb_config', 'message_bus')
+        return message_server_list, port_list, config
 
 
 class MessageBroker:

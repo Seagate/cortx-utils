@@ -35,10 +35,6 @@ class Resource:
         """Initialize resource"""
         self._name = name
         self._child_resource = child_resource
-        self.resource_provider_map = {
-            "storage": "storage",
-            "compute": "server"
-            }
 
     @property
     def name(self):
@@ -72,7 +68,7 @@ class Resource:
         Using the configured solution monitor path, import
         solution specific module to collect data.
 
-        The module communicate with resources such as compute
+        The module communicate with resources such as server
         and storage, etc,. in the solution path.
         Example: lr2.__init__
         """
@@ -106,8 +102,7 @@ class Resource:
         members = inspect.getmembers(module, inspect.isclass)
 
         for _, cls in members:
-            if hasattr(cls, 'name') and \
-                self.resource_provider_map.get(self.name) == cls.name:
+            if hasattr(cls, 'name') and cls.name == self.name:
                 try:
                     if request_type == "health":
                         return cls().get_health_info(rpath)
@@ -120,7 +115,7 @@ class Resource:
         raise DiscoveryError(
             errno.EINVAL,
             "%s resource provider not found in configured solution path %s" % (
-                self.resource_provider_map[self.name].title(),
+                self.name.title(),
                 monitor_path))
 
 

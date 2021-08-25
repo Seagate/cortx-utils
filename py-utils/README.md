@@ -15,7 +15,6 @@ For any questions about this software or licensing,
 please email opensource@seagate.com or cortx-questions@seagate.com.
 -->
 # CORTX Python Utilities
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/78aafd1230d04cfb859c3fa5e4d9b030)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Seagate/cortx-py-utils&amp;utm_campaign=Badge_Grade)
 
 A common utils framework which includes common modules across components
 
@@ -31,6 +30,13 @@ sudo yum install -y gcc jq rpm-build python36 python36-pip python36-devel python
 git clone --recursive https://github.com/Seagate/cortx-utils -b main
 ```
 
+## Install python dependencies
+
+```bash
+cd cortx-utils/py-utils/
+sudo pip3 install -r python_requirements.txt
+sudo pip3 install -r python_requirements.ext.txt
+```
 
 ## Build
 
@@ -38,16 +44,17 @@ It will create `cortx-py-utils-1.0.0-1_<git-version>.noarch.rpm` by default. One
 Below command passes version string as 2.0.0 and build number 2, which creates `cortx-py-utils-2.0.0-2_<git-version>.noarch.rpm`
 Run below command from repo root (cortx-utils).
 ```bash
-cd cortx-utils
+cd ..
 ./jenkins/build.sh -v 2.0.0 -b 2
 ```
 
-## Installation
+## Install the RPM package
  
-Note : The rpm package installation will fail if any dependent python package is not installed.
-Please refer to WIKI (https://github.com/Seagate/cortx-utils/wiki/%22cortx-py-utils%22-single-node-manual-provisioning)
+-   Note : The rpm package installation will fail if any dependent python package is not installed.
+-   Please refer to WIKI (https://github.com/Seagate/cortx-utils/wiki/%22cortx-py-utils%22-single-node-manual-provisioning)
+
 ```bash
-cd ./py-utils/dist
+cd py-utils/dist
 sudo yum install -y cortx-py-utils-*.noarch.rpm
 ```
 
