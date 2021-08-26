@@ -1,5 +1,0 @@
-cortx:
- software:
-   consul:
-     config_path: TMPL_CONSUL_CONF_PATH
-     data_path: TMPL_CONSUL_DATA_PATH

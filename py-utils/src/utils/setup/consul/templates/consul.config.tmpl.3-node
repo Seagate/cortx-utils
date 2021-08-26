@@ -12,6 +12,8 @@ server_node:
         private_interfaces:
         - TMPL_DATA_PRIVATE_INTERFACE_1
     node_id: TMPL_NODE_ID_1
+    roles:
+      - TMPL_CONSUL_SERVER
   TMPL_MACHINE_ID_2:
     cluster_id: TMPL_CLUSTER_ID
     network:
@@ -20,6 +22,8 @@ server_node:
         private_interfaces:
         - TMPL_DATA_PRIVATE_INTERFACE_2
     node_id: TMPL_NODE_ID_2
+    roles:
+      - TMPL_CONSUL_SERVER
   TMPL_MACHINE_ID_3:
     cluster_id: TMPL_CLUSTER_ID
     network:
@@ -28,6 +32,8 @@ server_node:
         private_interfaces:
         - TMPL_DATA_PRIVATE_INTERFACE_2
     node_id: TMPL_NODE_ID_3
+    roles:
+      - TMPL_CONSUL_SERVER
 cluster:
   TMPL_CLUSTER_ID:
     site:

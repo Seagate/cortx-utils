@@ -133,7 +133,7 @@ setup(name='cortx-py-utils',
                                  'src/utils/support/0-support_bundle.conf']),
                      ('%s/conf' % utils_path, tmpl_files),
                      ('%s/conf' % utils_path, openldap_tmpl_files),
-                     ('%s/conf' % utils_path, consul_tmpl_files),
+                     (f'{utils_path}/conf', consul_tmpl_files),
                      ('%s/conf' % utils_path, openldap_ldif_files),
                      ('%s/conf' % utils_path, [
                      'src/utils/setup/openldap/openldapsetup_prereqs.json',

@@ -12,6 +12,8 @@ server_node:
         private_interfaces:
         - TMPL_DATA_PRIVATE_INTERFACE
     node_id: TMPL_NODE_ID
+    roles:
+      - TMPL_CONSUL_SERVER
 cluster:
   TMPL_CLUSTER_ID:
     site:

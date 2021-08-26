@@ -22,26 +22,24 @@ from cortx.utils.validator.v_service import ServiceV
 
 
 class TestConsul(unittest.TestCase):
-
     def setUp(self) -> None:
         self.consul = Consul()
-    
+
     def test_get(self):
-        self.test_put()
+        self.consul.kv.put("test_key", "test_value")
         result = self.consul.kv.get("test_key")
         self.assertEqual("test_value", result[1]["Value"].decode())
+        self.consul.kv.delete("test_key")
 
     def test_put(self):
         result = self.consul.kv.put("test_key", "test_value")
         self.assertIs(result, True)
+        self.consul.kv.delete("test_key")
 
     def test_delete(self):
+        self.consul.kv.put("test_key", "test_value")
         result = self.consul.kv.delete("test_key")
         self.assertIs(result, True)
-    
+
     def test_service_running(self):
         ServiceV().validate('isrunning', ["consul"])
-
-
-if __name__ == "__main__":
-    unittest.main()

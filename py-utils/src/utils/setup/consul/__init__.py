@@ -15,4 +15,4 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 
-from cortx.utils.setup.consul.consul import  Consul, ConsulSetupError
+from cortx.utils.setup.consul.consul_prvsnr import  Consul, ConsulSetupError

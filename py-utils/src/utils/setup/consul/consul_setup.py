@@ -16,16 +16,16 @@
 
 import sys
 import errno
-import argparse
 import inspect
+import argparse
 import traceback
 
-from cortx.utils.setup.consul import Consul, ConsulSetupError
+from cortx.utils.setup.consul.consul_prvsnr import Consul, ConsulSetupError
 
 
 class Cmd:
     """ Setup Command """
-    _index = "setup"
+    _index = 'setup'
 
     def __init__(self, args: dict):
         self._url = args.config
@@ -42,23 +42,19 @@ class Cmd:
     @staticmethod
     def usage(prog: str):
         """ Print usage instructions """
-
-        sys.stderr.write(
-            f"usage: {prog} [-h] <cmd> --config <url> <args>...\n"
-            f"where:\n"
-            f"cmd   post_install, config, init, reset, test\n"
-            f"url   Config URL\n")
+        sys.stderr.write(f"usage: {prog} [-h] <cmd> --config <url> <args>...\n"
+                         f"where:\n"
+                         f"cmd   post_install, config, init, reset, test\n"
+                         f"url   Config URL\n")
 
     @staticmethod
     def get_command(desc: str, argv: dict):
         """ Return the Command after parsing the command line. """
 
         parser = argparse.ArgumentParser(desc)
-
         subparsers = parser.add_subparsers()
         cmds = inspect.getmembers(sys.modules[__name__])
-        cmds = [(x, y) for x, y in cmds
-            if x.endswith("Cmd") and x != "Cmd"]
+        cmds = [(x, y) for x, y in cmds if x.endswith('Cmd') and x != 'Cmd']
         for name, cmd in cmds:
             cmd.add_args(subparsers, cmd, name)
         args = parser.parse_args(argv)
@@ -66,7 +62,7 @@ class Cmd:
 
     @staticmethod
     def _add_extended_args(parser):
-        """ Override this method to add extended args """
+        """Override this method to add extended args."""
         pass
 
     @staticmethod
@@ -90,8 +86,7 @@ class PostInstallCmd(Cmd):
 
     def process(self):
         self.consul.validate_post_install()
-        rc = self.consul.post_install()
-        return rc
+        self.consul.post_install()
 
 
 class PrepareCmd(Cmd):
@@ -103,9 +98,7 @@ class PrepareCmd(Cmd):
         self.consul = Consul(args.config)
 
     def process(self):
-        # TODO: Add actions here
-        rc = self.consul.prepare()
-        return rc
+        self.consul.prepare()
 
 
 class ConfigCmd(Cmd):
@@ -117,9 +110,7 @@ class ConfigCmd(Cmd):
         self.consul = Consul(args.config)
 
     def process(self):
-        # TODO: Add actions here
-        rc = self.consul.config()
-        return rc
+        self.consul.config()
 
 
 class InitCmd(Cmd):
@@ -131,28 +122,19 @@ class InitCmd(Cmd):
         self.consul = Consul(args.config)
 
     def process(self):
-        # TODO: Add actions here
-        rc = self.consul.init()
-        return rc
+        self.consul.init()
 
 
 class TestCmd(Cmd):
     """ Test Setup Cmd """
     name = "test"
 
-    @staticmethod
-    def _add_extended_args(parser):
-        parser.add_argument('--plan', help='Test Plan', type=str)
-
     def __init__(self, args):
         super().__init__(args)
         self.consul = Consul(args.config)
-        self.test_plan = args.plan
 
     def process(self):
-        # TODO: Add actions here
-        rc = self.consul.test(self.test_plan)
-        return rc
+        self.consul.test()
 
 
 class ResetCmd(Cmd):
@@ -164,9 +146,8 @@ class ResetCmd(Cmd):
         self.consul = Consul(args.config)
 
     def process(self):
-        # TODO: Add actions here
-        rc = self.consul.reset()
-        return rc
+        self.consul.reset()
+
 
 class CleanupCmd(Cmd):
     """ Cleanup Setup Cmd """
@@ -174,8 +155,9 @@ class CleanupCmd(Cmd):
 
     @staticmethod
     def _add_extended_args(parser):
-        parser.add_argument('--pre-factory', action="store_true",
-                             help='Factory cleanup.')
+        parser.add_argument('--pre-factory',
+                            action="store_true",
+                            help='Factory cleanup.')
 
     def __init__(self, args):
         super().__init__(args)
@@ -183,16 +165,14 @@ class CleanupCmd(Cmd):
         self.pre_factory = args.pre_factory
 
     def process(self):
-        rc = self.consul.cleanup(self.pre_factory)
-        return rc
+        self.consul.cleanup(self.pre_factory)
+
 
 def main(argv: dict):
     try:
         desc = "CORTX Consul Setup command"
         command = Cmd.get_command(desc, argv[1:])
-        rc = command.process()
-        if rc != 0:
-            raise ValueError(f"Failed to run {argv[1]}")
+        command.process()
 
     except ConsulSetupError as e:
         sys.stderr.write("%s\n" % str(e))
