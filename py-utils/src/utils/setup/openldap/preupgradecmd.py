@@ -23,7 +23,7 @@ import ntpath
 from shutil import copyfile
 from pathlib import Path
 from cortx.utils.log import Log
-from setupcmd import SetupCmd, OpenldapPROVError
+from cortx.utils.setup.openldap.setupcmd import SetupCmd, OpenldapPROVError
 
 class PreUpgradeCmd(SetupCmd):
 
