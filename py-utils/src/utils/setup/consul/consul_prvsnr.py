@@ -14,6 +14,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import errno
 import time
 import traceback
 import os
@@ -25,6 +26,7 @@ import unittest
 from jinja2 import FileSystemLoader
 
 from cortx.utils.conf_store import Conf
+from cortx.utils.conf_store.error import ConfError
 from cortx.utils.validator.v_network import NetworkV
 from cortx.utils.validator.error import VError
 from cortx.utils.validator.v_pkg import PkgV
@@ -36,11 +38,14 @@ from jinja2.environment import Environment
 
 class ConsulSetupError(Exception):
     """ Generic Exception with error code and output """
+
     def __init__(self, rc, message, *args):
+        "Initialize class"
         self._rc = rc
         self._desc = message % (args)
 
     def __str__(self):
+        """Implement custom printable string representation"""
         if self._rc == 0: return self._desc
         return "error(%d): %s\n\n%s" % (self._rc, self._desc,
                                         traceback.format_exc())
@@ -51,6 +56,7 @@ class ConsulSetupError(Exception):
 
 
 class Consul:
+
     """ Represents Consul and Performs setup related actions """
     index = "consul"
 
@@ -58,7 +64,7 @@ class Consul:
         Conf.load(self.index, conf_url)
 
     def validate_post_install(self):
-        """ Perform validtions. Raises exceptions if validation fails """
+        """ Perform validtions. Raises exceptions if validation fails"""
         PkgV().validate('rpms', ['consul-1.9.1-1'])
 
     def validate_config(self, server_node_fqdns):
@@ -91,6 +97,23 @@ class Consul:
 
     def config(self):
         """ Performs configurations. Raises exception on error """
+        machine_id = Conf.machine_id
+        cluster_id = f"server_node>{machine_id}>cluster_id"
+        keys = [
+            f"server_node>{machine_id}>network>data>private_interfaces",
+            f"server_node>{machine_id}>network>data>private_fqdn",
+            f"server_node>{machine_id}>roles", cluster_id,
+            f"cluster>{Conf.get(self.index,cluster_id)}>storage_set",
+            f"cortx>software>consul>config_path",
+            f"cortx>software>consul>data_path",
+        ]
+        for key in keys:
+            value = Conf.get(self.index, key)
+            if not value:
+                raise ConfError(
+                    errno.EINVAL,
+                    "Consul Setup config validation falied. %s key not found",
+                    key)
 
         config_path = Conf.get(self.index, "cortx>software>consul>config_path",
                                "/etc/consul.d")
@@ -112,7 +135,7 @@ class Consul:
         command = "systemd-analyze verify consul.service"
         _, err, returncode = SimpleProcess(command).run()
         if returncode != 0:
-            ConsulSetupError(
+            raise ConsulSetupError(
                 returncode,
                 "Consul Setup systemd service file validation failed with error: %s",
                 err)
@@ -120,7 +143,7 @@ class Consul:
         command = "systemctl daemon-reload"
         _, err, returncode = SimpleProcess(command).run()
         if returncode != 0:
-            ConsulSetupError(
+            raise ConsulSetupError(
                 returncode,
                 "Consul Setup systemd daemon-reload failed with error: %s",
                 err)
@@ -133,23 +156,27 @@ class Consul:
             self.index, f"server_node>{Conf.machine_id}>cluster_id")
         storage_sets = Conf.get(self.index,
                                 f"cluster>{self.cluster_id}>storage_set")
+
+        # server_node_fqdn have fqdn of nodes on which consul will run in server
+        # mode. It is used for retry-join config
         server_node_fqdns = []
         for storage_set in storage_sets:
             for server_node in storage_set["server_nodes"]:
                 is_server_node = "consul_server" in Conf.get(
                     self.index, f"server_node>{server_node}>roles")
-                if server_node != Conf.machine_id and is_server_node:
+                if is_server_node:
                     server_node_fqdns.append(
                         Conf.get(
                             self.index,
                             f"server_node>{server_node}>network>data>private_fqdn"
                         ))
 
-        is_server_node = "consul_server" in Conf.get(
-            self.index, f"server_node>{Conf.machine_id}>roles")
         bootstrap_expect = len(server_node_fqdns)
-        if is_server_node:
-            bootstrap_expect += 1
+        server_node_fqdn = Conf.get(self.index, 
+                                    f"server_node>{machine_id}>network>data>private_fqdn")
+        if server_node_fqdn in server_node_fqdns:
+            server_node_fqdns.remove(server_node_fqdn)
+
         env = Environment(
             loader=FileSystemLoader("/opt/seagate/cortx/utils/conf"))
         template = env.get_template('consul.hcl.tmpl')
@@ -164,14 +191,14 @@ class Consul:
 
         _, err, returncode = SimpleProcess(command).run()
         if returncode != 0:
-            ConsulSetupError(
+            raise ConsulSetupError(
                 returncode,
                 "Consul Setup config file %s validation failed with error :%s",
                 f"{config_path}/consul.hcl", err)
         command = f"chown -R consul:consul {config_path} {data_path}"
         _, err, returncode = SimpleProcess(command).run()
         if returncode != 0:
-            ConsulSetupError(
+            raise ConsulSetupError(
                 returncode,
                 "Consul Setup changing ownership failed for %s %s with error: %s",
                 config_path, data_path, err)
@@ -188,21 +215,32 @@ class Consul:
         return TestConsul
 
     def test(self):
-        """ Perform configuration testing. Raises exception on error """
+        """ Perform configuration testing. Raises exception on error"""
         unittest.TextTestRunner().run(
             unittest.TestLoader().loadTestsFromTestCase(
                 self.get_test_module()))
 
     def reset(self):
         """ Performs Configuraiton reset. Raises exception on error """
-
         command = "consul kv delete --recurse"
         _, err, returncode = SimpleProcess(command).run()
         if returncode != 0:
-            ConsulSetupError(returncode,
+            raise ConsulSetupError(returncode,
                              "Consul data reset failed with error: %s", err)
 
     def cleanup(self, pre_factory=False):
+        keys = [
+            f"cortx>software>consul>config_path",
+            f"cortx>software>consul>data_path",
+        ]
+        for key in keys:
+            value = Conf.get(self.index, key)
+            if not value:
+                raise ConfError(
+                    errno.EINVAL,
+                    "Consul Setup config validation falied. %s key not found",
+                    key)
+
         try:
             Service("consul.service").stop()
         except ServiceError:
@@ -211,7 +249,6 @@ class Consul:
         content = ""
         with open("/usr/lib/systemd/system/consul.service") as f:
             content = f.read()
-
         with open("/usr/lib/systemd/system/consul.service", "w") as f:
             content = re.sub("config-dir=.*", "config-dir=/etc/consul.d",
                              content)
@@ -223,7 +260,7 @@ class Consul:
         command = "systemctl daemon-reload"
         _, err, returncode = SimpleProcess(command).run()
         if returncode != 0:
-            ConsulSetupError(
+            raise ConsulSetupError(
                 returncode,
                 "Consul Setup systemd daemon-reload failed with error: %s" %
                 err)
@@ -237,7 +274,7 @@ class Consul:
         command = "chown -R consul:consul /etc/consul.d"
         _, err, returncode = SimpleProcess(command).run()
         if returncode != 0:
-            ConsulSetupError(
+            raise ConsulSetupError(
                 returncode,
                 "Consul Setup changing ownership failed for %s with error: %s",
                 config_path, err)

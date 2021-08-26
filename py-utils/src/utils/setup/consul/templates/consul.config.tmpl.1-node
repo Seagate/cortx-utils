@@ -11,14 +11,10 @@ server_node:
         private_fqdn: TMPL_DATA_PRIVATE_FQDN
         private_interfaces:
         - TMPL_DATA_PRIVATE_INTERFACE
-    node_id: TMPL_NODE_ID
     roles:
       - TMPL_CONSUL_SERVER
 cluster:
   TMPL_CLUSTER_ID:
-    site:
-      storage_set_count: TMPL_STORAGE_SET_COUNT
     storage_set:
     - server_nodes: 
       - TMPL_MACHINE_ID
-

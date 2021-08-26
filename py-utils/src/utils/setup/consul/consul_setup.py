@@ -50,7 +50,6 @@ class Cmd:
     @staticmethod
     def get_command(desc: str, argv: dict):
         """ Return the Command after parsing the command line. """
-
         parser = argparse.ArgumentParser(desc)
         subparsers = parser.add_subparsers()
         cmds = inspect.getmembers(sys.modules[__name__])
@@ -68,7 +67,6 @@ class Cmd:
     @staticmethod
     def add_args(parser: str, cls: str, name: str):
         """ Add Command args for parsing """
-
         parser1 = parser.add_parser(cls.name, help='setup %s' % name)
         parser1.add_argument('--config', help='Conf Store URL', type=str)
         cls._add_extended_args(parser1)
@@ -77,6 +75,7 @@ class Cmd:
 
 
 class PostInstallCmd(Cmd):
+
     """ PostInstall Setup Cmd """
     name = "post_install"
 
@@ -90,6 +89,7 @@ class PostInstallCmd(Cmd):
 
 
 class PrepareCmd(Cmd):
+
     """ Prepare Setup Cmd """
     name = "prepare"
 
@@ -150,6 +150,7 @@ class ResetCmd(Cmd):
 
 
 class CleanupCmd(Cmd):
+
     """ Cleanup Setup Cmd """
     name = "cleanup"
 
@@ -177,7 +178,7 @@ def main(argv: dict):
     except ConsulSetupError as e:
         sys.stderr.write("%s\n" % str(e))
         Cmd.usage(argv[0])
-        return e.rc()
+        return e.rc
 
     except Exception as e:
         sys.stderr.write("error: %s\n\n" % str(e))
