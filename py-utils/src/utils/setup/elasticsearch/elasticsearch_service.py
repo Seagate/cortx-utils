@@ -59,6 +59,8 @@ class Elasticsearch:
     log_path = "/var/log/elasticsearch"
     data_path = "/var/lib/elasticsearch"
     elasticsearch_file_path = "/opt/seagate/cortx/utils/conf/elasticsearch"
+    opendistro_security_plugin = "/usr/share/elasticsearch/plugins/opendistro_security"
+    rsyslog_conf = "/etc/rsyslog.conf"
 
     Log.init(
         'ElasticsearchProvisioning',
@@ -100,11 +102,9 @@ class Elasticsearch:
     def post_install(self):
         """ Performs post install operations. Raises exception on error """
 
-        opendistro_security_plugin = "/usr/share/elasticsearch/plugins/opendistro_security"
-
         try:
             # Remove opendistro_security plugins.
-            Elasticsearch.delete_path(opendistro_security_plugin)
+            Elasticsearch.delete_path(self.opendistro_security_plugin)
 
             # Delete opendistro_security configuration entries from
             # elasticsearch.yml file.
@@ -134,8 +134,6 @@ class Elasticsearch:
         """ Performs configurations. Raises exception on error """
 
         try:
-            rsyslog_conf = "/etc/rsyslog.conf"
-
             # Create backup of elasticsearch_config file.
             if not os.path.exists(
                     f'{self.elasticsearch_file_path}/elasticsearch.yml.bkp'):
@@ -157,10 +155,10 @@ class Elasticsearch:
                 f.close()
 
             # load omelasticsearch module in rsyslog.
-            file_contents = Elasticsearch.read_file_contents(rsyslog_conf)
+            file_contents = Elasticsearch.read_file_contents(self.rsyslog_conf)
             insert_line = 'module(load="omelasticsearch")'
             if not any(insert_line in i for i in file_contents):
-                with open(rsyslog_conf, "w") as f:
+                with open(self.rsyslog_conf, "w") as f:
                     for line in file_contents:
                         if line == '\n':
                             continue
@@ -215,32 +213,29 @@ class Elasticsearch:
             # No action needed,
             # log and data directory for Elasticsearch got cleared during
             # elasticsearch-oss,opendistro rpms removal.
+            Log.info("No action needed for --pre-factory.")
             pass
         Log.info("Cleanup done.")
         return 0
 
     def prepare(self):
         """ Perform initialization. Raises exception on error """
-
-        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
+        Log.info("No action needed for Prepare Miniprovisioner Interface.")
         return 0
 
     def init(self):
         """ Perform initialization. Raises exception on error """
-
-        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
+        Log.info("No action needed for Init Miniprovisioner Interface.")
         return 0
 
     def pre_upgrade(self):
         """ Perform initialization. Raises exception on error """
-
-        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
+        Log.info("No action needed for Init Miniprovisioner Interface.")
         return 0
 
     def post_upgrade(self):
         """ Perform initialization. Raises exception on error """
-
-        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
+        Log.info("No action needed for Init Miniprovisioner Interface.")
         return 0
 
     def test(self, plan, config):
