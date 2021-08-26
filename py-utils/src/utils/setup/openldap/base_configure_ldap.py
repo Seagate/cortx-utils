@@ -23,7 +23,7 @@ import glob
 from shutil import copyfile
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
-from setupReplication import Replication
+from cortx.utils.setup.openldap.setupReplication import Replication
 from ldif import LDIFRecordList
 
 class BaseConfig:
@@ -123,7 +123,6 @@ class BaseConfig:
         BaseConfig.modify_attribute(dn, 'olcSuffix', config_values.get('base_dn'))
         BaseConfig.modify_attribute(dn, 'olcRootDN', config_values.get('bind_base_dn'))
         ldap_conn = ldap.initialize("ldapi:///")
-        ldap_conn.simple_bind_s(config_values.get('bind_base_dn'), ROOTDNPASSWORD)
         ldap_conn.sasl_non_interactive_bind_s('EXTERNAL')
         mod_attrs = [( ldap.MOD_ADD, 'olcDbMaxSize', [b'10737418240'] )]
         try:
