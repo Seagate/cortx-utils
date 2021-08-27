@@ -97,6 +97,12 @@ class Elasticsearch:
                 msg = f"Validation failed for {phase} phase with error {e}."
                 Log.error(msg)
                 raise
+        elif phase == "config":
+            if os.path.exists(self.opendistro_security_plugin):
+                msg = ('Opendistro_security plugin path '
+                       f'{self.opendistro_security_plugin} is not deleted.')
+                Log.error(msg)
+                raise Exception(msg)
         return 0
 
     def post_install(self):
@@ -208,6 +214,8 @@ class Elasticsearch:
             shutil.copyfile(
                 f'{self.elasticsearch_file_path}/elasticsearch.yml.bkp',
                 self.elasticsearch_config_path)
+            self.delete_path(
+                f'{self.elasticsearch_file_path}/elasticsearch.yml.bkp')
 
         if pre_factory:
             # No action needed,

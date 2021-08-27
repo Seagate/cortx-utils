@@ -120,6 +120,7 @@ class ConfigCmd(Cmd):
         self.elasticsearch = Elasticsearch(args.config)
 
     def process(self):
+        self.elasticsearch.validate("config")
         rc = self.elasticsearch.config()
         return rc
 
