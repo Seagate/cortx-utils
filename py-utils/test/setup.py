@@ -52,6 +52,7 @@ setup(
         "cortx.utils.test.discovery.solution.lr2",
         "cortx.utils.test.discovery.solution.lr2.server",
         "cortx.utils.test.discovery.solution.lr2.storage",
+        "cortx.utils.test.elasticsearch"
     ],
     package_data={
         "": [

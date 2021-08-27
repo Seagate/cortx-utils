@@ -19,6 +19,7 @@ import errno
 import shutil
 import socket
 import traceback
+import unittest
 
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
@@ -27,7 +28,6 @@ from cortx.utils.process import SimpleProcess
 from cortx.utils.service.service_handler import Service
 from cortx.utils.validator.error import VError
 from cortx.utils.service.service_handler import ServiceError
-from cortx.utils.setup.elasticsearch.test import ElasticsearchTest
 
 
 class ElasticsearchSetupError(Exception):
@@ -250,6 +250,11 @@ class Elasticsearch:
         """ Perform configuration testing. Raises exception on error """
 
         Log.info("Test starting...")
+        try:
+            from cortx.utils.test.elasticsearch.test_elasticsearch import ElasticsearchTest
+        except ImportError:
+            print("Install cortx-py-utils-test to run test")
+            raise
         ElasticsearchTest(config, plan)
         Log.info("Test done.")
         return 0

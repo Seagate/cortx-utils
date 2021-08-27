@@ -15,5 +15,5 @@
 # For any questions about this software or licensing, please email
 # opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.setup.elasticsearch.elasticsearch_service import Elasticsearch
-from cortx.utils.setup.elasticsearch.elasticsearch_service import ElasticsearchSetupError
+from cortx.utils.setup.elasticsearch.elasticsearch_provisioner import Elasticsearch
+from cortx.utils.setup.elasticsearch.elasticsearch_provisioner import ElasticsearchSetupError
