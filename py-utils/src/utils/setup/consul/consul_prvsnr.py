@@ -37,15 +37,16 @@ from jinja2.environment import Environment
 
 
 class ConsulSetupError(Exception):
+
     """ Generic Exception with error code and output """
 
     def __init__(self, rc, message, *args):
-        "Initialize class"
+        """Initialize class."""
         self._rc = rc
         self._desc = message % (args)
 
     def __str__(self):
-        """Implement custom printable string representation"""
+        """Implement custom printable string representation."""
         if self._rc == 0: return self._desc
         return "error(%d): %s\n\n%s" % (self._rc, self._desc,
                                         traceback.format_exc())
@@ -57,15 +58,16 @@ class ConsulSetupError(Exception):
 
 class Consul:
 
-    """ Represents Consul and Performs setup related actions """
+    """Represents Consul and Performs setup related actions."""
     index = "consul"
 
     def __init__(self, conf_url):
+        """Initialize class."""
         Conf.load(self.index, conf_url)
 
     def validate_post_install(self):
-        """ Perform validtions. Raises exceptions if validation fails"""
-        PkgV().validate('rpms', ['consul-1.9.1-1'])
+        """Perform validtions. Raises exceptions if validation fails."""
+        PkgV().validate('rpms', ['consul'])
 
     def validate_config(self, server_node_fqdns):
         max_retry = 3
@@ -79,11 +81,15 @@ class Consul:
                 time.sleep(0.5)
 
     def post_install(self):
-        """ Performs post install operations. Raises exception on error """
+        """Performs post install operations. Raises exception on error."""
+        pass
+
+    def prepare(self):
+        """Performs prepare operations. Raises exception on error."""
         pass
 
     def init(self):
-        """ Perform initialization. Raises exception on error """
+        """Perform initialization. Raises exception on error."""
         max_retry = 3
         for i in range(max_retry):
             try:
@@ -96,7 +102,7 @@ class Consul:
                 time.sleep(0.5)
 
     def config(self):
-        """ Performs configurations. Raises exception on error """
+        """Performs configurations. Raises exception on error."""
         machine_id = Conf.machine_id
         cluster_id = f"server_node>{machine_id}>cluster_id"
         keys = [
@@ -104,8 +110,8 @@ class Consul:
             f"server_node>{machine_id}>network>data>private_fqdn",
             f"server_node>{machine_id}>roles", cluster_id,
             f"cluster>{Conf.get(self.index,cluster_id)}>storage_set",
-            f"cortx>software>consul>config_path",
-            f"cortx>software>consul>data_path",
+            "cortx>software>consul>config_path",
+            "cortx>software>consul>data_path",
         ]
         for key in keys:
             value = Conf.get(self.index, key)
@@ -172,7 +178,7 @@ class Consul:
                         ))
 
         bootstrap_expect = len(server_node_fqdns)
-        server_node_fqdn = Conf.get(self.index, 
+        server_node_fqdn = Conf.get(self.index,
                                     f"server_node>{machine_id}>network>data>private_fqdn")
         if server_node_fqdn in server_node_fqdns:
             server_node_fqdns.remove(server_node_fqdn)
@@ -215,13 +221,13 @@ class Consul:
         return TestConsul
 
     def test(self):
-        """ Perform configuration testing. Raises exception on error"""
+        """Perform configuration testing. Raises exception on error."""
         unittest.TextTestRunner().run(
             unittest.TestLoader().loadTestsFromTestCase(
                 self.get_test_module()))
 
     def reset(self):
-        """ Performs Configuraiton reset. Raises exception on error """
+        """Performs Configuraiton reset. Raises exception on error."""
         command = "consul kv delete --recurse"
         _, err, returncode = SimpleProcess(command).run()
         if returncode != 0:
@@ -230,8 +236,8 @@ class Consul:
 
     def cleanup(self, pre_factory=False):
         keys = [
-            f"cortx>software>consul>config_path",
-            f"cortx>software>consul>data_path",
+            "cortx>software>consul>config_path",
+            "cortx>software>consul>data_path",
         ]
         for key in keys:
             value = Conf.get(self.index, key)
