@@ -14,62 +14,43 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import unittest
 import requests
-from elasticsearch import Elasticsearch, ElasticsearchException
+from elasticsearch import Elasticsearch
 
-from cortx.utils.conf_store import Conf
-from cortx.utils.log import Log
+from cortx.utils.validator.v_service import ServiceV
 
 
-class ElasticsearchTest:
-    test_index = "test_index"
-
-    def __init__(self, config, plan):
-        Conf.load(self.test_index, config)
-
-        Log.init(
-            'ElasticsearchProvisioning',
-            '/var/log/cortx/utils/elasticsearch', level='DEBUG')
-        if plan:
-            self.test_elasticsearch()
-
-    def test_elasticsearch(self):
-        """ create index, insert data, delete data """
-        index = "elasticsearch_test"
-        data = {
+class ElasticsearchTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.elasticsearch = Elasticsearch(host='localhost', port=9200)
+        self.index = "elasticsearch_test"
+        self.data = {
             "test": "elasticsearch_service"
             }
-        # make sure ES is up and running
-        machine_id = Conf.machine_id
-        node_name = Conf.get(
-            self.test_index, f'server_node>{machine_id}>name')
-        try:
-            res = requests.get(f'http://{node_name}:9200')
-        except requests.RequestException as e:
-            Log.error(f"Elasticsearch is not running. {e}")
-            raise
 
-        try:
-            es = Elasticsearch(host=node_name, port=9200)
+    def test_ES_connection(self):
+        res = requests.get('http://localhost:9200')
+        self.assertEqual(200, res.status_code)
 
-            # Create index
-            es.indices.create(index=index, ignore=400)
+    def test_service_running(self):
+        ServiceV().validate('isrunning', ["elasticsearch"])
 
-            # Insert data
-            res = es.index(index=index, id=1, body=data)
-            if res['result'] == "created":
-                Log.info(f"Inserted data into {index}, data - {res}.")
+    def test_insert_data(self):
+        # Insert data
+        res = self.elasticsearch.index(index=self.index, id=1, body=self.data)
+        self.assertEqual(res['result'], "created")
+        self.elasticsearch.delete(index=self.index, id=1)
 
-            # Get data
-            res = es.get(index=index, id=1)
-            if res['found']:
-                Log.info(f"Found data into {index}, data - {res}.")
+    def test_get_data(self):
+        # Get data
+        self.elasticsearch.index(index=self.index, id=1, body=self.data)
+        res = self.elasticsearch.get(index=self.index, id=1)
+        self.assertIs(res['found'], True)
+        self.elasticsearch.delete(index=self.index, id=1)
 
-            # Delete index
-            res = es.indices.delete(index=index)
-            if res['acknowledged']:
-                Log.info(f"Deleted elasticsearch {index} index.")
-
-        except ElasticsearchException as e:
-            Log.error(f"Exception in test {e}.")
-            raise
+    def delete_data(self):
+        # Delete index
+        self.elasticsearch.index(index=self.index, id=1, body=self.data)
+        res = self.elasticsearch.delete(index=self.index)
+        self.assertIs(res['acknowledged'], True)

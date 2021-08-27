@@ -144,17 +144,12 @@ class TestCmd(Cmd):
 
     name = "test"
 
-    @staticmethod
-    def _add_extended_args(parser):
-        parser.add_argument('--plan', help='Test Plan', type=str)
-
     def __init__(self, args):
         super().__init__(args)
         self.elasticsearch = Elasticsearch(args.config)
-        self.test_plan = args.plan
 
     def process(self):
-        rc = self.elasticsearch.test(self.test_plan, self._url)
+        rc = self.elasticsearch.test()
         return rc
 
 

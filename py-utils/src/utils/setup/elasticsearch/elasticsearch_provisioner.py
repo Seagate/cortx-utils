@@ -246,18 +246,26 @@ class Elasticsearch:
         Log.info("No action needed for Init Miniprovisioner Interface.")
         return 0
 
-    def test(self, plan, config):
+    def test(self):
         """ Perform configuration testing. Raises exception on error """
 
         Log.info("Test starting...")
+        unittest.TextTestRunner().run(
+            unittest.TestLoader().loadTestsFromTestCase(
+                self.get_test_module()))
+        Log.info("Test done.")
+        return 0
+
+
+    def get_test_module(self):
         try:
             from cortx.utils.test.elasticsearch.test_elasticsearch import ElasticsearchTest
         except ImportError:
-            print("Install cortx-py-utils-test to run test")
-            raise
-        ElasticsearchTest(config, plan)
-        Log.info("Test done.")
-        return 0
+            class ElasticsearchTest(unittest.TestCase):
+                def runTest(self):
+                    print("Install cortx-py-utils-test to run test")
+
+        return ElasticsearchTest
 
     def get_config_entries(self):
         """ Returns config that needs to add in elasticsearch.yml file. """
