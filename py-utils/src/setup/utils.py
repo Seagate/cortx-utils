@@ -271,7 +271,10 @@ class Utils:
                 for message_type in message_types_list:
                     producer = MessageProducer(producer_id=message_type, \
                         message_type=message_type, method='sync')
-                    producer.delete()
+                    while True:
+                        rc = producer.delete()
+                        if rc == 0:
+                            break
         except MessageBusError as e:
             raise SetupError(e.rc, "Can not reset Message Bus. %s", e)
         except Exception as e:
