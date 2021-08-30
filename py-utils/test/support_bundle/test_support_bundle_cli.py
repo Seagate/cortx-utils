@@ -68,6 +68,25 @@ class TestSupportBundleCli(unittest.TestCase):
         import ast
         status = ast.literal_eval(status)
         self.assertIsInstance(status, dict)
+    
+    def test_005_wrong_comp(self):
+        cmd = "support_bundle generate 'sample comment' -c 'util'"
+        cmd_proc = SimpleProcess(cmd)
+        stdout, stderr, rc = cmd_proc.run()
+        bundle_id = ''
+        if rc != 0:
+            cmd = f"support_bundle get_status -b '{bundle_id.strip()}'"
+        cmd_proc = SimpleProcess(cmd)
+        stdout, stderr, rc = cmd_proc.run()
+        self.assertIsInstance(stdout, bytes)
+        self.assertEqual(stderr, b'')
+        self.assertEqual(rc, 0)
+        status = stdout.decode('utf-8')
+        import ast
+        status = ast.literal_eval(status)
+        self.assertIsInstance(status, dict)
+        if status['status']:
+            self.assertEqual(status['status'][0]['result'], 'Error')
 
 
 if __name__ == '__main__':

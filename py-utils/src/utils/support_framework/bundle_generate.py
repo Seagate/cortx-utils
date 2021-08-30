@@ -180,6 +180,10 @@ class ComponentsBundle:
             components_commands = []
             components_files = command_files_info[each_component]
             for file_path in components_files:
+                if not os.path.exists(file_path):
+                    ComponentsBundle._publish_log(f"'{file_path}' file does not exist!", \
+                        ERROR, bundle_id, node_name, comment)
+                    continue
                 try:
                     file_data = Yaml(file_path).load()
                 except Exception as e:
@@ -192,7 +196,7 @@ class ComponentsBundle:
                     components_commands = file_data.get(
                         const.SUPPORT_BUNDLE.lower(), [])
                 else:
-                    ComponentsBundle._publish_log(f"Support.yaml file does not exist/empty: " \
+                    ComponentsBundle._publish_log(f"Support.yaml file is empty: " \
                         f"{file_path}", ERROR, bundle_id, node_name, comment)
                     break
                 if components_commands:
