@@ -234,8 +234,9 @@ class ComponentsBundle:
         except Exception as e:
             ComponentsBundle._publish_log(f"Could not generate tar file {e}", \
                 ERROR, bundle_id, node_name, comment)
-        # finally:
-        #     if os.path.isdir(bundle_path):
-        #         shutil.rmtree(bundle_path)
+        finally:
+            if os.path.exists(bundle_path):
+                [shutil.rmtree(os.path.join(bundle_path, dir_path)) for dir_path in 
+                    os.listdir(bundle_path) if os.path.isdir(os.path.join(bundle_path, dir_path))]
         msg = "Support bundle generation completed."
         ComponentsBundle._publish_log(msg, INFO, bundle_id, node_name, comment)
