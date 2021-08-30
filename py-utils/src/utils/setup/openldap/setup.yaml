@@ -13,28 +13,39 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-kafka:
+openldap:
     post_install:
-        cmd: /opt/seagate/cortx/utils/bin/kafka_setup post_install
+        cmd: openldap_setup post_install
         args: --config $URL
 
     prepare:
-        cmd: /opt/seagate/cortx/utils/bin/kafka_setup prepare
+        cmd: openldap_setup prepare
         args: --config $URL
 
     config:
-        cmd: /opt/seagate/cortx/utils/bin/kafka_setup config
+        cmd: openldap_setup config
         args: --config $URL
 
     init:
-        cmd: /opt/seagate/cortx/utils/bin/kafka_setup init
+        cmd: openldap_setup init
         args: --config $URL
 
     test:
-        cmd: /opt/seagate/cortx/utils/bin/kafka_setup test
+        cmd: openldap_setup test
         args: --config $URL
 
     reset:
-        cmd: /opt/seagate/cortx/utils/bin/kafka_setup reset
+        cmd: openldap_setup reset
         args: --config $URL
 
+    cleanup:
+        cmd: openldap_setup cleanup
+        args: --config $URL
+
+    upgrade:
+        pre:
+            cmd: openldap_setup preupgrade
+            when: {{ level == 'node' and flow == 'upgrade-offline' }}
+        post:
+            cmd: openldap_setup postupgrade
+            when: {{ level == 'node' and flow == 'upgrade-offline' }}

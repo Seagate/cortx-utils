@@ -1,0 +1,18 @@
+server_node:
+  0449364d92b2ba3915fcd8416014cff7:
+    cluster_id: "3f670dd0-17cf-4ef3-9d8b-e1fb6a14c0f6"
+    hostname: "ssc-vm-3780.colo.seagate.com"
+cortx:
+  software:
+    openldap:
+      base_dn: "dc=seagate,dc=com"
+      bind_base_dn: "cn=admin,dc=seagate,dc=com"
+      root:
+        user: "admin"
+        secret: "gAAAAABgiBKtyL7Y0QUvbsNeaJRvh7ihTq9EQDCiZlGkO2k2doSEepB0-dYFPM3V12NyjagS3oCU5YcO6JPBTe5pEMaTKbVPDg=="
+cluster:
+  3f670dd0-17cf-4ef3-9d8b-e1fb6a14c0f6:
+    site:
+      storage_set_count: "1"
+    storage_set:
+    - server_nodes: "['0449364d92b2ba3915fcd8416014cff7']"

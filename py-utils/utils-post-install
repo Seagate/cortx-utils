@@ -26,9 +26,20 @@ utils_path=$cortx_path/utils
 /bin/ln -s /usr/lib/python3.6/site-packages/cortx/setup/utils_setup.py $utils_path/bin/utils_setup
 /bin/chmod +x $utils_path/bin//utils_setup
 
+# Copy the kafka_setup.py as kafka_setup
+/bin/ln -s /usr/lib/python3.6/site-packages/cortx/utils/setup/kafka/kafka_setup.py $utils_path/bin/kafka_setup
+/bin/chmod +x $utils_path/bin/kafka_setup
+
 # Copy the message_bus_server.py as message_bus_server
 /bin/ln -s /usr/lib/python3.6/site-packages/cortx/utils/utils_server/utils_server.py $utils_path/bin/utils_server
 /bin/chmod +x $utils_path/bin/utils_server
+
+# Copy the openldap_setup.py as openldap_setup
+/bin/ln -s /usr/lib/python3.6/site-packages/cortx/utils/setup/openldap/openldap_setup.py $utils_path/bin/openldap_setup
+/bin/chmod +x $utils_path/bin/openldap_setup
+
+# Copy openldap_config.yaml.sample to openldap_config.yaml
+[ -f "$utils_path/conf/openldap_config.yaml" ] || cp -n $utils_path/conf/openldap_config.yaml.sample $utils_path/conf/openldap_config.yaml
 
 # Copy cortx.conf file to /etc/cortx
 [ -f "/etc/cortx/cortx.conf" ] || cp -n $utils_path/conf/cortx.conf.sample /etc/cortx/cortx.conf

@@ -15,7 +15,5 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.setup.kafka import Kafka
-from cortx.utils.setup.kafka import KafkaSetupError
-
-from cortx.utils.setup.openldap import OpenldapSetupError
+from cortx.utils.setup.openldap.openldap import Openldap
+from cortx.utils.setup.openldap.openldap import OpenldapSetupError

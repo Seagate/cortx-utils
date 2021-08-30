@@ -1,7 +1,8 @@
-#!/bin/python3
+#!/usr/bin/env python3
 
 # CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -15,7 +16,9 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.setup.kafka import Kafka
-from cortx.utils.setup.kafka import KafkaSetupError
+"""Package for manifest code througout cortx py-utils."""
 
-from cortx.utils.setup.openldap import OpenldapSetupError
+from cortx.utils.manifest.manifest_support_bundle import ManifestSupportBundle
+
+# adds all above defined packages in import *
+__all__ = ['ManifestSupportBundle']
