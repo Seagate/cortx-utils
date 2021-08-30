@@ -68,7 +68,7 @@ class TestSupportBundleCli(unittest.TestCase):
         import ast
         status = ast.literal_eval(status)
         self.assertIsInstance(status, dict)
-    
+
     def test_005_wrong_comp(self):
         cmd = "support_bundle generate 'sample comment' -c 'util'"
         cmd_proc = SimpleProcess(cmd)

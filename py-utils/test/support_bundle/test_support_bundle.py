@@ -84,21 +84,21 @@ class TestSupportBundle(unittest.TestCase):
         status = json.loads(status)
         if status['status']:
             self.assertEqual(status['status'][0]['result'], 'Error')
-    
+
     def test_007_wrong_comp(self):
         bundle_obj = SupportBundle.generate(comment=self.sb_description, components=['util'])
         status = SupportBundle.get_status(bundle_id=bundle_obj.bundle_id)
         status = json.loads(status)
         if status['status']:
             self.assertEqual(status['status'][0]['result'], 'Error')
-    
+
     def test_008_wrong_comp(self):
         bundle_obj = SupportBundle.generate(comment=self.sb_description, components=['util;csmm'])
         status = SupportBundle.get_status(bundle_id=bundle_obj.bundle_id)
         status = json.loads(status)
         if status['status']:
             self.assertEqual(status['status'][0]['result'], 'Error')
-    
+
     def test_009_wrong_comp(self):
         bundle_obj = SupportBundle.generate(comment=self.sb_description, components=['util;csm'])
         time.sleep(10)
