@@ -46,7 +46,7 @@ class TestSupportBundle(unittest.TestCase):
 
     def test_002generated_path(self):
         bundle_obj = SupportBundle.generate(comment=self.sb_description, components=['csm'])
-        time.sleep(5)
+        time.sleep(10)
         Conf.load('cluster_conf', 'json:///etc/cortx/cluster.conf')
         node_name = Conf.get('cluster_conf', 'cluster>srvnode-1')
         tar_file_name = f"{bundle_obj.bundle_id}_{node_name}.tar.gz"
