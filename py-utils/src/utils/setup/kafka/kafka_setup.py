@@ -121,7 +121,6 @@ class ConfigCmd(Cmd):
         self.kafka = Kafka()
 
     def process(self, *args, **kwargs):
-        # TODO: Add actions here
         kafka_servers = args[0]
         rc = self.kafka.config(kafka_servers)
         return rc
@@ -136,8 +135,8 @@ class InitCmd(Cmd):
         self.kafka = Kafka()
 
     def process(self, *args, **kwargs):
-        # TODO: Add actions here
-        rc = self.kafka.init()
+        kafka_servers = args[0]
+        rc = self.kafka.init(kafka_servers)
         return rc
 
 
