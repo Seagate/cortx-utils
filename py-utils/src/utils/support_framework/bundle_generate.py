@@ -236,7 +236,10 @@ class ComponentsBundle:
                 ERROR, bundle_id, node_name, comment)
         finally:
             if os.path.exists(bundle_path):
-                _ = [shutil.rmtree(os.path.join(bundle_path, dir_path)) for dir_path in \
-                        os.listdir(bundle_path) if os.path.isdir(os.path.join(bundle_path, dir_path))]
+                for each_dir in os.listdir(bundle_path):
+                    comp_dir = os.path.join(bundle_path, each_dir)
+                    if os.path.isdir(comp_dir):
+                        shutil.rmtree(comp_dir)
+
         msg = "Support bundle generation completed."
         ComponentsBundle._publish_log(msg, INFO, bundle_id, node_name, comment)
