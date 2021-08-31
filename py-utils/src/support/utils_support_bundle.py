@@ -78,8 +78,10 @@ class UtilsSupportBundle:
     @staticmethod
     def __generate_tar(bundle_id: str, target_path: str):
         """ Generate tar.gz file at given path """
+        component = 'utils'
         target_path = target_path if target_path is not None \
             else UtilsSupportBundle._default_path
+        target_path = os.path.join(target_path, component)
         tar_name = bundle_id if bundle_id else UtilsSupportBundle._tar_name
         tar_file_name = os.path.join(target_path, tar_name + '.tar.gz')
         if not os.path.exists(target_path):
