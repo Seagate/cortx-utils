@@ -1,7 +1,7 @@
 {
   "install_path": "/opt/seagate",
   "utils": {
-    "log_dir": "/var/log"
+    "log_dir": "/var/log",
     "log_level": "INFO"
     },
   "product_id": "LR2",
