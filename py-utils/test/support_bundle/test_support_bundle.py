@@ -20,8 +20,9 @@ import os
 import json
 import time
 import unittest
-from cortx.utils.support_framework import SupportBundle
+from cortx.utils.conf_store import Conf
 from cortx.utils.support_framework import Bundle
+from cortx.utils.support_framework import SupportBundle
 
 
 class TestSupportBundle(unittest.TestCase):
@@ -105,6 +106,22 @@ class TestSupportBundle(unittest.TestCase):
         status = json.loads(status)
         if status['status']:
             self.assertEqual(status['status'][0]['result'], 'Error')
+
+    def test_007_dir_remove(self):
+        bundle_obj = SupportBundle.generate(comment=self.sb_description, components=['csm'])
+        time.sleep(5)
+        Conf.load('cluster_conf', 'json:///etc/cortx/cluster.conf', skip_reload=True)
+        node_name = Conf.get('cluster_conf', 'cluster>srvnode-1')
+        self.assertFalse(os.path.exists(f'{bundle_obj.bundle_path}/{bundle_obj.bundle_id}/{node_name}/csm'))
+
+    def test_008_dir_remove(self):
+        bundle_obj = SupportBundle.generate(comment=self.sb_description, components=['csm', 'provisioner'])
+        time.sleep(15)
+        Conf.load('cluster_conf', 'json:///etc/cortx/cluster.conf', skip_reload=True)
+        node_name = Conf.get('cluster_conf', 'cluster>srvnode-1')
+        self.assertFalse(os.path.exists(f'{bundle_obj.bundle_path}/{bundle_obj.bundle_id}/{node_name}/csm'))
+        self.assertFalse(os.path.exists(f'{bundle_obj.bundle_path}/{bundle_obj.bundle_id}/{node_name}/provisioner'))
+
 
 if __name__ == '__main__':
     unittest.main()
