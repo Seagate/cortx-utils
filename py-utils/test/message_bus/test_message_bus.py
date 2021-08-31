@@ -142,6 +142,20 @@ class TestMessageBus(unittest.TestCase):
             TestMessageBus._admin.deregister_message_type(message_types=\
                 [''])
 
+    def test_purge_fail(self):
+        """Test fail purge messages."""
+        rc = TestMessageBus._producer.delete()
+        self.assertIsInstance(rc, MessageBusError)
+
+    def test_purge_messages(self):
+        """Test purge messages."""
+        while True:
+            rc = TestMessageBus._producer.delete()
+            if rc == 0:
+                break
+        message = TestMessageBus._consumer.receive()
+        self.assertIsNone(message)
+
     def test_concurrency(self):
         """Test add concurrency count."""
         TestMessageBus._admin.add_concurrency(message_type=\
@@ -235,6 +249,8 @@ if __name__ == '__main__':
     suite.addTest(TestMessageBus('test_receive_different_consumer_group'))
     suite.addTest(TestMessageBus('test_register_message_type_exist'))
     suite.addTest(TestMessageBus('test_deregister_message_type_not_exist'))
+    suite.addTest(TestMessageBus('test_purge_fail'))
+    suite.addTest(TestMessageBus('test_purge_messages'))
     suite.addTest(TestMessageBus('test_concurrency'))
     suite.addTest(TestMessageBus('test_receive_concurrently'))
     suite.addTest(TestMessageBus('test_reduce_concurrency'))
