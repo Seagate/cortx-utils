@@ -71,8 +71,9 @@ class Test(SetupCmd):
         return no_nodes
 
     def test_olcsyncrepl(self, pwd):
+        adminuser = self.get_confvalue(self.get_confkey('TEST>OPENLDAP_BIND_BASE_DN')).split('dc=')[0]
         baseDN = "olcDatabase={2}mdb,cn=config"
-        bind_base_DN = "cn=admin,cn=config"
+        bind_base_DN = adminuser+"cn=config"
         searchScope = ldap.SCOPE_BASE
         retrieveAttributes = ['olcSyncrepl']
         searchFilter = None
@@ -92,8 +93,9 @@ class Test(SetupCmd):
         ldap_conn.unbind_s()
 
     def test_olcserverId(self, pwd):
+        adminuser = self.get_confvalue(self.get_confkey('TEST>OPENLDAP_BIND_BASE_DN')).split('dc=')[0]
         baseDN = "cn=config"
-        bind_base_DN = "cn=admin,cn=config"
+        bind_base_DN = adminuser+"cn=config"
         searchScope = ldap.SCOPE_BASE
         retrieveAttributes = ['olcServerID']
         searchFilter = None
