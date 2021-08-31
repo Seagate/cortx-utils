@@ -37,14 +37,14 @@ class MessageBus(metaclass=Singleton):
             skip_reload=True)
         # Get the log path
         log_dir = Conf.get('config_file', 'log_dir')
-        log_path = os.path.join(log_dir, 'cortx/utils/message_bus')
+        utils_log_path = os.path.join(log_dir, 'cortx/utils/message_bus')
 
         # if Log.logger is already initialized by some parent process
         # the same file will be used to log all the messagebus related
         # logs, else standard message_bus.log will be used.
         if not Log.logger:
             log_level = Conf.get('config_file', 'utils>log_level', 'INFO')
-            Log.init('message_bus', log_path, level=log_level, \
+            Log.init('message_bus', utils_log_path, level=log_level, \
                 backup_count=5, file_size_in_mb=5)
 
         try:

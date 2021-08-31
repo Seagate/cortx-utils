@@ -216,15 +216,15 @@ class PostUpgradeCmd(Cmd):
 
 def main(argv: dict):
     from cortx.utils.conf_store import Conf
-    config_file_path = "/etc/cortx/cortx.conf"
+    config_file_path = '/etc/cortx/cortx.conf'
     Conf.load('config_file', f'yaml:///{config_file_path}', skip_reload=True)
     # Get the log path
-    log_dir = Conf.get('config_file', 'log_dir')
-    log_path = os.path.join(log_dir, 'cortx/utils')
+    log_dir = Conf.get('config_file', 'log_dir', '/var/log')
+    utils_log_path = os.path.join(log_dir, 'cortx/utils')
     # Get the log level
     log_level = Conf.get('config_file', 'utils>log_level', 'INFO')
 
-    Log.init('utils_setup', log_path, level=log_level, backup_count=5, \
+    Log.init('utils_setup', utils_log_path, level=log_level, backup_count=5, \
         file_size_in_mb=5)
     try:
         desc = "CORTX Utils Setup command"
