@@ -46,7 +46,7 @@ class TestSupportBundle(unittest.TestCase):
 
     def test_002generated_path(self):
         bundle_obj = SupportBundle.generate(comment=self.sb_description, components=['csm'])
-        time.sleep(5)
+        time.sleep(10)
         Conf.load('cluster_conf', 'json:///etc/cortx/cluster.conf')
         node_name = Conf.get('cluster_conf', 'cluster>srvnode-1')
         tar_file_name = f"{bundle_obj.bundle_id}_{node_name}.tar.gz"
@@ -65,7 +65,8 @@ class TestSupportBundle(unittest.TestCase):
         status = SupportBundle.get_status(bundle_id=bundle_obj.bundle_id)
         self.assertIsNotNone(status)
         status = json.loads(status)
-        self.assertEqual(status['status'][0]['result'], "Success")
+        if status['status']:
+            self.assertEqual(status['status'][0]['result'], 'Success')
 
     def test_005status(self):
         bundle_obj = SupportBundle.generate(comment=self.sb_description, components=['wrong'])
@@ -81,7 +82,30 @@ class TestSupportBundle(unittest.TestCase):
         bundle_obj = SupportBundle.generate(comment=self.sb_description)
         status = SupportBundle.get_status(bundle_id=bundle_obj.bundle_id)
         status = json.loads(status)
-        self.assertEqual(status['status'][0]['result'], 'Error')
+        if status['status']:
+            self.assertEqual(status['status'][0]['result'], 'Error')
+
+    def test_007_wrong_comp(self):
+        bundle_obj = SupportBundle.generate(comment=self.sb_description, components=['util'])
+        status = SupportBundle.get_status(bundle_id=bundle_obj.bundle_id)
+        status = json.loads(status)
+        if status['status']:
+            self.assertEqual(status['status'][0]['result'], 'Error')
+
+    def test_008_wrong_comp(self):
+        bundle_obj = SupportBundle.generate(comment=self.sb_description, components=['util;csmm'])
+        status = SupportBundle.get_status(bundle_id=bundle_obj.bundle_id)
+        status = json.loads(status)
+        if status['status']:
+            self.assertEqual(status['status'][0]['result'], 'Error')
+
+    def test_009_wrong_comp(self):
+        bundle_obj = SupportBundle.generate(comment=self.sb_description, components=['util;csm'])
+        time.sleep(10)
+        status = SupportBundle.get_status(bundle_id=bundle_obj.bundle_id)
+        status = json.loads(status)
+        if status['status']:
+            self.assertEqual(status['status'][0]['result'], 'Error')
 
     def test_007_dir_remove(self):
         bundle_obj = SupportBundle.generate(comment=self.sb_description, components=['csm'])

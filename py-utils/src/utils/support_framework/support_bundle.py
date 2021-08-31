@@ -94,8 +94,8 @@ class SupportBundle:
             components = []
         if command.options.get(const.SOS_COMP, False) == 'true':
             components.append('os')
-        comp_list = SupportBundle._get_components(components)
-
+        Conf.load('cortx_conf', 'json:///etc/cortx/cortx.conf', \
+            skip_reload=True)
         # Get HostNames and Node Names.
         node_hostname_map = await SupportBundle._get_active_nodes()
         if not isinstance(node_hostname_map, dict):
@@ -110,6 +110,19 @@ class SupportBundle:
         
         bundle_obj = Bundle(bundle_id=bundle_id, bundle_path=path, \
             comment=comment,is_shared=True if shared_path else False)
+        
+        support_bundle_file = os.path.join(Conf.get('cortx_conf', 'install_path'),\
+            'cortx/utils/conf/support_bundle.yaml')
+        Conf.load('sb_yaml', f'yaml://{support_bundle_file}', skip_reload=True)
+        all_components = Conf.get('sb_yaml', 'COMPONENTS')
+        invalid_comps = [component for component in components if component not in all_components.keys()]
+        if invalid_comps:
+            components = list(set(components) - set(invalid_comps))
+            ComponentsBundle._publish_log(f"""Invalid components - '{", ".join(invalid_comps)}'""", \
+                'error', bundle_id, '', comment)
+        if invalid_comps and not components:
+            return bundle_obj
+        comp_list = SupportBundle._get_components(components)
 
         # Start SB Generation on all Nodes.
         for nodename, hostname in node_hostname_map.items():
