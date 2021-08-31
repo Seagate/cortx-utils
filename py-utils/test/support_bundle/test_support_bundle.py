@@ -66,7 +66,7 @@ class TestSupportBundle(unittest.TestCase):
         self.assertIsNotNone(status)
         status = json.loads(status)
         if status['status']:
-            self.assertEqual(status['status'][0]['result'], "Success")
+            self.assertEqual(status['status'][0]['result'], 'Success')
 
     def test_005status(self):
         bundle_obj = SupportBundle.generate(comment=self.sb_description, components=['wrong'])

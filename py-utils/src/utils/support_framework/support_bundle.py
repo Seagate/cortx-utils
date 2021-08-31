@@ -119,7 +119,7 @@ class SupportBundle:
         if invalid_comps:
             components = list(set(components) - set(invalid_comps))
             ComponentsBundle._publish_log(f"""Invalid components - '{", ".join(invalid_comps)}'""", \
-                'error', bundle_id,'', comment)
+                'error', bundle_id, '', comment)
         if invalid_comps and not components:
             return bundle_obj
         comp_list = SupportBundle._get_components(components)
