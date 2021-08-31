@@ -43,7 +43,7 @@ if __name__ == '__main__':
 
     Conf.load('config_file', 'json:///etc/cortx/cortx.conf', skip_reload=True)
     # Get the log path
-    log_dir = Conf.get('config_file', 'utils>log_dir')
+    log_dir = Conf.get('config_file', 'log_dir')
     log_path = os.path.join(log_dir, 'cortx/utils/utils_server')
     # Get the log level
     log_level = Conf.get('config_file', 'utils>log_level', 'INFO')

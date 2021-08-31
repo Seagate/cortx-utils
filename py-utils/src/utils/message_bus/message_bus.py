@@ -36,7 +36,7 @@ class MessageBus(metaclass=Singleton):
         Conf.load('config_file', 'json:///etc/cortx/cortx.conf',
             skip_reload=True)
         # Get the log path
-        log_dir = Conf.get('config_file', 'utils>log_dir')
+        log_dir = Conf.get('config_file', 'log_dir')
         log_path = os.path.join(log_dir, 'cortx/utils/message_bus')
 
         # if Log.logger is already initialized by some parent process
