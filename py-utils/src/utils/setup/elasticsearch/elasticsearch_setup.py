@@ -91,7 +91,7 @@ class PostInstallCmd(Cmd):
         self.elasticsearch = Elasticsearch(args.config)
 
     def process(self):
-        self.elasticsearch.validate("post_install")
+        self.elasticsearch.validate(self.name)
         rc = self.elasticsearch.post_install()
         return rc
 
@@ -120,7 +120,7 @@ class ConfigCmd(Cmd):
         self.elasticsearch = Elasticsearch(args.config)
 
     def process(self):
-        self.elasticsearch.validate("config")
+        self.elasticsearch.validate(self.name)
         rc = self.elasticsearch.config()
         return rc
 
