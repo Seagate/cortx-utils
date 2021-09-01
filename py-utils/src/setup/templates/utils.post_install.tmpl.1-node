@@ -1,1 +1,4 @@
-# No keys required for post_install 
+cortx:
+  common:
+    storage:
+      log: TMPL_LOG_DIR

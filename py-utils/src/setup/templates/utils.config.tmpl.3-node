@@ -1,4 +1,7 @@
 cortx:
+  common:
+    storage:
+      log: TMPL_LOG_DIR
   software:
     common:
       message_bus_type: kafka # kafka is the only supported type

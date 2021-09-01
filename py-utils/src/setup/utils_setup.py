@@ -220,9 +220,9 @@ def main(argv: dict):
     cortx_config_index = 'cortx_config'
 
     # Get the log path
-    tmpl_file = argv[1]
+    tmpl_file = argv[3]
     Conf.load(tmpl_file_index, tmpl_file, skip_reload=True)
-    log_dir = Conf.get(tmpl_file_index, 'cortx>software>storage>log', \
+    log_dir = Conf.get(tmpl_file_index, 'cortx>common>storage>log', \
         '/var/log')
     utils_log_path = os.path.join(log_dir, 'cortx/utils')
 
