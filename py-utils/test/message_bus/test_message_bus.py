@@ -156,7 +156,7 @@ class TestMessageBus(unittest.TestCase):
                 self.assertIsInstance(rc, MessageBusError)
             if rc == 0:
                 break
-            time.sleep(2 * retry_count)
+            time.sleep(2*retry_count)
         message = TestMessageBus._consumer.receive()
         self.assertIsNone(message)
 
