@@ -16,7 +16,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-
+import time
 import unittest
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus import MessageBus, MessageBusAdmin, \
@@ -33,6 +33,7 @@ class TestMessageBus(unittest.TestCase):
     _message_type = 'test'
     _bulk_count = 25
     _receive_limit = 5
+    _purge_retry = 20
     _admin = MessageBusAdmin(admin_id='register')
     _producer = None
     _consumer = None
@@ -149,10 +150,13 @@ class TestMessageBus(unittest.TestCase):
 
     def test_purge_messages(self):
         """Test purge messages."""
-        while True:
+        for retry_count in range(1, (TestMessageBus._purge_retry + 2)):
             rc = TestMessageBus._producer.delete()
+            if retry_count > TestMessageBus._purge_retry:
+                self.assertIsInstance(rc, MessageBusError)
             if rc == 0:
                 break
+            time.sleep(2 * retry_count)
         message = TestMessageBus._consumer.receive()
         self.assertIsNone(message)
 
