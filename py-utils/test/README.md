@@ -79,3 +79,29 @@ yum remove cortx-test
 pip3 uninstall cortx_test
 ```
 
+---
+
+# Run py-utils unittests without Test-RPM
+
+## Clone
+
+```bash
+git clone https://github.com/Seagate/cortx-utils.git
+```
+
+## To run all the tests from a test file:
+
+- Go to the respective feature directory under py-utils/test and execute below command:
+
+```bash
+python3 test_file.py
+```
+
+## To run single test from a test file:
+
+- Go to the respective feature directory under py-utils/test and execute below command:
+
+```bash
+python3 -m unittest test_module.TestClass.test_method
+```
+
