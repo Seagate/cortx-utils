@@ -39,7 +39,6 @@ from jinja2.environment import Environment
 class ConsulSetupError(Exception):
 
     """ Generic Exception with error code and output """
-
     def __init__(self, rc, message, *args):
         """Initialize class."""
         self._rc = rc
@@ -65,20 +64,50 @@ class Consul:
         """Initialize class."""
         Conf.load(self.index, conf_url)
 
-    def validate_post_install(self):
-        """Perform validtions. Raises exceptions if validation fails."""
-        PkgV().validate('rpms', ['consul'])
-
-    def validate_config(self, server_node_fqdns):
-        max_retry = 3
-        for i in range(max_retry):
-            try:
-                NetworkV().validate("connectivity", server_node_fqdns)
-                break
-            except VError:
-                if i == (max_retry - 1):
-                    raise
-                time.sleep(0.5)
+    def validate(self, stage):
+        if stage == "post_install":
+            PkgV().validate('rpms', ['consul'])
+        elif stage == "config":
+            keys = [
+                f"server_node>{Conf.machine_id}>network>data>private_interfaces",
+                f"server_node>{Conf.machine_id}>network>data>private_fqdn",
+                "cortx>software>consul>config_path",
+                "cortx>software>consul>data_path",
+            ]
+            for key in keys:
+                value = Conf.get(self.index, key)
+                if not value:
+                    raise ConfError(
+                        errno.EINVAL,
+                        "Consul Setup config validation falied. %s key not found",
+                        key)
+            max_retry = 3
+            server_node_fqdns = [
+                Conf.get(
+                    self.index,
+                    f"server_node>{machine_id}>network>data>private_fqdn")
+                for machine_id in Conf.get(self.index, "server_node").keys()
+            ]
+            for i in range(max_retry):
+                try:
+                    NetworkV().validate("connectivity", server_node_fqdns)
+                    break
+                except VError:
+                    if i == (max_retry - 1):
+                        raise
+                    time.sleep(0.5)
+        elif stage == "cleanup":
+            keys = [
+                "cortx>software>consul>config_path",
+                "cortx>software>consul>data_path",
+            ]
+            for key in keys:
+                value = Conf.get(self.index, key)
+                if not value:
+                    raise ConfError(
+                        errno.EINVAL,
+                        "Consul Setup config validation falied. %s key not found",
+                        key)
 
     def post_install(self):
         """Performs post install operations. Raises exception on error."""
@@ -103,24 +132,6 @@ class Consul:
 
     def config(self):
         """Performs configurations. Raises exception on error."""
-        machine_id = Conf.machine_id
-        cluster_id = f"server_node>{machine_id}>cluster_id"
-        keys = [
-            f"server_node>{machine_id}>network>data>private_interfaces",
-            f"server_node>{machine_id}>network>data>private_fqdn",
-            f"server_node>{machine_id}>roles", cluster_id,
-            f"cluster>{Conf.get(self.index,cluster_id)}>storage_set",
-            "cortx>software>consul>config_path",
-            "cortx>software>consul>data_path",
-        ]
-        for key in keys:
-            value = Conf.get(self.index, key)
-            if not value:
-                raise ConfError(
-                    errno.EINVAL,
-                    "Consul Setup config validation falied. %s key not found",
-                    key)
-
         config_path = Conf.get(self.index, "cortx>software>consul>config_path",
                                "/etc/consul.d")
         data_path = Conf.get(self.index, "cortx>software>consul>data_path",
@@ -128,14 +139,15 @@ class Consul:
         os.makedirs(config_path, exist_ok=True)
         os.makedirs(data_path, exist_ok=True)
         content = ""
-        with open("/usr/lib/systemd/system/consul.service") as f:
+        with open("/usr/lib/systemd/system/consul.service", "r+") as f:
             content = f.read()
-        with open("/usr/lib/systemd/system/consul.service", "w") as f:
             content = re.sub("config-dir=.*", f"config-dir={config_path}",
                              content)
             content = re.sub(
                 "ConditionFileNotEmpty=.*",
                 f"ConditionFileNotEmpty={config_path}/consul.hcl", content)
+            f.seek(0)
+            f.truncate()
             f.write(content)
 
         command = "systemd-analyze verify consul.service"
@@ -158,30 +170,24 @@ class Consul:
             self.index,
             f"server_node>{Conf.machine_id}>network>data>private_interfaces[0]"
         )
-        self.cluster_id = Conf.get(
-            self.index, f"server_node>{Conf.machine_id}>cluster_id")
-        storage_sets = Conf.get(self.index,
-                                f"cluster>{self.cluster_id}>storage_set")
-
         # server_node_fqdn have fqdn of nodes on which consul will run in server
         # mode. It is used for retry-join config
         server_node_fqdns = []
-        for storage_set in storage_sets:
-            for server_node in storage_set["server_nodes"]:
-                is_server_node = "consul_server" in Conf.get(
-                    self.index, f"server_node>{server_node}>roles")
-                if is_server_node:
+        bootstrap_expect = 0
+        is_server_node = False
+        for machine_id in Conf.get(self.index, "server_node").keys():
+            if "consul_server" in Conf.get(self.index,
+                                           f"server_node>{machine_id}>roles",
+                                           []):
+                bootstrap_expect += 1
+                if machine_id != Conf.machine_id:
                     server_node_fqdns.append(
                         Conf.get(
                             self.index,
-                            f"server_node>{server_node}>network>data>private_fqdn"
+                            f"server_node>{machine_id}>network>data>private_fqdn"
                         ))
-
-        bootstrap_expect = len(server_node_fqdns)
-        server_node_fqdn = Conf.get(self.index,
-                                    f"server_node>{machine_id}>network>data>private_fqdn")
-        if server_node_fqdn in server_node_fqdns:
-            server_node_fqdns.remove(server_node_fqdn)
+                else:
+                    is_server_node = True
 
         env = Environment(
             loader=FileSystemLoader("/opt/seagate/cortx/utils/conf"))
@@ -232,35 +238,25 @@ class Consul:
         _, err, returncode = SimpleProcess(command).run()
         if returncode != 0:
             raise ConsulSetupError(returncode,
-                             "Consul data reset failed with error: %s", err)
+                                   "Consul data reset failed with error: %s",
+                                   err)
 
     def cleanup(self, pre_factory=False):
-        keys = [
-            "cortx>software>consul>config_path",
-            "cortx>software>consul>data_path",
-        ]
-        for key in keys:
-            value = Conf.get(self.index, key)
-            if not value:
-                raise ConfError(
-                    errno.EINVAL,
-                    "Consul Setup config validation falied. %s key not found",
-                    key)
-
         try:
             Service("consul.service").stop()
         except ServiceError:
             pass
 
         content = ""
-        with open("/usr/lib/systemd/system/consul.service") as f:
+        with open("/usr/lib/systemd/system/consul.service", "r+") as f:
             content = f.read()
-        with open("/usr/lib/systemd/system/consul.service", "w") as f:
             content = re.sub("config-dir=.*", "config-dir=/etc/consul.d",
                              content)
             content = re.sub("ConditionFileNotEmpty=.*",
                              "ConditionFileNotEmpty=/etc/consul.d/consul.hcl",
                              content)
+            f.seek(0)
+            f.truncate()
             f.write(content)
 
         command = "systemctl daemon-reload"
@@ -290,3 +286,9 @@ class Consul:
 
         if pre_factory:
             pass
+
+    def preupgrade(self):
+        pass
+
+    def postupgrade(self):
+        pass

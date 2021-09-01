@@ -5,7 +5,6 @@ cortx:
      data_path: /opt/consul/data
 server_node:
   7c4fd75dfedd7662e6a39b0a53274922:
-    cluster_id: "3f670dd0-17cf-4ef3-9d8b-e1fb6a14c0f6"
     network:
       data:
         private_fqdn: srvnode-1.data.private
@@ -14,7 +13,6 @@ server_node:
     roles:
       - consul_server
   7c4fd75dfedd7662e6a39b0a53274923:
-    cluster_id: "3f670dd0-17cf-4ef3-9d8b-e1fb6a14c0f6"
     network:
       data:
         private_fqdn: srvnode-2.data.private
@@ -23,7 +21,6 @@ server_node:
     roles:
       - consul_server
   8efd697708a8f7e428d3fd520c180795:
-    cluster_id: "3f670dd0-17cf-4ef3-9d8b-e1fb6a14c0f6"
     network:
       data:
         private_fqdn: srvnode-3.data.private
@@ -31,10 +28,4 @@ server_node:
         - enp175s0f1
     roles:
       - consul_server
-cluster:
-  3f670dd0-17cf-4ef3-9d8b-e1fb6a14c0f6:
-    storage_set:
-    - server_nodes: 
-      - 7c4fd75dfedd7662e6a39b0a53274922
-      - 7c4fd75dfedd7662e6a39b0a53274923 
-      - 8efd697708a8f7e428d3fd520c180795
+

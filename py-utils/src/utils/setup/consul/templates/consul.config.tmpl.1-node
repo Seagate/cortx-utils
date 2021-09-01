@@ -5,7 +5,6 @@ cortx:
      data_path: TMPL_CONSUL_DATA_PATH
 server_node:
   TMPL_MACHINE_ID:
-    cluster_id: TMPL_CLUSTER_ID
     network:
       data:
         private_fqdn: TMPL_DATA_PRIVATE_FQDN
@@ -13,8 +12,4 @@ server_node:
         - TMPL_DATA_PRIVATE_INTERFACE
     roles:
       - TMPL_CONSUL_SERVER
-cluster:
-  TMPL_CLUSTER_ID:
-    storage_set:
-    - server_nodes: 
-      - TMPL_MACHINE_ID
+

@@ -86,7 +86,7 @@ class PostInstallCmd(Cmd):
         self.consul = Consul(args.config)
 
     def process(self):
-        self.consul.validate_post_install()
+        self.consul.validate(self.name)
         self.consul.post_install()
 
 
@@ -100,6 +100,7 @@ class PrepareCmd(Cmd):
         self.consul = Consul(args.config)
 
     def process(self):
+        self.consul.validate(self.name)
         self.consul.prepare()
 
 
@@ -113,6 +114,7 @@ class ConfigCmd(Cmd):
         self.consul = Consul(args.config)
 
     def process(self):
+        self.consul.validate(self.name)        
         self.consul.config()
 
 
@@ -126,6 +128,7 @@ class InitCmd(Cmd):
         self.consul = Consul(args.config)
 
     def process(self):
+        self.consul.validate(self.name)        
         self.consul.init()
 
 
@@ -139,6 +142,7 @@ class TestCmd(Cmd):
         self.consul = Consul(args.config)
 
     def process(self):
+        self.consul.validate(self.name)        
         self.consul.test()
 
 
@@ -148,10 +152,11 @@ class ResetCmd(Cmd):
     name = "reset"
 
     def __init__(self, args):
-        super().__init__(args)
+        super().__init__(args)        
         self.consul = Consul(args.config)
 
     def process(self):
+        self.consul.validate(self.name)        
         self.consul.reset()
 
 
@@ -172,7 +177,34 @@ class CleanupCmd(Cmd):
         self.pre_factory = args.pre_factory
 
     def process(self):
+        self.consul.validate(self.name)        
         self.consul.cleanup(self.pre_factory)
+
+
+class PreUpgradeCmd(Cmd):
+
+    """Pre Upgrade Setup Cmd."""
+    name = "preupgrade"
+
+    def __init__(self, args):
+        super().__init__(args)
+        self.consul = Consul(args.config)
+
+    def process(self):
+        self.consul.preupgrade()
+
+
+class PostUpgradeCmd(Cmd):
+
+    """Post Upgrade Setup Cmd."""
+    name = "postupgrade"
+
+    def __init__(self, args):
+        super().__init__(args)
+        self.consul = Consul(args.config)
+
+    def process(self):
+        self.consul.postupgrade()
 
 
 def main(argv: dict):
