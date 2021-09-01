@@ -197,7 +197,6 @@ class PreUpgradeCmd(Cmd):
         self.elasticsearch = Elasticsearch(args.config)
 
     def process(self):
-        # TODO: Add actions here
         rc = self.elasticsearch.pre_upgrade()
         return rc
 
@@ -211,7 +210,6 @@ class PostUpgradeCmd(Cmd):
         self.elasticsearch = Elasticsearch(args.config)
 
     def process(self):
-        # TODO: Add actions here
         rc = self.elasticsearch.post_upgrade()
         return rc
 
