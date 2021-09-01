@@ -46,7 +46,8 @@ class UtilsSupportBundle:
             '/var/log/cortx/utils/utils_server/utils_server.log',
         'utils_setup': '/var/log/cortx/utils/utils_setup.log',
         'kafka_server': '/opt/kafka/config/server.properties',
-        'kafka_zookeeper': '/opt/kafka/config/zookeeper.properties'
+        'kafka_zookeeper': '/opt/kafka/config/zookeeper.properties',
+        'iem': '/var/log/cortx/utils/iem/iem.log'
     }
 
     @staticmethod

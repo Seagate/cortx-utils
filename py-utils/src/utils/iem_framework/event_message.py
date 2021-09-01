@@ -23,6 +23,7 @@ from cortx.template import Singleton
 from cortx.utils.conf_store import Conf
 from cortx.utils.iem_framework.error import EventMessageError
 from cortx.utils.message_bus import MessageProducer, MessageConsumer
+from cortx.utils.log import Log
 
 
 class EventMessage(metaclass=Singleton):
@@ -65,6 +66,16 @@ class EventMessage(metaclass=Singleton):
         cls._component = component
         cls._source = source
 
+        Conf.load('config_file', 'json:///etc/cortx/cortx.conf',
+            skip_reload=True)
+        # if Log.logger is already initialized by some parent process
+        # the same file will be used to log all the messagebus related
+        # logs, else standard iem.log will be used.
+        if not Log.logger:
+            log_level = Conf.get('config_file', 'utils>log_level', 'INFO')
+            Log.init('iem', '/var/log/cortx/utils/iem', level=log_level, \
+                backup_count=5, file_size_in_mb=5)
+
         try:
             Conf.load('cluster', cls._conf_file, skip_reload=True)
             ids = Conf.get('cluster', 'server_node')
@@ -73,19 +84,24 @@ class EventMessage(metaclass=Singleton):
             cls._node_id = ids['node_id']
             cls._cluster_id = ids['cluster_id']
         except Exception as e:
+            Log.error("Invalid config in %s." % cls._conf_file)
             raise EventMessageError(errno.EINVAL, "Invalid config in %s. %s", \
                 cls._conf_file, e)
 
         if cls._component is None:
+            Log.error("Invalid component type: %s" % cls._component )
             raise EventMessageError(errno.EINVAL, "Invalid component type: %s", \
                 cls._component)
 
         if cls._source not in cls._SOURCE.keys():
+            Log.error("Invalid source type: %s" % cls._source)
             raise EventMessageError(errno.EINVAL, "Invalid source type: %s", \
                 cls._source)
 
         cls._producer = MessageProducer(producer_id='event_producer', \
             message_type='IEM', method='sync')
+        Log.info("IEM Producer initialized for component %s and source %s" % \
+             (cls._component, cls._source))
 
     @classmethod
     def send(cls, module: str, event_id: str, severity: str, message_blob: str,\
@@ -119,6 +135,7 @@ class EventMessage(metaclass=Singleton):
         sender_host = socket.gethostname()
 
         if cls._producer is None:
+            Log.error("IEM Producer not initialized.")
             raise EventMessageError(errors.ERR_SERVICE_NOT_INITIALIZED, \
                 "Producer is not initialised")
 
@@ -133,15 +150,19 @@ class EventMessage(metaclass=Singleton):
         host = problem_host if problem_host is not None else sender_host
 
         event_time = event_time if event_time is not None else time.time()
+        Log.debug("site_id: %s, rack_id: %s, node_id: %s, cluster_id: %s,\
+             host: %s" % (site_id, rack_id, node_id, cluster_id, host))
 
         # Validate attributes before sending
         for attribute in [module, event_id, message_blob, site_id, rack_id, \
             node_id, cluster_id]:
             if attribute is None:
+                Log.error("Invalid IEM attributes %s.", attribute)
                 raise EventMessageError(errno.EINVAL, "Invalid IEM attributes \
                     %s", attribute)
 
         if severity not in cls._SEVERITY_LEVELS:
+            Log.error("Invalid severity level: %s." % severity)
             raise EventMessageError(errno.EINVAL, "Invalid severity level: %s" \
                 , severity)
 
@@ -175,6 +196,7 @@ class EventMessage(metaclass=Singleton):
         })
 
         cls._producer.send([alert])
+        Log.debug("alert sent: %s" % alert)
 
     @classmethod
     def subscribe(cls, component: str, **filters):
@@ -185,26 +207,32 @@ class EventMessage(metaclass=Singleton):
         component       Component that generates the IEM. For e.g. 'S3', 'SSPL'
         """
         if component is None:
+            Log.error("Invalid component type: %s" % component)
             raise EventMessageError(errno.EINVAL, "Invalid component type: %s", \
                component)
 
         cls._consumer = MessageConsumer(consumer_id='event_consumer', \
             consumer_group=component, message_types=['IEM'], \
             auto_ack=True, offset='earliest')
+        Log.info("IEM Consumer initialized for component: %s" % component)
 
 
     @classmethod
     def receive(cls):
         """ Receive IEM alert message """
         if cls._consumer is None:
+            Log.error("IEM Consumer is not subscribed")
             raise EventMessageError(errors.ERR_SERVICE_NOT_INITIALIZED, \
                 "Consumer is not subscribed")
 
         alert = cls._consumer.receive()
+        Log.debug("Recieved alert: %s" % alert)
+
         if alert is not None:
             try:
                 return json.loads(alert.decode('utf-8'))
             except Exception as e:
+                Log.error("unable to parse alert json")
                 raise EventMessageError(errno.EPERM, "Unable to load the json. \
                     %s", e)
         return alert

@@ -248,14 +248,20 @@ class Utils:
         #set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map(config_template_index)
         Utils._configure_rsyslog()
-        # temporary fix for a common message bus log file
+        # temporary fix for a common message bus and iem log file
         # The issue happend when some user other than root:root is trying
         # to write logs in these log dir/files. This needs to be removed soon!
+        #message_bus
         os.makedirs('/var/log/cortx/utils/message_bus', exist_ok=True)
         os.chmod('/var/log/cortx/utils/message_bus', 0o0777)
         Path('/var/log/cortx/utils/message_bus/message_bus.log').touch( \
             exist_ok=True)
         os.chmod('/var/log/cortx/utils/message_bus/message_bus.log', 0o0666)
+        #iem
+        os.makedirs('/var/log/cortx/utils/iem', exist_ok=True)
+        os.chmod('/var/log/cortx/utils/iem', 0o0777)
+        Path('/var/log/cortx/utils/iem/iem.log').touch(exist_ok=True)
+        os.chmod('/var/log/cortx/utils/iem/iem.log', 0o0666)
         return 0
 
     @staticmethod
