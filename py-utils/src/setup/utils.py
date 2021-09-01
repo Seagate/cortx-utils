@@ -230,7 +230,7 @@ class Utils:
         # Configure log_dir for utils
         cortx_config_index = 'cortx_config'
         log_dir = Conf.get(config_template_index, \
-            'cortx>software>common>log_dir')
+            'cortx>software>storage>log')
         if log_dir is not None:
             Conf.load(cortx_config_index, 'json:///etc/cortx/cortx.conf')
             Conf.set(cortx_config_index, 'log_dir', log_dir)
