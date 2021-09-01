@@ -18,6 +18,7 @@
 
 import unittest
 from consul import Consul
+from cortx.utils.conf_store import Conf
 from cortx.utils.validator.v_service import ServiceV
 
 
@@ -26,19 +27,19 @@ class TestConsul(unittest.TestCase):
         self.consul = Consul()
 
     def test_get(self):
-        self.consul.kv.put("test_key", "test_value")
-        result = self.consul.kv.get("test_key")
-        self.assertEqual("test_value", result[1]["Value"].decode())
-        self.consul.kv.delete("test_key")
+        self.consul.kv.put(f"test/{Conf.machine_id}", "spam")
+        result = self.consul.kv.get(f"test/{Conf.machine_id}")
+        self.assertEqual("spam", result[1]["Value"].decode())
+        self.consul.kv.delete(f"test/{Conf.machine_id}")
 
     def test_put(self):
-        result = self.consul.kv.put("test_key", "test_value")
+        result = self.consul.kv.put(f"test/{Conf.machine_id}", "spam")
         self.assertIs(result, True)
-        self.consul.kv.delete("test_key")
+        self.consul.kv.delete(f"test/{Conf.machine_id}")
 
     def test_delete(self):
-        self.consul.kv.put("test_key", "test_value")
-        result = self.consul.kv.delete("test_key")
+        self.consul.kv.put(f"test/{Conf.machine_id}", "spam")
+        result = self.consul.kv.delete(f"test/{Conf.machine_id}")
         self.assertIs(result, True)
 
     def test_service_running(self):
