@@ -111,9 +111,11 @@ class Openldap:
             if ((Conf.get(self.prov, 'CONFIG>OPENLDAP_BASE_DN') == key) and (not bool(re.match("^dc=[a-zA-Z0-9]+(,dc=[a-zA-Z0-9]+)+[a-zA-Z0-9]$", value)))):
                 Log.debug("Validation failed for %s in %s phase" % (key ,phase))
                 raise Exception("Validation failed for %s in %s phase" % (key ,phase))
-            elif ((Conf.get(self.prov, 'CONFIG>OPENLDAP_BIND_BASE_DN') == key) and (not bool(re.match("^cn=[a-zA-Z0-9]+(,dc=[a-zA-Z0-9]+)+[a-zA-Z0-9]$", value)))):
-                Log.debug("Validation failed for %s in %s phase" % (key ,phase))
-                raise Exception("Validation failed for %s in %s phase" % (key ,phase))
+            elif ((Conf.get(self.prov, 'CONFIG>OPENLDAP_BIND_BASE_DN') == key)):
+                expected_bind_base_dn = value.split('dc=')[0] + Conf.get(self.index,f'cortx>software>openldap>base_dn')
+                if((not bool(re.match("^cn=[a-zA-Z0-9]+(,dc=[a-zA-Z0-9]+)+[a-zA-Z0-9]$", value))) or (value != expected_bind_base_dn)):
+                    Log.debug("Validation failed for %s in %s phase" % (key ,phase))
+                    raise Exception("Validation failed for %s in %s phase" % (key ,phase))
             elif (key.endswith("hostname")):
                 try:
                     NetworkV().validate('connectivity',[value])
