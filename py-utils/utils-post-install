@@ -23,7 +23,6 @@ utils_path=$cortx_path/utils
 
 # Create $utils_path/conf/elasticsearch directory for storing all config files needed for elasticsearch_setup.
 /bin/mkdir -p $utils_path/conf/elasticsearch
-elasticsearch_conf_path=$utils_path/conf/elasticsearch
 
 # Copy the setup_cli.py as utils_setup
 /bin/mkdir -p $utils_path/bin/

@@ -97,12 +97,25 @@ class Elasticsearch:
                 msg = f"Validation failed for {phase} phase with error {e}."
                 Log.error(msg)
                 raise
+
         elif phase == "config":
             if os.path.exists(self.opendistro_security_plugin):
                 msg = ('Opendistro_security plugin path '
                        f'{self.opendistro_security_plugin} is not deleted.')
                 Log.error(msg)
                 raise Exception(msg)
+
+        elif phase == "init":
+            Log.info("No validation needed for init phase.")
+        elif phase == "prepare":
+            Log.info("No validation needed for prepare phase.")
+        elif phase == "cleanup":
+            Log.info("No validation needed for cleanup phase.")
+        elif phase == "pre_upgrade":
+            Log.info("No validation needed for pre_upgrade phase.")
+        elif phase == "post_upgrade":
+            Log.info("No validation needed for post_upgrade phase.")
+
         return 0
 
     def post_install(self):
@@ -189,7 +202,7 @@ class Elasticsearch:
         return 0
 
     def reset(self):
-        """ Performs Configuration reset. Raises exception on error """
+        """ Performs reset. Raises exception on error """
 
         # Check service status
         service_obj = Service('elasticsearch.service')
@@ -206,7 +219,7 @@ class Elasticsearch:
         return 0
 
     def cleanup(self, pre_factory=False):
-        """ Performs Configuration reset. Raises exception on error """
+        """ Performs cleanup. Raises exception on error """
 
         # Reset config.
         if os.path.exists(
@@ -227,23 +240,23 @@ class Elasticsearch:
         return 0
 
     def prepare(self):
-        """ Perform initialization. Raises exception on error """
+        """ Perform prepare, Raises exception on error """
         Log.info("No action needed for Prepare Miniprovisioner Interface.")
         return 0
 
     def init(self):
-        """ Perform initialization. Raises exception on error """
+        """ Perform init, Raises exception on error """
         Log.info("No action needed for Init Miniprovisioner Interface.")
         return 0
 
     def pre_upgrade(self):
-        """ Perform initialization. Raises exception on error """
-        Log.info("No action needed for Init Miniprovisioner Interface.")
+        """ Perform pre_upgrade. Raises exception on error """
+        Log.info("No action needed for Pre_upgrade Miniprovisioner Interface.")
         return 0
 
     def post_upgrade(self):
-        """ Perform initialization. Raises exception on error """
-        Log.info("No action needed for Init Miniprovisioner Interface.")
+        """ Perform post_upgrade. Raises exception on error """
+        Log.info("No action needed for Post_upgrade Miniprovisioner Interface.")
         return 0
 
     def test(self):
@@ -255,7 +268,6 @@ class Elasticsearch:
                 self.get_test_module()))
         Log.info("Test done.")
         return 0
-
 
     def get_test_module(self):
         try:
