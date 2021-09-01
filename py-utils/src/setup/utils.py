@@ -226,6 +226,16 @@ class Utils:
         Conf.load('cluster', 'json:///etc/cortx/cluster.conf')
         Conf.load(config_template_index, config_template)
 
+        # Configure log_dir for utils
+        cortx_config_index = 'cortx_config'
+        log_dir = Conf.get(config_template_index, \
+            'cortx>common>storage>log')
+        if log_dir is not None:
+            Conf.load(cortx_config_index, 'json:///etc/cortx/cortx.conf', \
+                skip_reload=True)
+            Conf.set(cortx_config_index, 'log_dir', log_dir)
+            Conf.save(cortx_config_index)
+
         try:
             server_list, port_list, config = \
                 MessageBrokerFactory.get_server_list(config_template_index)
