@@ -198,13 +198,15 @@ class Utils:
         Utils._set_to_conf_file('support>local_path', default_sb_path)
         os.makedirs(default_sb_path, exist_ok=True)
 
+        post_install_template_index = 'post_install_index'
+        Conf.load(post_install_template_index, post_install_template)
+
         machine_id = Conf.machine_id
         key_list = [f'server_node>{machine_id}>hostname', f'server_node>{machine_id}>name']
-        ConfKeysV().validate('exists', post_install_template, key_list)
+        ConfKeysV().validate('exists', post_install_template_index, key_list)
 
-        post_install_template_index = "post_install_index"
-        Conf.load(post_install_template_index, post_install_template)
         #set cluster nodename:hostname mapping to cluster.conf (needed for Support Bundle)
+        Conf.load('cluster', 'json:///etc/cortx/cluster.conf', skip_reload=True)
         Utils._copy_cluster_map(post_install_template_index)
 
         return 0
