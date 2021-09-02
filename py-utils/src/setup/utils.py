@@ -260,12 +260,12 @@ class Utils:
         # temporary fix for a common message bus log file
         # The issue happend when some user other than root:root is trying
         # to write logs in these log dir/files. This needs to be removed soon!
-        mb_log_path = Conf.get(cortx_config_index, 'log_dir', '/var/log')
-        os.makedirs(f'{mb_log_path}/cortx/utils/message_bus', exist_ok=True)
-        os.chmod(f'{mb_log_path}/cortx/utils/message_bus', 0o777)
-        Path(f'{mb_log_path}/cortx/utils/message_bus/message_bus.log').touch( \
-            exist_ok=True)
-        os.chmod(f'{mb_log_path}/cortx/utils/message_bus/message_bus.log', 0o666)
+        log_dir = Conf.get(cortx_config_index, 'log_dir', '/var/log')
+        mb_log_path = os.path.join(log_dir, 'cortx/utils/message_bus')
+        os.makedirs(mb_log_path, exist_ok=True)
+        os.chmod(mb_log_path, 0o777)
+        Path(f'{mb_log_path}/message_bus.log').touch(exist_ok=True)
+        os.chmod(f'{mb_log_path}/message_bus.log', 0o666)
         return 0
 
     @staticmethod

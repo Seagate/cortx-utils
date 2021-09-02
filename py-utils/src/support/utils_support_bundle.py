@@ -40,15 +40,11 @@ class UtilsSupportBundle:
     _default_path = '/tmp/cortx/support_bundle/'
     _tar_name = 'py-utils'
     _tmp_src = '/tmp/cortx/py-utils/'
-    cortx_config_index = 'cortx_config'
-    Conf.load(cortx_config_index, 'json:///etc/cortx/cortx.conf', \
-        skip_reload=True)
-    log_dir = Conf.get(cortx_config_index, 'log_dir')
-    utils_log_path = os.path.join(log_dir, 'cortx/utils')
     _files_to_bundle = {
-        'message_bus': f'{utils_log_path}/message_bus/message_bus.log',
-        'utils_server': f'{utils_log_path}/utils_server/utils_server.log',
-        'utils_setup': f'{utils_log_path}/utils_setup.log',
+        'message_bus': '/var/log/cortx/utils/message_bus/message_bus.log',
+        'utils_server':
+            '/var/log/cortx/utils/utils_server/utils_server.log',
+        'utils_setup': '/var/log/cortx/utils/utils_setup.log',
         'kafka_server': '/opt/kafka/config/server.properties',
         'kafka_zookeeper': '/opt/kafka/config/zookeeper.properties'
     }
