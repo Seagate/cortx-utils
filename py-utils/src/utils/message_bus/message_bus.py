@@ -29,7 +29,7 @@ from cortx.template import Singleton
 class MessageBus(metaclass=Singleton):
     """ Message Bus Framework over various types of Message Brokers """
 
-    conf_file = 'json:///etc/cortx/message_bus.conf'
+    conf_file = 'json:///etc/cortx/utils/message_bus.conf'
 
     def __init__(self):
         """ Initialize a MessageBus and load its configurations """

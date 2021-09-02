@@ -18,8 +18,8 @@
 install_path=<INSTALL_PATH>
 cortx_path=$install_path/cortx/
 utils_path=$cortx_path/utils
-# Create /etc/cortx. This will be used for storing message_bus.conf file
-/bin/mkdir -p /etc/cortx
+# Create /etc/cortx/utils. This will be used for storing message_bus.conf file
+/bin/mkdir -p /etc/cortx/utils
 
 # Copy the setup_cli.py as utils_setup
 /bin/mkdir -p $utils_path/bin/

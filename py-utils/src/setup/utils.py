@@ -59,7 +59,6 @@ class Utils:
                 except OSError as e:
                     raise SetupError(e.errno, "Error deleting file %s, \
                         %s", each_file, e)
-        return 0
 
     @staticmethod
     def _get_utils_path() -> str:
@@ -80,9 +79,9 @@ class Utils:
         config: dict):
         """ Create the config file required for message bus """
 
-        with open(r'/etc/cortx/message_bus.conf.sample', 'w+') as file:
+        with open(r'/etc/cortx/utils/message_bus.conf.sample', 'w+') as file:
             json.dump({}, file, indent=2)
-        Conf.load('index', 'json:///etc/cortx/message_bus.conf.sample')
+        Conf.load('index', 'json:///etc/cortx/utils/message_bus.conf.sample')
         Conf.set('index', 'message_broker>type', 'kafka')
         for i in range(len(message_server_list)):
             Conf.set('index', f'message_broker>cluster[{i}]>server', \
@@ -92,11 +91,11 @@ class Utils:
         Conf.save('index')
         # copy this conf file as message_bus.conf
         try:
-            os.rename('/etc/cortx/message_bus.conf.sample', \
-                      '/etc/cortx/message_bus.conf')
+            os.rename('/etc/cortx/utils/message_bus.conf.sample', \
+                      '/etc/cortx/utils/message_bus.conf')
         except OSError as e:
             raise SetupError(e.errno, "Failed to create \
-                /etc/cortx/message_bus.conf %s", e)
+                /etc/cortx/utils/message_bus.conf %s", e)
 
     @staticmethod
     def _get_server_info(conf_url_index: str, machine_id: str) -> dict:
@@ -167,25 +166,25 @@ class Utils:
         """ Performs post install operations """
 
         # check whether zookeeper and kafka are running
-        ServiceV().validate('isrunning', ['kafka-zookeeper.service', \
-            'kafka.service'])
+        ## ServiceV().validate('isrunning', ['kafka-zookeeper.service', \
+        ##    'kafka.service'])
 
         # Check required python packages
-        utils_path = Utils._get_utils_path()
-        with open(f"{utils_path}/conf/python_requirements.txt") as file:
-            req_pack = []
-            for package in file.readlines():
-                pack = package.strip().split('==')
-                req_pack.append(f"{pack[0]} ({pack[1]})")
-        try:
-            with open(f"{utils_path}/conf/python_requirements.ext.txt") as extfile :
-                for package in extfile.readlines():
-                    pack = package.strip().split('==')
-                    req_pack.append(f"{pack[0]} ({pack[1]})")
-        except Exception:
-            Log.info("Not found: "+f"{utils_path}/conf/python_requirements.ext.txt")
+        ## utils_path = Utils._get_utils_path()
+        ## with open(f"{utils_path}/conf/python_requirements.txt") as file:
+        ##     req_pack = []
+        ##    for package in file.readlines():
+        ##         pack = package.strip().split('==')
+        ##         req_pack.append(f"{pack[0]} ({pack[1]})")
+        ## try:
+        ##     with open(f"{utils_path}/conf/python_requirements.ext.txt") as extfile :
+        ##         for package in extfile.readlines():
+        ##             pack = package.strip().split('==')
+        ##             req_pack.append(f"{pack[0]} ({pack[1]})")
+        ## except Exception:
+        ##     Log.info("Not found: "+f"{utils_path}/conf/python_requirements.ext.txt")
 
-        PkgV().validate(v_type='pip3s', args=req_pack)
+        ## PkgV().validate(v_type='pip3s', args=req_pack)
         return 0
 
     @staticmethod
@@ -201,19 +200,19 @@ class Utils:
             raise SetupError(e.rc, "Unable to create message_type. %s", e)
 
         # start MessageBus service and check status
-        start_cmd = SimpleProcess("systemctl start cortx_message_bus")
-        _, start_err, start_rc = start_cmd.run()
+        ## start_cmd = SimpleProcess("systemctl start cortx_message_bus")
+        ## _, start_err, start_rc = start_cmd.run()
 
-        if start_rc != 0:
-            raise SetupError(start_rc, "Unable to start MessageBus Service \
-                %s", start_err.decode('utf-8'))
+        ## if start_rc != 0:
+        ##     raise SetupError(start_rc, "Unable to start MessageBus Service \
+        ##         %s", start_err.decode('utf-8'))
 
-        status_cmd = SimpleProcess("systemctl status cortx_message_bus")
-        _, status_err, status_rc = status_cmd.run()
+        ## status_cmd = SimpleProcess("systemctl status cortx_message_bus")
+        ## _, status_err, status_rc = status_cmd.run()
 
-        if status_rc != 0:
-            raise SetupError(status_rc, "MessageBus Service is either failed \
-                inactive. %s", status_err.decode('utf-8'))
+        ## if status_rc != 0:
+        ##     raise SetupError(status_rc, "MessageBus Service is either failed \
+        ##         inactive. %s", status_err.decode('utf-8'))
         return 0
 
     @staticmethod
@@ -329,7 +328,7 @@ class Utils:
     @staticmethod
     def cleanup(pre_factory: bool):
         """Remove/Delete all the data that was created after post install."""
-        conf_file = '/etc/cortx/message_bus.conf'
+        conf_file = '/etc/cortx/utils/message_bus.conf'
         if os.path.exists(conf_file):
             # delete message_types
             try:
@@ -344,7 +343,7 @@ class Utils:
                 raise SetupError(errors.ERR_OP_FAILED, "Can not cleanup Message  \
                     Bus. %s", e)
 
-        config_files = ['/etc/cortx/message_bus.conf', \
+        config_files = ['/etc/cortx/utils/message_bus.conf', \
             '/etc/cortx/cluster.conf']
         Utils._delete_files(config_files)
 
