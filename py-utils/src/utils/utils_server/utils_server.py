@@ -41,7 +41,7 @@ if __name__ == '__main__':
     import os
     from cortx.utils.conf_store import Conf
 
-    Conf.load('config_file', 'json:///etc/cortx/cortx.conf', skip_reload=True)
+    Conf.load('config_file', 'yaml:///etc/cortx/cortx.conf', skip_reload=True)
     # Get the log path
     log_dir = Conf.get('config_file', 'log_dir')
     utils_log_path = os.path.join(log_dir, 'cortx/utils/utils_server')

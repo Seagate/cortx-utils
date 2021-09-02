@@ -33,7 +33,7 @@ class MessageBus(metaclass=Singleton):
 
     def __init__(self):
         """ Initialize a MessageBus and load its configurations """
-        Conf.load('config_file', 'json:///etc/cortx/cortx.conf',
+        Conf.load('config_file', 'yaml:///etc/cortx/cortx.conf',
             skip_reload=True)
         # Get the log path
         log_dir = Conf.get('config_file', 'log_dir')
