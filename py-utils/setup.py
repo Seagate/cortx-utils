@@ -110,8 +110,11 @@ setup(name='cortx-py-utils',
                 'cortx.utils.utils_server', 'cortx.utils.iem_framework',
                 'cortx.utils.discovery', 'cortx.utils.common',
                 'cortx.utils.shared_storage', 'cortx.utils.support_framework',
+                'cortx.utils.setup.consul', 'cortx.utils.setup.elasticsearch',
                 'cortx.utils.manifest', 'cortx.utils.setup.openldap',
-                'cortx.utils.setup.consul', 'cortx.utils.setup.elasticsearch'
+                'cortx.utils.solution', 'cortx.utils.solution.lr2',
+                'cortx.utils.solution.lr2.server', 'cortx.utils.solution.lr2.storage',
+                'cortx.utils.solution.lr2.service'
                 ],
       package_data={
         'cortx': ['py.typed'],

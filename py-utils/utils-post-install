@@ -65,6 +65,10 @@ utils_path=$cortx_path/utils
 # Replace cortx path to support_bundle.yaml
 sed -i -e "s|<CORTX_PATH>|${cortx_path}|g" $utils_path/conf/support_bundle.yaml
 
+# Adding solution directory to /opt/seagate/cortx/utils/extension to generate Manifest for Software alone.
+/bin/mkdir -p $utils_path/extension/
+/bin/ln -sf /usr/lib/python3.6/site-packages/cortx/utils/solution $utils_path/extension/
+
 # Copy rsyslog config to /etc/rsyslog.d
 [ ! -d "/etc/rsyslog.d" ] && mkdir "/etc/rsyslog.d"
 cp -n "$utils_path/conf/0-support_bundle.conf" "/etc/rsyslog.d"
