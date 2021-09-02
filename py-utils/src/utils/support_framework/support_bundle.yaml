@@ -21,7 +21,7 @@ COMPONENTS:
   csm:
     - '<CORTX_PATH>/cli/conf/setup.yaml'
   sspl:
-    - '<CORTX_PATH>/sspl/conf/setup.yaml'
+    - '<CORTX_PATH>/sspl/conf/support.yaml'
   s3server:
     - '<CORTX_PATH>/s3/conf/support.yaml'
   motr:
