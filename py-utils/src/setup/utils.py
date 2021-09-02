@@ -229,11 +229,11 @@ class Utils:
 
         # Configure log_dir for utils
         cortx_config_index = 'cortx_config'
+        Conf.load(cortx_config_index, 'json:///etc/cortx/cortx.conf', \
+            skip_reload=True)
         log_dir = Conf.get(config_template_index, \
             'cortx>common>storage>log')
         if log_dir is not None:
-            Conf.load(cortx_config_index, 'json:///etc/cortx/cortx.conf', \
-                skip_reload=True)
             Conf.set(cortx_config_index, 'log_dir', log_dir)
             Conf.save(cortx_config_index)
 
@@ -261,11 +261,12 @@ class Utils:
         # temporary fix for a common message bus log file
         # The issue happend when some user other than root:root is trying
         # to write logs in these log dir/files. This needs to be removed soon!
-        os.makedirs('/var/log/cortx/utils/message_bus', exist_ok=True)
-        os.chmod('/var/log/cortx/utils/message_bus', 0o0777)
-        Path('/var/log/cortx/utils/message_bus/message_bus.log').touch( \
+        mb_log_path = Conf.get(cortx_config_index, 'log_dir', '/var/log')
+        os.makedirs(f'{mb_log_path}/cortx/utils/message_bus', exist_ok=True)
+        os.chmod(f'{mb_log_path}/cortx/utils/message_bus', 0o0777)
+        Path(f'{mb_log_path}/cortx/utils/message_bus/message_bus.log').touch( \
             exist_ok=True)
-        os.chmod('/var/log/cortx/utils/message_bus/message_bus.log', 0o0666)
+        os.chmod(f'{mb_log_path}/cortx/utils/message_bus/message_bus.log', 0o0666)
         return 0
 
     @staticmethod
@@ -311,7 +312,11 @@ class Utils:
             raise SetupError(errors.ERR_OP_FAILED, "Internal error, can not \
                 reset Message Bus. %s", e)
         # Clear the logs
-        utils_log_path = '/var/log/cortx/utils/'
+        cortx_config_index = 'cortx_config'
+        Conf.load(cortx_config_index, 'json:///etc/cortx/cortx.conf', \
+            skip_reload=True)
+        log_dir = Conf.get(cortx_config_index, 'log_dir')
+        utils_log_path = os.path.join(log_dir, 'cortx/utils')
         if os.path.exists(utils_log_path):
             cmd = "find %s -type f -name '*.log' -exec truncate -s 0 {} +" % utils_log_path
             cmd_proc = SimpleProcess(cmd)
@@ -345,7 +350,12 @@ class Utils:
 
         if pre_factory:
             # deleting all log files as part of pre-factory cleanup
-            cortx_utils_log_regex = '/var/log/cortx/utils/**/*.log'
+            cortx_config_index = 'cortx_config'
+            Conf.load(cortx_config_index, 'json:///etc/cortx/cortx.conf', \
+                skip_reload=True)
+            log_dir = Conf.get(cortx_config_index, 'log_dir')
+            utils_log_path = os.path.join(log_dir, 'cortx/utils')
+            cortx_utils_log_regex = f'{utils_log_path}/**/*.log'
             log_files = glob.glob(cortx_utils_log_regex, recursive=True)
             Utils._delete_files(log_files)
 
