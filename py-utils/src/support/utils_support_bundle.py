@@ -107,9 +107,9 @@ class UtilsSupportBundle:
                         os.path.join(UtilsSupportBundle._tmp_src, key))
         # Copy all required log files from /var/log/kafka directory
         if os.path.exists('/var/log/kafka/'):
-            ignore =shutil.ignore_patterns('*.log.*-*-*-*')
+            ignore = shutil.ignore_patterns('*.log.*-*-*-*')
             shutil.copytree('/var/log/kafka/', os.path.join(
-                UtilsSupportBundle._tmp_src, 'kafka_log') , ignore=ignore)
+                UtilsSupportBundle._tmp_src, 'kafka_log'), ignore=ignore)
         # Collect systemctl status of kafka and kafka-zookeeper
         _cli = {'kafka_systemctl_status': "systemctl status kafka",
                 'zookeeper_systemctl_status':
