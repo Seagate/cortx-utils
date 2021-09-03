@@ -285,6 +285,8 @@ class Utils:
     @staticmethod
     def reset():
         """Remove/Delete all the data/logs that was created by user/testing."""
+        import time
+        _purge_retry = 20
         try:
             from cortx.utils.message_bus import MessageBusAdmin
             from cortx.utils.message_bus.message_bus_client import MessageProducer
@@ -294,7 +296,19 @@ class Utils:
                 for message_type in message_types_list:
                     producer = MessageProducer(producer_id=message_type, \
                         message_type=message_type, method='sync')
-                    producer.delete()
+                    for retry_count in range(1, (_purge_retry + 2)):
+                        if retry_count > _purge_retry:
+                            Log.error(f"MessageBusError: {errors.ERR_OP_FAILED} " \
+                                f" Unable to delete messages for message type" \
+                                f" {message_type} after {retry_count} retries")
+                            raise MessageBusError(errors.ERR_OP_FAILED,\
+                                "Unable to delete messages for message type" + \
+                                "%s after %d retries", message_type, \
+                                retry_count)
+                        rc = producer.delete()
+                        if rc == 0:
+                            break
+                        time.sleep(2*retry_count)
         except MessageBusError as e:
             raise SetupError(e.rc, "Can not reset Message Bus. %s", e)
         except Exception as e:
