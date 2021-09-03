@@ -402,7 +402,7 @@ class KafkaMessageBroker(MessageBroker):
                 Log.error(f"MessageBusError: {errors.ERR_OP_FAILED} Unable" \
                     f" to delete messages for message type {message_type}" \
                     f" using admin {admin} after {retry_count} retries")
-                raise MessageBusError(errors.ERR_OP_FAILED,\
+                return MessageBusError(errors.ERR_OP_FAILED,\
                     "Unable to delete messages for message type %s using " +\
                     "admin %s after %d retries", message_type, admin,\
                     retry_count)
@@ -424,6 +424,7 @@ class KafkaMessageBroker(MessageBroker):
             else:
                 break
         Log.debug("Successfully Deleted all the messages from Kafka cluster.")
+        return 0
 
     def get_unread_count(self, message_type: str, consumer_group: str):
         """
