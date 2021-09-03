@@ -124,7 +124,7 @@ setup(name='cortx-py-utils',
             'kafka_setup = cortx.utils.setup.kafka.kafka_setup:main',
             'utils_support_bundle = cortx.support.utils_support_bundle:main',
             'openldap_setup = cortx.utils.setup.openldap.openldap_setup:main',
-            'consul_setup = cortx.utils.setup.consul.consul_setup:main'
+            'consul_setup = cortx.utils.setup.consul.consul_setup:main',
             'elasticsearch_setup = cortx.utils.setup.elasticsearch.elasticsearch_setup:main'
         ]
       },
