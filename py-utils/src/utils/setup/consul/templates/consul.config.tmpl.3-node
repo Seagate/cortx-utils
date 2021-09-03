@@ -1,0 +1,31 @@
+cortx:
+ software:
+   consul:
+     config_path: TMPL_CONSUL_CONF_PATH
+     data_path: TMPL_CONSUL_DATA_PATH
+server_node:
+  TMPL_MACHINE_ID_1:
+    network:
+      data:
+        private_fqdn: TMPL_DATA_PRIVATE_FQDN_1
+        private_interfaces:
+        - TMPL_DATA_PRIVATE_INTERFACE_1
+    roles:
+      - TMPL_CONSUL_SERVER
+  TMPL_MACHINE_ID_2:
+    network:
+      data:
+        private_fqdn: TMPL_DATA_PRIVATE_FQDN_2
+        private_interfaces:
+        - TMPL_DATA_PRIVATE_INTERFACE_2
+    roles:
+      - TMPL_CONSUL_SERVER
+  TMPL_MACHINE_ID_3:
+    network:
+      data:
+        private_fqdn: TMPL_DATA_PRIVATE_FQDN_3
+        private_interfaces:
+        - TMPL_DATA_PRIVATE_INTERFACE_2
+    roles:
+      - TMPL_CONSUL_SERVER
+
