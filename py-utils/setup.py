@@ -54,6 +54,8 @@ tmpl_files = glob.glob('src/setup/templates/*.*')
 openldap_tmpl_files = glob.glob('src/utils/setup/openldap/templates/*.*')
 # Get the list of ldif files
 openldap_ldif_files = glob.glob('src/utils/setup/openldap/*.ldif')
+# Get list of consul template file
+consul_tmpl_files = glob.glob('src/utils/setup/consul/templates/*.*')
 
 # Get the list of all elasticsearch template files
 elasticsearch_tmpl_files = glob.glob(
@@ -108,7 +110,7 @@ setup(name='cortx-py-utils',
                 'cortx.utils.utils_server', 'cortx.utils.iem_framework',
                 'cortx.utils.discovery', 'cortx.utils.common',
                 'cortx.utils.manifest', 'cortx.utils.setup.openldap',
-                'cortx.utils.setup.elasticsearch'
+                'cortx.utils.setup.consul', 'cortx.utils.setup.elasticsearch'
                 ],
       package_data={
         'cortx': ['py.typed'],
@@ -121,8 +123,8 @@ setup(name='cortx-py-utils',
             'iem = cortx.utils.iem_framework.iem_cli:main',
             'kafka_setup = cortx.utils.setup.kafka.kafka_setup:main',
             'utils_support_bundle = cortx.support.utils_support_bundle:main',
-
             'openldap_setup = cortx.utils.setup.openldap.openldap_setup:main',
+            'consul_setup = cortx.utils.setup.consul.consul_setup:main',
             'elasticsearch_setup = cortx.utils.setup.elasticsearch.elasticsearch_setup:main'
         ]
       },
@@ -137,11 +139,13 @@ setup(name='cortx-py-utils',
                                  'src/utils/support/0-support_bundle.conf']),
                      ('%s/conf' % utils_path, tmpl_files),
                      ('%s/conf' % utils_path, openldap_tmpl_files),
+                     (f'{utils_path}/conf', consul_tmpl_files),
                      ('%s/conf' % utils_path, openldap_ldif_files),
                      ('%s/conf' % utils_path, [
                      'src/utils/setup/openldap/openldapsetup_prereqs.json',
                      'src/utils/setup/openldap/openldap_prov_config.yaml',
                      'src/utils/setup/openldap/config/openldap_config.yaml.sample',
+                     'src/utils/setup/consul/consul_setup.yaml',
                      'src/utils/setup/openldap/config/openldap_config_unsafe_attributes.yaml']),
                      (f'{utils_path}/conf/elasticsearch', elasticsearch_tmpl_files),
                      (f'{utils_path}/conf/elasticsearch', [
