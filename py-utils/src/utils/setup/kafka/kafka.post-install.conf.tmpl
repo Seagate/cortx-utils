@@ -1,9 +1,6 @@
-{
-  "cortx": {
-    "sw": {
-      "kafka": {
-        "num_servers": "TMPL_NUM_SERVER"
-      }
-    }
-  }
-}
+cortx:
+  software:
+    kafka:
+      servers:
+      # Value should be in format <FQDN>:<port>. Port is optional
+      - TMPL_KAFKA_SERVER1_FQDN:TMPL_KAFKA_SERVER1_PORT

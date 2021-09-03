@@ -16,13 +16,12 @@
 
 import sys
 import errno
-import argparse
 import inspect
 import traceback
+import argparse
 
-from cortx.utils.conf_store import Conf
-from cortx.utils.setup.kafka import Kafka
-from cortx.utils.setup.kafka import KafkaSetupError
+from cortx.utils.setup.elasticsearch import Elasticsearch
+from cortx.utils.setup.elasticsearch import ElasticsearchSetupError
 
 
 class Cmd:
@@ -48,7 +47,7 @@ class Cmd:
         sys.stderr.write(
             f"usage: {prog} [-h] <cmd> --config <url> <args>...\n"
             f"where:\n"
-            f"cmd   post_install, config, init, reset, test\n"
+            f"cmd   post_install, prepare, config, init, reset, test, cleanup, pre_upgrade, post_upgrade\n"
             f"url   Config URL\n")
 
     @staticmethod
@@ -75,7 +74,7 @@ class Cmd:
     def add_args(parser: str, cls: str, name: str):
         """ Add Command args for parsing """
 
-        parser1 = parser.add_parser(cls.name, help='setup %s' % name)
+        parser1 = parser.add_parser(cls.name, help=f'setup {name}')
         parser1.add_argument('--config', help='Conf Store URL', type=str)
         cls._add_extended_args(parser1)
         parser1.add_argument('args', nargs='*', default=[], help='args')
@@ -84,117 +83,153 @@ class Cmd:
 
 class PostInstallCmd(Cmd):
     """ PostInstall Setup Cmd """
+
     name = "post_install"
 
     def __init__(self, args: dict):
         super().__init__(args)
-        self.kafka = Kafka()
+        self.elasticsearch = Elasticsearch(args.config)
 
-    def process(self, *args, **kwargs):
-        self.kafka.validate("post-install")
-
-        # TODO: Add actions here
-        rc = self.kafka.post_install()
+    def process(self):
+        self.elasticsearch.validate(self.name)
+        rc = self.elasticsearch.post_install()
         return rc
 
 
 class PrepareCmd(Cmd):
     """ Prepare Setup Cmd """
+
     name = "prepare"
 
     def __init__(self, args: dict):
         super().__init__(args)
-        self.kafka = Kafka()
+        self.elasticsearch = Elasticsearch(args.config)
 
-    def process(self, *args, **kwargs):
-        # TODO: Add actions here
-        rc = self.kafka.prepare()
+    def process(self):
+        rc = self.elasticsearch.prepare()
         return rc
 
 
 class ConfigCmd(Cmd):
     """ Setup Config Cmd """
+
     name = "config"
 
     def __init__(self, args):
         super().__init__(args)
-        self.kafka = Kafka()
+        self.elasticsearch = Elasticsearch(args.config)
 
-    def process(self, *args, **kwargs):
-        kafka_servers = args[0]
-        rc = self.kafka.config(kafka_servers)
+    def process(self):
+        self.elasticsearch.validate(self.name)
+        rc = self.elasticsearch.config()
         return rc
 
 
 class InitCmd(Cmd):
     """ Init Setup Cmd """
+
     name = "init"
 
     def __init__(self, args):
         super().__init__(args)
-        self.kafka = Kafka()
+        self.elasticsearch = Elasticsearch(args.config)
 
-    def process(self, *args, **kwargs):
-        kafka_servers = args[0]
-        rc = self.kafka.init(kafka_servers)
+    def process(self):
+        rc = self.elasticsearch.init()
         return rc
 
 
 class TestCmd(Cmd):
     """ Test Setup Cmd """
-    name = "test"
 
-    @staticmethod
-    def _add_extended_args(parser):
-        parser.add_argument('--plan', help='Test Plan', type=str)
+    name = "test"
 
     def __init__(self, args):
         super().__init__(args)
-        self.kafka = Kafka()
-        self.test_plan = args.plan
+        self.elasticsearch = Elasticsearch(args.config)
 
-    def process(self, *args, **kwargs):
-        # TODO: Add actions here
-        rc = self.kafka.test(self.test_plan)
+    def process(self):
+        rc = self.elasticsearch.test()
         return rc
 
 
 class ResetCmd(Cmd):
     """ Reset Setup Cmd """
+
     name = "reset"
 
     def __init__(self, args):
         super().__init__(args)
-        self.kafka = Kafka()
+        self.elasticsearch = Elasticsearch(args.config)
 
-    def process(self, *args, **kwargs):
-        # TODO: Add actions here
-        rc = self.kafka.reset()
+    def process(self):
+        rc = self.elasticsearch.reset()
         return rc
 
+
+class CleanupCmd(Cmd):
+    """ Reset Setup Cmd """
+
+    name = "cleanup"
+
+    @staticmethod
+    def _add_extended_args(parser):
+        parser.add_argument('--pre-factory', action="store_true",
+                             help='Factory cleanup.')
+
+    def __init__(self, args):
+        super().__init__(args)
+        self.elasticsearch = Elasticsearch(args.config)
+        self.pre_factory = args.pre_factory
+
+    def process(self):
+        rc = self.elasticsearch.cleanup(self.pre_factory)
+        return rc
+
+
+class PreUpgradeCmd(Cmd):
+    """Pre Upgrade Setup Cmd."""
+
+    name = "pre_upgrade"
+
+    def __init__(self, args):
+        super().__init__(args)
+        self.elasticsearch = Elasticsearch(args.config)
+
+    def process(self):
+        rc = self.elasticsearch.pre_upgrade()
+        return rc
+
+class PostUpgradeCmd(Cmd):
+    """Post Upgrade Setup Cmd."""
+
+    name = "post_upgrade"
+
+    def __init__(self, args):
+        super().__init__(args)
+        self.elasticsearch = Elasticsearch(args.config)
+
+    def process(self):
+        rc = self.elasticsearch.post_upgrade()
+        return rc
+
+
 def main(argv: dict):
-
-    #fetch all data required for processes
-    conf_url = argv[-1]
-    kafka_config = 'kafka_config'
-    Conf.load(kafka_config, conf_url)
-    kafka_servers = Conf.get(kafka_config, 'cortx>software>kafka>servers')
-
     try:
-        desc = "CORTX Kafka Setup command"
+        desc = "CORTX Elasticsearch Setup command"
         command = Cmd.get_command(desc, argv[1:])
-        rc = command.process(kafka_servers)
+        rc = command.process()
         if rc != 0:
             raise ValueError(f"Failed to run {argv[1]}")
 
-    except KafkaSetupError as e:
-        sys.stderr.write("%s\n" % str(e))
+    except ElasticsearchSetupError as err:
+        sys.stderr.write(f"{str(err)}\n")
         Cmd.usage(argv[0])
-        return e.rc()
+        return err.rc()
 
-    except Exception as e:
-        sys.stderr.write("error: %s\n\n" % str(e))
-        sys.stderr.write("%s\n" % traceback.format_exc())
+    except Exception as err:
+        sys.stderr.write(f"Error: {(str(err))}\n\n")
+        sys.stderr.write(f"{traceback.format_exc()}\n")
         Cmd.usage(argv[0])
         return errno.EINVAL
 
