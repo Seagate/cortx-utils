@@ -5,7 +5,6 @@
     },
   "product_id": "LR2",
   "support": {
-    "support_bundle_path": "/var/log/cortx/support_bundle/",
     "local_path": "/var/log/cortx/support_bundle/"
   },
   "discovery": {
