@@ -14,8 +14,8 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-## Replace <INSTALL_TYPE> with cortx installation path
-install_path=<INSTALL_TYPE>
+## Replace <INSTALL_PATH> with cortx installation path
+install_path=<INSTALL_PATH>
 cortx_path=$install_path/cortx/
 utils_path=$cortx_path/utils
 # Create /etc/cortx. This will be used for storing message_bus.conf file
