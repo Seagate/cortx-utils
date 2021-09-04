@@ -14,7 +14,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-## Replace <INSTALL_PATH> with cortx installation path
+## Replace <INSTALL_PATH> with cortx installation path. example: /opt/seagate
 install_path=<INSTALL_PATH>
 cortx_path=$install_path/cortx/
 utils_path=$cortx_path/utils
