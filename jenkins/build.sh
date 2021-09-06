@@ -62,6 +62,9 @@ INSTALL_PATH=$(jq .install_path cortx.conf.sample |  tr -d '"')
 # Put install_path in utils-post-install
 sed -i -e "s|<INSTALL_PATH>|${INSTALL_PATH}|g" utils-post-install
 
+# Put install_path in utils-post-uninstall
+sed -i -e "s|<INSTALL_PATH>|${INSTALL_PATH}|g" utils-post-uninstall
+
 echo "Creating cortx-py-utils RPM with version $VER, release $REL"
 
 # Create the utils-pre-install
