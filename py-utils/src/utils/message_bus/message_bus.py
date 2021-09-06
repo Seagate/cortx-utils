@@ -96,7 +96,7 @@ class MessageBus(metaclass=Singleton):
 
     def delete(self, client_id: str, message_type: str):
         """ Deletes all the messages from the configured message broker """
-        self._broker.delete(client_id, message_type)
+        return self._broker.delete(client_id, message_type)
 
     def get_unread_count(self, message_type: str, consumer_group: str):
         """
