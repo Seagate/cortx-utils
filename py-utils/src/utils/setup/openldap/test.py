@@ -20,16 +20,18 @@
 
 import ldap
 from cortx.utils.log import Log
-from setupcmd import SetupCmd, OpenldapPROVError
+from cortx.utils.setup.openldap.setupcmd import SetupCmd, OpenldapPROVError
 from  ast import literal_eval
 
 class Test(SetupCmd):
-    def __init__(self, config: str, passwd):
+    def __init__(self, config: str):
         try:
             super(Test, self).__init__(config)
+            self.update_ldap_credentials()
+            self.read_ldap_credentials()
         except Exception as e:
             raise OpenldapPROVError(f'exception: {e}\n')
-
+        passwd = self.rootdn_passwd.decode("utf-8")
         Log.init('OpenldapProvisioning', '/var/log/cortx/utils/openldap', level='DEBUG')
         self.test_base_dn(passwd)
         if self.test_openldap_replication() > 1:
@@ -38,7 +40,7 @@ class Test(SetupCmd):
 
     def test_base_dn(self,pwd):
         baseDN = self.get_confvalue(self.get_confkey('TEST>OPENLDAP_BASE_DN'))
-        bind_base_DN = self.get_confvalue(self.get_confkey('TEST>OPENLDAP_BIND_BASE_DN'))
+        bind_base_DN = 'cn=admin,' + baseDN
         searchScope = ldap.SCOPE_BASE
         retrieveAttributes = None
         searchFilter = None

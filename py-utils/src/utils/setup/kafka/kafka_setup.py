@@ -20,6 +20,7 @@ import argparse
 import inspect
 import traceback
 
+from cortx.utils.conf_store import Conf
 from cortx.utils.setup.kafka import Kafka
 from cortx.utils.setup.kafka import KafkaSetupError
 
@@ -87,9 +88,9 @@ class PostInstallCmd(Cmd):
 
     def __init__(self, args: dict):
         super().__init__(args)
-        self.kafka = Kafka(args.config)
+        self.kafka = Kafka()
 
-    def process(self):
+    def process(self, *args, **kwargs):
         self.kafka.validate("post-install")
 
         # TODO: Add actions here
@@ -103,9 +104,9 @@ class PrepareCmd(Cmd):
 
     def __init__(self, args: dict):
         super().__init__(args)
-        self.kafka = Kafka(args.config)
+        self.kafka = Kafka()
 
-    def process(self):
+    def process(self, *args, **kwargs):
         # TODO: Add actions here
         rc = self.kafka.prepare()
         return rc
@@ -117,11 +118,11 @@ class ConfigCmd(Cmd):
 
     def __init__(self, args):
         super().__init__(args)
-        self.kafka = Kafka(args.config)
+        self.kafka = Kafka()
 
-    def process(self):
-        # TODO: Add actions here
-        rc = self.kafka.config()
+    def process(self, *args, **kwargs):
+        kafka_servers = args[0]
+        rc = self.kafka.config(kafka_servers)
         return rc
 
 
@@ -131,11 +132,11 @@ class InitCmd(Cmd):
 
     def __init__(self, args):
         super().__init__(args)
-        self.kafka = Kafka(args.config)
+        self.kafka = Kafka()
 
-    def process(self):
-        # TODO: Add actions here
-        rc = self.kafka.init()
+    def process(self, *args, **kwargs):
+        kafka_servers = args[0]
+        rc = self.kafka.init(kafka_servers)
         return rc
 
 
@@ -149,10 +150,10 @@ class TestCmd(Cmd):
 
     def __init__(self, args):
         super().__init__(args)
-        self.kafka = Kafka(args.config)
+        self.kafka = Kafka()
         self.test_plan = args.plan
 
-    def process(self):
+    def process(self, *args, **kwargs):
         # TODO: Add actions here
         rc = self.kafka.test(self.test_plan)
         return rc
@@ -164,19 +165,25 @@ class ResetCmd(Cmd):
 
     def __init__(self, args):
         super().__init__(args)
-        self.kafka = Kafka(args.config)
+        self.kafka = Kafka()
 
-    def process(self):
+    def process(self, *args, **kwargs):
         # TODO: Add actions here
         rc = self.kafka.reset()
         return rc
 
-
 def main(argv: dict):
+
+    #fetch all data required for processes
+    conf_url = argv[-1]
+    kafka_config = 'kafka_config'
+    Conf.load(kafka_config, conf_url)
+    kafka_servers = Conf.get(kafka_config, 'cortx>software>kafka>servers')
+
     try:
         desc = "CORTX Kafka Setup command"
         command = Cmd.get_command(desc, argv[1:])
-        rc = command.process()
+        rc = command.process(kafka_servers)
         if rc != 0:
             raise ValueError(f"Failed to run {argv[1]}")
 

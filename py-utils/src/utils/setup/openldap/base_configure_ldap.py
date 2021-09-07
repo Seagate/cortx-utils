@@ -23,7 +23,7 @@ import glob
 from shutil import copyfile
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
-from setupReplication import Replication
+from cortx.utils.setup.openldap.setupReplication import Replication
 from ldif import LDIFRecordList
 
 class BaseConfig:
@@ -105,6 +105,7 @@ class BaseConfig:
             quit()
         if forcecleanup != None :
             forceclean = forcecleanup
+        adminuser = config_values.get('bind_base_dn').split('dc=')[0]
         mdb_dir = Conf.get(index= 'util_config_file_index', key='install_path') + '/cortx/utils/conf'
         BaseConfig.cleanup(forceclean)
         copyfile(mdb_dir + '/olcDatabase={2}mdb.ldif' ,\
@@ -116,14 +117,13 @@ class BaseConfig:
         #restart slapd post cleanup
         os.system('systemctl restart slapd')
         dn = 'olcDatabase={0}config,cn=config'
-        BaseConfig.modify_attribute(dn, 'olcRootDN', 'cn=admin,cn=config')
+        BaseConfig.modify_attribute(dn, 'olcRootDN', (adminuser+'cn=config'))
         BaseConfig.modify_attribute(dn, 'olcRootPW', pwd)
         BaseConfig.modify_attribute(dn, 'olcAccess', '{0}to * by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" write by self write by * read')
         dn = 'olcDatabase={2}mdb,cn=config'
         BaseConfig.modify_attribute(dn, 'olcSuffix', config_values.get('base_dn'))
         BaseConfig.modify_attribute(dn, 'olcRootDN', config_values.get('bind_base_dn'))
         ldap_conn = ldap.initialize("ldapi:///")
-        ldap_conn.simple_bind_s(config_values.get('bind_base_dn'), ROOTDNPASSWORD)
         ldap_conn.sasl_non_interactive_bind_s('EXTERNAL')
         mod_attrs = [( ldap.MOD_ADD, 'olcDbMaxSize', [b'10737418240'] )]
         try:
@@ -137,19 +137,56 @@ class BaseConfig:
         BaseConfig.modify_attribute(dn, 'olcAccess', '{1}to * by dn.base="'+config_values.get('bind_base_dn')+'" write by self write by * none')
 
         #add_s - init.ldif
+        base = config_values.get('base_dn').split(',')[0].split('=')[1]
         add_record = [
-         ('dc', [b'seagate'] ),
-         ('o', [b'seagate'] ),
+         ('dc', (bytes(base,'utf-8'))),
+         ('o', (bytes(base,'utf-8'))),
          ('description', [b'Root entry for seagate.com.']),
          ('objectClass', [b'top',b'dcObject',b'organization'])
         ]
         BaseConfig.add_attribute(config_values.get('bind_base_dn'), config_values.get('base_dn'), add_record, ROOTDNPASSWORD)
 
         #add iam constraint
-        BaseConfig.perform_ldif_operation('/opt/seagate/cortx/utils/conf/iam-constraints.ldif','cn=admin,cn=config',ROOTDNPASSWORD)
+        BaseConfig.perform_ldif_operation('/opt/seagate/cortx/utils/conf/iam-constraints.ldif',(adminuser+'cn=config'),ROOTDNPASSWORD)
         #add ppolicy schema
-        BaseConfig.perform_ldif_operation('/etc/openldap/schema/ppolicy.ldif','cn=admin,cn=config',ROOTDNPASSWORD)
-        BaseConfig.perform_ldif_operation('/opt/seagate/cortx/utils/conf/ppolicymodule.ldif','cn=admin,cn=config',ROOTDNPASSWORD)
-        BaseConfig.perform_ldif_operation('/opt/seagate/cortx/utils/conf/ppolicyoverlay.ldif','cn=admin,cn=config',ROOTDNPASSWORD)
-        BaseConfig.perform_ldif_operation('/opt/seagate/cortx/utils/conf/ppolicy-default.ldif',config_values.get('bind_base_dn'),ROOTDNPASSWORD)
+        BaseConfig.perform_ldif_operation('/etc/openldap/schema/ppolicy.ldif',(adminuser+'cn=config'),ROOTDNPASSWORD)
+        BaseConfig.perform_ldif_operation('/opt/seagate/cortx/utils/conf/ppolicymodule.ldif',(adminuser+'cn=config'),ROOTDNPASSWORD)
+        add_record = [
+         ('objectClass', [b'olcOverlayConfig',b'olcPPolicyConfig']),
+         ('olcOverlay',[b'ppolicy']),
+         ('olcPPolicyDefault',bytes(('cn=passwordDefault,ou=Policies,' + config_values.get('base_dn')),'utf-8')),
+         ('olcPPolicyHashCleartext',[b'FALSE']),
+         ('olcPPolicyUseLockout',[b'FALSE']),
+         ('olcPPolicyForwardUpdates',[b'FALSE'])
+        ]
+        BaseConfig.add_attribute((adminuser+'cn=config'), "olcOverlay=ppolicy,olcDatabase={2}mdb,cn=config", add_record, ROOTDNPASSWORD)
+
+        add_record = [
+         ('objectClass', [b'organizationalUnit']),
+         ('ou',[b'Policies'])
+        ]
+        BaseConfig.add_attribute(config_values.get('bind_base_dn'), str("ou=Policies," + config_values.get('base_dn')), add_record, ROOTDNPASSWORD)
+
+        add_record = [
+         ('objectClass', [b'pwdPolicy',b'person',b'top']),
+         ('cn',[b'passwordDefault']),
+         ('sn',[b'passwordDefault']),
+         ('pwdAttribute',[b'userPassword']),
+         ('pwdReset',[b'TRUE']),
+         ('pwdCheckQuality',[b'0']),
+         ('pwdMinAge',[b'0']),
+         ('pwdMaxAge',[b'0']),
+         ('pwdMinLength',[b'0']),
+         ('pwdInHistory',[b'0']),
+         ('pwdMaxFailure',[b'0']),
+         ('pwdFailureCountInterval',[b'0']),
+         ('pwdLockout',[b'FALSE']),
+         ('pwdLockoutDuration',[b'0']),
+         ('pwdAllowUserChange',[b'TRUE']),
+         ('pwdExpireWarning',[b'0']),
+         ('pwdGraceAuthNLimit',[b'0']),
+         ('pwdMustChange',[b'FALSE']),
+         ('pwdSafeModify',[b'FALSE'])
+        ]
+        BaseConfig.add_attribute(config_values.get('bind_base_dn'), str("cn=passwordDefault,ou=Policies," + config_values.get('base_dn')), add_record, ROOTDNPASSWORD)
 
