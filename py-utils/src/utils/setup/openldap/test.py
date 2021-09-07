@@ -40,7 +40,7 @@ class Test(SetupCmd):
 
     def test_base_dn(self,pwd):
         baseDN = self.get_confvalue(self.get_confkey('TEST>OPENLDAP_BASE_DN'))
-        bind_base_DN = self.get_confvalue(self.get_confkey('TEST>OPENLDAP_BIND_BASE_DN'))
+        bind_base_DN = 'cn=admin,' + baseDN
         searchScope = ldap.SCOPE_BASE
         retrieveAttributes = None
         searchFilter = None

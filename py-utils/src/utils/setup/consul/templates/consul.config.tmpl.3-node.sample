@@ -1,0 +1,31 @@
+cortx:
+ software:
+   consul:
+     config_path: /opt/consul/conf
+     data_path: /opt/consul/data
+server_node:
+  7c4fd75dfedd7662e6a39b0a53274922:
+    network:
+      data:
+        private_fqdn: srvnode-1.data.private
+        private_interfaces:
+        - enp175s0f1
+    roles:
+      - consul_server
+  7c4fd75dfedd7662e6a39b0a53274923:
+    network:
+      data:
+        private_fqdn: srvnode-2.data.private
+        private_interfaces:
+        - enp175s0f1
+    roles:
+      - consul_server
+  8efd697708a8f7e428d3fd520c180795:
+    network:
+      data:
+        private_fqdn: srvnode-3.data.private
+        private_interfaces:
+        - enp175s0f1
+    roles:
+      - consul_server
+

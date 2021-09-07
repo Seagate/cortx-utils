@@ -45,13 +45,15 @@ setup(
         "cortx.utils.test.conf_store",
         "cortx.utils.test.schema",
         "cortx.utils.test.cli_framework",
-        "cortx.utils.test.discovery",
         "cortx.utils.test.iem_framework",
+        "cortx.utils.test.shared_storage",
+        "cortx.utils.test.consul",
         "cortx.utils.test.discovery",
         "cortx.utils.test.discovery.solution",
         "cortx.utils.test.discovery.solution.lr2",
         "cortx.utils.test.discovery.solution.lr2.server",
         "cortx.utils.test.discovery.solution.lr2.storage",
+        "cortx.utils.test.elasticsearch"
     ],
     package_data={
         "": [
