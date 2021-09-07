@@ -263,11 +263,18 @@ class Utils:
         # The issue happend when some user other than root:root is trying
         # to write logs in these log dir/files. This needs to be removed soon!
         log_dir = Conf.get(cortx_config_index, 'log_dir', '/var/log')
-        mb_log_path = os.path.join(log_dir, 'cortx/utils/message_bus')
-        os.makedirs(mb_log_path, exist_ok=True)
-        os.chmod(mb_log_path, 0o777)
-        Path(f'{mb_log_path}/message_bus.log').touch(exist_ok=True)
-        os.chmod(f'{mb_log_path}/message_bus.log', 0o666)
+        utils_log_dir = os.path.join(log_dir, 'cortx/utils')
+        #message_bus
+        os.makedirs(os.path.join(utils_log_dir, 'message_bus'), exist_ok=True)
+        os.chmod(os.path.join(utils_log_dir, 'message_bus'), 0o0777)
+        Path(os.path.join(utils_log_dir,'message_bus/message_bus.log')) \
+            .touch(exist_ok=True)
+        os.chmod(os.path.join(utils_log_dir,'message_bus/message_bus.log'), 0o0666)
+        #iem
+        os.makedirs(os.path.join(utils_log_dir, 'iem'), exist_ok=True)
+        os.chmod(os.path.join(utils_log_dir, 'iem'), 0o0777)
+        Path(os.path.join(utils_log_dir, '/iem/iem.log')).touch(exist_ok=True)
+        os.chmod(os.path.join(utils_log_dir, 'iem/iem.log'), 0o0666)
         return 0
 
     @staticmethod
