@@ -22,9 +22,9 @@ import sys
 import os
 from  ast import literal_eval
 from cortx.utils.log import Log
-from setupcmd import SetupCmd, OpenldapPROVError
-from base_configure_ldap import BaseConfig
-from setupReplication import Replication
+from cortx.utils.setup.openldap.setupcmd import SetupCmd, OpenldapPROVError
+from cortx.utils.setup.openldap.base_configure_ldap import BaseConfig
+from cortx.utils.setup.openldap.setupReplication import Replication
 from pathlib import Path
 
 class ConfigCmd(SetupCmd):
@@ -56,7 +56,7 @@ class ConfigCmd(SetupCmd):
     Log.debug("Inside config phaze, starting openldap base configuration")
     # Perform base configuration
     base_dn = self.get_confvalue(self.get_confkey('CONFIG>OPENLDAP_BASE_DN'))
-    bind_base_dn = self.get_confvalue(self.get_confkey('CONFIG>OPENLDAP_BIND_BASE_DN'))
+    bind_base_dn = 'cn=admin,' + base_dn
     confvalues = {'base_dn':base_dn , 'bind_base_dn':bind_base_dn}
     BaseConfig.perform_base_config(self.rootdn_passwd.decode("utf-8"),'True',confvalues)
     Log.debug("openldap base configuration completed successfully")

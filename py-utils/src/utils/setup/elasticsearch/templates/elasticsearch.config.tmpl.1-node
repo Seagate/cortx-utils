@@ -1,0 +1,8 @@
+server_node:
+  TMPL_MACHINE_ID1:
+    cluster_id: TMPL_CLUSTER_ID
+    name: TMPL_NODE_NAME_1
+cluster:
+  TMPL_CLUSTER_ID:
+    storage_set:
+    - server_nodes: [TMPL_MACHINE_ID1]

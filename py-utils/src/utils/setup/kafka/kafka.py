@@ -141,7 +141,7 @@ class Kafka:
             'listeners': f'PLAINTEXT://{hostname}:{port}',
             'log.flush.offset.checkpoint.interval.ms': '1',
             'log.retention.check.interval.ms': '1',
-            'log.dirs': '/var/log/kafka',
+            'log.dirs': '/var/local/data/kafka',
             'log.delete.delay.ms': '1',
         }
 
@@ -180,7 +180,7 @@ class Kafka:
                 # /var/lib/zookeeper myid file
                 if len(kafka_servers) > 1:
                     with open('/var/lib/zookeeper/myid', 'w+') as myid_f:
-                        myid_f.write(str(index))
+                        myid_f.write(str(index + 1))
 
         Kafka._update_properties_file(
             server_properties_file, server_properties)
@@ -223,14 +223,13 @@ class Kafka:
         if not (curr_host_fqdn in hosts or curr_host_ip in hosts) :
             return 0   # return if current host is not a kafka server
 
-        _, err, rc = SimpleProcess.run("systemctl restart kafka-zookeeper")
+        _, err, rc = SimpleProcess("systemctl restart kafka-zookeeper").run()
         if rc != 0:
-            raise KafkaSetupError(\
-                rc, "Unable to start Zookeeper", err)
+            raise KafkaSetupError(rc, "Unable to start Zookeeper", err)
         attempt = 0
         while attempt <= 100 :
-            _, _, rc = SimpleProcess.run(
-                "echo ruok | nc `hostname` 2181 | grep imok")
+            _, _, rc = SimpleProcess(
+                "echo ruok|nc `hostname` 2181|grep imok").run()
             if rc != 0 :
                 attempt += 1
                 sleep(1)
@@ -240,7 +239,7 @@ class Kafka:
         if attempt > 100 :
             raise KafkaSetupError(ERR_OP_FAILED, "Unable to start Zookeeper")
 
-        _, err, rc = SimpleProcess.run("systemctl restart kafka")
+        _, err, rc = SimpleProcess("systemctl restart kafka").run()
         if rc != 0:
             raise KafkaSetupError(rc, "Unable to start Kakfa", err)
 

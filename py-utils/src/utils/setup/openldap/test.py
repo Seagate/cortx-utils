@@ -20,7 +20,7 @@
 
 import ldap
 from cortx.utils.log import Log
-from setupcmd import SetupCmd, OpenldapPROVError
+from cortx.utils.setup.openldap.setupcmd import SetupCmd, OpenldapPROVError
 from  ast import literal_eval
 
 class Test(SetupCmd):
@@ -40,7 +40,7 @@ class Test(SetupCmd):
 
     def test_base_dn(self,pwd):
         baseDN = self.get_confvalue(self.get_confkey('TEST>OPENLDAP_BASE_DN'))
-        bind_base_DN = self.get_confvalue(self.get_confkey('TEST>OPENLDAP_BIND_BASE_DN'))
+        bind_base_DN = 'cn=admin,' + baseDN
         searchScope = ldap.SCOPE_BASE
         retrieveAttributes = None
         searchFilter = None
