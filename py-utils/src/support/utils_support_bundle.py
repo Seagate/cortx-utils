@@ -40,14 +40,18 @@ class UtilsSupportBundle:
     _default_path = '/tmp/cortx/support_bundle/'
     _tar_name = 'py-utils'
     _tmp_src = '/tmp/cortx/py-utils/'
+    LOG_DIR='/var/log'
+    utils_log_dir = os.path.join(LOG_DIR, 'cortx/utils')
     _files_to_bundle = {
-        'message_bus': '/var/log/cortx/utils/message_bus/message_bus.log',
+        'message_bus':
+            os.path.join(utils_log_dir, 'message_bus/message_bus.log'),
         'utils_server':
-            '/var/log/cortx/utils/utils_server/utils_server.log',
-        'utils_setup': '/var/log/cortx/utils/utils_setup.log',
+            os.path.join(utils_log_dir, 'utils_server/utils_server.log'),
+        'utils_setup':
+            os.path.join(utils_log_dir, 'utils_setup.log'),
         'kafka_server': '/opt/kafka/config/server.properties',
         'kafka_zookeeper': '/opt/kafka/config/zookeeper.properties',
-        'iem': '/var/log/cortx/utils/iem/iem.log'
+        'iem': os.path.join(utils_log_dir, 'iem/iem.log')
     }
 
     @staticmethod

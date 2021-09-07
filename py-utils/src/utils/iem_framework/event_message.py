@@ -15,6 +15,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import os
 import json
 import time
 import errno
@@ -72,8 +73,10 @@ class EventMessage(metaclass=Singleton):
         # the same file will be used to log all the messagebus related
         # logs, else standard iem.log will be used.
         if not Log.logger:
+            LOG_DIR='/var/log'
+            iem_log_dir = os.path.join(LOG_DIR, 'cortx/utils/iem')
             log_level = Conf.get('config_file', 'utils>log_level', 'INFO')
-            Log.init('iem', '/var/log/cortx/utils/iem', level=log_level, \
+            Log.init('iem', iem_log_dir, level=log_level, \
                 backup_count=5, file_size_in_mb=5)
 
         try:
