@@ -38,7 +38,11 @@ utils_path=$cortx_path/utils
 /bin/ln -sf /usr/lib/python3.6/site-packages/cortx/utils/utils_server/utils_server.py $utils_path/bin/utils_server
 /bin/chmod +x $utils_path/bin/utils_server
 
-# Copy the openldap_setup.py as openldap_setup.
+# Copy the support_bundle_cli.py as support_bundle_cli
+/bin/ln -sf /usr/lib/python3.6/site-packages/cortx/support/support_bundle_cli.py $utils_path/bin/support_bundle
+/bin/chmod +x $utils_path/bin/support_bundle
+
+# Copy the openldap_setup.py as openldap_setup
 /bin/ln -sf /usr/lib/python3.6/site-packages/cortx/utils/setup/openldap/openldap_setup.py $utils_path/bin/openldap_setup
 /bin/chmod +x $utils_path/bin/openldap_setup
 

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-# CORTX-Py-Utils: CORTX Python common library.
+# CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -15,26 +16,27 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.data.access import BaseModel
-from schematics.types import StringType
-from cortx.utils.data.access import Query
-from cortx.utils.data.access.filters import Compare
-from cortx.utils.data.db.db_provider import DataBaseProvider
+import os
+import unittest
+
+from cortx.utils.shared_storage import Storage
 
 
-class SupportBundleModel(BaseModel):
-    _id = "bundle_id"
-    bundle_id = StringType()
-    node_name = StringType()
-    comment = StringType()
-    result = StringType()
-    message = StringType()
+class TestSharedStorage(unittest.TestCase):
 
-class SupportBundleRepository:
-    def __init__(self, storage: DataBaseProvider):
-        self.db = storage
+    """ Unit test class to test shared storage. """
 
-    async def retrieve_all(self, bundle_id) -> [SupportBundleModel]:
-        query = Query().filter_by(Compare(SupportBundleModel.bundle_id, '=',
-                                          bundle_id))
-        return await self.db(SupportBundleModel).get(query)
+    def test_shared_path_read_access(self):
+        """ test if shared storage path exists and is readable """
+        shared_path = Storage.get_path()
+        self.assertTrue(os.access(shared_path, os.R_OK))
+
+    def test_shared_path_write_access(self):
+        """ test if shared storage path exists and is writable """
+        shared_path = Storage.get_path()
+        self.assertTrue(os.access(shared_path, os.W_OK))
+
+
+
+if __name__ == '__main__':
+    unittest.main()
