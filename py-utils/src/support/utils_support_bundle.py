@@ -98,17 +98,11 @@ class UtilsSupportBundle:
     @staticmethod
     def __collect_kafka_logs():
         files_lst = UtilsSupportBundle._files_to_bundle
-        if os.path.exists(files_lst['kafka_server']) and os.path.exists(
-                files_lst['kafka_zookeeper']):
+        if os.path.exists(files_lst['kafka_zookeeper']):
             to_be_collected = {}
-            Conf.load('kafka_server',
-                'properties://' + files_lst['kafka_server'], fail_reload=False)
             Conf.load('kafka_zookeeper',
                 'properties://' + files_lst['kafka_zookeeper'],
                 fail_reload=False)
-
-            to_be_collected['kafka_log_dirs'] = Conf.get('kafka_server',
-                'log.dirs', '/tmp/kafka-logs')
             to_be_collected['zookeeper_data_log_dir'] = Conf.get(
                 'kafka_zookeeper', 'dataLogDir')
             to_be_collected['zookeeper_data_dir'] = Conf.get(
@@ -118,6 +112,11 @@ class UtilsSupportBundle:
                 if value and os.path.exists(value):
                     shutil.copytree(value,
                         os.path.join(UtilsSupportBundle._tmp_src, key))
+        # Copy all required log files from /var/log/kafka directory
+        if os.path.exists('/var/log/kafka/'):
+            ignore = shutil.ignore_patterns('*.log.*-*-*-*')
+            shutil.copytree('/var/log/kafka/', os.path.join(
+                UtilsSupportBundle._tmp_src, 'kafka_log'), ignore=ignore)
         # Collect systemctl status of kafka and kafka-zookeeper
         _cli = {'kafka_systemctl_status': "systemctl status kafka",
                 'zookeeper_systemctl_status':
