@@ -121,11 +121,11 @@ class Openldap:
                 except Exception:
                     Log.debug("Validation failed for %s in %s phase" % (key,  phase))
                     raise Exception("Validation failed for %s in %s phase" % (key, phase))
-            elif (key.endswith("server_nodes")):
+            elif (key.endswith("nodes")):
                 if type(value) is str:
                     value = literal_eval(value)
                 for node_machine_id in value:
-                    host_name = Conf.get(self.index, f'server_node>{node_machine_id}>hostname')
+                    host_name = Conf.get(self.index, f'node>{node_machine_id}>hostname')
                     try:
                         NetworkV().validate('connectivity',[host_name])
                     except Exception:
