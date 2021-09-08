@@ -12,3 +12,4 @@ python-crontab==2.5.1
 PyYAML==5.1.2
 schematics==2.1.0
 toml==0.10.0
+Jinja2==2.11.1
