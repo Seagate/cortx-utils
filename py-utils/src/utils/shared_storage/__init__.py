@@ -1,6 +1,5 @@
-#!/bin/bash
-#
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# CORTX Python common library.
+# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -14,15 +13,18 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-## Replace <INSTALL_PATH> with cortx installation path. example: /opt/seagate
-install_path=<INSTALL_PATH>
-cortx_path=$install_path/cortx/
-utils_path=$cortx_path/utils
+__title__ = 'shared_storage'
 
-# Take action only in case of un-install
-if [ $1 == 0 ]
-then
-    # Remove the files we have created
-    /bin/rm -rf $utils_path
-    /bin/rm -f /etc/cortx/cortx.conf
-fi
+from cortx.utils.shared_storage.error import SharedStorageError
+from cortx.utils.shared_storage.shared_storage_agent import SharedStorageAgent
+from cortx.utils.shared_storage.shared_storage import Storage
+
+__doc__ = """
+Shared storage framework
+
+This framework is a tool to fetch the shared storage available in the environment.
+It fetches the shared path from a conf file and returns it to the caller. 
+
+module: Storage"""
+
+__all__ = [SharedStorageError, SharedStorageAgent, Storage]

@@ -1,6 +1,5 @@
-#!/bin/bash
-#
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# CORTX Python common library.
+# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -14,15 +13,22 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-## Replace <INSTALL_PATH> with cortx installation path. example: /opt/seagate
-install_path=<INSTALL_PATH>
-cortx_path=$install_path/cortx/
-utils_path=$cortx_path/utils
+import errno
 
-# Take action only in case of un-install
-if [ $1 == 0 ]
-then
-    # Remove the files we have created
-    /bin/rm -rf $utils_path
-    /bin/rm -f /etc/cortx/cortx.conf
-fi
+from cortx.utils.shared_storage import SharedStorageAgent
+from cortx.utils.shared_storage import SharedStorageError
+
+class GlusterSharedStorage(SharedStorageAgent):
+
+    """ GlusterFS based shared storage implementation """
+
+    name = 'glusterfs'
+
+    def __init__(self, shared_path: str  = ''):
+        """ Construct an object for GlusterSharedStorage class """
+        self.shared_path = shared_path
+
+    def _fetch_path(self):
+        """ fetch path from confstore """
+        shared_path = self.shared_path
+        return shared_path

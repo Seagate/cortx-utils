@@ -12,7 +12,6 @@ cortx:
   software:
     openldap:
       base_dn: "dc=seagate,dc=com"
-      bind_base_dn: "cn=admin,dc=seagate,dc=com"
       root:
         user: TMPL_ROOT_USER
         secret: TMPL_ROOT_SECRET_KEY

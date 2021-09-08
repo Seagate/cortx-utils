@@ -141,7 +141,7 @@ class Kafka:
             'listeners': f'PLAINTEXT://{hostname}:{port}',
             'log.flush.offset.checkpoint.interval.ms': '1',
             'log.retention.check.interval.ms': '1',
-            'log.dirs': '/var/log/kafka',
+            'log.dirs': '/var/local/data/kafka',
             'log.delete.delay.ms': '1',
         }
 

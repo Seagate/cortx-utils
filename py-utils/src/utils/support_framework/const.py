@@ -1,6 +1,5 @@
-#!/bin/bash
-#
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# CORTX-Py-Utils: CORTX Python common library.
+# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -14,15 +13,14 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-## Replace <INSTALL_PATH> with cortx installation path. example: /opt/seagate
-install_path=<INSTALL_PATH>
-cortx_path=$install_path/cortx/
-utils_path=$cortx_path/utils
-
-# Take action only in case of un-install
-if [ $1 == 0 ]
-then
-    # Remove the files we have created
-    /bin/rm -rf $utils_path
-    /bin/rm -f /etc/cortx/cortx.conf
-fi
+SUPPORT_BUNDLE_TAG = 'support_bundle;'
+SUPPORT_BUNDLE = 'SUPPORT_BUNDLE'
+SOS_COMP = 'os'
+SB_COMPONENTS = 'components'
+SB_COMMENT = 'comment'
+SB_NODE_NAME = 'node_name'
+SB_BUNDLE_ID = 'bundle_id'
+SB_BUNDLE_PATH = 'bundle_path'
+SB_SYMLINK_PATH = 'symlink_path'
+SYMLINK_PATH = '/tmp/support_bundle/'
+PERMISSION_ERROR_MSG = "Failed to cleanup {path} due to insufficient permissions"
