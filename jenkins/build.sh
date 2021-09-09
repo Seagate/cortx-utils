@@ -19,7 +19,6 @@ PROG_NAME=$(basename "$0")
 BASE_DIR=$(realpath $(dirname "$0")/../py-utils)
 BUILD_NUMBER=
 GIT_VER=
-INSTALL_PATH=/opt/seagate
 
 #Following Install_path should be in sync with cortx.conf.sample config file.
 INSTALL_PATH=/opt/seagate
