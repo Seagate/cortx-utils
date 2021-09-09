@@ -19,6 +19,7 @@ PROG_NAME=$(basename "$0")
 BASE_DIR=$(realpath $(dirname "$0")/../py-utils)
 BUILD_NUMBER=
 GIT_VER=
+INSTALL_PATH=/opt/seagate
 
 usage() {
     echo """usage: $PROG_NAME [-v version] [-g git_version] [-b build_number]""" 1>&2;
@@ -55,9 +56,6 @@ cd "$BASE_DIR"
 # Create version file
 echo $VER > VERSION
 /bin/chmod +rx VERSION
-
-# Fetch install_path
-INSTALL_PATH=$(jq .install_path cortx.conf.sample |  tr -d '"')
 
 # Put install_path in utils-post-install
 sed -i -e "s|<INSTALL_PATH>|${INSTALL_PATH}|g" utils-post-install
