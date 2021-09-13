@@ -2,18 +2,29 @@ cortx:
   common:
     storage:
       log: TMPL_LOG_DIR
-  software:
-    common:
-      message_bus_type: kafka # kafka is the only supported type
+  utils:
+    message_bus_backend: kafka # kafka is the only supported type
+  external:
     kafka:
-      servers:
+      endpoints:
       # Value should be in format <FQDN>:<port>. Port is optional
       - TMPL_KAFKA_SERVER1_FQDN:TMPL_KAFKA_SERVER1_PORT
       - TMPL_KAFKA_SERVER2_FQDN:TMPL_KAFKA_SERVER2_PORT
-      - TMPL_KAFKA_SERVER3_FQDN:TMPL_KAFKA_SERVER3_PORT
-server_node:
-  TMPL_MACHINE_ID:
+      - TMPL_KAFKA_SERVER3_FQDN:
+  support: TMPL_SHARED_URL #Remove this key if shared storage is unavailable
+node:
+  TMPL_MACHINE_ID1:
+    name: TMPL_NAME1
+    hostname: TMPL_HOSTNAME1
     cluster_id: TMPL_CLUSTER_ID
-    site_id: TMPL_SITE_ID
-    rack_id: TMPL_RACK_ID
-    node_id: TMPL_NODE_ID
+    id: TMPL_NODE_ID1
+  TMPL_MACHINE_ID2:
+    name: TMPL_NAME2
+    hostname: TMPL_HOSTNAME2
+    cluster_id: TMPL_CLUSTER_ID
+    id: TMPL_NODE_ID2
+  TMPL_MACHINE_ID3:
+    name: TMPL_NAME3
+    hostname: TMPL_HOSTNAME3
+    cluster_id: TMPL_CLUSTER_ID
+    id: TMPL_NODE_ID3
