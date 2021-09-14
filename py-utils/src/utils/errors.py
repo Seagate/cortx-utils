@@ -133,3 +133,34 @@ class TestFailed(Exception):
     def __init__(self, desc):
         self.desc = '[%s] %s' %(inspect.stack()[1][3], desc)
         super(TestFailed, self).__init__(desc)
+
+
+class InterfaceError(Exception):
+    """Error Handling for server components."""
+
+    def __init__(self, rc, message, *args):
+        """Initialize the error information."""
+        self._rc = rc
+        self._desc = message % (args)
+
+    @property
+    def rc(self):
+        return self._rc
+
+    @property
+    def desc(self):
+        return self._desc
+
+    def __str__(self):
+        """Return the error string."""
+        if self._rc == 0:
+            return self._desc
+        return "error(%d): %s" % (self._rc, self._desc)
+
+
+class ServiceError(InterfaceError):
+    """Error handling while fetching service info."""
+
+    def __init__(self, rc, message, *message_args):
+        """Initialize the Error information."""
+        super(ServiceError, self).__init__(rc, message, *message_args)
