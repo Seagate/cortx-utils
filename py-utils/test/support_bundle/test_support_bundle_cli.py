@@ -15,7 +15,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-
+import time
 import unittest
 from cortx.utils.process import SimpleProcess
 
@@ -58,6 +58,7 @@ class TestSupportBundleCli(unittest.TestCase):
         bundle_id = ''
         if rc == 0:
             bundle_id = stdout.decode('utf-8').split('|')[1]
+        time.sleep(5)
         cmd = f"support_bundle get_status -b '{bundle_id.strip()}'"
         cmd_proc = SimpleProcess(cmd)
         stdout, stderr, rc = cmd_proc.run()
@@ -73,9 +74,9 @@ class TestSupportBundleCli(unittest.TestCase):
         cmd = "support_bundle generate 'sample comment' -c 'util'"
         cmd_proc = SimpleProcess(cmd)
         stdout, stderr, rc = cmd_proc.run()
-        bundle_id = ''
-        if rc != 0:
-            cmd = f"support_bundle get_status -b '{bundle_id.strip()}'"
+        bundle_id = stdout.decode('utf-8').split('|')[1]
+        cmd = f"support_bundle get_status -b '{bundle_id.strip()}'"
+        time.sleep(5)
         cmd_proc = SimpleProcess(cmd)
         stdout, stderr, rc = cmd_proc.run()
         self.assertIsInstance(stdout, bytes)
@@ -87,8 +88,21 @@ class TestSupportBundleCli(unittest.TestCase):
         self.assertIsInstance(status, dict)
         if status['status']:
             self.assertEqual(status['status'][0]['result'], 'Error')
+    
+    def test_006_cortxcli_generate_status(self):
+        cmd = "cortxcli support_bundle generate 'sample comment' -c 'csm'"
+        cmd_proc = SimpleProcess(cmd)
+        stdout, _, rc = cmd_proc.run()
+        stdout = stdout.decode('utf-8')
+        self.assertIn("bundle id", stdout)
+        self.assertEqual(rc, 0)
+        bundle_id = stdout.split('|')[1].strip()
+        time.sleep(15)
+        cmd = f"cortxcli support_bundle status '{bundle_id}'"
+        cmd_proc = SimpleProcess(cmd)
+        stdout, _, rc = cmd_proc.run()
+        self.assertIn('Success', stdout.decode('utf-8'))
 
 
 if __name__ == '__main__':
     unittest.main()
-
