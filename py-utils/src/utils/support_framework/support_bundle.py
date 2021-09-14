@@ -23,6 +23,7 @@ from cortx.utils.log import Log
 from cortx.utils.schema import database
 from cortx.utils.shared_storage import Storage
 from cortx.utils.schema.providers import Response
+from cortx.utils.errors import OPERATION_SUCESSFUL
 from cortx.utils.schema.payload import Tar
 from cortx.utils.conf_store.conf_store import Conf
 from cortx.utils.cli_framework.command import Command
@@ -152,7 +153,6 @@ class SupportBundle:
         #        return Response(output="Bundle Generation Failed in merging",
         #        rc=errno.EINVAL)
         if command.sub_command_name == 'generate':
-            from cortx.utils.errors import OPERATION_SUCESSFUL
             display_string_len = len(bundle_obj.bundle_id) + 4
             response_msg = (
             f"Please use the below bundle id for checking the status of support bundle."
@@ -180,9 +180,7 @@ class SupportBundle:
             response = {'status': [each_status.to_primitive() for each_status in
                                    all_nodes_status]}
             if command.sub_command_name == 'status':
-                from cortx.utils.errors import OPERATION_SUCESSFUL
                 return Response(output = response, rc = OPERATION_SUCESSFUL)
-
             return response
         except DataAccessExternalError as e:
             Log.warn(f"Failed to connect to elasticsearch: {e}")

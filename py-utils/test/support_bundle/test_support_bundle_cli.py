@@ -88,7 +88,7 @@ class TestSupportBundleCli(unittest.TestCase):
         self.assertIsInstance(status, dict)
         if status['status']:
             self.assertEqual(status['status'][0]['result'], 'Error')
-    
+
     def test_006_cortxcli_generate_status(self):
         cmd = "cortxcli support_bundle generate 'sample comment' -c 'csm'"
         cmd_proc = SimpleProcess(cmd)
@@ -102,6 +102,12 @@ class TestSupportBundleCli(unittest.TestCase):
         cmd_proc = SimpleProcess(cmd)
         stdout, _, rc = cmd_proc.run()
         self.assertIn('Success', stdout.decode('utf-8'))
+
+    def test_007_cortxcli_wrong_generate(self):
+        cmd = "cortxcli support_bundle generate 'sample comment' -c 'csmm'"
+        cmd_proc = SimpleProcess(cmd)
+        stdout, _, _ = cmd_proc.run()
+        self.assertEqual(stdout, b'')
 
 
 if __name__ == '__main__':
