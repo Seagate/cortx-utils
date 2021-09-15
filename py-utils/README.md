@@ -50,7 +50,6 @@ sudo yum install -y gcc python36 python36-pip python36-devel python36-setuptools
 ### Install python dependencies
 
 ```bash
-cd cortx-utils/py-utils/
 sudo pip3 install -r https://raw.githubusercontent.com/Seagate/cortx-utils/main/py-utils/python_requirements.txt
 sudo pip3 install -r https://raw.githubusercontent.com/Seagate/cortx-utils/main/py-utils/python_requirements.ext.txt
 ```
