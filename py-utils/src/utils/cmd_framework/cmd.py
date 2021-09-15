@@ -1,6 +1,5 @@
-#
+# CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
-#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -13,33 +12,30 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
-#
 
-# Configuration for alex - https://github.com/get-alex/alex
+import argparse
+import inspect
+import sys
 
-name: CORTX inclusive words scan
-on:
-  # Trigger the workflow on pull request labeled as cla-signed
-  # and synchronize for the main branch
-  pull_request:
-    types: [ opened, synchronize ]
-    branches:
-      - main
-  # Trigger the workflow on demand
-  workflow_dispatch:
-jobs:
-  # Let's start the alex to scan
-  alex:
-    name: Alex report
-    #if: ${{ github.event.label.name == 'alex' || github.event.action == 'synchronize' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: reviewdog/action-alex@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          filter_mode: added
-          reporter: github-pr-review
-          fail_on_error: true
-          level: warning
-          
+class Cmd:
+  """ Command """
+
+  def __init__(self, args: dict):
+    self._args = args
+
+  @staticmethod
+  def get_command(module, desc: str, argv: dict):
+    """ Return the Command after parsing the command line. """
+
+    parser = argparse.ArgumentParser(desc)
+    subparsers = parser.add_subparsers()
+
+    cmds = inspect.getmembers(module)
+    cmds = [(x, y) for x, y in cmds if x.endswith("Cmd") and x != "Cmd"]
+    for _, cmd in cmds:
+      parser1 = subparsers.add_parser(cmd.name, help='%s %s' % (desc, cmd.name))
+      parser1.set_defaults(command=cmd)
+      cmd.add_args(parser1)
+
+    args = parser.parse_args(argv)
+    return args.command(args)

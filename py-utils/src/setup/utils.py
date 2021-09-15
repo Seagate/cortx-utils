@@ -281,11 +281,19 @@ class Utils:
         # temporary fix for a common message bus log file
         # The issue happend when some user other than root:root is trying
         # to write logs in these log dir/files. This needs to be removed soon!
-        os.makedirs('/var/log/cortx/utils/message_bus', exist_ok=True)
-        os.chmod('/var/log/cortx/utils/message_bus', 0o0777)
-        Path('/var/log/cortx/utils/message_bus/message_bus.log').touch( \
-            exist_ok=True)
-        os.chmod('/var/log/cortx/utils/message_bus/message_bus.log', 0o0666)
+        LOG_DIR='/var/log'
+        utils_log_dir = os.path.join(LOG_DIR, 'cortx/utils')
+        #message_bus
+        os.makedirs(os.path.join(utils_log_dir, 'message_bus'), exist_ok=True)
+        os.chmod(os.path.join(utils_log_dir, 'message_bus'), 0o0777)
+        Path(os.path.join(utils_log_dir,'message_bus/message_bus.log')) \
+            .touch(exist_ok=True)
+        os.chmod(os.path.join(utils_log_dir,'message_bus/message_bus.log'), 0o0666)
+        #iem
+        os.makedirs(os.path.join(utils_log_dir, 'iem'), exist_ok=True)
+        os.chmod(os.path.join(utils_log_dir, 'iem'), 0o0777)
+        Path(os.path.join(utils_log_dir, '/iem/iem.log')).touch(exist_ok=True)
+        os.chmod(os.path.join(utils_log_dir, 'iem/iem.log'), 0o0666)
         return 0
 
     @staticmethod

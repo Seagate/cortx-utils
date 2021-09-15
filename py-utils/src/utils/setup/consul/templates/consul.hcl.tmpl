@@ -8,7 +8,7 @@
 #datacenter = "my-dc-1"
 
 
-bind_addr = "{{ '{{' }}  GetInterfaceIP \"{{bind_addr}}\" {{ '}}' }}"
+bind_addr = "{{  GetInterfaceIP \"BIND_ADDR\" }}"
 
 
 # data_dir
@@ -18,14 +18,14 @@ bind_addr = "{{ '{{' }}  GetInterfaceIP \"{{bind_addr}}\" {{ '}}' }}"
 # cluster state. Additionally, the directory must support the use of filesystem
 # locking, meaning some types of mounted folders (e.g. VirtualBox shared folders) may
 # not be suitable.
-data_dir = "{{data_dir}}"
+data_dir = "DATA_DIR"
 
 # client_addr
 # The address to which Consul will bind client interfaces, including the HTTP and DNS
 # servers. By default, this is "127.0.0.1", allowing only loopback connections. In
 # Consul 1.0 and later this can be set to a space-separated list of addresses to bind
 # to, or a go-sockaddr template that can potentially resolve to multiple addresses.
-client_addr = "127.0.0.1 {{ '{{' }}  GetInterfaceIP \"{{bind_addr}}\" {{ '}}' }}"
+client_addr = "127.0.0.1 {{  GetInterfaceIP \"BIND_ADDR\" }}"
 
 # ui
 # Enables the built-in web UI server and the required HTTP routes. This eliminates
@@ -41,7 +41,7 @@ ui = true
 # ensure availability in the case of node failure. Server nodes also participate in a
 # WAN gossip pool with server nodes in other datacenters. Servers act as gateways to
 # other datacenters and forward traffic as appropriate.
-server = {{server}}
+server = SERVER
 
 # bootstrap_expect
 # This flag provides the number of expected servers in the datacenter. Either this value
@@ -50,7 +50,7 @@ server = {{server}}
 # bootstraps the cluster. This allows an initial leader to be elected automatically.
 # This cannot be used in conjunction with the legacy -bootstrap flag. This flag requires
 # -server mode.
-bootstrap_expect = {{bootstrap_expect}}
+bootstrap_expect = BOOTSTRAP_EXPECT
 
 # encrypt
 # Specifies the secret key to use for encryption of Consul network traffic. This key must
@@ -73,4 +73,4 @@ bootstrap_expect = {{bootstrap_expect}}
 # template. If Consul is running on the non-default Serf LAN port, this must be specified
 # as well. IPv6 must use the "bracketed" syntax. If multiple values are given, they are
 # tried and retried in the order listed until the first succeeds. Here are some examples:
-retry_join = {{retry_join}}
+retry_join = RETRY_JOIN

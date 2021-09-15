@@ -1,4 +1,6 @@
-#
+#!/usr/bin/env python3
+
+# CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 #
 # This program is free software: you can redistribute it and/or modify
@@ -13,33 +15,41 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
-#
 
-# Configuration for alex - https://github.com/get-alex/alex
+import sys
+import unittest
+from cortx.utils.cmd_framework import Cmd
 
-name: CORTX inclusive words scan
-on:
-  # Trigger the workflow on pull request labeled as cla-signed
-  # and synchronize for the main branch
-  pull_request:
-    types: [ opened, synchronize ]
-    branches:
-      - main
-  # Trigger the workflow on demand
-  workflow_dispatch:
-jobs:
-  # Let's start the alex to scan
-  alex:
-    name: Alex report
-    #if: ${{ github.event.label.name == 'alex' || github.event.action == 'synchronize' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: reviewdog/action-alex@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          filter_mode: added
-          reporter: github-pr-review
-          fail_on_error: true
-          level: warning
-          
+
+class TestCmd(Cmd):
+  """ Test Command """
+
+  def __init__(self, args: dict):
+    super().__init__(args)
+
+  def add_args(parser: str):
+    parser.add_argument('param1', help='test')
+
+  def process(self):
+    return 0
+
+
+class TestCmdFramework(unittest.TestCase):
+    """Test EventMessage send and receive functionality."""
+
+    def test_cmd_args(self):
+        """ Test Cmd and Args """
+
+        rc = 1
+        try:
+            argv = [ 'test', 'param1' ]
+            cmd = Cmd.get_command(sys.modules[__name__], 'test', argv)
+
+        except:
+            rc = 0
+        
+        self.assertEqual(rc, 0)
+            
+         
+if __name__ == '__main__':
+    unittest.main()

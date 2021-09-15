@@ -23,8 +23,6 @@ import re
 import shutil
 import unittest
 
-from jinja2 import FileSystemLoader
-
 from cortx.utils.conf_store import Conf
 from cortx.utils.conf_store.error import ConfError
 from cortx.utils.validator.v_network import NetworkV
@@ -33,7 +31,6 @@ from cortx.utils.validator.v_pkg import PkgV
 from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.v_service import ServiceV
 from cortx.utils.service.service_handler import Service, ServiceError
-from jinja2.environment import Environment
 
 
 class ConsulSetupError(Exception):
@@ -189,15 +186,15 @@ class Consul:
                 else:
                     is_server_node = True
 
-        env = Environment(
-            loader=FileSystemLoader("/opt/seagate/cortx/utils/conf"))
-        template = env.get_template('consul.hcl.tmpl')
-        template.stream(bind_addr=bind_addr,
-                        data_dir=data_path,
-                        retry_join=json.dumps(server_node_fqdns),
-                        server=str(is_server_node).lower(),
-                        bootstrap_expect=bootstrap_expect).dump(
-                            f"{config_path}/consul.hcl")
+        with open(f"{config_path}/consul.hcl", "w") as f:
+            with open("/opt/seagate/cortx/utils/conf/consul.hcl.tmpl") as t:
+                content = t.read()
+                content = content.replace("BIND_ADDR", bind_addr)
+                content = content.replace("DATA_DIR", data_path)
+                content = content.replace("SERVER", str(is_server_node).lower())
+                content = content.replace("BOOTSTRAP_EXPECT", str(bootstrap_expect))
+                content = content.replace("RETRY_JOIN", json.dumps(server_node_fqdns))
+                f.write(content)
 
         command = f"consul validate {config_path}/consul.hcl"
 

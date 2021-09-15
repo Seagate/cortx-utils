@@ -20,6 +20,9 @@ BASE_DIR=$(realpath $(dirname "$0")/../py-utils)
 BUILD_NUMBER=
 GIT_VER=
 
+#Following Install_path should be in sync with cortx.conf.sample config file.
+INSTALL_PATH=/opt/seagate
+
 usage() {
     echo """usage: $PROG_NAME [-v version] [-g git_version] [-b build_number]""" 1>&2;
     exit 1;
@@ -56,9 +59,6 @@ cd "$BASE_DIR"
 echo $VER > VERSION
 /bin/chmod +rx VERSION
 
-# Fetch install_path
-INSTALL_PATH=$(jq .install_path cortx.conf.sample |  tr -d '"')
-
 # Put install_path in utils-post-install
 sed -i -e "s|<INSTALL_PATH>|${INSTALL_PATH}|g" utils-post-install
 
@@ -79,7 +79,7 @@ echo "\""  >> utils-pre-install
 echo "rc=0
 for package in \$PACKAGE_LIST
 do
-    pip3 freeze | grep \$package > /dev/null
+    python3 -m pip freeze | grep \$package > /dev/null
     if [ \$? -ne 0 ]; then
        if [ \$rc -eq 0 ]; then
            echo \"===============================================\"
