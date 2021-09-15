@@ -21,8 +21,15 @@ please email opensource@seagate.com or cortx-questions@seagate.com.
 
 ## Prerequisite for Test-Rpm build
 
-1. cortx-py-utils must be installed, if not follow [Link](https://github.com/Seagate/cortx-utils/blob/main/py-utils/README.md "cortx-py-utils installation").
-2. Kafka service up and running, if not follow [Link](https://github.com/Seagate/cortx-utils/wiki/Kafka-Server-Setup "Kafka installation")
+1. Install cortx-py-utils
+
+> Follow [cortx-py-utils installtion guide](https://github.com/Seagate/cortx-utils/blob/main/py-utils/README.md "cortx-py-utils installation")
+
+2.  cortx-py-utils mini-provisioning
+
+> For single node, follow [single node mini provisioning](https://github.com/Seagate/cortx-utils/wiki/%22cortx-py-utils%22-single-node-manual-provisioning "single node mini provisioning")
+
+> For multi node, follow [multi node mini provisioning](https://github.com/Seagate/cortx-utils/wiki/cortx-py-utils-multi-node-manual-provisioning "multi node mini provisioning")
 
 ### Clone
 
@@ -70,7 +77,7 @@ sudo pip3 install dist/cortx_test-1.0.0-py3-none-any.whl
 - RPM uninstall
 
 ```bash
-yum remove cortx-test
+yum remove cortx_test
 ```
 
 - Pip package uninstall
@@ -97,6 +104,8 @@ git clone https://github.com/Seagate/cortx-utils.git
 python3 -m unittest discover
 ```
 
+**Note:** Some of the py-utils unittests are dependent on other cortx components, If cortx-py-utils is deployed alone, then some test cases will not succeed such as validator, support_bundle etc.
+
 ### To run all the unittests from a test file
 
 -   Go to the respective feature directory under py-utils/test and execute below command:
@@ -111,4 +120,16 @@ python3 test_file.py
 
 ```bash
 python3 -m unittest test_module.TestClass.test_method
+```
+
+**Disclaimer:** py-utils unittests from the below test scripts will do SSH to localhost, node, hostname to verify the py-utils functionalities
+
+```bash
+cortx-utils/py-utils/test/test_ssh_connection.py
+cortx-utils/py-utils/test/validator/test_bmc_validator.py
+cortx-utils/py-utils/test/validator/test_consul_validator.py
+cortx-utils/py-utils/test/validator/test_controller_validator.py
+cortx-utils/py-utils/test/validator/test_network_validator.py
+cortx-utils/py-utils/test/validator/test_path_validator.py
+cortx-utils/py-utils/test/validator/test_service_validator.py
 ```
