@@ -22,20 +22,12 @@ A common utils framework which includes common modules across components
 
 ## Prerequisites for build
 ```bash
-sudo yum install -y gcc jq rpm-build python36 python36-pip python36-devel python36-setuptools openssl-devel libffi-devel python36-dbus
+sudo yum install -y gcc rpm-build python36 python36-pip python36-devel python36-setuptools openssl-devel libffi-devel python36-dbus
 ```
 
 ## Clone
 ```
 git clone --recursive https://github.com/Seagate/cortx-utils -b main
-```
-
-## Install python dependencies
-
-```bash
-cd cortx-utils/py-utils/
-sudo pip3 install -r python_requirements.txt
-sudo pip3 install -r python_requirements.ext.txt
 ```
 
 ## Build
@@ -46,6 +38,21 @@ Run below command from repo root (cortx-utils).
 ```bash
 cd ..
 ./jenkins/build.sh -v 2.0.0 -b 2
+```
+
+## Prerequisites for Install
+
+### Install yum packages
+```bash
+sudo yum install -y gcc python36 python36-pip python36-devel python36-setuptools openssl-devel libffi-devel python36-dbus
+```
+
+### Install python dependencies
+
+```bash
+cd cortx-utils/py-utils/
+sudo pip3 install -r https://raw.githubusercontent.com/Seagate/cortx-utils/main/py-utils/python_requirements.txt
+sudo pip3 install -r https://raw.githubusercontent.com/Seagate/cortx-utils/main/py-utils/python_requirements.ext.txt
 ```
 
 ## Install the RPM package
