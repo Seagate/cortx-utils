@@ -53,7 +53,8 @@ setup(
         "cortx.utils.test.discovery.solution.lr2",
         "cortx.utils.test.discovery.solution.lr2.server",
         "cortx.utils.test.discovery.solution.lr2.storage",
-        "cortx.utils.test.elasticsearch"
+        "cortx.utils.test.elasticsearch",
+        "cortx.utils.test.support_bundle",
     ],
     package_data={
         "": [
@@ -66,6 +67,7 @@ setup(
             "cli_framework/test_data/*.json",
             "iem_framework/*.json",
             "discovery/solution/lr2/*.json",
+            "support_bundle/*.yaml",
         ]
     },
     entry_points={

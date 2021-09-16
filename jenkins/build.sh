@@ -79,7 +79,7 @@ echo "\""  >> utils-pre-install
 echo "rc=0
 for package in \$PACKAGE_LIST
 do
-    pip3 freeze | grep \$package > /dev/null
+    python3 -m pip freeze | grep \$package > /dev/null
     if [ \$? -ne 0 ]; then
        if [ \$rc -eq 0 ]; then
            echo \"===============================================\"

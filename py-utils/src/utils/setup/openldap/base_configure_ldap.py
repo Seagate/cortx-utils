@@ -110,16 +110,23 @@ class BaseConfig:
         BaseConfig.cleanup(forceclean)
         copyfile(mdb_dir + '/olcDatabase={2}mdb.ldif' ,\
         '/etc/openldap/slapd.d/cn=config/olcDatabase={2}mdb.ldif')
-        os.system('chgrp ldap /etc/openldap/certs/password')
+        if(os.system('chgrp ldap /etc/openldap/certs/password') !=0) :
+            Log.error('Failed in chgrp command while performing ldap base config')
+            quit()
         cmd = 'slappasswd -s ' + str(ROOTDNPASSWORD)
         pwd = os.popen(cmd).read()
         pwd.replace('/','\/')
-        #restart slapd post cleanup
-        os.system('systemctl restart slapd')
         dn = 'olcDatabase={0}config,cn=config'
         BaseConfig.modify_attribute(dn, 'olcRootDN', (adminuser+'cn=config'))
         BaseConfig.modify_attribute(dn, 'olcRootPW', pwd)
         BaseConfig.modify_attribute(dn, 'olcAccess', '{0}to * by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" write by self write by * read')
+        #restart slapd post cleanup
+        if(os.system('kill -15 $(pidof slapd)')!=0) :
+            Log.error('Failed while killing slapd process in base config')
+            quit()
+        if(os.system('/usr/sbin/slapd -u ldap -h \'ldapi:/// ldap:///\'')!=0) :
+            Log.error('Failed while starting slapd process in base config')
+            quit()
         dn = 'olcDatabase={2}mdb,cn=config'
         BaseConfig.modify_attribute(dn, 'olcSuffix', config_values.get('base_dn'))
         BaseConfig.modify_attribute(dn, 'olcRootDN', config_values.get('bind_base_dn'))

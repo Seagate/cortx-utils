@@ -23,6 +23,7 @@ from cortx.utils.log import Log
 from cortx.utils.schema import database
 from cortx.utils.shared_storage import Storage
 from cortx.utils.schema.providers import Response
+from cortx.utils.errors import OPERATION_SUCESSFUL
 from cortx.utils.schema.payload import Tar
 from cortx.utils.conf_store.conf_store import Conf
 from cortx.utils.cli_framework.command import Command
@@ -151,8 +152,15 @@ class SupportBundle:
         #        Log.debug("Merging of node support bundle failed")
         #        return Response(output="Bundle Generation Failed in merging",
         #        rc=errno.EINVAL)
-
-
+        if command.sub_command_name == 'generate':
+            display_string_len = len(bundle_obj.bundle_id) + 4
+            response_msg = (
+            f"Please use the below bundle id for checking the status of support bundle."
+            f"\n{'-' * display_string_len}"
+            f"\n| {bundle_obj.bundle_id} |"
+            f"\n{'-' * display_string_len}"
+            f"\nPlease Find the file on -> {bundle_obj.bundle_path} .\n")
+            return Response(output=response_msg, rc=OPERATION_SUCESSFUL)
         return bundle_obj
 
     @staticmethod
@@ -171,6 +179,8 @@ class SupportBundle:
             all_nodes_status = await repo.retrieve_all(bundle_id)
             response = {'status': [each_status.to_primitive() for each_status in
                                    all_nodes_status]}
+            if command.sub_command_name == 'status':
+                return Response(output = response, rc = OPERATION_SUCESSFUL)
             return response
         except DataAccessExternalError as e:
             Log.warn(f"Failed to connect to elasticsearch: {e}")
@@ -219,8 +229,6 @@ class SupportBundle:
 
         bundle_id:  Using this will fetch bundle status :type: string
         """
-        import time
-        time.sleep(5)
         options = {'bundle_id': bundle_id, 'comm': {'type': 'direct', \
             'target': 'utils.support_framework', 'method': 'get_bundle_status', \
             'class': 'SupportBundle', \
