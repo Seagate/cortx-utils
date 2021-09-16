@@ -115,7 +115,8 @@ class ComponentsBundle:
         Conf.load('cortx_conf', 'json:///etc/cortx/cortx.conf')
         log_level = Conf.get('cortx_conf', 'utils>log_level', 'INFO')
         Log.init('support_bundle_node', '/var/log/cortx/utils/support/', \
-            level=log_level, backup_count=5, file_size_in_mb=5)
+            level=log_level, backup_count=5, file_size_in_mb=5, \
+            syslog_server='localhost', syslog_port=514)
         bundle_id = command.options.get(const.SB_BUNDLE_ID, '')
         node_name = command.options.get(const.SB_NODE_NAME, '')
         comment = command.options.get(const.SB_COMMENT, '')
@@ -219,10 +220,6 @@ class ComponentsBundle:
 
         ComponentsBundle._create_summary_file(bundle_id, node_name, \
             comment, bundle_path)
-        # SB status logging
-        Log.init('support_bundle_status', '/var/log/cortx/utils/support/', \
-            level=log_level, backup_count=5, file_size_in_mb=5, \
-            syslog_server='localhost', syslog_port=514)
         # Wait Until all the Threads Execution is not Complete.
         for each_thread in threads:
             Log.debug(
