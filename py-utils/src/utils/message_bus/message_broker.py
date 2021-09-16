@@ -65,8 +65,8 @@ class MessageBrokerFactory:
         Returns:
             tuple: ([server_list], [port_list])
         """
-        key_list = ['cortx>software>common>message_bus_type', \
-            'cortx>software>kafka>servers']
+        key_list = ['cortx>utils>message_bus_backend', \
+            'cortx>external>kafka>endpoints']
 
         ConfKeysV().validate('exists', cluster_conf_index, key_list)
         msg_bus_type = Conf.get(cluster_conf_index, key_list[0])

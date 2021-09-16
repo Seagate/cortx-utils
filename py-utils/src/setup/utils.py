@@ -108,14 +108,14 @@ class Utils:
         Returns:
             dict: Server Information
         """
-        key_list = [f'server_node>{machine_id}']
+        key_list = [f'node>{machine_id}']
         ConfKeysV().validate('exists', conf_url_index, key_list)
         server_info = Conf.get(conf_url_index, key_list[0])
         return server_info
 
     @staticmethod
     def _copy_cluster_map(conf_url_index: str):
-        cluster_data = Conf.get(conf_url_index, 'server_node')
+        cluster_data = Conf.get(conf_url_index, 'node')
         for _, node_data in cluster_data.items():
             hostname = node_data.get('hostname')
             node_name = node_data.get('name')
@@ -126,7 +126,9 @@ class Utils:
     def _create_cluster_config(server_info: dict):
         """ Create the config file required for Event Message """
         for key, value in server_info.items():
-            Conf.set('cluster', f'server_node>{key}', value)
+            Conf.set('cluster', f'node>{key}', value)
+        Conf.set('cluster', 'site_id', '1')
+        Conf.set('cluster', 'rack_id', '1')
         Conf.save('cluster')
 
     @staticmethod
