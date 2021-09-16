@@ -172,6 +172,20 @@ class ResetCmd(Cmd):
         rc = self.kafka.reset()
         return rc
 
+
+class CleanupCmd(Cmd):
+    """ Cleanup Setup Cmd """
+    name = "cleanup"
+
+    def __init__(self, args):
+        super().__init__(args)
+        self.kafka = Kafka()
+
+    def process(self, *args, **kwargs):
+        # TODO: Add actions here
+        rc = self.kafka.cleanup()
+        return rc
+
 def main(argv: dict):
 
     #fetch all data required for processes
