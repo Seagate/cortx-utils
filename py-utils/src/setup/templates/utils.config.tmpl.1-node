@@ -15,4 +15,3 @@ node:
     cluster_id: TMPL_CLUSTER_ID
     name: TMPL_NAME
     hostname: TMPL_HOSTNAME
-    id: TMPL_NODE_ID
