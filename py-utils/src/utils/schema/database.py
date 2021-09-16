@@ -60,7 +60,8 @@ DATABASE = {
             "database": "es_db",
             "config": {
                 "es_db": {
-                    "collection": "supportbundle"
+                    "collection": "supportbundle",
+                    "create_schema": "false"
                 }
             }
         }
