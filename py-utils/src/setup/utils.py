@@ -172,21 +172,21 @@ class Utils:
         ##    'kafka.service'])
 
         # Check required python packages
-        ## utils_path = Utils._get_utils_path()
-        ## with open(f"{utils_path}/conf/python_requirements.txt") as file:
-        ##     req_pack = []
-        ##    for package in file.readlines():
-        ##         pack = package.strip().split('==')
-        ##         req_pack.append(f"{pack[0]} ({pack[1]})")
-        ## try:
-        ##     with open(f"{utils_path}/conf/python_requirements.ext.txt") as extfile :
-        ##         for package in extfile.readlines():
-        ##             pack = package.strip().split('==')
-        ##             req_pack.append(f"{pack[0]} ({pack[1]})")
-        ## except Exception:
-        ##     Log.info("Not found: "+f"{utils_path}/conf/python_requirements.ext.txt")
+        utils_path = Utils._get_utils_path()
+        with open(f"{utils_path}/conf/python_requirements.txt") as file:
+            req_pack = []
+            for package in file.readlines():
+                pack = package.strip().split('==')
+                req_pack.append(f"{pack[0]} ({pack[1]})")
+        try:
+            with open(f"{utils_path}/conf/python_requirements.ext.txt") as extfile :
+                for package in extfile.readlines():
+                    pack = package.strip().split('==')
+                    req_pack.append(f"{pack[0]} ({pack[1]})")
+        except Exception:
+             Log.info("Not found: "+f"{utils_path}/conf/python_requirements.ext.txt")
 
-        ## PkgV().validate(v_type='pip3s', args=req_pack)
+        PkgV().validate(v_type='pip3s', args=req_pack)
         return 0
 
     @staticmethod
