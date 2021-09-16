@@ -465,7 +465,14 @@ class ConsulKVStore(KvStore):
 
     def __init__(self, store_loc, store_path, delim='>'):
         KvStore.__init__(self, store_loc, store_path, delim)
-        self.c = Consul()
+        if store_loc:
+            if ':' in store_loc:
+                host, port = store_loc.split(':')
+            else:
+                host, port = store_loc, 8500
+        else:
+            host, port = '127.0.0.1', 8500
+        self.c = Consul(host=host, port=port)
         self._payload = ConsulKvPayload(self.c, self._delim)
 
     def load(self, **kwargs) -> ConsulKvPayload:
