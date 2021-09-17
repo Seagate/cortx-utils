@@ -51,13 +51,6 @@ class SupportBundleInterface:
             msg = "Cortx Logs tarfile is not generated at specified path."
             raise SupportBundleError(1, msg)
 
-    @staticmethod
-    def untar_cortx_bundle():
-        if os.path.exists(SB_FILE_PATH):
-            tar = tarfile.open(SB_FILE_PATH, "r:gz")
-            tar.extractall()
-            tar.close()
-
     def check_shared_storageclass(self):
         cmd = f"{self.KUBECTL} get pvc"
         response, err, _ = self._run_command(cmd)
@@ -115,8 +108,6 @@ class SupportBundleInterface:
     def parse_args():
         parser = argparse.ArgumentParser(description='''Bundle cortx logs ''')
         parser.add_argument('--generate', help='generate support bundle',
-                            action='store_true')
-        parser.add_argument('--untar', help='untar the created bundle',
                             action='store_true')
         args=parser.parse_args()
         return args

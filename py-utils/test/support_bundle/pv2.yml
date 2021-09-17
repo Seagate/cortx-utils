@@ -11,4 +11,4 @@ spec:
   accessModes:
     - ReadWriteMany
   hostPath:
-    path: "/opt"
+    path: "/var/cortx/support_bundle/data"

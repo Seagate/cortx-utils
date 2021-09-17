@@ -16,6 +16,6 @@ spec:
       volumeMounts:
         - mountPath: "/var/log"
           name: shared-storage
-        - mountPath: "/opt"
+        - mountPath: "/var/cortx/support_bundle/data"
           name: sb-storage
   restartPolicy: Never
