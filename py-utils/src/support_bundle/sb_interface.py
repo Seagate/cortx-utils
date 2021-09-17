@@ -6,8 +6,7 @@ import shlex
 import tarfile
 import time
 
-from sb_config import ( PV_CLAIM_LIST, SB_FILE_PATH, SB_TAG,
-                        UTILS_TEST_DIR, CURR_DIR)
+from sb_config import SB_FILE_PATH, UTILS_TEST_DIR, CURR_DIR
 
 
 class SupportBundleError(Exception):
@@ -31,15 +30,13 @@ class SupportBundleInterface:
         For example: python3 sb_interface.py --generate
 
     """
-    KUBECTL = "kubectl"
-    def validate(self):
-        self.check_shared_storageclass()
-        self.check_sb_image()
-        self.check_sb_pod_yml_exists()
+    def setup(self):
+        self.build_shared_storageclass()
+        self.build_sb_image()
 
     def process(self):
-        # Run the support-bundle pod to generate the cortx logs tar.
-        cmd = f"{self.KUBECTL} apply -f {UTILS_TEST_DIR}/support_bundle/sb-pod.yml"
+        # Execute the deploy_sb_pod.sh shell script to start the support_bundle pod.
+        cmd = f"{UTILS_TEST_DIR}/support_bundle/deploy.sh --sb_pod"
         _, _, rc = self._run_command(cmd)
         if rc != 0:
             msg = "Failed to deploy the supoort-bundle pod."
@@ -51,44 +48,32 @@ class SupportBundleInterface:
             msg = "Cortx Logs tarfile is not generated at specified path."
             raise SupportBundleError(1, msg)
 
-    def check_shared_storageclass(self):
-        cmd = f"{self.KUBECTL} get pvc"
-        response, err, _ = self._run_command(cmd)
-        if err:
-            msg = f"Failed in Validating PV-claim. ERROR:{err}"
+    def build_shared_storageclass(self):
+        cmd = f"{UTILS_TEST_DIR}/support_bundle/deploy.sh --pvc"
+        response, err, rc = self._run_command(cmd)
+        if rc != 0 :
+            msg = f"Failed in Building PV-claim. ERROR:{err}"
             raise SupportBundleError(1, msg)
-        for pvc in PV_CLAIM_LIST:
-            if pvc and "Bound" not in response:
-                msg = f"Please check PV-Claim:{pvc} exists and in 'Bound' state."
-                raise SupportBundleError(1, msg)
+        if response:
+            print(response)
+            print("Waiting for the containers to start up...")
+            time.sleep(5)
 
-    def check_sb_image(self):
-        cmd = "docker images"
-        response, _, _ = self._run_command(cmd)
-        if "support_bundle" not in response:
-            # Support_bundle image not present, build docker image
-            dockerfile_dir = f"{UTILS_TEST_DIR}/support_bundle"
-            os.chdir(dockerfile_dir)
-            cmd = "./build_sb_image.sh"
-            print(cmd)
-            response, err, rc = self._run_command(cmd)
-            if rc != 0:
-                msg = f"Failed to build support-bundle image. ERROR:{err}"
-                raise SupportBundleError(1, msg)
-            else:
-                print("==== Building Support-bundle Image. ====")
-                print(response)
-            os.chdir(CURR_DIR)
-
-    @staticmethod
-    def check_sb_pod_yml_exists():
-        file_path = f"{UTILS_TEST_DIR}/support_bundle/sb-pod.yml"
-        if not os.path.exists(file_path):
-            msg = f"support bundle deployment yaml doesn't exist"
+    def build_sb_image(self):
+        dockerfile_dir = f"{UTILS_TEST_DIR}/support_bundle"
+        os.chdir(dockerfile_dir)
+        cmd = f"./deploy.sh --sb_image"    
+        response, err, rc = self._run_command(cmd)
+        if rc != 0:
+            msg = f"Failed to build support-bundle image. ERROR:{err}"
             raise SupportBundleError(1, msg)
+        if response:
+            print("==== Building Support-bundle Image. ====")
+            print(response)
+        os.chdir(CURR_DIR)
 
     def cleanup(self):
-        cmd = f"{self.KUBECTL} delete pod sb-pod"
+        cmd = f"{UTILS_TEST_DIR}/support_bundle/deploy.sh --delete_pod"
         _, _, rc = self._run_command(cmd)
         if rc != 0:
             msg = "Failed to delete the support-bundle pod"
@@ -116,11 +101,9 @@ def main():
     args = SupportBundleInterface.parse_args()
     SupportBundleObj = SupportBundleInterface()
     if args.generate:
-        SupportBundleObj.validate()
+        SupportBundleObj.setup()
         SupportBundleObj.process()
         SupportBundleObj.cleanup()
-    if args.untar:
-        SupportBundleInterface.untar_cortx_bundle()
 
 
 if __name__ == "__main__":
