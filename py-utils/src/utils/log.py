@@ -38,6 +38,9 @@ class Log:
     def init(service_name, log_path, level="INFO", backup_count=10, file_size_in_mb=10,
             syslog_server=None, syslog_port=None, console_output=False):
         """ Initialize logging to log to syslog """
+        # TODO: Add handler type argument to init method and let logger to
+        # use default values to ease init method call by caller.
+
         try:
             if log_path and not os.path.exists(log_path): os.makedirs(log_path)
         except OSError as err:
