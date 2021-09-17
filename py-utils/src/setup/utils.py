@@ -273,7 +273,7 @@ class Utils:
         #iem
         os.makedirs(os.path.join(utils_log_dir, 'iem'), exist_ok=True)
         os.chmod(os.path.join(utils_log_dir, 'iem'), 0o0777)
-        Path(os.path.join(utils_log_dir, '/iem/iem.log')).touch(exist_ok=True)
+        Path(os.path.join(utils_log_dir, 'iem/iem.log')).touch(exist_ok=True)
         os.chmod(os.path.join(utils_log_dir, 'iem/iem.log'), 0o0666)
         return 0
 
