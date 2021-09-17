@@ -22,7 +22,7 @@ class SupportBundleError(Exception):
         """Format error string."""
         print("SupportBundleError(%d): %s" %(self._rc, self._desc))
 
-class SupportBundleInterface:
+class SupportBundle:
 
     """ SupportBundle interface to generate a support bundle of cortx logs,
         in a containerised env.
@@ -31,6 +31,7 @@ class SupportBundleInterface:
 
     """
     def setup(self):
+        SupportBundle.cleanup()
         self.build_shared_storageclass()
         self.build_sb_image()
 
@@ -72,12 +73,11 @@ class SupportBundleInterface:
             print(response)
         os.chdir(CURR_DIR)
 
-    def cleanup(self):
-        cmd = f"{UTILS_TEST_DIR}/support_bundle/deploy.sh --delete_pod"
-        _, _, rc = self._run_command(cmd)
-        if rc != 0:
-            msg = "Failed to delete the support-bundle pod"
-            raise SupportBundleError(1, msg)
+    @staticmethod
+    def cleanup():
+        # Delete support-bundle tar, if already present
+        if os.path.exists(SB_FILE_PATH):
+            os.remove(SB_FILE_PATH)
 
     def _run_command(self, command):
         """Run the command and get the response and error returned."""
@@ -98,12 +98,11 @@ class SupportBundleInterface:
         return args
 
 def main():
-    args = SupportBundleInterface.parse_args()
-    SupportBundleObj = SupportBundleInterface()
+    args = SupportBundle.parse_args()
+    SupportBundleObj = SupportBundle()
     if args.generate:
         SupportBundleObj.setup()
         SupportBundleObj.process()
-        SupportBundleObj.cleanup()
 
 
 if __name__ == "__main__":
