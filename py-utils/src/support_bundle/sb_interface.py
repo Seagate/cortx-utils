@@ -1,16 +1,18 @@
 import os
-import sys
-import argparse
+import string
+import random
+import shutil
 import subprocess
 import shlex
-import tarfile
 import time
+import json
 
-from sb_config import SB_FILE_PATH, UTILS_TEST_DIR, CURR_DIR
+from sb_config import SB_DATA_PATH, UTILS_TEST_DIR, CURR_DIR
+from bundle import Bundle
+from response import Response
 
 
 class SupportBundleError(Exception):
-
     """Generic Exception with error code and output."""
 
     def __init__(self, rc, message, *args):
@@ -23,15 +25,11 @@ class SupportBundleError(Exception):
         print("SupportBundleError(%d): %s" %(self._rc, self._desc))
 
 class SupportBundle:
-
     """ SupportBundle interface to generate a support bundle of cortx logs,
         in a containerised env.
 
-        For example: python3 sb_interface.py --generate
-
     """
     def setup(self):
-        SupportBundle.cleanup()
         self.build_shared_storageclass()
         self.build_sb_image()
 
@@ -43,11 +41,7 @@ class SupportBundle:
             msg = "Failed to deploy the supoort-bundle pod."
             raise SupportBundleError(1, msg)
         time.sleep(10)
-        if os.path.exists(SB_FILE_PATH):
-            print(f"Support Bundle generated successfully at path:{SB_FILE_PATH} !!!")
-        else:
-            msg = "Cortx Logs tarfile is not generated at specified path."
-            raise SupportBundleError(1, msg)
+        print("Successfully deployed support-bundle pod. !!!")
 
     def build_shared_storageclass(self):
         cmd = f"{UTILS_TEST_DIR}/support_bundle/deploy.sh --pvc"
@@ -63,7 +57,7 @@ class SupportBundle:
     def build_sb_image(self):
         dockerfile_dir = f"{UTILS_TEST_DIR}/support_bundle"
         os.chdir(dockerfile_dir)
-        cmd = f"./deploy.sh --sb_image"    
+        cmd = "./deploy.sh --sb_image"    
         response, err, rc = self._run_command(cmd)
         if rc != 0:
             msg = f"Failed to build support-bundle image. ERROR:{err}"
@@ -76,10 +70,12 @@ class SupportBundle:
     @staticmethod
     def cleanup():
         # Delete support-bundle tar, if already present
-        if os.path.exists(SB_FILE_PATH):
-            os.remove(SB_FILE_PATH)
+        if os.path.isdir(SB_DATA_PATH):
+            shutil.rmtree(SB_DATA_PATH)
+        os.mkdir(SB_DATA_PATH)
 
-    def _run_command(self, command):
+    @staticmethod
+    def _run_command(command):
         """Run the command and get the response and error returned."""
         cmd = shlex.split(command) if isinstance(command, str) else command
         process = subprocess.run(cmd, stdout=subprocess.PIPE,
@@ -90,27 +86,73 @@ class SupportBundle:
         return output, error, returncode
 
     @staticmethod
-    def parse_args():
-        parser = argparse.ArgumentParser(description='''Bundle cortx logs ''')
-        parser.add_argument('--generate', help='generate support bundle',
-                            action='store_true')
-        args=parser.parse_args()
-        return args
+    def _generate_bundle_id():
+        """Generate Unique Bundle ID."""
+        alphabet = string.ascii_lowercase + string.digits
+        return f"SB{''.join(random.choices(alphabet, k=8))}"
 
-def main():
-    args = SupportBundle.parse_args()
-    SupportBundleObj = SupportBundle()
-    if args.generate:
-        SupportBundleObj.setup()
-        SupportBundleObj.process()
+    @staticmethod
+    def generate(comment: str, **kwargs):
+        """
+        Initializes the process for Generating Support Bundle.
 
+        comment:        Mandatory parameter, reason why we are generating
+                        support bundle
+        components:     Optional paramter, If not specified SB will be generated
+                        for all components.You can specify multiple components
+                        also Eg: components = ['utils', 'provisioner']
+        return:         bundle_obj
+        """
+        components = ''
+        # Cleanup old tmp files.
+        SupportBundle.cleanup()
+        tmp_data_file = f"{SB_DATA_PATH}/bundle_info.json"
+        for key, value in kwargs.items():
+            if key == 'components':
+                components = value
+        if not components:
+            components = ["all"]
+        bundle_id = SupportBundle._generate_bundle_id()
+        bundle_obj = Bundle(bundle_id=bundle_id, bundle_path=SB_DATA_PATH,
+                            comment=comment)
+        # dump bundle info to a json file, for support-bundle pod to read.
+        data = {}
+        data["bundle_id"] = bundle_obj.bundle_id
+        data["bundle_path"] = bundle_obj.bundle_path
+        data["components"] = components
+        with open(tmp_data_file, 'w') as outfile:
+            json.dump(data, outfile)
+        print("Deploying Support-bundle Pod.")
+        SupportBundle().setup()
+        SupportBundle().process()
+        return bundle_obj
 
-if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt as e:
-        print(f"\n\nWARNING: User aborted command. Partial data " \
-            f"save/corruption might occur. It is advised to re-run the" \
-            f"command. {e}")
-        sys.exit(1)
+    @staticmethod
+    def get_bundle_status(bundle_id):
+        status = "Success"
+        output = ""
+        sb_file_path = f"{SB_DATA_PATH}/cortx-support_bundle-{bundle_id}.tar.gz"
+        tmp_data_file = f"{SB_DATA_PATH}/bundle_info.json"
+        with open(tmp_data_file) as json_file:
+            bundle_data = json.load(json_file)
+        components = bundle_data["components"]
+        for component in components:
+            if component != "all":
+                sb_file_path = f"{SB_DATA_PATH}/{component}-support_bundle-{bundle_id}.tar.gz"
+            if not os.path.exists(sb_file_path):
+                status = "Failed"
+                output = (f"Support-bundle not generated."
+                          f"Please check /var/log/{component} dir exists or not")
+        if status == "Success":
+            output = f"Support Bundle generated successfully at path: {sb_file_path}"
+        return Response(status=status, output=output)
 
+    @staticmethod
+    def get_status(bundle_id: str = None):
+        """
+        Initializes the process for Displaying the Status for Support Bundle
+        bundle_id:  Using this will fetch bundle status :type: string
+        """
+        status_obj = SupportBundle.get_bundle_status(bundle_id)
+        return status_obj
+        

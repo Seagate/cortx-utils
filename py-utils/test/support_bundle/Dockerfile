@@ -4,8 +4,6 @@ RUN yum install -y python3
 
 RUN mkdir -p /app /var/cortx/support_bundle/data
 
-WORKDIR /app
-
-COPY support_bundle.py sb_config.py /app/
+COPY support_bundle.py /app/
 
 ENTRYPOINT ["python3", "/app/support_bundle.py"]

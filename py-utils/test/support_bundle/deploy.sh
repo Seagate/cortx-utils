@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-SCRIPT_DIR=$(dirname $0)
+SCRIPT_DIR=$(dirname "$0")
 
 deploy_pvc()
 {
@@ -12,7 +12,6 @@ deploy_pvc()
     kubectl apply -f "$SCRIPT_DIR"/pv-claim.yml
     kubectl apply -f "$SCRIPT_DIR"/pv-claim2.yml
 
-    sleep 5
 }
 
 build_image()
