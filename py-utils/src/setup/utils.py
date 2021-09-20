@@ -21,6 +21,7 @@ import errno
 from pathlib import Path
 
 from cortx.utils import errors
+from cortx.utils import const
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
 from cortx.utils.common import SetupError
@@ -33,7 +34,7 @@ from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.service.service_handler import Service
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus import MessageBrokerFactory
-
+from cortx.utils.common import CortxConf
 
 class Utils:
     """ Represents Utils and Performs setup related actions """
@@ -63,13 +64,10 @@ class Utils:
     @staticmethod
     def _get_utils_path() -> str:
         """ Gets install path from cortx.conf and returns utils path """
-
-        config_file_path = "/etc/cortx/cortx.conf"
-        Conf.load('config_file', f'yaml:///{config_file_path}')
-        install_path = Conf.get(index='config_file', key='install_path')
+        install_path = CortxConf.get_key(key='install_path')
 
         if not install_path:
-            error_msg = f"install_path not found in {config_file_path}"
+            error_msg = f"install_path not found in {const.CORTX_CONF_FILE}"
             raise SetupError(errno.EINVAL, error_msg)
 
         return install_path + "/cortx/utils"
@@ -229,14 +227,11 @@ class Utils:
         Conf.load(config_template_index, config_template)
 
         # Configure log_dir for utils
-        cortx_config_index = 'cortx_config'
-        Conf.load(cortx_config_index, 'yaml:///etc/cortx/cortx.conf', \
-            skip_reload=True)
         log_dir = Conf.get(config_template_index, \
             'cortx>common>storage>log')
         if log_dir is not None:
-            Conf.set(cortx_config_index, 'log_dir', log_dir)
-            Conf.save(cortx_config_index)
+            CortxConf.set('log_dir', log_dir)
+            CortxConf.save()
 
         try:
             server_list, port_list, config = \
@@ -262,8 +257,8 @@ class Utils:
         # temporary fix for a common message bus log file
         # The issue happend when some user other than root:root is trying
         # to write logs in these log dir/files. This needs to be removed soon!
-        log_dir = Conf.get(cortx_config_index, 'log_dir', '/var/log')
-        utils_log_dir = os.path.join(log_dir, 'cortx/utils')
+        log_dir = CortxConf.get_key('log_dir', '/var/log')
+        utils_log_dir = CortxConf.get_log_path(base_dir=log_dir)
         #message_bus
         os.makedirs(os.path.join(utils_log_dir, 'message_bus'), exist_ok=True)
         os.chmod(os.path.join(utils_log_dir, 'message_bus'), 0o0777)
