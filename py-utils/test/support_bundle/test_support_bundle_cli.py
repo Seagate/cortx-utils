@@ -289,6 +289,25 @@ class TestSupportBundleCli(unittest.TestCase):
             _, _, rc = cmd_proc.run()
             assert(rc == 0)
 
+    def test_006_cortxcli_generate_status(self):
+        cmd = "cortxcli support_bundle generate 'sample comment' -c 'csm'"
+        cmd_proc = SimpleProcess(cmd)
+        stdout, _, rc = cmd_proc.run()
+        stdout = stdout.decode('utf-8')
+        self.assertIn("bundle id", stdout)
+        self.assertEqual(rc, 0)
+        bundle_id = stdout.split('|')[1].strip()
+        time.sleep(15)
+        cmd = f"cortxcli support_bundle status '{bundle_id}'"
+        cmd_proc = SimpleProcess(cmd)
+        stdout, _, rc = cmd_proc.run()
+        self.assertIn('Success', stdout.decode('utf-8'))
+
+    def test_007_cortxcli_wrong_generate(self):
+        cmd = "cortxcli support_bundle generate 'sample comment' -c 'csmm'"
+        cmd_proc = SimpleProcess(cmd)
+        stdout, _, _ = cmd_proc.run()
+        self.assertEqual(stdout, b'')
 
 if __name__ == '__main__':
     unittest.main()
