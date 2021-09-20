@@ -143,6 +143,14 @@ class Consul:
             content = re.sub(
                 "ConditionFileNotEmpty=.*",
                 f"ConditionFileNotEmpty={config_path}/consul.hcl", content)
+            content = re.sub(
+                "User=.*", "User=root",
+                content
+            )
+            content = re.sub(
+                "Group=.*", "Group=root",
+                content
+            )
             f.seek(0)
             f.truncate()
             f.write(content)
@@ -204,7 +212,7 @@ class Consul:
                 returncode,
                 "Consul Setup config file %s validation failed with error :%s",
                 f"{config_path}/consul.hcl", err)
-        command = f"chown -R consul:consul {config_path} {data_path}"
+        command = f"chown -R root:root {config_path} {data_path}"
         _, err, returncode = SimpleProcess(command).run()
         if returncode != 0:
             raise ConsulSetupError(
@@ -252,6 +260,14 @@ class Consul:
             content = re.sub("ConditionFileNotEmpty=.*",
                              "ConditionFileNotEmpty=/etc/consul.d/consul.hcl",
                              content)
+            content = re.sub(
+                "User=.*", "User=consul",
+                content
+            )
+            content = re.sub(
+                "Group=.*", "Group=consul",
+                content
+            )
             f.seek(0)
             f.truncate()
             f.write(content)
