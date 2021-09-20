@@ -108,14 +108,14 @@ class Utils:
         Returns:
             dict: Server Information
         """
-        key_list = [f'server_node>{machine_id}']
+        key_list = [f'node>{machine_id}']
         ConfKeysV().validate('exists', conf_url_index, key_list)
         server_info = Conf.get(conf_url_index, key_list[0])
         return server_info
 
     @staticmethod
     def _copy_cluster_map(conf_url_index: str):
-        cluster_data = Conf.get(conf_url_index, 'server_node')
+        cluster_data = Conf.get(conf_url_index, 'node')
         for _, node_data in cluster_data.items():
             hostname = node_data.get('hostname')
             node_name = node_data.get('name')
@@ -126,7 +126,9 @@ class Utils:
     def _create_cluster_config(server_info: dict):
         """ Create the config file required for Event Message """
         for key, value in server_info.items():
-            Conf.set('cluster', f'server_node>{key}', value)
+            Conf.set('cluster', f'node>{key}', value)
+        Conf.set('cluster', 'site_id', '1')
+        Conf.set('cluster', 'rack_id', '1')
         Conf.save('cluster')
 
     @staticmethod
@@ -170,21 +172,21 @@ class Utils:
         ##    'kafka.service'])
 
         # Check required python packages
-        ## utils_path = Utils._get_utils_path()
-        ## with open(f"{utils_path}/conf/python_requirements.txt") as file:
-        ##     req_pack = []
-        ##    for package in file.readlines():
-        ##         pack = package.strip().split('==')
-        ##         req_pack.append(f"{pack[0]} ({pack[1]})")
-        ## try:
-        ##     with open(f"{utils_path}/conf/python_requirements.ext.txt") as extfile :
-        ##         for package in extfile.readlines():
-        ##             pack = package.strip().split('==')
-        ##             req_pack.append(f"{pack[0]} ({pack[1]})")
-        ## except Exception:
-        ##     Log.info("Not found: "+f"{utils_path}/conf/python_requirements.ext.txt")
+        utils_path = Utils._get_utils_path()
+        with open(f"{utils_path}/conf/python_requirements.txt") as file:
+            req_pack = []
+            for package in file.readlines():
+                pack = package.strip().split('==')
+                req_pack.append(f"{pack[0]} ({pack[1]})")
+        try:
+            with open(f"{utils_path}/conf/python_requirements.ext.txt") as extfile :
+                for package in extfile.readlines():
+                    pack = package.strip().split('==')
+                    req_pack.append(f"{pack[0]} ({pack[1]})")
+        except Exception:
+             Log.info("Not found: "+f"{utils_path}/conf/python_requirements.ext.txt")
 
-        ## PkgV().validate(v_type='pip3s', args=req_pack)
+        PkgV().validate(v_type='pip3s', args=req_pack)
         return 0
 
     @staticmethod
@@ -261,11 +263,18 @@ class Utils:
         # The issue happend when some user other than root:root is trying
         # to write logs in these log dir/files. This needs to be removed soon!
         log_dir = Conf.get(cortx_config_index, 'log_dir', '/var/log')
-        mb_log_path = os.path.join(log_dir, 'cortx/utils/message_bus')
-        os.makedirs(mb_log_path, exist_ok=True)
-        os.chmod(mb_log_path, 0o777)
-        Path(f'{mb_log_path}/message_bus.log').touch(exist_ok=True)
-        os.chmod(f'{mb_log_path}/message_bus.log', 0o666)
+        utils_log_dir = os.path.join(log_dir, 'cortx/utils')
+        #message_bus
+        os.makedirs(os.path.join(utils_log_dir, 'message_bus'), exist_ok=True)
+        os.chmod(os.path.join(utils_log_dir, 'message_bus'), 0o0777)
+        Path(os.path.join(utils_log_dir,'message_bus/message_bus.log')) \
+            .touch(exist_ok=True)
+        os.chmod(os.path.join(utils_log_dir,'message_bus/message_bus.log'), 0o0666)
+        #iem
+        os.makedirs(os.path.join(utils_log_dir, 'iem'), exist_ok=True)
+        os.chmod(os.path.join(utils_log_dir, 'iem'), 0o0777)
+        Path(os.path.join(utils_log_dir, 'iem/iem.log')).touch(exist_ok=True)
+        os.chmod(os.path.join(utils_log_dir, 'iem/iem.log'), 0o0666)
         return 0
 
     @staticmethod
