@@ -21,6 +21,7 @@ import inspect
 import argparse
 import traceback
 
+from cortx.utils.common import CortxConf
 from cortx.setup import Utils
 from cortx.utils.log import Log
 from cortx.setup.utils import SetupError
@@ -217,19 +218,17 @@ class PostUpgradeCmd(Cmd):
 def main(argv: dict):
     from cortx.utils.conf_store import Conf
     tmpl_file_index = 'tmpl_index'
-    cortx_config_index = 'cortx_config'
 
     # Get the log path
     tmpl_file = argv[3]
     Conf.load(tmpl_file_index, tmpl_file, skip_reload=True)
     log_dir = Conf.get(tmpl_file_index, 'cortx>common>storage>log', \
         '/var/log')
-    utils_log_path = os.path.join(log_dir, 'cortx/utils')
+    # utils_log_path = os.path.join(log_dir, 'cortx/utils')
+    utils_log_path = CortxConf.get_log_path(base_dir=log_dir)
 
     # Get the log level
-    cortx_config_file = 'yaml:///etc/cortx/cortx.conf'
-    Conf.load(cortx_config_index, cortx_config_file, skip_reload=True)
-    log_level = Conf.get(cortx_config_index, 'utils>log_level', 'INFO')
+    log_level = CortxConf.get_key('utils>log_level', 'INFO')
 
     Log.init('utils_setup', utils_log_path, level=log_level, backup_count=5, \
         file_size_in_mb=5)

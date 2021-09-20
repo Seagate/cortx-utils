@@ -19,6 +19,7 @@ import os
 import json
 import time
 import errno
+from cortx.utils.common import CortxConf
 from cortx.utils import errors
 from cortx.template import Singleton
 from cortx.utils.conf_store import Conf
@@ -66,16 +67,12 @@ class EventMessage(metaclass=Singleton):
 
         cls._component = component
         cls._source = source
-
-        Conf.load('config_file', 'json:///etc/cortx/cortx.conf',
-            skip_reload=True)
         # if Log.logger is already initialized by some parent process
         # the same file will be used to log all the messagebus related
         # logs, else standard iem.log will be used.
         if not Log.logger:
-            LOG_DIR='/var/log'
-            iem_log_dir = os.path.join(LOG_DIR, 'cortx/utils/iem')
-            log_level = Conf.get('config_file', 'utils>log_level', 'INFO')
+            iem_log_dir = CortxConf.get_log_path('iem')
+            log_level = CortxConf.get_key('utils>log_level', 'INFO')
             Log.init('iem', iem_log_dir, level=log_level, \
                 backup_count=5, file_size_in_mb=5)
 
