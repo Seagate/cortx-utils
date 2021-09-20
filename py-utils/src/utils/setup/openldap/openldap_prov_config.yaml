@@ -27,6 +27,9 @@ CONFIG:
   CONFSTORE_STORAGE_SET_COUNT_KEY: "cluster>cluster-id>site>storage_set_count"
   CONFSTORE_STORAGE_SET_SERVER_NODES_KEY: "cluster>cluster-id>storage_set[storage-set-count]>server_nodes"
   OPENLDAP_BASE_DN: "cortx>software>openldap>base_dn"
+  OPENLDAP_INSTALL_DIR: "cortx>software>openldap>install_dir"
+  OPENLDAP_DATA_DIR: "cortx>software>openldap>data_dir"
+
 INIT:
 TEST:
   CONFSTORE_CLUSTER_ID_KEY: "server_node>machine-id>cluster_id"
