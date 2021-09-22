@@ -182,15 +182,17 @@ class SupportBundle:
             return Response(output = response, rc = OPERATION_SUCESSFUL)
         except DataAccessExternalError as e:
             Log.warn(f"Failed to connect to elasticsearch: {e}")
-            return Response(output=("Support Bundle status is not available " \
+            return Response(output=(f"Support Bundle status is not available " \
                 "currently as required services are not running. Please wait " \
                 "and check the /tmp/support_bundle folder for newly generated " \
-                "support bundle."), rc=str(errno.ECONNREFUSED))
+                "support bundle. Related error - Failed to connect to elasticsearch: {e}"), \
+                rc=str(errno.ECONNREFUSED))
         except Exception as e:
             Log.error(f"Failed to get bundle status: {e}")
-            return Response(output=("Support Bundle status is not available " \
+            return Response(output=(f"Support Bundle status is not available " \
                 "currently as required services are not running. Failed to " \
-                "get status of bundle."), rc=str(errno.ENOENT))
+                "get status of bundle. Related error - Failed to get bundle status: {e}"), \
+                rc=str(errno.ENOENT))
 
     @staticmethod
     def generate(comment: str, **kwargs):
