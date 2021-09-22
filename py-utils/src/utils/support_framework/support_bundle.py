@@ -179,9 +179,7 @@ class SupportBundle:
             all_nodes_status = await repo.retrieve_all(bundle_id)
             response = {'status': [each_status.to_primitive() for each_status in
                                    all_nodes_status]}
-            if command.sub_command_name == 'status':
-                return Response(output = response, rc = OPERATION_SUCESSFUL)
-            return response
+            return Response(output = response, rc = OPERATION_SUCESSFUL)
         except DataAccessExternalError as e:
             Log.warn(f"Failed to connect to elasticsearch: {e}")
             return Response(output=("Support Bundle status is not available " \
@@ -240,8 +238,11 @@ class SupportBundle:
         loop = asyncio.get_event_loop()
         res = loop.run_until_complete(
             SupportBundle._get_bundle_status(cmd_obj))
-        import json
-        return json.dumps(res, indent=2)
+        if res.rc() == OPERATION_SUCESSFUL:
+            import json
+            return json.dumps(res.output(), indent=2)
+        else:
+            return res.output()
 
     @staticmethod
     def delete(bundle):
