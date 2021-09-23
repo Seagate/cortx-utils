@@ -42,7 +42,6 @@ class SetupCmd(object):
   rootdn_passwd = None
   cluster_id = None
   machine_id = None
-  ldap_mdb_folder = "/var/lib/ldap"
   _preqs_conf_file = "openldapsetup_prereqs.json"
   ha_service_map = {}
   sgiam_user_key = 'cluster_config>sgiam_user'

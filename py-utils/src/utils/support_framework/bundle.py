@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
@@ -12,17 +14,28 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
-from cortx.utils.errors import BaseError
 
 
-class BundleError(BaseError):
-    """
-    Error class for support bundle related errors
-    """
+class Bundle:
+    def __init__(self, bundle_id, bundle_path, is_shared, comment):
+        """Initialiases bundle object, which will have support bundle information."""
+        self._bundle_id = bundle_id
+        self._bundle_path = bundle_path
+        self._comment = comment
+        self._is_shared = is_shared
 
-    def __init__(self, rc=None, desc=None, message_id=None, message_args=None):
-        super(BundleError, self).__init__(
-            rc, desc, message_id, message_args)
+    @property
+    def bundle_id(self):
+        return self._bundle_id
 
-    def __str__(self):
-        return f"BundleError: {self.rc}: {self.desc}"
+    @property
+    def bundle_path(self):
+        return self._bundle_path
+
+    @property
+    def is_shared(self):
+        return self._is_shared
+
+    @property
+    def comment(self):
+        return self._comment

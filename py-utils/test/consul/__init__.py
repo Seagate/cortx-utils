@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-# CORTX-Py-Utils: CORTX Python common library.
+# CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -14,14 +15,3 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
-
-SUPPORT_BUNDLE_TAG = "support_bundle;"
-SUPPORT_BUNDLE = 'SUPPORT_BUNDLE'
-SOS_COMP = 'os'
-SB_COMPONENTS = "components"
-SB_COMMENT = "comment"
-SB_NODE_NAME = "node_name"
-SB_BUNDLE_ID = "bundle_id"
-SB_BUNDLE_PATH = "bundle_path"
-SB_SYMLINK_PATH = "symlink_path"
-SYMLINK_PATH = "/tmp/support_bundle/"

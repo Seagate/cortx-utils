@@ -61,18 +61,26 @@ class Utils:
                         %s", each_file, e)
 
     @staticmethod
-    def _get_utils_path() -> str:
-        """ Gets install path from cortx.conf and returns utils path """
+    def _set_to_conf_file(key, value):
+        """ Add key value pair to cortx.conf file """
+        config_file = 'json:///etc/cortx/cortx.conf'
+        Conf.load('config_file', config_file, skip_reload=True)
+        Conf.set('config_file', key, value)
+        Conf.save('config_file')
 
-        config_file_path = "/etc/cortx/cortx.conf"
-        Conf.load('config_file', f'yaml:///{config_file_path}')
-        install_path = Conf.get(index='config_file', key='install_path')
+    # Utils private methods
+    @staticmethod
+    def _get_from_conf_file(key) -> str:
+        """ Fetch and return value for the key from cortx.conf file """
+        config_file = 'json:///etc/cortx/cortx.conf'
+        Conf.load('config_file', config_file, skip_reload=True)
+        val = Conf.get('config_file', key)
 
-        if not install_path:
-            error_msg = f"install_path not found in {config_file_path}"
+        if not val:
+            error_msg = f"Value for key: {key}, not found in {config_file}"
             raise SetupError(errno.EINVAL, error_msg)
 
-        return install_path + "/cortx/utils"
+        return val
 
     @staticmethod
     def _create_msg_bus_config(message_server_list: list, port_list: list, \
@@ -164,15 +172,15 @@ class Utils:
         pass
 
     @staticmethod
-    def post_install():
+    def post_install(post_install_template: str):
         """ Performs post install operations """
-
         # check whether zookeeper and kafka are running
         ## ServiceV().validate('isrunning', ['kafka-zookeeper.service', \
         ##    'kafka.service'])
 
         # Check required python packages
-        utils_path = Utils._get_utils_path()
+        install_path = Utils._get_from_conf_file('install_path')
+        utils_path = install_path + '/cortx/utils'
         with open(f"{utils_path}/conf/python_requirements.txt") as file:
             req_pack = []
             for package in file.readlines():
@@ -187,12 +195,26 @@ class Utils:
              Log.info("Not found: "+f"{utils_path}/conf/python_requirements.ext.txt")
 
         PkgV().validate(v_type='pip3s', args=req_pack)
+        default_sb_path = '/var/log/cortx/support_bundle'
+        Utils._set_to_conf_file('support>local_path', default_sb_path)
+        os.makedirs(default_sb_path, exist_ok=True)
+
+        post_install_template_index = 'post_install_index'
+        Conf.load(post_install_template_index, post_install_template)
+
+        machine_id = Conf.machine_id
+        key_list = [f'server_node>{machine_id}>hostname', f'server_node>{machine_id}>name']
+        ConfKeysV().validate('exists', post_install_template_index, key_list)
+
+        #set cluster nodename:hostname mapping to cluster.conf (needed for Support Bundle)
+        Conf.load('cluster', 'json:///etc/cortx/cluster.conf', skip_reload=True)
+        Utils._copy_cluster_map(post_install_template_index)
+
         return 0
 
     @staticmethod
     def init():
         """ Perform initialization """
-
         # Create message_type for Event Message
         from cortx.utils.message_bus import MessageBusAdmin
         try:
@@ -225,7 +247,7 @@ class Utils:
 
         # Load required files
         config_template_index = 'cluster_config'
-        Conf.load('cluster', 'json:///etc/cortx/cluster.conf')
+        Conf.load('cluster', 'json:///etc/cortx/cluster.conf', skip_reload=True)
         Conf.load(config_template_index, config_template)
 
         # Configure log_dir for utils
@@ -259,6 +281,14 @@ class Utils:
         #set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map(config_template_index)
         Utils._configure_rsyslog()
+
+        # get shared storage info from config phase input conf template file
+        shared_storage = Conf.get('cluster_config', 'cortx>support')
+
+        # set shared storage info to cortx.conf conf file
+        if shared_storage:
+            Utils._set_to_conf_file('support>shared_path', shared_storage)
+
         # temporary fix for a common message bus log file
         # The issue happend when some user other than root:root is trying
         # to write logs in these log dir/files. This needs to be removed soon!
@@ -304,6 +334,8 @@ class Utils:
     @staticmethod
     def reset():
         """Remove/Delete all the data/logs that was created by user/testing."""
+        import time
+        _purge_retry = 20
         try:
             from cortx.utils.message_bus import MessageBusAdmin
             from cortx.utils.message_bus.message_bus_client import MessageProducer
@@ -313,7 +345,19 @@ class Utils:
                 for message_type in message_types_list:
                     producer = MessageProducer(producer_id=message_type, \
                         message_type=message_type, method='sync')
-                    producer.delete()
+                    for retry_count in range(1, (_purge_retry + 2)):
+                        if retry_count > _purge_retry:
+                            Log.error(f"MessageBusError: {errors.ERR_OP_FAILED} " \
+                                f" Unable to delete messages for message type" \
+                                f" {message_type} after {retry_count} retries")
+                            raise MessageBusError(errors.ERR_OP_FAILED,\
+                                "Unable to delete messages for message type" + \
+                                "%s after %d retries", message_type, \
+                                retry_count)
+                        rc = producer.delete()
+                        if rc == 0:
+                            break
+                        time.sleep(2*retry_count)
         except MessageBusError as e:
             raise SetupError(e.rc, "Can not reset Message Bus. %s", e)
         except Exception as e:

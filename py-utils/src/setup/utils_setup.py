@@ -95,7 +95,7 @@ class PostInstallCmd(Cmd):
 
     def process(self):
         Utils.validate('post_install')
-        rc = Utils.post_install()
+        rc = Utils.post_install(self._url)
         return rc
 
 

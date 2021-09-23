@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
@@ -23,13 +21,13 @@ COMPONENTS:
   csm:
     - '<CORTX_PATH>/cli/conf/setup.yaml'
   sspl:
-    - '<CORTX_PATH>/sspl/conf/setup.yaml'
+    - '<CORTX_PATH>/sspl/conf/support.yaml'
   s3server:
-    - '<CORTX_PATH>/s3/conf/setup.yaml'
+    - '<CORTX_PATH>/s3/conf/support.yaml'
   motr:
-    - '<CORTX_PATH>/motr/conf/setup.yaml'
+    - '<CORTX_PATH>/motr/conf/support.yaml'
   hare:
-    - '<CORTX_PATH>/hare/conf/setup.yaml'
+    - '<CORTX_PATH>/hare/conf/support.yaml'
   provisioner:
     - '<CORTX_PATH>/provisioner/conf/setup.yaml'
   alerts:
@@ -39,6 +37,6 @@ COMPONENTS:
   elasticsearch:
     - '<CORTX_PATH>/cli/conf/elasticsearch_setup.yaml'
   ha:
-    - '<CORTX_PATH>/ha/conf/setup.yaml'
+    - '<CORTX_PATH>/ha/conf/support.yaml'
   utils:
-    - '<CORTX_PATH>/utils/conf/setup.yaml'
+    - '<CORTX_PATH>/utils/conf/support.yaml'
