@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
@@ -14,27 +12,16 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
-
-from cortx.utils.data.access import BaseModel
-from schematics.types import StringType
-from cortx.utils.data.access import Query
-from cortx.utils.data.access.filters import Compare
-from cortx.utils.data.db.db_provider import DataBaseProvider
+from cortx.utils.errors import BaseError
 
 
-class SupportBundleModel(BaseModel):
-    _id = "bundle_id"
-    bundle_id = StringType()
-    node_name = StringType()
-    comment = StringType()
-    result = StringType()
-    message = StringType()
+class BundleError(BaseError):
 
-class SupportBundleRepository:
-    def __init__(self, storage: DataBaseProvider):
-        self.db = storage
+    def __init__(self, rc=None, desc=None, message_id=None, message_args=None):
+        """Error class for support bundle related errors."""
+        super(BundleError, self).__init__(
+            rc, desc, message_id, message_args)
 
-    async def retrieve_all(self, bundle_id) -> [SupportBundleModel]:
-        query = Query().filter_by(Compare(SupportBundleModel.bundle_id, '=',
-                                          bundle_id))
-        return await self.db(SupportBundleModel).get(query)
+    def __str__(self):
+        """Returns bundle_error in formatted way."""
+        return f"BundleError: {self._rc}: {self._desc}"

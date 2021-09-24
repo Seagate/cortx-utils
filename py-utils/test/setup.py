@@ -45,13 +45,16 @@ setup(
         "cortx.utils.test.conf_store",
         "cortx.utils.test.schema",
         "cortx.utils.test.cli_framework",
-        "cortx.utils.test.discovery",
         "cortx.utils.test.iem_framework",
+        "cortx.utils.test.shared_storage",
+        "cortx.utils.test.consul",
         "cortx.utils.test.discovery",
         "cortx.utils.test.discovery.solution",
         "cortx.utils.test.discovery.solution.lr2",
         "cortx.utils.test.discovery.solution.lr2.server",
         "cortx.utils.test.discovery.solution.lr2.storage",
+        "cortx.utils.test.elasticsearch",
+        "cortx.utils.test.support_bundle",
     ],
     package_data={
         "": [
@@ -64,6 +67,7 @@ setup(
             "cli_framework/test_data/*.json",
             "iem_framework/*.json",
             "discovery/solution/lr2/*.json",
+            "support_bundle/*.yaml",
         ]
     },
     entry_points={

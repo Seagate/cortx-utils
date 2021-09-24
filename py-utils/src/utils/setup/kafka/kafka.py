@@ -16,6 +16,7 @@
 
 import os
 import errno
+import shutil
 import fileinput
 import traceback
 from time import sleep
@@ -99,7 +100,7 @@ class Kafka:
         """Updates/Add properties in provided file while retaining comments
 
         Args:
-            properties (dict): Key value pair of properies to be updated
+            properties (dict): Key value pair of properties to be updated
             file_path (str): absolute path to properties file
         """
         pending_config=[]
@@ -119,6 +120,23 @@ class Kafka:
         with open(file_path, 'a') as fd:  # Append remaining new keys to file
             for item in pending_config:
                 fd.write(item)
+
+    @staticmethod
+    def _delete_properties_from_file(file_path: str, properties: list):
+        """Deletes properties in provided file while retaining comments
+
+        Args:
+            properties (list): Key of properties to be deleted
+            file_path (str): absolute path to properties file
+        """
+        for key in properties:
+            with fileinput.input(files=(file_path), inplace=True) as fp:
+                # inplace=True argument redirects print output to file
+                for line in fp:
+                    if line.startswith(key + '=') or line.startswith('server.'):
+                        print('')  # deletes the line
+                    else:
+                        print(line, end='')
 
     @staticmethod
     def _set_kafka_config(hostname: str, port: str, kafka_servers: list):
@@ -141,7 +159,7 @@ class Kafka:
             'listeners': f'PLAINTEXT://{hostname}:{port}',
             'log.flush.offset.checkpoint.interval.ms': '1',
             'log.retention.check.interval.ms': '1',
-            'log.dirs': '/var/log/kafka',
+            'log.dirs': '/var/local/data/kafka',
             'log.delete.delay.ms': '1',
         }
 
@@ -267,7 +285,56 @@ class Kafka:
         return 0
 
     def reset(self, *args, **kwargs):
-        """Performs Configuraiton reset. Raises exception on error."""
+        """Performs reset. Deletes all meta data and logs."""
 
-        # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
+        directories = [
+            '/var/log/kafka', '/tmp/kafka-logs', '/var/log/zookeeper',
+            '/var/lib/zookeeper', '/var/local/data/kafka']
+        # delete data not the folder
+        for directory in directories:
+            if os.path.exists(directory):
+                for files in os.listdir(directory):
+                    path = os.path.join(directory, files)
+                    try:
+                        shutil.rmtree(path)
+                    except OSError:
+                        os.remove(path)
+
+        return 0
+
+    def cleanup(self, *args, **kwargs):
+        """Performs Configuraiton cleanup. Raises exception on error."""
+        server_properties_file = '/opt/kafka/config/server.properties'
+        default_server_properties = {
+            'broker.id': 0,
+            'log.dirs': '/tmp/kafka-logs',
+            'log.retention.check.interval.ms': 300000,
+            'zookeeper.connect': 'localhost:2181',
+            'transaction.state.log.min.isr': 1,
+            'offsets.topic.replication.factor': 1,
+            'transaction.state.log.replication.factor': 1,
+        }
+        delete_server_properties = [
+            'listeners',
+            'log.delete.delay.ms',
+            'default.replication.factor',
+            'log.flush.offset.checkpoint.interval.ms']
+
+        Kafka._update_properties_file(
+            server_properties_file, default_server_properties)
+        Kafka._delete_properties_from_file(
+            server_properties_file, delete_server_properties)
+
+        zookeeper_properties_file = '/opt/kafka/config/zookeeper.properties'
+        default_zookeeper_properties = {
+            'clientPort': 2181,
+            'dataDir': '/tmp/zookeeper'
+        }
+        delete_zookeeper_properties = ['dataLogDir', 'tickTime', 'initLimit',
+            'syncLimit', 'dataLogDir', 'autopurge.snapRetainCount', 'server.',
+            'autopurge.purgeInterval', '4lw.commands.whitelist']
+        Kafka._update_properties_file(
+            zookeeper_properties_file, default_zookeeper_properties)
+        Kafka._delete_properties_from_file(
+            zookeeper_properties_file, delete_zookeeper_properties)
         return 0

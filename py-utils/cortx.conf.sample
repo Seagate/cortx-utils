@@ -6,7 +6,7 @@
     },
   "product_id": "LR2",
   "support": {
-    "support_bundle_path": "/var/log/cortx/support_bundle/"
+    "local_path": "/var/log/cortx/support_bundle/"
   },
   "discovery": {
     "solution_platform_monitor": "/opt/seagate/cortx/sspl/extension/solution",

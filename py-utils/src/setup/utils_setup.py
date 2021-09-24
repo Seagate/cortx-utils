@@ -36,6 +36,7 @@ class Cmd:
             raise SetupError(errno.EPERM, "Permission denied! You need to be a \
                 root user")
         self._url = args.config
+        self._services = args.services
         self._args = args.args
 
     @property
@@ -80,6 +81,7 @@ class Cmd:
 
         parser1 = parser.add_parser(cls.name, help='setup %s' % name)
         parser1.add_argument('--config', help='Conf Store URL', type=str)
+        parser1.add_argument('--services', help='Cortx Services', default='all')
         cls._add_extended_args(parser1)
         parser1.add_argument('args', nargs='*', default=[], help='args')
         parser1.set_defaults(command=cls)
@@ -94,7 +96,7 @@ class PostInstallCmd(Cmd):
 
     def process(self):
         Utils.validate('post_install')
-        rc = Utils.post_install()
+        rc = Utils.post_install(self._url)
         return rc
 
 

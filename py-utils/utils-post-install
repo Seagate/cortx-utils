@@ -38,14 +38,26 @@ utils_path=$cortx_path/utils
 /bin/ln -sf /usr/lib/python3.6/site-packages/cortx/utils/utils_server/utils_server.py $utils_path/bin/utils_server
 /bin/chmod +x $utils_path/bin/utils_server
 
+# Copy the support_bundle_cli.py as support_bundle_cli
+/bin/ln -sf /usr/lib/python3.6/site-packages/cortx/support/support_bundle_cli.py $utils_path/bin/support_bundle
+/bin/chmod +x $utils_path/bin/support_bundle
+
 # Copy the openldap_setup.py as openldap_setup
 /bin/ln -sf /usr/lib/python3.6/site-packages/cortx/utils/setup/openldap/openldap_setup.py $utils_path/bin/openldap_setup
 /bin/chmod +x $utils_path/bin/openldap_setup
 
-# Copy openldap_config.yaml.sample to openldap_config.yaml
+# Copy the consul_setup.py as consul_setup.
+/bin/ln -sf /usr/lib/python3.6/site-packages/cortx/utils/setup/consul/consul_setup.py $utils_path/bin/consul_setup
+/bin/chmod +x $utils_path/bin/consul_setup
+
+# Copy openldap_config.yaml.sample to openldap_config.yaml.
 [ -f "$utils_path/conf/openldap_config.yaml" ] || cp -n $utils_path/conf/openldap_config.yaml.sample $utils_path/conf/openldap_config.yaml
 
-# Copy cortx.conf file to /etc/cortx
+# Copy the elasticsearch_setup.py as elasticsearch_setup.
+/bin/ln -sf /usr/lib/python3.6/site-packages/cortx/utils/setup/elasticsearch/elasticsearch_setup.py $utils_path/bin/elasticsearch_setup
+/bin/chmod +x $utils_path/bin/elasticsearch_setup
+
+# Copy cortx.conf file to /etc/cortx.
 [ -f "/etc/cortx/cortx.conf" ] || cp -n $utils_path/conf/cortx.conf.sample /etc/cortx/cortx.conf
 
 # Copy support/utils_support_bundle.py to $utils_path/bin.

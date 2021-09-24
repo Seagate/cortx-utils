@@ -18,3 +18,4 @@
 from cortx.utils.data.db.generic_storage import GenericDataBase, GenericQueryConverter
 from cortx.utils.data.db.elasticsearch_db import ElasticSearchDB
 from cortx.utils.data.db.consul_db import ConsulDB
+from cortx.utils.data.db.openldap import OpenLdap

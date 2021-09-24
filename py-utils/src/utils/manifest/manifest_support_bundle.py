@@ -104,8 +104,10 @@ class ManifestSupportBundle:
     @staticmethod
     def __generate_tar(bundle_id: str, target_path: str, bundle_time: str):
         """Generate tar.gz file at given path."""
+        component = 'manifest'
         target_path = target_path if target_path is not None \
             else ManifestSupportBundle._default_path
+        target_path = os.path.join(target_path, component)
         tar_name, _ = ManifestSupportBundle.__generate_file_names(
             bundle_id, bundle_time)
         tar_file_name = os.path.join(target_path, tar_name + '.tar.gz')
