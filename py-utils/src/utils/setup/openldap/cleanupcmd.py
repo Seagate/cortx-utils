@@ -42,8 +42,17 @@ class CleanupCmd(SetupCmd):
         try:
             self.delete_replication_config()
             self.delete_log_files()
-            BaseConfig.cleanup(True)
-            os.system('systemctl restart slapd')
+            install_dir = self.get_confvalue(self.get_confkey('CONFIG>OPENLDAP_INSTALL_DIR'))
+            data_dir = self.get_confvalue(self.get_confkey('CONFIG>OPENLDAP_DATA_DIR'))
+            BaseConfig.cleanup(True, install_dir, data_dir)
+            # restart slapd
+            if(os.system('kill -15 $(pidof slapd)')!=0) :
+                Log.error('failed to kill slapd process while cleanup')
+                quit()
+            if(os.system('/usr/sbin/slapd -F '+install_dir +'/openldap/slapd.d -u ldap -h \'ldapi:/// ldap:///\'')!=0) :
+                Log.error('failed to start slapd in cleanup')
+                quit()
+
         except Exception as e:
             raise OpenldapPROVError(f'exception: {e}\n')
 

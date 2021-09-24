@@ -12,7 +12,8 @@ cortx:
   software:
     openldap:
       base_dn: "dc=seagate,dc=com"
-      bind_base_dn: "cn=admin,dc=seagate,dc=com"
+      install_dir: "/etc"
+      data_dir: "/var/lib/ldap"
       root:
         user: "admin"
         secret: "gAAAAABgiBKtyL7Y0QUvbsNeaJRvh7ihTq9EQDCiZlGkO2k2doSEepB0-dYFPM3V12NyjagS3oCU5YcO6JPBTe5pEMaTKbVPDg=="

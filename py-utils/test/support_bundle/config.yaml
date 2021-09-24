@@ -1,0 +1,21 @@
+SB_single_comp: 'provisioner'
+SB_multi_comp: 'csm;utils;provisioner'
+SB_generate_help: |
+  usage: support_bundle generate [-h] [-c COMPONENT [COMPONENT ...]]
+                                 comment [comment ...]
+
+  positional arguments:
+    comment               Comment - Reason for generating Support Bundle
+
+  optional arguments:
+    -h, --help            show this help message and exit
+    -c COMPONENT [COMPONENT ...], --component COMPONENT [COMPONENT ...]
+                          Optional, Specified component support bundle will be
+                          generated
+SB_get_status_help: |
+  usage: support_bundle get_status [-h] [-b BUNDLE_ID [BUNDLE_ID ...]]
+
+  optional arguments:
+    -h, --help            show this help message and exit
+    -b BUNDLE_ID [BUNDLE_ID ...], --bundle_id BUNDLE_ID [BUNDLE_ID ...]
+                          Bundle ID of generated Support Bundle

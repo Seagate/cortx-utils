@@ -18,6 +18,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
+import time
 import ldap
 import glob
 from shutil import copyfile
@@ -47,27 +48,27 @@ class BaseConfig:
         except Exception:
             Log.error('Error while deleting ' + filename)
 
-    def cleanup(forceclean):
+    def cleanup(forceclean,install_dir,data_dir):
         # Removing schemas
-        filelist = glob.glob('/etc/openldap/slapd.d/cn=config/cn=schema/*ppolicy.ldif')
+        filelist = glob.glob(install_dir + '/openldap/slapd.d/cn=config/cn=schema/*ppolicy.ldif')
         for policyfile in filelist:
             BaseConfig.safe_remove(policyfile)
         module_files = ["cn=module{0}.ldif", "cn=module{1}.ldif", "cn=module{2}.ldif"]
         for module_file in module_files:
-            module_file = '/etc/openldap/slapd.d/cn=config/'+ str(module_file)
+            module_file = install_dir + '/openldap/slapd.d/cn=config/'+ str(module_file)
             BaseConfig.safe_remove(module_file)
-        mdb_directory = '/etc/openldap/slapd.d/cn=config/olcDatabase={2}mdb'
+        mdb_directory = install_dir + '/openldap/slapd.d/cn=config/olcDatabase={2}mdb'
         try:
-            files = glob.glob('/etc/openldap/slapd.d/cn=config/olcDatabase={2}mdb/*')
+            files = glob.glob(install_dir + '/openldap/slapd.d/cn=config/olcDatabase={2}mdb/*')
             for f in files:
                 BaseConfig.safe_remove(f)
         except Exception:
             Log.error('Error while deleting '+ mdb_directory)
-        mdbfile = '/etc/openldap/slapd.d/cn=config/olcDatabase={2}mdb.ldif'
+        mdbfile = install_dir + '/openldap/slapd.d/cn=config/olcDatabase={2}mdb.ldif'
         BaseConfig.safe_remove(mdbfile)
         #Data Cleanup
         if forceclean == 'True' :
-            files = glob.glob('/var/lib/ldap/*')
+            files = glob.glob(data_dir + '/*')
             for f in files:
                 BaseConfig.safe_remove(f)
         #Clear the password set in config
@@ -105,23 +106,43 @@ class BaseConfig:
             quit()
         if forcecleanup != None :
             forceclean = forcecleanup
+        adminuser = config_values.get('bind_base_dn').split('dc=')[0]
         mdb_dir = Conf.get(index= 'util_config_file_index', key='install_path') + '/cortx/utils/conf'
-        BaseConfig.cleanup(forceclean)
+        install_dir = config_values.get('install_dir')
+        data_dir = config_values.get('data_dir')
+        if(os.system('chown -R ldap.ldap '+ data_dir) != 0):
+            Log.error('Failed to change user for ldap data dir')
+            quit()
+        BaseConfig.cleanup(forceclean, install_dir, data_dir)
         copyfile(mdb_dir + '/olcDatabase={2}mdb.ldif' ,\
-        '/etc/openldap/slapd.d/cn=config/olcDatabase={2}mdb.ldif')
-        os.system('chgrp ldap /etc/openldap/certs/password')
+        install_dir+'/openldap/slapd.d/cn=config/olcDatabase={2}mdb.ldif')
+        if(os.system('chgrp ldap /etc/openldap/certs/password') !=0) :
+            Log.error('Failed in chgrp command while performing ldap base config')
+            quit()
         cmd = 'slappasswd -s ' + str(ROOTDNPASSWORD)
         pwd = os.popen(cmd).read()
         pwd.replace('/','\/')
-        #restart slapd post cleanup
-        os.system('systemctl restart slapd')
         dn = 'olcDatabase={0}config,cn=config'
-        BaseConfig.modify_attribute(dn, 'olcRootDN', 'cn=admin,cn=config')
+        BaseConfig.modify_attribute(dn, 'olcRootDN', (adminuser+'cn=config'))
         BaseConfig.modify_attribute(dn, 'olcRootPW', pwd)
         BaseConfig.modify_attribute(dn, 'olcAccess', '{0}to * by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth" write by self write by * read')
+        #restart slapd post cleanup
+        if(os.system('kill -15 $(pidof slapd)')!=0) :
+            Log.error('Failed while killing slapd process in base config')
+            quit()
+        if(os.system('/usr/sbin/slapd -F '+install_dir +'/openldap/slapd.d -u ldap -h \'ldapi:/// ldap:///\'')!=0) :
+            Log.error('Failed while starting slapd process in base config')
+            quit()
         dn = 'olcDatabase={2}mdb,cn=config'
-        BaseConfig.modify_attribute(dn, 'olcSuffix', config_values.get('base_dn'))
+        try:
+            BaseConfig.modify_attribute(dn, 'olcSuffix', config_values.get('base_dn'))
+        except Exception:
+            # retry 1s incase of connection failure
+            time.sleep(0.5)
+            BaseConfig.modify_attribute(dn, 'olcSuffix', config_values.get('base_dn'))
+
         BaseConfig.modify_attribute(dn, 'olcRootDN', config_values.get('bind_base_dn'))
+        BaseConfig.modify_attribute(dn, 'olcDbDirectory', data_dir)
         ldap_conn = ldap.initialize("ldapi:///")
         ldap_conn.sasl_non_interactive_bind_s('EXTERNAL')
         mod_attrs = [( ldap.MOD_ADD, 'olcDbMaxSize', [b'10737418240'] )]
@@ -136,19 +157,56 @@ class BaseConfig:
         BaseConfig.modify_attribute(dn, 'olcAccess', '{1}to * by dn.base="'+config_values.get('bind_base_dn')+'" write by self write by * none')
 
         #add_s - init.ldif
+        base = config_values.get('base_dn').split(',')[0].split('=')[1]
         add_record = [
-         ('dc', [b'seagate'] ),
-         ('o', [b'seagate'] ),
+         ('dc', (bytes(base,'utf-8'))),
+         ('o', (bytes(base,'utf-8'))),
          ('description', [b'Root entry for seagate.com.']),
          ('objectClass', [b'top',b'dcObject',b'organization'])
         ]
         BaseConfig.add_attribute(config_values.get('bind_base_dn'), config_values.get('base_dn'), add_record, ROOTDNPASSWORD)
 
         #add iam constraint
-        BaseConfig.perform_ldif_operation('/opt/seagate/cortx/utils/conf/iam-constraints.ldif','cn=admin,cn=config',ROOTDNPASSWORD)
+        BaseConfig.perform_ldif_operation('/opt/seagate/cortx/utils/conf/iam-constraints.ldif',(adminuser+'cn=config'),ROOTDNPASSWORD)
         #add ppolicy schema
-        BaseConfig.perform_ldif_operation('/etc/openldap/schema/ppolicy.ldif','cn=admin,cn=config',ROOTDNPASSWORD)
-        BaseConfig.perform_ldif_operation('/opt/seagate/cortx/utils/conf/ppolicymodule.ldif','cn=admin,cn=config',ROOTDNPASSWORD)
-        BaseConfig.perform_ldif_operation('/opt/seagate/cortx/utils/conf/ppolicyoverlay.ldif','cn=admin,cn=config',ROOTDNPASSWORD)
-        BaseConfig.perform_ldif_operation('/opt/seagate/cortx/utils/conf/ppolicy-default.ldif',config_values.get('bind_base_dn'),ROOTDNPASSWORD)
+        BaseConfig.perform_ldif_operation(install_dir + '/openldap/schema/ppolicy.ldif',(adminuser+'cn=config'),ROOTDNPASSWORD)
+        BaseConfig.perform_ldif_operation('/opt/seagate/cortx/utils/conf/ppolicymodule.ldif',(adminuser+'cn=config'),ROOTDNPASSWORD)
+        add_record = [
+         ('objectClass', [b'olcOverlayConfig',b'olcPPolicyConfig']),
+         ('olcOverlay',[b'ppolicy']),
+         ('olcPPolicyDefault',bytes(('cn=passwordDefault,ou=Policies,' + config_values.get('base_dn')),'utf-8')),
+         ('olcPPolicyHashCleartext',[b'FALSE']),
+         ('olcPPolicyUseLockout',[b'FALSE']),
+         ('olcPPolicyForwardUpdates',[b'FALSE'])
+        ]
+        BaseConfig.add_attribute((adminuser+'cn=config'), "olcOverlay=ppolicy,olcDatabase={2}mdb,cn=config", add_record, ROOTDNPASSWORD)
+
+        add_record = [
+         ('objectClass', [b'organizationalUnit']),
+         ('ou',[b'Policies'])
+        ]
+        BaseConfig.add_attribute(config_values.get('bind_base_dn'), str("ou=Policies," + config_values.get('base_dn')), add_record, ROOTDNPASSWORD)
+
+        add_record = [
+         ('objectClass', [b'pwdPolicy',b'person',b'top']),
+         ('cn',[b'passwordDefault']),
+         ('sn',[b'passwordDefault']),
+         ('pwdAttribute',[b'userPassword']),
+         ('pwdReset',[b'TRUE']),
+         ('pwdCheckQuality',[b'0']),
+         ('pwdMinAge',[b'0']),
+         ('pwdMaxAge',[b'0']),
+         ('pwdMinLength',[b'0']),
+         ('pwdInHistory',[b'0']),
+         ('pwdMaxFailure',[b'0']),
+         ('pwdFailureCountInterval',[b'0']),
+         ('pwdLockout',[b'FALSE']),
+         ('pwdLockoutDuration',[b'0']),
+         ('pwdAllowUserChange',[b'TRUE']),
+         ('pwdExpireWarning',[b'0']),
+         ('pwdGraceAuthNLimit',[b'0']),
+         ('pwdMustChange',[b'FALSE']),
+         ('pwdSafeModify',[b'FALSE'])
+        ]
+        BaseConfig.add_attribute(config_values.get('bind_base_dn'), str("cn=passwordDefault,ou=Policies," + config_values.get('base_dn')), add_record, ROOTDNPASSWORD)
 

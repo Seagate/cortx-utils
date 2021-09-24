@@ -42,7 +42,6 @@ class SetupCmd(object):
   rootdn_passwd = None
   cluster_id = None
   machine_id = None
-  ldap_mdb_folder = "/var/lib/ldap"
   _preqs_conf_file = "openldapsetup_prereqs.json"
   ha_service_map = {}
   sgiam_user_key = 'cluster_config>sgiam_user'
@@ -54,7 +53,7 @@ class SetupCmd(object):
 
   util_config_file_path = "/etc/cortx/cortx.conf"
   util_config_file_index = "util_config_file_index"
-  Conf.load(util_config_file_index, f'yaml:///{util_config_file_path}')
+  Conf.load(util_config_file_index, f'json:///{util_config_file_path}')
   util_install_path = Conf.get(index= util_config_file_index, key='install_path')
   openldap_prov_config = path.join(util_install_path, "cortx/utils/conf", "openldap_prov_config.yaml")
   openldap_config_file = path.join(util_install_path, "cortx/utils/conf", "openldap_config.yaml")

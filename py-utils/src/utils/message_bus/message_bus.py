@@ -35,7 +35,8 @@ class MessageBus(metaclass=Singleton):
     def __init__(self):
         """ Initialize a MessageBus and load its configurations """
         # Get the log path
-        utils_log_path = CortxConf.get_log_path('message_bus')
+        log_dir = CortxConf.get_key('log_dir', '/var/log')
+        utils_log_path = CortxConf.get_log_path('message_bus', base_dir=log_dir)
 
         # if Log.logger is already initialized by some parent process
         # the same file will be used to log all the messagebus related
@@ -97,7 +98,7 @@ class MessageBus(metaclass=Singleton):
 
     def delete(self, client_id: str, message_type: str):
         """ Deletes all the messages from the configured message broker """
-        self._broker.delete(client_id, message_type)
+        return self._broker.delete(client_id, message_type)
 
     def get_unread_count(self, message_type: str, consumer_group: str):
         """
