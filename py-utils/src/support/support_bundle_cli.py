@@ -22,6 +22,7 @@ import inspect
 import sys
 import traceback
 from argparse import RawTextHelpFormatter
+from cortx.utils.common.common import CortxConf
 from cortx.utils.support_framework import SupportBundle
 
 
@@ -104,11 +105,10 @@ def main():
     from cortx.utils.log import Log
     from cortx.utils.conf_store import Conf
 
-    Conf.load('cortx_conf', 'json:///etc/cortx/cortx.conf')
-    log_level = Conf.get('cortx_conf', 'utils>log_level', 'INFO')
-    Log.init('support_bundle', '/var/log/cortx/utils/support/', \
-        level=log_level, backup_count=5, file_size_in_mb=5, \
-             syslog_server='localhost', syslog_port=514)
+    log_path = CortxConf.get_log_path('support')
+    log_level = CortxConf.get_key('utils>log_level', 'INFO')
+    Log.init('support_bundle', log_path, level=log_level, backup_count=5, \
+        file_size_in_mb=5, syslog_server='localhost', syslog_port=514)
     # Setup Parser
     parser = argparse.ArgumentParser(description='Support Bundle CLI', \
         formatter_class=RawTextHelpFormatter)

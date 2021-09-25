@@ -35,6 +35,7 @@ from cortx.utils.support_framework.services import ProvisionerServices
 from cortx.utils.support_framework.model import SupportBundleRepository
 from cortx.utils.support_framework.bundle_generate import ComponentsBundle
 from cortx.utils.data.db.db_provider import (DataBaseProvider, GeneralConfig)
+from cortx.utils.common import CortxConf
 
 
 class SupportBundle:
@@ -95,16 +96,14 @@ class SupportBundle:
             components = []
         if command.options.get(const.SOS_COMP, False) == 'true':
             components.append('os')
-        Conf.load('cortx_conf', 'json:///etc/cortx/cortx.conf', \
-            skip_reload=True)
         # Get HostNames and Node Names.
         node_hostname_map = await SupportBundle._get_active_nodes()
         if not isinstance(node_hostname_map, dict):
             return node_hostname_map
 
         shared_path = Storage.get_path(name='support_bundle')
-        path = shared_path if shared_path else Conf.get('cortx_conf',\
-            'support>local_path')
+        path = shared_path if shared_path else \
+            CortxConf.get_key('support>local_path')
 
         bundle_path = os.path.join(path,bundle_id)
         os.makedirs(bundle_path)

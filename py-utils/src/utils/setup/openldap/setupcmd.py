@@ -29,6 +29,7 @@ from cortx.utils.validator.v_service import ServiceV
 from cortx.utils.validator.v_path import PathV
 from cortx.utils.process import SimpleProcess
 from cortx.utils.log import Log
+from cortx.utils.common import CortxConf
 
 class OpenldapPROVError(Exception):
 
@@ -51,10 +52,7 @@ class SetupCmd(object):
   cluster_id_key = 'cluster_config>cluster_id'
   Log.init('OpenldapProvisioning','/var/log/cortx/utils/openldap',level='DEBUG')
 
-  util_config_file_path = "/etc/cortx/cortx.conf"
-  util_config_file_index = "util_config_file_index"
-  Conf.load(util_config_file_index, f'json:///{util_config_file_path}')
-  util_install_path = Conf.get(index= util_config_file_index, key='install_path')
+  util_install_path = CortxConf.get_key('install_path')
   openldap_prov_config = path.join(util_install_path, "cortx/utils/conf", "openldap_prov_config.yaml")
   openldap_config_file = path.join(util_install_path, "cortx/utils/conf", "openldap_config.yaml")
   utils_tmp_dir = path.join(util_install_path, "cortx/utils/tmp")

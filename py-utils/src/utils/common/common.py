@@ -3,10 +3,10 @@ from cortx.utils import const
 from cortx.utils.conf_store import Conf
 
 
-class CortxConf():
+class CortxConf:
 
     def load_config() -> None:
-        Conf.load('config_file', f'json://{const.CORTX_CONF_FILE}',
+        Conf.load('config_file', f'yaml://{const.CORTX_CONF_FILE}',
             skip_reload=True)
 
     @staticmethod

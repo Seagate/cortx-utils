@@ -71,21 +71,17 @@ class Utils:
 
     def _set_to_conf_file(key, value):
         """ Add key value pair to cortx.conf file """
-        config_file = 'json:///etc/cortx/cortx.conf'
-        Conf.load('config_file', config_file, skip_reload=True)
-        Conf.set('config_file', key, value)
-        Conf.save('config_file')
+        CortxConf.set_key(key, value)
+        CortxConf.save('config_file')
 
     # Utils private methods
     @staticmethod
     def _get_from_conf_file(key) -> str:
         """ Fetch and return value for the key from cortx.conf file """
-        config_file = 'json:///etc/cortx/cortx.conf'
-        Conf.load('config_file', config_file, skip_reload=True)
-        val = Conf.get('config_file', key)
+        val = CortxConf.get_key(key=key)
 
         if not val:
-            error_msg = f"Value for key: {key}, not found in {config_file}"
+            error_msg = f"Value for key: {key}, not found in {const.CORTX_CONF_FILE}"
             raise SetupError(errno.EINVAL, error_msg)
 
         return val
@@ -368,10 +364,7 @@ class Utils:
             raise SetupError(errors.ERR_OP_FAILED, "Internal error, can not \
                 reset Message Bus. %s", e)
         # Clear the logs
-        cortx_config_index = 'cortx_config'
-        Conf.load(cortx_config_index, 'json:///etc/cortx/cortx.conf', \
-            skip_reload=True)
-        log_dir = Conf.get(cortx_config_index, 'log_dir')
+        log_dir = CortxConf.get_key(key='log_dir')
         utils_log_path = os.path.join(log_dir, 'cortx/utils')
         if os.path.exists(utils_log_path):
             cmd = "find %s -type f -name '*.log' -exec truncate -s 0 {} +" % utils_log_path
@@ -406,11 +399,8 @@ class Utils:
 
         if pre_factory:
             # deleting all log files as part of pre-factory cleanup
-            cortx_config_index = 'cortx_config'
-            Conf.load(cortx_config_index, 'json:///etc/cortx/cortx.conf', \
-                skip_reload=True)
-            log_dir = Conf.get(cortx_config_index, 'log_dir')
-            utils_log_path = os.path.join(log_dir, 'cortx/utils')
+            log_dir = CortxConf.get_key(key='log_dir')
+            utils_log_path = CortxConf.get_log_path()
             cortx_utils_log_regex = f'{utils_log_path}/**/*.log'
             log_files = glob.glob(cortx_utils_log_regex, recursive=True)
             Utils._delete_files(log_files)
