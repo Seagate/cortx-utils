@@ -131,25 +131,25 @@ class Utils:
         Conf.save('cluster')
 
     @staticmethod
-    def _create_cluster_config(server_info: dict):
+    def _create_iem_config(iem_index: str, server_info: dict):
         """ Create the config file required for Event Message """
         for key, value in server_info.items():
-            Conf.set('cluster', f'node>{key}', value)
-        Conf.set('cluster', 'site_id', '1')
-        Conf.set('cluster', 'rack_id', '1')
-        Conf.save('cluster')
+            Conf.set(iem_index, f'node>{key}', value)
+        Conf.set(iem_index, 'site_id', '1')
+        Conf.set(iem_index, 'rack_id', '1')
+        Conf.save(iem_index)
 
     @staticmethod
     def _copy_conf_sample_to_conf():
-        if not os.path.exists("/etc/cortx/cluster.conf.sample"):
-            with open("/etc/cortx/cluster.conf.sample", "w+") as file:
+        if not os.path.exists('/etc/cortx/utils/iem.conf.sample'):
+            with open('/etc/cortx/utils/iem.conf.sample', 'w+') as file:
                 json.dump({}, file, indent=2)
-        # copy this sample conf file as cluster.conf
+        # copy this sample conf file as iem.conf
         try:
-            os.rename('/etc/cortx/cluster.conf.sample', \
-                '/etc/cortx/cluster.conf')
+            os.rename('/etc/cortx/utils/iem.conf.sample', \
+                '/etc/cortx/utils/iem.conf')
         except OSError as e:
-            raise SetupError(e.errno, "Failed to create /etc/cortx/cluster.conf\
+            raise SetupError(e.errno, "Failed to create /etc/cortx/utils/iem.conf\
                 %s", e)
 
     @staticmethod
@@ -242,13 +242,14 @@ class Utils:
     @staticmethod
     def config(config_template: str):
         """Performs configurations."""
-        # Copy cluster.conf.sample file to /etc/cortx/cluster.conf
+        # Copy iem.conf.sample file to /etc/cortx/utils/iem.conf
         Utils._copy_conf_sample_to_conf()
 
         # Load required files
-        config_template_index = 'cluster_config'
-        Conf.load('cluster', 'json:///etc/cortx/cluster.conf', skip_reload=True)
+        config_template_index = 'config'
         Conf.load(config_template_index, config_template)
+        iem_index = 'iem'
+        Conf.load(iem_index, 'yaml:///etc/cortx/utils/iem.conf', skip_reload=True)
 
         # Configure log_dir for utils
         cortx_config_index = 'cortx_config'
@@ -276,14 +277,15 @@ class Utils:
             Log.error(f"Could not find server information in {config_template}")
             raise SetupError(errno.EINVAL, "Could not find server " +\
                 "information in %s", config_template)
-        Utils._create_cluster_config(server_info)
+        Utils._create_iem_config(iem_index, server_info)
 
         #set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map(config_template_index)
         Utils._configure_rsyslog()
 
         # get shared storage info from config phase input conf template file
-        shared_storage = Conf.get('cluster_config', 'cortx>support')
+        shared_storage = Conf.get(config_template_index, \
+            'cortx>common>storage>shared')
 
         # set shared storage info to cortx.conf conf file
         if shared_storage:
@@ -397,7 +399,7 @@ class Utils:
                     Bus. %s", e)
 
         config_files = ['/etc/cortx/utils/message_bus.conf', \
-            '/etc/cortx/cluster.conf']
+            '/etc/cortx/utils/iem.conf']
         Utils._delete_files(config_files)
 
         if pre_factory:
