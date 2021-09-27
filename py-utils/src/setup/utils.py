@@ -133,10 +133,15 @@ class Utils:
     @staticmethod
     def _create_iem_config(iem_index: str, server_info: dict):
         """ Create the config file required for Event Message """
-        for key, value in server_info.items():
-            Conf.set(iem_index, f'node>{key}', value)
-        Conf.set(iem_index, 'site_id', '1')
-        Conf.set(iem_index, 'rack_id', '1')
+        for id in ['site_id', 'rack_id']:
+            if id not in server_info.keys():
+                server_info[id] = 1
+        Conf.set(iem_index, f'node>{Conf.machine_id}>cluster_id', \
+            server_info['cluster_id'])
+        Conf.set(iem_index, f'node>{Conf.machine_id}>site_id', \
+            server_info['site_id'])
+        Conf.set(iem_index, f'node>{Conf.machine_id}>rack_id', \
+            server_info['rack_id'])
         Conf.save(iem_index)
 
     @staticmethod
