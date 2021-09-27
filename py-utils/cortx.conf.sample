@@ -1,5 +1,6 @@
 {
   "install_path": "/opt/seagate",
+  "log_dir": "/var/log",
   "utils": {
     "log_level": "INFO"
     },
