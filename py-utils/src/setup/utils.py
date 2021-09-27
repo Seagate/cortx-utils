@@ -138,9 +138,9 @@ class Utils:
         iem_index = 'iem'
         with open('/etc/cortx/utils/iem.conf.sample', 'w+') as file:
             json.dump({}, file, indent=2)
-        for id in ['site_id', 'rack_id']:
-            if id not in server_info.keys():
-                server_info[id] = 1
+        for _id in ['site_id', 'rack_id']:
+            if _id not in server_info.keys():
+                server_info[_id] = 1
         Conf.load(iem_index, 'yaml:///etc/cortx/utils/iem.conf', skip_reload=True)
         Conf.set(iem_index, f'node>{machine_id}>cluster_id', \
             server_info['cluster_id'])
