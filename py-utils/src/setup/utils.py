@@ -203,11 +203,11 @@ class Utils:
         Conf.load(post_install_template_index, post_install_template)
 
         machine_id = Conf.machine_id
-        key_list = [f'server_node>{machine_id}>hostname', f'server_node>{machine_id}>name']
+        key_list = [f'node>{machine_id}>hostname', f'node>{machine_id}>name']
         ConfKeysV().validate('exists', post_install_template_index, key_list)
 
         #set cluster nodename:hostname mapping to cluster.conf (needed for Support Bundle)
-        Conf.load('cluster', 'json:///etc/cortx/cluster.conf', skip_reload=True)
+        Conf.load('cluster', 'yaml:///etc/cortx/cluster.conf', skip_reload=True)
         Utils._copy_cluster_map(post_install_template_index)
 
         return 0
