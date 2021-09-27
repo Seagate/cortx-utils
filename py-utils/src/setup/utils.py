@@ -86,17 +86,17 @@ class Utils:
     def _create_msg_bus_config(message_server_list: list, port_list: list, \
         config: dict):
         """ Create the config file required for message bus """
-
+        mb_index = 'mb_index'
         with open(r'/etc/cortx/utils/message_bus.conf.sample', 'w+') as file:
             json.dump({}, file, indent=2)
-        Conf.load('index', 'json:///etc/cortx/utils/message_bus.conf.sample')
-        Conf.set('index', 'message_broker>type', 'kafka')
+        Conf.load(mb_index, 'json:///etc/cortx/utils/message_bus.conf.sample')
+        Conf.set(mb_index, 'message_broker>type', 'kafka')
         for i in range(len(message_server_list)):
-            Conf.set('index', f'message_broker>cluster[{i}]>server', \
+            Conf.set(mb_index, f'message_broker>cluster[{i}]>server', \
                      message_server_list[i])
-            Conf.set('index', f'message_broker>cluster[{i}]>port', port_list[i])
-        Conf.set('index', 'message_broker>message_bus',  config)
-        Conf.save('index')
+            Conf.set(mb_index, f'message_broker>cluster[{i}]>port', port_list[i])
+        Conf.set(mb_index, 'message_broker>message_bus',  config)
+        Conf.save(mb_index)
         # copy this conf file as message_bus.conf
         try:
             os.rename('/etc/cortx/utils/message_bus.conf.sample', \
@@ -132,24 +132,20 @@ class Utils:
         Conf.save('cluster')
 
     @staticmethod
-    def _create_iem_config(iem_index: str, server_info: dict):
+    def _create_iem_config(server_info: dict, machine_id: str):
         """ Create the config file required for Event Message """
+        iem_index = 'iem'
+        with open('/etc/cortx/utils/iem.conf.sample', 'w+') as file:
+            json.dump({}, file, indent=2)
         for id in ['site_id', 'rack_id']:
             if id not in server_info.keys():
                 server_info[id] = 1
-        Conf.set(iem_index, f'node>{Conf.machine_id}>cluster_id', \
+        Conf.load(iem_index, 'yaml:///etc/cortx/utils/iem.conf', skip_reload=True)
+        Conf.set(iem_index, f'node>{machine_id}>cluster_id', \
             server_info['cluster_id'])
-        Conf.set(iem_index, f'node>{Conf.machine_id}>site_id', \
-            server_info['site_id'])
-        Conf.set(iem_index, f'node>{Conf.machine_id}>rack_id', \
-            server_info['rack_id'])
+        Conf.set(iem_index, f'node>{machine_id}>site_id', server_info['site_id'])
+        Conf.set(iem_index, f'node>{machine_id}>rack_id', server_info['rack_id'])
         Conf.save(iem_index)
-
-    @staticmethod
-    def _copy_conf_sample_to_conf():
-        if not os.path.exists('/etc/cortx/utils/iem.conf.sample'):
-            with open('/etc/cortx/utils/iem.conf.sample', 'w+') as file:
-                json.dump({}, file, indent=2)
         # copy this sample conf file as iem.conf
         try:
             os.rename('/etc/cortx/utils/iem.conf.sample', \
@@ -230,14 +226,14 @@ class Utils:
     @staticmethod
     def config(config_template: str):
         """Performs configurations."""
-        # Copy iem.conf.sample file to /etc/cortx/utils/iem.conf
-        Utils._copy_conf_sample_to_conf()
+        # Create directory for utils configurations
+        config_dir = '/etc/cortx/utils'
+        if not os.path.exists(config_dir):
+            os.makedirs(config_dir)
 
         # Load required files
         config_template_index = 'config'
         Conf.load(config_template_index, config_template)
-        iem_index = 'iem'
-        Conf.load(iem_index, 'yaml:///etc/cortx/utils/iem.conf', skip_reload=True)
 
         # Configure log_dir for utils
         cortx_config_index = 'cortx_config'
@@ -249,6 +245,7 @@ class Utils:
             Conf.set(cortx_config_index, 'log_dir', log_dir)
             Conf.save(cortx_config_index)
 
+        # Create message_bus config
         try:
             server_list, port_list, config = \
                 MessageBrokerFactory.get_server_list(config_template_index)
@@ -256,16 +253,16 @@ class Utils:
             Log.error(f"Could not find server information in {config_template}")
             raise SetupError(errno.EINVAL, \
                 "Could not find server information in %s", config_template)
-
         Utils._create_msg_bus_config(server_list, port_list, config)
-        # Cluster config
-        server_info = \
-            Utils._get_server_info(config_template_index, Conf.machine_id)
+
+        # Create iem config
+        machine_id = Conf.machine_id
+        server_info = Utils._get_server_info(config_template_index, machine_id)
         if server_info is None:
             Log.error(f"Could not find server information in {config_template}")
             raise SetupError(errno.EINVAL, "Could not find server " +\
                 "information in %s", config_template)
-        Utils._create_iem_config(iem_index, server_info)
+        Utils._create_iem_config(server_info, machine_id)
 
         #set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map(config_template_index)
