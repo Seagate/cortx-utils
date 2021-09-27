@@ -24,7 +24,7 @@ class Storage:
 
     """ Shared Storage Framework over various types of Shared Storages  """
 
-    config_file = 'json:///etc/cortx/cortx.conf'
+    config_file = 'yaml:///etc/cortx/cortx.conf'
 
     def __init__(self):
         """ Initialize and load shared storage backend """

@@ -104,7 +104,7 @@ def main():
     from cortx.utils.log import Log
     from cortx.utils.conf_store import Conf
 
-    Conf.load('cortx_conf', 'json:///etc/cortx/cortx.conf')
+    Conf.load('cortx_conf', 'yaml:///etc/cortx/cortx.conf')
     log_level = Conf.get('cortx_conf', 'utils>log_level', 'INFO')
     Log.init('support_bundle', '/var/log/cortx/utils/support/', \
         level=log_level, backup_count=5, file_size_in_mb=5, \
