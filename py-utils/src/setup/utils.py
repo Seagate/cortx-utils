@@ -123,6 +123,7 @@ class Utils:
 
     @staticmethod
     def _copy_cluster_map(conf_url_index: str):
+        Conf.load('cluster', 'yaml:///etc/cortx/cluster.conf', skip_reload=True)
         cluster_data = Conf.get(conf_url_index, 'node')
         for _, node_data in cluster_data.items():
             hostname = node_data.get('hostname')
@@ -209,7 +210,6 @@ class Utils:
         ConfKeysV().validate('exists', post_install_template_index, key_list)
 
         #set cluster nodename:hostname mapping to cluster.conf (needed for Support Bundle)
-        Conf.load('cluster', 'yaml:///etc/cortx/cluster.conf', skip_reload=True)
         Utils._copy_cluster_map(post_install_template_index)
 
         return 0
