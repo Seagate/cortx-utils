@@ -97,6 +97,7 @@ class Utils:
             Conf.set(mb_index, f'message_broker>cluster[{i}]>port', port_list[i])
         Conf.set(mb_index, 'message_broker>message_bus',  config)
         Conf.save(mb_index)
+
         # copy this conf file as message_bus.conf
         try:
             os.rename('/etc/cortx/utils/message_bus.conf.sample', \
@@ -146,6 +147,7 @@ class Utils:
         Conf.set(iem_index, f'node>{machine_id}>site_id', server_info['site_id'])
         Conf.set(iem_index, f'node>{machine_id}>rack_id', server_info['rack_id'])
         Conf.save(iem_index)
+
         # copy this sample conf file as iem.conf
         try:
             os.rename('/etc/cortx/utils/iem.conf.sample', \
@@ -264,15 +266,13 @@ class Utils:
                 "information in %s", config_template)
         Utils._create_iem_config(server_info, machine_id)
 
-        #set cluster nodename:hostname mapping to cluster.conf
+        # set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map(config_template_index)
         Utils._configure_rsyslog()
 
-        # get shared storage info from config phase input conf template file
+        # get shared storage from cluster.conf and set it to cortx.conf
         shared_storage = Conf.get(config_template_index, \
             'cortx>common>storage>shared')
-
-        # set shared storage info to cortx.conf conf file
         if shared_storage:
             Utils._set_to_conf_file('support>shared_path', shared_storage)
 
