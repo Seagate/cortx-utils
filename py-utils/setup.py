@@ -17,7 +17,7 @@ import os
 import glob
 from fnmatch import fnmatch
 from setuptools import setup
-import json
+import yaml
 import sys
 
 if not os.path.isfile("./cortx.conf.sample"):
@@ -25,7 +25,7 @@ if not os.path.isfile("./cortx.conf.sample"):
     sys.exit(1)
 
 with open("cortx.conf.sample") as conf_file:
-    build_data = json.load(conf_file)
+    build_data = yaml.safe_load(conf_file)
 
 # Fetch install_path
 install_path = build_data["install_path"]
