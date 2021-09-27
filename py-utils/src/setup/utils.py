@@ -65,9 +65,9 @@ class Utils:
     def _get_utils_path() -> str:
         """ Gets install path from cortx.conf and returns utils path """
         install_path = CortxConf.get_key(key='install_path')
-
         if not install_path:
             error_msg = f"install_path not found in {const.CORTX_CONF_FILE}"
+            raise SetupError(errno.EINVAL, error_msg)
 
     def _set_to_conf_file(key, value):
         """ Add key value pair to cortx.conf file """
@@ -364,8 +364,7 @@ class Utils:
             raise SetupError(errors.ERR_OP_FAILED, "Internal error, can not \
                 reset Message Bus. %s", e)
         # Clear the logs
-        log_dir = CortxConf.get_key(key='log_dir')
-        utils_log_path = os.path.join(log_dir, 'cortx/utils')
+        utils_log_path = CortxConf.get_log_path()
         if os.path.exists(utils_log_path):
             cmd = "find %s -type f -name '*.log' -exec truncate -s 0 {} +" % utils_log_path
             cmd_proc = SimpleProcess(cmd)
@@ -399,7 +398,6 @@ class Utils:
 
         if pre_factory:
             # deleting all log files as part of pre-factory cleanup
-            log_dir = CortxConf.get_key(key='log_dir')
             utils_log_path = CortxConf.get_log_path()
             cortx_utils_log_regex = f'{utils_log_path}/**/*.log'
             log_files = glob.glob(cortx_utils_log_regex, recursive=True)
