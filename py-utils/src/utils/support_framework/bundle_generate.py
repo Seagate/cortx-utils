@@ -112,7 +112,7 @@ class ComponentsBundle:
         command:        cli Command Object :type: command
         return:         None
         """
-        Conf.load('cortx_conf', 'json:///etc/cortx/cortx.conf')
+        Conf.load('cortx_conf', 'yaml:///etc/cortx/cortx.conf')
         log_level = Conf.get('cortx_conf', 'utils>log_level', 'INFO')
         Log.init('support_bundle_node', '/var/log/cortx/utils/support/', \
             level=log_level, backup_count=5, file_size_in_mb=5)
@@ -125,7 +125,7 @@ class ComponentsBundle:
             f"{node_name}, {const.SB_COMMENT}: {comment}, "
             f"{const.SB_COMPONENTS}: {components}, {const.SOS_COMP}"))
         # Read Commands.Yaml and Check's If It Exists.
-        Conf.load('cortx_conf', 'json:///etc/cortx/cortx.conf', \
+        Conf.load('cortx_conf', 'yaml:///etc/cortx/cortx.conf', \
             skip_reload=True)
         cmd_setup_file = os.path.join(Conf.get('cortx_conf', 'install_path'),\
             'cortx/utils/conf/support_bundle.yaml')
