@@ -67,7 +67,7 @@ class EventMessage(metaclass=Singleton):
         cls._component = component
         cls._source = source
 
-        Conf.load('config_file', 'json:///etc/cortx/cortx.conf',
+        Conf.load('config_file', 'yaml:///etc/cortx/cortx.conf',
             skip_reload=True)
         # if Log.logger is already initialized by some parent process
         # the same file will be used to log all the messagebus related

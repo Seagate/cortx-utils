@@ -63,7 +63,7 @@ class Utils:
     @staticmethod
     def _set_to_conf_file(key, value):
         """ Add key value pair to cortx.conf file """
-        config_file = 'json:///etc/cortx/cortx.conf'
+        config_file = 'yaml:///etc/cortx/cortx.conf'
         Conf.load('config_file', config_file, skip_reload=True)
         Conf.set('config_file', key, value)
         Conf.save('config_file')
@@ -72,7 +72,7 @@ class Utils:
     @staticmethod
     def _get_from_conf_file(key) -> str:
         """ Fetch and return value for the key from cortx.conf file """
-        config_file = 'json:///etc/cortx/cortx.conf'
+        config_file = 'yaml:///etc/cortx/cortx.conf'
         Conf.load('config_file', config_file, skip_reload=True)
         val = Conf.get('config_file', key)
 
