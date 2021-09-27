@@ -183,15 +183,15 @@ class SupportBundle:
         except DataAccessExternalError as e:
             Log.warn(f"Failed to connect to elasticsearch: {e}")
             return Response(output=(f"Support Bundle status is not available " \
-                "currently as required services are not running. Please wait " \
-                "and check the /tmp/support_bundle folder for newly generated " \
-                "support bundle. Related error - Failed to connect to elasticsearch: {e}"), \
+                f"currently as required services are not running. Please wait " \
+                f"and check the /tmp/support_bundle folder for newly generated " \
+                f"support bundle. Related error - Failed to connect to elasticsearch: {e}"), \
                 rc=str(errno.ECONNREFUSED))
         except Exception as e:
             Log.error(f"Failed to get bundle status: {e}")
             return Response(output=(f"Support Bundle status is not available " \
-                "currently as required services are not running. Failed to " \
-                "get status of bundle. Related error - Failed to get bundle status: {e}"), \
+                f"currently as required services are not running. Failed to " \
+                f"get status of bundle. Related error - Failed to get bundle status: {e}"), \
                 rc=str(errno.ENOENT))
 
     @staticmethod
