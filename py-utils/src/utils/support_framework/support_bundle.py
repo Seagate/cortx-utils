@@ -95,7 +95,7 @@ class SupportBundle:
             components = []
         if command.options.get(const.SOS_COMP, False) == 'true':
             components.append('os')
-        Conf.load('cortx_conf', 'yaml:///etc/cortx/cortx.conf', \
+        Conf.load('cortx_conf', 'json:///etc/cortx/cortx.conf', \
             skip_reload=True)
         # Get HostNames and Node Names.
         node_hostname_map = await SupportBundle._get_active_nodes()
