@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
@@ -24,7 +22,9 @@ from cortx.utils.errors import BaseError
 class PackageValidationError(BaseError):
     pass
 
+
 class ProvisionerServices:
+
     """
     TODO: Class can be removed when Remote communication framework is done
     Added this functionality so there will be no dependecy on CSM.
@@ -40,13 +40,17 @@ class ProvisionerServices:
     """
 
     def __init__(self):
+        """Initialises provisioner services."""
         try:
             self.provisioner = provisioner
             Log.info("Provisioner plugin is loaded")
+            from cortx.utils.conf_store import Conf
+            Conf.load('prov_cluster_conf', 'json:///opt/seagate/cortx_configs/provisioner_cluster.json', \
+                skip_reload=True)
             self.provisioner.auth_init(
-                username="<add-username>",
-                password="<add-password>",
-                eauth="pam"
+                username=Conf.get('prov_cluster_conf', 'support>user'),
+                password=Conf.get('prov_cluster_conf', 'support>password'),
+                eauth='pam'
             )
         except Exception as error:
             self.provisioner = None
@@ -55,9 +59,10 @@ class ProvisionerServices:
     async def begin_bundle_generation(self, command_args, target_node_id):
         """
         Execute Bundle Generation via Salt Script.
-        :param command_args: Arguments to be parsed to Bundle Generate Command. :type: String
-        :param target_node_id: Node_id for target node intended. :type: String
-        :return:
+
+        command_args:       Arguments to be parsed to Bundle Generate Command. :type: String
+        target_node_id:     Node_id for target node intended. :type: String
+        return:             Timestamp :type: String
         """
         if not self.provisioner:
             raise PackageValidationError("Provisioner is not instantiated.")

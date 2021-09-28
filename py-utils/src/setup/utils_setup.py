@@ -35,6 +35,7 @@ class Cmd:
             raise SetupError(errno.EPERM, "Permission denied! You need to be a \
                 root user")
         self._url = args.config
+        self._services = args.services
         self._args = args.args
 
     @property
@@ -79,6 +80,7 @@ class Cmd:
 
         parser1 = parser.add_parser(cls.name, help='setup %s' % name)
         parser1.add_argument('--config', help='Conf Store URL', type=str)
+        parser1.add_argument('--services', help='Cortx Services', default='all')
         cls._add_extended_args(parser1)
         parser1.add_argument('args', nargs='*', default=[], help='args')
         parser1.set_defaults(command=cls)
@@ -93,7 +95,7 @@ class PostInstallCmd(Cmd):
 
     def process(self):
         Utils.validate('post_install')
-        rc = Utils.post_install()
+        rc = Utils.post_install(self._url)
         return rc
 
 
@@ -214,10 +216,11 @@ class PostUpgradeCmd(Cmd):
         return rc
 
 
-def main(argv: dict):
+def main():
     from cortx.utils.conf_store import Conf
     tmpl_file_index = 'tmpl_index'
     cortx_config_index = 'cortx_config'
+    argv = sys.argv
 
     # Get the log path
     tmpl_file = argv[3]
@@ -227,7 +230,7 @@ def main(argv: dict):
     utils_log_path = os.path.join(log_dir, 'cortx/utils')
 
     # Get the log level
-    cortx_config_file = 'yaml:///etc/cortx/cortx.conf'
+    cortx_config_file = 'json:///etc/cortx/cortx.conf'
     Conf.load(cortx_config_index, cortx_config_file, skip_reload=True)
     log_level = Conf.get(cortx_config_index, 'utils>log_level', 'INFO')
 
@@ -252,4 +255,4 @@ def main(argv: dict):
 
 
 if __name__ == '__main__':
-    sys.exit(main(sys.argv))
+    sys.exit(main())

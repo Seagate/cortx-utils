@@ -16,7 +16,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-
+import time
 import unittest
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus import MessageBus, MessageBusAdmin, \
@@ -33,6 +33,7 @@ class TestMessageBus(unittest.TestCase):
     _message_type = 'test'
     _bulk_count = 25
     _receive_limit = 5
+    _purge_retry = 20
     _admin = MessageBusAdmin(admin_id='register')
     _producer = None
     _consumer = None
@@ -142,6 +143,23 @@ class TestMessageBus(unittest.TestCase):
             TestMessageBus._admin.deregister_message_type(message_types=\
                 [''])
 
+    def test_purge_fail(self):
+        """Test fail purge messages."""
+        rc = TestMessageBus._producer.delete()
+        self.assertIsInstance(rc, MessageBusError)
+
+    def test_purge_messages(self):
+        """Test purge messages."""
+        for retry_count in range(1, (TestMessageBus._purge_retry + 2)):
+            rc = TestMessageBus._producer.delete()
+            if retry_count > TestMessageBus._purge_retry:
+                self.assertIsInstance(rc, MessageBusError)
+            if rc == 0:
+                break
+            time.sleep(2*retry_count)
+        message = TestMessageBus._consumer.receive()
+        self.assertIsNone(message)
+
     def test_concurrency(self):
         """Test add concurrency count."""
         TestMessageBus._admin.add_concurrency(message_type=\
@@ -235,6 +253,8 @@ if __name__ == '__main__':
     suite.addTest(TestMessageBus('test_receive_different_consumer_group'))
     suite.addTest(TestMessageBus('test_register_message_type_exist'))
     suite.addTest(TestMessageBus('test_deregister_message_type_not_exist'))
+    suite.addTest(TestMessageBus('test_purge_fail'))
+    suite.addTest(TestMessageBus('test_purge_messages'))
     suite.addTest(TestMessageBus('test_concurrency'))
     suite.addTest(TestMessageBus('test_receive_concurrently'))
     suite.addTest(TestMessageBus('test_reduce_concurrency'))

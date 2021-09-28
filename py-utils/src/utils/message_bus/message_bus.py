@@ -33,7 +33,7 @@ class MessageBus(metaclass=Singleton):
 
     def __init__(self):
         """ Initialize a MessageBus and load its configurations """
-        Conf.load('config_file', 'yaml:///etc/cortx/cortx.conf',
+        Conf.load('config_file', 'json:///etc/cortx/cortx.conf',
             skip_reload=True)
         # Get the log path
         log_dir = Conf.get('config_file', 'log_dir')
@@ -99,7 +99,7 @@ class MessageBus(metaclass=Singleton):
 
     def delete(self, client_id: str, message_type: str):
         """ Deletes all the messages from the configured message broker """
-        self._broker.delete(client_id, message_type)
+        return self._broker.delete(client_id, message_type)
 
     def get_unread_count(self, message_type: str, consumer_group: str):
         """

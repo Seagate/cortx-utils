@@ -88,7 +88,7 @@ class Replication:
             Log.debug('Current host-'+socket.gethostname()+' is not present in input host file')
             quit()
         conn = ldap.initialize("ldapi://")
-        conn.simple_bind_s(config_values.get('bind_base_dn'), "seagate")
+        conn.simple_bind_s(config_values.get('bind_base_dn'), pwd)
         conn.sasl_non_interactive_bind_s('EXTERNAL')
 
         dn = "cn=config"

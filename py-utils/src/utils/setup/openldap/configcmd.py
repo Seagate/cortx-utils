@@ -56,8 +56,10 @@ class ConfigCmd(SetupCmd):
     Log.debug("Inside config phaze, starting openldap base configuration")
     # Perform base configuration
     base_dn = self.get_confvalue(self.get_confkey('CONFIG>OPENLDAP_BASE_DN'))
-    bind_base_dn = self.get_confvalue(self.get_confkey('CONFIG>OPENLDAP_BIND_BASE_DN'))
-    confvalues = {'base_dn':base_dn , 'bind_base_dn':bind_base_dn}
+    bind_base_dn = 'cn=admin,' + base_dn
+    install_dir = self.get_confvalue(self.get_confkey('CONFIG>OPENLDAP_INSTALL_DIR'))
+    data_dir = self.get_confvalue(self.get_confkey('CONFIG>OPENLDAP_DATA_DIR'))
+    confvalues = {'base_dn':base_dn , 'bind_base_dn':bind_base_dn, 'install_dir':install_dir, 'data_dir':data_dir}
     BaseConfig.perform_base_config(self.rootdn_passwd.decode("utf-8"),'True',confvalues)
     Log.debug("openldap base configuration completed successfully")
     # set openldap-replication

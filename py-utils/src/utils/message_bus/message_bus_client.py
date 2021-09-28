@@ -119,7 +119,7 @@ class MessageBusClient:
         """ Deletes the messages """
         message_type = self._get_conf('message_type')
         client_id = self._get_conf('client_id')
-        self._message_bus.delete(client_id, message_type)
+        return self._message_bus.delete(client_id, message_type)
 
     def receive(self, timeout: float = None) -> list:
         """

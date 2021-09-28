@@ -49,10 +49,17 @@ for root, directories, filenames in os.walk(_ROOT):
 
 # Get the list of template files
 tmpl_files = glob.glob('src/setup/templates/*.*')
+
 # Get the list of all openldap template files
 openldap_tmpl_files = glob.glob('src/utils/setup/openldap/templates/*.*')
 # Get the list of ldif files
 openldap_ldif_files = glob.glob('src/utils/setup/openldap/*.ldif')
+# Get list of consul template file
+consul_tmpl_files = glob.glob('src/utils/setup/consul/templates/*.*')
+
+# Get the list of all elasticsearch template files
+elasticsearch_tmpl_files = glob.glob(
+    'src/utils/setup/elasticsearch/templates/*.*')
 
 with open('LICENSE', 'r') as lf:
     license = lf.read()
@@ -99,13 +106,14 @@ setup(name='cortx-py-utils',
                 'cortx.utils.conf_store', 'cortx.utils.message_bus',
                 'cortx.utils.product_features', 'cortx.utils.security',
                 'cortx.utils.schema', 'cortx.utils.appliance_info',
-                'cortx.setup', 'cortx.utils.service',
+                'cortx.setup', 'cortx.support', 'cortx.utils.service',
                 'cortx.utils.setup', 'cortx.utils.setup.kafka',
-                'cortx.utils.support', 'cortx.utils.cli_framework',
-                'cortx.utils.cmd_framework',
+                'cortx.utils.cli_framework', 'cortx.utils.cmd_framework',
                 'cortx.utils.utils_server', 'cortx.utils.iem_framework',
                 'cortx.utils.discovery', 'cortx.utils.common',
-                'cortx.utils.manifest', 'cortx.utils.setup.openldap'
+                'cortx.utils.shared_storage', 'cortx.utils.support_framework',
+                'cortx.utils.manifest', 'cortx.utils.setup.openldap',
+                'cortx.utils.setup.consul', 'cortx.utils.setup.elasticsearch'
                 ],
       package_data={
         'cortx': ['py.typed'],
@@ -118,7 +126,10 @@ setup(name='cortx-py-utils',
             'iem = cortx.utils.iem_framework.iem_cli:main',
             'kafka_setup = cortx.utils.setup.kafka.kafka_setup:main',
             'utils_support_bundle = cortx.support.utils_support_bundle:main',
-            'openldap_setup = cortx.utils.setup.openldap.openldap_setup:main'
+            'support_bundle = cortx.support.support_bundle_cli:main',
+            'openldap_setup = cortx.utils.setup.openldap.openldap_setup:main',
+            'consul_setup = cortx.utils.setup.consul.consul_setup:main',
+            'elasticsearch_setup = cortx.utils.setup.elasticsearch.elasticsearch_setup:main'
         ]
       },
       data_files = [ ('/var/lib/cortx/ha/specs', specs),
@@ -128,16 +139,23 @@ setup(name='cortx-py-utils',
                                             'src/utils/ha/hac/re_build.sh']),
                      ('%s/conf' % utils_path, ['src/setup/setup.yaml',
                                  'cortx.conf.sample', 'VERSION',
-                                 'src/utils/support/support_bundle.yaml',
-                                 'src/utils/support/0-support_bundle.conf']),
+                                 'src/support/support.yaml',
+                                 'src/utils/support_framework/support_bundle.yaml',
+                                 'src/utils/support_framework/0-support_bundle.conf']),
                      ('%s/conf' % utils_path, tmpl_files),
                      ('%s/conf' % utils_path, openldap_tmpl_files),
+                     (f'{utils_path}/conf', consul_tmpl_files),
                      ('%s/conf' % utils_path, openldap_ldif_files),
                      ('%s/conf' % utils_path, [
                      'src/utils/setup/openldap/openldapsetup_prereqs.json',
                      'src/utils/setup/openldap/openldap_prov_config.yaml',
                      'src/utils/setup/openldap/config/openldap_config.yaml.sample',
+                     'src/utils/setup/consul/consul_setup.yaml',
                      'src/utils/setup/openldap/config/openldap_config_unsafe_attributes.yaml']),
+                     (f'{utils_path}/conf/elasticsearch', elasticsearch_tmpl_files),
+                     (f'{utils_path}/conf/elasticsearch', [
+                        'src/utils/setup/elasticsearch/config/elasticsearch.yml.sample',
+                        'src/utils/setup/elasticsearch/setup.yaml']),
                      ('/etc/systemd/system', ['src/utils/message_bus/'
                                               'cortx_message_bus.service'])],
       long_description=long_description,
