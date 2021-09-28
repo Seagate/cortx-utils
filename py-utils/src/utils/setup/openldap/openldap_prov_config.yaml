@@ -41,5 +41,7 @@ TEST:
   OPENLDAP_BASE_DN: "cortx>software>openldap>base_dn"
 RESET:
 CLEANUP:
+  OPENLDAP_INSTALL_DIR: "cortx>software>openldap>install_dir"
+  OPENLDAP_DATA_DIR: "cortx>software>openldap>data_dir"
 # Unsolicited Keys should be added to the bottom.
 CONFSTORE_OPENLDAP_CONST_KEY: "cortx"
