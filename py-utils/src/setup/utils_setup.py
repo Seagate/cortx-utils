@@ -227,7 +227,6 @@ def main():
     Conf.load(tmpl_file_index, tmpl_file, skip_reload=True)
     log_dir = Conf.get(tmpl_file_index, 'cortx>common>storage>log', \
         '/var/log')
-    # utils_log_path = os.path.join(log_dir, 'cortx/utils')
     utils_log_path = CortxConf.get_log_path(base_dir=log_dir)
 
     # Get the log level
