@@ -15,7 +15,7 @@ class CortxConf:
     @staticmethod
     def get_log_path(component = None, base_dir: str = None) -> str:
         """
-        Get the log path with machine-id/ pod-id as sub directory
+        Get the log path with machine-id as sub directory
 
         Parameters:
         Component: Name of the component directory. If passed then the

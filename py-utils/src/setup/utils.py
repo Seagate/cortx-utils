@@ -72,7 +72,7 @@ class Utils:
     def _set_to_conf_file(key, value):
         """ Add key value pair to cortx.conf file """
         CortxConf.set_key(key, value)
-        CortxConf.save('config_file')
+        CortxConf.save()
 
     # Utils private methods
     @staticmethod
