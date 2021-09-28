@@ -141,7 +141,7 @@ class Utils:
         for _id in ['site_id', 'rack_id']:
             if _id not in server_info.keys():
                 server_info[_id] = 1
-        Conf.load(iem_index, 'yaml:///etc/cortx/utils/iem.conf.sample', \
+        Conf.load(iem_index, 'json:///etc/cortx/utils/iem.conf.sample', \
             skip_reload=True)
         Conf.set(iem_index, f'node>{machine_id}>cluster_id', \
             server_info['cluster_id'])
