@@ -97,7 +97,7 @@ class MessageBrokerFactory:
 
         # Read the default config
         config_file_path = '/etc/cortx/cortx.conf'
-        Conf.load('mb_config', f'yaml:///{config_file_path}')
+        Conf.load('mb_config', f'json:///{config_file_path}')
         config = Conf.get('mb_config', 'message_bus')
         return message_server_list, port_list, config
 
