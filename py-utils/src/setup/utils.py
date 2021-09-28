@@ -239,7 +239,7 @@ class Utils:
 
         # Configure log_dir for utils
         cortx_config_index = 'cortx_config'
-        Conf.load(cortx_config_index, 'yaml:///etc/cortx/cortx.conf', \
+        Conf.load(cortx_config_index, 'json:///etc/cortx/cortx.conf', \
             skip_reload=True)
         log_dir = Conf.get(config_template_index, \
             'cortx>common>storage>log')
@@ -352,7 +352,7 @@ class Utils:
                 reset Message Bus. %s", e)
         # Clear the logs
         cortx_config_index = 'cortx_config'
-        Conf.load(cortx_config_index, 'yaml:///etc/cortx/cortx.conf', \
+        Conf.load(cortx_config_index, 'json:///etc/cortx/cortx.conf', \
             skip_reload=True)
         log_dir = Conf.get(cortx_config_index, 'log_dir')
         utils_log_path = os.path.join(log_dir, 'cortx/utils')
@@ -390,7 +390,7 @@ class Utils:
         if pre_factory:
             # deleting all log files as part of pre-factory cleanup
             cortx_config_index = 'cortx_config'
-            Conf.load(cortx_config_index, 'yaml:///etc/cortx/cortx.conf', \
+            Conf.load(cortx_config_index, 'json:///etc/cortx/cortx.conf', \
                 skip_reload=True)
             log_dir = Conf.get(cortx_config_index, 'log_dir')
             utils_log_path = os.path.join(log_dir, 'cortx/utils')
