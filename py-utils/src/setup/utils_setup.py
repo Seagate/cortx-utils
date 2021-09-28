@@ -230,7 +230,7 @@ def main():
     utils_log_path = os.path.join(log_dir, 'cortx/utils')
 
     # Get the log level
-    cortx_config_file = 'yaml:///etc/cortx/cortx.conf'
+    cortx_config_file = 'json:///etc/cortx/cortx.conf'
     Conf.load(cortx_config_index, cortx_config_file, skip_reload=True)
     log_level = Conf.get(cortx_config_index, 'utils>log_level', 'INFO')
 
