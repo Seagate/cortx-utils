@@ -8,7 +8,7 @@ class CortxConf:
 
     def _load_config() -> None:
         """ Load cortx.conf file into conf in-memory """
-        Conf.load(CortxConf._index, f'json://{const.CORTX_CONF_FILE}',
+        Conf.load(CortxConf._index, f'yaml://{const.CORTX_CONF_FILE}',
             skip_reload=True)
 
     @staticmethod

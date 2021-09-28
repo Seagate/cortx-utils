@@ -178,9 +178,6 @@ class Utils:
     @staticmethod
     def post_install(post_install_template: str):
         """ Performs post install operations """
-        # check whether zookeeper and kafka are running
-        ## ServiceV().validate('isrunning', ['kafka-zookeeper.service', \
-        ##    'kafka.service'])
 
         # Check required python packages
         install_path = Utils._get_from_conf_file('install_path')
@@ -207,11 +204,11 @@ class Utils:
         Conf.load(post_install_template_index, post_install_template)
 
         machine_id = Conf.machine_id
-        key_list = [f'server_node>{machine_id}>hostname', f'server_node>{machine_id}>name']
+        key_list = [f'node>{machine_id}>hostname', f'node>{machine_id}>name']
         ConfKeysV().validate('exists', post_install_template_index, key_list)
 
         #set cluster nodename:hostname mapping to cluster.conf (needed for Support Bundle)
-        Conf.load('cluster', 'json:///etc/cortx/cluster.conf', skip_reload=True)
+        Conf.load('cluster', 'yaml:///etc/cortx/cluster.conf', skip_reload=True)
         Utils._copy_cluster_map(post_install_template_index)
 
         return 0
@@ -227,20 +224,6 @@ class Utils:
         except MessageBusError as e:
             raise SetupError(e.rc, "Unable to create message_type. %s", e)
 
-        # start MessageBus service and check status
-        ## start_cmd = SimpleProcess("systemctl start cortx_message_bus")
-        ## _, start_err, start_rc = start_cmd.run()
-
-        ## if start_rc != 0:
-        ##     raise SetupError(start_rc, "Unable to start MessageBus Service \
-        ##         %s", start_err.decode('utf-8'))
-
-        ## status_cmd = SimpleProcess("systemctl status cortx_message_bus")
-        ## _, status_err, status_rc = status_cmd.run()
-
-        ## if status_rc != 0:
-        ##     raise SetupError(status_rc, "MessageBus Service is either failed \
-        ##         inactive. %s", status_err.decode('utf-8'))
         return 0
 
     @staticmethod

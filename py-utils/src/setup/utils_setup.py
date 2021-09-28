@@ -217,9 +217,10 @@ class PostUpgradeCmd(Cmd):
         return rc
 
 
-def main(argv: dict):
+def main():
     from cortx.utils.conf_store import Conf
     tmpl_file_index = 'tmpl_index'
+    argv = sys.argv
 
     # Get the log path
     tmpl_file = argv[3]
@@ -253,4 +254,4 @@ def main(argv: dict):
 
 
 if __name__ == '__main__':
-    sys.exit(main(sys.argv))
+    sys.exit(main())
