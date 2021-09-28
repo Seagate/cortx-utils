@@ -157,6 +157,8 @@ class Openldap:
 
     def _expand_keys(self, key: str, phase_name: str):
         """Substitute any occurence of machine-id or other such values."""
+        if (phase_name == "CLEANUP"):
+            return key
         cluster_id_val = None
         machine_id_val = self.machine_id
         if (self.cluster_id is not None and len(self.cluster_id) != 0):
