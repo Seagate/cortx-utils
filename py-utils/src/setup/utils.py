@@ -86,17 +86,18 @@ class Utils:
     def _create_msg_bus_config(message_server_list: list, port_list: list, \
         config: dict):
         """ Create the config file required for message bus """
-
+        mb_index = 'mb_index'
         with open(r'/etc/cortx/utils/message_bus.conf.sample', 'w+') as file:
             json.dump({}, file, indent=2)
-        Conf.load('index', 'json:///etc/cortx/utils/message_bus.conf.sample')
-        Conf.set('index', 'message_broker>type', 'kafka')
+        Conf.load(mb_index, 'json:///etc/cortx/utils/message_bus.conf.sample')
+        Conf.set(mb_index, 'message_broker>type', 'kafka')
         for i in range(len(message_server_list)):
-            Conf.set('index', f'message_broker>cluster[{i}]>server', \
+            Conf.set(mb_index, f'message_broker>cluster[{i}]>server', \
                      message_server_list[i])
-            Conf.set('index', f'message_broker>cluster[{i}]>port', port_list[i])
-        Conf.set('index', 'message_broker>message_bus',  config)
-        Conf.save('index')
+            Conf.set(mb_index, f'message_broker>cluster[{i}]>port', port_list[i])
+        Conf.set(mb_index, 'message_broker>message_bus',  config)
+        Conf.save(mb_index)
+
         # copy this conf file as message_bus.conf
         try:
             os.rename('/etc/cortx/utils/message_bus.conf.sample', \
@@ -123,6 +124,7 @@ class Utils:
 
     @staticmethod
     def _copy_cluster_map(conf_url_index: str):
+        Conf.load('cluster', 'yaml:///etc/cortx/cluster.conf', skip_reload=True)
         cluster_data = Conf.get(conf_url_index, 'node')
         for _, node_data in cluster_data.items():
             hostname = node_data.get('hostname')
@@ -131,25 +133,28 @@ class Utils:
         Conf.save('cluster')
 
     @staticmethod
-    def _create_cluster_config(server_info: dict):
+    def _create_iem_config(server_info: dict, machine_id: str):
         """ Create the config file required for Event Message """
-        for key, value in server_info.items():
-            Conf.set('cluster', f'node>{key}', value)
-        Conf.set('cluster', 'site_id', '1')
-        Conf.set('cluster', 'rack_id', '1')
-        Conf.save('cluster')
+        iem_index = 'iem'
+        with open('/etc/cortx/utils/iem.conf.sample', 'w+') as file:
+            json.dump({}, file, indent=2)
+        for _id in ['site_id', 'rack_id']:
+            if _id not in server_info.keys():
+                server_info[_id] = 1
+        Conf.load(iem_index, 'json:///etc/cortx/utils/iem.conf.sample', \
+            skip_reload=True)
+        Conf.set(iem_index, f'node>{machine_id}>cluster_id', \
+            server_info['cluster_id'])
+        Conf.set(iem_index, f'node>{machine_id}>site_id', server_info['site_id'])
+        Conf.set(iem_index, f'node>{machine_id}>rack_id', server_info['rack_id'])
+        Conf.save(iem_index)
 
-    @staticmethod
-    def _copy_conf_sample_to_conf():
-        if not os.path.exists("/etc/cortx/cluster.conf.sample"):
-            with open("/etc/cortx/cluster.conf.sample", "w+") as file:
-                json.dump({}, file, indent=2)
-        # copy this sample conf file as cluster.conf
+        # copy this sample conf file as iem.conf
         try:
-            os.rename('/etc/cortx/cluster.conf.sample', \
-                '/etc/cortx/cluster.conf')
+            os.rename('/etc/cortx/utils/iem.conf.sample', \
+                '/etc/cortx/utils/iem.conf')
         except OSError as e:
-            raise SetupError(e.errno, "Failed to create /etc/cortx/cluster.conf\
+            raise SetupError(e.errno, "Failed to create /etc/cortx/utils/iem.conf\
                 %s", e)
 
     @staticmethod
@@ -204,7 +209,6 @@ class Utils:
         ConfKeysV().validate('exists', post_install_template_index, key_list)
 
         #set cluster nodename:hostname mapping to cluster.conf (needed for Support Bundle)
-        Conf.load('cluster', 'yaml:///etc/cortx/cluster.conf', skip_reload=True)
         Utils._copy_cluster_map(post_install_template_index)
 
         return 0
@@ -225,12 +229,13 @@ class Utils:
     @staticmethod
     def config(config_template: str):
         """Performs configurations."""
-        # Copy cluster.conf.sample file to /etc/cortx/cluster.conf
-        Utils._copy_conf_sample_to_conf()
+        # Create directory for utils configurations
+        config_dir = '/etc/cortx/utils'
+        if not os.path.exists(config_dir):
+            os.makedirs(config_dir)
 
         # Load required files
-        config_template_index = 'cluster_config'
-        Conf.load('cluster', 'json:///etc/cortx/cluster.conf', skip_reload=True)
+        config_template_index = 'config'
         Conf.load(config_template_index, config_template)
 
         # Configure log_dir for utils
@@ -243,6 +248,7 @@ class Utils:
             Conf.set(cortx_config_index, 'log_dir', log_dir)
             Conf.save(cortx_config_index)
 
+        # Create message_bus config
         try:
             server_list, port_list, config = \
                 MessageBrokerFactory.get_server_list(config_template_index)
@@ -250,25 +256,24 @@ class Utils:
             Log.error(f"Could not find server information in {config_template}")
             raise SetupError(errno.EINVAL, \
                 "Could not find server information in %s", config_template)
-
         Utils._create_msg_bus_config(server_list, port_list, config)
-        # Cluster config
-        server_info = \
-            Utils._get_server_info(config_template_index, Conf.machine_id)
+
+        # Create iem config
+        machine_id = Conf.machine_id
+        server_info = Utils._get_server_info(config_template_index, machine_id)
         if server_info is None:
             Log.error(f"Could not find server information in {config_template}")
             raise SetupError(errno.EINVAL, "Could not find server " +\
                 "information in %s", config_template)
-        Utils._create_cluster_config(server_info)
+        Utils._create_iem_config(server_info, machine_id)
 
-        #set cluster nodename:hostname mapping to cluster.conf
+        # set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map(config_template_index)
         Utils._configure_rsyslog()
 
-        # get shared storage info from config phase input conf template file
-        shared_storage = Conf.get('cluster_config', 'cortx>support')
-
-        # set shared storage info to cortx.conf conf file
+        # get shared storage from cluster.conf and set it to cortx.conf
+        shared_storage = Conf.get(config_template_index, \
+            'cortx>common>storage>shared')
         if shared_storage:
             Utils._set_to_conf_file('support>shared_path', shared_storage)
 
@@ -380,7 +385,7 @@ class Utils:
                     Bus. %s", e)
 
         config_files = ['/etc/cortx/utils/message_bus.conf', \
-            '/etc/cortx/cluster.conf']
+            '/etc/cortx/utils/iem.conf']
         Utils._delete_files(config_files)
 
         if pre_factory:
