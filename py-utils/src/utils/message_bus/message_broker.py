@@ -97,7 +97,7 @@ class MessageBrokerFactory:
                 "Missing config entry %s in config", key_list)
 
         # Read the default config
-        config = CortxConf.get_key('message_bus')
+        config = CortxConf.get('message_bus')
         return message_server_list, port_list, config
 
 

@@ -230,7 +230,7 @@ def main():
     utils_log_path = CortxConf.get_log_path(base_dir=log_dir)
 
     # Get the log level
-    log_level = CortxConf.get_key('utils>log_level', 'INFO')
+    log_level = CortxConf.get('utils>log_level', 'INFO')
 
     Log.init('utils_setup', utils_log_path, level=log_level, backup_count=5, \
         file_size_in_mb=5)

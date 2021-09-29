@@ -35,14 +35,14 @@ class MessageBus(metaclass=Singleton):
     def __init__(self):
         """ Initialize a MessageBus and load its configurations """
         # Get the log path
-        log_dir = CortxConf.get_key('log_dir', '/var/log')
+        log_dir = CortxConf.get('log_dir', '/var/log')
         utils_log_path = CortxConf.get_log_path('message_bus', base_dir=log_dir)
 
         # if Log.logger is already initialized by some parent process
         # the same file will be used to log all the messagebus related
         # logs, else standard message_bus.log will be used.
         if not Log.logger:
-            log_level = CortxConf.get_key('utils>log_level', 'INFO')
+            log_level = CortxConf.get('utils>log_level', 'INFO')
             Log.init('message_bus', utils_log_path, level=log_level, \
                 backup_count=5, file_size_in_mb=5)
 

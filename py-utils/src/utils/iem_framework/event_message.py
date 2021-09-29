@@ -72,7 +72,7 @@ class EventMessage(metaclass=Singleton):
         # logs, else standard iem.log will be used.
         if not Log.logger:
             iem_log_dir = CortxConf.get_log_path('iem')
-            log_level = CortxConf.get_key('utils>log_level', 'INFO')
+            log_level = CortxConf.get('utils>log_level', 'INFO')
             Log.init('iem', iem_log_dir, level=log_level, \
                 backup_count=5, file_size_in_mb=5)
 

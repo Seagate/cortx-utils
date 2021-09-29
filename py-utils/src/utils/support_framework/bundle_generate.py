@@ -114,7 +114,7 @@ class ComponentsBundle:
         return:         None
         """
         log_path = CortxConf.get_log_path('support')
-        log_level = CortxConf.get_key('utils>log_level', 'INFO')
+        log_level = CortxConf.get('utils>log_level', 'INFO')
         Log.init('support_bundle_node', log_path, level=log_level, \
             backup_count=5, file_size_in_mb=5)
         bundle_id = command.options.get(const.SB_BUNDLE_ID, '')
@@ -126,7 +126,7 @@ class ComponentsBundle:
             f"{node_name}, {const.SB_COMMENT}: {comment}, "
             f"{const.SB_COMPONENTS}: {components}, {const.SOS_COMP}"))
         # Read support_bundle.Yaml and Check's If It Exists.
-        cmd_setup_file = os.path.join(CortxConf.get_key('install_path'),\
+        cmd_setup_file = os.path.join(CortxConf.get('install_path'),\
             'cortx/utils/conf/support_bundle.yaml')
         try:
             support_bundle_config = Yaml(cmd_setup_file).load()
