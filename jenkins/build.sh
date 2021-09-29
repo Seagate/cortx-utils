@@ -96,8 +96,9 @@ exit \$rc " >> utils-pre-install
 /bin/chmod +x utils-pre-install
 
 # Create the rpm
-/bin/python3.6 setup.py bdist_rpm --release="$REL" --pre-install utils-pre-install \
- --post-install utils-post-install --post-uninstall utils-post-uninstall
+/bin/python3.6 setup.py bdist_rpm --requires python36,python36-dbus \
+--release="$REL" --pre-install utils-pre-install \
+--post-install utils-post-install --post-uninstall utils-post-uninstall
 if [ $? -ne 0 ]; then
   echo "build failed"
   exit 1
