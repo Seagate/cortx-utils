@@ -64,21 +64,21 @@ class Utils:
     @staticmethod
     def _get_utils_path() -> str:
         """ Gets install path from cortx.conf and returns utils path """
-        install_path = CortxConf.get_key(key='install_path')
+        install_path = CortxConf.get(key='install_path')
         if not install_path:
             error_msg = f"install_path not found in {const.CORTX_CONF_FILE}"
             raise SetupError(errno.EINVAL, error_msg)
 
     def _set_to_conf_file(key, value):
         """ Add key value pair to cortx.conf file """
-        CortxConf.set_key(key, value)
+        CortxConf.set(key, value)
         CortxConf.save()
 
     # Utils private methods
     @staticmethod
     def _get_from_conf_file(key) -> str:
         """ Fetch and return value for the key from cortx.conf file """
-        val = CortxConf.get_key(key=key)
+        val = CortxConf.get(key=key)
 
         if not val:
             error_msg = f"Value for key: {key}, not found in {const.CORTX_CONF_FILE}"
@@ -245,7 +245,7 @@ class Utils:
         log_dir = Conf.get(config_template_index, \
             'cortx>common>storage>log')
         if log_dir is not None:
-            CortxConf.set_key('log_dir', log_dir)
+            CortxConf.set('log_dir', log_dir)
             CortxConf.save()
 
         # Create message_bus config
@@ -280,7 +280,7 @@ class Utils:
         # temporary fix for a common message bus log file
         # The issue happend when some user other than root:root is trying
         # to write logs in these log dir/files. This needs to be removed soon!
-        log_dir = CortxConf.get_key('log_dir', '/var/log')
+        log_dir = CortxConf.get('log_dir', '/var/log')
         utils_log_dir = CortxConf.get_log_path(base_dir=log_dir)
         #message_bus
         os.makedirs(os.path.join(utils_log_dir, 'message_bus'), exist_ok=True)

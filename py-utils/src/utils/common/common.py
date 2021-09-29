@@ -30,13 +30,13 @@ class CortxConf:
             +f'{"/"+component if component else ""}')
 
     @staticmethod
-    def get_key(key: str, default_val: str = None, **filters):
+    def get(key: str, default_val: str = None, **filters):
         """Obtain and return value for the given key"""
         CortxConf._load_config()
         return Conf.get(CortxConf._index, key, default_val, **filters)
 
     @staticmethod
-    def set_key(key: str, value: str):
+    def set(key: str, value: str):
         """Sets the value into conf in-memory at the given key"""
         CortxConf._load_config()
         return Conf.set(CortxConf._index, key, value)
