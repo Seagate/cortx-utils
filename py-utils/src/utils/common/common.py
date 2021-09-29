@@ -44,4 +44,4 @@ class CortxConf:
     @staticmethod
     def save():
         """Saves the configuration into the cortx.conf file"""
-        return Conf.save(CortxConf._index)
+        Conf.save(CortxConf._index)
