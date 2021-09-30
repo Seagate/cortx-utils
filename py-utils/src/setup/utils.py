@@ -66,8 +66,8 @@ class Utils:
         """ Gets install path from cortx.conf and returns utils path """
         install_path = CortxConf.get(key='install_path')
         if not install_path:
-            error_msg = f"install_path not found in {const.CORTX_CONF_FILE}"
-            raise SetupError(errno.EINVAL, error_msg)
+            raise SetupError(errno.EINVAL, "install_path not found in %s",\
+                const.CORTX_CONF_FILE)
 
     def _set_to_conf_file(key, value):
         """ Add key value pair to cortx.conf file """
@@ -81,8 +81,8 @@ class Utils:
         val = CortxConf.get(key=key)
 
         if not val:
-            error_msg = f"Value for key: {key}, not found in {const.CORTX_CONF_FILE}"
-            raise SetupError(errno.EINVAL, error_msg)
+            raise SetupError(errno.EINVAL, "Value for key: %s, not found in \
+                %s", key, const.CORTX_CONF_FILE)
 
         return val
 
