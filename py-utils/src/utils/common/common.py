@@ -26,7 +26,7 @@ class CortxConf:
         """
         CortxConf._load_config()
         log_dir = base_dir if base_dir else Conf.get(CortxConf._index, 'log_dir')
-        return os.path.join(log_dir, f'cortx/utils/{Conf.machine_id}'\
+        return os.path.join(log_dir, f'utils/{Conf.machine_id}'\
             +f'{"/"+component if component else ""}')
 
     @staticmethod
