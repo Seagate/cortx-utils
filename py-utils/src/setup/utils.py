@@ -21,6 +21,7 @@ import errno
 from pathlib import Path
 
 from cortx.utils import errors
+from cortx.utils import const
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
 from cortx.utils.common import SetupError
@@ -33,7 +34,7 @@ from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.service.service_handler import Service
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus import MessageBrokerFactory
-
+from cortx.utils.common import CortxConf
 
 class Utils:
     """ Represents Utils and Performs setup related actions """
@@ -61,24 +62,27 @@ class Utils:
                         %s", each_file, e)
 
     @staticmethod
+    def _get_utils_path() -> str:
+        """ Gets install path from cortx.conf and returns utils path """
+        install_path = CortxConf.get(key='install_path')
+        if not install_path:
+            raise SetupError(errno.EINVAL, "install_path not found in %s",\
+                const.CORTX_CONF_FILE)
+
     def _set_to_conf_file(key, value):
         """ Add key value pair to cortx.conf file """
-        config_file = 'json:///etc/cortx/cortx.conf'
-        Conf.load('config_file', config_file, skip_reload=True)
-        Conf.set('config_file', key, value)
-        Conf.save('config_file')
+        CortxConf.set(key, value)
+        CortxConf.save()
 
     # Utils private methods
     @staticmethod
     def _get_from_conf_file(key) -> str:
         """ Fetch and return value for the key from cortx.conf file """
-        config_file = 'json:///etc/cortx/cortx.conf'
-        Conf.load('config_file', config_file, skip_reload=True)
-        val = Conf.get('config_file', key)
+        val = CortxConf.get(key=key)
 
         if not val:
-            error_msg = f"Value for key: {key}, not found in {config_file}"
-            raise SetupError(errno.EINVAL, error_msg)
+            raise SetupError(errno.EINVAL, "Value for key: %s, not found in \
+                %s", key, const.CORTX_CONF_FILE)
 
         return val
 
@@ -237,16 +241,12 @@ class Utils:
         # Load required files
         config_template_index = 'config'
         Conf.load(config_template_index, config_template)
-
         # Configure log_dir for utils
-        cortx_config_index = 'cortx_config'
-        Conf.load(cortx_config_index, 'json:///etc/cortx/cortx.conf', \
-            skip_reload=True)
         log_dir = Conf.get(config_template_index, \
             'cortx>common>storage>log')
         if log_dir is not None:
-            Conf.set(cortx_config_index, 'log_dir', log_dir)
-            Conf.save(cortx_config_index)
+            CortxConf.set('log_dir', log_dir)
+            CortxConf.save()
 
         # Create message_bus config
         try:
@@ -280,8 +280,8 @@ class Utils:
         # temporary fix for a common message bus log file
         # The issue happend when some user other than root:root is trying
         # to write logs in these log dir/files. This needs to be removed soon!
-        log_dir = Conf.get(cortx_config_index, 'log_dir', '/var/log')
-        utils_log_dir = os.path.join(log_dir, 'cortx/utils')
+        log_dir = CortxConf.get('log_dir', '/var/log')
+        utils_log_dir = CortxConf.get_log_path(base_dir=log_dir)
         #message_bus
         os.makedirs(os.path.join(utils_log_dir, 'message_bus'), exist_ok=True)
         os.chmod(os.path.join(utils_log_dir, 'message_bus'), 0o0777)
@@ -352,11 +352,7 @@ class Utils:
             raise SetupError(errors.ERR_OP_FAILED, "Internal error, can not \
                 reset Message Bus. %s", e)
         # Clear the logs
-        cortx_config_index = 'cortx_config'
-        Conf.load(cortx_config_index, 'json:///etc/cortx/cortx.conf', \
-            skip_reload=True)
-        log_dir = Conf.get(cortx_config_index, 'log_dir')
-        utils_log_path = os.path.join(log_dir, 'cortx/utils')
+        utils_log_path = CortxConf.get_log_path()
         if os.path.exists(utils_log_path):
             cmd = "find %s -type f -name '*.log' -exec truncate -s 0 {} +" % utils_log_path
             cmd_proc = SimpleProcess(cmd)
@@ -390,11 +386,7 @@ class Utils:
 
         if pre_factory:
             # deleting all log files as part of pre-factory cleanup
-            cortx_config_index = 'cortx_config'
-            Conf.load(cortx_config_index, 'json:///etc/cortx/cortx.conf', \
-                skip_reload=True)
-            log_dir = Conf.get(cortx_config_index, 'log_dir')
-            utils_log_path = os.path.join(log_dir, 'cortx/utils')
+            utils_log_path = CortxConf.get_log_path()
             cortx_utils_log_regex = f'{utils_log_path}/**/*.log'
             log_files = glob.glob(cortx_utils_log_regex, recursive=True)
             Utils._delete_files(log_files)

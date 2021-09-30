@@ -19,18 +19,16 @@ import os
 from cortx.utils.conf_store import Conf
 from cortx.utils.shared_storage import SharedStorageError
 from cortx.utils.shared_storage.shared_storage_agent import SharedStorageFactory
+from cortx.utils.common import CortxConf
 
 class Storage:
 
     """ Shared Storage Framework over various types of Shared Storages  """
 
-    config_file = 'json:///etc/cortx/cortx.conf'
-
     def __init__(self):
         """ Initialize and load shared storage backend """
 
-        Conf.load('cotrx_config', Storage.config_file, skip_reload=True)
-        self.shared_storage_url = Conf.get('cotrx_config', 'support>shared_path')
+        self.shared_storage_url = CortxConf.get('support>shared_path')
         if self.shared_storage_url is not None:
             self.shared_storage_agent = SharedStorageFactory.get_instance( \
                 self.shared_storage_url)
