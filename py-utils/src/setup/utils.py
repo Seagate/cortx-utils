@@ -29,18 +29,17 @@ from cortx.utils.errors import TestFailed
 from cortx.utils.validator.v_pkg import PkgV
 from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.error import VError
-from cortx.utils.validator.v_service import ServiceV
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.service.service_handler import Service
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus import MessageBrokerFactory
 from cortx.utils.common import CortxConf
 
+
 class Utils:
     """ Represents Utils and Performs setup related actions """
 
     # Utils private methods
-
 
     @staticmethod
     def _delete_files(files: list):
@@ -184,6 +183,7 @@ class Utils:
     def post_install(post_install_template: str):
         """ Performs post install operations """
 
+        rc = 0
         # Check required python packages
         install_path = Utils._get_from_conf_file('install_path')
         utils_path = install_path + '/cortx/utils'
@@ -197,42 +197,54 @@ class Utils:
                 for package in extfile.readlines():
                     pack = package.strip().split('==')
                     req_pack.append(f"{pack[0]} ({pack[1]})")
-        except Exception:
-             Log.info("Not found: "+f"{utils_path}/conf/python_requirements.ext.txt")
+        except Exception as e:
+            rc = -1
+            err = e
+            Log.info("Not found: "+f"{utils_path}/conf/python_requirements.ext.txt")
 
-        PkgV().validate(v_type='pip3s', args=req_pack)
-        default_sb_path = '/var/log/cortx/support_bundle'
-        Utils._set_to_conf_file('support>local_path', default_sb_path)
-        os.makedirs(default_sb_path, exist_ok=True)
+        try:
+            PkgV().validate(v_type='pip3s', args=req_pack)
+            default_sb_path = '/var/log/cortx/support_bundle'
+            Utils._set_to_conf_file('support>local_path', default_sb_path)
+            os.makedirs(default_sb_path, exist_ok=True)
 
-        post_install_template_index = 'post_install_index'
-        Conf.load(post_install_template_index, post_install_template)
+            post_install_template_index = 'post_install_index'
+            Conf.load(post_install_template_index, post_install_template)
 
-        machine_id = Conf.machine_id
-        key_list = [f'node>{machine_id}>hostname', f'node>{machine_id}>name']
-        ConfKeysV().validate('exists', post_install_template_index, key_list)
+            machine_id = Conf.machine_id
+            key_list = [f'node>{machine_id}>hostname', f'node>{machine_id}>name']
+            ConfKeysV().validate('exists', post_install_template_index, key_list)
 
-        #set cluster nodename:hostname mapping to cluster.conf (needed for Support Bundle)
-        Utils._copy_cluster_map(post_install_template_index)
+            #set cluster nodename:hostname mapping to cluster.conf (needed for Support Bundle)
+            Utils._copy_cluster_map(post_install_template_index)
+        except Exception as e:
+            rc = -1
+            err = e
 
-        return 0
+        return rc, err
 
     @staticmethod
     def init():
         """ Perform initialization """
         # Create message_type for Event Message
         from cortx.utils.message_bus import MessageBusAdmin
+        rc = 0
+        err = None
         try:
             admin = MessageBusAdmin(admin_id='register')
             admin.register_message_type(message_types=['IEM'], partitions=1)
         except MessageBusError as e:
+            rc = -1
+            err = e
             raise SetupError(e.rc, "Unable to create message_type. %s", e)
 
-        return 0
+        return rc, err
 
     @staticmethod
     def config(config_template: str):
         """Performs configurations."""
+        rc = 0
+        err = None
         # Create directory for utils configurations
         config_dir = '/etc/cortx/utils'
         if not os.path.exists(config_dir):
@@ -252,7 +264,9 @@ class Utils:
         try:
             server_list, port_list, config = \
                 MessageBrokerFactory.get_server_list(config_template_index)
-        except SetupError:
+        except SetupError as e:
+            rc = -1
+            err = e
             Log.error(f"Could not find server information in {config_template}")
             raise SetupError(errno.EINVAL, \
                 "Could not find server information in %s", config_template)
@@ -262,6 +276,9 @@ class Utils:
         machine_id = Conf.machine_id
         server_info = Utils._get_server_info(config_template_index, machine_id)
         if server_info is None:
+            rc = -1
+            err = SetupError(errno.EINVAL, "Could not find server " +\
+                "information in %s", config_template)
             Log.error(f"Could not find server information in {config_template}")
             raise SetupError(errno.EINVAL, "Could not find server " +\
                 "information in %s", config_template)
@@ -293,11 +310,14 @@ class Utils:
         os.chmod(os.path.join(utils_log_dir, 'iem'), 0o0777)
         Path(os.path.join(utils_log_dir, 'iem/iem.log')).touch(exist_ok=True)
         os.chmod(os.path.join(utils_log_dir, 'iem/iem.log'), 0o0666)
-        return 0
+
+        return rc, err
 
     @staticmethod
     def test(plan: str):
         """ Perform configuration testing """
+        rc = 0
+        err = None
         # Runs cortx-py-utils unittests as per test plan
         try:
             Log.info("Validating cortx-py-utils-test rpm")
@@ -314,14 +334,18 @@ class Utils:
                 raise TestFailed("Py-utils Test Failed. \n Output : %s "\
                     "\n Error : %s \n Return Code : %s" %(_output, _err, _rc))
         except VError as ve:
+            rc = -1
+            err = ve
             Log.error("Failed at package Validation: %s", ve)
             raise SetupError(errno.EINVAL, "Failed at package Validation:"\
                 " %s", ve)
-        return 0
+        return rc, err
 
     @staticmethod
     def reset():
         """Remove/Delete all the data/logs that was created by user/testing."""
+        rc = 0
+        err = None
         import time
         _purge_retry = 20
         try:
@@ -347,8 +371,12 @@ class Utils:
                             break
                         time.sleep(2*retry_count)
         except MessageBusError as e:
+            rc = -1
+            err = e
             raise SetupError(e.rc, "Can not reset Message Bus. %s", e)
         except Exception as e:
+            rc = -1
+            err = e
             raise SetupError(errors.ERR_OP_FAILED, "Internal error, can not \
                 reset Message Bus. %s", e)
         # Clear the logs
@@ -356,15 +384,17 @@ class Utils:
         if os.path.exists(utils_log_path):
             cmd = "find %s -type f -name '*.log' -exec truncate -s 0 {} +" % utils_log_path
             cmd_proc = SimpleProcess(cmd)
-            _, stderr, rc = cmd_proc.run()
-            if rc != 0:
+            _, stderr, ret_code = cmd_proc.run()
+            if ret_code != 0:
                 raise SetupError(errors.ERR_OP_FAILED, \
                     "Can not reset log files. %s", stderr)
-        return 0
+        return rc, err
 
     @staticmethod
     def cleanup(pre_factory: bool):
         """Remove/Delete all the data that was created after post install."""
+        rc = 0
+        err = None
         conf_file = '/etc/cortx/utils/message_bus.conf'
         if os.path.exists(conf_file):
             # delete message_types
@@ -375,8 +405,12 @@ class Utils:
                 if message_types_list:
                     mb.deregister_message_type(message_types_list)
             except MessageBusError as e:
+                rc = -1
+                err = e
                 raise SetupError(e.rc, "Can not cleanup Message Bus. %s", e)
             except Exception as e:
+                rc = -1
+                err = e
                 raise SetupError(errors.ERR_OP_FAILED, "Can not cleanup Message  \
                     Bus. %s", e)
 
@@ -391,7 +425,7 @@ class Utils:
             log_files = glob.glob(cortx_utils_log_regex, recursive=True)
             Utils._delete_files(log_files)
 
-        return 0
+        return rc, err
 
     @staticmethod
     def pre_upgrade(level: str):

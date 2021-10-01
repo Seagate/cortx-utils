@@ -96,8 +96,8 @@ class PostInstallCmd(Cmd):
 
     def process(self):
         Utils.validate('post_install')
-        rc = Utils.post_install(self._url)
-        return rc
+        rc, err = Utils.post_install(self._url)
+        return rc, err
 
 
 class PrepareCmd(Cmd):
@@ -120,8 +120,8 @@ class ConfigCmd(Cmd):
 
     def process(self):
         Utils.validate('config')
-        rc = Utils.config(self._url)
-        return rc
+        rc, err = Utils.config(self._url)
+        return rc, err
 
 
 class InitCmd(Cmd):
@@ -133,8 +133,8 @@ class InitCmd(Cmd):
 
     def process(self):
         Utils.validate('init')
-        rc = Utils.init()
-        return rc
+        rc, err = Utils.init()
+        return rc, err
 
 
 class TestCmd(Cmd):
@@ -153,8 +153,8 @@ class TestCmd(Cmd):
 
     def process(self):
         Utils.validate('test')
-        rc = Utils.test(self.test_plan)
-        return rc
+        rc, err = Utils.test(self.test_plan)
+        return rc, err
 
 
 class ResetCmd(Cmd):
@@ -166,8 +166,8 @@ class ResetCmd(Cmd):
 
     def process(self):
         Utils.validate('reset')
-        rc = Utils.reset()
-        return rc
+        rc, err = Utils.reset()
+        return rc, err
 
 
 class CleanupCmd(Cmd):
@@ -187,8 +187,8 @@ class CleanupCmd(Cmd):
 
     def process(self):
         Utils.validate('cleanup')
-        rc = Utils.cleanup(self.pre_factory)
-        return rc
+        rc, err = Utils.cleanup(self.pre_factory)
+        return rc, err
 
 
 class PreUpgradeCmd(Cmd):
@@ -200,8 +200,8 @@ class PreUpgradeCmd(Cmd):
 
     def process(self):
         Utils.validate('post_upgrade')
-        rc = Utils.pre_upgrade(self.args[0])
-        return rc
+        rc, err = Utils.pre_upgrade(self.args[0])
+        return rc, err
 
 
 class PostUpgradeCmd(Cmd):
@@ -213,8 +213,8 @@ class PostUpgradeCmd(Cmd):
 
     def process(self):
         Utils.validate('post_upgrade')
-        rc = Utils.post_upgrade(self.args[0])
-        return rc
+        rc, err = Utils.post_upgrade(self.args[0])
+        return rc, err
 
 
 def main():
@@ -238,18 +238,21 @@ def main():
         desc = "CORTX Utils Setup command"
         Log.info(f"Starting utils_setup {argv[1]} ")
         command = Cmd.get_command(desc, argv[1:])
-        rc = command.process()
+        rc, err = command.process()
     except SetupError as e:
         sys.stderr.write("error: %s\n\n" % str(e))
         sys.stderr.write("%s\n" % traceback.format_exc())
         Cmd.usage(argv[0])
         rc = e.rc
+        err = e
     except Exception as e:
         sys.stderr.write("error: %s\n\n" % str(e))
         sys.stderr.write("%s\n" % traceback.format_exc())
         rc = errno.EINVAL
+        err = e
     Log.info(f"Command {command} {argv[1]} finished with exit " \
         f"code {rc}")
+    return rc, err
 
 
 if __name__ == '__main__':
