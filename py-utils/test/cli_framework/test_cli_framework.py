@@ -53,3 +53,7 @@ class TestCliFramework(unittest.TestCase):
         with open(self.expected_output_file) as expected_output:
             with open(self.obtained_output_file) as obtained_output:
                 self.assertEqual(expected_output.readlines(), obtained_output.readlines())
+
+
+if __name__ == '__main__':
+    unittest.main()

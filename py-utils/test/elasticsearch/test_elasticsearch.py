@@ -54,3 +54,7 @@ class ElasticsearchTest(unittest.TestCase):
         self.elasticsearch.index(index=self.index, id=1, body=self.data)
         res = self.elasticsearch.delete(index=self.index)
         self.assertIs(res['acknowledged'], True)
+
+
+if __name__ == '__main__':
+    unittest.main()

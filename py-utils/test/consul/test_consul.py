@@ -44,3 +44,7 @@ class TestConsul(unittest.TestCase):
 
     def test_service_running(self):
         ServiceV().validate('isrunning', ["consul"])
+
+
+if __name__ == '__main__':
+    unittest.main()
