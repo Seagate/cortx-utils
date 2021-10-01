@@ -29,12 +29,12 @@ from cortx.utils.errors import TestFailed
 from cortx.utils.validator.v_pkg import PkgV
 from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.error import VError
-from cortx.utils.validator.v_service import ServiceV
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.service.service_handler import Service
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus import MessageBrokerFactory
 from cortx.utils.common import CortxConf
+
 
 class Utils:
     """ Represents Utils and Performs setup related actions """
@@ -142,13 +142,15 @@ class Utils:
     def _create_iem_config(server_info: dict, machine_id: str):
         """ Create the config file required for Event Message """
         iem_index = 'iem'
-        with open('/etc/cortx/utils/iem.conf.sample', 'w+') as file:
+        local_path = CortxConf.get_storage_path('local')
+        iem_conf = os.path.join(local_path, 'utils/conf/iem.conf')
+        iem_conf_sample = iem_conf + '.sample'
+        with open(iem_conf_sample, 'w+') as file:
             json.dump({}, file, indent=2)
         for _id in ['site_id', 'rack_id']:
             if _id not in server_info.keys():
                 server_info[_id] = 1
-        Conf.load(iem_index, 'json:///etc/cortx/utils/iem.conf.sample', \
-            skip_reload=True)
+        Conf.load(iem_index, f'json://{iem_conf_sample}', skip_reload=True)
         Conf.set(iem_index, f'node>{machine_id}>cluster_id', \
             server_info['cluster_id'])
         Conf.set(iem_index, f'node>{machine_id}>site_id', server_info['site_id'])
@@ -157,11 +159,9 @@ class Utils:
 
         # copy this sample conf file as iem.conf
         try:
-            os.rename('/etc/cortx/utils/iem.conf.sample', \
-                '/etc/cortx/utils/iem.conf')
+            os.rename(iem_conf_sample, iem_conf)
         except OSError as e:
-            raise SetupError(e.errno, "Failed to create /etc/cortx/utils/iem.conf\
-                %s", e)
+            raise SetupError(e.errno, "Failed to create %s. %s", iem_conf, e)
 
     @staticmethod
     def _configure_rsyslog():
@@ -235,10 +235,6 @@ class Utils:
     @staticmethod
     def config(config_template: str):
         """Performs configurations."""
-        # Create directory for utils configurations
-        config_dir = '/etc/cortx/utils'
-        if not os.path.exists(config_dir):
-            os.makedirs(config_dir)
 
         # Load required files
         config_template_index = 'config'
@@ -367,6 +363,7 @@ class Utils:
         """Remove/Delete all the data that was created after post install."""
         local_path = CortxConf.get_storage_path('local')
         message_bus_conf = os.path.join(local_path, 'utils/conf/message_bus.conf')
+        iem_conf = os.path.join(local_path, 'utils/conf/iem.conf')
 
         if os.path.exists(message_bus_conf):
             # delete message_types
@@ -382,7 +379,7 @@ class Utils:
                 raise SetupError(errors.ERR_OP_FAILED, "Can not cleanup Message  \
                     Bus. %s", e)
 
-        config_files = [message_bus_conf, '/etc/cortx/utils/iem.conf']
+        config_files = [message_bus_conf, iem_conf]
         Utils._delete_files(config_files)
 
         if pre_factory:

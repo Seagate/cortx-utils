@@ -31,7 +31,9 @@ from cortx.utils.log import Log
 class EventMessage(metaclass=Singleton):
     """ Event Message framework to generate alerts """
 
-    _conf_file = 'json:///etc/cortx/cluster.conf'
+    local_storage = CortxConf.get_storage_path('local')
+    iem_conf = os.path.join(local_storage, 'utils/conf/iem.conf')
+    conf_file = f'json://{iem_conf}'
     _producer = None
     _consumer = None
 
