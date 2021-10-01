@@ -242,8 +242,7 @@ class Utils:
         config_template_index = 'config'
         Conf.load(config_template_index, config_template)
         # Configure log_dir for utils
-        log_dir = Conf.get(config_template_index, \
-            'cortx>common>storage>log')
+        log_dir = CortxConf.get_storage_path('log')
         if log_dir is not None:
             CortxConf.set('log_dir', log_dir)
             CortxConf.save()
@@ -272,8 +271,7 @@ class Utils:
         Utils._configure_rsyslog()
 
         # get shared storage from cluster.conf and set it to cortx.conf
-        shared_storage = Conf.get(config_template_index, \
-            'cortx>common>storage>shared')
+        shared_storage = CortxConf.get_storage_path('shared')
         if shared_storage:
             Utils._set_to_conf_file('support>shared_path', shared_storage)
 
