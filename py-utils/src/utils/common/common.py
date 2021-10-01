@@ -1,5 +1,4 @@
 import os
-from cortx.utils import const
 from cortx.utils.conf_store import Conf
 
 
@@ -19,10 +18,6 @@ class CortxConf:
         """ Get the config file path """
         Conf.load('cluster', 'yaml:///etc/cortx/cluster.conf', skip_reload=True)
         return Conf.get('cluster', f'cortx>common>storage>{key}')
-        # if not path:
-        #     # raise Error ??
-        #     pass
-        # return path
 
     @staticmethod
     def get_log_path(component = None, base_dir: str = None) -> str:
