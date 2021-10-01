@@ -235,7 +235,8 @@ class Utils:
             admin = MessageBusAdmin(admin_id='register')
             admin.register_message_type(message_types=['IEM'], partitions=1)
         except MessageBusError as e:
-            raise SetupError(e.rc, "Unable to create message_type. %s", e)
+            if 'TOPIC_ALREADY_EXISTS' not in e.desc:
+                raise SetupError(e.rc, "Unable to create message_type. %s", e)
 
         return 0
 
