@@ -84,7 +84,8 @@ class MessageBrokerFactory:
         for server in all_servers:
             # Value of server can be <server_fqdn:port> or <server_fqdn>
             if ':' in server:
-                server_fqdn, port = server.split(':')
+                endpoints = server.split('//')[1]
+                server_fqdn, port = endpoints.split(':')
                 message_server_list.append(server_fqdn)
                 port_list.append(port)
             else:
