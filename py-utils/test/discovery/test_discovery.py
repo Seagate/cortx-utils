@@ -19,7 +19,6 @@
 import os
 import unittest
 
-from cortx.utils import const
 from cortx.utils.conf_store import Conf
 from cortx.utils.discovery import Discovery
 from cortx.utils.discovery.error import DiscoveryError
