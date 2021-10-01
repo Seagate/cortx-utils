@@ -91,9 +91,12 @@ class Utils:
         config: dict):
         """ Create the config file required for message bus """
         mb_index = 'mb_index'
-        with open(r'/etc/cortx/utils/message_bus.conf.sample', 'w+') as file:
+        local_path = CortxConf.get_storage_path('local')
+        message_bus_conf = os.path.join(local_path, 'utils/conf/message_bus.conf')
+        message_bus_conf_sample = message_bus_conf + '.sample'
+        with open(message_bus_conf_sample, 'w+') as file:
             json.dump({}, file, indent=2)
-        Conf.load(mb_index, 'json:///etc/cortx/utils/message_bus.conf.sample')
+        Conf.load(mb_index, f'json://{message_bus_conf_sample}')
         Conf.set(mb_index, 'message_broker>type', 'kafka')
         for i in range(len(message_server_list)):
             Conf.set(mb_index, f'message_broker>cluster[{i}]>server', \
@@ -104,11 +107,10 @@ class Utils:
 
         # copy this conf file as message_bus.conf
         try:
-            os.rename('/etc/cortx/utils/message_bus.conf.sample', \
-                      '/etc/cortx/utils/message_bus.conf')
+            os.rename(message_bus_conf_sample, message_bus_conf)
         except OSError as e:
-            raise SetupError(e.errno, "Failed to create \
-                /etc/cortx/utils/message_bus.conf %s", e)
+            raise SetupError(e.errno, "Failed to create %s %s", \
+                message_bus_conf, e)
 
     @staticmethod
     def _get_server_info(conf_url_index: str, machine_id: str) -> dict:
@@ -363,8 +365,10 @@ class Utils:
     @staticmethod
     def cleanup(pre_factory: bool):
         """Remove/Delete all the data that was created after post install."""
-        conf_file = '/etc/cortx/utils/message_bus.conf'
-        if os.path.exists(conf_file):
+        local_path = CortxConf.get_storage_path('local')
+        message_bus_conf = os.path.join(local_path, 'utils/conf/message_bus.conf')
+
+        if os.path.exists(message_bus_conf):
             # delete message_types
             try:
                 from cortx.utils.message_bus import MessageBusAdmin
@@ -378,8 +382,7 @@ class Utils:
                 raise SetupError(errors.ERR_OP_FAILED, "Can not cleanup Message  \
                     Bus. %s", e)
 
-        config_files = ['/etc/cortx/utils/message_bus.conf', \
-            '/etc/cortx/utils/iem.conf']
+        config_files = [message_bus_conf, '/etc/cortx/utils/iem.conf']
         Utils._delete_files(config_files)
 
         if pre_factory:

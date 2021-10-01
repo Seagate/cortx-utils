@@ -18,19 +18,21 @@
 import os
 import stat
 import errno
+
 from cortx.utils.log import Log
-from cortx.utils.message_bus.message_broker import MessageBrokerFactory
-from cortx.utils.message_bus.error import MessageBusError
-from cortx.utils.conf_store import Conf
-from cortx.utils.conf_store.error import ConfError
-from cortx.utils.common import CortxConf
 from cortx.template import Singleton
+from cortx.utils.conf_store import Conf
+from cortx.utils.common import CortxConf
+from cortx.utils.conf_store.error import ConfError
+from cortx.utils.message_bus.error import MessageBusError
+from cortx.utils.message_bus.message_broker import MessageBrokerFactory
 
 
 class MessageBus(metaclass=Singleton):
     """ Message Bus Framework over various types of Message Brokers """
-
-    conf_file = 'json:///etc/cortx/utils/message_bus.conf'
+    local_storage = CortxConf.get_storage_path('local')
+    message_bus_conf = os.path.join(local_storage ,'utils/conf/message_bus.conf')
+    conf_file = f'json://{message_bus_conf}'
 
     def __init__(self):
         """ Initialize a MessageBus and load its configurations """
