@@ -9,8 +9,20 @@ class CortxConf:
     @staticmethod
     def _load_config() -> None:
         """Load cortx.conf file into conf in-memory."""
-        Conf.load(CortxConf._index, f'json://{const.CORTX_CONF_FILE}',
+        local_storage_path = CortxConf.get_storage_path('local')
+        Conf.load(CortxConf._index, \
+            f"json://{os.path.join(local_storage_path, 'utils/conf/cortx.conf')}", \
             skip_reload=True)
+
+    @staticmethod
+    def get_storage_path(key):
+        """ Get the config file path """
+        Conf.load('cluster', 'yaml:///etc/cortx/cluster.conf', skip_reload=True)
+        return Conf.get('cluster', f'cortx>common>storage>{key}')
+        # if not path:
+        #     # raise Error ??
+        #     pass
+        # return path
 
     @staticmethod
     def get_log_path(component = None, base_dir: str = None) -> str:
