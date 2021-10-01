@@ -199,7 +199,6 @@ class Utils:
                     req_pack.append(f"{pack[0]} ({pack[1]})")
         except Exception as e:
             rc = -1
-            err = e
             Log.info("Not found: "+f"{utils_path}/conf/python_requirements.ext.txt")
 
         try:
@@ -219,9 +218,8 @@ class Utils:
             Utils._copy_cluster_map(post_install_template_index)
         except Exception as e:
             rc = -1
-            err = e
 
-        return rc, err
+        return rc
 
     @staticmethod
     def init():
@@ -229,22 +227,19 @@ class Utils:
         # Create message_type for Event Message
         from cortx.utils.message_bus import MessageBusAdmin
         rc = 0
-        err = None
         try:
             admin = MessageBusAdmin(admin_id='register')
             admin.register_message_type(message_types=['IEM'], partitions=1)
         except MessageBusError as e:
             rc = -1
-            err = e
             raise SetupError(e.rc, "Unable to create message_type. %s", e)
 
-        return rc, err
+        return rc
 
     @staticmethod
     def config(config_template: str):
         """Performs configurations."""
         rc = 0
-        err = None
         # Create directory for utils configurations
         config_dir = '/etc/cortx/utils'
         if not os.path.exists(config_dir):
@@ -266,7 +261,6 @@ class Utils:
                 MessageBrokerFactory.get_server_list(config_template_index)
         except SetupError as e:
             rc = -1
-            err = e
             Log.error(f"Could not find server information in {config_template}")
             raise SetupError(errno.EINVAL, \
                 "Could not find server information in %s", config_template)
@@ -277,8 +271,6 @@ class Utils:
         server_info = Utils._get_server_info(config_template_index, machine_id)
         if server_info is None:
             rc = -1
-            err = SetupError(errno.EINVAL, "Could not find server " +\
-                "information in %s", config_template)
             Log.error(f"Could not find server information in {config_template}")
             raise SetupError(errno.EINVAL, "Could not find server " +\
                 "information in %s", config_template)
@@ -311,13 +303,12 @@ class Utils:
         Path(os.path.join(utils_log_dir, 'iem/iem.log')).touch(exist_ok=True)
         os.chmod(os.path.join(utils_log_dir, 'iem/iem.log'), 0o0666)
 
-        return rc, err
+        return rc
 
     @staticmethod
     def test(plan: str):
         """ Perform configuration testing """
         rc = 0
-        err = None
         # Runs cortx-py-utils unittests as per test plan
         try:
             Log.info("Validating cortx-py-utils-test rpm")
@@ -335,17 +326,15 @@ class Utils:
                     "\n Error : %s \n Return Code : %s" %(_output, _err, _rc))
         except VError as ve:
             rc = -1
-            err = ve
             Log.error("Failed at package Validation: %s", ve)
             raise SetupError(errno.EINVAL, "Failed at package Validation:"\
                 " %s", ve)
-        return rc, err
+        return rc
 
     @staticmethod
     def reset():
         """Remove/Delete all the data/logs that was created by user/testing."""
         rc = 0
-        err = None
         import time
         _purge_retry = 20
         try:
@@ -372,11 +361,9 @@ class Utils:
                         time.sleep(2*retry_count)
         except MessageBusError as e:
             rc = -1
-            err = e
             raise SetupError(e.rc, "Can not reset Message Bus. %s", e)
         except Exception as e:
             rc = -1
-            err = e
             raise SetupError(errors.ERR_OP_FAILED, "Internal error, can not \
                 reset Message Bus. %s", e)
         # Clear the logs
@@ -388,13 +375,12 @@ class Utils:
             if ret_code != 0:
                 raise SetupError(errors.ERR_OP_FAILED, \
                     "Can not reset log files. %s", stderr)
-        return rc, err
+        return rc
 
     @staticmethod
     def cleanup(pre_factory: bool):
         """Remove/Delete all the data that was created after post install."""
         rc = 0
-        err = None
         conf_file = '/etc/cortx/utils/message_bus.conf'
         if os.path.exists(conf_file):
             # delete message_types
@@ -406,11 +392,9 @@ class Utils:
                     mb.deregister_message_type(message_types_list)
             except MessageBusError as e:
                 rc = -1
-                err = e
                 raise SetupError(e.rc, "Can not cleanup Message Bus. %s", e)
             except Exception as e:
                 rc = -1
-                err = e
                 raise SetupError(errors.ERR_OP_FAILED, "Can not cleanup Message  \
                     Bus. %s", e)
 
@@ -425,7 +409,7 @@ class Utils:
             log_files = glob.glob(cortx_utils_log_regex, recursive=True)
             Utils._delete_files(log_files)
 
-        return rc, err
+        return rc
 
     @staticmethod
     def pre_upgrade(level: str):

@@ -96,8 +96,8 @@ class PostInstallCmd(Cmd):
 
     def process(self):
         Utils.validate('post_install')
-        rc, err = Utils.post_install(self._url)
-        return rc, err
+        rc = Utils.post_install(self._url)
+        return rc
 
 
 class PrepareCmd(Cmd):
@@ -120,8 +120,8 @@ class ConfigCmd(Cmd):
 
     def process(self):
         Utils.validate('config')
-        rc, err = Utils.config(self._url)
-        return rc, err
+        rc = Utils.config(self._url)
+        return rc
 
 
 class InitCmd(Cmd):
@@ -133,8 +133,8 @@ class InitCmd(Cmd):
 
     def process(self):
         Utils.validate('init')
-        rc, err = Utils.init()
-        return rc, err
+        rc = Utils.init()
+        return rc
 
 
 class TestCmd(Cmd):
@@ -153,8 +153,8 @@ class TestCmd(Cmd):
 
     def process(self):
         Utils.validate('test')
-        rc, err = Utils.test(self.test_plan)
-        return rc, err
+        rc = Utils.test(self.test_plan)
+        return rc
 
 
 class ResetCmd(Cmd):
@@ -166,8 +166,8 @@ class ResetCmd(Cmd):
 
     def process(self):
         Utils.validate('reset')
-        rc, err = Utils.reset()
-        return rc, err
+        rc = Utils.reset()
+        return rc
 
 
 class CleanupCmd(Cmd):
@@ -187,8 +187,8 @@ class CleanupCmd(Cmd):
 
     def process(self):
         Utils.validate('cleanup')
-        rc, err = Utils.cleanup(self.pre_factory)
-        return rc, err
+        rc = Utils.cleanup(self.pre_factory)
+        return rc
 
 
 class PreUpgradeCmd(Cmd):
@@ -200,8 +200,8 @@ class PreUpgradeCmd(Cmd):
 
     def process(self):
         Utils.validate('post_upgrade')
-        rc, err = Utils.pre_upgrade(self.args[0])
-        return rc, err
+        rc = Utils.pre_upgrade(self.args[0])
+        return rc
 
 
 class PostUpgradeCmd(Cmd):
@@ -213,8 +213,8 @@ class PostUpgradeCmd(Cmd):
 
     def process(self):
         Utils.validate('post_upgrade')
-        rc, err = Utils.post_upgrade(self.args[0])
-        return rc, err
+        rc = Utils.post_upgrade(self.args[0])
+        return rc
 
 
 def main():
@@ -244,15 +244,13 @@ def main():
         sys.stderr.write("%s\n" % traceback.format_exc())
         Cmd.usage(argv[0])
         rc = e.rc
-        err = e
     except Exception as e:
         sys.stderr.write("error: %s\n\n" % str(e))
         sys.stderr.write("%s\n" % traceback.format_exc())
         rc = errno.EINVAL
-        err = e
     Log.info(f"Command {command} {argv[1]} finished with exit " \
         f"code {rc}")
-    return rc, err
+    return rc
 
 
 if __name__ == '__main__':
