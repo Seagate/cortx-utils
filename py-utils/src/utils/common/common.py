@@ -18,7 +18,7 @@ class CortxConf:
 
     @staticmethod
     def get_storage_path(key):
-        """ Get the config file path """
+        """Get the config file path."""
         Conf.load('cluster', 'yaml:///etc/cortx/cluster.conf', skip_reload=True)
         path = Conf.get('cluster', f'cortx>common>storage>{key}')
         if not path:
