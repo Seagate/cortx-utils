@@ -66,8 +66,12 @@ class Utils:
         """ Gets install path from cortx.conf and returns utils path """
         install_path = CortxConf.get(key='install_path')
         if not install_path:
+            local_storage_path = CortxConf.get_storage_path('local')
+            config_url = "%s://%s" % ('json', \
+                os.path.join(local_storage_path, 'utils/conf/cortx.conf'))
             raise SetupError(errno.EINVAL, "install_path not found in %s",\
-                const.CORTX_CONF_FILE)
+                config_url)
+        return install_path
 
     def _set_to_conf_file(key, value):
         """ Add key value pair to cortx.conf file """
@@ -81,8 +85,11 @@ class Utils:
         val = CortxConf.get(key=key)
 
         if not val:
+            local_storage_path = CortxConf.get_storage_path('local')
+            config_url = "%s://%s" % ('json', \
+                os.path.join(local_storage_path, 'utils/conf/cortx.conf'))
             raise SetupError(errno.EINVAL, "Value for key: %s, not found in \
-                %s", key, const.CORTX_CONF_FILE)
+                %s", key, config_url)
 
         return val
 
