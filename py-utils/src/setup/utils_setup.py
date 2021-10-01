@@ -21,7 +21,6 @@ import inspect
 import argparse
 import traceback
 
-from cortx.utils.common import CortxConf
 from cortx.setup import Utils
 from cortx.utils.log import Log
 from cortx.setup.utils import SetupError
@@ -224,10 +223,23 @@ def main():
 
     # Get the log path
     tmpl_file = argv[3]
+    from cortx.utils.common import CortxConf
+    local_storage_path = CortxConf.get_storage_path('local')
+    cortx_config_file = os.path.join(f'{local_storage_path}', 'utils/conf/cortx.conf')
+    if not os.path.exists(cortx_config_file):
+        import shutil
+        # copy local conf file as cortx.conf
+        try:
+            os.makedirs(f'{local_storage_path}/utils/conf', exist_ok=True)
+            shutil.copy('/opt/seagate/cortx/utils/conf/cortx.conf.sample', \
+                      f'{local_storage_path}/utils/conf/cortx.conf')
+        except OSError as e:
+            raise SetupError(e.errno, "Failed to create %s %s", \
+                cortx_config_file, e)
+
     Conf.load(tmpl_file_index, tmpl_file, skip_reload=True)
-    log_dir = Conf.get(tmpl_file_index, 'cortx>common>storage>log', \
-        '/var/log')
-    utils_log_path = CortxConf.get_log_path(base_dir=log_dir)
+    log_dir = CortxConf.get_storage_path('log')
+    utils_log_path = os.path.join(log_dir, 'cortx/utils')
 
     # Get the log level
     log_level = CortxConf.get('utils>log_level', 'INFO')
