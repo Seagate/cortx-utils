@@ -21,7 +21,7 @@ import inspect
 import argparse
 import traceback
 
-from cortx.setup import Utils
+from cortx.setup.utils import Utils
 from cortx.utils.log import Log
 from cortx.setup.utils import SetupError
 
