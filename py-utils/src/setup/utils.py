@@ -69,6 +69,7 @@ class Utils:
             raise SetupError(errno.EINVAL, "install_path not found in %s",\
                 const.CORTX_CONF_FILE)
 
+    @staticmethod
     def _set_to_conf_file(key, value):
         """ Add key value pair to cortx.conf file """
         CortxConf.set(key, value)
