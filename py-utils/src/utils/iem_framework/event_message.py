@@ -33,7 +33,7 @@ class EventMessage(metaclass=Singleton):
 
     local_storage = CortxConf.get_storage_path('local')
     iem_conf = os.path.join(local_storage, 'utils/conf/iem.conf')
-    conf_file = f'json://{iem_conf}'
+    _conf_file = f'json://{iem_conf}'
     _producer = None
     _consumer = None
 
