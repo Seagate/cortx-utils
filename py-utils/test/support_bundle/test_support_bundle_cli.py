@@ -76,8 +76,6 @@ class TestSupportBundleCli(unittest.TestCase):
         self.assertEqual(stderr, b'')
         self.assertEqual(rc, 0)
         time.sleep(10)
-        bundle_id = ''
-        #if rc == 0:
         bundle_id = stdout.decode('utf-8').split('|')[1]
         stdout, stderr, rc = SB_get_status_CLI(bundle_id.strip())
         self.assertIsInstance(stdout, bytes)
@@ -98,8 +96,6 @@ class TestSupportBundleCli(unittest.TestCase):
         self.assertEqual(stderr, b'')
         self.assertEqual(rc, 0)
         time.sleep(20)
-        bundle_id = ''
-        #if rc == 0:
         bundle_id = stdout.decode('utf-8').split('|')[1]
         stdout, stderr, rc = SB_get_status_CLI(bundle_id.strip())
         self.assertIsInstance(stdout, bytes)
@@ -120,8 +116,6 @@ class TestSupportBundleCli(unittest.TestCase):
         stdout, stderr, rc = SB_generate_CLI('util')
         self.assertEqual(rc, 0)
         time.sleep(10)
-        bundle_id = ''
-        #if rc == 0:
         bundle_id = stdout.decode('utf-8').split('|')[1]
         stdout, stderr, rc = SB_get_status_CLI(bundle_id.strip())
         self.assertIsInstance(stdout, bytes)
@@ -162,7 +156,7 @@ class TestSupportBundleCli(unittest.TestCase):
         self.assertIsInstance(stdout, bytes)
         self.assertEqual(stderr, b'')
         self.assertEqual(rc, 0)
-        time.sleep(10)
+        time.sleep(15)
         bundle_id = stdout.decode('utf-8').split('|')[1]
         bundle_path = stdout.decode('utf-8').split('->')[1]
         tar_file_name = f"{bundle_id.strip()}_{TestSupportBundleCli.node_name}.tar.gz"
@@ -203,10 +197,9 @@ class TestSupportBundleCli(unittest.TestCase):
         self.assertIsInstance(stdout, bytes)
         self.assertEqual(stderr, b'')
         self.assertEqual(rc, 0)
-        time.sleep(10)
+        time.sleep(20)
         bundle_id = stdout.decode('utf-8').split('|')[1]
         bundle_path = stdout.decode('utf-8').split('->')[1]
-
         tar_file_name = f"{bundle_id.strip()}_{TestSupportBundleCli.node_name}.tar.gz"
         sb_file_path = f"{(bundle_path.split('.')[0]).strip()}/"\
             f"{bundle_id.strip()}/{TestSupportBundleCli.node_name}/{tar_file_name}"
@@ -227,7 +220,7 @@ class TestSupportBundleCli(unittest.TestCase):
         self.assertIsInstance(stdout, bytes)
         self.assertEqual(stderr, b'')
         self.assertEqual(rc, 0)
-        time.sleep(10)
+        time.sleep(15)
         bundle_id = stdout.decode('utf-8').split('|')[1]
         bundle_path = stdout.decode('utf-8').split('->')[1]
         tar_file_name = f"{bundle_id.strip()}_{TestSupportBundleCli.node_name}.tar.gz"
@@ -269,7 +262,29 @@ class TestSupportBundleCli(unittest.TestCase):
         self.assertEqual(rc, 0)
         time.sleep(5)
 
-    def test_013_cli_verify_SB_generate_all_component(self):
+    def test_013_cortxcli_generate_status(self):
+        """Validate SB generate through cortxcli."""
+        cmd = "cortxcli support_bundle generate 'sample comment' -c 'csm'"
+        cmd_proc = SimpleProcess(cmd)
+        stdout, _, rc = cmd_proc.run()
+        stdout = stdout.decode('utf-8')
+        self.assertIn("bundle id", stdout)
+        self.assertEqual(rc, 0)
+        bundle_id = stdout.split('|')[1].strip()
+        time.sleep(20)
+        cmd = f"cortxcli support_bundle status '{bundle_id}'"
+        cmd_proc = SimpleProcess(cmd)
+        stdout, _, rc = cmd_proc.run()
+        self.assertIn('Success', stdout.decode('utf-8'))
+
+    def test_014_cortxcli_wrong_generate(self):
+        """Validate SB generate through cortxcli for invalid component."""
+        cmd = "cortxcli support_bundle generate 'sample comment' -c 'csmm'"
+        cmd_proc = SimpleProcess(cmd)
+        stdout, _, _ = cmd_proc.run()
+        self.assertEqual(stdout, b'')
+
+    def test_015_cli_verify_SB_generate_all_component(self):
         """Validate SB generate for all components."""
         cmd = "support_bundle generate 'sample comment'"
         cmd_proc = SimpleProcess(cmd)
@@ -289,25 +304,6 @@ class TestSupportBundleCli(unittest.TestCase):
             _, _, rc = cmd_proc.run()
             assert(rc == 0)
 
-    def test_006_cortxcli_generate_status(self):
-        cmd = "cortxcli support_bundle generate 'sample comment' -c 'csm'"
-        cmd_proc = SimpleProcess(cmd)
-        stdout, _, rc = cmd_proc.run()
-        stdout = stdout.decode('utf-8')
-        self.assertIn("bundle id", stdout)
-        self.assertEqual(rc, 0)
-        bundle_id = stdout.split('|')[1].strip()
-        time.sleep(15)
-        cmd = f"cortxcli support_bundle status '{bundle_id}'"
-        cmd_proc = SimpleProcess(cmd)
-        stdout, _, rc = cmd_proc.run()
-        self.assertIn('Success', stdout.decode('utf-8'))
-
-    def test_007_cortxcli_wrong_generate(self):
-        cmd = "cortxcli support_bundle generate 'sample comment' -c 'csmm'"
-        cmd_proc = SimpleProcess(cmd)
-        stdout, _, _ = cmd_proc.run()
-        self.assertEqual(stdout, b'')
 
 if __name__ == '__main__':
     unittest.main()
