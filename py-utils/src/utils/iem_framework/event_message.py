@@ -53,6 +53,22 @@ class EventMessage(metaclass=Singleton):
         'O': 'OS'
     }
 
+    @staticmethod
+    def _initiate_logger():
+        """ Initialize logger if required. """
+
+        Conf.load('config_file', 'json:///etc/cortx/cortx.conf',
+            skip_reload=True)
+        # if Log.logger is already initialized by some parent process
+        # the same file will be used to log all the messagebus related
+        # logs, else standard iem.log will be used.
+        if not Log.logger:
+            LOG_DIR='/var/log'
+            iem_log_dir = os.path.join(LOG_DIR, 'cortx/utils/iem')
+            log_level = Conf.get('config_file', 'utils>log_level', 'INFO')
+            Log.init('iem', iem_log_dir, level=log_level, \
+                backup_count=5, file_size_in_mb=5)
+
     @classmethod
     def init(cls, component: str, source: str):
         """
@@ -67,17 +83,7 @@ class EventMessage(metaclass=Singleton):
         cls._component = component
         cls._source = source
 
-        Conf.load('config_file', 'json:///etc/cortx/cortx.conf',
-            skip_reload=True)
-        # if Log.logger is already initialized by some parent process
-        # the same file will be used to log all the messagebus related
-        # logs, else standard iem.log will be used.
-        if not Log.logger:
-            LOG_DIR='/var/log'
-            iem_log_dir = os.path.join(LOG_DIR, 'cortx/utils/iem')
-            log_level = Conf.get('config_file', 'utils>log_level', 'INFO')
-            Log.init('iem', iem_log_dir, level=log_level, \
-                backup_count=5, file_size_in_mb=5)
+        cls._initiate_logger()
 
         try:
             Conf.load('cluster', cls._conf_file, skip_reload=True)
@@ -137,6 +143,7 @@ class EventMessage(metaclass=Singleton):
         import socket
         sender_host = socket.gethostname()
 
+        cls._initiate_logger()
         if cls._producer is None:
             Log.error("IEM Producer not initialized.")
             raise EventMessageError(errors.ERR_SERVICE_NOT_INITIALIZED, \
@@ -223,6 +230,7 @@ class EventMessage(metaclass=Singleton):
     @classmethod
     def receive(cls):
         """ Receive IEM alert message """
+        cls._initiate_logger()
         if cls._consumer is None:
             Log.error("IEM Consumer is not subscribed")
             raise EventMessageError(errors.ERR_SERVICE_NOT_INITIALIZED, \
