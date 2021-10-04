@@ -18,11 +18,12 @@
 
 import unittest
 from cortx.utils.validator.v_path import PathV
+from cortx.utils.validator.error import VError
 
 class TestPathValidator(unittest.TestCase):
 	"""Test Path related validations."""
-	paths = ["dir:/", "file:/etc/hosts", "device:/dev/loop9"]
-	host = "localhost"
+	paths = ['dir:/', 'file:/etc/hosts']
+	host = 'localhost'
 
 	def test_path(self):
 		"""Check paths."""
@@ -33,6 +34,12 @@ class TestPathValidator(unittest.TestCase):
 		"""Check paths."""
 
 		PathV().validate('exists', self.paths, self.host)
+
+	def test_path_neg(self):
+		"""Check negative paths."""
+		neg_path = ['device:/dev/loop9']
+		self.assertRaises(VError, PathV().validate, 'exists', neg_path)
+
 
 if __name__ == '__main__':
     unittest.main()
