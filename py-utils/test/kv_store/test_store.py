@@ -16,67 +16,68 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.kvstore.pillar import PillarStorage
-from cortx.utils.kvstore.kvstore import KvStore
-import unittest
-import sys
-import os
+#from cortx.utils.kvstore.pillar import PillarStorage
+#from cortx.utils.kvstore.kvstore import KvStore
+#import unittest
+#import sys
+#import os
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
-
-
-class TestStore(unittest.TestCase):
-    """Test store related functionality."""
-
-    def test_pillerdb_get_management_vip(self):
-        """Test Get Management VIP from PillarStorage."""
-
-        kv = KvStore(PillarStorage())
-        mgmt_vip = kv.get('cluster:mgmt_vip')
-
-        self.assertIsNotNone(mgmt_vip, "Management VIPs not found")
-        self.assertTrue(
-            TestStore._is_valid_ipv4(mgmt_vip),
-            "Invalid Management VIP")
-
-    def test_pillerdb_get_cluster_ip(self):
-        """Test Get Cluster IP from PillarStorage."""
-
-        kv = KvStore(PillarStorage())
-        cluster_ip = kv.get('cluster:cluster_ip')
-
-        self.assertIsNotNone(cluster_ip, "Cluster IP not found")
-        self.assertTrue(
-            TestStore._is_valid_ipv4(cluster_ip),
-            "Invalid Cluster IP")
-
-    def test_pillerdb_get_nodes(self):
-        """Test Get Node list from PillarStorage."""
-
-        kv = KvStore(PillarStorage())
-        ips = kv.get('cluster:node_list')
-
-        assert_msg = "Nodes not found"
-        self.assertIsNotNone(ips, assert_msg)
-        self.assertGreater(len(ips), 0, assert_msg)
-
-    @staticmethod
-    def _is_valid_ipv4(ip):
-        isValid = False
-        if ip.count(".") == 3 \
-            and all(TestStore._is_valid_ipv4_part(ip_part)
-            for ip_part in ip.split(".")):
-            isValid = True
-
-        return isValid
-
-    @staticmethod
-    def _is_valid_ipv4_part(ip_part):
-        try:
-            return str(int(ip_part)) == ip_part and 0 <= int(ip_part) <= 255
-        except Exception:
-            return False
+#sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 
-if __name__ == '__main__':
-    unittest.main()
+#class TestStore(unittest.TestCase):
+#    """Test store related functionality."""
+
+#    def test_pillerdb_get_management_vip(self):
+#        """Test Get Management VIP from PillarStorage."""
+
+#        kv = KvStore(PillarStorage())
+#        mgmt_vip = kv.get('cluster:mgmt_vip')
+
+#        self.assertIsNotNone(mgmt_vip, "Management VIPs not found")
+#        self.assertTrue(
+#            TestStore._is_valid_ipv4(mgmt_vip),
+#            "Invalid Management VIP")
+
+#    def test_pillerdb_get_cluster_ip(self):
+#        """Test Get Cluster IP from PillarStorage."""
+
+#        kv = KvStore(PillarStorage())
+#        cluster_ip = kv.get('cluster:cluster_ip')
+
+#        self.assertIsNotNone(cluster_ip, "Cluster IP not found")
+#        self.assertTrue(
+#            TestStore._is_valid_ipv4(cluster_ip),
+#            "Invalid Cluster IP")
+
+#    def test_pillerdb_get_nodes(self):
+#        """Test Get Node list from PillarStorage."""
+
+#        kv = KvStore(PillarStorage())
+#        ips = kv.get('cluster:node_list')
+
+#        assert_msg = "Nodes not found"
+#        self.assertIsNotNone(ips, assert_msg)
+#        self.assertGreater(len(ips), 0, assert_msg)
+
+#    @staticmethod
+#    def _is_valid_ipv4(ip):
+#        isValid = False
+#        if ip.count(".") == 3 \
+#            and all(TestStore._is_valid_ipv4_part(ip_part)
+#            for ip_part in ip.split(".")):
+#            isValid = True
+
+#        return isValid
+
+#    @staticmethod
+#    def _is_valid_ipv4_part(ip_part):
+#        try:
+#            return str(int(ip_part)) == ip_part and 0 <= int(ip_part) <= 255
+#        except Exception:
+#            return False
+
+
+#if __name__ == '__main__':
+#    pass
+#    unittest.main()
