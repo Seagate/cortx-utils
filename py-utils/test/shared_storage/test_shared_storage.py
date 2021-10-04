@@ -20,20 +20,32 @@ import os
 import unittest
 
 from cortx.utils.shared_storage import Storage
-
+from cortx.utils.conf_store import Conf
 
 class TestSharedStorage(unittest.TestCase):
 
     """ Unit test class to test shared storage. """
 
+    @classmethod
+    def setUpClass(cls):
+        """Register the test message_type."""
+        config_file = 'json:///etc/cortx/cortx.conf'
+        Conf.load('cotrx_config', config_file, skip_reload=True)
+        cls.local_path = Conf.get('cotrx_config', 'support>local_path')
+        os.makedirs(cls.local_path, exist_ok=True)
+
     def test_shared_path_read_access(self):
         """ test if shared storage path exists and is readable """
         shared_path = Storage.get_path()
+        if not shared_path:
+            shared_path=TestSharedStorage.local_path
         self.assertTrue(os.access(shared_path, os.R_OK))
 
     def test_shared_path_write_access(self):
         """ test if shared storage path exists and is writable """
         shared_path = Storage.get_path()
+        if not shared_path:
+            shared_path=TestSharedStorage.local_path
         self.assertTrue(os.access(shared_path, os.W_OK))
 
 
