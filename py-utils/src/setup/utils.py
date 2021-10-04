@@ -303,7 +303,8 @@ class Utils:
         try:
             Log.info("Validating cortx-py-utils-test rpm")
             PkgV().validate('rpms', ['cortx-py-utils-test'])
-            utils_path = Utils._get_utils_path()
+            install_path = Utils._get_from_conf_file('install_path')
+            utils_path = install_path + '/cortx/utils'
             import cortx.utils.test as test_dir
             plan_path = os.path.join(os.path.dirname(test_dir.__file__), \
                 'plans/', plan + '.pln')
