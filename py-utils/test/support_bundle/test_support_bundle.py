@@ -36,7 +36,8 @@ class TestSupportBundle(unittest.TestCase):
         """Test Setup class."""
         from cortx.utils.log import Log
         Log.init('support_bundle', '/var/log/cortx/utils/suppoort/', \
-            level='DEBUG', backup_count=5, file_size_in_mb=5)
+            level='DEBUG', backup_count=5, file_size_in_mb=5, \
+            syslog_server='localhost', syslog_port=514)
         cls.sb_description = "Test support bundle generation"
         if TestSupportBundle._cluster_conf_path:
             cls.cluster_conf_path = TestSupportBundle._cluster_conf_path
@@ -82,6 +83,7 @@ class TestSupportBundle(unittest.TestCase):
         cmd_proc = SimpleProcess(cmd)
         _, _, rc = cmd_proc.run()
         self.assertEqual(rc, 0)
+        time.sleep(5)
         ServiceV().validate('isrunning', ['rsyslog'])
 
     def test_013_verify_SB_generate_after_elasticsearch_service_stop(self):

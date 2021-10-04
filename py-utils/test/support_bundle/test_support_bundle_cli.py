@@ -68,7 +68,6 @@ class TestSupportBundleCli(unittest.TestCase):
         self.assertIsInstance(stdout, bytes)
         self.assertEqual(stderr, b'')
         self.assertEqual(rc, 0)
-        bundle_id = ''
         bundle_id = stdout.decode('utf-8').split('|')[1].strip()
         stdout, stderr, rc = SB_get_status_CLI(bundle_id, TestSupportBundleCli.cluster_conf_path)
         self.assertIsInstance(stdout, bytes)
