@@ -23,7 +23,6 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from cortx.utils.validator.v_elasticsearch import ElasticsearchV
-from cortx.utils.validator.error import VError
 
 
 class TestElasticsearchValidator(unittest.TestCase):
@@ -31,8 +30,7 @@ class TestElasticsearchValidator(unittest.TestCase):
 
     def test_service_status(self):
         """Check if elasticsearch service is down."""
-        self.assertRaises(VError, ElasticsearchV().validate, 'service',
-                          ['localhost', '9200'])
+        ElasticsearchV().validate('service', ['localhost', '9200'])
 
 
 if __name__ == '__main__':
