@@ -40,12 +40,13 @@ class SupportBundleCli:
         comment = args.comment[0]
         components = args.component[0].split(';') if args.component else []
         path = args.URL[0]
-        if "http://" in path:
-            sys.stderr.write("URL format target is not implemented yet.\n"
+        if 'file://' not in path:
+            sys.stderr.write(" Target path should be in file format.\n"
                 "Please specify the absolute target path.\n"
                 "For example:-\n"
-                "support_bundle generate 'test cortx' -t '/var/cortx/support_bundle'.\n")
+                "support_bundle generate 'test cortx' -t file:///var/cortx/support_bundle\n")
             sys.exit(1)
+        path = path.split('//')[1]
         bundle_obj = SupportBundle.generate(comment=comment, \
             components=components, target_path=path)
         display_string_len = len(bundle_obj.bundle_id) + 4
@@ -87,7 +88,7 @@ class GenerateCmd:
         s_parser.add_argument('-c', '--component', nargs='+', default=[], \
             help='Optional, Specified component support bundle will be generated')
         s_parser.add_argument('-t', '--URL', nargs='+', required=True, \
-            help='Path- CORTX support bundle will be generated at specified path.')
+            help="Path- CORTX support bundle will be generated at specified path.")
 
 
 class StatusCmd:

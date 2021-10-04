@@ -54,13 +54,13 @@ class SupportBundle:
 
     @staticmethod
     async def _begin_bundle_generation(bundle_obj):
-        tar_dest_file = f"{bundle_obj.bundle_id}.tar.gz"
+        tar_dest_file = f'{bundle_obj.bundle_id}.tar.gz'
         dest_path = os.path.join(bundle_obj.bundle_path, tar_dest_file)
         Log.debug(f"Generating Bundle at path:{dest_path}")
         try:
             for target in const.SB_DIR_LIST:
                 if os.path.isdir(target):
-                    with tarfile.open(dest_path, "w:gz") as tar_handle:
+                    with tarfile.open(dest_path, 'w:gz') as tar_handle:
                         tar_handle.add(target, arcname=os.path.abspath(target))
             bundle_status = ("Successfully generated the support bundle "
                             f"at path: '{dest_path}' !!!")
@@ -86,7 +86,7 @@ class SupportBundle:
         bundle_id = SupportBundle._generate_bundle_id()
         # load conf for Support Bundle
         Conf.load(const.SB_INDEX, 'json://' + const.FILESTORE_PATH)
-        Conf.set(const.SB_INDEX, f"bundle_db>{bundle_id}", bundle_status)
+        Conf.set(const.SB_INDEX, f'bundle_db>{bundle_id}', bundle_status)
         Conf.save(const.SB_INDEX)
         
         # Get Arguments From Command
