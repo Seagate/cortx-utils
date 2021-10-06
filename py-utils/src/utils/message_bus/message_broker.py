@@ -96,7 +96,10 @@ class MessageBrokerFactory:
             Log.error(f"Missing config entry {key_list} in input file")
             raise SetupError(errno.EINVAL, \
                 "Missing config entry %s in config", key_list)
-
+        cluster_conf = None
+        if not cluster_conf:
+            cluster_conf = 'yaml:///etc/cortx/cluster.conf'
+        CortxConf.init(cluster_conf=cluster_conf)
         # Read the default config
         config = CortxConf.get('message_bus')
         return message_server_list, port_list, config
