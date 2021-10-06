@@ -64,9 +64,13 @@ class Utils:
     @staticmethod
     def _get_utils_path() -> str:
         """ Gets install path from cortx.conf and returns utils path """
-        install_path = CortxConf.get(key='install_path')
+        cluster_conf = None
+        if not cluster_conf:
+            cluster_conf = '/etc/cortx'
+        install_path = CortxConf.get(key='install_path', cluster_conf=cluster_conf)
         if not install_path:
-            local_storage_path = CortxConf.get_storage_path('local')
+            local_storage_path = CortxConf.get_storage_path('local',\
+                cluster_conf=cluster_conf)
             config_url = "%s://%s" % ('json', \
                 os.path.join(local_storage_path, 'utils/conf/cortx.conf'))
             raise SetupError(errno.EINVAL, "install_path not found in %s",\
@@ -75,17 +79,24 @@ class Utils:
 
     def _set_to_conf_file(key, value):
         """ Add key value pair to cortx.conf file """
-        CortxConf.set(key, value)
+        cluster_conf = None
+        if not cluster_conf:
+            cluster_conf = '/etc/cortx'
+        CortxConf.set(key, value, cluster_conf=cluster_conf)
         CortxConf.save()
 
     # Utils private methods
     @staticmethod
     def _get_from_conf_file(key) -> str:
         """ Fetch and return value for the key from cortx.conf file """
-        val = CortxConf.get(key=key)
+        cluster_conf = None
+        if not cluster_conf:
+            cluster_conf = '/etc/cortx'
+        val = CortxConf.get(key=key, cluster_conf=cluster_conf)
 
         if not val:
-            local_storage_path = CortxConf.get_storage_path('local')
+            local_storage_path = CortxConf.get_storage_path('local',\
+                cluster_conf=cluster_conf)
             config_url = "%s://%s" % ('json', \
                 os.path.join(local_storage_path, 'utils/conf/cortx.conf'))
             raise SetupError(errno.EINVAL, "Value for key: %s, not found in \
@@ -97,8 +108,12 @@ class Utils:
     def _create_msg_bus_config(message_server_list: list, port_list: list, \
         config: dict):
         """ Create the config file required for message bus """
+        cluster_conf = None
+        if not cluster_conf:
+            cluster_conf = '/etc/cortx'
         mb_index = 'mb_index'
-        local_path = CortxConf.get_storage_path('local')
+        local_path = CortxConf.get_storage_path('local',\
+            cluster_conf=cluster_conf)
         message_bus_conf = os.path.join(local_path, 'utils/conf/message_bus.conf')
         message_bus_conf_sample = message_bus_conf + '.sample'
         with open(message_bus_conf_sample, 'w+') as file:
@@ -148,8 +163,12 @@ class Utils:
     @staticmethod
     def _create_iem_config(server_info: dict, machine_id: str):
         """ Create the config file required for Event Message """
+        cluster_conf = None
+        if not cluster_conf:
+            cluster_conf = '/etc/cortx'
         iem_index = 'iem'
-        local_path = CortxConf.get_storage_path('local')
+        local_path = CortxConf.get_storage_path('local',\
+            cluster_conf=cluster_conf)
         iem_conf = os.path.join(local_path, 'utils/conf/iem.conf')
         iem_conf_sample = iem_conf + '.sample'
         with open(iem_conf_sample, 'w+') as file:
@@ -243,14 +262,18 @@ class Utils:
     @staticmethod
     def config(config_template: str):
         """Performs configurations."""
-
+        cluster_conf = None
+        if not cluster_conf:
+            cluster_conf = '/etc/cortx'
         # Load required files
         config_template_index = 'config'
         Conf.load(config_template_index, config_template)
         # Configure log_dir for utils
-        log_dir = CortxConf.get_storage_path('log')
+        log_dir = CortxConf.get_storage_path('log',\
+            cluster_conf=cluster_conf)
         if log_dir is not None:
-            CortxConf.set('log_dir', log_dir)
+            CortxConf.set('log_dir', log_dir,\
+                cluster_conf=cluster_conf)
             CortxConf.save()
 
         # Create message_bus config
@@ -277,15 +300,18 @@ class Utils:
         Utils._configure_rsyslog()
 
         # get shared storage from cluster.conf and set it to cortx.conf
-        shared_storage = CortxConf.get_storage_path('shared')
+        shared_storage = CortxConf.get_storage_path('shared',\
+            cluster_conf=cluster_conf)
         if shared_storage:
             Utils._set_to_conf_file('support>shared_path', shared_storage)
 
         # temporary fix for a common message bus log file
         # The issue happend when some user other than root:root is trying
         # to write logs in these log dir/files. This needs to be removed soon!
-        log_dir = CortxConf.get('log_dir', '/var/log')
-        utils_log_dir = CortxConf.get_log_path(base_dir=log_dir)
+        log_dir = CortxConf.get('log_dir', '/var/log',\
+            cluster_conf=cluster_conf)
+        utils_log_dir = CortxConf.get_log_path(base_dir=log_dir,\
+            cluster_conf=cluster_conf)
         #message_bus
         os.makedirs(os.path.join(utils_log_dir, 'message_bus'), exist_ok=True)
         os.chmod(os.path.join(utils_log_dir, 'message_bus'), 0o0777)
@@ -355,8 +381,11 @@ class Utils:
         except Exception as e:
             raise SetupError(errors.ERR_OP_FAILED, "Internal error, can not \
                 reset Message Bus. %s", e)
+        cluster_conf = None
+        if not cluster_conf:
+            cluster_conf = '/etc/cortx'
         # Clear the logs
-        utils_log_path = CortxConf.get_log_path()
+        utils_log_path = CortxConf.get_log_path(cluster_conf=cluster_conf)
         if os.path.exists(utils_log_path):
             cmd = "find %s -type f -name '*.log' -exec truncate -s 0 {} +" % utils_log_path
             cmd_proc = SimpleProcess(cmd)
@@ -369,7 +398,11 @@ class Utils:
     @staticmethod
     def cleanup(pre_factory: bool):
         """Remove/Delete all the data that was created after post install."""
-        local_path = CortxConf.get_storage_path('local')
+        cluster_conf = None
+        if not cluster_conf:
+            cluster_conf = '/etc/cortx'
+        local_path = CortxConf.get_storage_path('local',
+            cluster_conf=cluster_conf)
         message_bus_conf = os.path.join(local_path, 'utils/conf/message_bus.conf')
         iem_conf = os.path.join(local_path, 'utils/conf/iem.conf')
 
@@ -392,7 +425,7 @@ class Utils:
 
         if pre_factory:
             # deleting all log files as part of pre-factory cleanup
-            utils_log_path = CortxConf.get_log_path()
+            utils_log_path = CortxConf.get_log_path(cluster_conf=cluster_conf)
             cortx_utils_log_regex = f'{utils_log_path}/**/*.log'
             log_files = glob.glob(cortx_utils_log_regex, recursive=True)
             Utils._delete_files(log_files)

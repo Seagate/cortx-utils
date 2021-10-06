@@ -30,8 +30,11 @@ from cortx.utils.log import Log
 
 class EventMessage(metaclass=Singleton):
     """ Event Message framework to generate alerts """
-
-    local_storage = CortxConf.get_storage_path('local')
+    cluster_conf = None
+    if not cluster_conf:
+        cluster_conf = '/etc/cortx'
+    local_storage = CortxConf.get_storage_path('local',\
+        cluster_conf=cluster_conf)
     iem_conf = os.path.join(local_storage, 'utils/conf/iem.conf')
     _conf_file = f'json://{iem_conf}'
     _producer = None
@@ -73,8 +76,13 @@ class EventMessage(metaclass=Singleton):
         # the same file will be used to log all the messagebus related
         # logs, else standard iem.log will be used.
         if not Log.logger:
-            iem_log_dir = CortxConf.get_log_path('iem')
-            log_level = CortxConf.get('utils>log_level', 'INFO')
+            cluster_conf = None
+            if not cluster_conf:
+                cluster_conf = '/etc/cortx'
+            iem_log_dir = CortxConf.get_log_path('iem',\
+                cluster_conf=cluster_conf)
+            log_level = CortxConf.get('utils>log_level', 'INFO',\
+                cluster_conf=cluster_conf)
             Log.init('iem', iem_log_dir, level=log_level, \
                 backup_count=5, file_size_in_mb=5)
 

@@ -27,7 +27,11 @@ from cortx.utils.common import CortxConf
 
 # Load cortx common config
 store_type = "json"
-local_storage_path = CortxConf.get_storage_path('local')
+cluster_conf = None
+if not cluster_conf:
+    cluster_conf = '/etc/cortx'
+local_storage_path = CortxConf.get_storage_path('local',\
+    cluster_conf=cluster_conf)
 config_url = "%s://%s" % (store_type, os.path.join(local_storage_path, 'utils/conf/cortx.conf'))
 common_config = KvStoreFactory.get_instance(config_url)
 common_config.load()

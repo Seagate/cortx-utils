@@ -30,21 +30,32 @@ from cortx.utils.message_bus.message_broker import MessageBrokerFactory
 
 class MessageBus(metaclass=Singleton):
     """ Message Bus Framework over various types of Message Brokers """
-    local_storage = CortxConf.get_storage_path('local')
-    message_bus_conf = os.path.join(local_storage ,'utils/conf/message_bus.conf')
+    cluster_conf = None
+    if not cluster_conf:
+        cluster_conf = '/etc/cortx'
+    local_storage = CortxConf.get_storage_path('local',\
+        cluster_conf=cluster_conf)
+    message_bus_conf = os.path.join(local_storage ,\
+        'utils/conf/message_bus.conf')
     conf_file = f'json://{message_bus_conf}'
 
     def __init__(self):
         """ Initialize a MessageBus and load its configurations """
+        cluster_conf = None
+        if not cluster_conf:
+            cluster_conf = '/etc/cortx'
         # Get the log path
-        log_dir = CortxConf.get('log_dir', '/var/log')
-        utils_log_path = CortxConf.get_log_path('message_bus', base_dir=log_dir)
+        log_dir = CortxConf.get('log_dir', '/var/log',\
+            cluster_conf=cluster_conf)
+        utils_log_path = CortxConf.get_log_path('message_bus', base_dir=log_dir,\
+            cluster_conf=cluster_conf)
 
         # if Log.logger is already initialized by some parent process
         # the same file will be used to log all the messagebus related
         # logs, else standard message_bus.log will be used.
         if not Log.logger:
-            log_level = CortxConf.get('utils>log_level', 'INFO')
+            log_level = CortxConf.get('utils>log_level', 'INFO',\
+                cluster_conf=cluster_conf)
             Log.init('message_bus', utils_log_path, level=log_level, \
                 backup_count=5, file_size_in_mb=5)
 

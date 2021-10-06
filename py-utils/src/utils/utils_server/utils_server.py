@@ -41,11 +41,16 @@ class RestServer:
 if __name__ == '__main__':
     import os
     from cortx.utils.conf_store import Conf
+    cluster_conf = None
+    if not cluster_conf:
+        cluster_conf = '/etc/cortx'
     # Get the log path
-    log_dir = CortxConf.get('log_dir', '/var/log')
-    utils_log_path = CortxConf.get_log_path('utils_server', base_dir=log_dir)
+    log_dir = CortxConf.get('log_dir', '/var/log', cluster_conf=cluster_conf)
+    utils_log_path = CortxConf.get_log_path('utils_server', base_dir=log_dir,\
+        cluster_conf=cluster_conf)
     # Get the log level
-    log_level = CortxConf.get('utils>log_level', 'INFO')
+    log_level = CortxConf.get('utils>log_level', 'INFO',\
+        cluster_conf=cluster_conf)
 
     Log.init('utils_server', utils_log_path, level=log_level, backup_count=5, \
         file_size_in_mb=5)

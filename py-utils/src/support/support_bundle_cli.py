@@ -114,9 +114,12 @@ class StatusCmd:
 def main():
     from cortx.utils.log import Log
     from cortx.utils.conf_store import Conf
-
-    log_path = CortxConf.get_log_path('support')
-    log_level = CortxConf.get('utils>log_level', 'INFO')
+    cluster_conf = None
+    if not cluster_conf:
+        cluster_conf = '/etc/cortx'
+    log_path = CortxConf.get_log_path('support', cluster_conf=cluster_conf)
+    log_level = CortxConf.get('utils>log_level', 'INFO',\
+        cluster_conf=cluster_conf)
     Log.init('support_bundle', log_path, level=log_level, backup_count=5, \
         file_size_in_mb=5, syslog_server='localhost', syslog_port=514)
     # Setup Parser

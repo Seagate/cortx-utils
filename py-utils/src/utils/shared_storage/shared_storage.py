@@ -27,8 +27,11 @@ class Storage:
 
     def __init__(self):
         """ Initialize and load shared storage backend """
-
-        self.shared_storage_url = CortxConf.get('support>shared_path')
+        cluster_conf = None
+        if not cluster_conf:
+            cluster_conf = '/etc/cortx'
+        self.shared_storage_url = CortxConf.get('support>shared_path',\
+            cluster_conf=cluster_conf)
         if self.shared_storage_url is not None:
             self.shared_storage_agent = SharedStorageFactory.get_instance( \
                 self.shared_storage_url)

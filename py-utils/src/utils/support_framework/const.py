@@ -14,9 +14,11 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 from cortx.utils.common.common import CortxConf
-
-LOG_DIR = CortxConf.get_storage_path('log')
-LOCAL_DIR = CortxConf.get_storage_path('local')
+cluster_conf = None
+if not cluster_conf:
+    cluster_conf = '/etc/cortx'
+LOG_DIR = CortxConf.get_storage_path('log', cluster_conf=cluster_conf)
+LOCAL_DIR = CortxConf.get_storage_path('local', cluster_conf=cluster_conf)
 SB_DIR_LIST = [LOG_DIR, LOCAL_DIR]
 SUPPORT_BUNDLE_TAG = 'support_bundle;'
 SUPPORT_BUNDLE = 'SUPPORT_BUNDLE'
