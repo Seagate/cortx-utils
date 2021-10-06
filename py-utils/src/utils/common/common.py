@@ -8,18 +8,29 @@ from cortx.utils.conf_store.error import ConfError
 class CortxConf:
     _index = 'config_file'
     _cluster_index = 'cluster'
-    _conf = None
     _cluster_conf = None
 
     @staticmethod
     def init(**kwargs):
-        """static init for initialising"""
-        if CortxConf._conf is None:
-            for key, val in kwargs.items():
+        """
+        static init for initialising
+
+        Arguments:
+        cluster_conf: 
+            confStore path of cluster.conf. eg. yaml:///etc/cortx/cluster.conf
+        fail_reload: When True, and if index already exists, load() throws
+                     exception.
+                     When True, and if index do not exists, load() succeeds.
+                     When false, irrespective of index status, load() succeeds
+                     Default: True
+        """
+        fail_reload = kwargs.get('fail_reload')
+        fail_reload = True if fail_reload is None else fail_reload
+        for key, val in kwargs.items():
+            if key not in ['fail_reload']:
                 setattr(CortxConf, f"_{key}", val)
-            CortxConf._conf = Conf
-            CortxConf._load_cluster_conf()
-            CortxConf._load_config()
+        CortxConf._load_cluster_conf(fail_reload)
+        CortxConf._load_config()
 
     @staticmethod
     def _load_config() -> None:
@@ -30,8 +41,8 @@ class CortxConf:
             skip_reload=True)
 
     @staticmethod
-    def _load_cluster_conf():
-        CortxConf._conf.load(CortxConf._cluster_index, CortxConf._cluster_conf)
+    def _load_cluster_conf(fail_reload=True):
+        Conf.load(CortxConf._cluster_index, CortxConf._cluster_conf, fail_reload=fail_reload)
 
     @staticmethod
     def get_storage_path(key):

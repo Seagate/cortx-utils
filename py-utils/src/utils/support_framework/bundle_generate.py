@@ -113,10 +113,7 @@ class ComponentsBundle:
         command:        cli Command Object :type: command
         return:         None
         """
-        cluster_conf = None
-        if not cluster_conf:
-            cluster_conf = 'yaml:///etc/cortx/cluster.conf'
-        CortxConf.init(cluster_conf=cluster_conf)
+        CortxConf.init(cluster_conf='yaml:///etc/cortx/cluster.conf')
         log_path = CortxConf.get_log_path('support')
         log_level = CortxConf.get('utils>log_level', 'INFO')
         Log.init('support_bundle_node', log_path, level=log_level, \
