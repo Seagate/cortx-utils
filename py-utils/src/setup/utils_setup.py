@@ -224,6 +224,10 @@ def main():
     # Get the log path
     tmpl_file = argv[3]
     from cortx.utils.common import CortxConf
+    cluster_conf = None
+    if not cluster_conf:
+        cluster_conf = 'yaml:///etc/cortx/cluster.conf'
+    CortxConf.init(cluster_conf=cluster_conf)
     local_storage_path = CortxConf.get_storage_path('local')
     cortx_config_file = os.path.join(f'{local_storage_path}', 'utils/conf/cortx.conf')
     if not os.path.exists(cortx_config_file):
