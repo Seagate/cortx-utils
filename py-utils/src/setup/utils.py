@@ -192,7 +192,6 @@ class Utils:
     @staticmethod
     def post_install(post_install_template: str):
         """ Performs post install operations """
-        CortxConf.init(cluster_conf='yaml:///etc/cortx/cluster.conf')
         # Check required python packages
         install_path = Utils._get_from_conf_file('install_path')
         utils_path = install_path + '/cortx/utils'
@@ -243,7 +242,6 @@ class Utils:
     @staticmethod
     def config(config_template: str):
         """Performs configurations."""
-        CortxConf.init(cluster_conf='yaml:///etc/cortx/cluster.conf')
         # Load required files
         config_template_index = 'config'
         Conf.load(config_template_index, config_template)

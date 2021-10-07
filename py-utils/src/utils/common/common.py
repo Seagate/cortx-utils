@@ -18,10 +18,8 @@ class CortxConf:
         cluster_conf:
             confStore path of cluster.conf. eg. yaml:///etc/cortx/cluster.conf
         """
-        fail_reload = kwargs.get('fail_reload', False)
         for key, val in kwargs.items():
-            if key not in ['fail_reload']:
-                setattr(CortxConf, f"_{key}", val)
+            setattr(CortxConf, f"_{key}", val)
         CortxConf._load_cluster_conf()
         CortxConf._load_config()
 
@@ -37,6 +35,10 @@ class CortxConf:
     def _load_cluster_conf():
         Conf.load(CortxConf._cluster_index, CortxConf._cluster_conf,\
             fail_reload=False)
+
+    @staticmethod
+    def _load_cluster_conf(fail_reload=True):
+        Conf.load(CortxConf._cluster_index, CortxConf._cluster_conf, fail_reload=fail_reload)
 
     @staticmethod
     def get_storage_path(key):
