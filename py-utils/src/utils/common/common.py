@@ -39,6 +39,10 @@ class CortxConf:
             fail_reload=False)
 
     @staticmethod
+    def _load_cluster_conf(fail_reload=True):
+        Conf.load(CortxConf._cluster_index, CortxConf._cluster_conf, fail_reload=fail_reload)
+
+    @staticmethod
     def get_storage_path(key):
         """Get the config file path."""
         path = Conf.get(CortxConf._cluster_index, f'cortx>common>storage>{key}')
