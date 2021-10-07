@@ -14,9 +14,8 @@ class CortxConf:
     def init(**kwargs):
         """
         static init for initialising
-
         Arguments:
-        cluster_conf: 
+        cluster_conf:
             confStore path of cluster.conf. eg. yaml:///etc/cortx/cluster.conf
         fail_reload: When True, and if index already exists, load() throws
                      exception.
@@ -24,8 +23,7 @@ class CortxConf:
                      When false, irrespective of index status, load() succeeds
                      Default: True
         """
-        fail_reload = kwargs.get('fail_reload')
-        fail_reload = True if fail_reload is None else fail_reload
+        fail_reload = kwargs.get('fail_reload', True)
         for key, val in kwargs.items():
             if key not in ['fail_reload']:
                 setattr(CortxConf, f"_{key}", val)
