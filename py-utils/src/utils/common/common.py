@@ -17,17 +17,10 @@ class CortxConf:
         Arguments:
         cluster_conf:
             confStore path of cluster.conf. eg. yaml:///etc/cortx/cluster.conf
-        fail_reload: When True, and if index already exists, load() throws
-                     exception.
-                     When True, and if index do not exists, load() succeeds.
-                     When false, irrespective of index status, load() succeeds
-                     Default: True
         """
-        fail_reload = kwargs.get('fail_reload', True)
         for key, val in kwargs.items():
-            if key not in ['fail_reload']:
-                setattr(CortxConf, f"_{key}", val)
-        CortxConf._load_cluster_conf(fail_reload)
+            setattr(CortxConf, f"_{key}", val)
+        CortxConf._load_cluster_conf()
         CortxConf._load_config()
 
     @staticmethod
@@ -36,11 +29,12 @@ class CortxConf:
         local_storage_path = CortxConf.get_storage_path('local')
         Conf.load(CortxConf._index, \
             f"json://{os.path.join(local_storage_path, 'utils/conf/cortx.conf')}", \
-            skip_reload=True)
+            fail_reload=False)
 
     @staticmethod
-    def _load_cluster_conf(fail_reload=True):
-        Conf.load(CortxConf._cluster_index, CortxConf._cluster_conf, fail_reload=fail_reload)
+    def _load_cluster_conf():
+        Conf.load(CortxConf._cluster_index, CortxConf._cluster_conf,\
+            fail_reload=False)
 
     @staticmethod
     def get_storage_path(key):
