@@ -192,7 +192,7 @@ class Utils:
     @staticmethod
     def post_install(post_install_template: str):
         """ Performs post install operations """
-
+        CortxConf.init(cluster_conf='yaml:///etc/cortx/cluster.conf')
         # Check required python packages
         install_path = Utils._get_from_conf_file('install_path')
         utils_path = install_path + '/cortx/utils'
@@ -243,7 +243,7 @@ class Utils:
     @staticmethod
     def config(config_template: str):
         """Performs configurations."""
-
+        CortxConf.init(cluster_conf='yaml:///etc/cortx/cluster.conf')
         # Load required files
         config_template_index = 'config'
         Conf.load(config_template_index, config_template)
@@ -306,6 +306,7 @@ class Utils:
         try:
             Log.info("Validating cortx-py-utils-test rpm")
             PkgV().validate('rpms', ['cortx-py-utils-test'])
+            CortxConf.init(cluster_conf='yaml:///etc/cortx/cluster.conf')
             utils_path = Utils._get_utils_path()
             import cortx.utils.test as test_dir
             plan_path = os.path.join(os.path.dirname(test_dir.__file__), \
@@ -355,6 +356,7 @@ class Utils:
         except Exception as e:
             raise SetupError(errors.ERR_OP_FAILED, "Internal error, can not \
                 reset Message Bus. %s", e)
+        CortxConf.init(cluster_conf='yaml:///etc/cortx/cluster.conf')
         # Clear the logs
         utils_log_path = CortxConf.get_log_path()
         if os.path.exists(utils_log_path):
@@ -369,6 +371,7 @@ class Utils:
     @staticmethod
     def cleanup(pre_factory: bool):
         """Remove/Delete all the data that was created after post install."""
+        CortxConf.init(cluster_conf='yaml:///etc/cortx/cluster.conf')
         local_path = CortxConf.get_storage_path('local')
         message_bus_conf = os.path.join(local_path, 'utils/conf/message_bus.conf')
         iem_conf = os.path.join(local_path, 'utils/conf/iem.conf')

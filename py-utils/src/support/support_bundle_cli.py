@@ -114,7 +114,7 @@ class StatusCmd:
 def main():
     from cortx.utils.log import Log
     from cortx.utils.conf_store import Conf
-
+    CortxConf.init(cluster_conf='yaml:///etc/cortx/cluster.conf')
     log_path = CortxConf.get_log_path('support')
     log_level = CortxConf.get('utils>log_level', 'INFO')
     Log.init('support_bundle', log_path, level=log_level, backup_count=5, \

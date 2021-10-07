@@ -51,7 +51,7 @@ class SetupCmd(object):
   rootdn_pass_key = 'cluster_config>rootdn_password'
   cluster_id_key = 'cluster_config>cluster_id'
   Log.init('OpenldapProvisioning','/var/log/cortx/utils/openldap',level='DEBUG')
-
+  CortxConf.init(cluster_conf='yaml:///etc/cortx/cluster.conf')
   util_install_path = CortxConf.get('install_path')
   openldap_prov_config = path.join(util_install_path, "cortx/utils/conf", "openldap_prov_config.yaml")
   openldap_config_file = path.join(util_install_path, "cortx/utils/conf", "openldap_config.yaml")

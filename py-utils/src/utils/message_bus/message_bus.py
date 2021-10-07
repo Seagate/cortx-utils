@@ -30,6 +30,7 @@ from cortx.utils.message_bus.message_broker import MessageBrokerFactory
 
 class MessageBus(metaclass=Singleton):
     """ Message Bus Framework over various types of Message Brokers """
+    CortxConf.init(cluster_conf='yaml:///etc/cortx/cluster.conf')
     local_storage = CortxConf.get_storage_path('local')
     message_bus_conf = os.path.join(local_storage ,'utils/conf/message_bus.conf')
     conf_file = f'json://{message_bus_conf}'
