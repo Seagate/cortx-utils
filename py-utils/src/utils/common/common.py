@@ -21,9 +21,9 @@ class CortxConf:
                      exception.
                      When True, and if index do not exists, load() succeeds.
                      When false, irrespective of index status, load() succeeds
-                     Default: True
+                     Default: False
         """
-        fail_reload = kwargs.get('fail_reload', True)
+        fail_reload = kwargs.get('fail_reload', False)
         for key, val in kwargs.items():
             if key not in ['fail_reload']:
                 setattr(CortxConf, f"_{key}", val)
