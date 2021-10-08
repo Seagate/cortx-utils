@@ -148,8 +148,8 @@ class MessageBusAdmin(MessageBusClient):
         message_bus    An instance of message bus class.
         admin_id       A String that represents Admin client ID.
         """
-        super().__init__(client_type='admin', client_id=admin_id, \
-            message_bus=message_bus, cluster_conf=cluster_conf)
+        super().__init__(client_type='admin', cluster_conf=cluster_conf, \
+            client_id=admin_id, message_bus=message_bus)
 
 
 class MessageProducer(MessageBusClient):
@@ -166,9 +166,9 @@ class MessageProducer(MessageBusClient):
         message_type    This is essentially equivalent to the
                         queue/topic name. For e.g. "Alert"
         """
-        super().__init__(client_type='producer', client_id=producer_id,
-            message_type=message_type, method=method, message_bus=message_bus,
-            cluster_conf=cluster_conf)
+        super().__init__(client_type='producer', cluster_conf=cluster_conf, \
+            client_id=producer_id, message_type=message_type, method=method, \
+            message_bus=message_bus)
 
     def get_unread_count(self, consumer_group: str):
         """
@@ -201,10 +201,10 @@ class MessageConsumer(MessageBusClient):
                         ("earliest" will cause messages to be read from the
                         beginning)
         """
-        super().__init__(client_type='consumer', client_id=consumer_id,
-            consumer_group=consumer_group, message_types=message_types,
-            auto_ack=auto_ack, offset=offset, message_bus=message_bus,
-            cluster_conf=cluster_conf)
+        super().__init__(client_type='consumer', cluster_conf=cluster_conf, \
+            client_id=consumer_id, consumer_group=consumer_group, \
+            message_types=message_types, auto_ack=auto_ack, offset=offset, \
+            message_bus=message_bus)
 
     def get_unread_count(self, message_type: str):
         """
