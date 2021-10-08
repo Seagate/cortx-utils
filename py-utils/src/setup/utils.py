@@ -224,13 +224,13 @@ class Utils:
         return 0
 
     @staticmethod
-    def init():
+    def init(config_path: str):
         """ Perform initialization """
         # Create message_type for Event Message
         from cortx.utils.message_bus import MessageBusAdmin
         from cortx.utils.message_bus.error import MessageBusError
         try:
-            admin = MessageBusAdmin(admin_id='register')
+            admin = MessageBusAdmin(admin_id='register', cluster_conf=config_path)
             admin.register_message_type(message_types=['IEM'], partitions=1)
         except MessageBusError as e:
             if 'TOPIC_ALREADY_EXISTS' not in e.desc:
@@ -322,15 +322,15 @@ class Utils:
         return 0
 
     @staticmethod
-    def reset():
+    def reset(config_path: str):
         """Remove/Delete all the data/logs that was created by user/testing."""
         import time
         from cortx.utils.message_bus.error import MessageBusError
         _purge_retry = 20
         try:
             from cortx.utils.message_bus import MessageBusAdmin
-            from cortx.utils.message_bus.message_bus_client import MessageProducer
-            mb = MessageBusAdmin(admin_id='reset')
+            from cortx.utils.message_bus import MessageProducer
+            mb = MessageBusAdmin(admin_id='reset', cluster_conf=config_path)
             message_types_list = mb.list_message_types()
             if message_types_list:
                 for message_type in message_types_list:
