@@ -129,10 +129,11 @@ class InitCmd(Cmd):
 
     def __init__(self, args):
         super().__init__(args)
+        self.config_path = args.config
 
     def process(self):
         Utils.validate('init')
-        rc = Utils.init()
+        rc = Utils.init(self.config_path)
         return rc
 
 
@@ -162,10 +163,11 @@ class ResetCmd(Cmd):
 
     def __init__(self, args):
         super().__init__(args)
+        self.config_path = args.config
 
     def process(self):
         Utils.validate('reset')
-        rc = Utils.reset()
+        rc = Utils.reset(self.config_path)
         return rc
 
 
