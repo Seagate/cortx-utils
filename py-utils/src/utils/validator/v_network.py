@@ -73,7 +73,7 @@ class NetworkV:
             if ip.count(".") == 3 and all(self._is_valid_ipv4_part(ip_part)
                                           for ip_part in ip.split(".")):
 
-                cmd = f"ping -c 2 -W 2 {ip}"
+                cmd = f"ping -c 3 -W 5 {ip}"
                 cmd_proc = SimpleProcess(cmd)
                 run_result = cmd_proc.run()
 
