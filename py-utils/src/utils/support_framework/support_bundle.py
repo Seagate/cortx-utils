@@ -28,7 +28,6 @@ from cortx.utils.cli_framework.command import Command
 from cortx.utils.support_framework import const
 from cortx.utils.support_framework import Bundle
 from cortx.utils.support_framework.errors import BundleError
-from cortx.utils.common import CortxConf
 
 
 class SupportBundle:
