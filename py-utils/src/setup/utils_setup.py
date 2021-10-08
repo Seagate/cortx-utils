@@ -224,8 +224,8 @@ def main():
     # Get the log path
     tmpl_file = argv[3]
     from cortx.utils.common import CortxConf
-    CortxConf.init(cluster_conf=tmpl_file)
-    local_storage_path = CortxConf.get_storage_path('local')
+    Conf.load(tmpl_file_index, tmpl_file, skip_reload=True)
+    local_storage_path = Conf.get(tmpl_file_index, 'cortx>common>storage>local')
     cortx_config_file = os.path.join(f'{local_storage_path}', 'utils/conf/cortx.conf')
     if not os.path.exists(cortx_config_file):
         import shutil
@@ -238,7 +238,7 @@ def main():
             raise SetupError(e.errno, "Failed to create %s %s", \
                 cortx_config_file, e)
 
-    Conf.load(tmpl_file_index, tmpl_file, skip_reload=True)
+    CortxConf.init(cluster_conf=tmpl_file)
     log_dir = CortxConf.get_storage_path('log')
     utils_log_path = CortxConf.get_log_path(base_dir=log_dir)
 

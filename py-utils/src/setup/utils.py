@@ -31,8 +31,6 @@ from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.error import VError
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.service.service_handler import Service
-from cortx.utils.message_bus.error import MessageBusError
-from cortx.utils.message_bus import MessageBrokerFactory
 from cortx.utils.common import CortxConf
 
 
@@ -230,6 +228,7 @@ class Utils:
         """ Perform initialization """
         # Create message_type for Event Message
         from cortx.utils.message_bus import MessageBusAdmin
+        from cortx.utils.message_bus.error import MessageBusError
         try:
             admin = MessageBusAdmin(admin_id='register')
             admin.register_message_type(message_types=['IEM'], partitions=1)
@@ -253,6 +252,7 @@ class Utils:
 
         # Create message_bus config
         try:
+            from cortx.utils.message_bus import MessageBrokerFactory
             server_list, port_list, config = \
                 MessageBrokerFactory.get_server_list(config_template_index)
         except SetupError:
@@ -325,6 +325,7 @@ class Utils:
     def reset():
         """Remove/Delete all the data/logs that was created by user/testing."""
         import time
+        from cortx.utils.message_bus.error import MessageBusError
         _purge_retry = 20
         try:
             from cortx.utils.message_bus import MessageBusAdmin
@@ -373,6 +374,7 @@ class Utils:
 
         if os.path.exists(message_bus_conf):
             # delete message_types
+            from cortx.utils.message_bus.error import MessageBusError
             try:
                 from cortx.utils.message_bus import MessageBusAdmin
                 mb = MessageBusAdmin(admin_id='cleanup')
