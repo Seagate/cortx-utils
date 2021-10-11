@@ -22,7 +22,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 from cryptography.x509.oid import NameOID
 
-class SSL: 
+class SSL:
 
     @staticmethod
     def generate_private_key():
@@ -30,7 +30,6 @@ class SSL:
         This function generates a private key
         :return: Private key
         """
-
         private_key = rsa.generate_private_key(
             public_exponent=65537,
             key_size=2048,
@@ -90,7 +89,7 @@ class SSL:
     @staticmethod
     def dump_ssl_cert_key(dump_cert_path:str, dns_list:list, expiry_days:int = 3650):
         """
-        This function is the entry point to generate a self signed certificate and save it 
+        This function is the entry point to generate a self signed certificate and save it
         at specified location.
         :param dump_cert_path: File path at which certificate will be saved.
         :param dns_list: List of unicode dns names eg. [u"*.seagate.com", u"localhost"]
@@ -107,6 +106,6 @@ class SSL:
         certificate_pem = certificate.public_bytes(serialization.Encoding.PEM)
 
         SSL.ensure_dir(dump_cert_path)
-        
+
         with open(dump_cert_path, "wb") as f:
             f.write(certificate_pem + private_key_pem)
