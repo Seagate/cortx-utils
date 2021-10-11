@@ -30,10 +30,6 @@ from cortx.utils.log import Log
 
 class EventMessage(metaclass=Singleton):
     """ Event Message framework to generate alerts """
-    CortxConf.init(cluster_conf='yaml:///etc/cortx/cluster.conf')
-    local_storage = CortxConf.get_storage_path('local')
-    iem_conf = os.path.join(local_storage, 'utils/conf/iem.conf')
-    _conf_file = f'json://{iem_conf}'
     _producer = None
     _consumer = None
 
@@ -57,7 +53,8 @@ class EventMessage(metaclass=Singleton):
     }
 
     @classmethod
-    def init(cls, component: str, source: str):
+    def init(cls, component: str, source: str,\
+        cluster_conf: str = 'yaml:///etc/cortx/cluster.conf'):
         """
         Set the Event Message context
 
@@ -65,7 +62,12 @@ class EventMessage(metaclass=Singleton):
         component       Component that generates the IEM. For e.g. 'S3', 'SSPL'
         source          Single character that indicates the type of component.
                         For e.g. H-Hardware, S-Software, F-Firmware, O-OS
+        cluster_conf    ConfStore URL of cluster.conf file
         """
+        CortxConf.init(cluster_conf=cluster_conf)
+        local_storage = CortxConf.get_storage_path('local')
+        iem_conf = os.path.join(local_storage, 'utils/conf/iem.conf')
+        cls._conf_file = f'json://{iem_conf}'
 
         cls._component = component
         cls._source = source
@@ -79,8 +81,9 @@ class EventMessage(metaclass=Singleton):
                 backup_count=5, file_size_in_mb=5)
 
         try:
-            Conf.load('cluster', cls._conf_file, skip_reload=True)
-            ids = Conf.get('cluster', 'server_node')
+            Conf.load('iem_cluster', cls._conf_file, skip_reload=True)
+            machine_id = Conf.machine_id
+            ids = Conf.get('iem_cluster', f'node>{machine_id}')
             cls._site_id = ids['site_id']
             cls._rack_id = ids['rack_id']
             cls._node_id = ids['node_id']
@@ -101,7 +104,7 @@ class EventMessage(metaclass=Singleton):
                 cls._source)
 
         cls._producer = MessageProducer(producer_id='event_producer', \
-            message_type='IEM', method='sync')
+            message_type='IEM', method='sync', cluster_conf=cluster_conf)
         Log.info("IEM Producer initialized for component %s and source %s" % \
              (cls._component, cls._source))
 
@@ -201,12 +204,14 @@ class EventMessage(metaclass=Singleton):
         Log.debug("alert sent: %s" % alert)
 
     @classmethod
-    def subscribe(cls, component: str, **filters):
+    def subscribe(cls, component: str,\
+        cluster_conf: str = 'yaml:///etc/cortx/cluster.conf', **filters):
         """
         Subscribe to IEM alerts
 
         Parameters:
         component       Component that generates the IEM. For e.g. 'S3', 'SSPL'
+        cluster_conf    ConfStore URL of cluster.conf file
         """
         if component is None:
             Log.error("Invalid component type: %s" % component)
@@ -215,7 +220,7 @@ class EventMessage(metaclass=Singleton):
 
         cls._consumer = MessageConsumer(consumer_id='event_consumer', \
             consumer_group=component, message_types=['IEM'], \
-            auto_ack=True, offset='earliest')
+            auto_ack=True, offset='earliest', cluster_conf=cluster_conf)
         Log.info("IEM Consumer initialized for component: %s" % component)
 
 

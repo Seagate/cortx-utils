@@ -162,6 +162,7 @@ class Utils:
             server_info['cluster_id'])
         Conf.set(iem_index, f'node>{machine_id}>site_id', server_info['site_id'])
         Conf.set(iem_index, f'node>{machine_id}>rack_id', server_info['rack_id'])
+        Conf.set(iem_index, f'node>{machine_id}>node_id', machine_id)
         Conf.save(iem_index)
 
         # copy this sample conf file as iem.conf

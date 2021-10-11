@@ -68,6 +68,7 @@ class IemCli:
                 send_args['event_id'] = args.contents
                 with open(args.file, 'r') as fd:
                     send_args['message'] = ''.join(fd.readlines())
+            send_args['cluster_conf'] = args.config
         except ValueError:
             raise EventMessageError(errno.EINVAL, "Invalid send arguments!")
 
@@ -83,18 +84,18 @@ class IemCli:
         return send_args
 
     @staticmethod
-    def subscribe(component: str, **filters):
-        EventMessage.subscribe(component, **filters)
+    def subscribe(component: str, cluster_conf: str, **filters):
+        EventMessage.subscribe(component, cluster_conf, **filters)
 
     @staticmethod
     def send(args_parse):
         """ send IE message """
 
         send_args = IemCli._parse_send_args(args_parse)
-
         EventMessage.init(
             component=send_args['component'],
-            source=send_args['source_type']
+            source=send_args['source_type'],
+            cluster_conf=send_args['cluster_conf']
         )
         EventMessage.send(
             module=send_args['module'],
@@ -106,7 +107,8 @@ class IemCli:
             problem_rack_id=send_args['problem_rack_id'],
             problem_node_id=send_args['problem_node_id'],
             problem_host=send_args['problem_host'],
-            event_time=send_args['event_time']
+            event_time=send_args['event_time'],
+            cluster_conf=send_args['cluster_conf']
         )
 
     @staticmethod
@@ -115,8 +117,7 @@ class IemCli:
         Receives IEM Message and returns to the caller, If file[-f] is passed,
         writes message to file and returns blank string to caller
         """
-
-        IemCli.subscribe(component=args.source)
+        IemCli.subscribe(component=args.source, cluster_conf=args.config)
         rec_data = ''
         event = ' '
         while event:
@@ -154,6 +155,8 @@ class SendCmd:
         req_s_parser.add_argument('-c', '--contents', help='event_id:message')
         req_s_parser.add_argument('-l', '--location', \
             help='cluster_id:site_id:node_id:rack_id:host')
+        req_s_parser.add_argument('--config', dest='config',\
+            help='ConfStore URL for the cluster.conf')
 
 
 class ReceiveCmd:
@@ -172,6 +175,8 @@ class ReceiveCmd:
         req_r_parser.add_argument('-s', '--source', help='component_id')
         req_r_parser.add_argument('-i', '--info', help='source_type',
                                   choices=['S', 'H', 'F', 'O'])
+        req_r_parser.add_argument('--config', dest='config',\
+            help='ConfStore URL for the cluster.conf')
 
 
 def main():
