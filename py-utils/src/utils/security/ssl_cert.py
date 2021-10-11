@@ -90,7 +90,8 @@ class SSL:
     @staticmethod
     def dump_ssl_cert_key(dump_cert_path:str, dns_list:list, expiry_days:int = 3650):
         """
-        This function saves the generated self signed certificate at specified location
+        This function is the entry point to generate a self signed certificate and save it 
+        at specified location.
         :param dump_cert_path: File path at which certificate will be saved.
         :param dns_list: List of unicode dns names eg. [u"*.seagate.com", u"localhost"]
         :param expiry_days: Period in days for which certificate is valid, default: 10 yrs
