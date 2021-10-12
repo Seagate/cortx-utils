@@ -86,7 +86,7 @@ class EventMessage(metaclass=Singleton):
             ids = Conf.get('iem_cluster', f'node>{machine_id}')
             cls._site_id = ids['site_id']
             cls._rack_id = ids['rack_id']
-            cls._node_id = ids['node_id']
+            cls._node_id = ids['node_id'] if 'node_id' in ids else ""
             cls._cluster_id = ids['cluster_id']
         except Exception as e:
             Log.error("Invalid config in %s." % cls._conf_file)
@@ -112,7 +112,8 @@ class EventMessage(metaclass=Singleton):
     def send(cls, module: str, event_id: str, severity: str, message_blob: str,\
         problem_cluster_id: str = None, problem_site_id: int = None, \
         problem_rack_id: int = None, problem_node_id: int = None, \
-        problem_host: str = None, event_time: float = None):
+        problem_host: str = None, event_time: float = None,
+        cluster_conf: str = 'yaml:///etc/cortx/cluster.conf'):
         """
         Sends IEM alert message
 
