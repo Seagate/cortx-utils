@@ -107,8 +107,7 @@ class IemCli:
             problem_rack_id=send_args['problem_rack_id'],
             problem_node_id=send_args['problem_node_id'],
             problem_host=send_args['problem_host'],
-            event_time=send_args['event_time'],
-            cluster_conf=send_args['cluster_conf']
+            event_time=send_args['event_time']
         )
 
     @staticmethod
