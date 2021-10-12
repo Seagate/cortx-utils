@@ -185,10 +185,11 @@ class CleanupCmd(Cmd):
         # hifen(-) in argparse is converted to underscore(_)
         # to make sure string is valid attrtibute
         self.pre_factory = args.pre_factory
+        self.config_path = args.config
 
     def process(self):
         Utils.validate('cleanup')
-        rc = Utils.cleanup(self.pre_factory)
+        rc = Utils.cleanup(self.pre_factory, self.config_path)
         return rc
 
 
