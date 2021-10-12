@@ -86,7 +86,7 @@ class EventMessage(metaclass=Singleton):
             ids = Conf.get('iem_cluster', f'node>{machine_id}')
             cls._site_id = ids['site_id']
             cls._rack_id = ids['rack_id']
-            cls._node_id = ids['node_id'] if 'node_id' in ids else ""
+            cls._node_id = ids['node_id']
             cls._cluster_id = ids['cluster_id']
         except Exception as e:
             Log.error("Invalid config in %s." % cls._conf_file)
