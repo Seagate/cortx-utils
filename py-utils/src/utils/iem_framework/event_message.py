@@ -112,8 +112,7 @@ class EventMessage(metaclass=Singleton):
     def send(cls, module: str, event_id: str, severity: str, message_blob: str,\
         problem_cluster_id: str = None, problem_site_id: int = None, \
         problem_rack_id: int = None, problem_node_id: int = None, \
-        problem_host: str = None, event_time: float = None,
-        cluster_conf: str = 'yaml:///etc/cortx/cluster.conf'):
+        problem_host: str = None, event_time: float = None):
         """
         Sends IEM alert message
 
