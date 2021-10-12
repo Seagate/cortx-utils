@@ -336,7 +336,8 @@ class Utils:
             if message_types_list:
                 for message_type in message_types_list:
                     producer = MessageProducer(producer_id=message_type, \
-                        message_type=message_type, method='sync')
+                        message_type=message_type, method='sync', \
+                        cluster_conf=config_path)
                     for retry_count in range(1, (_purge_retry + 2)):
                         if retry_count > _purge_retry:
                             Log.error(f"MessageBusError: {errors.ERR_OP_FAILED} " \
@@ -367,7 +368,7 @@ class Utils:
         return 0
 
     @staticmethod
-    def cleanup(pre_factory: bool):
+    def cleanup(pre_factory: bool, config_path: str):
         """Remove/Delete all the data that was created after post install."""
         local_path = CortxConf.get_storage_path('local')
         message_bus_conf = os.path.join(local_path, 'utils/conf/message_bus.conf')
@@ -378,7 +379,7 @@ class Utils:
             from cortx.utils.message_bus.error import MessageBusError
             try:
                 from cortx.utils.message_bus import MessageBusAdmin
-                mb = MessageBusAdmin(admin_id='cleanup')
+                mb = MessageBusAdmin(admin_id='cleanup', cluster_conf=config_path)
                 message_types_list = mb.list_message_types()
                 if message_types_list:
                     mb.deregister_message_type(message_types_list)
