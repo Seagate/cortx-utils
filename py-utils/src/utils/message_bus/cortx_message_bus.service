@@ -9,3 +9,6 @@ Restart=always
 
 [Install]
 WantedBy=multi-user.target
+
+[Config]
+cluster_conff=yaml:///etc/cortx/cluster.conf

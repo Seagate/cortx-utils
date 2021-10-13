@@ -144,6 +144,13 @@ class Utils:
         Conf.save('cluster')
 
     @staticmethod
+    def _update_message_bus_service(cluster_conf):
+        # /etc/systemd/system/cortx_message_bus.service
+        Conf.load('mb_service', 'ini:///etc/systemd/system/cortx_message_bus.service')
+        Conf.set('mb_service', 'Config>cluster_conf', cluster_conf)
+        Conf.save('mb_service')
+
+    @staticmethod
     def _create_iem_config(server_info: dict, machine_id: str):
         """ Create the config file required for Event Message """
         iem_index = 'iem'
@@ -270,6 +277,7 @@ class Utils:
             raise SetupError(errno.EINVAL, "Could not find server " +\
                 "information in %s", config_template)
         Utils._create_iem_config(server_info, machine_id)
+        Utils._update_message_bus_service(config_template)
 
         # set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map(config_template_index)

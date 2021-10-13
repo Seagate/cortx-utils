@@ -41,7 +41,10 @@ class RestServer:
 if __name__ == '__main__':
     import os
     from cortx.utils.conf_store import Conf
-    CortxConf.init(cluster_conf='yaml:///etc/cortx/cluster.conf')
+    Conf.load('mb_service',\
+        'ini:///etc/systemd/system/cortx_message_bus.service')
+    cluster_conf = Conf.get('mb_service', 'Config>cluster_conf')
+    CortxConf.init(cluster_conf=cluster_conf)
     # Get the log path
     log_dir = CortxConf.get('log_dir', '/var/log')
     utils_log_path = CortxConf.get_log_path('utils_server', base_dir=log_dir)

@@ -33,12 +33,15 @@ class MessageBusRequestHandler(RestServer):
     async def send(request):
         Log.debug(f"Received POST request for message type " \
             f"{request.match_info['message_type']}. Processing message")
+        Conf.load('mb_service', 'ini:///etc/systemd/system/cortx_message_bus.service')
+        cluster_conf = Conf.get('mb_service', 'Config>cluster_conf')
         try:
             message_type = request.match_info['message_type']
             payload = await request.json()
             messages = payload['messages']
             producer = MessageProducer(producer_id='rest_producer', \
-                message_type=message_type, method='sync')
+                message_type=message_type, method='sync',\
+                cluster_conf=cluster_conf)
 
             producer.send(messages)
         except MessageBusError as e:
@@ -74,12 +77,14 @@ class MessageBusRequestHandler(RestServer):
     async def receive(request):
         Log.debug(f"Received GET request for message type " \
             f"{request.match_info['message_type']}. Getting message")
+        Conf.load('mb_service', 'ini:///etc/systemd/system/cortx_message_bus.service')
+        cluster_conf = Conf.get('mb_service', 'Config>cluster_conf')
         try:
             message_types = str(request.match_info['message_type']).split('&')
             consumer_group = request.rel_url.query['consumer_group']
             consumer = MessageConsumer(consumer_id='rest_consumer', \
                 consumer_group=consumer_group, message_types=message_types, \
-                auto_ack=True, offset='latest')
+                auto_ack=True, offset='latest', cluster_conf=cluster_conf)
 
             message = consumer.receive()
         except MessageBusError as e:

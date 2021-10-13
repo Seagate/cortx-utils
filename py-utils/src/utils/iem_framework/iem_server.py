@@ -33,10 +33,13 @@ class IemRequestHandler(RestServer):
     async def send(request):
         try:
             payload = await request.json()
-
+            Conf.load('mb_service',\
+                'ini:///etc/systemd/system/cortx_message_bus.service')
+            cluster_conf = Conf.get('mb_service', 'Config>cluster_conf')
             component = payload['component']
             source = payload['source']
-            EventMessage.init(component=component, source=source)
+            EventMessage.init(component=component, source=source,\
+                cluster_conf=cluster_conf)
 
             del payload['component']
             del payload['source']
@@ -73,9 +76,13 @@ class IemRequestHandler(RestServer):
     async def receive(request):
         Log.debug(f"Received GET request for component " \
             f"{request.rel_url.query['component']}")
+        Conf.load('mb_service',\
+                'ini:///etc/systemd/system/cortx_message_bus.service')
+        cluster_conf = Conf.get('mb_service', 'Config>cluster_conf')
         try:
             component = request.rel_url.query['component']
-            EventMessage.subscribe(component=component)
+            EventMessage.subscribe(component=component,\
+                cluster_conf=cluster_conf)
             alert = EventMessage.receive()
         except EventMessageError as e:
             status_code = e.rc
