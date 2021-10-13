@@ -48,11 +48,8 @@ class TestSupportBundleCli(unittest.TestCase):
 
     cluster_conf_path = ''
     @classmethod
-    def setUpClass(cls, *args, **kwargs):
+    def setUpClass(cls, cluster_conf_path = None):
         """Test Setup class."""
-        for key, val in kwargs.items():
-            if key == 'cluster_conf_path':
-                cluster_conf_path = val
         if cluster_conf_path is not None:
             cls.cluster_conf_path = cluster_conf_path
         elif TestSupportBundleCli.cluster_conf_path:
