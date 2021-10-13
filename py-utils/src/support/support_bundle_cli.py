@@ -47,8 +47,9 @@ class SupportBundleCli:
                 "support_bundle generate 'test cortx' -t file:///var/cortx/support_bundle\n")
             sys.exit(1)
         path = path.split('//')[1]
+        cluster_conf = args.cluster_conf_path
         bundle_obj = SupportBundle.generate(comment=comment, \
-            components=components, target_path=path)
+            components=components, target_path=path, cluster_conf=cluster_conf)
         display_string_len = len(bundle_obj.bundle_id) + 4
         response_msg = (
             f"Please use the below bundle id for checking the status of support bundle."
@@ -89,8 +90,11 @@ class GenerateCmd:
             help='Optional, Specified component support bundle will be generated')
         s_parser.add_argument('-t', '--URL', nargs='+', required=True, \
             help="Path- CORTX support bundle will be generated at specified path.")
-        s_parser.add_argument('-cp', '--cluster_conf_path', nargs='+', default='', \
+        s_parser.add_argument('-cp', '--cluster_conf_path',\
+            default='yaml:///etc/cortx/cluster.conf', \
             help='Cluster config file path for Support Bundle')
+        s_parser.add_argument('-s', '--services', nargs='+', default='', \
+            help='List of services for Support Bundle')
 
 
 class StatusCmd:
@@ -111,8 +115,11 @@ class StatusCmd:
         s_parser.set_defaults(func=SupportBundleCli.get_status)
         s_parser.add_argument('-b', '--bundle_id', nargs='+', default='', \
             help='Bundle ID of generated Support Bundle')
-        s_parser.add_argument('-cp', '--cluster_conf_path', nargs='+', default='', \
+        s_parser.add_argument('-cp', '--cluster_conf_path',\
+            default='yaml:///etc/cortx/cluster.conf', \
             help='Cluster config file path for Support Bundle')
+        s_parser.add_argument('-s', '--services', nargs='+', default='', \
+            help='List of services for Support Bundle')
 
 
 def main():
@@ -135,7 +142,8 @@ def main():
     # Parse and Process Arguments
     try:
         args = parser.parse_args()
-        cluster_conf_path = args.cluster_conf_path[0] if args.cluster_conf_path else 'yaml:///etc/cortx/cluster.conf'
+        import pdb;pdb.set_trace()
+        cluster_conf_path = args.cluster_conf_path
         CortxConf.init(cluster_conf=cluster_conf_path)
         log_path = CortxConf.get_log_path('support')
         log_level = CortxConf.get('utils>log_level', 'INFO')

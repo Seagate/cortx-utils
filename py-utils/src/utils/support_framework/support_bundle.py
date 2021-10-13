@@ -56,8 +56,11 @@ class SupportBundle:
         tar_dest_file = f'{bundle_obj.bundle_id}.tar.gz'
         dest_path = os.path.join(bundle_obj.bundle_path, tar_dest_file)
         Log.debug(f"Generating Bundle at path:{dest_path}")
+        CortxConf.init(cluster_conf=bundle_obj.cluster_conf)
+        LOG_DIR = CortxConf.get_storage_path('log')
+        LOCAL_DIR = CortxConf.get_storage_path('local')
         try:
-            for target in const.SB_DIR_LIST:
+            for target in [LOG_DIR, LOCAL_DIR]:
                 if os.path.isdir(target):
                     with tarfile.open(dest_path, 'w:gz') as tar_handle:
                         tar_handle.add(target, arcname=os.path.abspath(target))
@@ -92,6 +95,7 @@ class SupportBundle:
         comment = command.options.get(const.SB_COMMENT)
         components = command.options.get(const.SB_COMPONENTS)
         target_path = command.options.get('target_path')
+        cluster_conf = command.option.get('cluster_conf')
         if not components:
             components = []
 
@@ -99,7 +103,7 @@ class SupportBundle:
         os.makedirs(bundle_path)
         
         bundle_obj = Bundle(bundle_id=bundle_id, bundle_path=bundle_path, \
-            comment=comment,is_shared=True)
+            comment=comment,is_shared=True, cluster_conf=cluster_conf)
         # Create CORTX support Bundle
         try:
             await SupportBundle._begin_bundle_generation(bundle_obj)
@@ -158,11 +162,14 @@ class SupportBundle:
                 components = value
             if key == 'target_path':
                 path = value
+            if key == 'cluster_conf':
+                cluster_conf = value
         options = {'comment': comment, 'components': components, 'target_path': path, \
             'comm':{'type': 'direct', 'target': 'utils.support_framework', 'method': \
             'generate_bundle', 'class': 'SupportBundle', 'is_static': True, \
             'params': {}, 'json': {}}, 'output': {}, 'need_confirmation': \
-            False, 'sub_command_name': 'generate_bundle'}
+            False, 'sub_command_name': 'generate_bundle', 'cluster_conf':\
+            cluster_conf}
 
         cmd_obj = Command('generate_bundle', options, [])
         loop = asyncio.get_event_loop()
