@@ -148,12 +148,13 @@ class TestCmd(Cmd):
 
     def __init__(self, args):
         super().__init__(args)
+        self.config_path = args.config
         # Default test_plan is 'sanity'
         self.test_plan = args.plan
 
     def process(self):
         Utils.validate('test')
-        rc = Utils.test(self.test_plan)
+        rc = Utils.test(self.config_path, self.test_plan)
         return rc
 
 

@@ -28,13 +28,19 @@ class TestMessage(unittest.TestCase):
     """Test MessageBus rest server functionality."""
 
     _base_url = 'http://127.0.0.1:28300/MessageBus/message/'
-    _admin = MessageBusAdmin(admin_id='register')
     _message_type = 'test'
     _consumer_group = 'receive'
+    _cluster_conf_path = ''
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls, cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
         """Register the test message_type."""
+        if TestMessage._cluster_conf_path:
+            cls.cluster_conf_path = TestMessage._cluster_conf_path
+        else:
+            cls.cluster_conf_path = cluster_conf_path
+        cls._admin = MessageBusAdmin(admin_id='register', \
+            cluster_conf = cls.cluster_conf_path)
         cls._admin.register_message_type(message_types= \
             [TestMessage._message_type], partitions=1)
 
@@ -56,7 +62,7 @@ class TestMessage(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         """Deregister the test message_type."""
-        cls._admin.deregister_message_type(message_types= \
+        TestMessage._admin.deregister_message_type(message_types= \
             [TestMessage._message_type])
         message_type_list = TestMessage._admin.list_message_types()
         cls.assertTrue(cls, TestMessage._message_type not in \
@@ -64,4 +70,7 @@ class TestMessage(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    import sys
+    if len(sys.argv) >= 2:
+        TestMessage._cluster_conf_path = sys.argv.pop()
     unittest.main()
