@@ -7,6 +7,21 @@ from cortx.utils.conf_store.error import ConfError
 
 class CortxConf:
     _index = 'config_file'
+    _cluster_index = 'cluster'
+    _cluster_conf = None
+
+    @staticmethod
+    def init(**kwargs):
+        """
+        static init for initialising
+        Arguments:
+        cluster_conf:
+            confStore path of cluster.conf. eg. yaml:///etc/cortx/cluster.conf
+        """
+        for key, val in kwargs.items():
+            setattr(CortxConf, f'_{key}', val)
+        CortxConf._load_cluster_conf()
+        CortxConf._load_config()
 
     @staticmethod
     def _load_config() -> None:
@@ -14,13 +29,17 @@ class CortxConf:
         local_storage_path = CortxConf.get_storage_path('local')
         Conf.load(CortxConf._index, \
             f"json://{os.path.join(local_storage_path, 'utils/conf/cortx.conf')}", \
-            skip_reload=True)
+            fail_reload=False)
+
+    @staticmethod
+    def _load_cluster_conf():
+        Conf.load(CortxConf._cluster_index, CortxConf._cluster_conf,\
+            fail_reload=False)
 
     @staticmethod
     def get_storage_path(key):
         """Get the config file path."""
-        Conf.load('cluster', 'yaml:///etc/cortx/cluster.conf', skip_reload=True)
-        path = Conf.get('cluster', f'cortx>common>storage>{key}')
+        path = Conf.get(CortxConf._cluster_index, f'cortx>common>storage>{key}')
         if not path:
             raise ConfError(errno.EINVAL, "Invalid key %s", key)
         return path
@@ -37,7 +56,6 @@ class CortxConf:
                    Default = None
         base_dir: root directory where all the log sub-directories should be create.
         """
-        CortxConf._load_config()
         log_dir = base_dir if base_dir else Conf.get(CortxConf._index, 'log_dir')
         return os.path.join(log_dir, f'utils/{Conf.machine_id}'\
             +f'{"/"+component if component else ""}')
@@ -45,13 +63,11 @@ class CortxConf:
     @staticmethod
     def get(key: str, default_val: str = None, **filters):
         """Obtain and return value for the given key."""
-        CortxConf._load_config()
         return Conf.get(CortxConf._index, key, default_val, **filters)
 
     @staticmethod
     def set(key: str, value: str):
         """Sets the value into conf in-memory at the given key."""
-        CortxConf._load_config()
         return Conf.set(CortxConf._index, key, value)
 
     @staticmethod

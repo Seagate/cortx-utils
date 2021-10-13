@@ -89,6 +89,8 @@ class GenerateCmd:
             help='Optional, Specified component support bundle will be generated')
         s_parser.add_argument('-t', '--URL', nargs='+', required=True, \
             help="Path- CORTX support bundle will be generated at specified path.")
+        s_parser.add_argument('-cp', '--cluster_conf_path', nargs='+', default='', \
+            help='Cluster config file path for Support Bundle')
 
 
 class StatusCmd:
@@ -109,16 +111,14 @@ class StatusCmd:
         s_parser.set_defaults(func=SupportBundleCli.get_status)
         s_parser.add_argument('-b', '--bundle_id', nargs='+', default='', \
             help='Bundle ID of generated Support Bundle')
+        s_parser.add_argument('-cp', '--cluster_conf_path', nargs='+', default='', \
+            help='Cluster config file path for Support Bundle')
 
 
 def main():
     from cortx.utils.log import Log
     from cortx.utils.conf_store import Conf
-
-    log_path = CortxConf.get_log_path('support')
-    log_level = CortxConf.get('utils>log_level', 'INFO')
-    Log.init('support_bundle', log_path, level=log_level, backup_count=5, \
-        file_size_in_mb=5, syslog_server='localhost', syslog_port=514)
+    
     # Setup Parser
     parser = argparse.ArgumentParser(description='Support Bundle CLI', \
         formatter_class=RawTextHelpFormatter)
@@ -135,6 +135,12 @@ def main():
     # Parse and Process Arguments
     try:
         args = parser.parse_args()
+        cluster_conf_path = args.cluster_conf_path[0] if args.cluster_conf_path else 'yaml:///etc/cortx/cluster.conf'
+        CortxConf.init(cluster_conf=cluster_conf_path)
+        log_path = CortxConf.get_log_path('support')
+        log_level = CortxConf.get('utils>log_level', 'INFO')
+        Log.init('support_bundle', log_path, level=log_level, backup_count=5, \
+            file_size_in_mb=5, syslog_server='localhost', syslog_port=514)
         out = args.func(args)
         if out is not None and len(out) > 0:
             print(out)

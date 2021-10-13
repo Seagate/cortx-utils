@@ -30,12 +30,13 @@ from cortx.utils.message_bus.message_broker import MessageBrokerFactory
 
 class MessageBus(metaclass=Singleton):
     """ Message Bus Framework over various types of Message Brokers """
-    local_storage = CortxConf.get_storage_path('local')
-    message_bus_conf = os.path.join(local_storage ,'utils/conf/message_bus.conf')
-    conf_file = f'json://{message_bus_conf}'
 
-    def __init__(self):
+    def __init__(self, cluster_conf='yaml:///etc/cortx/cluster.conf'):
         """ Initialize a MessageBus and load its configurations """
+        CortxConf.init(cluster_conf=cluster_conf)
+        local_storage = CortxConf.get_storage_path('local')
+        message_bus_conf = os.path.join(local_storage ,'utils/conf/message_bus.conf')
+        self.conf_file = f'json://{message_bus_conf}'
         # Get the log path
         log_dir = CortxConf.get('log_dir', '/var/log')
         utils_log_path = CortxConf.get_log_path('message_bus', base_dir=log_dir)

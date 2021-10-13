@@ -14,7 +14,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 from cortx.utils.common.common import CortxConf
-
+CortxConf.init(cluster_conf='yaml:///etc/cortx/cluster.conf')
 LOG_DIR = CortxConf.get_storage_path('log')
 LOCAL_DIR = CortxConf.get_storage_path('local')
 SB_DIR_LIST = [LOG_DIR, LOCAL_DIR]
