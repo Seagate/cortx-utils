@@ -142,7 +142,6 @@ def main():
     # Parse and Process Arguments
     try:
         args = parser.parse_args()
-        import pdb;pdb.set_trace()
         cluster_conf_path = args.cluster_conf_path
         CortxConf.init(cluster_conf=cluster_conf_path)
         log_path = CortxConf.get_log_path('support')

@@ -28,6 +28,7 @@ from cortx.utils.cli_framework.command import Command
 from cortx.utils.support_framework import const
 from cortx.utils.support_framework import Bundle
 from cortx.utils.support_framework.errors import BundleError
+from cortx.utils.common.common import CortxConf
 
 
 class SupportBundle:
@@ -95,7 +96,7 @@ class SupportBundle:
         comment = command.options.get(const.SB_COMMENT)
         components = command.options.get(const.SB_COMPONENTS)
         target_path = command.options.get('target_path')
-        cluster_conf = command.option.get('cluster_conf')
+        cluster_conf = command.options.get('cluster_conf')
         if not components:
             components = []
 
@@ -170,7 +171,6 @@ class SupportBundle:
             'params': {}, 'json': {}}, 'output': {}, 'need_confirmation': \
             False, 'sub_command_name': 'generate_bundle', 'cluster_conf':\
             cluster_conf}
-
         cmd_obj = Command('generate_bundle', options, [])
         loop = asyncio.get_event_loop()
         bundle_obj = loop.run_until_complete( \

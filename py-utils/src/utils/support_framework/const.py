@@ -13,8 +13,6 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.common.common import CortxConf
-
 SUPPORT_BUNDLE_TAG = 'support_bundle;'
 SUPPORT_BUNDLE = 'SUPPORT_BUNDLE'
 SOS_COMP = 'os'
