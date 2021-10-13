@@ -26,23 +26,26 @@ from cortx.utils.support_framework import SupportBundle
 from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.v_service import ServiceV
 
-target_path = '/tmp/testSB'
+target_path = '/var/testSB'
 
 class TestSupportBundle(unittest.TestCase):
     """Test Support Bundle related functionality."""
 
-    conf_path = ''
+    cluster_conf_path = ''
     @classmethod
-    def setUpClass(cls, cluster_conf_path = None):
+    def setUpClass(cls, *args, **kwargs):
         """Test Setup class."""
+        for key, val in kwargs.items():
+            if key == 'cluster_conf_path':
+                cluster_conf_path = val
         from cortx.utils.log import Log
         Log.init('support_bundle', '/var/log/cortx/utils/suppoort/', \
             level='DEBUG', backup_count=5, file_size_in_mb=5)
         cls.sb_description = "Test support bundle generation"
         if cluster_conf_path is not None:
             cls.cluster_conf_path = cluster_conf_path
-        elif TestSupportBundle.conf_path:
-            cls.cluster_conf_path = TestSupportBundle.conf_path
+        elif TestSupportBundle.cluster_conf_path:
+            cls.cluster_conf_path = TestSupportBundle.cluster_conf_path
         else:
             cls.cluster_conf_path = 'yaml:///etc/cortx/cluster.conf'
 
@@ -143,5 +146,5 @@ class TestSupportBundle(unittest.TestCase):
 if __name__ == '__main__':
     import sys
     if len(sys.argv) > 2:
-        TestSupportBundle.conf_path = sys.argv.pop()
+        TestSupportBundle.cluster_conf_path = sys.argv.pop()
     unittest.main()

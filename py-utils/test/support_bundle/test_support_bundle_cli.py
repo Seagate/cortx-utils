@@ -46,14 +46,17 @@ def SB_get_status_CLI(bundle_id: str, cluster_conf_path: str):
 class TestSupportBundleCli(unittest.TestCase):
     """Test case will test available API's of Support Bundle."""
 
-    conf_path = ''
+    cluster_conf_path = ''
     @classmethod
-    def setUpClass(cls, cluster_conf_path = None):
-        """Register the test message_type."""
+    def setUpClass(cls, *args, **kwargs):
+        """Test Setup class."""
+        for key, val in kwargs.items():
+            if key == 'cluster_conf_path':
+                cluster_conf_path = val
         if cluster_conf_path is not None:
             cls.cluster_conf_path = cluster_conf_path
-        elif TestSupportBundleCli.conf_path:
-            cls.cluster_conf_path = TestSupportBundleCli.conf_path
+        elif TestSupportBundleCli.cluster_conf_path:
+            cls.cluster_conf_path = TestSupportBundleCli.cluster_conf_path
         else:
             cls.cluster_conf_path = 'yaml:///etc/cortx/cluster.conf'
 
@@ -217,5 +220,5 @@ class TestSupportBundleCli(unittest.TestCase):
 if __name__ == '__main__':
     import sys
     if len(sys.argv) > 2:
-        TestSupportBundleCli.conf_path = sys.argv.pop()
+        TestSupportBundleCli.cluster_conf_path = sys.argv.pop()
     unittest.main()
