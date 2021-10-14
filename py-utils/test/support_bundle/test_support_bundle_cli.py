@@ -46,33 +46,31 @@ def SB_get_status_CLI(bundle_id: str, cluster_conf_path: str):
 class TestSupportBundleCli(unittest.TestCase):
     """Test case will test available API's of Support Bundle."""
 
-    cluster_conf_path = ''
+    _cluster_conf_path = ''
     @classmethod
-    def setUpClass(cls, cluster_conf_path = None):
+    def setUpClass(cls, cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
         """Test Setup class."""
-        if cluster_conf_path is not None:
-            cls.cluster_conf_path = cluster_conf_path
-        elif TestSupportBundleCli.cluster_conf_path:
-            cls.cluster_conf_path = TestSupportBundleCli.cluster_conf_path
+        if TestSupportBundleCli._cluster_conf_path:
+            cls.cluster_conf_path = TestSupportBundleCli._cluster_conf_path
         else:
-            cls.cluster_conf_path = 'yaml:///etc/cortx/cluster.conf'
+            cls.cluster_conf_path = cluster_conf_path
 
     def test_001_cli_verify_SB_generate(self):
         """Validate SB generate for single component."""
-        stdout, stderr, rc = SB_generate_CLI(configs['target_path'], self.cluster_conf_path)
+        stdout, stderr, rc = SB_generate_CLI(configs['target_path'], TestSupportBundleCli.cluster_conf_path)
         self.assertIsInstance(stdout, bytes)
         self.assertEqual(stderr, b'')
         self.assertEqual(rc, 0)
 
     def test_003_cli_verify_SB_get_status_success(self):
         """Validate SB get_status success for single component."""
-        stdout, stderr, rc = SB_generate_CLI(configs['target_path'], self.cluster_conf_path)
+        stdout, stderr, rc = SB_generate_CLI(configs['target_path'], TestSupportBundleCli.cluster_conf_path)
         self.assertIsInstance(stdout, bytes)
         self.assertEqual(stderr, b'')
         self.assertEqual(rc, 0)
         bundle_id = ''
         bundle_id = stdout.decode('utf-8').split('|')[1].strip()
-        stdout, stderr, rc = SB_get_status_CLI(bundle_id, self.cluster_conf_path)
+        stdout, stderr, rc = SB_get_status_CLI(bundle_id, TestSupportBundleCli.cluster_conf_path)
         self.assertIsInstance(stdout, bytes)
         self.assertEqual(stderr, b'')
         self.assertEqual(rc, 0)
@@ -106,7 +104,7 @@ class TestSupportBundleCli(unittest.TestCase):
 
     def test_008_cli_verify_SB_generated_path(self):
         """Validate SB generated path."""
-        stdout, stderr, rc = SB_generate_CLI(configs['target_path'], self.cluster_conf_path)
+        stdout, stderr, rc = SB_generate_CLI(configs['target_path'], TestSupportBundleCli.cluster_conf_path)
         self.assertIsInstance(stdout, bytes)
         self.assertEqual(stderr, b'')
         self.assertEqual(rc, 0)
@@ -122,7 +120,7 @@ class TestSupportBundleCli(unittest.TestCase):
         cmd_proc = SimpleProcess(cmd)
         _, _, rc = cmd_proc.run()
         self.assertEqual(rc, 0)
-        stdout, stderr, rc = SB_generate_CLI(configs['target_path'], self.cluster_conf_path)
+        stdout, stderr, rc = SB_generate_CLI(configs['target_path'], TestSupportBundleCli.cluster_conf_path)
         self.assertIsInstance(stdout, bytes)
         self.assertEqual(stderr, b'')
         self.assertEqual(rc, 0)
@@ -143,7 +141,7 @@ class TestSupportBundleCli(unittest.TestCase):
         cmd_proc = SimpleProcess(cmd)
         _, _, rc = cmd_proc.run()
         self.assertEqual(rc, 0)
-        stdout, stderr, rc = SB_generate_CLI(configs['target_path'], self.cluster_conf_path)
+        stdout, stderr, rc = SB_generate_CLI(configs['target_path'], TestSupportBundleCli.cluster_conf_path)
         self.assertIsInstance(stdout, bytes)
         self.assertEqual(stderr, b'')
         self.assertEqual(rc, 0)
@@ -164,7 +162,7 @@ class TestSupportBundleCli(unittest.TestCase):
         cmd_proc = SimpleProcess(cmd)
         _, _, rc = cmd_proc.run()
         self.assertEqual(rc, 0)
-        stdout, stderr, rc = SB_generate_CLI(configs['target_path'], self.cluster_conf_path)
+        stdout, stderr, rc = SB_generate_CLI(configs['target_path'], TestSupportBundleCli.cluster_conf_path)
         self.assertIsInstance(stdout, bytes)
         self.assertEqual(stderr, b'')
         self.assertEqual(rc, 0)
@@ -184,12 +182,12 @@ class TestSupportBundleCli(unittest.TestCase):
         cmd_proc = SimpleProcess(cmd)
         _, _, rc = cmd_proc.run()
         self.assertEqual(rc, 0)
-        stdout, stderr, rc = SB_generate_CLI(configs['target_path'], self.cluster_conf_path)
+        stdout, stderr, rc = SB_generate_CLI(configs['target_path'], TestSupportBundleCli.cluster_conf_path)
         self.assertIsInstance(stdout, bytes)
         self.assertEqual(stderr, b'')
         self.assertEqual(rc, 0)
         bundle_id = stdout.decode('utf-8').split('|')[1].strip()
-        stdout, stderr, rc = SB_get_status_CLI(bundle_id.strip(), self.cluster_conf_path)
+        stdout, stderr, rc = SB_get_status_CLI(bundle_id.strip(), TestSupportBundleCli.cluster_conf_path)
         self.assertIsInstance(stdout, bytes)
         self.assertEqual(stderr, b'')
         self.assertEqual(rc, 0)
@@ -216,6 +214,6 @@ class TestSupportBundleCli(unittest.TestCase):
 
 if __name__ == '__main__':
     import sys
-    if len(sys.argv) > 2:
-        TestSupportBundleCli.cluster_conf_path = sys.argv.pop()
+    if len(sys.argv) >= 2:
+        TestSupportBundleCli._cluster_conf_path = sys.argv.pop()
     unittest.main()

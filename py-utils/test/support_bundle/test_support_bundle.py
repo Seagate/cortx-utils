@@ -30,26 +30,24 @@ target_path = '/tmp/testSB'
 class TestSupportBundle(unittest.TestCase):
     """Test Support Bundle related functionality."""
 
-    cluster_conf_path = ''
+    _cluster_conf_path = ''
     @classmethod
-    def setUpClass(cls, cluster_conf_path = None):
+    def setUpClass(cls, cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
         """Test Setup class."""
         from cortx.utils.log import Log
         Log.init('support_bundle', '/var/log/cortx/utils/suppoort/', \
             level='DEBUG', backup_count=5, file_size_in_mb=5)
         cls.sb_description = "Test support bundle generation"
-        if cluster_conf_path is not None:
-            cls.cluster_conf_path = cluster_conf_path
-        elif TestSupportBundle.conf_path:
-            cls.cluster_conf_path = TestSupportBundle.conf_path
+        if TestSupportBundle._cluster_conf_path:
+            cls.cluster_conf_path = TestSupportBundle._cluster_conf_path
         else:
-            cls.cluster_conf_path = 'yaml:///etc/cortx/cluster.conf'
+            cls.cluster_conf_path = cluster_conf_path
 
     def test_001_verify_SB_generate_single_comp(self):
         """Validate SB generate for single component."""
         bundle_obj = SupportBundle.generate(
             comment=TestSupportBundle.sb_description, \
-                target_path=target_path, cluster_conf=self.cluster_conf_path)
+                target_path=target_path, cluster_conf=TestSupportBundle.cluster_conf_path)
         self.assertIsNotNone(bundle_obj)
         self.assertIsInstance(bundle_obj, Bundle)
         self.assertIsInstance(bundle_obj.bundle_id, str)
@@ -63,7 +61,7 @@ class TestSupportBundle(unittest.TestCase):
         """Validate SB generated path."""
         bundle_obj = SupportBundle.generate(
             comment=TestSupportBundle.sb_description, \
-                target_path=target_path, cluster_conf=self.cluster_conf_path)
+                target_path=target_path, cluster_conf=TestSupportBundle.cluster_conf_path)
         bundle_path = bundle_obj.bundle_path.strip()
         tar_file_name = f"{bundle_path}/{bundle_obj.bundle_id}.tar.gz"
         self.assertEqual(os.path.exists(tar_file_name   ), True)
@@ -76,7 +74,7 @@ class TestSupportBundle(unittest.TestCase):
         self.assertEqual(rc, 0)
         bundle_obj = SupportBundle.generate(
             comment=TestSupportBundle.sb_description, \
-                target_path=target_path, cluster_conf=self.cluster_conf_path)
+                target_path=target_path, cluster_conf=_cluster_conf_path.cluster_conf_path)
         bundle_path = bundle_obj.bundle_path.strip()
         tar_file_name = f"{bundle_path}/{bundle_obj.bundle_id}.tar.gz"
         self.assertEqual(os.path.exists(tar_file_name   ), True)
@@ -94,7 +92,7 @@ class TestSupportBundle(unittest.TestCase):
         self.assertEqual(rc, 0)
         bundle_obj = SupportBundle.generate(
             comment=TestSupportBundle.sb_description, \
-                target_path=target_path, cluster_conf=self.cluster_conf_path)
+                target_path=target_path, cluster_conf=_cluster_conf_path.cluster_conf_path)
         bundle_path = bundle_obj.bundle_path.strip()
         tar_file_name = f"{bundle_path}/{bundle_obj.bundle_id}.tar.gz"
         self.assertEqual(os.path.exists(tar_file_name), True)
@@ -112,7 +110,7 @@ class TestSupportBundle(unittest.TestCase):
         self.assertEqual(rc, 0)
         bundle_obj = SupportBundle.generate(
             comment=TestSupportBundle.sb_description, target_path=target_path, \
-                cluster_conf=self.cluster_conf_path)
+                cluster_conf=_cluster_conf_path.cluster_conf_path)
         bundle_path = bundle_obj.bundle_path.strip()
         tar_file_name = f"{bundle_path}/{bundle_obj.bundle_id}.tar.gz"
         self.assertEqual(os.path.exists(tar_file_name), True)
@@ -141,6 +139,6 @@ class TestSupportBundle(unittest.TestCase):
 
 if __name__ == '__main__':
     import sys
-    if len(sys.argv) > 2:
-        TestSupportBundle.cluster_conf_path = sys.argv.pop()
+    if len(sys.argv) >= 2:
+        TestSupportBundle._cluster_conf_path  = sys.argv.pop()
     unittest.main()
