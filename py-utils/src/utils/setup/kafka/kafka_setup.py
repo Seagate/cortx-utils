@@ -20,6 +20,8 @@ import argparse
 import inspect
 import traceback
 
+from cortx.utils.log import Log
+from cortx.utils.common import CortxConf
 from cortx.utils.conf_store import Conf
 from cortx.utils.setup.kafka import Kafka
 from cortx.utils.setup.kafka import KafkaSetupError
@@ -32,6 +34,7 @@ class Cmd:
     def __init__(self, args: dict):
         self._url = args.config
         self._args = args.args
+        self._cluster_conf = args.cluster_conf
 
     @property
     def args(self) -> str:
@@ -40,6 +43,10 @@ class Cmd:
     @property
     def url(self) -> str:
         return self._url
+
+    @property
+    def cluster_conf(self) -> str:
+        return self._cluster_conf
 
     @staticmethod
     def usage(prog: str):
@@ -53,7 +60,7 @@ class Cmd:
 
     @staticmethod
     def get_command(desc: str, argv: dict):
-        """ Return the Command after parsing the command line. """
+        """Return the Command after parsing the command line."""
 
         parser = argparse.ArgumentParser(desc)
 
@@ -77,6 +84,8 @@ class Cmd:
 
         parser1 = parser.add_parser(cls.name, help='setup %s' % name)
         parser1.add_argument('--config', help='Conf Store URL', type=str)
+        parser1.add_argument('--cluster_conf', help='cluster.conf url',
+            type=str, default='yaml:///etc/cortx/cluster.conf')
         cls._add_extended_args(parser1)
         parser1.add_argument('args', nargs='*', default=[], help='args')
         parser1.set_defaults(command=cls)
@@ -188,15 +197,21 @@ class CleanupCmd(Cmd):
 
 def main(argv: dict):
 
-    #fetch all data required for processes
-    conf_url = argv[-1]
-    kafka_config = 'kafka_config'
-    Conf.load(kafka_config, conf_url)
-    kafka_servers = Conf.get(kafka_config, 'cortx>software>kafka>servers')
-
     try:
         desc = "CORTX Kafka Setup command"
         command = Cmd.get_command(desc, argv[1:])
+        # Get kafka server list from template file
+        kafka_config = 'kafka_config'
+        Conf.load(kafka_config, command.url)
+        kafka_servers = Conf.get(kafka_config, 'cortx>software>kafka>servers')
+        # Get log path and initialise Log
+        CortxConf.init(cluster_conf=command.cluster_conf)
+        log_dir = CortxConf.get_storage_path('log')
+        log_path = CortxConf.get_log_path(base_dir=log_dir)
+        log_level = CortxConf.get('utils>log_level', 'INFO')
+        Log.init('kafka_setup', log_path, level=log_level, backup_count=5, \
+            file_size_in_mb=5)
+
         rc = command.process(kafka_servers)
         if rc != 0:
             raise ValueError(f"Failed to run {argv[1]}")
@@ -214,4 +229,5 @@ def main(argv: dict):
 
 
 if __name__ == '__main__':
+
     sys.exit(main(sys.argv))
