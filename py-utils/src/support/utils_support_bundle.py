@@ -74,8 +74,15 @@ class UtilsSupportBundle:
             if os.path.exists(log_path):
                 UtilsSupportBundle.__copy_file(log_path)
         # Copy configuration files
+<<<<<<< HEAD
         shutil.copytree(os.path.join(local_base, 'utils/conf'),\
             os.path.join(UtilsSupportBundle._tmp_src, 'conf'))
+=======
+        for conf in UtilsSupportBundle._conf_files_to_bundle.values():
+            conf_path = os.path.join(log_base, conf)
+            if os.path.exists(conf_path):
+                UtilsSupportBundle.__copy_file(conf_path)
+>>>>>>> faaf73c463b417a976f2d8273ffce32fcbb064d4
         UtilsSupportBundle.__generate_tar(bundle_id, target_path)
         UtilsSupportBundle.__clear_tmp_files()
 
