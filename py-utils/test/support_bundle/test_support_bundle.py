@@ -74,7 +74,7 @@ class TestSupportBundle(unittest.TestCase):
         self.assertEqual(rc, 0)
         bundle_obj = SupportBundle.generate(
             comment=TestSupportBundle.sb_description, \
-                target_path=target_path, cluster_conf=_cluster_conf_path.cluster_conf_path)
+                target_path=target_path, cluster_conf=TestSupportBundle.cluster_conf_path)
         bundle_path = bundle_obj.bundle_path.strip()
         tar_file_name = f"{bundle_path}/{bundle_obj.bundle_id}.tar.gz"
         self.assertEqual(os.path.exists(tar_file_name   ), True)
@@ -92,7 +92,7 @@ class TestSupportBundle(unittest.TestCase):
         self.assertEqual(rc, 0)
         bundle_obj = SupportBundle.generate(
             comment=TestSupportBundle.sb_description, \
-                target_path=target_path, cluster_conf=_cluster_conf_path.cluster_conf_path)
+                target_path=target_path, cluster_conf=TestSupportBundle.cluster_conf_path)
         bundle_path = bundle_obj.bundle_path.strip()
         tar_file_name = f"{bundle_path}/{bundle_obj.bundle_id}.tar.gz"
         self.assertEqual(os.path.exists(tar_file_name), True)
@@ -110,7 +110,7 @@ class TestSupportBundle(unittest.TestCase):
         self.assertEqual(rc, 0)
         bundle_obj = SupportBundle.generate(
             comment=TestSupportBundle.sb_description, target_path=target_path, \
-                cluster_conf=_cluster_conf_path.cluster_conf_path)
+                cluster_conf=TestSupportBundle.cluster_conf_path)
         bundle_path = bundle_obj.bundle_path.strip()
         tar_file_name = f"{bundle_path}/{bundle_obj.bundle_id}.tar.gz"
         self.assertEqual(os.path.exists(tar_file_name), True)
