@@ -26,7 +26,7 @@ from cortx.utils.support_framework import SupportBundle
 from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.v_service import ServiceV
 
-target_path = '/tmp/testSB'
+target_path = '/var/log/cortx/SB'
 class TestSupportBundle(unittest.TestCase):
     """Test Support Bundle related functionality."""
 
