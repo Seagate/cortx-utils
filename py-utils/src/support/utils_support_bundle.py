@@ -49,11 +49,6 @@ class UtilsSupportBundle:
         'iem': 'iem/iem.log',
         'utils_setup': 'utils_setup.log'
     }
-    _conf_files_to_bundle ={
-        'cortx_conf': 'conf/cortx.conf',
-        'message_bus_conf': 'conf/message_bus.conf',
-        'iem_conf': 'conf/iem.conf'
-    }
 
     @staticmethod
     def generate(bundle_id: str, target_path: str, cluster_conf: str):
