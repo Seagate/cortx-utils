@@ -1,4 +1,4 @@
-target_path: 'file:///tmp/testSB'
+target_path: 'file:///var/log/cortx/SB'
 SB_single_comp: 'provisioner'
 SB_multi_comp: 'csm;utils;provisioner'
 SB_generate_help: |
