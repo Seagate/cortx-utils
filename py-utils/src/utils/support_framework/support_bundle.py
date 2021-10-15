@@ -19,6 +19,8 @@ import string
 import random
 import tarfile
 import asyncio
+import re
+import shutil
 
 from cortx.utils.log import Log
 from cortx.utils.schema.providers import Response
@@ -95,13 +97,68 @@ class SupportBundle:
         config_url = command.options.get('config_url')
         # Extract config file path from url.
         config_path = config_url.split('//')[1] if '//' in config_url else ''
-        # TODO: Add config file into support bundle if the location is provided
-        # otherwise collect it from the default location.
-        # i.e /etc/cortx/cluster.conf (Password/secret needs to be removed from
-        # that file before adding it into SB)
-        # print(f"config_path :== {config_path}")
         bundle_path = os.path.join(target_path, bundle_id)
         os.makedirs(bundle_path)
+        # Adding CORTX manifest data inside support Bundle.
+        try:
+            # Copying config file into support bundle.
+            common_locations = set()
+            if config_path and os.path.exists(config_path):
+                Log.info(f'For manifest data collection, taking config from \
+                    {config_path} location.')
+                # Remove secrets from the input config.
+                conf_name = config_path.split('/')[-1]
+                sb_config = config_path.replace(conf_name, 'sb_cluster.conf')
+                with open(sb_config, 'w+') as sb_file:
+                    with open(config_path, 'r' ) as f:
+                        content = f.read()
+                        if 'secret:' in content:
+                            content = re.sub(r'secret:.+',r'secret: ****', content)
+                        sb_file.write(content)
+                conf_target = os.path.join(bundle_path, 'common' + config_path)
+                os.makedirs(conf_target.replace(f'/{conf_name}', ''), exist_ok = True)
+                shutil.move(sb_config, conf_target)
+                common_locations.add(config_path.split('/')[1])
+            
+            # Copying "/etc/cortx/solution" directory into support bundle
+            # except for "secret" folder.
+            sln_target = os.path.join(bundle_path, 'common' + const\
+                .CORTX_SOLUTION_DIR)
+            if os.path.exists(sln_target):
+                shutil.rmtree(sln_target)
+            if os.path.exists(const.CORTX_SOLUTION_DIR):
+                _ = shutil.copytree(const.CORTX_SOLUTION_DIR, sln_target, \
+                        ignore=shutil.ignore_patterns('secret'))
+                common_locations.add(const.CORTX_SOLUTION_DIR.split('/')[1])
+            
+            # Copying RELEASE.INFO file into support bundle.
+            if os.path.exists(const.CORTX_RELEASE_INFO):
+                rel_target = os.path.join(bundle_path, 'common' + const\
+                    .CORTX_RELEASE_INFO)
+                os.makedirs(rel_target.replace('/RELEASE.INFO', ''), exist_ok = True)
+                shutil.copyfile(const.CORTX_RELEASE_INFO, rel_target)
+                common_locations.add(const.CORTX_RELEASE_INFO.split('/')[1])
+            else:
+                Log.warn(f'{const.CORTX_RELEASE_INFO} file not found.')
+
+            try:
+                common_path = os.path.join(bundle_path, 'common')
+                common_tar = os.path.join(common_path, 'common.tar.gz')
+                with tarfile.open(common_tar, "w:gz") as tar:
+                    if os.path.exists(common_path):
+                        tar.add(common_path, arcname='common')
+
+                # Deleting untar directories from the common folder.
+                for location in common_locations:
+                    untar_location = os.path.join(common_path, location)
+                    if os.path.exists(untar_location):
+                        shutil.rmtree(untar_location)
+            except (OSError, tarfile.TarError) as err:
+                Log.error("Facing issues while adding manifest data into common "
+                "directory: {0}".format(err))
+
+        except BundleError as be:
+            Log.error(f"Failed to add CORTX manifest data inside Support Bundle.{be}")
         
         bundle_obj = Bundle(bundle_id=bundle_id, bundle_path=bundle_path, \
             comment=comment,is_shared=True)

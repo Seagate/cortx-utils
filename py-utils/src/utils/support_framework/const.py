@@ -30,4 +30,6 @@ SB_SYMLINK_PATH = 'symlink_path'
 SYMLINK_PATH = '/tmp/support_bundle/'
 FILESTORE_PATH = '/tmp/sb_status.json'
 SB_INDEX = 'sb_index'
+CORTX_SOLUTION_DIR = '/etc/cortx/solution'
+CORTX_RELEASE_INFO = '/opt/seagate/cortx/RELEASE.INFO'
 PERMISSION_ERROR_MSG = "Failed to cleanup {path} due to insufficient permissions"
