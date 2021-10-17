@@ -22,13 +22,16 @@ import asyncio
 import re
 import shutil
 
+from datetime import datetime
 from cortx.utils.log import Log
 from cortx.utils.schema.providers import Response
 from cortx.utils.errors import OPERATION_SUCESSFUL, ERR_OP_FAILED
 from cortx.utils.conf_store.conf_store import Conf
+from cortx.utils.common.common import CortxConf
 from cortx.utils.cli_framework.command import Command
 from cortx.utils.support_framework import const
 from cortx.utils.support_framework import Bundle
+from cortx.utils.support_framework.bundle_generate import ComponentsBundle
 from cortx.utils.support_framework.errors import BundleError
 
 
@@ -82,20 +85,10 @@ class SupportBundle:
         command:    Command Object :type: command
         return:     None.
         """
-        # CORTX SB Generation Initialized.
-        bundle_status = "CORTX SB Generation is In-Progress"
-        bundle_id = SupportBundle._generate_bundle_id()
-        # load conf for Support Bundle
-        Conf.load(const.SB_INDEX, 'json://' + const.FILESTORE_PATH)
-        Conf.set(const.SB_INDEX, f'bundle_db>{bundle_id}', bundle_status)
-        Conf.save(const.SB_INDEX)
-        
         # Get Arguments From Command
+        bundle_id = command.options.get(const.SB_BUNDLE_ID)
         comment = command.options.get(const.SB_COMMENT)
-        components = command.options.get(const.SB_COMPONENTS)
-        target_path = command.options.get('target_path')
         config_url = command.options.get('config_url')
-        # Extract config file path from url.
         config_path = config_url.split('//')[1] if '//' in config_url else ''
         bundle_path = os.path.join(target_path, bundle_id)
         os.makedirs(bundle_path)
@@ -160,13 +153,48 @@ class SupportBundle:
         except BundleError as be:
             Log.error(f"Failed to add CORTX manifest data inside Support Bundle.{be}")
         
+        cortx_config_store = CortxConf.init(cluster_conf=config_url)
+        path = command.options.get('target_path')
+        bundle_path = os.path.join(path,bundle_id)
+        os.makedirs(bundle_path)
+
+        # Get Node ID
+        node_id = Conf.machine_id
+        if node_id is None:
+            raise  BundleError(errno.EINVAL, 'Invalid node_id: %s', \
+                node_id)
+        # update SB Generation status in Conf store
+        # load conf for Support Bundle
+        Conf.load(const.SB_INDEX, 'json://' + const.FILESTORE_PATH)
+        data = {
+            'status': "In-Progress",
+            'star_time': datetime.strftime(
+                datetime.now(), '%Y-%m-%d %H:%M:%S')
+        }
+        Conf.set(const.SB_INDEX, f'{node_id}>{bundle_id}', data)
+        Conf.save(const.SB_INDEX)
+
+        node_name = cortx_config_store.get(f'node>{node_id}>name')
+        Log.info(f'Starting SB Generation on {node_id}:{node_name}')
+        components = cortx_config_store.get(f'node>{node_id}>components')
+        if components is None:
+            Log.warn(f"No component specified for {node_name} in CORTX config")
+            Log.warn(f"Skipping SB generation on node:{node_name}.")
+            return
         bundle_obj = Bundle(bundle_id=bundle_id, bundle_path=bundle_path, \
-            comment=comment,is_shared=True)
-        # Create CORTX support Bundle
+            comment=comment,node_name=node_name, components=components)
+
+        # Start SB Generation on Node.
         try:
-            await SupportBundle._begin_bundle_generation(bundle_obj)
+            await ComponentsBundle.init(bundle_obj, node_id)
         except BundleError as be:
             Log.error(f"Bundle generation failed.{be}")
+            ComponentsBundle._publish_log(f"Bundle generation failed.{be}", \
+                'error', bundle_id, node_name, comment)
+        except Exception as e:
+            Log.error(f"Internal error, bundle generation failed {e}")
+            ComponentsBundle._publish_log(f"Internal error, bundle generation failed \
+                {e}", 'error', bundle_id, node_name, comment)
 
         if command.sub_command_name == 'generate':
             display_string_len = len(bundle_obj.bundle_id) + 4
@@ -188,9 +216,14 @@ class SupportBundle:
         return:     None
         """
         try:
+            status = ''
+            node_id = Conf.machine_id
             Conf.load(const.SB_INDEX, 'json://' + const.FILESTORE_PATH)
             bundle_id = command.options.get(const.SB_BUNDLE_ID)
-            status = Conf.get(const.SB_INDEX, f'bundle_db>{bundle_id}')
+            if not bundle_id:
+                status = Conf.get(const.SB_INDEX, f'{node_id}')
+            else:
+                status = Conf.get(const.SB_INDEX, f'{node_id}>{bundle_id}>{status}')
             if not status:
                 return Response(output=(f"No status found for bundle_id: {bundle_id}" \
                     "in input config. Please check if the Bundle ID is correct"), \
@@ -203,7 +236,7 @@ class SupportBundle:
                 rc=str(errno.ENOENT))
 
     @staticmethod
-    def generate(comment: str, **kwargs):
+    def generate(comment: str, target_path: str, bundle_id:str, **kwargs):
         """
         Initializes the process for Generating Support Bundle on EachCORTX Node.
 
@@ -214,15 +247,11 @@ class SupportBundle:
                         also Eg: components = ['utils', 'provisioner']
         return:         bundle_obj
         """
-        components = ''
+        config_url = ''
         for key, value in kwargs.items():
-            if key == 'components':
-                components = value
-            elif key == 'target_path':
-                path = value
-            elif key == 'config_url':
+            if key == 'config_url':
                 config_url = value
-        options = {'comment': comment, 'components': components, 'target_path': path, \
+        options = {'comment': comment, 'target_path': target_path, 'bundle_id': bundle_id, \
             'config_url': config_url, 'comm':{'type': 'direct', 'target': \
             'utils.support_framework', 'method': 'generate_bundle', 'class': \
             'SupportBundle', 'is_static': True, 'params': {}, 'json': {}}, \

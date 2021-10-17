@@ -16,17 +16,14 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
-import threading
 import shutil
 from datetime import datetime
-from queue import Queue
 from typing import List
 from cortx.utils.schema.payload import Yaml, Tar
 from cortx.utils.support_framework import const
 from cortx.utils.process import SimpleProcess
 from cortx.utils.conf_store.conf_store import Conf
 from cortx.utils.log import Log
-from cortx.utils.manifest import ManifestSupportBundle
 from cortx.utils.common import CortxConf
 
 ERROR = 'error'
@@ -82,8 +79,8 @@ class ComponentsBundle:
         Log.debug("Summary file created")
 
     @staticmethod
-    def _exc_components_cmd(commands: List, bundle_id: str, path: str, \
-            component: str, node_name: str, comment: str, thread_que: Queue):
+    async def _exc_components_cmd(commands: List, bundle_id: str, path: str, \
+            component: str, node_name: str, comment: str):
         """
         Executes the Command for Bundle Generation of Every Component.
 
@@ -103,10 +100,10 @@ class ComponentsBundle:
                 Log.error(f"Command Output -> {output} {err}, {return_code}")
             else:
                 Log.debug(f"Command Output -> {output} {err}, {return_code}")
-            thread_que.put((component, return_code))
+            return component, return_code
 
     @staticmethod
-    async def init(command: List):
+    async def init(bundle_obj, node_id):
         """
         Initializes the Process of Support Bundle Generation for Every Component.
 
@@ -118,14 +115,15 @@ class ComponentsBundle:
         log_level = CortxConf.get('utils>log_level', 'INFO')
         Log.init('support_bundle_node', log_path, level=log_level, \
             backup_count=5, file_size_in_mb=5)
-        bundle_id = command.options.get(const.SB_BUNDLE_ID, '')
-        node_name = command.options.get(const.SB_NODE_NAME, '')
-        comment = command.options.get(const.SB_COMMENT, '')
-        components = command.options.get(const.SB_COMPONENTS, [])
+        bundle_id = bundle_obj.bundle_id
+        node_name = bundle_obj.node_name
+        comment = bundle_obj.comment
+        components_list = bundle_obj.components
+        bundle_path = bundle_obj.bundle_path
 
         Log.debug((f"{const.SB_BUNDLE_ID}: {bundle_id}, {const.SB_NODE_NAME}: "
             f"{node_name}, {const.SB_COMMENT}: {comment}, "
-            f"{const.SB_COMPONENTS}: {components}, {const.SOS_COMP}"))
+            f"{const.SB_COMPONENTS}: {components_list}, {const.SOS_COMP}"))
         # Read support_bundle.Yaml and Check's If It Exists.
         cmd_setup_file = os.path.join(CortxConf.get('install_path'),\
             'cortx/utils/conf/support_bundle.yaml')
@@ -138,48 +136,11 @@ class ComponentsBundle:
         if not support_bundle_config:
             ComponentsBundle._publish_log(f"No such file {cmd_setup_file}", \
                 ERROR, bundle_id, node_name, comment)
-        # Shared/Local path Location for creating Support Bundle.
-        from cortx.utils.shared_storage import Storage
-        path = Storage.get_path('support_bundle')
-        if not path:
-            path = Conf.get('cortx_conf', 'support>local_path')
-        bundle_path = os.path.join(path, bundle_id, node_name)
-        try:
-            os.makedirs(bundle_path, exist_ok=True)
-        except PermissionError as e:
-            Log.error(f"Incorrect permissions for path:{bundle_path} - {e}")
-            ComponentsBundle._publish_log(f"Incorrect permissions for path: {bundle_path} - {e}", \
-                    ERROR, bundle_id, node_name, comment)
 
         # Start Execution for each Component Command.
-        threads = []
         command_files_info = support_bundle_config.get('COMPONENTS')
         # OS Logs are specifically generated hence here Even
         # When All is Selected O.S. Logs Will Be Skipped.
-        if components:
-            if 'all' not in components:
-                components_list = list(set(command_files_info.keys()\
-                    ).intersection(set(components)))
-            else:
-                components_list = list(command_files_info.keys())
-                components_list.remove(const.SOS_COMP)
-        Log.debug(
-            f"Generating for manifest and {const.SB_COMPONENTS} {' '.join(components_list)}")
-        thread_que = Queue()
-        # Manifest component supportbundle generation
-        try:
-            thread_obj=threading.Thread(ManifestSupportBundle.generate(
-                f'{bundle_id}_manifiest', f'{bundle_path}{os.sep}'))
-            thread_obj.start()
-            Log.debug(f"Started thread -> {thread_obj.ident} " \
-                f"Component -> manifest")
-            threads.append(thread_obj)
-        except Exception as e:
-            Log.error(f"Internal error while calling ManifestSupportBundle"\
-                f" generate api {e}")
-            ComponentsBundle._publish_log(f"Internal error at while bundling"\
-                f" Manifest component: {bundle_path} - {e}", ERROR,
-                bundle_id, node_name, comment)
         for each_component in components_list:
             components_commands = []
             components_files = command_files_info[each_component]
@@ -204,45 +165,31 @@ class ComponentsBundle:
                         f"{file_path}", ERROR, bundle_id, node_name, comment)
                     break
                 if components_commands:
-                    thread_obj = threading.Thread(\
+                    component, return_code = await(\
                         ComponentsBundle._exc_components_cmd(\
                         components_commands, f'{bundle_id}_{each_component}',
                             f'{bundle_path}{os.sep}', each_component,
-                            node_name, comment, thread_que))
-                    thread_obj.start()
-                    Log.debug(f"Started thread -> {thread_obj.ident} " \
-                        f"Component -> {each_component}")
-                    threads.append(thread_obj)
-        # directory_path = Conf.get('cortx_conf', 'support')
+                            node_name, comment))
+                    if return_code != 0:
+                        ComponentsBundle._publish_log(
+                            f"Bundle generation failed for component - '{component}'", ERROR,
+                            bundle_id, node_name, comment)
+                    else:
+                        ComponentsBundle._publish_log(
+                            f"Bundle generation started for component - '{component}'", INFO,
+                            bundle_id, node_name, comment)
         tar_file_name = os.path.join(bundle_path, \
             f'{bundle_id}_{node_name}.tar.gz')
 
         ComponentsBundle._create_summary_file(bundle_id, node_name, \
             comment, bundle_path)
-        # SB status logging
-        Log.init('support_bundle_status', '/var/log/cortx/utils/support/', \
-            level=log_level, backup_count=5, file_size_in_mb=5, \
-            syslog_server='localhost', syslog_port=514)
-        # Wait Until all the Threads Execution is not Complete.
-        for each_thread in threads:
-            Log.debug(
-                f"Waiting for thread - {each_thread.ident} to complete process")
-            each_thread.join(timeout=1800)
-            if not thread_que.empty():
-                component, return_code = thread_que.get()
-                if return_code != 0:
-                    ComponentsBundle._publish_log(
-                        f"Bundle generation failed for component - '{component}'", ERROR,
-                        bundle_id, node_name, comment)
-                else:
-                    ComponentsBundle._publish_log(
-                        f"Bundle generation started for component - '{component}'", INFO,
-                        bundle_id, node_name, comment)
         try:
             Log.debug(f"Generating tar.gz file on path {tar_file_name} "
                 f"from {bundle_path}")
             Tar(tar_file_name).dump([bundle_path])
+            bundle_status = f"Successfully generated SB at path:{bundle_path}"
         except Exception as e:
+            bundle_status = f"Failed to generate tar file. ERROR:{e}"
             ComponentsBundle._publish_log(f"Could not generate tar file {e}", \
                 ERROR, bundle_id, node_name, comment)
         finally:
@@ -254,3 +201,7 @@ class ComponentsBundle:
 
         msg = "Support bundle generation completed."
         ComponentsBundle._publish_log(msg, INFO, bundle_id, node_name, comment)
+        # Update Status in ConfStor
+        Conf.load(const.SB_INDEX, 'json://' + const.FILESTORE_PATH, fail_reload=False)
+        Conf.set(const.SB_INDEX, f'{node_id}>{bundle_id}>status', bundle_status)
+        Conf.save(const.SB_INDEX)

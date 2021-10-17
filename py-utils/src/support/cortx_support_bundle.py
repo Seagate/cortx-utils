@@ -38,8 +38,6 @@ class CortxSupportBundle:
             raise BundleError("Please provide message, Why you are generating \
                 Support Bundle!")
         message = args.message[0]
-        # components = args.components[0].split(';') if args.components else []
-        components = []
         bundle_id = args.bundle_id[0]
         path = args.location[0]
         config_url = args.cluster_conf_path[0] if args.cluster_conf_path else 'yaml:///etc/cortx/cluster.conf'
@@ -51,8 +49,8 @@ class CortxSupportBundle:
             sys.exit(1)
         path = path.split('//')[1]
         bundle_obj = SupportBundle.generate(comment=message, \
-            components=components, target_path=path, config_url=config_url, \
-            bundle_id=bundle_id)
+            target_path=path,bundle_id=bundle_id, \
+            config_url=config_url)
         display_string_len = len(bundle_obj.bundle_id) + 4
         response_msg = (
             f"Please use the below bundle id for checking the status of support bundle."
@@ -140,7 +138,7 @@ def main():
         log_path = CortxConf.get_log_path('support')
         log_level = CortxConf.get('utils>log_level', 'INFO')
         Log.init('support_bundle', log_path, level=log_level, backup_count=5, \
-            file_size_in_mb=5, syslog_server='localhost', syslog_port=514)
+            file_size_in_mb=5)
         out = args.func(args)
         if out is not None and len(out) > 0:
             print(out)
