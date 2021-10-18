@@ -133,3 +133,11 @@ class TestFailed(Exception):
     def __init__(self, desc):
         self.desc = '[%s] %s' %(inspect.stack()[1][3], desc)
         super(TestFailed, self).__init__(desc)
+
+class CertificateError(InternalError):
+
+    """Base Certificate Error"""
+
+class SSLCertificateError(CertificateError):
+
+    """SSL Certificate Error"""
