@@ -21,7 +21,7 @@ import inspect
 import argparse
 import traceback
 
-from cortx.setup import Utils
+from cortx.setup.utils import Utils
 from cortx.utils.log import Log
 from cortx.setup.utils import SetupError
 
@@ -129,10 +129,11 @@ class InitCmd(Cmd):
 
     def __init__(self, args):
         super().__init__(args)
+        self.config_path = args.config
 
     def process(self):
         Utils.validate('init')
-        rc = Utils.init()
+        rc = Utils.init(self.config_path)
         return rc
 
 
@@ -147,12 +148,13 @@ class TestCmd(Cmd):
 
     def __init__(self, args):
         super().__init__(args)
+        self.config_path = args.config
         # Default test_plan is 'sanity'
         self.test_plan = args.plan
 
     def process(self):
         Utils.validate('test')
-        rc = Utils.test(self.test_plan)
+        rc = Utils.test(self.config_path, self.test_plan)
         return rc
 
 
@@ -162,10 +164,11 @@ class ResetCmd(Cmd):
 
     def __init__(self, args):
         super().__init__(args)
+        self.config_path = args.config
 
     def process(self):
         Utils.validate('reset')
-        rc = Utils.reset()
+        rc = Utils.reset(self.config_path)
         return rc
 
 
@@ -183,10 +186,11 @@ class CleanupCmd(Cmd):
         # hifen(-) in argparse is converted to underscore(_)
         # to make sure string is valid attrtibute
         self.pre_factory = args.pre_factory
+        self.config_path = args.config
 
     def process(self):
         Utils.validate('cleanup')
-        rc = Utils.cleanup(self.pre_factory)
+        rc = Utils.cleanup(self.pre_factory, self.config_path)
         return rc
 
 
@@ -219,20 +223,31 @@ class PostUpgradeCmd(Cmd):
 def main():
     from cortx.utils.conf_store import Conf
     tmpl_file_index = 'tmpl_index'
-    cortx_config_index = 'cortx_config'
     argv = sys.argv
 
     # Get the log path
     tmpl_file = argv[3]
+    from cortx.utils.common import CortxConf
     Conf.load(tmpl_file_index, tmpl_file, skip_reload=True)
-    log_dir = Conf.get(tmpl_file_index, 'cortx>common>storage>log', \
-        '/var/log')
-    utils_log_path = os.path.join(log_dir, 'cortx/utils')
+    local_storage_path = Conf.get(tmpl_file_index, 'cortx>common>storage>local')
+    cortx_config_file = os.path.join(f'{local_storage_path}', 'utils/conf/cortx.conf')
+    if not os.path.exists(cortx_config_file):
+        import shutil
+        # copy local conf file as cortx.conf
+        try:
+            os.makedirs(f'{local_storage_path}/utils/conf', exist_ok=True)
+            shutil.copy('/opt/seagate/cortx/utils/conf/cortx.conf.sample', \
+                      f'{local_storage_path}/utils/conf/cortx.conf')
+        except OSError as e:
+            raise SetupError(e.errno, "Failed to create %s %s", \
+                cortx_config_file, e)
+
+    CortxConf.init(cluster_conf=tmpl_file)
+    log_dir = CortxConf.get_storage_path('log')
+    utils_log_path = CortxConf.get_log_path(base_dir=log_dir)
 
     # Get the log level
-    cortx_config_file = 'json:///etc/cortx/cortx.conf'
-    Conf.load(cortx_config_index, cortx_config_file, skip_reload=True)
-    log_level = Conf.get(cortx_config_index, 'utils>log_level', 'INFO')
+    log_level = CortxConf.get('utils>log_level', 'INFO')
 
     Log.init('utils_setup', utils_log_path, level=log_level, backup_count=5, \
         file_size_in_mb=5)

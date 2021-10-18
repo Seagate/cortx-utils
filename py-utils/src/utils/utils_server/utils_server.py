@@ -17,6 +17,7 @@
 
 from aiohttp import web
 from cortx.utils.log import Log
+from cortx.utils.common import CortxConf
 
 
 class RestServer:
@@ -40,13 +41,12 @@ class RestServer:
 if __name__ == '__main__':
     import os
     from cortx.utils.conf_store import Conf
-
-    Conf.load('config_file', 'json:///etc/cortx/cortx.conf', skip_reload=True)
+    CortxConf.init(cluster_conf='yaml:///etc/cortx/cluster.conf')
     # Get the log path
-    log_dir = Conf.get('config_file', 'log_dir')
-    utils_log_path = os.path.join(log_dir, 'cortx/utils/utils_server')
+    log_dir = CortxConf.get('log_dir', '/var/log')
+    utils_log_path = CortxConf.get_log_path('utils_server', base_dir=log_dir)
     # Get the log level
-    log_level = Conf.get('config_file', 'utils>log_level', 'INFO')
+    log_level = CortxConf.get('utils>log_level', 'INFO')
 
     Log.init('utils_server', utils_log_path, level=log_level, backup_count=5, \
         file_size_in_mb=5)

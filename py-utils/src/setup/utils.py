@@ -21,6 +21,7 @@ import errno
 from pathlib import Path
 
 from cortx.utils import errors
+from cortx.utils import const
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
 from cortx.utils.common import SetupError
@@ -28,11 +29,9 @@ from cortx.utils.errors import TestFailed
 from cortx.utils.validator.v_pkg import PkgV
 from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.error import VError
-from cortx.utils.validator.v_service import ServiceV
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.service.service_handler import Service
-from cortx.utils.message_bus.error import MessageBusError
-from cortx.utils.message_bus import MessageBrokerFactory
+from cortx.utils.common import CortxConf
 
 
 class Utils:
@@ -61,24 +60,34 @@ class Utils:
                         %s", each_file, e)
 
     @staticmethod
+    def _get_utils_path() -> str:
+        """ Gets install path from cortx.conf and returns utils path """
+        install_path = CortxConf.get(key='install_path')
+        if not install_path:
+            local_storage_path = CortxConf.get_storage_path('local')
+            config_url = "%s://%s" % ('json', \
+                os.path.join(local_storage_path, 'utils/conf/cortx.conf'))
+            raise SetupError(errno.EINVAL, "install_path not found in %s",\
+                config_url)
+        return install_path
+
     def _set_to_conf_file(key, value):
         """ Add key value pair to cortx.conf file """
-        config_file = 'json:///etc/cortx/cortx.conf'
-        Conf.load('config_file', config_file, skip_reload=True)
-        Conf.set('config_file', key, value)
-        Conf.save('config_file')
+        CortxConf.set(key, value)
+        CortxConf.save()
 
     # Utils private methods
     @staticmethod
     def _get_from_conf_file(key) -> str:
         """ Fetch and return value for the key from cortx.conf file """
-        config_file = 'json:///etc/cortx/cortx.conf'
-        Conf.load('config_file', config_file, skip_reload=True)
-        val = Conf.get('config_file', key)
+        val = CortxConf.get(key=key)
 
         if not val:
-            error_msg = f"Value for key: {key}, not found in {config_file}"
-            raise SetupError(errno.EINVAL, error_msg)
+            local_storage_path = CortxConf.get_storage_path('local')
+            config_url = "%s://%s" % ('json', \
+                os.path.join(local_storage_path, 'utils/conf/cortx.conf'))
+            raise SetupError(errno.EINVAL, "Value for key: %s, not found in \
+                %s", key, config_url)
 
         return val
 
@@ -87,9 +96,12 @@ class Utils:
         config: dict):
         """ Create the config file required for message bus """
         mb_index = 'mb_index'
-        with open(r'/etc/cortx/utils/message_bus.conf.sample', 'w+') as file:
+        local_path = CortxConf.get_storage_path('local')
+        message_bus_conf = os.path.join(local_path, 'utils/conf/message_bus.conf')
+        message_bus_conf_sample = message_bus_conf + '.sample'
+        with open(message_bus_conf_sample, 'w+') as file:
             json.dump({}, file, indent=2)
-        Conf.load(mb_index, 'json:///etc/cortx/utils/message_bus.conf.sample')
+        Conf.load(mb_index, f'json://{message_bus_conf_sample}')
         Conf.set(mb_index, 'message_broker>type', 'kafka')
         for i in range(len(message_server_list)):
             Conf.set(mb_index, f'message_broker>cluster[{i}]>server', \
@@ -100,11 +112,10 @@ class Utils:
 
         # copy this conf file as message_bus.conf
         try:
-            os.rename('/etc/cortx/utils/message_bus.conf.sample', \
-                      '/etc/cortx/utils/message_bus.conf')
+            os.rename(message_bus_conf_sample, message_bus_conf)
         except OSError as e:
-            raise SetupError(e.errno, "Failed to create \
-                /etc/cortx/utils/message_bus.conf %s", e)
+            raise SetupError(e.errno, "Failed to create %s %s", \
+                message_bus_conf, e)
 
     @staticmethod
     def _get_server_info(conf_url_index: str, machine_id: str) -> dict:
@@ -136,26 +147,27 @@ class Utils:
     def _create_iem_config(server_info: dict, machine_id: str):
         """ Create the config file required for Event Message """
         iem_index = 'iem'
-        with open('/etc/cortx/utils/iem.conf.sample', 'w+') as file:
+        local_path = CortxConf.get_storage_path('local')
+        iem_conf = os.path.join(local_path, 'utils/conf/iem.conf')
+        iem_conf_sample = iem_conf + '.sample'
+        with open(iem_conf_sample, 'w+') as file:
             json.dump({}, file, indent=2)
         for _id in ['site_id', 'rack_id']:
             if _id not in server_info.keys():
                 server_info[_id] = 1
-        Conf.load(iem_index, 'json:///etc/cortx/utils/iem.conf.sample', \
-            skip_reload=True)
+        Conf.load(iem_index, f'json://{iem_conf_sample}', skip_reload=True)
         Conf.set(iem_index, f'node>{machine_id}>cluster_id', \
             server_info['cluster_id'])
         Conf.set(iem_index, f'node>{machine_id}>site_id', server_info['site_id'])
         Conf.set(iem_index, f'node>{machine_id}>rack_id', server_info['rack_id'])
+        Conf.set(iem_index, f'node>{machine_id}>node_id', machine_id)
         Conf.save(iem_index)
 
         # copy this sample conf file as iem.conf
         try:
-            os.rename('/etc/cortx/utils/iem.conf.sample', \
-                '/etc/cortx/utils/iem.conf')
+            os.rename(iem_conf_sample, iem_conf)
         except OSError as e:
-            raise SetupError(e.errno, "Failed to create /etc/cortx/utils/iem.conf\
-                %s", e)
+            raise SetupError(e.errno, "Failed to create %s. %s", iem_conf, e)
 
     @staticmethod
     def _configure_rsyslog():
@@ -179,7 +191,6 @@ class Utils:
     @staticmethod
     def post_install(post_install_template: str):
         """ Performs post install operations """
-
         # Check required python packages
         install_path = Utils._get_from_conf_file('install_path')
         utils_path = install_path + '/cortx/utils'
@@ -214,42 +225,35 @@ class Utils:
         return 0
 
     @staticmethod
-    def init():
+    def init(config_path: str):
         """ Perform initialization """
         # Create message_type for Event Message
         from cortx.utils.message_bus import MessageBusAdmin
+        from cortx.utils.message_bus.error import MessageBusError
         try:
-            admin = MessageBusAdmin(admin_id='register')
+            admin = MessageBusAdmin(admin_id='register', cluster_conf=config_path)
             admin.register_message_type(message_types=['IEM'], partitions=1)
         except MessageBusError as e:
-            raise SetupError(e.rc, "Unable to create message_type. %s", e)
+            if 'TOPIC_ALREADY_EXISTS' not in e.desc:
+                raise SetupError(e.rc, "Unable to create message_type. %s", e)
 
         return 0
 
     @staticmethod
     def config(config_template: str):
         """Performs configurations."""
-        # Create directory for utils configurations
-        config_dir = '/etc/cortx/utils'
-        if not os.path.exists(config_dir):
-            os.makedirs(config_dir)
-
         # Load required files
         config_template_index = 'config'
         Conf.load(config_template_index, config_template)
-
         # Configure log_dir for utils
-        cortx_config_index = 'cortx_config'
-        Conf.load(cortx_config_index, 'json:///etc/cortx/cortx.conf', \
-            skip_reload=True)
-        log_dir = Conf.get(config_template_index, \
-            'cortx>common>storage>log')
+        log_dir = CortxConf.get_storage_path('log')
         if log_dir is not None:
-            Conf.set(cortx_config_index, 'log_dir', log_dir)
-            Conf.save(cortx_config_index)
+            CortxConf.set('log_dir', log_dir)
+            CortxConf.save()
 
         # Create message_bus config
         try:
+            from cortx.utils.message_bus import MessageBrokerFactory
             server_list, port_list, config = \
                 MessageBrokerFactory.get_server_list(config_template_index)
         except SetupError:
@@ -272,16 +276,15 @@ class Utils:
         Utils._configure_rsyslog()
 
         # get shared storage from cluster.conf and set it to cortx.conf
-        shared_storage = Conf.get(config_template_index, \
-            'cortx>common>storage>shared')
+        shared_storage = CortxConf.get_storage_path('shared')
         if shared_storage:
             Utils._set_to_conf_file('support>shared_path', shared_storage)
 
         # temporary fix for a common message bus log file
         # The issue happend when some user other than root:root is trying
         # to write logs in these log dir/files. This needs to be removed soon!
-        log_dir = Conf.get(cortx_config_index, 'log_dir', '/var/log')
-        utils_log_dir = os.path.join(log_dir, 'cortx/utils')
+        log_dir = CortxConf.get('log_dir', '/var/log')
+        utils_log_dir = CortxConf.get_log_path(base_dir=log_dir)
         #message_bus
         os.makedirs(os.path.join(utils_log_dir, 'message_bus'), exist_ok=True)
         os.chmod(os.path.join(utils_log_dir, 'message_bus'), 0o0777)
@@ -296,18 +299,19 @@ class Utils:
         return 0
 
     @staticmethod
-    def test(plan: str):
+    def test(config_path: str, plan: str):
         """ Perform configuration testing """
         # Runs cortx-py-utils unittests as per test plan
         try:
             Log.info("Validating cortx-py-utils-test rpm")
             PkgV().validate('rpms', ['cortx-py-utils-test'])
-            utils_path = Utils._get_utils_path()
+            install_path = Utils._get_from_conf_file('install_path')
+            utils_path = install_path + '/cortx/utils'
             import cortx.utils.test as test_dir
             plan_path = os.path.join(os.path.dirname(test_dir.__file__), \
                 'plans/', plan + '.pln')
             Log.info("Running test plan: %s", plan)
-            cmd = "%s/bin/run_test -t  %s" %(utils_path, plan_path)
+            cmd = "%s/bin/run_test -c %s -t %s" %(utils_path, config_path, plan_path)
             _output, _err, _rc = SimpleProcess(cmd).run(realtime_output=True)
             if _rc != 0:
                 Log.error("Py-utils Test Failed")
@@ -320,19 +324,21 @@ class Utils:
         return 0
 
     @staticmethod
-    def reset():
+    def reset(config_path: str):
         """Remove/Delete all the data/logs that was created by user/testing."""
         import time
+        from cortx.utils.message_bus.error import MessageBusError
         _purge_retry = 20
         try:
             from cortx.utils.message_bus import MessageBusAdmin
-            from cortx.utils.message_bus.message_bus_client import MessageProducer
-            mb = MessageBusAdmin(admin_id='reset')
+            from cortx.utils.message_bus import MessageProducer
+            mb = MessageBusAdmin(admin_id='reset', cluster_conf=config_path)
             message_types_list = mb.list_message_types()
             if message_types_list:
                 for message_type in message_types_list:
                     producer = MessageProducer(producer_id=message_type, \
-                        message_type=message_type, method='sync')
+                        message_type=message_type, method='sync', \
+                        cluster_conf=config_path)
                     for retry_count in range(1, (_purge_retry + 2)):
                         if retry_count > _purge_retry:
                             Log.error(f"MessageBusError: {errors.ERR_OP_FAILED} " \
@@ -352,11 +358,7 @@ class Utils:
             raise SetupError(errors.ERR_OP_FAILED, "Internal error, can not \
                 reset Message Bus. %s", e)
         # Clear the logs
-        cortx_config_index = 'cortx_config'
-        Conf.load(cortx_config_index, 'json:///etc/cortx/cortx.conf', \
-            skip_reload=True)
-        log_dir = Conf.get(cortx_config_index, 'log_dir')
-        utils_log_path = os.path.join(log_dir, 'cortx/utils')
+        utils_log_path = CortxConf.get_log_path()
         if os.path.exists(utils_log_path):
             cmd = "find %s -type f -name '*.log' -exec truncate -s 0 {} +" % utils_log_path
             cmd_proc = SimpleProcess(cmd)
@@ -367,14 +369,18 @@ class Utils:
         return 0
 
     @staticmethod
-    def cleanup(pre_factory: bool):
+    def cleanup(pre_factory: bool, config_path: str):
         """Remove/Delete all the data that was created after post install."""
-        conf_file = '/etc/cortx/utils/message_bus.conf'
-        if os.path.exists(conf_file):
+        local_path = CortxConf.get_storage_path('local')
+        message_bus_conf = os.path.join(local_path, 'utils/conf/message_bus.conf')
+        iem_conf = os.path.join(local_path, 'utils/conf/iem.conf')
+
+        if os.path.exists(message_bus_conf):
             # delete message_types
+            from cortx.utils.message_bus.error import MessageBusError
             try:
                 from cortx.utils.message_bus import MessageBusAdmin
-                mb = MessageBusAdmin(admin_id='cleanup')
+                mb = MessageBusAdmin(admin_id='cleanup', cluster_conf=config_path)
                 message_types_list = mb.list_message_types()
                 if message_types_list:
                     mb.deregister_message_type(message_types_list)
@@ -384,17 +390,12 @@ class Utils:
                 raise SetupError(errors.ERR_OP_FAILED, "Can not cleanup Message  \
                     Bus. %s", e)
 
-        config_files = ['/etc/cortx/utils/message_bus.conf', \
-            '/etc/cortx/utils/iem.conf']
+        config_files = [message_bus_conf, iem_conf]
         Utils._delete_files(config_files)
 
         if pre_factory:
             # deleting all log files as part of pre-factory cleanup
-            cortx_config_index = 'cortx_config'
-            Conf.load(cortx_config_index, 'json:///etc/cortx/cortx.conf', \
-                skip_reload=True)
-            log_dir = Conf.get(cortx_config_index, 'log_dir')
-            utils_log_path = os.path.join(log_dir, 'cortx/utils')
+            utils_log_path = CortxConf.get_log_path()
             cortx_utils_log_regex = f'{utils_log_path}/**/*.log'
             log_files = glob.glob(cortx_utils_log_regex, recursive=True)
             Utils._delete_files(log_files)

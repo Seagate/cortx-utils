@@ -18,32 +18,34 @@
 import os
 import stat
 import errno
+
 from cortx.utils.log import Log
-from cortx.utils.message_bus.message_broker import MessageBrokerFactory
-from cortx.utils.message_bus.error import MessageBusError
-from cortx.utils.conf_store import Conf
-from cortx.utils.conf_store.error import ConfError
 from cortx.template import Singleton
+from cortx.utils.conf_store import Conf
+from cortx.utils.common import CortxConf
+from cortx.utils.conf_store.error import ConfError
+from cortx.utils.message_bus.error import MessageBusError
+from cortx.utils.message_bus.message_broker import MessageBrokerFactory
 
 
 class MessageBus(metaclass=Singleton):
     """ Message Bus Framework over various types of Message Brokers """
 
-    conf_file = 'json:///etc/cortx/utils/message_bus.conf'
-
-    def __init__(self):
+    def __init__(self, cluster_conf='yaml:///etc/cortx/cluster.conf'):
         """ Initialize a MessageBus and load its configurations """
-        Conf.load('config_file', 'json:///etc/cortx/cortx.conf',
-            skip_reload=True)
+        CortxConf.init(cluster_conf=cluster_conf)
+        local_storage = CortxConf.get_storage_path('local')
+        message_bus_conf = os.path.join(local_storage ,'utils/conf/message_bus.conf')
+        self.conf_file = f'json://{message_bus_conf}'
         # Get the log path
-        log_dir = Conf.get('config_file', 'log_dir')
-        utils_log_path = os.path.join(log_dir, 'cortx/utils/message_bus')
+        log_dir = CortxConf.get('log_dir', '/var/log')
+        utils_log_path = CortxConf.get_log_path('message_bus', base_dir=log_dir)
 
         # if Log.logger is already initialized by some parent process
         # the same file will be used to log all the messagebus related
         # logs, else standard message_bus.log will be used.
         if not Log.logger:
-            log_level = Conf.get('config_file', 'utils>log_level', 'INFO')
+            log_level = CortxConf.get('utils>log_level', 'INFO')
             Log.init('message_bus', utils_log_path, level=log_level, \
                 backup_count=5, file_size_in_mb=5)
 

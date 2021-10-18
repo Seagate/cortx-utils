@@ -24,6 +24,7 @@ from cortx.utils.conf_store import Conf
 from cortx.utils.common.errors import SetupError
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.message_bus.error import MessageBusError
+from cortx.utils.common import CortxConf
 
 
 class MessageBrokerFactory:
@@ -83,7 +84,8 @@ class MessageBrokerFactory:
         for server in all_servers:
             # Value of server can be <server_fqdn:port> or <server_fqdn>
             if ':' in server:
-                server_fqdn, port = server.split(':')
+                endpoints = server.split('//')[1]
+                server_fqdn, port = endpoints.split(':')
                 message_server_list.append(server_fqdn)
                 port_list.append(port)
             else:
@@ -94,11 +96,8 @@ class MessageBrokerFactory:
             Log.error(f"Missing config entry {key_list} in input file")
             raise SetupError(errno.EINVAL, \
                 "Missing config entry %s in config", key_list)
-
         # Read the default config
-        config_file_path = '/etc/cortx/cortx.conf'
-        Conf.load('mb_config', f'json:///{config_file_path}')
-        config = Conf.get('mb_config', 'message_bus')
+        config = CortxConf.get('message_bus')
         return message_server_list, port_list, config
 
 

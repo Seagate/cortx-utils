@@ -17,46 +17,22 @@ import os
 import errno
 import string
 import random
+import tarfile
 import asyncio
 
 from cortx.utils.log import Log
-from cortx.utils.schema import database
-from cortx.utils.shared_storage import Storage
 from cortx.utils.schema.providers import Response
-from cortx.utils.errors import OPERATION_SUCESSFUL
-from cortx.utils.schema.payload import Tar
+from cortx.utils.errors import OPERATION_SUCESSFUL, ERR_OP_FAILED
 from cortx.utils.conf_store.conf_store import Conf
 from cortx.utils.cli_framework.command import Command
-from cortx.utils.errors import DataAccessExternalError
 from cortx.utils.support_framework import const
 from cortx.utils.support_framework import Bundle
 from cortx.utils.support_framework.errors import BundleError
-from cortx.utils.support_framework.services import ProvisionerServices
-from cortx.utils.support_framework.model import SupportBundleRepository
-from cortx.utils.support_framework.bundle_generate import ComponentsBundle
-from cortx.utils.data.db.db_provider import (DataBaseProvider, GeneralConfig)
 
 
 class SupportBundle:
 
     """This Class initializes the Support Bundle Generation for CORTX."""
-
-    @staticmethod
-    async def _get_active_nodes() -> dict:
-        """This Method is for reading hostnames, node_list information
-
-        Returns:
-            dict:     hosts in cluster eg {node1:fqd1}
-            Response: Response object if no host found in config file
-        """
-        Log.info("Reading hostnames, node_list information")
-        Conf.load('cortx_cluster', 'json:///etc/cortx/cluster.conf', \
-            skip_reload=True)
-        node_hostname_map = Conf.get('cortx_cluster', 'cluster')
-        if not node_hostname_map:
-            response_msg = "Node list and hostname not found."
-            return Response(output=response_msg, rc=errno.ENODATA), None
-        return node_hostname_map
 
     @staticmethod
     def _generate_bundle_id():
@@ -76,82 +52,65 @@ class SupportBundle:
         return f" -c {shell_args}"
 
     @staticmethod
+    async def _begin_bundle_generation(bundle_obj):
+        tar_dest_file = f'{bundle_obj.bundle_id}.tar.gz'
+        dest_path = os.path.join(bundle_obj.bundle_path, tar_dest_file)
+        Log.debug(f"Generating Bundle at path:{dest_path}")
+        try:
+            for target in const.SB_DIR_LIST:
+                if os.path.isdir(target):
+                    with tarfile.open(dest_path, 'w:gz') as tar_handle:
+                        tar_handle.add(target, arcname=os.path.abspath(target))
+            bundle_status = ("Successfully generated the support bundle "
+                            f"at path: '{dest_path}' !!!")
+        except Exception as err:
+            msg = f"Failed to generate support bundle. ERROR:{err}"
+            Log.error(msg)
+            bundle_status = msg
+        
+        # Update the SB status in conf store
+        Conf.load(const.SB_INDEX, 'json://' + const.FILESTORE_PATH, fail_reload=False)
+        Conf.set(const.SB_INDEX, f'bundle_db>{bundle_obj.bundle_id}', bundle_status)
+        Conf.save(const.SB_INDEX)
+
+    @staticmethod
     async def _generate_bundle(command):
         """
-        Initializes the process for Generating Support Bundle on Each CORTX Node.
-
+        Initializes the process for Generating Support Bundle at shared path.
         command:    Command Object :type: command
         return:     None.
         """
+        # CORTX SB Generation Initialized.
+        bundle_status = "CORTX SB Generation is In-Progress"
         bundle_id = SupportBundle._generate_bundle_id()
-        provisioner = ProvisionerServices()
-        if not provisioner:
-            return Response(output="Provisioner package not found.", \
-                rc=errno.ENOENT)
+        # load conf for Support Bundle
+        Conf.load(const.SB_INDEX, 'json://' + const.FILESTORE_PATH)
+        Conf.set(const.SB_INDEX, f'bundle_db>{bundle_id}', bundle_status)
+        Conf.save(const.SB_INDEX)
+        
         # Get Arguments From Command
         comment = command.options.get(const.SB_COMMENT)
         components = command.options.get(const.SB_COMPONENTS)
-        if not components:
-            components = []
-        if command.options.get(const.SOS_COMP, False) == 'true':
-            components.append('os')
-        Conf.load('cortx_conf', 'json:///etc/cortx/cortx.conf', \
-            skip_reload=True)
-        # Get HostNames and Node Names.
-        node_hostname_map = await SupportBundle._get_active_nodes()
-        if not isinstance(node_hostname_map, dict):
-            return node_hostname_map
-
-        shared_path = Storage.get_path(name='support_bundle')
-        path = shared_path if shared_path else Conf.get('cortx_conf',\
-            'support>local_path')
-
-        bundle_path = os.path.join(path,bundle_id)
+        target_path = command.options.get('target_path')
+        config_url = command.options.get('config_url')
+        # Extract config file path from url.
+        config_path = config_url.split('//')[1] if '//' in config_url else ''
+        # TODO: Add config file into support bundle if the location is provided
+        # otherwise collect it from the default location.
+        # i.e /etc/cortx/cluster.conf (Password/secret needs to be removed from
+        # that file before adding it into SB)
+        # print(f"config_path :== {config_path}")
+        bundle_path = os.path.join(target_path, bundle_id)
         os.makedirs(bundle_path)
         
-        bundle_obj = Bundle(bundle_id=bundle_id, bundle_path=path, \
-            comment=comment,is_shared=True if shared_path else False)
-        
-        support_bundle_file = os.path.join(Conf.get('cortx_conf', 'install_path'),\
-            'cortx/utils/conf/support_bundle.yaml')
-        Conf.load('sb_yaml', f'yaml://{support_bundle_file}', skip_reload=True)
-        all_components = Conf.get('sb_yaml', 'COMPONENTS')
-        invalid_comps = [component for component in components if component not in all_components.keys()]
-        if invalid_comps:
-            components = list(set(components) - set(invalid_comps))
-            ComponentsBundle._publish_log(f"""Invalid components - '{", ".join(invalid_comps)}'""", \
-                'error', bundle_id, '', comment)
-        if invalid_comps and not components:
-            return bundle_obj
-        comp_list = SupportBundle._get_components(components)
+        bundle_obj = Bundle(bundle_id=bundle_id, bundle_path=bundle_path, \
+            comment=comment,is_shared=True)
+        # Create CORTX support Bundle
+        try:
+            await SupportBundle._begin_bundle_generation(bundle_obj)
+        except BundleError as be:
+            Log.error(f"Bundle generation failed.{be}")
 
-        # Start SB Generation on all Nodes.
-        for nodename, hostname in node_hostname_map.items():
-            Log.debug(f"Connect to {hostname}")
-            try:
-                # TODO: pass bundle_path to bundle_generation when args implemented
-                await provisioner.begin_bundle_generation(
-                    f"bundle_generate '{bundle_id}' '{comment}' "
-                    f"'{hostname}' {comp_list}", nodename)
-            except BundleError as be:
-                Log.error(f"Bundle generation failed.{be}")
-                ComponentsBundle._publish_log(f"Bundle generation failed.{be}", \
-                    'error', bundle_id, nodename, comment)
-            except Exception as e:
-                Log.error(f"Internal error, bundle generation failed {e}")
-                ComponentsBundle._publish_log(f"Internal error, bundle generation failed \
-                    {e}", 'error', bundle_id, nodename, comment)
-
-        # Create common tar.
-        #if bundle_obj.is_shared:
-        #    tar_dest_file = f"{bundle_id}.tar.gz"
-        #    Log.debug(f"Merging all bundle to {bundle_path}/{tar_dest_file}")
-        #    try:
-        #        Tar(os.path.join(bundle_path, tar_dest_file)).dump([bundle_path])
-        #    except:
-        #        Log.debug("Merging of node support bundle failed")
-        #        return Response(output="Bundle Generation Failed in merging",
-        #        rc=errno.EINVAL)
         if command.sub_command_name == 'generate':
             display_string_len = len(bundle_obj.bundle_id) + 4
             response_msg = (
@@ -172,26 +131,18 @@ class SupportBundle:
         return:     None
         """
         try:
+            Conf.load(const.SB_INDEX, 'json://' + const.FILESTORE_PATH)
             bundle_id = command.options.get(const.SB_BUNDLE_ID)
-            conf = GeneralConfig(database.DATABASE)
-            db = DataBaseProvider(conf)
-            repo = SupportBundleRepository(db)
-            all_nodes_status = await repo.retrieve_all(bundle_id)
-            response = {'status': [each_status.to_primitive() for each_status in
-                                   all_nodes_status]}
-            return Response(output = response, rc = OPERATION_SUCESSFUL)
-        except DataAccessExternalError as e:
-            Log.warn(f"Failed to connect to elasticsearch: {e}")
-            return Response(output=(f"Support Bundle status is not available " \
-                "currently as required services are not running. Please wait " \
-                "and check the /tmp/support_bundle folder for newly generated " \
-                "support bundle. Related error - Failed to connect to elasticsearch: {e}"), \
-                rc=str(errno.ECONNREFUSED))
+            status = Conf.get(const.SB_INDEX, f'bundle_db>{bundle_id}')
+            if not status:
+                return Response(output=(f"No status found for bundle_id: {bundle_id}" \
+                    "in input config. Please check if the Bundle ID is correct"), \
+                    rc=ERR_OP_FAILED)
+            return Response(output = status, rc = OPERATION_SUCESSFUL)
         except Exception as e:
             Log.error(f"Failed to get bundle status: {e}")
             return Response(output=(f"Support Bundle status is not available " \
-                "currently as required services are not running. Failed to " \
-                "get status of bundle. Related error - Failed to get bundle status: {e}"), \
+                f"Failed to get status of bundle. Related error - {e}"), \
                 rc=str(errno.ENOENT))
 
     @staticmethod
@@ -210,11 +161,15 @@ class SupportBundle:
         for key, value in kwargs.items():
             if key == 'components':
                 components = value
-        options = {'comment': comment, 'components': components, 'comm': \
-            {'type': 'direct', 'target': 'utils.support_framework', 'method': \
-            'generate_bundle', 'class': 'SupportBundle', 'is_static': True, \
-            'params': {}, 'json': {}}, 'output': {}, 'need_confirmation': \
-            False, 'sub_command_name': 'generate_bundle'}
+            elif key == 'target_path':
+                path = value
+            elif key == 'config_url':
+                config_url = value
+        options = {'comment': comment, 'components': components, 'target_path': path, \
+            'config_url': config_url, 'comm':{'type': 'direct', 'target': \
+            'utils.support_framework', 'method': 'generate_bundle', 'class': \
+            'SupportBundle', 'is_static': True, 'params': {}, 'json': {}}, \
+            'output': {}, 'need_confirmation': False, 'sub_command_name': 'generate_bundle'}
 
         cmd_obj = Command('generate_bundle', options, [])
         loop = asyncio.get_event_loop()

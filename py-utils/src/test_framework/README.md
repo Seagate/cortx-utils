@@ -33,17 +33,17 @@ git clone https://github.com/Seagate/cortx-utils.git
 
 *   Running tests from entrypoint by passing path of a plan
 ```bash
-run_test -t /usr/lib/python3.6/site-packages/cortx/utils/test/plans/<plan_name>.pln
+run_test -c <cluster.conf path> -t /usr/lib/python3.6/site-packages/cortx/utils/test/plans/<plan_name>.pln
 ```
 
 *   Running tests through utils_setup Test phase by passing plan name
 ```bash
-/opt/seagate/cortx/utils/bin/utils_setup test --plan <plan_name>
+/opt/seagate/cortx/utils/bin/utils_setup test --config <cluster.conf path> --plan <plan_name>
 ```
 
 *   Running tests through executable file run_test by passing path of a plan
 ```bash
-/opt/seagate/cortx/utils/bin/run_test -t /usr/lib/python3.6/site-packages/cortx/utils/test/plans/<plan_name>.pln
+/opt/seagate/cortx/utils/bin/run_test -c <cluster.conf path> -t /usr/lib/python3.6/site-packages/cortx/utils/test/plans/<plan_name>.pln
 ```
 
 **Note:** Here, `<plan_name>.pln` should exist in plans directory under /py-utils/test, i.e, `cortx-utils/py-utils/test/plans/`

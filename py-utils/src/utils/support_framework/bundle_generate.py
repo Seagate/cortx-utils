@@ -27,6 +27,7 @@ from cortx.utils.process import SimpleProcess
 from cortx.utils.conf_store.conf_store import Conf
 from cortx.utils.log import Log
 from cortx.utils.manifest import ManifestSupportBundle
+from cortx.utils.common import CortxConf
 
 ERROR = 'error'
 INFO = 'info'
@@ -112,10 +113,11 @@ class ComponentsBundle:
         command:        cli Command Object :type: command
         return:         None
         """
-        Conf.load('cortx_conf', 'json:///etc/cortx/cortx.conf')
-        log_level = Conf.get('cortx_conf', 'utils>log_level', 'INFO')
-        Log.init('support_bundle_node', '/var/log/cortx/utils/support/', \
-            level=log_level, backup_count=5, file_size_in_mb=5)
+        CortxConf.init(cluster_conf='yaml:///etc/cortx/cluster.conf')
+        log_path = CortxConf.get_log_path('support')
+        log_level = CortxConf.get('utils>log_level', 'INFO')
+        Log.init('support_bundle_node', log_path, level=log_level, \
+            backup_count=5, file_size_in_mb=5)
         bundle_id = command.options.get(const.SB_BUNDLE_ID, '')
         node_name = command.options.get(const.SB_NODE_NAME, '')
         comment = command.options.get(const.SB_COMMENT, '')
@@ -124,10 +126,8 @@ class ComponentsBundle:
         Log.debug((f"{const.SB_BUNDLE_ID}: {bundle_id}, {const.SB_NODE_NAME}: "
             f"{node_name}, {const.SB_COMMENT}: {comment}, "
             f"{const.SB_COMPONENTS}: {components}, {const.SOS_COMP}"))
-        # Read Commands.Yaml and Check's If It Exists.
-        Conf.load('cortx_conf', 'json:///etc/cortx/cortx.conf', \
-            skip_reload=True)
-        cmd_setup_file = os.path.join(Conf.get('cortx_conf', 'install_path'),\
+        # Read support_bundle.Yaml and Check's If It Exists.
+        cmd_setup_file = os.path.join(CortxConf.get('install_path'),\
             'cortx/utils/conf/support_bundle.yaml')
         try:
             support_bundle_config = Yaml(cmd_setup_file).load()
