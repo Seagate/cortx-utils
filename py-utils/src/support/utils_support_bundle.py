@@ -41,18 +41,10 @@ class UtilsSupportBundle:
     _default_path = '/tmp/cortx/support_bundle/'
     _tar_name = 'py-utils'
     _tmp_src = '/tmp/cortx/py-utils/'
-    LOG_DIR='/var/log'
-    utils_log_dir = os.path.join(LOG_DIR, 'cortx/utils')
-    _log_files_to_bundle = {
-        'message_bus': 'message_bus/message_bus.log',
-        'utils_server': 'utils_server/utils_server.log',
-        'iem': 'iem/iem.log',
-        'utils_setup': 'utils_setup.log'
-    }
 
     @staticmethod
     def generate(bundle_id: str, target_path: str, cluster_conf: str):
-        """ Generate a tar file """
+        """ Generate a tar file. """
         # Find log dirs
         CortxConf.init(cluster_conf=cluster_conf)
         log_base = CortxConf.get_storage_path('log')
@@ -64,10 +56,9 @@ class UtilsSupportBundle:
         else:
             os.makedirs(UtilsSupportBundle._tmp_src)
         # Copy log files
-        for log in UtilsSupportBundle._log_files_to_bundle.values():
-            log_path = os.path.join(log_base,f'utils/{machine_id}', log)
-            if os.path.exists(log_path):
-                UtilsSupportBundle.__copy_file(log_path)
+        shutil.copytree(os.path.join(log_base, f'utils/{machine_id}'),\
+            os.path.join(UtilsSupportBundle._tmp_src, 'logs'))
+
         # Copy configuration files
         shutil.copytree(os.path.join(local_base, 'utils/conf'),\
             os.path.join(UtilsSupportBundle._tmp_src, 'conf'))
@@ -117,7 +108,7 @@ class UtilsSupportBundle:
             nargs='?', default="/var/seagate/cortx/support_bundle/")
         parser.add_argument('-c', dest='cluster_conf',\
             help="Cluster config file path for Support Bundle",\
-            default="yaml:///etc/cortx/cluster.conf")
+            default='yaml:///etc/cortx/cluster.conf')
         parser.add_argument('-s', '--services', dest='services', nargs='+',\
             default='', help='List of services for Support Bundle')
         args=parser.parse_args()
