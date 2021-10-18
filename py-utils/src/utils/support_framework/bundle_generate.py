@@ -70,12 +70,12 @@ class ComponentsBundle:
         except PermissionError as e:
             Log.error(f"Permission denied for creating " \
                 f"summary file {e}")
-            ComponentsBundle._publish_log(f"Permission denied for creating " \
+            Log.error(f"Permission denied for creating " \
                 f"summary file {e}", ERROR, bundle_id, node_name, comment)
         except Exception as e:
             Log.error(f"Permission denied for creating " \
                 f"summary file {e}")
-            ComponentsBundle._publish_log(f'{e}', ERROR, bundle_id, node_name, \
+            Log.error(f'{e}', ERROR, bundle_id, node_name, \
                 comment)
         Log.debug("Summary file created")
 
@@ -132,10 +132,10 @@ class ComponentsBundle:
             support_bundle_config = Yaml(cmd_setup_file).load()
         except Exception as e:
             Log.error(f"Internal error while parsing YAML file {cmd_setup_file}{e}")
-            ComponentsBundle._publish_log(f"Internal error while parsing YAML file " \
+            Log.error(f"Internal error while parsing YAML file " \
                 f"{cmd_setup_file}{e}", ERROR, bundle_id, node_name, comment)
         if not support_bundle_config:
-            ComponentsBundle._publish_log(f"No such file {cmd_setup_file}", \
+            Log.error(f"No such file {cmd_setup_file}", \
                 ERROR, bundle_id, node_name, comment)
 
         # Start Execution for each Component Command.
@@ -147,7 +147,7 @@ class ComponentsBundle:
             components_files = command_files_info[each_component]
             for file_path in components_files:
                 if not os.path.exists(file_path):
-                    ComponentsBundle._publish_log(f"'{file_path}' file does not exist!", \
+                    Log.error(f"'{file_path}' file does not exist!", \
                         ERROR, bundle_id, node_name, comment)
                     continue
                 try:
@@ -155,14 +155,14 @@ class ComponentsBundle:
                 except Exception as e:
                     Log.error(f"Internal error while parsing YAML file {file_path}{e}")
                     file_data = None
-                    ComponentsBundle._publish_log(f"Internal error while parsing YAML file: " \
+                    Log.error(f"Internal error while parsing YAML file: " \
                         f"{file_path} - {e}", ERROR, bundle_id, node_name, comment)
                     break
                 if file_data:
                     components_commands = file_data.get(
                         const.SUPPORT_BUNDLE.lower(), [])
                 else:
-                    ComponentsBundle._publish_log(f"Support.yaml file is empty: " \
+                    Log.error(f"Support.yaml file is empty: " \
                         f"{file_path}", ERROR, bundle_id, node_name, comment)
                     break
                 if components_commands:
@@ -172,11 +172,11 @@ class ComponentsBundle:
                             f'{bundle_path}{os.sep}', each_component,
                             node_name, comment))
                     if return_code != 0:
-                        ComponentsBundle._publish_log(
+                        Log.error(
                             f"Bundle generation failed for component - '{component}'", ERROR,
                             bundle_id, node_name, comment)
                     else:
-                        ComponentsBundle._publish_log(
+                        Log.info(
                             f"Bundle generation started for component - '{component}'", INFO,
                             bundle_id, node_name, comment)
         tar_file_name = os.path.join(bundle_path, \
@@ -191,7 +191,7 @@ class ComponentsBundle:
             bundle_status = f"Successfully generated SB at path:{bundle_path}"
         except Exception as e:
             bundle_status = f"Failed to generate tar file. ERROR:{e}"
-            ComponentsBundle._publish_log(f"Could not generate tar file {e}", \
+            Log.error(f"Could not generate tar file {e}", \
                 ERROR, bundle_id, node_name, comment)
         finally:
             if os.path.exists(bundle_path):
@@ -201,7 +201,7 @@ class ComponentsBundle:
                         shutil.rmtree(comp_dir)
 
         msg = "Support bundle generation completed."
-        ComponentsBundle._publish_log(msg, INFO, bundle_id, node_name, comment)
+        Log.info(msg, INFO, bundle_id, node_name, comment)
         # Update Status in ConfStor
         Conf.load(const.SB_INDEX, 'json://' + const.FILESTORE_PATH, fail_reload=False)
         Conf.set(const.SB_INDEX, f'{node_id}>{bundle_id}>status', bundle_status)
