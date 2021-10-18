@@ -162,7 +162,7 @@ class ComponentsBundle:
                 if components_commands:
                     component, return_code = await(\
                         ComponentsBundle._exc_components_cmd(\
-                        components_commands, f'{bundle_id}_{each_component}',
+                        components_commands, f'{bundle_id}_{node_id}_{each_component}',
                             f'{bundle_path}{os.sep}', each_component,
                             node_name, comment, config_url))
                     if return_code != 0:

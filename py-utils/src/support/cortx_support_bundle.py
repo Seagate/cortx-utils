@@ -20,6 +20,7 @@ import errno
 import argparse
 import inspect
 import sys
+import os
 import traceback
 from argparse import RawTextHelpFormatter
 from cortx.utils.common.common import CortxConf
