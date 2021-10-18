@@ -23,6 +23,7 @@ import sys
 import traceback
 from argparse import RawTextHelpFormatter
 from cortx.utils.common.common import CortxConf
+from cortx.utils.support_framework import const
 from cortx.utils.support_framework import SupportBundle
 
 
@@ -40,7 +41,9 @@ class CortxSupportBundle:
         message = args.message[0]
         bundle_id = args.bundle_id[0]
         path = args.location[0]
-        config_url = args.cluster_conf_path[0] if args.cluster_conf_path else 'yaml:///etc/cortx/cluster.conf'
+        # Use default cortx conf url ('yaml:///etc/cortx/cluster.conf'),
+        # if not conf_url is parsed.
+        config_url = args.cluster_conf_path[0] if args.cluster_conf_path else const.DEFAULT_CORTX_CONF
         if 'file://' not in path:
             sys.stderr.write(" Target path should be in file format.\n"
                 "Please specify the absolute target path.\n"

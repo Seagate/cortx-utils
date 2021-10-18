@@ -46,39 +46,6 @@ class SupportBundle:
         return f"SB{''.join(random.choices(alphabet, k=8))}"
 
     @staticmethod
-    def _get_components(components):
-        """Get Components to Generate Support Bundle."""
-        if components and 'all' not in components:
-            Log.info(f"Generating bundle for  {' '.join(components)}")
-            shell_args = f"{' '.join(components)}"
-        else:
-            Log.info("Generating bundle for all CORTX components.")
-            shell_args = 'all'
-        return f" -c {shell_args}"
-
-    @staticmethod
-    async def _begin_bundle_generation(bundle_obj):
-        tar_dest_file = f'{bundle_obj.bundle_id}.tar.gz'
-        dest_path = os.path.join(bundle_obj.bundle_path, tar_dest_file)
-        Log.debug(f"Generating Bundle at path:{dest_path}")
-        try:
-            for target in const.SB_DIR_LIST:
-                if os.path.isdir(target):
-                    with tarfile.open(dest_path, 'w:gz') as tar_handle:
-                        tar_handle.add(target, arcname=os.path.abspath(target))
-            bundle_status = ("Successfully generated the support bundle "
-                            f"at path: '{dest_path}' !!!")
-        except Exception as err:
-            msg = f"Failed to generate support bundle. ERROR:{err}"
-            Log.error(msg)
-            bundle_status = msg
-        
-        # Update the SB status in conf store
-        Conf.load(const.SB_INDEX, 'json://' + const.FILESTORE_PATH, fail_reload=False)
-        Conf.set(const.SB_INDEX, f'bundle_db>{bundle_obj.bundle_id}', bundle_status)
-        Conf.save(const.SB_INDEX)
-
-    @staticmethod
     async def _generate_bundle(command):
         """
         Initializes the process for Generating Support Bundle at shared path.
@@ -152,7 +119,6 @@ class SupportBundle:
 
         except BundleError as be:
             Log.error(f"Failed to add CORTX manifest data inside Support Bundle.{be}")
-
         cortx_config_store = ConfigStore(config_url)
         path = command.options.get('target_path')
         bundle_path = os.path.join(path,bundle_id)
@@ -167,7 +133,7 @@ class SupportBundle:
         if node_id is None:
             raise  BundleError(errno.EINVAL, 'Invalid node_id: %s', \
                 node_id)
-        # update SB Generation status in Conf store
+        # Update SB status in Filestore.
         # load conf for Support Bundle
         Conf.load(const.SB_INDEX, 'json://' + const.FILESTORE_PATH)
         data = {
