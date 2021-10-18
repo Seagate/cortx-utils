@@ -121,7 +121,7 @@ class SupportBundle:
             Log.error(f"Failed to add CORTX manifest data inside Support Bundle.{be}")
         cortx_config_store = ConfigStore(config_url)
         path = command.options.get('target_path')
-        bundle_path = os.path.join(path,bundle_id)
+        bundle_path = os.path.join(path, bundle_id)
         try:
             os.makedirs(bundle_path)
         except FileExistsError:
@@ -131,13 +131,13 @@ class SupportBundle:
         # Get Node ID
         node_id = Conf.machine_id
         if node_id is None:
-            raise  BundleError(errno.EINVAL, 'Invalid node_id: %s', \
+            raise  BundleError(errno.EINVAL, "Invalid node_id: %s", \
                 node_id)
         # Update SB status in Filestore.
         # load conf for Support Bundle
         Conf.load(const.SB_INDEX, 'json://' + const.FILESTORE_PATH)
         data = {
-            'status': "In-Progress",
+            'status': 'In-Progress',
             'star_time': datetime.strftime(
                 datetime.now(), '%Y-%m-%d %H:%M:%S')
         }
