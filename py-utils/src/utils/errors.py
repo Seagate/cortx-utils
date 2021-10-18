@@ -135,9 +135,7 @@ class TestFailed(Exception):
         super(TestFailed, self).__init__(desc)
 
 class CertificateError(InternalError):
-
     """Base Certificate Error"""
 
 class SSLCertificateError(CertificateError):
-
     """SSL Certificate Error"""

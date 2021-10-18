@@ -24,9 +24,8 @@ from cryptography.x509.oid import NameOID
 from cortx.utils.errors import SSLCertificateError
 
 class Certificate:
-    """
-    Factory class for certificate
-    """
+    """Factory class for certificate"""
+
     @staticmethod
     def factory(cert_type):
         """
@@ -58,7 +57,6 @@ class SSLCertificate:
         self.locality = ssl_cert_configs.get("locality", "Pune")
         self.organization = ssl_cert_configs.get("organization", "Seagate Technology")
         self.CN = ssl_cert_configs.get("CN", "seagate.com")
-
 
     def _prepare_private_key(self):
         """
@@ -106,7 +104,7 @@ class SSLCertificate:
             backend=default_backend())
         return certificate
 
-    def _make_dirs(self, file_path):
+    def _create_dirs(self, file_path):
         """
         This function creates parent directories if not already present
         :param file_path: File path
@@ -122,7 +120,7 @@ class SSLCertificate:
         at specified location.
         :return: None
         """
-        try: 
+        try:
             private_key = self._prepare_private_key()
             certificate = self._prepare_ssl_certificate(private_key)
             private_key_pem = private_key.private_bytes(
@@ -132,13 +130,13 @@ class SSLCertificate:
             )
             certificate_pem = certificate.public_bytes(serialization.Encoding.PEM)
 
-            self._make_dirs(self.cert_path)
+            self._create_dirs(self.cert_path)
 
             with open(self.cert_path, "wb") as f:
                 f.write(certificate_pem + private_key_pem)
 
         except Exception as e:
-            raise SSLCertificateError(f"Unexpected error occured: {e}") 
+            raise SSLCertificateError(f"Unexpected error occured: {e}")
 
 class DeviceCertificate:
     pass
