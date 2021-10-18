@@ -28,7 +28,6 @@ from cortx.utils.cli_framework.command import Command
 from cortx.utils.support_framework import const
 from cortx.utils.support_framework import Bundle
 from cortx.utils.support_framework.errors import BundleError
-from cortx.utils.common import CortxConf
 
 
 class SupportBundle:
@@ -93,9 +92,14 @@ class SupportBundle:
         comment = command.options.get(const.SB_COMMENT)
         components = command.options.get(const.SB_COMPONENTS)
         target_path = command.options.get('target_path')
-        if not components:
-            components = []
-
+        config_url = command.options.get('config_url')
+        # Extract config file path from url.
+        config_path = config_url.split('//')[1] if '//' in config_url else ''
+        # TODO: Add config file into support bundle if the location is provided
+        # otherwise collect it from the default location.
+        # i.e /etc/cortx/cluster.conf (Password/secret needs to be removed from
+        # that file before adding it into SB)
+        # print(f"config_path :== {config_path}")
         bundle_path = os.path.join(target_path, bundle_id)
         os.makedirs(bundle_path)
         
@@ -157,13 +161,15 @@ class SupportBundle:
         for key, value in kwargs.items():
             if key == 'components':
                 components = value
-            if key == 'target_path':
+            elif key == 'target_path':
                 path = value
+            elif key == 'config_url':
+                config_url = value
         options = {'comment': comment, 'components': components, 'target_path': path, \
-            'comm':{'type': 'direct', 'target': 'utils.support_framework', 'method': \
-            'generate_bundle', 'class': 'SupportBundle', 'is_static': True, \
-            'params': {}, 'json': {}}, 'output': {}, 'need_confirmation': \
-            False, 'sub_command_name': 'generate_bundle'}
+            'config_url': config_url, 'comm':{'type': 'direct', 'target': \
+            'utils.support_framework', 'method': 'generate_bundle', 'class': \
+            'SupportBundle', 'is_static': True, 'params': {}, 'json': {}}, \
+            'output': {}, 'need_confirmation': False, 'sub_command_name': 'generate_bundle'}
 
         cmd_obj = Command('generate_bundle', options, [])
         loop = asyncio.get_event_loop()

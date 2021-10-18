@@ -129,10 +129,11 @@ class InitCmd(Cmd):
 
     def __init__(self, args):
         super().__init__(args)
+        self.config_path = args.config
 
     def process(self):
         Utils.validate('init')
-        rc = Utils.init()
+        rc = Utils.init(self.config_path)
         return rc
 
 
@@ -147,12 +148,13 @@ class TestCmd(Cmd):
 
     def __init__(self, args):
         super().__init__(args)
+        self.config_path = args.config
         # Default test_plan is 'sanity'
         self.test_plan = args.plan
 
     def process(self):
         Utils.validate('test')
-        rc = Utils.test(self.test_plan)
+        rc = Utils.test(self.config_path, self.test_plan)
         return rc
 
 
@@ -162,10 +164,11 @@ class ResetCmd(Cmd):
 
     def __init__(self, args):
         super().__init__(args)
+        self.config_path = args.config
 
     def process(self):
         Utils.validate('reset')
-        rc = Utils.reset()
+        rc = Utils.reset(self.config_path)
         return rc
 
 
@@ -183,10 +186,11 @@ class CleanupCmd(Cmd):
         # hifen(-) in argparse is converted to underscore(_)
         # to make sure string is valid attrtibute
         self.pre_factory = args.pre_factory
+        self.config_path = args.config
 
     def process(self):
         Utils.validate('cleanup')
-        rc = Utils.cleanup(self.pre_factory)
+        rc = Utils.cleanup(self.pre_factory, self.config_path)
         return rc
 
 
@@ -224,7 +228,8 @@ def main():
     # Get the log path
     tmpl_file = argv[3]
     from cortx.utils.common import CortxConf
-    local_storage_path = CortxConf.get_storage_path('local')
+    Conf.load(tmpl_file_index, tmpl_file, skip_reload=True)
+    local_storage_path = Conf.get(tmpl_file_index, 'cortx>common>storage>local')
     cortx_config_file = os.path.join(f'{local_storage_path}', 'utils/conf/cortx.conf')
     if not os.path.exists(cortx_config_file):
         import shutil
@@ -237,7 +242,7 @@ def main():
             raise SetupError(e.errno, "Failed to create %s %s", \
                 cortx_config_file, e)
 
-    Conf.load(tmpl_file_index, tmpl_file, skip_reload=True)
+    CortxConf.init(cluster_conf=tmpl_file)
     log_dir = CortxConf.get_storage_path('log')
     utils_log_path = CortxConf.get_log_path(base_dir=log_dir)
 

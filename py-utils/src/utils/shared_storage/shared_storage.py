@@ -25,19 +25,20 @@ class Storage:
 
     """ Shared Storage Framework over various types of Shared Storages  """
 
-    def __init__(self):
+    def __init__(self, cluster_conf):
         """ Initialize and load shared storage backend """
-
+        CortxConf.init(cluster_conf=cluster_conf)
         self.shared_storage_url = CortxConf.get('support>shared_path')
         if self.shared_storage_url is not None:
             self.shared_storage_agent = SharedStorageFactory.get_instance( \
                 self.shared_storage_url)
 
     @staticmethod
-    def get_path(name: str = None, exist_ok: bool = True) -> str:
+    def get_path(name: str = None, exist_ok: bool = True,
+        cluster_conf: str = 'yaml:///etc/cortx/cluster.conf') -> str:
         """ return shared storage mountpoint """
 
-        storage = Storage()
+        storage = Storage(cluster_conf=cluster_conf)
         if storage.shared_storage_url is None:
             return None
 

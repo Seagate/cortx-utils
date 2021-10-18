@@ -31,8 +31,6 @@ from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.error import VError
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.service.service_handler import Service
-from cortx.utils.message_bus.error import MessageBusError
-from cortx.utils.message_bus import MessageBrokerFactory
 from cortx.utils.common import CortxConf
 
 
@@ -162,6 +160,7 @@ class Utils:
             server_info['cluster_id'])
         Conf.set(iem_index, f'node>{machine_id}>site_id', server_info['site_id'])
         Conf.set(iem_index, f'node>{machine_id}>rack_id', server_info['rack_id'])
+        Conf.set(iem_index, f'node>{machine_id}>node_id', machine_id)
         Conf.save(iem_index)
 
         # copy this sample conf file as iem.conf
@@ -192,7 +191,6 @@ class Utils:
     @staticmethod
     def post_install(post_install_template: str):
         """ Performs post install operations """
-
         # Check required python packages
         install_path = Utils._get_from_conf_file('install_path')
         utils_path = install_path + '/cortx/utils'
@@ -227,12 +225,13 @@ class Utils:
         return 0
 
     @staticmethod
-    def init():
+    def init(config_path: str):
         """ Perform initialization """
         # Create message_type for Event Message
         from cortx.utils.message_bus import MessageBusAdmin
+        from cortx.utils.message_bus.error import MessageBusError
         try:
-            admin = MessageBusAdmin(admin_id='register')
+            admin = MessageBusAdmin(admin_id='register', cluster_conf=config_path)
             admin.register_message_type(message_types=['IEM'], partitions=1)
         except MessageBusError as e:
             if 'TOPIC_ALREADY_EXISTS' not in e.desc:
@@ -243,7 +242,6 @@ class Utils:
     @staticmethod
     def config(config_template: str):
         """Performs configurations."""
-
         # Load required files
         config_template_index = 'config'
         Conf.load(config_template_index, config_template)
@@ -255,6 +253,7 @@ class Utils:
 
         # Create message_bus config
         try:
+            from cortx.utils.message_bus import MessageBrokerFactory
             server_list, port_list, config = \
                 MessageBrokerFactory.get_server_list(config_template_index)
         except SetupError:
@@ -300,18 +299,19 @@ class Utils:
         return 0
 
     @staticmethod
-    def test(plan: str):
+    def test(config_path: str, plan: str):
         """ Perform configuration testing """
         # Runs cortx-py-utils unittests as per test plan
         try:
             Log.info("Validating cortx-py-utils-test rpm")
             PkgV().validate('rpms', ['cortx-py-utils-test'])
-            utils_path = Utils._get_utils_path()
+            install_path = Utils._get_from_conf_file('install_path')
+            utils_path = install_path + '/cortx/utils'
             import cortx.utils.test as test_dir
             plan_path = os.path.join(os.path.dirname(test_dir.__file__), \
                 'plans/', plan + '.pln')
             Log.info("Running test plan: %s", plan)
-            cmd = "%s/bin/run_test -t  %s" %(utils_path, plan_path)
+            cmd = "%s/bin/run_test -c %s -t %s" %(utils_path, config_path, plan_path)
             _output, _err, _rc = SimpleProcess(cmd).run(realtime_output=True)
             if _rc != 0:
                 Log.error("Py-utils Test Failed")
@@ -324,19 +324,21 @@ class Utils:
         return 0
 
     @staticmethod
-    def reset():
+    def reset(config_path: str):
         """Remove/Delete all the data/logs that was created by user/testing."""
         import time
+        from cortx.utils.message_bus.error import MessageBusError
         _purge_retry = 20
         try:
             from cortx.utils.message_bus import MessageBusAdmin
-            from cortx.utils.message_bus.message_bus_client import MessageProducer
-            mb = MessageBusAdmin(admin_id='reset')
+            from cortx.utils.message_bus import MessageProducer
+            mb = MessageBusAdmin(admin_id='reset', cluster_conf=config_path)
             message_types_list = mb.list_message_types()
             if message_types_list:
                 for message_type in message_types_list:
                     producer = MessageProducer(producer_id=message_type, \
-                        message_type=message_type, method='sync')
+                        message_type=message_type, method='sync', \
+                        cluster_conf=config_path)
                     for retry_count in range(1, (_purge_retry + 2)):
                         if retry_count > _purge_retry:
                             Log.error(f"MessageBusError: {errors.ERR_OP_FAILED} " \
@@ -367,7 +369,7 @@ class Utils:
         return 0
 
     @staticmethod
-    def cleanup(pre_factory: bool):
+    def cleanup(pre_factory: bool, config_path: str):
         """Remove/Delete all the data that was created after post install."""
         local_path = CortxConf.get_storage_path('local')
         message_bus_conf = os.path.join(local_path, 'utils/conf/message_bus.conf')
@@ -375,9 +377,10 @@ class Utils:
 
         if os.path.exists(message_bus_conf):
             # delete message_types
+            from cortx.utils.message_bus.error import MessageBusError
             try:
                 from cortx.utils.message_bus import MessageBusAdmin
-                mb = MessageBusAdmin(admin_id='cleanup')
+                mb = MessageBusAdmin(admin_id='cleanup', cluster_conf=config_path)
                 message_types_list = mb.list_message_types()
                 if message_types_list:
                     mb.deregister_message_type(message_types_list)
