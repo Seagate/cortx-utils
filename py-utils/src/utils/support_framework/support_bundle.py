@@ -27,7 +27,7 @@ from cortx.utils.log import Log
 from cortx.utils.schema.providers import Response
 from cortx.utils.errors import OPERATION_SUCESSFUL, ERR_OP_FAILED
 from cortx.utils.conf_store.conf_store import Conf
-from cortx.utils.common.common import CortxConf
+from cortx.utils.common.common import CortxConf, ConfigStore
 from cortx.utils.cli_framework.command import Command
 from cortx.utils.support_framework import const
 from cortx.utils.support_framework import Bundle
@@ -152,11 +152,15 @@ class SupportBundle:
 
         except BundleError as be:
             Log.error(f"Failed to add CORTX manifest data inside Support Bundle.{be}")
-        
-        cortx_config_store = CortxConf.init(cluster_conf=config_url)
+
+        cortx_config_store = ConfigStore(config_url)
         path = command.options.get('target_path')
         bundle_path = os.path.join(path,bundle_id)
-        os.makedirs(bundle_path)
+        try:
+            os.makedirs(bundle_path)
+        except FileExistsError:
+            raise BundleError(errno.EINVAL, "Bundle ID already exists,"
+                "Please use Unique Bundle ID")
 
         # Get Node ID
         node_id = Conf.machine_id
@@ -223,7 +227,7 @@ class SupportBundle:
             if not bundle_id:
                 status = Conf.get(const.SB_INDEX, f'{node_id}')
             else:
-                status = Conf.get(const.SB_INDEX, f'{node_id}>{bundle_id}>{status}')
+                status = Conf.get(const.SB_INDEX, f'{node_id}>{bundle_id}>status')
             if not status:
                 return Response(output=(f"No status found for bundle_id: {bundle_id}" \
                     "in input config. Please check if the Bundle ID is correct"), \
