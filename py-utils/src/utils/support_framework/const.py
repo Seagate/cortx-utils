@@ -14,6 +14,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 DEFAULT_CORTX_CONF= 'yaml:///etc/cortx/cluster.conf'
+SUPPORT_YAML = 'cortx/utils/conf/support_bundle.yaml'
 SUPPORT_BUNDLE_TAG = 'support_bundle;'
 SUPPORT_BUNDLE = 'SUPPORT_BUNDLE'
 SOS_COMP = 'os'

@@ -81,7 +81,7 @@ class ComponentsBundle:
 
     @staticmethod
     async def _exc_components_cmd(commands: List, bundle_id: str, path: str, \
-            component: str, node_name: str, comment: str):
+            component: str, node_name: str, comment: str, config_url):
         """
         Executes the Command for Bundle Generation of Every Component.
 
@@ -94,7 +94,7 @@ class ComponentsBundle:
         """
         for command in commands:
             Log.info(f"Executing command -> {command} {bundle_id} {path}")
-            cmd_proc = SimpleProcess(f"{command} {bundle_id} {path}")
+            cmd_proc = SimpleProcess(f"{command} {bundle_id} {path} {config_url}")
             output, err, return_code = cmd_proc.run()
             Log.debug(f"Command Output -> {output} {err}, {return_code}")
             if return_code != 0:
@@ -104,14 +104,14 @@ class ComponentsBundle:
             return component, return_code
 
     @staticmethod
-    async def init(bundle_obj, node_id):
+    async def init(bundle_obj, node_id, config_url):
         """
         Initializes the Process of Support Bundle Generation for Every Component.
 
         command:        cli Command Object :type: command
         return:         None
         """
-        CortxConf.init(cluster_conf='yaml:///etc/cortx/cluster.conf')
+        CortxConf.init(cluster_conf=config_url)
         log_path = CortxConf.get_log_path('support')
         log_level = CortxConf.get('utils>log_level', 'INFO')
         Log.init('support_bundle_node', log_path, level=log_level, \
@@ -127,16 +127,13 @@ class ComponentsBundle:
             f"{const.SB_COMPONENTS}: {components_list}, {const.SOS_COMP}"))
         # Read support_bundle.Yaml and Check's If It Exists.
         cmd_setup_file = os.path.join(CortxConf.get('install_path'),\
-            'cortx/utils/conf/support_bundle.yaml')
+            const.SUPPORT_YAML)
         try:
             support_bundle_config = Yaml(cmd_setup_file).load()
         except Exception as e:
             Log.error(f"Internal error while parsing YAML file {cmd_setup_file}{e}")
-            Log.error(f"Internal error while parsing YAML file " \
-                f"{cmd_setup_file}{e}", ERROR, bundle_id, node_name, comment)
         if not support_bundle_config:
-            Log.error(f"No such file {cmd_setup_file}", \
-                ERROR, bundle_id, node_name, comment)
+            Log.error(f"No such file {cmd_setup_file}. ERROR:{ERROR}")
 
         # Start Execution for each Component Command.
         command_files_info = support_bundle_config.get('COMPONENTS')
@@ -147,40 +144,35 @@ class ComponentsBundle:
             components_files = command_files_info[each_component]
             for file_path in components_files:
                 if not os.path.exists(file_path):
-                    Log.error(f"'{file_path}' file does not exist!", \
-                        ERROR, bundle_id, node_name, comment)
+                    Log.error(f"'{file_path}' file does not exist!")
                     continue
                 try:
                     file_data = Yaml(file_path).load()
                 except Exception as e:
                     Log.error(f"Internal error while parsing YAML file {file_path}{e}")
                     file_data = None
-                    Log.error(f"Internal error while parsing YAML file: " \
-                        f"{file_path} - {e}", ERROR, bundle_id, node_name, comment)
                     break
                 if file_data:
                     components_commands = file_data.get(
                         const.SUPPORT_BUNDLE.lower(), [])
                 else:
                     Log.error(f"Support.yaml file is empty: " \
-                        f"{file_path}", ERROR, bundle_id, node_name, comment)
+                        f"{file_path}. ERROR: {e}")
                     break
                 if components_commands:
                     component, return_code = await(\
                         ComponentsBundle._exc_components_cmd(\
                         components_commands, f'{bundle_id}_{each_component}',
                             f'{bundle_path}{os.sep}', each_component,
-                            node_name, comment))
+                            node_name, comment, config_url))
                     if return_code != 0:
                         Log.error(
-                            f"Bundle generation failed for component - '{component}'", ERROR,
-                            bundle_id, node_name, comment)
+                            f"Bundle generation failed for component - '{component}'")
                     else:
                         Log.info(
-                            f"Bundle generation started for component - '{component}'", INFO,
-                            bundle_id, node_name, comment)
+                            f"Bundle generation started for component - '{component}'")
         tar_file_name = os.path.join(bundle_path, \
-            f'{bundle_id}_{node_name}.tar.gz')
+            f'{bundle_id}_{node_id}.tar.gz')
 
         ComponentsBundle._create_summary_file(bundle_id, node_name, \
             comment, bundle_path)
@@ -191,17 +183,17 @@ class ComponentsBundle:
             bundle_status = f"Successfully generated SB at path:{bundle_path}"
         except Exception as e:
             bundle_status = f"Failed to generate tar file. ERROR:{e}"
-            Log.error(f"Could not generate tar file {e}", \
-                ERROR, bundle_id, node_name, comment)
+            Log.error(f"Could not generate tar file {e}")
         finally:
             if os.path.exists(bundle_path):
                 for each_dir in os.listdir(bundle_path):
                     comp_dir = os.path.join(bundle_path, each_dir)
                     if os.path.isdir(comp_dir):
                         shutil.rmtree(comp_dir)
+                if os.path.exists(os.path.join(bundle_path, 'summary.yaml')):
+                    os.remove(os.path.join(bundle_path, 'summary.yaml'))
 
-        msg = "Support bundle generation completed."
-        Log.info(msg, INFO, bundle_id, node_name, comment)
+        Log.info("Support bundle generation completed.")
         # Update Status in ConfStor
         Conf.load(const.SB_INDEX, 'json://' + const.FILESTORE_PATH, fail_reload=False)
         Conf.set(const.SB_INDEX, f'{node_id}>{bundle_id}>status', bundle_status)

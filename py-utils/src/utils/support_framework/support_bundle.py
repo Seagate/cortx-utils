@@ -138,7 +138,7 @@ class SupportBundle:
         Conf.load(const.SB_INDEX, 'json://' + const.FILESTORE_PATH)
         data = {
             'status': 'In-Progress',
-            'star_time': datetime.strftime(
+            'start_time': datetime.strftime(
                 datetime.now(), '%Y-%m-%d %H:%M:%S')
         }
         Conf.set(const.SB_INDEX, f'{node_id}>{bundle_id}', data)
@@ -156,7 +156,7 @@ class SupportBundle:
 
         # Start SB Generation on Node.
         try:
-            await ComponentsBundle.init(bundle_obj, node_id)
+            await ComponentsBundle.init(bundle_obj, node_id, config_url)
         except BundleError as be:
             Log.error(f"Bundle generation failed.{be}")
             ComponentsBundle._publish_log(f"Bundle generation failed.{be}", \
