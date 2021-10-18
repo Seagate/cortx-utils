@@ -156,8 +156,7 @@ class ComponentsBundle:
                     components_commands = file_data.get(
                         const.SUPPORT_BUNDLE.lower(), [])
                 else:
-                    Log.error(f"Support.yaml file is empty: " \
-                        f"{file_path}. ERROR: {e}")
+                    Log.error(f"Support.yaml file is empty: {file_path}")
                     break
                 if components_commands:
                     component, return_code = await(\

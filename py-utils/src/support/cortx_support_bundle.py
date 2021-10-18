@@ -52,6 +52,7 @@ class CortxSupportBundle:
                 "support_bundle generate -m 'test_cortx' -b 'abc' -t file:///var/cortx/support_bundle\n")
             sys.exit(1)
         path = path.split('//')[1]
+        os.makedirs(const.SB_PATH, exist_ok=True)
         bundle_obj = SupportBundle.generate(comment=message, \
             target_path=path,bundle_id=bundle_id, \
             config_url=config_url)

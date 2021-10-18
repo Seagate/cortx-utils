@@ -159,12 +159,8 @@ class SupportBundle:
             await ComponentsBundle.init(bundle_obj, node_id, config_url)
         except BundleError as be:
             Log.error(f"Bundle generation failed.{be}")
-            ComponentsBundle._publish_log(f"Bundle generation failed.{be}", \
-                'error', bundle_id, node_name, comment)
         except Exception as e:
             Log.error(f"Internal error, bundle generation failed {e}")
-            ComponentsBundle._publish_log(f"Internal error, bundle generation failed \
-                {e}", 'error', bundle_id, node_name, comment)
 
         if command.sub_command_name == 'generate':
             display_string_len = len(bundle_obj.bundle_id) + 4
