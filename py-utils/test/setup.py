@@ -55,6 +55,7 @@ setup(
         "cortx.utils.test.discovery.solution.lr2.storage",
         "cortx.utils.test.elastic_search",
         "cortx.utils.test.support_bundle",
+        "cortx.utils.test.cmd_framework",
     ],
     package_data={
         "": [
@@ -63,8 +64,9 @@ setup(
             "schema/*.json",
             "kv_store/*.json",
             "conf_store/*.json",
+            "conf_store/*.yaml",
             "message_bus/*.conf",
-            "cli_framework/test_data/*.json",
+            "cli_framework/test_data/*",
             "iem_framework/*.json",
             "discovery/solution/lr2/*.json",
             "support_bundle/*.yaml",

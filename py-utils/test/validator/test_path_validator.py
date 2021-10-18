@@ -21,24 +21,25 @@ from cortx.utils.validator.v_path import PathV
 from cortx.utils.validator.error import VError
 
 class TestPathValidator(unittest.TestCase):
-	"""Test Path related validations."""
-	paths = ['dir:/', 'file:/etc/hosts']
-	host = 'localhost'
+    """Test Path related validations."""
+    paths = ['dir:/', 'file:/etc/hosts']
+    host = 'localhost'
 
-	def test_path(self):
-		"""Check paths."""
+    def test_path(self):
+        """Check paths."""
+        PathV().validate('exists', self.paths)
 
-		PathV().validate('exists', self.paths)
+    def test_remote_path(self):
+        """Check paths."""
+        try:
+            PathV().validate('exists', self.paths, self.host)
+        except Exception:
+            PathV().validate('exists', self.paths, self.host)
 
-	def test_remote_path(self):
-		"""Check paths."""
-
-		PathV().validate('exists', self.paths, self.host)
-
-	def test_path_neg(self):
-		"""Check negative paths."""
-		neg_path = ['device:/dev/loop9']
-		self.assertRaises(VError, PathV().validate, 'exists', neg_path)
+    def test_path_neg(self):
+        """Check negative paths."""
+        neg_path = ['device:/dev/loop9']
+        self.assertRaises(VError, PathV().validate, 'exists', neg_path)
 
 
 if __name__ == '__main__':

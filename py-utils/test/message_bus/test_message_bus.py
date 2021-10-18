@@ -30,7 +30,7 @@ class TestMessageBus(unittest.TestCase):
 
     """Test MessageBus related functionality."""
 
-    _message_type = 'test'
+    _message_type = 'test_mb'
     _bulk_count = 25
     _receive_limit = 5
     _purge_retry = 20
