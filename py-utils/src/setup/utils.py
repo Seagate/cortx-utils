@@ -299,18 +299,19 @@ class Utils:
         return 0
 
     @staticmethod
-    def test(plan: str):
+    def test(config_path: str, plan: str):
         """ Perform configuration testing """
         # Runs cortx-py-utils unittests as per test plan
         try:
             Log.info("Validating cortx-py-utils-test rpm")
             PkgV().validate('rpms', ['cortx-py-utils-test'])
-            utils_path = Utils._get_utils_path()
+            install_path = Utils._get_from_conf_file('install_path')
+            utils_path = install_path + '/cortx/utils'
             import cortx.utils.test as test_dir
             plan_path = os.path.join(os.path.dirname(test_dir.__file__), \
                 'plans/', plan + '.pln')
             Log.info("Running test plan: %s", plan)
-            cmd = "%s/bin/run_test -t  %s" %(utils_path, plan_path)
+            cmd = "%s/bin/run_test -c %s -t %s" %(utils_path, config_path, plan_path)
             _output, _err, _rc = SimpleProcess(cmd).run(realtime_output=True)
             if _rc != 0:
                 Log.error("Py-utils Test Failed")
