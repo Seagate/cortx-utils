@@ -50,8 +50,8 @@ class TestSupportBundleCli(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Test Setup class."""
-        Conf.load('cluster_conf', 'json:///etc/cortx/cluster.conf')
-        cls.node_name = Conf.get('cluster_conf', 'cluster>srvnode-1')
+        Conf.load('cluster_info', 'json:///etc/cortx/cluster.conf')
+        cls.node_name = Conf.get('cluster_info', 'cluster>srvnode-1')
 
 
     def test_001_cli_verify_SB_generate_single_comp(self):

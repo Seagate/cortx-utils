@@ -22,11 +22,13 @@ from cortx.utils.validator.v_service import ServiceV
 
 
 class ElasticsearchTest(unittest.TestCase):
-    def setUp(self) -> None:
-        self.elasticsearch = Elasticsearch(host='localhost', port=9200)
-        self.index = "elasticsearch_test"
-        self.data = {
-            "test": "elasticsearch_service"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.elasticsearch = Elasticsearch(host='localhost', port=9200)
+        cls.index = 'elasticsearch_test'
+        cls.data = {
+            'test': 'elasticsearch_service'
             }
 
     def test_ES_connection(self):
@@ -34,12 +36,12 @@ class ElasticsearchTest(unittest.TestCase):
         self.assertEqual(200, res.status_code)
 
     def test_service_running(self):
-        ServiceV().validate('isrunning', ["elasticsearch"])
+        ServiceV().validate('isrunning', ['elasticsearch'])
 
     def test_insert_data(self):
         # Insert data
         res = self.elasticsearch.index(index=self.index, id=1, body=self.data)
-        self.assertEqual(res['result'], "created")
+        self.assertEqual(res['result'], 'created')
         self.elasticsearch.delete(index=self.index, id=1)
 
     def test_get_data(self):

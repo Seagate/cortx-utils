@@ -30,7 +30,7 @@ class TestMessageBus(unittest.TestCase):
 
     """Test MessageBus related functionality."""
 
-    _message_type = 'test'
+    _message_type = 'test_mb'
     _bulk_count = 25
     _receive_limit = 5
     _purge_retry = 20
@@ -49,13 +49,13 @@ class TestMessageBus(unittest.TestCase):
             consumer_group='test', message_types=[TestMessageBus._message_type], \
             auto_ack=False, offset='earliest')
 
-    def test_list_message_type(self):
+    def test_001_list_message_type(self):
         """Test list message type."""
         message_type_list = TestMessageBus._admin.list_message_types()
         self.assertTrue(TestMessageBus._message_type in message_type_list)
         self.assertFalse(TestMessageBus._message_type not in message_type_list)
 
-    def test_unknown_message_type(self):
+    def test_002_unknown_message_type(self):
         """Test invalid message type."""
         with self.assertRaises(MessageBusError):
             MessageProducer(producer_id='send', \
@@ -64,30 +64,30 @@ class TestMessageBus(unittest.TestCase):
             MessageConsumer(consumer_id='receive', consumer_group='test', \
                 message_types=[''], auto_ack=False, offset='earliest')
 
-    def test_send(self):
+    def test_003_send(self):
         """Test send message."""
         TestMessageBus._producer.send(["A simple test message"])
 
-    def test_receive(self):
+    def test_004_receive(self):
         """Test receive message."""
         message = TestMessageBus._consumer.receive(timeout=0)
         self.assertIsNotNone(message, "Message not found")
         TestMessageBus._consumer.ack()
 
-    def test_send_bulk(self):
+    def test_005_send_bulk(self):
         """Test send bulk messages."""
         messages = []
         for msg_num in range(0, TestMessageBus._bulk_count):
             messages.append("Test Message " + str(msg_num))
         TestMessageBus._producer.send(messages)
 
-    def test_producer_unread_count(self):
+    def test_006_producer_unread_count(self):
         """Test unread message count from producer."""
         unread_count = TestMessageBus._producer.get_unread_count(\
             consumer_group='test')
         self.assertEqual(unread_count, TestMessageBus._bulk_count)
 
-    def test_consumer_unread_count(self):
+    def test_007_consumer_unread_count(self):
         """Test unread message count from consumer."""
         read_count = 0
         while True:
@@ -103,7 +103,7 @@ class TestMessageBus(unittest.TestCase):
         self.assertEqual(unread_count, (TestMessageBus._bulk_count - \
             TestMessageBus._receive_limit))
 
-    def test_receive_bulk(self):
+    def test_008_receive_bulk(self):
         """Test receive bulk messages."""
         count = 0
         while True:
@@ -115,7 +115,7 @@ class TestMessageBus(unittest.TestCase):
         self.assertEqual(count, (TestMessageBus._bulk_count - \
             TestMessageBus._receive_limit))
 
-    def test_receive_different_consumer_group(self):
+    def test_009_receive_different_consumer_group(self):
         """Test receive from different consumer_group."""
         consumer_group = ['group_1', 'group2']
         for cg in consumer_group:
@@ -131,24 +131,24 @@ class TestMessageBus(unittest.TestCase):
                 count += 1
             self.assertEqual(count, (TestMessageBus._bulk_count + 1))
 
-    def test_register_message_type_exist(self):
+    def test_010_register_message_type_exist(self):
         """Test register existing message type."""
         with self.assertRaises(MessageBusError):
             TestMessageBus._admin.register_message_type(message_types=\
                 [TestMessageBus._message_type], partitions=1)
 
-    def test_deregister_message_type_not_exist(self):
+    def test_011_deregister_message_type_not_exist(self):
         """Test deregister not existing message type."""
         with self.assertRaises(MessageBusError):
             TestMessageBus._admin.deregister_message_type(message_types=\
                 [''])
 
-    def test_purge_fail(self):
+    def test_012_purge_fail(self):
         """Test fail purge messages."""
         rc = TestMessageBus._producer.delete()
         self.assertIsInstance(rc, MessageBusError)
 
-    def test_purge_messages(self):
+    def test_013_purge_messages(self):
         """Test purge messages."""
         for retry_count in range(1, (TestMessageBus._purge_retry + 2)):
             rc = TestMessageBus._producer.delete()
@@ -160,12 +160,12 @@ class TestMessageBus(unittest.TestCase):
         message = TestMessageBus._consumer.receive()
         self.assertIsNone(message)
 
-    def test_concurrency(self):
+    def test_014_concurrency(self):
         """Test add concurrency count."""
         TestMessageBus._admin.add_concurrency(message_type=\
             TestMessageBus._message_type, concurrency_count=5)
 
-    def test_receive_concurrently(self):
+    def test_015_receive_concurrently(self):
         """Test receive concurrently."""
         messages = []
         for msg_num in range(0, TestMessageBus._bulk_count):
@@ -206,19 +206,19 @@ class TestMessageBus(unittest.TestCase):
         time.sleep(5)
         self.assertEqual(total, TestMessageBus._bulk_count)
 
-    def test_reduce_concurrency(self):
+    def test_016_reduce_concurrency(self):
         """Test reduce concurrency count."""
         with self.assertRaises(MessageBusError):
             TestMessageBus._admin.add_concurrency(message_type=\
                 TestMessageBus._message_type, concurrency_count=2)
 
-    def test_singleton(self):
+    def test_017_singleton(self):
         """Test instance of message_bus."""
         message_bus_1 = MessageBus()
         message_bus_2 = MessageBus()
         self.assertTrue(message_bus_1 is message_bus_2)
 
-    def test_multiple_admins(self):
+    def test_018_multiple_admins(self):
         """Test multiple instances of admin interface."""
         message_types_list = TestMessageBus._admin.list_message_types()
         message_types_list.remove(TestMessageBus._message_type)
@@ -241,25 +241,4 @@ class TestMessageBus(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    suite = unittest.TestSuite()
-    suite.addTest(TestMessageBus('test_list_message_type'))
-    suite.addTest(TestMessageBus('test_unknown_message_type'))
-    suite.addTest(TestMessageBus('test_send'))
-    suite.addTest(TestMessageBus('test_receive'))
-    suite.addTest(TestMessageBus('test_send_bulk'))
-    suite.addTest(TestMessageBus('test_producer_unread_count'))
-    suite.addTest(TestMessageBus('test_consumer_unread_count'))
-    suite.addTest(TestMessageBus('test_receive_bulk'))
-    suite.addTest(TestMessageBus('test_receive_different_consumer_group'))
-    suite.addTest(TestMessageBus('test_register_message_type_exist'))
-    suite.addTest(TestMessageBus('test_deregister_message_type_not_exist'))
-    suite.addTest(TestMessageBus('test_purge_fail'))
-    suite.addTest(TestMessageBus('test_purge_messages'))
-    suite.addTest(TestMessageBus('test_concurrency'))
-    suite.addTest(TestMessageBus('test_receive_concurrently'))
-    suite.addTest(TestMessageBus('test_reduce_concurrency'))
-    suite.addTest(TestMessageBus('test_singleton'))
-    suite.addTest(TestMessageBus('test_multiple_admins'))
-
-    runner = unittest.TextTestRunner()
-    runner.run(suite)
+    unittest.main()

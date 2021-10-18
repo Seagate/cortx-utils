@@ -25,30 +25,32 @@ from cortx.utils.schema import payload
 from cortx.utils.schema.providers import  Response
 
 class TestCliFramework(unittest.TestCase):
-    def setUp(self):
-        self.cli_command=["users","show","-o","10"]
-        self.permissions = {
+
+    @classmethod
+    def setUpClass(cls):
+        cls.cli_command=['users', 'show', '-o', '10']
+        cls.permissions = {
             'users': { 'list': True, 'update': True, 'create': True }
             }
-        self.directory_path = os.path.join("test_data/")
-        self.cmd_response = payload.CommonPayload(os.path.join("test_data/","users_command_output.json")).load()
-        self.expected_output_file = os.path.join("test_data/","users_show_table_output")
-        self.obtained_output_file = os.path.join("/tmp","users_show_table_obtained_output")
+        cls.directory_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'test_data')
+        cls.cmd_response = payload.CommonPayload(os.path.join(cls.directory_path, 'users_command_output.json')).load()
+        cls.expected_output_file = os.path.join(cls.directory_path, 'users_show_table_output')
+        cls.obtained_output_file = os.path.join('/tmp', 'users_show_table_obtained_output')
 
     def test_command_factory(self):
         self.command = CommandFactory.get_command(self.cli_command, self.permissions, self.directory_path)
-        self.assertTrue(self.command.name,"users")
-        self.assertTrue(self.command.sub_command_name,"show")
-        self.assertTrue(self.command.options.get("offset"), 10)
+        self.assertTrue(self.command.name, 'users')
+        self.assertTrue(self.command.sub_command_name, 'show')
+        self.assertTrue(self.command.options.get('offset'), 10)
 
     def test_output(self):
         self.command = CommandFactory.get_command(self.cli_command, self.permissions, self.directory_path)
         response = Response(output=self.cmd_response)
         op = Output(self.command, response)
-        with open(self.obtained_output_file,"w") as obtained_output:
-            op.dump(out=obtained_output, err=sys.stderr,response=response,
-                        output_type=self.command.options.get("format"),
-                        **self.command.options.get("output"))
+        with open(self.obtained_output_file, 'w') as obtained_output:
+            op.dump(out=obtained_output, err=sys.stderr, response=response,
+                        output_type=self.command.options.get('format'),
+                        **self.command.options.get('output'))
 
         with open(self.expected_output_file) as expected_output:
             with open(self.obtained_output_file) as obtained_output:
