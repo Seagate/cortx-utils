@@ -77,12 +77,13 @@ class CortxConf:
 
 
 class ConfigStore:
+
     """ CORTX Config Store """
 
     _conf_idx = "cortx_conf"
 
     def __init__(self, conf_url):
-        """ Initialize with the CONF URL """
+        """ Initialize with the CONF URL."""
         self._conf_url = conf_url
         Conf.load(self._conf_idx, self._conf_url, skip_reload=True)
 
@@ -97,7 +98,7 @@ class ConfigStore:
         Conf.save(self._conf_idx)
 
     def set(self, key: str, val: str):
-        """  """
+        """Sets the value into conf in-memory at the given key."""
         Conf.set(self._conf_idx, key, val)
         Conf.save(self._conf_idx)
 

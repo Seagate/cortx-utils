@@ -27,7 +27,7 @@ from cortx.utils.log import Log
 from cortx.utils.schema.providers import Response
 from cortx.utils.errors import OPERATION_SUCESSFUL, ERR_OP_FAILED
 from cortx.utils.conf_store.conf_store import Conf
-from cortx.utils.common.common import CortxConf, ConfigStore
+from cortx.utils.common.common import ConfigStore
 from cortx.utils.cli_framework.command import Command
 from cortx.utils.support_framework import const
 from cortx.utils.support_framework import Bundle
