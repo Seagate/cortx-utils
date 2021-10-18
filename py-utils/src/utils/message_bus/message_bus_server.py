@@ -22,6 +22,7 @@ from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.utils_server.error import RestServerError
 from cortx.utils.message_bus import MessageConsumer, MessageProducer
 from cortx.utils.log import Log
+from cortx.utils.common import CortxConf
 
 routes = web.RouteTableDef()
 
@@ -37,8 +38,10 @@ class MessageBusRequestHandler(RestServer):
             message_type = request.match_info['message_type']
             payload = await request.json()
             messages = payload['messages']
+            cluster_conf = CortxConf.get_cluster_conf_path()
             producer = MessageProducer(producer_id='rest_producer', \
-                message_type=message_type, method='sync')
+                message_type=message_type, method='sync',\
+                cluster_conf=cluster_conf)
 
             producer.send(messages)
         except MessageBusError as e:
@@ -77,9 +80,10 @@ class MessageBusRequestHandler(RestServer):
         try:
             message_types = str(request.match_info['message_type']).split('&')
             consumer_group = request.rel_url.query['consumer_group']
+            cluster_conf = CortxConf.get_cluster_conf_path()
             consumer = MessageConsumer(consumer_id='rest_consumer', \
                 consumer_group=consumer_group, message_types=message_types, \
-                auto_ack=True, offset='latest')
+                auto_ack=True, offset='latest', cluster_conf=cluster_conf)
 
             message = consumer.receive()
         except MessageBusError as e:
