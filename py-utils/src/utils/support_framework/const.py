@@ -13,11 +13,8 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.common.common import CortxConf
 DEFAULT_CORTX_CONF= 'yaml:///etc/cortx/cluster.conf'
-CortxConf.init(cluster_conf=DEFAULT_CORTX_CONF)
-SHARED_PATH = CortxConf.get_storage_path('shared')
-SB_PATH = f'{SHARED_PATH}/support_bundle'
+SB_PATH = '/var/cortx/support_bundle'
 SUPPORT_YAML = 'cortx/utils/conf/support_bundle.yaml'
 SUPPORT_BUNDLE_TAG = 'support_bundle;'
 SUPPORT_BUNDLE = 'SUPPORT_BUNDLE'
