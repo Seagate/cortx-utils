@@ -27,36 +27,21 @@ class Certificate:
     """Factory class for certificate"""
 
     @staticmethod
-    def factory(cert_type):
+    def init(cert_type):
         """
-        This function returns the Class type of certificate that caller wants to generate.
-        :returns : Class Type of certificate
+        This function creates a object of desired certificate type
+        :param: cert_type: Certificate type
+        :returns: Object of desired certificate type
         """
         cert = {
             "ssl": SSLCertificate,
             "domain": DomainCertificate,
             "device": DeviceCertificate,
         }
-        return cert[cert_type]
+        return cert[cert_type]()
 
 class SSLCertificate:
-
-    def __init__(self, cert_path, dns_list, expiry_days = 3650, **ssl_cert_configs):
-        """
-        Initialize SSLCertificate Object
-        :param cert_path: File path at which certificate will be saved.
-        :param dns_list: List of unicode dns names eg. [u"*.seagate.com", u"localhost"]
-        :param expiry_days: Period in days for which certificate is valid, default: 10 yrs
-        :kwargs ssl_cert_configs: ssl certificate general config eg. country_name, common_name etc.
-        """
-        self.cert_path = cert_path
-        self.dns_list = dns_list
-        self.expiry_days = expiry_days
-        self.country = ssl_cert_configs.get("country", "IN")
-        self.state = ssl_cert_configs.get("state", "MH")
-        self.locality = ssl_cert_configs.get("locality", "Pune")
-        self.organization = ssl_cert_configs.get("organization", "Seagate Technology")
-        self.CN = ssl_cert_configs.get("CN", "seagate.com")
+    """Class to generate self signed SSL Certificate"""
 
     def _prepare_private_key(self):
         """
@@ -70,28 +55,38 @@ class SSLCertificate:
         )
         return private_key
 
-    def _prepare_ssl_certificate(self, private_key:rsa.RSAPrivateKeyWithSerialization):
+    def _prepare_ssl_certificate(self, private_key:rsa.RSAPrivateKeyWithSerialization,
+                                dns_list, expiry_days, **ssl_cert_configs):
         """
-        This functions generate a self-signed certificate
+        This function generates a self-signed certificate
         :param private_key: Private_key
+        :param dns_list: List of unicode dns names eg. [u"*.seagate.com", u"localhost"]
+        :param expiry_days: Period in days for which certificate will be valid, default: 10 yrs
+        :kwargs ssl_cert_configs: ssl certificate general configs as below
+            country: Country Name
+            state: State Name
+            locality: Locality Name
+            organization: Organization Name
+            CN: Common Name
         :return: Self signed certificate
         """
         x509_dns_name_list = []
-        for dns_name in self.dns_list:
+        for dns_name in dns_list:
             x509_dns_name_list.append(x509.DNSName(dns_name))
 
         subject = issuer = x509.Name([
-            x509.NameAttribute(NameOID.COUNTRY_NAME, self.country),
-            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, self.state),
-            x509.NameAttribute(NameOID.LOCALITY_NAME, self.locality),
-            x509.NameAttribute(NameOID.ORGANIZATION_NAME, self.organization),
-            x509.NameAttribute(NameOID.COMMON_NAME, self.CN)
+            x509.NameAttribute(NameOID.COUNTRY_NAME, ssl_cert_configs.get("country", "IN")),
+            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, ssl_cert_configs.get("state", "MH")),
+            x509.NameAttribute(NameOID.LOCALITY_NAME, ssl_cert_configs.get("locality", "Pune")),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME,
+                                ssl_cert_configs.get("organization", "Seagate Technology")),
+            x509.NameAttribute(NameOID.COMMON_NAME, ssl_cert_configs.get("CN", "seagate.com"))
         ])
         builder = x509.CertificateBuilder()
         builder = builder.subject_name(subject)
         builder = builder.issuer_name(issuer)
         builder = builder.not_valid_before(datetime.datetime.utcnow())
-        builder = builder.not_valid_after(datetime.datetime.utcnow() + datetime.timedelta(days=self.expiry_days))
+        builder = builder.not_valid_after(datetime.datetime.utcnow() + datetime.timedelta(days=expiry_days))
         builder = builder.serial_number(x509.random_serial_number())
         builder = builder.public_key(private_key.public_key())
         builder = builder.add_extension(
@@ -114,15 +109,25 @@ class SSLCertificate:
         if not os.path.exists(directory):
             os.makedirs(directory, exist_ok=True)
 
-    def generate(self):
+    def generate(self, cert_path, dns_list, expiry_days = 3650, **ssl_cert_configs):
         """
         This function generate a self signed certificate and save it
         at specified location.
+        :param cert_path: File path at which certificate will be saved.
+        :param dns_list: List of unicode dns names eg. [u"*.seagate.com", u"localhost"]
+        :param expiry_days: Period in days for which certificate will be valid, default: 10 yrs
+        :kwargs ssl_cert_configs: ssl certificate general configs as below
+        country: Country Name
+        state: State Name
+        locality: Locality Name
+        organization: Organization Name
+        CN: Common Name
         :return: None
         """
         try:
             private_key = self._prepare_private_key()
-            certificate = self._prepare_ssl_certificate(private_key)
+            certificate = self._prepare_ssl_certificate(
+                private_key, dns_list, expiry_days, **ssl_cert_configs)
             private_key_pem = private_key.private_bytes(
                 encoding=serialization.Encoding.PEM,
                 format=serialization.PrivateFormat.TraditionalOpenSSL,
@@ -130,13 +135,13 @@ class SSLCertificate:
             )
             certificate_pem = certificate.public_bytes(serialization.Encoding.PEM)
 
-            self._create_dirs(self.cert_path)
+            self._create_dirs(cert_path)
 
-            with open(self.cert_path, "wb") as f:
+            with open(cert_path, "wb") as f:
                 f.write(certificate_pem + private_key_pem)
 
         except Exception as e:
-            raise SSLCertificateError(f"Unexpected error occured: {e}")
+            raise SSLCertificateError(f"Unexpected error occurred: {e}")
 
 class DeviceCertificate:
     pass
