@@ -25,7 +25,7 @@ def ssl_cert_example():
         ssl_cert_obj = Certificate.init('ssl')
         ssl_cert_obj.generate(cert_path = ssl_certificate_path, dns_list = ssl_dns_list,
                                 expiry_days = expiry_days, **ssl_cert_configs)
-        
+     
 if __name__ == "__main__":
     from cortx.utils.security.certificate import Certificate
     from cortx.utils.errors import SSLCertificateError
