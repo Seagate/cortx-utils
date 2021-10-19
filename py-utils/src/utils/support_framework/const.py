@@ -13,11 +13,9 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.common.common import CortxConf
-CortxConf.init(cluster_conf='yaml:///etc/cortx/cluster.conf')
-LOG_DIR = CortxConf.get_storage_path('log')
-LOCAL_DIR = CortxConf.get_storage_path('local')
-SB_DIR_LIST = [LOG_DIR, LOCAL_DIR]
+DEFAULT_CORTX_CONF= 'yaml:///etc/cortx/cluster.conf'
+SB_PATH = '/var/cortx/support_bundle'
+SUPPORT_YAML = 'cortx/utils/conf/support_bundle.yaml'
 SUPPORT_BUNDLE_TAG = 'support_bundle;'
 SUPPORT_BUNDLE = 'SUPPORT_BUNDLE'
 SOS_COMP = 'os'
@@ -28,7 +26,7 @@ SB_BUNDLE_ID = 'bundle_id'
 SB_BUNDLE_PATH = 'bundle_path'
 SB_SYMLINK_PATH = 'symlink_path'
 SYMLINK_PATH = '/tmp/support_bundle/'
-FILESTORE_PATH = '/tmp/sb_status.json'
+FILESTORE_PATH = f'{SB_PATH}/sb_status.json'
 SB_INDEX = 'sb_index'
 CORTX_SOLUTION_DIR = '/etc/cortx/solution'
 CORTX_RELEASE_INFO = '/opt/seagate/cortx/RELEASE.INFO'

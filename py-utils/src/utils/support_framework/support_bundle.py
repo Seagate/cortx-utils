@@ -22,13 +22,16 @@ import asyncio
 import re
 import shutil
 
+from datetime import datetime
 from cortx.utils.log import Log
 from cortx.utils.schema.providers import Response
 from cortx.utils.errors import OPERATION_SUCESSFUL, ERR_OP_FAILED
 from cortx.utils.conf_store.conf_store import Conf
+from cortx.utils.common.common import ConfigStore
 from cortx.utils.cli_framework.command import Command
 from cortx.utils.support_framework import const
 from cortx.utils.support_framework import Bundle
+from cortx.utils.support_framework.bundle_generate import ComponentsBundle
 from cortx.utils.support_framework.errors import BundleError
 
 
@@ -43,62 +46,24 @@ class SupportBundle:
         return f"SB{''.join(random.choices(alphabet, k=8))}"
 
     @staticmethod
-    def _get_components(components):
-        """Get Components to Generate Support Bundle."""
-        if components and 'all' not in components:
-            Log.info(f"Generating bundle for  {' '.join(components)}")
-            shell_args = f"{' '.join(components)}"
-        else:
-            Log.info("Generating bundle for all CORTX components.")
-            shell_args = 'all'
-        return f" -c {shell_args}"
-
-    @staticmethod
-    async def _begin_bundle_generation(bundle_obj):
-        tar_dest_file = f'{bundle_obj.bundle_id}.tar.gz'
-        dest_path = os.path.join(bundle_obj.bundle_path, tar_dest_file)
-        Log.debug(f"Generating Bundle at path:{dest_path}")
-        try:
-            for target in const.SB_DIR_LIST:
-                if os.path.isdir(target):
-                    with tarfile.open(dest_path, 'w:gz') as tar_handle:
-                        tar_handle.add(target, arcname=os.path.abspath(target))
-            bundle_status = ("Successfully generated the support bundle "
-                            f"at path: '{dest_path}' !!!")
-        except Exception as err:
-            msg = f"Failed to generate support bundle. ERROR:{err}"
-            Log.error(msg)
-            bundle_status = msg
-        
-        # Update the SB status in conf store
-        Conf.load(const.SB_INDEX, 'json://' + const.FILESTORE_PATH, fail_reload=False)
-        Conf.set(const.SB_INDEX, f'bundle_db>{bundle_obj.bundle_id}', bundle_status)
-        Conf.save(const.SB_INDEX)
-
-    @staticmethod
     async def _generate_bundle(command):
         """
         Initializes the process for Generating Support Bundle at shared path.
         command:    Command Object :type: command
         return:     None.
         """
-        # CORTX SB Generation Initialized.
-        bundle_status = "CORTX SB Generation is In-Progress"
-        bundle_id = SupportBundle._generate_bundle_id()
-        # load conf for Support Bundle
-        Conf.load(const.SB_INDEX, 'json://' + const.FILESTORE_PATH)
-        Conf.set(const.SB_INDEX, f'bundle_db>{bundle_id}', bundle_status)
-        Conf.save(const.SB_INDEX)
-        
         # Get Arguments From Command
+        bundle_id = command.options.get(const.SB_BUNDLE_ID)
         comment = command.options.get(const.SB_COMMENT)
-        components = command.options.get(const.SB_COMPONENTS)
-        target_path = command.options.get('target_path')
         config_url = command.options.get('config_url')
-        # Extract config file path from url.
         config_path = config_url.split('//')[1] if '//' in config_url else ''
-        bundle_path = os.path.join(target_path, bundle_id)
-        os.makedirs(bundle_path)
+        path = command.options.get('target_path')
+        bundle_path = os.path.join(path, bundle_id)
+        try:
+            os.makedirs(bundle_path)
+        except FileExistsError:
+            raise BundleError(errno.EINVAL, "Bundle ID already exists,"
+                "Please use Unique Bundle ID")
         # Adding CORTX manifest data inside support Bundle.
         try:
             # Copying config file into support bundle.
@@ -159,14 +124,45 @@ class SupportBundle:
 
         except BundleError as be:
             Log.error(f"Failed to add CORTX manifest data inside Support Bundle.{be}")
-        
+        cortx_config_store = ConfigStore(config_url)
+        # Get Node ID
+        node_id = Conf.machine_id
+        if node_id is None:
+            raise  BundleError(errno.EINVAL, "Invalid node_id: %s", \
+                node_id)
+        # Update SB status in Filestore.
+        # load conf for Support Bundle
+        Conf.load(const.SB_INDEX, 'json://' + const.FILESTORE_PATH)
+        data = {
+            'status': 'In-Progress',
+            'start_time': datetime.strftime(
+                datetime.now(), '%Y-%m-%d %H:%M:%S')
+        }
+        Conf.set(const.SB_INDEX, f'{node_id}>{bundle_id}', data)
+        Conf.save(const.SB_INDEX)
+
+        node_name = cortx_config_store.get(f'node>{node_id}>name')
+        Log.info(f'Starting SB Generation on {node_id}:{node_name}')
+        components = cortx_config_store.get(f'node>{node_id}>components')
+        num_components = len(components)
+        components_list = []
+        for comp_idx in range(0, num_components):
+            comp_name = components[comp_idx]['name']
+            components_list.append(comp_name)
+        if components is None:
+            Log.warn(f"No component specified for {node_name} in CORTX config")
+            Log.warn(f"Skipping SB generation on node:{node_name}.")
+            return
         bundle_obj = Bundle(bundle_id=bundle_id, bundle_path=bundle_path, \
-            comment=comment,is_shared=True)
-        # Create CORTX support Bundle
+            comment=comment,node_name=node_name, components=components_list)
+
+        # Start SB Generation on Node.
         try:
-            await SupportBundle._begin_bundle_generation(bundle_obj)
+            await ComponentsBundle.init(bundle_obj, node_id, config_url)
         except BundleError as be:
             Log.error(f"Bundle generation failed.{be}")
+        except Exception as e:
+            Log.error(f"Internal error, bundle generation failed {e}")
 
         if command.sub_command_name == 'generate':
             display_string_len = len(bundle_obj.bundle_id) + 4
@@ -188,9 +184,14 @@ class SupportBundle:
         return:     None
         """
         try:
+            status = ''
+            node_id = Conf.machine_id
             Conf.load(const.SB_INDEX, 'json://' + const.FILESTORE_PATH)
             bundle_id = command.options.get(const.SB_BUNDLE_ID)
-            status = Conf.get(const.SB_INDEX, f'bundle_db>{bundle_id}')
+            if not bundle_id:
+                status = Conf.get(const.SB_INDEX, f'{node_id}')
+            else:
+                status = Conf.get(const.SB_INDEX, f'{node_id}>{bundle_id}>status')
             if not status:
                 return Response(output=(f"No status found for bundle_id: {bundle_id}" \
                     "in input config. Please check if the Bundle ID is correct"), \
@@ -203,7 +204,7 @@ class SupportBundle:
                 rc=str(errno.ENOENT))
 
     @staticmethod
-    def generate(comment: str, **kwargs):
+    def generate(comment: str, target_path: str, bundle_id:str, **kwargs):
         """
         Initializes the process for Generating Support Bundle on EachCORTX Node.
 
@@ -214,15 +215,11 @@ class SupportBundle:
                         also Eg: components = ['utils', 'provisioner']
         return:         bundle_obj
         """
-        components = ''
+        config_url = ''
         for key, value in kwargs.items():
-            if key == 'components':
-                components = value
-            elif key == 'target_path':
-                path = value
-            elif key == 'config_url':
+            if key == 'config_url':
                 config_url = value
-        options = {'comment': comment, 'components': components, 'target_path': path, \
+        options = {'comment': comment, 'target_path': target_path, 'bundle_id': bundle_id, \
             'config_url': config_url, 'comm':{'type': 'direct', 'target': \
             'utils.support_framework', 'method': 'generate_bundle', 'class': \
             'SupportBundle', 'is_static': True, 'params': {}, 'json': {}}, \
