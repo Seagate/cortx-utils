@@ -120,6 +120,7 @@ class ComponentsBundle:
         node_name = bundle_obj.node_name
         comment = bundle_obj.comment
         components_list = bundle_obj.components
+        Log.info(f"components:{components_list}")
         bundle_path = bundle_obj.bundle_path
 
         Log.debug((f"{const.SB_BUNDLE_ID}: {bundle_id}, {const.SB_NODE_NAME}: "

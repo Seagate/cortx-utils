@@ -144,12 +144,17 @@ class SupportBundle:
         node_name = cortx_config_store.get(f'node>{node_id}>name')
         Log.info(f'Starting SB Generation on {node_id}:{node_name}')
         components = cortx_config_store.get(f'node>{node_id}>components')
+        num_components = len(components)
+        components_list = []
+        for comp_idx in range(0, num_components):
+            comp_name = components[comp_idx]['name']
+            components_list.append(comp_name)
         if components is None:
             Log.warn(f"No component specified for {node_name} in CORTX config")
             Log.warn(f"Skipping SB generation on node:{node_name}.")
             return
         bundle_obj = Bundle(bundle_id=bundle_id, bundle_path=bundle_path, \
-            comment=comment,node_name=node_name, components=components)
+            comment=comment,node_name=node_name, components=components_list)
 
         # Start SB Generation on Node.
         try:
