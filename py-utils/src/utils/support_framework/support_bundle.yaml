@@ -19,7 +19,7 @@ COMPONENTS:
   os:
     - '/opt/seagate/os/conf/setup.yaml'
   csm:
-    - '<CORTX_PATH>/cli/conf/setup.yaml'
+    - '<CORTX_PATH>/csm/cli/conf/support.yaml'
   sspl:
     - '<CORTX_PATH>/sspl/conf/support.yaml'
   s3server:
