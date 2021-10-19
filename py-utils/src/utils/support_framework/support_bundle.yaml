@@ -20,6 +20,8 @@ COMPONENTS:
     - '/opt/seagate/os/conf/setup.yaml'
   csm:
     - '<CORTX_PATH>/cli/conf/setup.yaml'
+  sspl:
+    - '<CORTX_PATH>/sspl/conf/support.yaml'
   s3:
     - '<CORTX_PATH>/s3/conf/support.yaml'
   motr:
@@ -28,8 +30,12 @@ COMPONENTS:
     - '<CORTX_PATH>/hare/conf/support.yaml'
   provisioner:
     - '<CORTX_PATH>/provisioner/conf/setup.yaml'
+  alerts:
+    - '<CORTX_PATH>/cli/conf/alerts_setup.yaml'
   uds:
     - '<CORTX_PATH>/cli/conf/uds_setup.yaml'
+  elasticsearch:
+    - '<CORTX_PATH>/cli/conf/elasticsearch_setup.yaml'
   ha:
     - '<CORTX_PATH>/ha/conf/support.yaml'
   utils:
