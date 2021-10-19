@@ -57,8 +57,13 @@ class SupportBundle:
         comment = command.options.get(const.SB_COMMENT)
         config_url = command.options.get('config_url')
         config_path = config_url.split('//')[1] if '//' in config_url else ''
-        bundle_path = os.path.join(target_path, bundle_id)
-        os.makedirs(bundle_path)
+        path = command.options.get('target_path')
+        bundle_path = os.path.join(path, bundle_id)
+        try:
+            os.makedirs(bundle_path)
+        except FileExistsError:
+            raise BundleError(errno.EINVAL, "Bundle ID already exists,"
+                "Please use Unique Bundle ID")
         # Adding CORTX manifest data inside support Bundle.
         try:
             # Copying config file into support bundle.
@@ -120,14 +125,6 @@ class SupportBundle:
         except BundleError as be:
             Log.error(f"Failed to add CORTX manifest data inside Support Bundle.{be}")
         cortx_config_store = ConfigStore(config_url)
-        path = command.options.get('target_path')
-        bundle_path = os.path.join(path, bundle_id)
-        try:
-            os.makedirs(bundle_path)
-        except FileExistsError:
-            raise BundleError(errno.EINVAL, "Bundle ID already exists,"
-                "Please use Unique Bundle ID")
-
         # Get Node ID
         node_id = Conf.machine_id
         if node_id is None:

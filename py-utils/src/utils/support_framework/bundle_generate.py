@@ -81,7 +81,7 @@ class ComponentsBundle:
 
     @staticmethod
     async def _exc_components_cmd(commands: List, bundle_id: str, path: str, \
-            component: str, node_name: str, comment: str, config_url):
+            component: str, node_name: str, comment: str, config_url:str):
         """
         Executes the Command for Bundle Generation of Every Component.
 
@@ -93,8 +93,8 @@ class ComponentsBundle:
         comment:        User Comment: type:str
         """
         for command in commands:
-            Log.info(f"Executing command -> {command} {bundle_id} {path}")
-            cmd_proc = SimpleProcess(f"{command} {bundle_id} {path} {config_url}")
+            Log.info(f"Executing command -> {command} -b {bundle_id} -t {path} -c {config_url}")
+            cmd_proc = SimpleProcess(f"{command} -b {bundle_id} -t {path} -c {config_url}")
             output, err, return_code = cmd_proc.run()
             Log.debug(f"Command Output -> {output} {err}, {return_code}")
             if return_code != 0:
