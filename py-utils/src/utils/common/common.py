@@ -74,7 +74,7 @@ class CortxConf:
     def save():
         """Saves the configuration into the cortx.conf file."""
         Conf.save(CortxConf._index)
-          
+
     @staticmethod
     def get_cluster_conf_path():
         if CortxConf._cluster_conf is None:
