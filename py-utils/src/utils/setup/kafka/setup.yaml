@@ -38,3 +38,7 @@ kafka:
         cmd: /opt/seagate/cortx/utils/bin/kafka_setup reset
         args: --config $URL
 
+    cleanup:
+        cmd: /opt/seagate/cortx/utils/bin/kafka_setup cleanup
+        args: --config $URL  --cluster_conf $URL
+
