@@ -33,5 +33,5 @@ git clone https://github.com/Seagate/cortx-utils.git
 ```bash
 <install_path>/py-utils/src/utils/tool_factory/extract_support_bundle.sh
 -f '/tmp/SB09995_8d00f71d6e0eeef02e971e6356bb83aa.tar.gz'
--d '/var/cortx/support_bundle' -c "common utils"
+-d '/var/cortx/support_bundle' -c "common, utils"
 ```
