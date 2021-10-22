@@ -60,7 +60,13 @@ extract_file() {
     for file in "$1"/*
     do
         if tar -tf "$file" &>/dev/null; then
-            tar -xzf "$file" -C "$DIR_PATH/$component"
+            comp_tarname=$(tar -tzf "$file" | head -1 | cut -f1 -d"/")
+            if [ "$comp_tarname" == "$component" ]; then
+                dest_path="$DIR_PATH"
+            else
+                dest_path="$DIR_PATH/$component"
+            fi
+            tar -xzf "$file" -C "$dest_path" 
             rm -rf "$file"
         fi
     done
@@ -73,6 +79,10 @@ if [ "$COMPONENTS" == "all" ]; then
         extract_file "$entry"
     done
 else
+    # Replace comma seperated components with space.
+    COMPONENTS=${COMPONENTS//,/ }
+    COMPONENTS=${COMPONENTS//  / }
+
     for entry in "$DIR_PATH"/*
     do
         component=$(basename "$entry")
@@ -85,6 +95,4 @@ else
     done
 fi
 
-
 echo "Successfully Extracted the SB tarfile at path:$DEST !!!"
-
