@@ -15,6 +15,8 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import argparse
+from argparse import RawTextHelpFormatter
 from aiohttp import web
 from cortx.utils.log import Log
 from cortx.utils.common import CortxConf
@@ -41,7 +43,14 @@ class RestServer:
 if __name__ == '__main__':
     import os
     from cortx.utils.conf_store import Conf
-    CortxConf.init(cluster_conf='yaml:///etc/cortx/cluster.conf')
+    parser = argparse.ArgumentParser(description='Utils server CLI',
+        formatter_class=RawTextHelpFormatter)
+    parser.add_argument('-c', '--config', dest='cluster_conf',\
+        help="Cluster config file path for Support Bundle",\
+        default='yaml:///etc/cortx/cluster.conf')
+    args=parser.parse_args()
+
+    CortxConf.init(cluster_conf=args.cluster_conf)
     # Get the log path
     log_dir = CortxConf.get('log_dir', '/var/log')
     utils_log_path = CortxConf.get_log_path('utils_server', base_dir=log_dir)

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
@@ -13,21 +15,22 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-DEFAULT_CORTX_CONF= 'yaml:///etc/cortx/cluster.conf'
-SB_PATH = '/var/cortx/support_bundle'
-SUPPORT_YAML = 'cortx/utils/conf/support_bundle.yaml'
-SUPPORT_BUNDLE_TAG = 'support_bundle;'
-SUPPORT_BUNDLE = 'SUPPORT_BUNDLE'
-SOS_COMP = 'os'
-SB_COMPONENTS = 'components'
-SB_COMMENT = 'comment'
-SB_NODE_NAME = 'node_name'
-SB_BUNDLE_ID = 'bundle_id'
-SB_BUNDLE_PATH = 'bundle_path'
-SB_SYMLINK_PATH = 'symlink_path'
-SYMLINK_PATH = '/tmp/support_bundle/'
-FILESTORE_PATH = f'{SB_PATH}/sb_status.json'
-SB_INDEX = 'sb_index'
-CORTX_SOLUTION_DIR = '/etc/cortx/solution'
-CORTX_RELEASE_INFO = '/opt/seagate/cortx/RELEASE.INFO'
-PERMISSION_ERROR_MSG = "Failed to cleanup {path} due to insufficient permissions"
+def ssl_cert_example():
+
+        ssl_certificate_path = '/tmp/ssl/stx.pem'
+        ssl_cert_configs = {"country" : "IN", "state" : "MH", "locality" : "Pune",
+                            "organization" : "Seagate Technology", "CN" : "seagate.com"}
+        ssl_dns_list = [u'*.seagate.com', u'localhost', u'*.localhost']
+        expiry_days = 365
+        ssl_cert_obj = Certificate.init('ssl')
+        ssl_cert_obj.generate(cert_path = ssl_certificate_path, dns_list = ssl_dns_list,
+                                expiry_days = expiry_days, **ssl_cert_configs)
+
+if __name__ == "__main__":
+    from cortx.utils.security.certificate import Certificate
+    from cortx.utils.errors import SSLCertificateError
+
+    try:
+        ssl_cert_example()
+    except SSLCertificateError as e:
+        print(e)

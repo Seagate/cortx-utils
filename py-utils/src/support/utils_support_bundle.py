@@ -23,6 +23,7 @@ import tarfile
 import errno
 import argparse
 
+from cortx.utils.common import CortxConf
 from cortx.utils.conf_store import Conf
 from cortx.utils.errors import UtilsError
 from cortx.utils.process import SimpleProcess
@@ -40,29 +41,27 @@ class UtilsSupportBundle:
     _default_path = '/tmp/cortx/support_bundle/'
     _tar_name = 'py-utils'
     _tmp_src = '/tmp/cortx/py-utils/'
-    LOG_DIR='/var/log'
-    utils_log_dir = os.path.join(LOG_DIR, 'cortx/utils')
-    _files_to_bundle = {
-        'message_bus':
-            os.path.join(utils_log_dir, 'message_bus/message_bus.log'),
-        'utils_server':
-            os.path.join(utils_log_dir, 'utils_server/utils_server.log'),
-        'utils_setup':
-            os.path.join(utils_log_dir, 'utils_setup.log'),
-        'kafka_server': '/opt/kafka/config/server.properties',
-        'kafka_zookeeper': '/opt/kafka/config/zookeeper.properties',
-        'iem': os.path.join(utils_log_dir, 'iem/iem.log')
-    }
 
     @staticmethod
-    def generate(bundle_id: str, target_path: str):
-        """ Generate a tar file """
+    def generate(bundle_id: str, target_path: str, cluster_conf: str):
+        """ Generate a tar file. """
+        # Find log dirs
+        CortxConf.init(cluster_conf=cluster_conf)
+        log_base = CortxConf.get_storage_path('log')
+        local_base = CortxConf.get_storage_path('local')
+        machine_id = Conf.machine_id
+
         if os.path.exists(UtilsSupportBundle._tmp_src):
             UtilsSupportBundle.__clear_tmp_files()
-        for value in UtilsSupportBundle._files_to_bundle.values():
-            if os.path.exists(value):
-                UtilsSupportBundle.__copy_file(value)
-        UtilsSupportBundle.__collect_kafka_logs()
+        else:
+            os.makedirs(UtilsSupportBundle._tmp_src)
+        # Copy log files
+        shutil.copytree(os.path.join(log_base, f'utils/{machine_id}'),\
+            os.path.join(UtilsSupportBundle._tmp_src, 'logs'))
+
+        # Copy configuration files
+        shutil.copytree(os.path.join(local_base, 'utils/conf'),\
+            os.path.join(UtilsSupportBundle._tmp_src, 'conf'))
         UtilsSupportBundle.__generate_tar(bundle_id, target_path)
         UtilsSupportBundle.__clear_tmp_files()
 
@@ -95,44 +94,6 @@ class UtilsSupportBundle:
             tar.add(UtilsSupportBundle._tmp_src,
                 arcname=os.path.basename(UtilsSupportBundle._tmp_src))
 
-    @staticmethod
-    def __collect_kafka_logs():
-        files_lst = UtilsSupportBundle._files_to_bundle
-        if os.path.exists(files_lst['kafka_zookeeper']):
-            to_be_collected = {}
-            Conf.load('kafka_zookeeper',
-                'properties://' + files_lst['kafka_zookeeper'],
-                fail_reload=False)
-            to_be_collected['zookeeper_data_log_dir'] = Conf.get(
-                'kafka_zookeeper', 'dataLogDir')
-            to_be_collected['zookeeper_data_dir'] = Conf.get(
-                'kafka_zookeeper', 'dataDir', '/var/zookeeper')
-            # Copy entire kafka and zookeeper logs
-            for key, value in to_be_collected.items():
-                if value and os.path.exists(value):
-                    shutil.copytree(value,
-                        os.path.join(UtilsSupportBundle._tmp_src, key))
-        # Copy all required log files from /var/log/kafka directory
-        if os.path.exists('/var/log/kafka/'):
-            ignore = shutil.ignore_patterns('*.log.*-*-*-*')
-            shutil.copytree('/var/log/kafka/', os.path.join(
-                UtilsSupportBundle._tmp_src, 'kafka_log'), ignore=ignore)
-        # Collect systemctl status of kafka and kafka-zookeeper
-        _cli = {'kafka_systemctl_status': "systemctl status kafka",
-                'zookeeper_systemctl_status':
-                "systemctl status kafka-zookeeper"}
-        file_name = 'kafka_zookeeper_status.yaml'
-        path = f'yaml://{os.path.join(UtilsSupportBundle._tmp_src, file_name)}'
-        if not os.path.exists(UtilsSupportBundle._tmp_src):
-            os.makedirs(UtilsSupportBundle._tmp_src, exist_ok=True)
-        Conf.load('kafka_and_zookeeper_status', path)
-        for key, cmd in _cli.items():
-            cmd_proc = SimpleProcess(cmd)
-            result_data = cmd_proc.run()
-            err_msg = str(result_data[1], 'utf-8')
-            result = err_msg if err_msg else str(result_data[0], 'utf-8')
-            Conf.set('kafka_and_zookeeper_status', key, result)
-        Conf.save('kafka_and_zookeeper_status')
 
     @staticmethod
     def __clear_tmp_files():
@@ -142,16 +103,25 @@ class UtilsSupportBundle:
     @staticmethod
     def parse_args():
         parser = argparse.ArgumentParser(description='''Bundle utils logs ''')
-        parser.add_argument('bundle_id', help='Unique bundle id')
-        parser.add_argument('path', help='Path to store the created bundle',
+        parser.add_argument('-b', dest='bundle_id', help='Unique bundle id')
+        parser.add_argument('-t', dest='path', help='Path to store the created bundle',
             nargs='?', default="/var/seagate/cortx/support_bundle/")
+        parser.add_argument('-c', dest='cluster_conf',\
+            help="Cluster config file path for Support Bundle",\
+            default='yaml:///etc/cortx/cluster.conf')
+        parser.add_argument('-s', '--services', dest='services', nargs='+',\
+            default='', help='List of services for Support Bundle')
         args=parser.parse_args()
         return args
 
 
 def main():
     args = UtilsSupportBundle.parse_args()
-    UtilsSupportBundle.generate(bundle_id=args.bundle_id, target_path=args.path)
+    UtilsSupportBundle.generate(
+        bundle_id=args.bundle_id,
+        target_path=args.path,
+        cluster_conf=args.cluster_conf
+    )
 
 
 if __name__ == '__main__':
