@@ -22,8 +22,7 @@ please email opensource@seagate.com or cortx-questions@seagate.com.
 ## Clone -> Get the Utility
 
 ```bash
-git clone https://github.com/Seagate/cortx-utils.git
-cd cortx-utils/py-utils/src/utils/tool_factory
+curl -OL https://raw.githubusercontent.com/Seagate/cortx-utils/kubernetes/py-utils/src/utils/tool_factory/extract_support_bundle.sh
 ```
 
 ### Procedure to extract SB
