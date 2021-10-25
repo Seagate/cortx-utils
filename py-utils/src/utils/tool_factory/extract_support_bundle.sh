@@ -15,18 +15,55 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 PROG_NAME=$(basename "$0")
-TARFILE=
+IS_TAR=false
+FILE=
 
 usage() {
     echo """usage: $PROG_NAME [-f file_path] [-t target_path] [-c components]""" 1>&2;
     exit 1;
 }
 
+extract_tar() {
+    TARFILE="$1"
+    dest="$2"
+    tar -xvf "$TARFILE" -C "$dest" &>/dev/null
+}
+
+deflate() {
+    case "$1" in
+        *.tar.gz )
+            extract_tar "$1" "$2"
+            IS_TAR=true
+            ;;
+        *)
+            echo "Requested SB archeive format: ${1} not supported yet."
+            ;;
+    esac
+}
+
+extract_compfile() {
+    entry="$1"
+    for file in "$entry"/*
+    do
+        if [[ "$file" =~ \.tar.gz$ ]]; then
+            component=$(basename "$entry")
+            tar_name=$(tar -tzf "$file" | head -1 | cut -f1 -d"/")
+            if [ "$tar_name" == "$component" ]; then
+                dest_path="$DIR_PATH"
+            else
+                dest_path="$DIR_PATH/$component"
+            fi
+            extract_tar "$file" "$dest_path"
+            rm -rf "$file"
+        fi
+    done
+}
+
 # Check for passed in arguments
 while getopts ":f:d:c:" opt; do
     case "${opt}" in
         f)
-            TARFILE=${OPTARG}
+            FILE=${OPTARG}
             ;;
         d)
             DEST=${OPTARG}
@@ -40,59 +77,44 @@ while getopts ":f:d:c:" opt; do
     esac
 done
 
-if [ -z $"$TARFILE" ];
+if [ -z $"$FILE" ];
 then
-    echo "Required TARFILE path is missing/invalid."
+    echo "Supplied support bundle file/path is Invalid"
     exit 1
 fi
 [ -z "$DEST" ] && DEST="$(pwd)"
 [ -z "$COMPONENTS" ] && COMPONENTS="all"
 
 # Extract the Support Bundle Tarball
-TAR_NAME=$(tar -tzf "$TARFILE" | head -1 | cut -f1 -d"/")
+deflate "$FILE" "$DEST"
 
-tar -xzf "$TARFILE" -C "$DEST"
-DIR_PATH=$DEST/$TAR_NAME
-cd "$DIR_PATH"
-
-extract_file() {
-    component=$(basename "$1")
-    for file in "$1"/*
-    do
-        if tar -tf "$file" &>/dev/null; then
-            comp_tarname=$(tar -tzf "$file" | head -1 | cut -f1 -d"/")
-            if [ "$comp_tarname" == "$component" ]; then
-                dest_path="$DIR_PATH"
-            else
-                dest_path="$DIR_PATH/$component"
-            fi
-            tar -xzf "$file" -C "$dest_path" 
-            rm -rf "$file"
-        fi
-    done
-}
-
-# Extract the nested component specific tarfiles
-if [ "$COMPONENTS" == "all" ]; then
-    for entry in "$DIR_PATH"/*
-    do
-        extract_file "$entry"
-    done
-else
-    # Replace comma seperated components with space.
-    COMPONENTS=${COMPONENTS//,/ }
-    COMPONENTS=${COMPONENTS//  / }
-
-    for entry in "$DIR_PATH"/*
-    do
-        component=$(basename "$entry")
-        for comps in $COMPONENTS
+if [ "$IS_TAR" = true ]; then
+    tar_name=$(tar -tzf "$FILE" | head -1 | cut -f1 -d"/")
+    DIR_PATH="$DEST"/"$tar_name"
+    cd "$DIR_PATH"
+    # Extract the nested component specific tarfiles
+    if [ "$COMPONENTS" == "all" ]; then
+        for entry in "$DIR_PATH"/*
         do
-            if [ "$component" == "$comps" ]; then
-                extract_file "$entry"
-            fi
+            extract_compfile "$entry"
         done
-    done
+    else
+        # Replace comma seperated components with space.
+        COMPONENTS=${COMPONENTS//,/ }
+        COMPONENTS=${COMPONENTS//  / }
+
+        for entry in "$DIR_PATH"/*
+        do
+            component=$(basename "$entry")
+            for comps in $COMPONENTS
+            do
+                if [ "$component" == "$comps" ]; then
+                    extract_compfile "$entry"
+                fi
+            done
+        done
+    fi
 fi
 
-echo "Successfully Extracted the SB tarfile at path:$DEST !!!"
+echo "Successfully extracted the supplied Support bundle \
+archive at requested destination-path: $DEST !!!"

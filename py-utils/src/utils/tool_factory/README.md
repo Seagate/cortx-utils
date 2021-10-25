@@ -19,10 +19,11 @@ please email opensource@seagate.com or cortx-questions@seagate.com.
 
 ---
 
-## Clone
+## Clone -> Get the Utility
 
 ```bash
 git clone https://github.com/Seagate/cortx-utils.git
+cd cortx-utils/py-utils/src/utils/tool_factory
 ```
 
 ### Procedure to extract SB
@@ -30,6 +31,8 @@ git clone https://github.com/Seagate/cortx-utils.git
 *   Execute extract_support_bundle.sh script from entrypoint passing args:
 <file_path of tar archive> <destination> [Optional Parameter, Default: $PWD]
 <components_list as a string seperated by comma> [Optional Parameter, Default: "All components"]
+
+#### Example Command
 ```bash
 <install_path>/py-utils/src/utils/tool_factory/extract_support_bundle.sh
 -f '/tmp/SB09995_8d00f71d6e0eeef02e971e6356bb83aa.tar.gz'
