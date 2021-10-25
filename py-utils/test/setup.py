@@ -43,7 +43,9 @@ setup(
         "cortx.utils.test.kv_store",
         "cortx.utils.test.message_bus",
         "cortx.utils.test.conf_store",
-        "cortx.utils.test.schema",
+        "cortx.utils.test.service_handler",
+        "cortx.utils.test.ssh_connection",
+        "cortx.utils.test.ha_dm",
         "cortx.utils.test.cli_framework",
         "cortx.utils.test.iem_framework",
         "cortx.utils.test.shared_storage",
@@ -59,9 +61,9 @@ setup(
     ],
     package_data={
         "": [
-            "*.json",
             "plans/*.pln",
-            "schema/*.json",
+            "ha_dm/*.json",
+            "ha_dm/test_schema/*.json",
             "kv_store/*.json",
             "conf_store/*.json",
             "conf_store/*.yaml",

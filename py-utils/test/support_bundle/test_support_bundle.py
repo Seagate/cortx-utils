@@ -123,7 +123,7 @@ class TestSupportBundle(unittest.TestCase):
             import re
             status_bundle_id = re.search(r'/SB........', status).group(0)[1:]
             self.assertEqual(bundle_obj.bundle_id, status_bundle_id)
-            cmd = "pcs cluster start --all"
+        cmd = "pcs cluster start --all"
         cmd_proc = SimpleProcess(cmd)
         _, _, rc = cmd_proc.run()
         self.assertEqual(rc, 0)
