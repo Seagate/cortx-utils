@@ -60,8 +60,8 @@ class TestSupportBundle(unittest.TestCase):
         """Validate SB generated path."""
         bundle_obj = SupportBundle.generate(
             comment=TestSupportBundle.sb_description, \
-                components=['provisioner'])
-        time.sleep(15)
+                components=['csm'])
+        time.sleep(25)
         tar_file_name = f"{bundle_obj.bundle_id}_"\
             f"{TestSupportBundle.node_name}.tar.gz"
         sb_file_path = f"{bundle_obj.bundle_path}/{bundle_obj.bundle_id}/"\
@@ -189,8 +189,8 @@ class TestSupportBundle(unittest.TestCase):
         self.assertEqual(rc, 0)
         bundle_obj = SupportBundle.generate(
             comment=TestSupportBundle.sb_description, \
-                components=['provisioner'])
-        time.sleep(15)
+                components=['csm'])
+        time.sleep(25)
         tar_file_name = f"{bundle_obj.bundle_id}_"\
             f"{TestSupportBundle.node_name}.tar.gz"
         sb_file_path = f"{bundle_obj.bundle_path}/{bundle_obj.bundle_id}/"\
@@ -210,7 +210,7 @@ class TestSupportBundle(unittest.TestCase):
         self.assertEqual(rc, 0)
         bundle_obj = SupportBundle.generate(
             comment=TestSupportBundle.sb_description, components=['csm'])
-        time.sleep(15)
+        time.sleep(25)
         tar_file_name = f"{bundle_obj.bundle_id}_"\
             f"{TestSupportBundle.node_name}.tar.gz"
         sb_file_path = f"{bundle_obj.bundle_path}/{bundle_obj.bundle_id}/"\

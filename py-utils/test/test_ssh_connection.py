@@ -31,16 +31,17 @@ sys.path.append(utils_root)
 class TestSSHChannel(unittest.TestCase):
     """ Check ssh connection related validations """
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         """ Create temporary user for doing ssh on localhost """
-        self.hostname = "localhost"
-        self.__user = "utiltester"
-        self.__passwd = "P@ssw0rd"
-        e_pass = crypt.crypt(self.__passwd, "22")
-        os.system(f"sudo useradd -M -p {e_pass} {self.__user}")
+        cls.hostname = "localhost"
+        cls.__user = "utiltester"
+        cls.__passwd = "P@ssw0rd"
+        e_pass = crypt.crypt(cls.__passwd, "22")
+        os.system(f"sudo useradd -M -p {e_pass} {cls.__user}")
 
         # Let ssh connection be alive across all tests
-        self.session = SSHChannel(self.hostname, self.__user, self.__passwd, sftp_enabled=True)
+        cls.session = SSHChannel(cls.hostname, cls.__user, cls.__passwd, sftp_enabled=True)
 
     def test_connection_ok(self):
         """ Check if ssh connection is alive """
@@ -98,10 +99,11 @@ class TestSSHChannel(unittest.TestCase):
         self.session.recv_file(remote_file, local_file)
         os.remove(remote_file)
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(cls):
         """ Cleanup the setup """
-        self.session.disconnect()
-        os.system(f"sudo userdel {self.__user}")
+        cls.session.disconnect()
+        os.system(f"sudo userdel {cls.__user}")
 
 
 if __name__ == '__main__':
