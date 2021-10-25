@@ -222,7 +222,7 @@ class TestSupportBundle(unittest.TestCase):
         status = json.loads(status)
         if status['status']:
             self.assertEqual(status['status'][0]['result'], 'Success')
-            cmd = "pcs cluster start --all"
+        cmd = "pcs cluster start --all"
         cmd_proc = SimpleProcess(cmd)
         _, _, rc = cmd_proc.run()
         self.assertEqual(rc, 0)
