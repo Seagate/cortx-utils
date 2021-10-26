@@ -59,9 +59,9 @@ validator.test_pkg_validator
 validator.test_salt_validator
 validator.test_service_validator
 
-test_service_handler
+service_handler.test_service_handler
 
-test_ssh_connection
+ssh_connection.test_ssh_connection
 
 iem_framework.test_iem
 
