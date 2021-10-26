@@ -23,7 +23,7 @@ from cortx.utils.iem_framework.error import EventMessageError
 
 class TestMessage(unittest.TestCase):
     """Test EventMessage send and receive functionality."""
-    _cluster_conf = 'yaml:///tmp/cluster.conf'
+    _cluster_conf = 'yaml:///etc/cortx/cluster.conf'
     def test_alert_send(self):
         """ Test send alerts """
         EventMessage.init(component='cmp', source='H', cluster_conf=TestMessage._cluster_conf)

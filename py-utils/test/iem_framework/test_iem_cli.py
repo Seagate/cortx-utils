@@ -24,7 +24,7 @@ from cortx.utils.process import SimpleProcess
 
 class TestIemCli(unittest.TestCase):
     """ Test case will test available API's of IemCli """
-    _cluster_conf = 'yaml:///tmp/cluster.conf'
+    _cluster_conf = 'yaml:///etc/cortx/cluster.conf'
 
     @classmethod
     def setUpClass(cls) -> None:
