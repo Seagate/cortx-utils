@@ -19,7 +19,7 @@ please email opensource@seagate.com or cortx-questions@seagate.com.
 
 ---
 
-## Clone -> Get the Utility
+## Get the Utility
 
 ```bash
 curl -OL https://raw.githubusercontent.com/Seagate/cortx-utils/kubernetes/py-utils/src/utils/tool_factory/extract_support_bundle.sh
@@ -28,12 +28,14 @@ curl -OL https://raw.githubusercontent.com/Seagate/cortx-utils/kubernetes/py-uti
 ### Procedure to extract SB
 
 *   Execute extract_support_bundle.sh script from entrypoint passing args:
-<file_path of tar archive> <destination> [Optional Parameter, Default: $PWD]
-<components_list as a string seperated by comma> [Optional Parameter, Default: "All components"]
+    -f [absolute file path of SB archive]
+    -d [destination path] (Optional Parameter, Default: $PWD)
+    -c [components_list as a string seperated by comma] (Optional Parameter, Default: "all")
 
 #### Example Command
 ```bash
-<install_path>/py-utils/src/utils/tool_factory/extract_support_bundle.sh
--f '/tmp/SB09995_8d00f71d6e0eeef02e971e6356bb83aa.tar.gz'
--d '/var/cortx/support_bundle' -c "common, utils"
+./extract_support_bundle.sh \
+-f '/tmp/SB09995_8d00f71d6e0eeef02e971e6356bb83aa.tar.gz' \
+-d '/var/cortx/support_bundle' \
+-c "common, utils"
 ```

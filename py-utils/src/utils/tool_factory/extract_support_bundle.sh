@@ -17,6 +17,7 @@
 PROG_NAME=$(basename "$0")
 IS_TAR=false
 FILE=
+MACHINE_ID="/etc/machine-id"
 
 usage() {
     echo """usage: $PROG_NAME [-f file_path] [-t target_path] [-c components]""" 1>&2;
@@ -89,8 +90,10 @@ fi
 deflate "$FILE" "$DEST"
 
 if [ "$IS_TAR" = true ]; then
+    node_id=$(cat "$MACHINE_ID")
     tar_name=$(tar -tzf "$FILE" | head -1 | cut -f1 -d"/")
-    DIR_PATH="$DEST"/"$tar_name"
+    DIR_PATH="$DEST"/"$node_id"
+    mv "$DEST"/"$tar_name" "$DIR_PATH"
     cd "$DIR_PATH"
     # Extract the nested component specific tarfiles
     if [ "$COMPONENTS" == "all" ]; then
