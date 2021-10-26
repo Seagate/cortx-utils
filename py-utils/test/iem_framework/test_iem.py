@@ -23,29 +23,29 @@ from cortx.utils.iem_framework.error import EventMessageError
 
 class TestMessage(unittest.TestCase):
     """Test EventMessage send and receive functionality."""
-
+    _cluster_conf = 'yaml:///tmp/cluster.conf'
     def test_alert_send(self):
         """ Test send alerts """
-        EventMessage.init(component='cmp', source='H')
+        EventMessage.init(component='cmp', source='H', cluster_conf=TestMessage._cluster_conf)
         EventMessage.send(module='mod', event_id='500', severity='B', \
             message_blob='This is message')
 
     def test_alert_verify_receive(self):
         """ Test receive alerts """
-        EventMessage.subscribe(component='cmp')
+        EventMessage.subscribe(component='cmp', cluster_conf=TestMessage._cluster_conf)
         alert = EventMessage.receive()
         self.assertIs(type(alert), dict)
 
     def test_bulk_alert_send(self):
         """ Test bulk send alerts """
-        EventMessage.init(component='cmp', source='H')
+        EventMessage.init(component='cmp', source='H', cluster_conf=TestMessage._cluster_conf)
         for alert_count in range(0, 1000):
             EventMessage.send(module='mod', event_id='500', severity='B', \
                 message_blob='This is message' + str(alert_count))
 
     def test_bulk_verify_receive(self):
         """ Test bulk receive alerts """
-        EventMessage.subscribe(component='cmp')
+        EventMessage.subscribe(component='cmp', cluster_conf=TestMessage._cluster_conf)
         count = 0
         while True:
             alert = EventMessage.receive()
@@ -68,15 +68,15 @@ class TestMessage(unittest.TestCase):
 
     def test_receive_without_send(self):
         """ Receive message without send """
-        EventMessage.subscribe(component='cmp')
+        EventMessage.subscribe(component='cmp', cluster_conf=TestMessage._cluster_conf)
         alert = EventMessage.receive()
         self.assertIsNone(alert)
 
     def test_init_validation(self):
         """ Validate init attributes """
         with self.assertRaises(EventMessageError):
-            EventMessage.init(component=None, source='H')
-            EventMessage.init(component='cmp', source='I')
+            EventMessage.init(component=None, source='H', cluster_conf=TestMessage._cluster_conf)
+            EventMessage.init(component='cmp', source='I', cluster_conf=TestMessage._cluster_conf)
 
     def test_send_validation(self):
         """ Validate send attributes """
@@ -92,17 +92,17 @@ class TestMessage(unittest.TestCase):
 
     def test_subscribe_validation(self):
         with self.assertRaises(EventMessageError):
-            EventMessage.subscribe(component=None)
+            EventMessage.subscribe(component=None, cluster_conf=TestMessage._cluster_conf)
 
     def test_json_alert_send(self):
         """ Test send json as message description """
-        EventMessage.init(component='cmp', source='H')
+        EventMessage.init(component='cmp', source='H', cluster_conf=TestMessage._cluster_conf)
         EventMessage.send(module='mod', event_id='500', severity='B', \
             message_blob={'input': 'This is message'})
 
     def test_json_verify_receive(self):
         """ Test receive json as message description """
-        EventMessage.subscribe(component='cmp')
+        EventMessage.subscribe(component='cmp', cluster_conf=TestMessage._cluster_conf)
         alert = EventMessage.receive()
         self.assertIs(type(alert), dict)
 
@@ -133,4 +133,7 @@ class TestMessage(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    import sys
+    if len(sys.argv) >= 2:
+        TestMessage._cluster_conf = sys.argv.pop()
     unittest.main()
