@@ -17,27 +17,30 @@
 PROG_NAME=$(basename "$0")
 IS_TAR=false
 FILE=
-MACHINE_ID="/etc/machine-id"
 
 usage() {
     echo """usage: $PROG_NAME [-f file_path] [-t target_path] [-c components]""" 1>&2;
     exit 1;
 }
 
-extract_tar() {
+extract_tgz() {
     TARFILE="$1"
     dest="$2"
-    tar -xvf "$TARFILE" -C "$dest" &>/dev/null
+    tar -xvf "$TARFILE" -C "$dest" >/dev/null
+    if [ $? -ne 0 ]; then
+        echo "Failed to untar the file: ${TARFILE}"
+        exit 1;
+    fi
 }
 
 deflate() {
     case "$1" in
-        *.tar.gz )
-            extract_tar "$1" "$2"
+        *.tar.gz|*.tgz )
+            extract_tgz "$1" "$2"
             IS_TAR=true
             ;;
         *)
-            echo "Requested SB archeive format: ${1} not supported yet."
+            echo "Requested SB archive format: ${1} not supported yet."
             ;;
     esac
 }
@@ -48,13 +51,13 @@ extract_compfile() {
     do
         if [[ "$file" =~ \.tar.gz$ ]]; then
             component=$(basename "$entry")
-            tar_name=$(tar -tzf "$file" | head -1 | cut -f1 -d"/")
+            tar_name=$(tar -tf "$file" | head -1 | cut -f1 -d"/")
             if [ "$tar_name" == "$component" ]; then
                 dest_path="$DIR_PATH"
             else
                 dest_path="$DIR_PATH/$component"
             fi
-            extract_tar "$file" "$dest_path"
+            extract_tgz "$file" "$dest_path"
             rm -rf "$file"
         fi
     done
@@ -90,8 +93,9 @@ fi
 deflate "$FILE" "$DEST"
 
 if [ "$IS_TAR" = true ]; then
-    node_id=$(cat "$MACHINE_ID")
-    tar_name=$(tar -tzf "$FILE" | head -1 | cut -f1 -d"/")
+    filename=$(basename "$FILE")
+    node_id=$(grep -oP '_\K[^.]*' <<< "$filename")
+    tar_name=$(tar -tf "$FILE" | head -1 | cut -f1 -d"/")
     DIR_PATH="$DEST"/"$node_id"
     mv "$DEST"/"$tar_name" "$DIR_PATH"
     cd "$DIR_PATH"

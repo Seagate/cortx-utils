@@ -17,8 +17,6 @@ please email opensource@seagate.com or cortx-questions@seagate.com.
 
 # Support Bundle Extractor Utility
 
----
-
 ## Get the Utility
 
 ```bash
@@ -28,9 +26,11 @@ curl -OL https://raw.githubusercontent.com/Seagate/cortx-utils/kubernetes/py-uti
 ### Procedure to extract SB
 
 *   Execute extract_support_bundle.sh script from entrypoint passing args:
-    -f [absolute file path of SB archive]
-    -d [destination path] (Optional Parameter, Default: $PWD)
-    -c [components_list as a string seperated by comma] (Optional Parameter, Default: "all")
+    | Flag short | Description | Default |
+    | --- | --- | --- |
+    | -f | absolute file path of SB archive |
+    | -d | destination path to extract the SB| $PWD |
+    | -c | components_list as a string seperated by comma| "all" |
 
 #### Example Command
 ```bash
