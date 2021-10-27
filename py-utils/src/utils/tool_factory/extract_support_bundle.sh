@@ -23,6 +23,11 @@ usage() {
     exit 1;
 }
 
+extract_tar_name() {
+    tar_name=$(tar -tf "$1" | head -1 | cut -f1 -d"/")
+    echo "$tar_name"
+}
+
 extract_tgz() {
     TARFILE="$1"
     dest="$2"
@@ -51,7 +56,7 @@ extract_compfile() {
     do
         if [[ "$file" =~ \.tar.gz$ ]]; then
             component=$(basename "$entry")
-            tar_name=$(tar -tf "$file" | head -1 | cut -f1 -d"/")
+            tar_name=$(extract_tar_name "$file")
             if [ "$tar_name" == "$component" ]; then
                 dest_path="$DIR_PATH"
             else
@@ -90,12 +95,25 @@ fi
 [ -z "$COMPONENTS" ] && COMPONENTS="all"
 
 # Extract the Support Bundle Tarball
-deflate "$FILE" "$DEST"
+prompt_msg=$'\nWARNING: Extracting support bundle may consume lot of disk space,
+(In GBs if core files present)
+Make sure to have enough free space to extract SB,
+And it is highly recommended to avoid extracting in /tmp folder,
+as you may run into Low Disk Space error due to a full /tmp folder.
+\nDo you want to proceed ? Y/N\n'
+while true; do
+    read -p "$prompt_msg" yn
+    case $yn in
+        [Yy]* ) deflate "$FILE" "$DEST"; break;;
+        [Nn]* ) exit;;
+        * ) echo "Please choose [Y/N].";;
+    esac
+done
 
 if [ "$IS_TAR" = true ]; then
     filename=$(basename "$FILE")
     node_id=$(grep -oP '_\K[^.]*' <<< "$filename")
-    tar_name=$(tar -tf "$FILE" | head -1 | cut -f1 -d"/")
+    tar_name=$(extract_tar_name "$FILE")
     DIR_PATH="$DEST"/"$node_id"
     mv "$DEST"/"$tar_name" "$DIR_PATH"
     cd "$DIR_PATH"
