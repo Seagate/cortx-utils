@@ -24,8 +24,8 @@ import shutil
 import psutil
 import time
 import json
+from datetime import datetime, timedelta
 
-from datetime import datetime
 from cortx.utils.log import Log
 from cortx.utils.schema.providers import Response
 from cortx.utils.errors import OPERATION_SUCESSFUL, ERR_OP_FAILED
@@ -121,7 +121,7 @@ class SupportBundle:
                 os.makedirs(conf_target.replace(f'/{conf_name}', ''), exist_ok = True)
                 shutil.move(sb_config, conf_target)
                 common_locations.add(config_path.split('/')[1])
-            
+
             # Copying "/etc/cortx/solution" directory into support bundle
             # except for "secret" folder.
             sln_target = os.path.join(bundle_path, 'common' + const\
@@ -132,7 +132,7 @@ class SupportBundle:
                 _ = shutil.copytree(const.CORTX_SOLUTION_DIR, sln_target, \
                         ignore=shutil.ignore_patterns('secret'))
                 common_locations.add(const.CORTX_SOLUTION_DIR.split('/')[1])
-            
+
             # Copying RELEASE.INFO file into support bundle.
             if os.path.exists(const.CORTX_RELEASE_INFO):
                 rel_target = os.path.join(bundle_path, 'common' + const\
@@ -142,7 +142,7 @@ class SupportBundle:
                 common_locations.add(const.CORTX_RELEASE_INFO.split('/')[1])
             else:
                 Log.warn(f'{const.CORTX_RELEASE_INFO} file not found.')
-            
+
             # Adding node resources health into the support bundle.
             health_target = os.path.join(bundle_path, 'common' + '/health')
             os.makedirs(health_target, exist_ok = True)
@@ -224,6 +224,47 @@ class SupportBundle:
                 rc=str(errno.ENOENT))
 
     @staticmethod
+    def _get_delim_value(duration:str, delim:str) -> int:
+        """
+        Returns int value for passed delim
+
+        Args:
+            duration (str): duration is ISO 8601 format eg P4DT2H10M
+            delim (str): duration delimiter (D/H/M/S)
+
+        Returns:
+            int: value for delimiter
+        """
+        match = re.search(f'[0-9]+{delim}',duration)
+        if match:
+            return int(match.group(0)[:-1])
+        else:
+            return 0
+
+    @staticmethod
+    def _parse_duration(duration:str) -> datetime:
+        """
+        Parses duration and and converts correspondign time in millisecons
+
+        Args:
+            duration (str): Duraion in ISO 8601 format: D_H_M_S_ where
+                            D: Days, H: Hours, M: Minutes, S: Seconds
+
+        Returns:
+            datetime: datetime obj of log_start time
+        """
+        days = SupportBundle._get_delim_value(duration,'D')
+        hours = SupportBundle._get_delim_value(duration,'H')
+        minutes = SupportBundle._get_delim_value(duration,'M')
+        seconds = SupportBundle._get_delim_value(duration,'S')
+        duration_seconds = timedelta(days=days, hours=hours,  minutes=minutes,
+            seconds=seconds).total_seconds()
+        current_time_sec = time.time()
+        log_start_sec = current_time_sec - duration_seconds
+
+        return datetime.fromtimestamp(log_start_sec)
+
+    @staticmethod
     def generate(comment: str, target_path: str, bundle_id:str, **kwargs):
         """
         Initializes the process for Generating Support Bundle on EachCORTX Node.
@@ -233,12 +274,17 @@ class SupportBundle:
         components:     Optional paramter, If not specified SB will be generated
                         for all components. You can specify multiple components
                         also Eg: components = ['utils', 'provisioner']
+        duration:       Duration in ISO 8601 format eg P2DT3H20M50S
+                        **NOTE: Y,M & W are not supported
+
         return:         bundle_obj
         """
-        config_url = ''
-        for key, value in kwargs.items():
-            if key == 'config_url':
-                config_url = value
+        config_url = kwargs.get('config_url', '')
+        duration = kwargs.get('duration', 'P5D')    # Default duration is 5 days
+        log_start_time = SupportBundle._parse_duration(duration)
+        Log.info(f"Capturing logs generated after {log_start_time}")
+        # TODO: Utilize the log_start_time to filter log
+
         options = {'comment': comment, 'target_path': target_path, 'bundle_id': bundle_id, \
             'config_url': config_url, 'comm':{'type': 'direct', 'target': \
             'utils.support_framework', 'method': 'generate_bundle', 'class': \
