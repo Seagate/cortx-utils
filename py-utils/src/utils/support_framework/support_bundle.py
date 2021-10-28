@@ -91,15 +91,21 @@ class SupportBundle:
         components = cortx_config_store.get(f'node>{node_id}>components')
         num_components = len(components)
         components_list = []
+        service_per_comp = {}
         for comp_idx in range(0, num_components):
+            services = cortx_config_store.get(
+                    f'node>{node_id}>components[{comp_idx}]>services')
+            service = 'all' if services is None else ','.join(services)
             comp_name = components[comp_idx]['name']
             components_list.append(comp_name)
+            service_per_comp[comp_name] = service
         if components is None:
             Log.warn(f"No component specified for {node_name} in CORTX config")
             Log.warn(f"Skipping SB generation on node:{node_name}.")
             return
         bundle_obj = Bundle(bundle_id=bundle_id, bundle_path=bundle_path, \
-            comment=comment,node_name=node_name, components=components_list)
+            comment=comment,node_name=node_name, components=components_list,
+            services=service_per_comp)
 
         # Start SB Generation on Node.
         # Adding CORTX manifest data inside support Bundle.

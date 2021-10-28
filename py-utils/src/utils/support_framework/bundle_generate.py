@@ -81,7 +81,8 @@ class ComponentsBundle:
 
     @staticmethod
     async def _exc_components_cmd(commands: List, bundle_id: str, path: str, \
-            component: str, node_name: str, comment: str, config_url:str):
+            component: str, node_name: str, comment: str, config_url:str,
+            services:str):
         """
         Executes the Command for Bundle Generation of Every Component.
 
@@ -93,8 +94,9 @@ class ComponentsBundle:
         comment:        User Comment: type:str
         """
         for command in commands:
-            Log.info(f"Executing command -> {command} -b {bundle_id} -t {path} -c {config_url}")
-            cmd_proc = SimpleProcess(f"{command} -b {bundle_id} -t {path} -c {config_url}")
+            Log.info(f"Executing command -> {command} -b {bundle_id} -t {path}"
+                     f" -c {config_url} -s {services}")
+            cmd_proc = SimpleProcess(f"{command} -b {bundle_id} -t {path} -c {config_url} -s {services}")
             output, err, return_code = cmd_proc.run()
             Log.debug(f"Command Output -> {output} {err}, {return_code}")
             if return_code != 0:
@@ -120,6 +122,7 @@ class ComponentsBundle:
         node_name = bundle_obj.node_name
         comment = bundle_obj.comment
         components_list = bundle_obj.components
+        services_dict = bundle_obj.services
         Log.info(f"components:{components_list}")
         bundle_path = bundle_obj.bundle_path
 
@@ -141,6 +144,7 @@ class ComponentsBundle:
         # OS Logs are specifically generated hence here Even
         # When All is Selected O.S. Logs Will Be Skipped.
         for each_component in components_list:
+            services = services_dict[each_component]
             components_commands = []
             components_files = command_files_info[each_component]
             for file_path in components_files:
@@ -164,7 +168,7 @@ class ComponentsBundle:
                         ComponentsBundle._exc_components_cmd(\
                         components_commands, f'{bundle_id}_{node_id}_{each_component}',
                             f'{bundle_path}{os.sep}', each_component,
-                            node_name, comment, config_url))
+                            node_name, comment, config_url, services))
                     if return_code != 0:
                         Log.error(
                             f"Bundle generation failed for component - '{component}'")
