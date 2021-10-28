@@ -63,13 +63,13 @@ sudo python3 setup.py bdist_wheel --version=1.0.0
 - Install with RPM package
 
 ```sh
-sudo yum install dist/cortx_test-1.0.0-1.noarch.rpm
+sudo yum install dist/cortx-py-utils-test-1.0.0-1.noarch.rpm
 ```
 
 - Install with pip package
 
 ```bash
-sudo pip3 install dist/cortx_test-1.0.0-py3-none-any.whl
+sudo pip3 install dist/cortx-py-utils-test-1.0.0-py3-none-any.whl
 ```
 
 ### Uninstall
