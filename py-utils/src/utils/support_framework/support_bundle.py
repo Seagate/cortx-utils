@@ -36,6 +36,7 @@ from cortx.utils.support_framework import const
 from cortx.utils.support_framework import Bundle
 from cortx.utils.support_framework.bundle_generate import ComponentsBundle
 from cortx.utils.support_framework.errors import BundleError
+from cortx.utils.process import SimpleProcess
 
 
 class SupportBundle:
@@ -151,6 +152,8 @@ class SupportBundle:
                 info["resource_usage"] = {}
                 info["resource_usage"]["cpu_usage"] = SupportBundle.\
                     get_cpu_overall_usage()
+                info["resource_usage"]["uptime"] = SupportBundle.\
+                    get_system_uptime()
                 info["resource_usage"]["disk_usage"] = SupportBundle.\
                     get_disk_overall_usage()
                 info["resource_usage"]["memory_usage"] = SupportBundle.\
@@ -287,6 +290,24 @@ class SupportBundle:
         return cpu_usage
 
     @staticmethod
+    def get_system_uptime():
+        """Get system uptime data."""
+        cmd = '/usr/bin/uptime -p'
+        system_uptime = SimpleProcess(cmd).run()[0].decode('utf-8').strip()
+        # Output: 'up 2 weeks, 2 days, 23 hours, 37 minutes'
+        system_uptime = system_uptime.replace('up ', '')
+        load_average = psutil.getloadavg()
+        # Output: (1.62, 1.45, 0.99)
+        load_average = f'{load_average[0]}, {load_average[1]}, {load_average[2]}'
+        data = {
+            'current_time': time.strftime('%H:%M:%S', time.gmtime()),
+            'system_uptime': system_uptime,
+            'logged_in_users': f'{len(psutil.users())} users',
+            'load_average': load_average
+        }
+        return data
+
+    @staticmethod
     def get_disk_overall_usage():
         units_factor_GB = 1000000000
         overall_usage = []
@@ -295,7 +316,7 @@ class SupportBundle:
         root.mountpoint = '/'
         for obj in [root]+psutil.disk_partitions():
 	        disk_usage = {
-                "mountpoint": obj.mountpoint,
+                "volume": obj.mountpoint,
                 "totalSpace": str(int(psutil.disk_usage(obj.mountpoint).\
                     total)//int(units_factor_GB)) + ' GB',
                 "usedSpace": str(int(psutil.disk_usage(obj.mountpoint).\
