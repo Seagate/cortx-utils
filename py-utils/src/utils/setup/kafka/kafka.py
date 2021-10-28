@@ -134,7 +134,7 @@ class Kafka:
                 # inplace=True argument redirects print output to file
                 for line in fp:
                     if line.startswith(key + '=') or line.startswith('server.'):
-                        print('')  # deletes the line
+                        print('', end='')  # deletes the line
                     else:
                         print(line, end='')
 
