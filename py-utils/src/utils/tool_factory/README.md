@@ -35,7 +35,7 @@ curl -OL https://raw.githubusercontent.com/Seagate/cortx-utils/kubernetes/py-uti
 #### Example Command
 ```bash
 ./extract_support_bundle.sh \
--f '/var/cortx/SB09995_8d00f71d6e0eeef02e971e6356bb83aa.tar.gz' \
--d '/var/cortx/support_bundle' \
+-f 'SB09995_8d00f71d6e0eeef02e971e6356bb83aa.tar.gz' \
+-d '~/support_bundle' \
 -c "common, utils"
 ```

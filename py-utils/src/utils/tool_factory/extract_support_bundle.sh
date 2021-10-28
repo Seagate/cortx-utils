@@ -40,7 +40,7 @@ extract_tgz() {
 
 deflate() {
     case "$1" in
-        *.tar.gz|*.tgz )
+        *.tar.gz|*.tgz|*.tar )
             extract_tgz "$1" "$2"
             IS_TAR=true
             ;;
@@ -54,7 +54,7 @@ extract_compfile() {
     entry="$1"
     for file in "$entry"/*
     do
-        if [[ "$file" =~ \.tar.gz$ ]]; then
+        if [[ "$file" =~ \.tar.gz$ ]] || [[ "$file" =~ \.tar.xz$ ]]; then
             component=$(basename "$entry")
             tar_name=$(extract_tar_name "$file")
             if [ "$tar_name" == "$component" ]; then
@@ -111,6 +111,8 @@ while true; do
 done
 
 if [ "$IS_TAR" = true ]; then
+    # ToDo: Extracting 'node_id' from SB tarfile name,
+    # need to update the logic, in case SB tarfile is renamed.
     filename=$(basename "$FILE")
     node_id=$(grep -oP '_\K[^.]*' <<< "$filename")
     tar_name=$(extract_tar_name "$FILE")
