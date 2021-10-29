@@ -42,6 +42,7 @@ class CortxSupportBundle:
         message = args.message[0]
         bundle_id = args.bundle_id[0]
         path = args.location[0]
+        duration = args.duration
         # Use default cortx conf url ('yaml:///etc/cortx/cluster.conf'),
         # if not conf_url is parsed.
         config_url = args.cluster_conf_path[0] if args.cluster_conf_path else const.DEFAULT_CORTX_CONF
@@ -53,9 +54,8 @@ class CortxSupportBundle:
             sys.exit(1)
         path = path.split('//')[1]
         os.makedirs(const.SB_PATH, exist_ok=True)
-        bundle_obj = SupportBundle.generate(comment=message, \
-            target_path=path,bundle_id=bundle_id, \
-            config_url=config_url)
+        bundle_obj = SupportBundle.generate(comment=message, target_path=path,
+            bundle_id=bundle_id, duration=duration, config_url=config_url)
         display_string_len = len(bundle_obj.bundle_id) + 4
         response_msg = (
             f"Please use the below bundle id for checking the status of support bundle."
@@ -64,7 +64,7 @@ class CortxSupportBundle:
             f"\n{'-' * display_string_len}"
             f"\nPlease Find the file on -> {bundle_obj.bundle_path} .\n")
         return response_msg
-    
+
     @staticmethod
     def get_status(args):
         """Get status of generated support bundle."""
@@ -94,6 +94,8 @@ class GenerateCmd:
             help='Bundle ID for Support Bundle')
         s_parser.add_argument('-m', '--message', nargs='+', required=True, \
             help='Message - Reason for generating Support Bundle')
+        s_parser.add_argument('-d', '--duration', default='P5D',
+            help="Duration - duration for which log should be captured")
 
 
 class StatusCmd:
@@ -121,7 +123,7 @@ class StatusCmd:
 def main():
     from cortx.utils.log import Log
     from cortx.utils.conf_store import Conf
-    
+
     # Setup Parser
     parser = argparse.ArgumentParser(description='Cortx Support Bundle Interface', \
         formatter_class=RawTextHelpFormatter)
