@@ -294,10 +294,18 @@ class DictKvStore(KvStore):
 
     def load(self, **kwargs) -> KvPayload:
         """ Reads from the file """
+        import json
+        from json.decoder import JSONDecodeError
+
         recurse = True
         if 'recurse' in kwargs.keys():
             recurse = kwargs['recurse']
-        return KvPayload(self._store_path, self._delim, recurse=recurse)
+
+        try:
+            self.data = json.loads(self._store_path)
+        except JSONDecodeError as jerr:
+            raise KvError(errno.EINVAL, "Invalid dict format %s", jerr.__str__())
+        return KvPayload(self.data, self._delim, recurse=recurse)
 
     def dump(self, data) -> None:
         """ Saves data onto dictionary itself """
