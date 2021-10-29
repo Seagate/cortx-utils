@@ -17,13 +17,14 @@
 
 
 class Bundle:
-    def __init__(self, bundle_id, bundle_path, comment, node_name, components):
+    def __init__(self, bundle_id, bundle_path, comment, node_name, components, services):
         """Initialiases bundle object, which will have support bundle information."""
         self._bundle_id = bundle_id
         self._bundle_path = bundle_path
         self._comment = comment
         self._node_name = node_name
         self._components = components
+        self._services = services
 
     @property
     def bundle_id(self):
@@ -44,3 +45,7 @@ class Bundle:
     @property
     def components(self):
         return self._components
+
+    @property
+    def services(self):
+        return self._services
