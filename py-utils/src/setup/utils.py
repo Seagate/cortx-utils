@@ -91,32 +91,6 @@ class Utils:
 
         return val
 
-    # @staticmethod
-    # def _create_msg_bus_config(message_server_list: list, port_list: list, \
-    #     config: dict):
-    #     """ Create the config file required for message bus """
-    #     mb_index = 'mb_index'
-    #     local_path = CortxConf.get_storage_path('local')
-    #     message_bus_conf = os.path.join(local_path, 'utils/conf/message_bus.conf')
-    #     message_bus_conf_sample = message_bus_conf + '.sample'
-    #     with open(message_bus_conf_sample, 'w+') as file:
-    #         json.dump({}, file, indent=2)
-    #     Conf.load(mb_index, f'json://{message_bus_conf_sample}')
-    #     Conf.set(mb_index, 'message_broker>type', 'kafka')
-    #     for i in range(len(message_server_list)):
-    #         Conf.set(mb_index, f'message_broker>cluster[{i}]>server', \
-    #                  message_server_list[i])
-    #         Conf.set(mb_index, f'message_broker>cluster[{i}]>port', port_list[i])
-    #     Conf.set(mb_index, 'message_broker>message_bus',  config)
-    #     Conf.save(mb_index)
-
-    #     # copy this conf file as message_bus.conf
-    #     try:
-    #         os.rename(message_bus_conf_sample, message_bus_conf)
-    #     except OSError as e:
-    #         raise SetupError(e.errno, "Failed to create %s %s", \
-    #             message_bus_conf, e)
-
     @staticmethod
     def _get_server_info(conf_url_index: str, machine_id: str) -> dict:
         """Reads the ConfStore and derives keys related to Event Message.
