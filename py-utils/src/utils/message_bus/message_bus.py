@@ -33,10 +33,11 @@ class MessageBus(metaclass=Singleton):
 
     def __init__(self, cluster_conf='yaml:///etc/cortx/cluster.conf'):
         """ Initialize a MessageBus and load its configurations """
+        utils_index = 'utils_ind'
         CortxConf.init(cluster_conf=cluster_conf)
         local_storage = CortxConf.get_storage_path('local')
-        message_bus_conf = os.path.join(local_storage ,'utils/conf/message_bus.conf')
-        self.conf_file = f'json://{message_bus_conf}'
+        utils_conf = os.path.join(local_storage ,'utils/conf/utils.conf')
+        self.conf_file = f'json://{utils_conf}'
         # Get the log path
         log_dir = CortxConf.get('log_dir', '/var/log')
         utils_log_path = CortxConf.get_log_path('message_bus', base_dir=log_dir)
@@ -50,8 +51,8 @@ class MessageBus(metaclass=Singleton):
                 backup_count=5, file_size_in_mb=5)
 
         try:
-            Conf.load('message_bus', self.conf_file, skip_reload=True)
-            self._broker_conf = Conf.get('message_bus', 'message_broker')
+            Conf.load(utils_index, self.conf_file, skip_reload=True)
+            self._broker_conf = Conf.get(utils_index, 'message_broker')
             broker_type = self._broker_conf['type']
             Log.info(f"MessageBus initialized as {broker_type}")
         except ConfError as e:

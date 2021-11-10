@@ -92,32 +92,6 @@ class Utils:
         return val
 
     @staticmethod
-    def _create_msg_bus_config(message_server_list: list, port_list: list, \
-        config: dict):
-        """ Create the config file required for message bus """
-        mb_index = 'mb_index'
-        local_path = CortxConf.get_storage_path('local')
-        message_bus_conf = os.path.join(local_path, 'utils/conf/message_bus.conf')
-        message_bus_conf_sample = message_bus_conf + '.sample'
-        with open(message_bus_conf_sample, 'w+') as file:
-            json.dump({}, file, indent=2)
-        Conf.load(mb_index, f'json://{message_bus_conf_sample}')
-        Conf.set(mb_index, 'message_broker>type', 'kafka')
-        for i in range(len(message_server_list)):
-            Conf.set(mb_index, f'message_broker>cluster[{i}]>server', \
-                     message_server_list[i])
-            Conf.set(mb_index, f'message_broker>cluster[{i}]>port', port_list[i])
-        Conf.set(mb_index, 'message_broker>message_bus',  config)
-        Conf.save(mb_index)
-
-        # copy this conf file as message_bus.conf
-        try:
-            os.rename(message_bus_conf_sample, message_bus_conf)
-        except OSError as e:
-            raise SetupError(e.errno, "Failed to create %s %s", \
-                message_bus_conf, e)
-
-    @staticmethod
     def _get_server_info(conf_url_index: str, machine_id: str) -> dict:
         """Reads the ConfStore and derives keys related to Event Message.
 
@@ -144,30 +118,40 @@ class Utils:
         Conf.save('cluster')
 
     @staticmethod
-    def _create_iem_config(server_info: dict, machine_id: str):
-        """ Create the config file required for Event Message """
-        iem_index = 'iem'
+    def _create_utils_config(server_info: dict, machine_id: str, message_server_list: list, port_list: list, config: dict):
+        """
+        Create the utils config file required for message_bus and iem
+        """
+        utils_index = 'utils_ind'
         local_path = CortxConf.get_storage_path('local')
-        iem_conf = os.path.join(local_path, 'utils/conf/iem.conf')
-        iem_conf_sample = iem_conf + '.sample'
-        with open(iem_conf_sample, 'w+') as file:
+        utils_conf = os.path.join(local_path, 'utils/conf/utils.conf')
+        utils_conf_sample = utils_conf + '.sample'
+        with open(utils_conf_sample, 'w+') as file:
             json.dump({}, file, indent=2)
+        # IEM
         for _id in ['site_id', 'rack_id']:
             if _id not in server_info.keys():
                 server_info[_id] = 1
-        Conf.load(iem_index, f'json://{iem_conf_sample}', skip_reload=True)
-        Conf.set(iem_index, f'node>{machine_id}>cluster_id', \
-            server_info['cluster_id'])
-        Conf.set(iem_index, f'node>{machine_id}>site_id', server_info['site_id'])
-        Conf.set(iem_index, f'node>{machine_id}>rack_id', server_info['rack_id'])
-        Conf.set(iem_index, f'node>{machine_id}>node_id', machine_id)
-        Conf.save(iem_index)
+        Conf.load(utils_index, f'json://{utils_conf_sample}', skip_reload=True)
+        Conf.set(utils_index, f'node>{machine_id}>cluster_id', server_info['cluster_id'])
+        Conf.set(utils_index, f'node>{machine_id}>site_id', server_info['site_id'])
+        Conf.set(utils_index, f'node>{machine_id}>rack_id', server_info['rack_id'])
+        Conf.set(utils_index, f'node>{machine_id}>node_id', machine_id)
+        # Message bus conf
+        Conf.set(utils_index, 'message_broker>type', 'kafka')
+        for i in range(len(message_server_list)):
+            Conf.set(utils_index, f'message_broker>cluster[{i}]>server', \
+                     message_server_list[i])
+            Conf.set(utils_index, f'message_broker>cluster[{i}]>port', port_list[i])
+        Conf.set(utils_index, 'message_broker>message_bus',  config)
+        Conf.save(utils_index)
+
 
         # copy this sample conf file as iem.conf
         try:
-            os.rename(iem_conf_sample, iem_conf)
+            os.rename(utils_conf_sample, utils_conf)
         except OSError as e:
-            raise SetupError(e.errno, "Failed to create %s. %s", iem_conf, e)
+            raise SetupError(e.errno, "Failed to create %s. %s", utils_conf, e)
 
     @staticmethod
     def _configure_rsyslog():
@@ -260,7 +244,6 @@ class Utils:
             Log.error(f"Could not find server information in {config_template}")
             raise SetupError(errno.EINVAL, \
                 "Could not find server information in %s", config_template)
-        Utils._create_msg_bus_config(server_list, port_list, config)
 
         # Create iem config
         machine_id = Conf.machine_id
@@ -269,7 +252,7 @@ class Utils:
             Log.error(f"Could not find server information in {config_template}")
             raise SetupError(errno.EINVAL, "Could not find server " +\
                 "information in %s", config_template)
-        Utils._create_iem_config(server_info, machine_id)
+        Utils._create_utils_config(server_info, machine_id, server_list, port_list, config)
 
         # set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map(config_template_index)
