@@ -64,6 +64,7 @@ class EventMessage(metaclass=Singleton):
                         For e.g. H-Hardware, S-Software, F-Firmware, O-OS
         cluster_conf    ConfStore URL of cluster.conf file
         """
+        utils_index = 'utils_ind'
         CortxConf.init(cluster_conf=cluster_conf)
         local_storage = CortxConf.get_storage_path('local')
         utils_conf = os.path.join(local_storage, 'utils/conf/utils.conf')
@@ -81,9 +82,9 @@ class EventMessage(metaclass=Singleton):
                 backup_count=5, file_size_in_mb=5)
 
         try:
-            Conf.load('iem_cluster', cls._conf_file, skip_reload=True)
+            Conf.load(utils_index, cls._conf_file, skip_reload=True)
             machine_id = Conf.machine_id
-            ids = Conf.get('iem_cluster', f'node>{machine_id}')
+            ids = Conf.get(utils_index, f'node>{machine_id}')
             cls._site_id = ids['site_id']
             cls._rack_id = ids['rack_id']
             cls._node_id = machine_id
