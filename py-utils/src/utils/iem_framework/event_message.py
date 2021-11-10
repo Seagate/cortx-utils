@@ -66,8 +66,8 @@ class EventMessage(metaclass=Singleton):
         """
         CortxConf.init(cluster_conf=cluster_conf)
         local_storage = CortxConf.get_storage_path('local')
-        iem_conf = os.path.join(local_storage, 'utils/conf/utils.conf')
-        cls._conf_file = f'json://{iem_conf}'
+        utils_conf = os.path.join(local_storage, 'utils/conf/utils.conf')
+        cls._conf_file = f'json://{utils_conf}'
 
         cls._component = component
         cls._source = source

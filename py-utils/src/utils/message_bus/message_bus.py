@@ -35,8 +35,8 @@ class MessageBus(metaclass=Singleton):
         """ Initialize a MessageBus and load its configurations """
         CortxConf.init(cluster_conf=cluster_conf)
         local_storage = CortxConf.get_storage_path('local')
-        message_bus_conf = os.path.join(local_storage ,'utils/conf/utils.conf')
-        self.conf_file = f'json://{message_bus_conf}'
+        utils_conf = os.path.join(local_storage ,'utils/conf/utils.conf')
+        self.conf_file = f'json://{utils_conf}'
         # Get the log path
         log_dir = CortxConf.get('log_dir', '/var/log')
         utils_log_path = CortxConf.get_log_path('message_bus', base_dir=log_dir)

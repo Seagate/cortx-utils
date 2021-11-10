@@ -119,6 +119,9 @@ class Utils:
 
     @staticmethod
     def _create_utils_config(server_info: dict, machine_id: str, message_server_list: list, port_list: list, config: dict):
+        """
+        Create the utils config file required for message_bus and iem
+        """
         utils_index = 'utils_ind'
         local_path = CortxConf.get_storage_path('local')
         utils_conf = os.path.join(local_path, 'utils/conf/utils.conf')
