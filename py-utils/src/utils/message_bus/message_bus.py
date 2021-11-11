@@ -34,7 +34,8 @@ class MessageBus(metaclass=Singleton):
         # the same file will be used to log all the messagebus related
         # logs, else standard message_bus.log will be used.
         if not Log.logger:
-            raise MessageBusError("Logger is not initialized")
+            Log.init('message_bus', '/var/log', level='INFO', \
+                backup_count=5, file_size_in_mb=5)
 
         try:
             self._broker_conf = Conf.get('utils_index', 'message_broker')
@@ -42,14 +43,14 @@ class MessageBus(metaclass=Singleton):
             Log.info(f"MessageBus initialized as {broker_type}")
         except ConfError as e:
             Log.error(f"MessageBusError: {e.rc} Error while parsing" \
-                f" configuration file {self._broker_conf}. {e}.")
+                f" configuration. {e}.")
             raise MessageBusError(e.rc, "Error while parsing " + \
-                "configuration file %s. %s.", self._broker_conf, e)
+                "configuration %s. ", e)
         except Exception as e:
-            Log.error(f"MessageBusError: {e.rc} Error while parsing" \
-                f" configuration file {self._broker_conf}. {e}.")
+            Log.error(f"MessageBusError: {errno.ENOENT} Error while parsing" \
+                f" configuration. {e}.")
             raise MessageBusError(errno.ENOENT, "Error while parsing " + \
-                "configuration file %s. %s.", self._broker_conf, e)
+                "configuration %s. ", e)
 
         self._broker = MessageBrokerFactory.get_instance(broker_type, \
             self._broker_conf)
@@ -61,8 +62,8 @@ class MessageBus(metaclass=Singleton):
 
         Conf.load('utils_index', f'dict:{json.dumps(config_params)}', \
             skip_reload=True)
-        config_keys = ['message_broker>type', 'message_broker>cluster>server', \
-            'message_broker>cluster>server', \
+        config_keys = ['message_broker>type', 'message_broker>cluster[0]>server', \
+            'message_broker>cluster[0]>port', \
             'message_broker>message_bus>recv_message_timeout', \
             'message_broker>message_bus>controller_socket_timeout', \
             'message_broker>message_bus>send_message_timeout']

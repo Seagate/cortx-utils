@@ -17,6 +17,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import time
+import json
 import unittest
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus import MessageBus, MessageBusAdmin, \
@@ -36,25 +37,20 @@ class TestMessageBus(unittest.TestCase):
     _purge_retry = 20
     _producer = None
     _consumer = None
-    _cluster_conf_path = ''
+    _config_params = ''
 
     @classmethod
-    def setUpClass(cls, cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
+    def setUpClass(cls):
         """Register the test message_type."""
-        if TestMessageBus._cluster_conf_path:
-            cls.cluster_conf_path = TestMessageBus._cluster_conf_path
-        else:
-            cls.cluster_conf_path = cluster_conf_path
-        cls._admin = MessageBusAdmin(admin_id='register', \
-            cluster_conf = cls.cluster_conf_path)
+        MessageBus.init(json.loads(TestMessageBus._config_params))
+        cls._admin = MessageBusAdmin(admin_id='register')
         cls._admin.register_message_type(message_types= \
             [TestMessageBus._message_type], partitions=1)
         cls._producer = MessageProducer(producer_id='send', \
-            message_type=TestMessageBus._message_type, method='sync', \
-            cluster_conf = cls.cluster_conf_path)
+            message_type=TestMessageBus._message_type, method='sync')
         cls._consumer = MessageConsumer(consumer_id='receive', \
             consumer_group='test', message_types=[TestMessageBus._message_type], \
-            auto_ack=False, offset='earliest', cluster_conf = cls.cluster_conf_path)
+            auto_ack=False, offset='earliest')
 
     def test_001_list_message_type(self):
         """Test list message type."""
@@ -65,13 +61,10 @@ class TestMessageBus(unittest.TestCase):
     def test_002_unknown_message_type(self):
         """Test invalid message type."""
         with self.assertRaises(MessageBusError):
-            MessageProducer(producer_id='send', \
-                message_type='', method='sync', \
-                cluster_conf = TestMessageBus.cluster_conf_path)
+            MessageProducer(producer_id='send', message_type='', method='sync')
         with self.assertRaises(MessageBusError):
             MessageConsumer(consumer_id='receive', consumer_group='test', \
-                message_types=[''], auto_ack=False, offset='earliest', \
-                cluster_conf = TestMessageBus.cluster_conf_path)
+                message_types=[''], auto_ack=False, offset='earliest')
 
     @staticmethod
     def test_003_send():
@@ -132,7 +125,7 @@ class TestMessageBus(unittest.TestCase):
         for cg in consumer_group:
             consumer = MessageConsumer(consumer_id=cg, consumer_group=cg, \
                 message_types=[TestMessageBus._message_type], auto_ack=False, \
-                offset='earliest', cluster_conf = TestMessageBus.cluster_conf_path)
+                offset='earliest')
             count = 0
             while True:
                 message = consumer.receive()
@@ -239,8 +232,7 @@ class TestMessageBus(unittest.TestCase):
         if message_types_list:
             for message_type in message_types_list:
                 producer = MessageProducer(producer_id=message_type, \
-                    message_type=message_type, method='sync', \
-                    cluster_conf = TestMessageBus.cluster_conf_path)
+                    message_type=message_type, method='sync')
                 producer.delete()
 
     @classmethod
@@ -257,5 +249,5 @@ class TestMessageBus(unittest.TestCase):
 if __name__ == '__main__':
     import sys
     if len(sys.argv) >= 2:
-        TestMessageBus._cluster_conf_path = sys.argv.pop()
+        TestMessageBus._config_params = sys.argv.pop()
     unittest.main()
