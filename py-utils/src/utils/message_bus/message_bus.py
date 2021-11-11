@@ -34,8 +34,7 @@ class MessageBus(metaclass=Singleton):
         # the same file will be used to log all the messagebus related
         # logs, else standard message_bus.log will be used.
         if not Log.logger:
-            Log.init('message_bus', '/var/log', level='INFO', \
-                backup_count=5, file_size_in_mb=5)
+            raise MessageBusError(errno.ENOSYS, "Logger is not initialized")
 
         try:
             self._broker_conf = Conf.get('utils_index', 'message_broker')

@@ -19,6 +19,7 @@
 import time
 import json
 import unittest
+from cortx.utils.log import Log
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus import MessageBus, MessageBusAdmin, \
     MessageProducer, MessageConsumer
@@ -42,6 +43,8 @@ class TestMessageBus(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Register the test message_type."""
+        Log.init('message_bus', '/var/log', level='INFO', \
+            backup_count=5, file_size_in_mb=5)
         MessageBus.init(json.loads(TestMessageBus._config_params))
         cls._admin = MessageBusAdmin(admin_id='register')
         cls._admin.register_message_type(message_types= \
