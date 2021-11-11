@@ -55,11 +55,11 @@ class MessageBus(metaclass=Singleton):
             self._broker_conf)
 
     @staticmethod
-    def init(config_params: dict):
+    def init(config: dict):
         import json
         from cortx.utils.validator.v_confkeys import ConfKeysV
 
-        Conf.load('utils_index', f'dict:{json.dumps(config_params)}', \
+        Conf.load('utils_index', f'dict:{json.dumps(config)}', \
             skip_reload=True)
         config_keys = ['message_broker>type', 'message_broker>cluster[0]>server', \
             'message_broker>cluster[0]>port', \

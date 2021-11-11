@@ -38,14 +38,14 @@ class TestMessageBus(unittest.TestCase):
     _purge_retry = 20
     _producer = None
     _consumer = None
-    _config_params = ''
+    _config = ''
 
     @classmethod
     def setUpClass(cls):
         """Register the test message_type."""
         Log.init('message_bus', '/var/log', level='INFO', \
             backup_count=5, file_size_in_mb=5)
-        MessageBus.init(json.loads(TestMessageBus._config_params))
+        MessageBus.init(json.loads(TestMessageBus._config))
         cls._admin = MessageBusAdmin(admin_id='register')
         cls._admin.register_message_type(message_types= \
             [TestMessageBus._message_type], partitions=1)
@@ -252,5 +252,5 @@ class TestMessageBus(unittest.TestCase):
 if __name__ == '__main__':
     import sys
     if len(sys.argv) >= 2:
-        TestMessageBus._config_params = sys.argv.pop()
+        TestMessageBus._config = sys.argv.pop()
     unittest.main()
