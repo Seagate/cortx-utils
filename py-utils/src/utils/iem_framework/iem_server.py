@@ -15,12 +15,15 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import os
 import json
+
 from aiohttp import web
 from cortx.utils.utils_server import RestServer
 from cortx.utils.iem_framework import EventMessage
 from cortx.utils.utils_server.error import RestServerError
 from cortx.utils.iem_framework.error import EventMessageError
+from cortx.utils.conf_store import Conf
 from cortx.utils.log import Log
 from cortx.utils.common import CortxConf
 
@@ -37,9 +40,16 @@ class IemRequestHandler(RestServer):
 
             component = payload['component']
             source = payload['source']
-            cluster_conf = CortxConf.get_cluster_conf_path()
+
+            local_storage = CortxConf.get_storage_path('local')
+            utils_conf = os.path.join(local_storage, 'utils/conf/utils.conf')
+            utils_conf = f'json://{utils_conf}'
+            Conf.load('utils_ind', utils_conf, skip_reload=True)
+            config_params = {}
+            config_params['node'] = Conf._conf.get('utils_ind', 'node')
+            config_params['message_broker'] = Conf._conf.get('utils_ind', 'message_broker')
             EventMessage.init(component=component, source=source,\
-                cluster_conf=cluster_conf)
+                config_params=config_params)
 
             del payload['component']
             del payload['source']
@@ -77,9 +87,8 @@ class IemRequestHandler(RestServer):
         Log.debug(f"Received GET request for component " \
             f"{request.rel_url.query['component']}")
         try:
-            cluster_conf = CortxConf.get_cluster_conf_path()
             component = request.rel_url.query['component']
-            EventMessage.subscribe(component=component, cluster_conf=cluster_conf)
+            EventMessage.subscribe(component=component)
             alert = EventMessage.receive()
         except EventMessageError as e:
             status_code = e.rc

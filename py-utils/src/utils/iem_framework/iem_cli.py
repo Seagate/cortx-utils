@@ -16,15 +16,18 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import sys
+import os
 import errno
 import inspect
 import argparse
 import traceback
 from argparse import RawTextHelpFormatter
+from cortx.utils.common.common import CortxConf
 
 from cortx.utils.schema import Format
 from cortx.utils.iem_framework.error import EventMessageError
 from cortx.utils.iem_framework.event_message import EventMessage
+from cortx.utils.conf_store import Conf
 
 
 class IemCli:
@@ -92,10 +95,18 @@ class IemCli:
         """ send IE message """
 
         send_args = IemCli._parse_send_args(args_parse)
+        CortxConf.init(cluster_conf=send_args['cluster_conf'])
+        local_storage = CortxConf.get_storage_path('local')
+        utils_conf = os.path.join(local_storage, 'utils/conf/utils.conf')
+        utils_conf = f'json://{utils_conf}'
+        Conf.load('utils_ind', utils_conf, skip_reload=True)
+        config_params = {}
+        config_params['node'] = Conf._conf.get('utils_ind', 'node')
+        config_params['message_broker'] = Conf._conf.get('utils_ind', 'message_broker')
         EventMessage.init(
             component=send_args['component'],
             source=send_args['source_type'],
-            cluster_conf=send_args['cluster_conf']
+            config_params=config_params
         )
         EventMessage.send(
             module=send_args['module'],
