@@ -223,7 +223,7 @@ class Utils:
             Conf.load('utils_ind', conf_file, skip_reload=True)
             config_params = {'message_broker': Conf.get('utils_ind', \
                 'message_broker')}
-            MessageBus.init(json.loads(config_params))
+            MessageBus.init(json.loads(json.dumps(config_params)))
 
             admin = MessageBusAdmin(admin_id='register')
             admin.register_message_type(message_types=['IEM'], partitions=1)

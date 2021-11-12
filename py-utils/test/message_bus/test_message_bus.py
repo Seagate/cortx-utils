@@ -62,7 +62,7 @@ class TestMessageBus(unittest.TestCase):
 
         Log.init('message_bus', '/var/log', level='INFO', \
             backup_count=5, file_size_in_mb=5)
-        MessageBus.init(json.loads(config_params))
+        MessageBus.init(json.loads(json.dumps(config_params)))
         cls._admin = MessageBusAdmin(admin_id='register')
         cls._admin.register_message_type(message_types= \
             [TestMessageBus._message_type], partitions=1)
