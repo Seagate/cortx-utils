@@ -24,6 +24,8 @@ import unittest
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 from cortx.utils.schema.payload import Json
 from cortx.utils.conf_store import Conf
+from cortx.utils.schema.format import Format
+
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 file_path = os.path.join(dir_path, 'test_conf_sample_json.json')
@@ -71,6 +73,10 @@ class TestConfStore(unittest.TestCase):
         setup_and_generate_sample_files()
         Conf.load('src_index', 'yaml:///tmp/test_conf_merge.conf.sample')
         Conf.load('dest_index', 'yaml:///tmp/test_conf_merge.conf')
+        dict_data = {'k1': 'v1', 'k2': {'k3': 'v3', 'k4': {'k5': \
+            [25,'v5',27], 'k6': {'k7': 'v7', 'k8': 'v8'}}}}
+        dict_json = Format.dump(dict_data,"json")
+        Conf.load('dict', "dict:"+dict_json)
 
     def test_conf_store_load_and_get(self):
         """Test by loading the give config file to in-memory"""
@@ -438,6 +444,75 @@ class TestConfStore(unittest.TestCase):
             'cortx>software>common>test_key2'))
         self.assertEqual('kafka', Conf.get('dest_index', \
             'cortx>software>common>message_bus_type'))
+
+    # DictKVstore tests
+    def test_001_conf_dictkvstore_get_all_keys(self):
+        """Test conf store get_keys."""
+        out = Conf.get_keys('dict', key_index=False)
+        expected = ['k1', 'k2>k3', 'k2>k4>k5', 'k2>k4>k6>k7', 'k2>k4>k6>k8']
+        self.assertListEqual(expected, out)
+
+    def test_002_conf_dictkvstore_set_get_existing_single_key(self):
+        """Test conf store update existing kv."""
+        Conf.set('dict', 'k1', 'uv1')
+        out = Conf.get('dict', 'k1')
+        self.assertEqual('uv1', out)
+
+    def test_003_conf_dictkvstore_set_get_existing_nested_key(self):
+        """Test conf store update existing nested kv."""
+        Conf.set('dict', 'k2>k4>k6>k8', 'uv8')
+        out = Conf.get('dict', 'k2>k4>k6>k8')
+        self.assertEqual('uv8', out)
+        self.assertEqual('v5', Conf.get('dict', 'k2>k4>k5[1]'))
+
+    def test_004_conf_dictkvstore_set_get_new_single_key(self):
+        """Test conf store set kv."""
+        Conf.set('dict', 'k9', 'v9')
+        out = Conf.get('dict', 'k9')
+        self.assertIn('k9', Conf.get_keys('dict'))
+        self.assertEqual('v9', out)
+
+    def test_005_conf_dictkvstore_set_get_new_nested_key(self):
+        """Test conf store set nested kv."""
+        Conf.set('dict', 'k2>k10', 'v10')
+        out = Conf.get('dict', 'k2>k10')
+        self.assertIn('k2>k10', Conf.get_keys('dict'))
+        self.assertEqual('v10', out)
+
+    def test_006_conf_dictkvstore_delete_single_key(self):
+        """Test conf store delete kv."""
+        Conf.delete('dict', 'k1')
+        out = Conf.get('dict', 'k1')
+        self.assertNotIn('k1', Conf.get_keys('dict'))
+        self.assertIsNone(out)
+
+    def test_007_conf_dictkvstore_delete_nested_key(self):
+        """Test conf store delete nested kv."""
+        Conf.delete('dict', 'k2>k4>k6>k7')
+        out = Conf.get('dict', 'k2>k4>k6>k7')
+        self.assertNotIn('k2>k4>k6>k7', Conf.get_keys('dict'))
+        self.assertIsNone(out)
+
+    def test_008_conf_dictkvstore_delete_nonexistent_key(self):
+        """Test conf store delete non-existent kv."""
+        delete_out = Conf.delete('dict', 'k2>k4>k6>k7>k11>k12')
+        self.assertFalse(delete_out)
+
+    def test_009_conf_dictkvstore_get_nonexistent_key(self):
+        """Test conf store get non-existent kv."""
+        out = Conf.get('dict', 'k1>k3>k2')
+        self.assertIsNone(out)
+
+    def test_010_conf_dictkvstore_set_value_pass_invalid_key_argument(self):
+        """Test conf store pass wrong key argument in Conf.set()."""
+        with self.assertRaises(AttributeError):
+            Conf.set('dict', {'k13'}, 'v13')
+
+    def test_011_conf_dictkvstore_set_empty_value_to_key(self):
+        """Test conf store set empty value to key."""
+        Conf.set('dict', 'k1', '')
+        out = Conf.get('dict', 'k1')
+        self.assertEqual('', out)
 
     @classmethod
     def tearDownClass(cls):
