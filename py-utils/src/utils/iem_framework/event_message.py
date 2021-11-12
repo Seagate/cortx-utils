@@ -19,7 +19,7 @@ import os
 import json
 import time
 import errno
-from cortx.utils.common import CortxConf
+
 from cortx.utils import errors
 from cortx.template import Singleton
 from cortx.utils.conf_store import Conf
