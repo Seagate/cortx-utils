@@ -16,10 +16,13 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import os
 import time
 import json
 import unittest
 from cortx.utils.log import Log
+from cortx.utils.conf_store import Conf
+from cortx.utils.common import CortxConf
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus import MessageBus, MessageBusAdmin, \
     MessageProducer, MessageConsumer
@@ -38,14 +41,28 @@ class TestMessageBus(unittest.TestCase):
     _purge_retry = 20
     _producer = None
     _consumer = None
-    _config = ''
+    _cluster_conf_path = ''
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls, cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
         """Register the test message_type."""
+        if TestMessageBus._cluster_conf_path:
+            cls.cluster_conf_path = TestMessageBus._cluster_conf_path
+        else:
+            cls.cluster_conf_path = cluster_conf_path
+
+        # Read the config values
+        CortxConf.init(cluster_conf=cls.cluster_conf_path)
+        local_storage = CortxConf.get_storage_path('local')
+        utils_conf = os.path.join(local_storage, 'utils/conf/utils.conf')
+        conf_file = f'json://{utils_conf}'
+        Conf.load('utils_ind', conf_file, skip_reload=True)
+        config_params = {'message_broker': Conf.get('utils_ind', \
+            'message_broker')}
+
         Log.init('message_bus', '/var/log', level='INFO', \
             backup_count=5, file_size_in_mb=5)
-        MessageBus.init(json.loads(TestMessageBus._config))
+        MessageBus.init(json.loads(config_params))
         cls._admin = MessageBusAdmin(admin_id='register')
         cls._admin.register_message_type(message_types= \
             [TestMessageBus._message_type], partitions=1)
@@ -252,5 +269,5 @@ class TestMessageBus(unittest.TestCase):
 if __name__ == '__main__':
     import sys
     if len(sys.argv) >= 2:
-        TestMessageBus._config = sys.argv.pop()
+        TestMessageBus._cluster_conf_path = sys.argv.pop()
     unittest.main()

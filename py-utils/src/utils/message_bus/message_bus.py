@@ -26,6 +26,7 @@ from cortx.utils.message_bus.message_broker import MessageBrokerFactory
 
 class MessageBus(metaclass=Singleton):
     """ Message Bus Framework over various types of Message Brokers """
+    _load_config = False
 
     def __init__(self):
         """ Initialize a MessageBus and load its configurations """
@@ -33,11 +34,14 @@ class MessageBus(metaclass=Singleton):
         # if Log.logger is already initialized by some parent process
         # the same file will be used to log all the messagebus related
         # logs, else standard message_bus.log will be used.
+        if not self._load_config:
+            raise MessageBusError(errno.EINVAL, "Config is not loaded")
+
         if not Log.logger:
             raise MessageBusError(errno.ENOSYS, "Logger is not initialized")
 
         try:
-            self._broker_conf = Conf.get('utils_index', 'message_broker')
+            self._broker_conf = Conf.get('utils_ind', 'message_broker')
             broker_type = self._broker_conf['type']
             Log.info(f"MessageBus initialized as {broker_type}")
         except ConfError as e:
@@ -59,14 +63,15 @@ class MessageBus(metaclass=Singleton):
         import json
         from cortx.utils.validator.v_confkeys import ConfKeysV
 
-        Conf.load('utils_index', f'dict:{json.dumps(config)}', \
+        Conf.load('utils_ind', f'dict:{json.dumps(config)}', \
             skip_reload=True)
         config_keys = ['message_broker>type', 'message_broker>cluster[0]>server', \
             'message_broker>cluster[0]>port', \
             'message_broker>message_bus>recv_message_timeout', \
             'message_broker>message_bus>controller_socket_timeout', \
             'message_broker>message_bus>send_message_timeout']
-        ConfKeysV().validate('exists', 'utils_index', config_keys)
+        ConfKeysV().validate('exists', 'utils_ind', config_keys)
+        MessageBus._load_config = True
 
     def init_client(self, client_type: str, **client_conf: dict):
         """ To create producer/consumer client based on the configurations """
