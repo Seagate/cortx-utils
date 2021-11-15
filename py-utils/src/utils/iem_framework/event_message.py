@@ -71,7 +71,7 @@ class EventMessage(metaclass=Singleton):
         # the same file will be used to log all the messagebus related
         # logs, else standard iem.log will be used.
         if not Log.logger:
-            EventMessageError("Logger is not initialized")
+            EventMessageError(errno.EINVAL, "Logger is not initialized")
 
         try:
             Conf.load(utils_index, f'dict:{config_params}', skip_reload=True)

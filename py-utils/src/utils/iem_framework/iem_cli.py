@@ -22,6 +22,7 @@ import inspect
 import argparse
 import traceback
 from argparse import RawTextHelpFormatter
+from cortx.utils.log import Log
 from cortx.utils.common.common import CortxConf
 
 from cortx.utils.schema import Format
@@ -103,6 +104,9 @@ class IemCli:
         config_params = {}
         config_params['node'] = Conf._conf.get('utils_ind', 'node')
         config_params['message_broker'] = Conf._conf.get('utils_ind', 'message_broker')
+        log_path = CortxConf.get_storage_path('log')
+        Log.init('message_bus', log_path, level='INFO', backup_count=5,
+            file_size_in_mb=5)
         EventMessage.init(
             component=send_args['component'],
             source=send_args['source_type'],
