@@ -514,6 +514,13 @@ class TestConfStore(unittest.TestCase):
         out = Conf.get('dict', 'k1')
         self.assertEqual('', out)
 
+    def test_012_conf_dictkvstore_set_value_to_indexed_key(self):
+        """Test conf store set value to indexed key."""
+        Conf.set('dict', 'k14[6]', 'v14')
+        expected = [{}, {}, {}, {}, {}, {}, 'v14']
+        out = Conf.get('dict', 'k14')
+        self.assertListEqual(expected, out)
+
     @classmethod
     def tearDownClass(cls):
         delete_files()
