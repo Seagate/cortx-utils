@@ -54,6 +54,11 @@ class KvStore:
         payload = self.load()
         return filter(lambda x: x.startswith(key_prefix), payload.get_keys())
 
+    def search(self, parent_key: str, search_key: str, search_val: str = None):
+        """ searches for the given key and returs list of matching keys """
+        payload = self.load()
+        return payload.search(parent_key, search_key, search_val)
+
     def get_data(self, format_type: str = None) -> str:
         payload = self.load()
         return payload.get_data(format_type)

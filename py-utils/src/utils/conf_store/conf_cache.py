@@ -60,6 +60,10 @@ class ConfCache:
         self._data.set(key, val)
         self._dirty = True
 
+    def search(self, parent_key: str, search_key: str, search_val: str):
+        """ Search for given key and value under a node """
+        return self._data.search(parent_key, search_key, search_val)
+
     def delete(self, key: str):
         """
         Delete a given key from the config.

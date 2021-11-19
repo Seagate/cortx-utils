@@ -171,6 +171,10 @@ class ConfStore:
                 index)
         return self._cache[index].delete(key)
 
+    def search(self, index: str, parent_key: str, search_key: str, search_val: str = None):
+        """ Search for a given value in the conf store """
+        return self._cache[index].search(parent_key, search_key, search_val)
+
     def copy(self, src_index: str, dst_index: str, key_list: list = None,
         recurse: bool = True):
         """
@@ -307,3 +311,14 @@ class Conf:
                     e.g. In case of "xxx[0],xxx[1]", only "xxx" is returned
         """
         return Conf._conf.get_keys(index, **filters)
+
+    def search(index: str, parent_key: str, search_key: str, search_val: str = None):
+        """
+        Search for a given key or key-value under a parent key
+        Input Parameters:
+        index   - Index for which the list of keys to be obtained
+        parent_key - Parent Key under which the search would be conducted
+        search_key - Key to be searched
+        search_val - Value for the given search_key to be searched
+        """
+        return Conf._conf.search(index, parent_key, search_key, search_val)
