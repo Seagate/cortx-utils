@@ -56,9 +56,11 @@ class KvPayload:
         data = self.get(parent_key)
         return self._search(data, search_key, search_val, parent_key)
 
-    def _search(self, data, search_key: str, search_val: str, key_prefix: str = "") -> list:
+    def _search(self, data, search_key: str, search_val: str,
+        key_prefix: str = "") -> list:
         """
-        Searches the given dictionary for the key
+        Searches the given dictionary for the key and value.
+        Returns matching keys.
         """
 
         keys = []

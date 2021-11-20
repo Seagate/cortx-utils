@@ -141,6 +141,12 @@ class ConfCli:
             index = ConfCli._index
         return Conf.get_keys(index, key_index=key_index)
 
+    @staticmethod
+    def search(args):
+        """ Returns list of keys matching to the criteria """
+        return Conf.search(ConfCli._index, args.parent_key, args.search_key,
+            args.search_val)
+
 
 class GetCmd:
     """ Get Cmd Structure """
@@ -209,6 +215,7 @@ class DeleteCmd:
         s_parser.set_defaults(func=ConfCli.delete)
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
+
 class GetsKeysCmd:
     """ Get keys command structure """
 
@@ -246,6 +253,22 @@ class MergeCmd:
         s_parser.add_argument('-k', dest='keys',  nargs='+', default=[], \
             help='Only specified keys will be merged.')
 
+
+class SearchCmd:
+    """ Search for a given key and value in conf store """
+
+    @staticmethod
+    def add_args(sub_parser) -> None:
+       s_parser = sub_parser.add_parser('search', help=
+            "Searches for the given key and value under a parent key.\n"
+            "Example Command:\n"
+            "# conf yaml:///tmp/test.conf search 'root' 'name' 'storage_node'\n\n")
+
+       s_parser.add_argument('parent_key', help="parent key")
+       s_parser.add_argument('search_key', help="search key")
+       s_parser.add_argument('search_val', help="search val") 
+       s_parser.set_defaults(func=ConfCli.search)
+        
 
 def main():
     # Setup Parser

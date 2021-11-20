@@ -60,8 +60,11 @@ class ConfCache:
         self._data.set(key, val)
         self._dirty = True
 
-    def search(self, parent_key: str, search_key: str, search_val: str):
-        """ Search for given key and value under a node """
+    def search(self, parent_key: str, search_key: str, search_val: str) -> list:
+        """
+        Search for given key and value under a node
+        Returns list of keys that matched the creteria (i.e. has given value)
+        """
         return self._data.search(parent_key, search_key, search_val)
 
     def delete(self, key: str):
