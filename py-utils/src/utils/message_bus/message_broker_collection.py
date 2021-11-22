@@ -572,6 +572,7 @@ class KafkaMessageBroker(MessageBroker):
         Parameters:
         message_type    This is essentially equivalent to the
                         queue/topic name. For e.g. "Alert"
+        expire_time     This should be the expire time in milliseconds
         """
         admin = self._clients['admin'][admin_id]
         Log.debug(f"Set expire time for message " \
@@ -583,10 +584,12 @@ class KafkaMessageBroker(MessageBroker):
             if list(tuned_params.values())[0].result() is not None:
                 if tuned_retry > 1:
                     Log.error(f"MessageBusError: {errors.ERR_OP_FAILED} " \
+                        f"Updating message type expire time by "\
                         f"alter_configs() for resource {self._resource} " \
                         f"failed using admin {admin} for message type " \
                         f"{message_type}")
                     raise MessageBusError(errors.ERR_OP_FAILED, \
+                        "Updating message type expire time by "+\
                         "alter_configs() for resource %s failed using admin" +\
                         "%s for message type %s", self._resource, admin,\
                         message_type)
