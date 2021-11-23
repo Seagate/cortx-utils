@@ -172,7 +172,7 @@ class TestMessageBus(unittest.TestCase):
         self.assertIsNone(message)
 
     def test_014_set_message_type_expiry(self):
-        """ Test set message type expiry """
+        """Test set message type expiry"""
         TestMessageBus._admin.set_message_type_expire(\
             TestMessageBus._message_type, 1)
         TestMessageBus._producer.send(["A simple test message"])
