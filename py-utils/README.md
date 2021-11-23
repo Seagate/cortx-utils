@@ -67,7 +67,7 @@ sudo yum install -y cortx-py-utils-*.noarch.rpm
 ## Uninstallation
 
 ```bash
-yum remove cortx-py-utils
+yum remove cortx-utils
 ```
 
 ## Update new dependency package
