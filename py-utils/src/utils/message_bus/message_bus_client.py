@@ -121,15 +121,15 @@ class MessageBusClient:
         client_id = self._get_conf('client_id')
         return self._message_bus.delete(client_id, message_type)
 
-    def set_message_type_expire(self, message_type, expire_time: int):
+    def set_message_type_expire(self, message_type: str, expire_time: int):
         """
         Set expiration time for given message type
         """
         message_type_list = self.list_message_types()
         if message_type not in message_type_list:
-            raise MessageBusError(errno.ENOENT, "Unknow topic: Could not"+\
-            " found the topic %s in topic list %s", message_type, \
-            message_type_list)
+            raise MessageBusError(errno.ENOENT, "Unknown topic: Could not"+\
+                " find the topic %s in topic list %s", message_type, \
+                message_type_list)
         client_id = self._get_conf('client_id')
         return self._message_bus.set_message_type_expire(client_id,\
             message_type, expire_time)

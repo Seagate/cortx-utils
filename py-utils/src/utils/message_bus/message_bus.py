@@ -124,5 +124,5 @@ class MessageBus(metaclass=Singleton):
         """
         Set expiration time for given message type 
         """
-        self._broker.set_message_type_expire(client_id,message_type, \
+        self._broker.set_message_type_expire(client_id, message_type, \
             expire_time)
