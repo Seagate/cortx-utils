@@ -16,15 +16,26 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-class FilterSupportBundle:
+import os
+import shutil
+
+
+class FilterLog:
     """Provides Filter interfaces for support bundle."""
 
     @staticmethod
     def limit_size(src_dir, file_name_reg_ex, size, dest_dir):
-        msg = "limit_size filter is not implemented yet"
-        return msg
+        # ToDo: Implementation of limit size filter.
+        # currently making a copy of source file into the dest_dir.
+        for file in os.listdir(src_dir):
+            if file.startswith(file_name_reg_ex):
+                shutil.copy(os.path.join(src_dir, file), dest_dir)
+
 
     @staticmethod
     def limit_time(start_time_and_duration, src_dir, file_name_reg_ex, dest_dir):
-        msg = "limit_time filter is not implemented yet"
-        return msg
+        # ToDo: Implementation of limit time filter.
+        # currently making a copy of source file into the dest_dir.
+        for file in os.listdir(src_dir):
+            if file.startswith(file_name_reg_ex):
+                shutil.copy(os.path.join(src_dir, file), dest_dir)
