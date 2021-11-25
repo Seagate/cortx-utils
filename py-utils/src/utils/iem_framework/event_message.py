@@ -54,8 +54,7 @@ class EventMessage(metaclass=Singleton):
 
     @staticmethod
     def _initiate_logger():
-        """ Initialize logger if required. """
-
+        """Initialize logger if required."""
         Conf.load('config_file', 'json:///etc/cortx/cortx.conf',
             skip_reload=True)
         # if Log.logger is already initialized by some parent process

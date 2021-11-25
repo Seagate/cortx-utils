@@ -7,9 +7,9 @@ cmd_framework.test_invalid_command
 
 conf_store.test_conf_cli.TestConfCli.test_conf_cli_by_get
 ###conf_store.test_conf_cli.TestConfCli.test_conf_cli_by_get_diff
-###conf_store.test_conf_cli.TestConfCli.test_conf_cli_by_set
+conf_store.test_conf_cli.TestConfCli.test_conf_cli_by_set
 conf_store.test_conf_cli.TestConfCli.test_conf_cli_by_get_list
-###conf_store.test_conf_cli.TestConfCli.test_conf_cli_by_set_list_of_value
+conf_store.test_conf_cli.TestConfCli.test_conf_cli_by_set_list_of_value
 conf_store.test_conf_cli.TestConfCli.test_conf_cli_by_delete
 conf_store.test_conf_cli.TestConfCli.test_conf_cli_by_format_data
 conf_store.test_conf_cli.TestConfCli.test_conf_cli_by_get_from_properties_store
@@ -32,36 +32,36 @@ conf_store.test_conf_cli.TestConfCli.test_conf_cli_merge
 conf_store.test_conf_store
 conf_store.test_conf_store_conf
 
-discovery.test_discovery
+### discovery.test_discovery
 
-elastic_search.test_elasticsearch
+### elastic_search.test_elasticsearch
 
-iem_framework.test_iem_server
+### iem_framework.test_iem_server
 iem_framework.test_iem_cli
 
 message_bus.test_kvpayload_message
-message_bus.test_message_bus_server
+### message_bus.test_message_bus_server
 message_bus.test_message_bus
 
 kv_store.test_consul_kv_store
 kv_store.test_kv_store
 
-shared_storage.test_shared_storage
+### shared_storage.test_shared_storage
 
 support_bundle.test_support_bundle
 support_bundle.test_support_bundle_cli
 
 validator.test_confkeys_validator
 validator.test_consul_validator
-validator.test_elasticsearch_validator
+### validator.test_elasticsearch_validator
 validator.test_path_validator
 validator.test_pkg_validator
 validator.test_salt_validator
-validator.test_service_validator
+### validator.test_service_validator
 
-service_handler.test_service_handler
+### service_handler.test_service_handler
 
-ssh_connection.test_ssh_connection
+### ssh_connection.test_ssh_connection
 
 iem_framework.test_iem
 

@@ -77,7 +77,7 @@ class SupportBundle:
                 node_id)
         # Update SB status in Filestore.
         # load conf for Support Bundle
-        Conf.load(const.SB_INDEX, 'json://' + const.FILESTORE_PATH)
+        Conf.load(const.SB_INDEX, 'json://' + const.FILESTORE_PATH, skip_reload = True)
         data = {
             'status': 'In-Progress',
             'start_time': datetime.strftime(
@@ -215,7 +215,7 @@ class SupportBundle:
         try:
             status = ''
             node_id = Conf.machine_id
-            Conf.load(const.SB_INDEX, 'json://' + const.FILESTORE_PATH)
+            Conf.load(const.SB_INDEX, 'json://' + const.FILESTORE_PATH, skip_reload = True)
             bundle_id = command.options.get(const.SB_BUNDLE_ID)
             if not bundle_id:
                 status = Conf.get(const.SB_INDEX, f'{node_id}')
