@@ -24,7 +24,7 @@ class FilterLog:
     """Provides Filter interfaces for support bundle."""
 
     @staticmethod
-    def limit_size(src_dir, file_name_reg_ex, size, dest_dir):
+    def limit_size(src_dir, dest_dir, size, file_name_reg_ex):
         # ToDo: Implementation of limit size filter.
         # currently making a copy of source file into the dest_dir.
         for file in os.listdir(src_dir):
@@ -33,7 +33,7 @@ class FilterLog:
 
 
     @staticmethod
-    def limit_time(start_time_and_duration, src_dir, file_name_reg_ex, dest_dir):
+    def limit_time(src_dir, dest_dir, duration, file_name_reg_ex):
         # ToDo: Implementation of limit time filter.
         # currently making a copy of source file into the dest_dir.
         for file in os.listdir(src_dir):
