@@ -50,6 +50,23 @@ class SupportBundle:
         return f"SB{''.join(random.choices(alphabet, k=8))}"
 
     @staticmethod
+    def get_component_size_limit(size_limit, num_components):
+        """ Converts the size unit into KB, then divide the size limit per component."""
+        units = [('GB', 1024**2),
+                ('MB', 1024),
+                ('KB', 1)]
+        for suffix, multiplier in units:
+            if size_limit.endswith(suffix):
+                num_units = size_limit[:-len(suffix)]
+                size_in_kb = int(num_units) * multiplier
+        try:
+            size_limit_per_comp = (size_in_kb // num_components)
+        except ValueError as e:
+            Log.error(f"Failed to get size_limit per component for SB. ERROR:{str(e)}")
+            return None
+        return (str(size_limit_per_comp) + 'KB')
+
+    @staticmethod
     async def _generate_bundle(command):
         """
         Initializes the process for Generating Support Bundle at shared path.
@@ -59,6 +76,8 @@ class SupportBundle:
         # Get Arguments From Command
         bundle_id = command.options.get(const.SB_BUNDLE_ID)
         comment = command.options.get(const.SB_COMMENT)
+        duration = command.options.get(const.SB_DURATION)
+        size_limit = command.options.get(const.SB_SIZE)
         config_url = command.options.get('config_url')
         config_path = config_url.split('//')[1] if '//' in config_url else ''
         path = command.options.get('target_path')
@@ -90,6 +109,8 @@ class SupportBundle:
         Log.info(f'Starting SB Generation on {node_id}:{node_name}')
         components = cortx_config_store.get(f'node>{node_id}>components')
         num_components = len(components)
+        # Get required SB size per component
+        size_limit_per_comp = SupportBundle.get_component_size_limit(size_limit, num_components)
         components_list = []
         service_per_comp = {}
         for comp_idx in range(0, num_components):
@@ -187,7 +208,8 @@ class SupportBundle:
             Log.error(f"Failed to add CORTX manifest data inside Support Bundle.{be}")
 
         try:
-            await ComponentsBundle.init(bundle_obj, node_id, config_url)
+            await ComponentsBundle.init(bundle_obj, node_id, config_url,
+                duration=duration, size_limit=size_limit_per_comp)
         except BundleError as be:
             Log.error(f"Bundle generation failed.{be}")
         except Exception as e:
@@ -233,47 +255,6 @@ class SupportBundle:
                 rc=str(errno.ENOENT))
 
     @staticmethod
-    def _get_delim_value(duration:str, delim:str) -> int:
-        """
-        Returns int value for passed delim
-
-        Args:
-            duration (str): duration is ISO 8601 format eg P4DT2H10M
-            delim (str): duration delimiter (D/H/M/S)
-
-        Returns:
-            int: value for delimiter
-        """
-        match = re.search(f'[0-9]+{delim}',duration)
-        if match:
-            return int(match.group(0)[:-1])
-        else:
-            return 0
-
-    @staticmethod
-    def _parse_duration(duration:str) -> datetime:
-        """
-        Parses duration and and converts correspondign time in millisecons
-
-        Args:
-            duration (str): Duraion in ISO 8601 format: D_H_M_S_ where
-                            D: Days, H: Hours, M: Minutes, S: Seconds
-
-        Returns:
-            datetime: datetime obj of log_start time
-        """
-        days = SupportBundle._get_delim_value(duration,'D')
-        hours = SupportBundle._get_delim_value(duration,'H')
-        minutes = SupportBundle._get_delim_value(duration,'M')
-        seconds = SupportBundle._get_delim_value(duration,'S')
-        duration_seconds = timedelta(days=days, hours=hours,  minutes=minutes,
-            seconds=seconds).total_seconds()
-        current_time_sec = time.time()
-        log_start_sec = current_time_sec - duration_seconds
-
-        return datetime.fromtimestamp(log_start_sec)
-
-    @staticmethod
     def generate(comment: str, target_path: str, bundle_id:str, **kwargs):
         """
         Initializes the process for Generating Support Bundle on EachCORTX Node.
@@ -283,19 +264,22 @@ class SupportBundle:
         components:     Optional paramter, If not specified SB will be generated
                         for all components. You can specify multiple components
                         also Eg: components = ['utils', 'provisioner']
-        duration:       Duration in ISO 8601 format eg P2DT3H20M50S
-                        **NOTE: Y,M & W are not supported
+        duration:       Duration in ISO 8601 format,
+                        For example: "2020-09-06T05:30:00P5DT3H3S"
+                        where '2020-09-06T05:30:00' is the start_time &
+                        '5DT3H3S' is the duration in ISO 8601 format: D_H_M_S
+                        D: Days, H: Hours, M: Minutes, S: Seconds
+                        **NOTE: "P" separates, the start datetime and duration.
+                        "T" separated date and time.
 
         return:         bundle_obj
         """
         config_url = kwargs.get('config_url', '')
         duration = kwargs.get('duration', 'P5D')    # Default duration is 5 days
-        log_start_time = SupportBundle._parse_duration(duration)
-        Log.info(f"Capturing logs generated after {log_start_time}")
-        # TODO: Utilize the log_start_time to filter log
-
+        size_limit = kwargs.get('size_limit', '500MB') # Default size limit per node is '500MB'
         options = {'comment': comment, 'target_path': target_path, 'bundle_id': bundle_id, \
-            'config_url': config_url, 'comm':{'type': 'direct', 'target': \
+            'config_url': config_url, 'duration': duration, 'size_limit': size_limit, \
+            'comm':{'type': 'direct', 'target': \
             'utils.support_framework', 'method': 'generate_bundle', 'class': \
             'SupportBundle', 'is_static': True, 'params': {}, 'json': {}}, \
             'output': {}, 'need_confirmation': False, 'sub_command_name': 'generate_bundle'}

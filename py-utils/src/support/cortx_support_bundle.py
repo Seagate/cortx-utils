@@ -43,6 +43,13 @@ class CortxSupportBundle:
         bundle_id = args.bundle_id[0]
         path = args.location[0]
         duration = args.duration
+        size_limit = args.size_limit.upper()
+        # size_limit should be in units - KB, MB or GB.
+        units = ['KB', 'MB', 'GB']
+        sb_size_unit = any(unit in size_limit for unit in units)
+        if not sb_size_unit:
+            sys.stderr.write("Support Bundle size limit should be in KB/MB/GB units.\n")
+            sys.exit(1)
         # Use default cortx conf url ('yaml:///etc/cortx/cluster.conf'),
         # if not conf_url is parsed.
         config_url = args.cluster_conf_path[0] if args.cluster_conf_path else const.DEFAULT_CORTX_CONF
@@ -55,7 +62,8 @@ class CortxSupportBundle:
         path = path.split('//')[1]
         os.makedirs(const.SB_PATH, exist_ok=True)
         bundle_obj = SupportBundle.generate(comment=message, target_path=path,
-            bundle_id=bundle_id, duration=duration, config_url=config_url)
+            bundle_id=bundle_id, duration=duration, config_url=config_url,
+            size_limit=size_limit)
         display_string_len = len(bundle_obj.bundle_id) + 4
         response_msg = (
             f"Please use the below bundle id for checking the status of support bundle."
@@ -95,7 +103,9 @@ class GenerateCmd:
         s_parser.add_argument('-m', '--message', nargs='+', required=True, \
             help='Message - Reason for generating Support Bundle')
         s_parser.add_argument('-d', '--duration', default='P5D',
-            help="Duration - duration for which log should be captured")
+            help="Duration - duration for which log should be captured, Default - P5D")
+        s_parser.add_argument('--size_limit', default='500MB',
+            help= "Size Limit - SB size limit per node, Default - 500MB")
 
 
 class StatusCmd:
