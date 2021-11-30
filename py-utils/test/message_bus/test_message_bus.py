@@ -172,23 +172,53 @@ class TestMessageBus(unittest.TestCase):
         self.assertIsNone(message)
 
     def test_014_set_message_type_expiry(self):
-        """Test set message type expiry"""
+        """
+        Test set message type expiry and read before expiry.
+        """
+        # Set expire time to 2 seconds
         TestMessageBus._admin.set_message_type_expire(\
-            TestMessageBus._message_type, 1)
+            TestMessageBus._message_type, 2000)
         TestMessageBus._producer.send(["A simple test message"])
+        # get before expire
         message = TestMessageBus._consumer.receive()
+        self.assertEqual(message, b'A simple test message')
+
+    def test_015_message_type_read_before_expiry(self):
+        """Test set message type expiry."""
+        # Do Purge
+        for retry_count in range(1, (TestMessageBus._purge_retry + 2)):
+            rc = TestMessageBus._producer.delete()
+            if retry_count > TestMessageBus._purge_retry:
+                self.assertIsInstance(rc, MessageBusError)
+            if rc == 0:
+                break
+            time.sleep(2*retry_count)
+        # Set expire time to 3 seconds
+        TestMessageBus._admin.set_message_type_expire(\
+            TestMessageBus._message_type, 3000)
+        for count in range(3):
+            TestMessageBus._producer.send(\
+            [f"A simple test message {count}"])
+        # Wait for message to expire
+        time.sleep(10)
+        _consumer_new = MessageConsumer(consumer_id='receive_new', \
+            consumer_group='test_new', \
+            message_types=[TestMessageBus._message_type], \
+            auto_ack=False, offset='earliest', \
+            cluster_conf = self.cluster_conf_path)
+        message = _consumer_new.receive()
         # Revert back to original timeout
         TestMessageBus._admin.set_message_type_expire(\
             TestMessageBus._message_type, 604800000)
         self.assertIsNone(message)
 
     @staticmethod
-    def test_015_concurrency():
+    def test_016_concurrency():
         """Test add concurrency count."""
         TestMessageBus._admin.add_concurrency(message_type=\
             TestMessageBus._message_type, concurrency_count=5)
 
-    def test_016_receive_concurrently(self):
+    def test_017_receive_concurrently(self):
         """Test receive concurrently."""
         messages = []
         for msg_num in range(0, TestMessageBus._bulk_count):
@@ -229,20 +259,20 @@ class TestMessageBus(unittest.TestCase):
         time.sleep(5)
         self.assertEqual(total, TestMessageBus._bulk_count)
 
-    def test_017_reduce_concurrency(self):
+    def test_018_reduce_concurrency(self):
         """Test reduce concurrency count."""
         with self.assertRaises(MessageBusError):
             TestMessageBus._admin.add_concurrency(message_type=\
                 TestMessageBus._message_type, concurrency_count=2)
 
-    def test_018_singleton(self):
+    def test_019_singleton(self):
         """Test instance of message_bus."""
         message_bus_1 = MessageBus()
         message_bus_2 = MessageBus()
         self.assertTrue(message_bus_1 is message_bus_2)
 
     @staticmethod
-    def test_019_multiple_admins():
+    def test_020_multiple_admins():
         """Test multiple instances of admin interface."""
         message_types_list = TestMessageBus._admin.list_message_types()
         message_types_list.remove(TestMessageBus._message_type)
