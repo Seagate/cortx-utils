@@ -183,8 +183,8 @@ class TestMessageBus(unittest.TestCase):
         message = TestMessageBus._consumer.receive()
         self.assertEqual(message, b'A simple test message')
 
-    def test_015_message_type_read_before_expiry(self):
-        """Test set message type expiry."""
+    def test_015_message_type_read_after_expiry(self):
+        """Test receive expired messages."""
         # Do Purge
         for retry_count in range(1, (TestMessageBus._purge_retry + 2)):
             rc = TestMessageBus._producer.delete()
