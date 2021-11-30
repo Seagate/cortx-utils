@@ -74,7 +74,6 @@ class KvPayload:
                     keys.extend(self._search(val, search_key, search_val,
                         "%s[%d]" % (key_prefix, i)))
             return keys
-                
         elif isinstance(data, dict):
             for key, val in data.items():
                 if isinstance(val, (str, int)):

@@ -143,7 +143,7 @@ class ConfCli:
 
     @staticmethod
     def search(args):
-        """ Returns list of keys matching to the criteria """
+        """Returns list of keys matching to the criteria."""
         return Conf.search(ConfCli._index, args.parent_key, args.search_key,
             args.search_val)
 
@@ -255,7 +255,7 @@ class MergeCmd:
 
 
 class SearchCmd:
-    """ Search for a given key and value in conf store """
+    """Search for a given key and value in conf store."""
 
     @staticmethod
     def add_args(sub_parser) -> None:
@@ -266,9 +266,8 @@ class SearchCmd:
 
        s_parser.add_argument('parent_key', help="parent key")
        s_parser.add_argument('search_key', help="search key")
-       s_parser.add_argument('search_val', help="search val") 
+       s_parser.add_argument('search_val', help="search val")
        s_parser.set_defaults(func=ConfCli.search)
-        
 
 def main():
     # Setup Parser
