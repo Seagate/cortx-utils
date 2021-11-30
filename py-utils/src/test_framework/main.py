@@ -22,6 +22,7 @@ import time
 import importlib
 import inspect
 
+from cortx.test_framework import const
 from cortx.utils.errors import TestFailed
 
 
@@ -34,7 +35,7 @@ class TestRunner:
     """
 
     @staticmethod
-    def _run_class_setup_method(test_class, cluster_conf_path):
+    def _run_class_setup_method(ts, test_class, cluster_conf_path):
         """
         Runs class setup for test
         """
@@ -43,7 +44,10 @@ class TestRunner:
                 setup_class = method_name
         try:
             class_setup = getattr(test_class(), setup_class)
-            class_setup(cluster_conf_path)
+            if ts in const.CLUSTER_CONF_TESTS:
+                class_setup(cluster_conf_path)
+            else:
+                class_setup()
         except Exception as err:
             print("Class setup failed:",err)
 
@@ -208,7 +212,7 @@ class TestRunner:
                 test_class, tests = TestRunner.get_tests_from_modules(ts)
             # Actual test execution starts here
             ts_start_time = time.time()
-            TestRunner._run_class_setup_method(test_class, cluster_conf_path)
+            TestRunner._run_class_setup_method(ts, test_class, cluster_conf_path)
             for test in tests:
                 test_count += 1
                 try:

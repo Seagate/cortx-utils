@@ -1,39 +1,32 @@
-target_path: 'file:///var/log/cortx/SB'
-SB_single_comp: 'provisioner'
-SB_multi_comp: 'csm;utils;provisioner'
+target_path: 'file:///var/cortx/support_bundle'
 SB_generate_help: |
-  usage: support_bundle generate [-h] [-c COMPONENT [COMPONENT ...]] -t URL
-                                 [URL ...] [-cp CLUSTER_CONF_PATH]
-                                 [-s SERVICES [SERVICES ...]]
-                                 comment [comment ...]
-
-  positional arguments:
-    comment               Comment - Reason for generating Support Bundle
+  usage: cortx_support_bundle generate [-h]
+                                       [-c CLUSTER_CONF_PATH [CLUSTER_CONF_PATH ...]]
+                                       -t LOCATION [LOCATION ...] -b BUNDLE_ID
+                                       [BUNDLE_ID ...] -m MESSAGE [MESSAGE ...]
+                                       [-d DURATION]
 
   optional arguments:
     -h, --help            show this help message and exit
-    -c COMPONENT [COMPONENT ...], --component COMPONENT [COMPONENT ...]
-                          Optional, Specified component support bundle will be
-                          generated
-    -t URL [URL ...], --URL URL [URL ...]
-                          Path- CORTX support bundle will be generated at
-                          specified path.
-    -cp CLUSTER_CONF_PATH, --cluster_conf_path CLUSTER_CONF_PATH
-                          Cluster config file path for Support Bundle
-    -s SERVICES [SERVICES ...], --services SERVICES [SERVICES ...]
-                          List of services for Support Bundle
+    -c CLUSTER_CONF_PATH [CLUSTER_CONF_PATH ...], --cluster_conf_path CLUSTER_CONF_PATH [CLUSTER_CONF_PATH ...]
+                          Optional, Location- CORTX confstore file location.
+    -t LOCATION [LOCATION ...], --location LOCATION [LOCATION ...]
+                          Location- CORTX support bundle will be generated at
+                          specified location.
+    -b BUNDLE_ID [BUNDLE_ID ...], --bundle_id BUNDLE_ID [BUNDLE_ID ...]
+                          Bundle ID for Support Bundle
+    -m MESSAGE [MESSAGE ...], --message MESSAGE [MESSAGE ...]
+                          Message - Reason for generating Support Bundle
+    -d DURATION, --duration DURATION
+                          Duration - duration for which log should be captured
+
 SB_get_status_help: |
-  usage: support_bundle get_status [-h] [-b BUNDLE_ID [BUNDLE_ID ...]]
-                                   [-cp CLUSTER_CONF_PATH]
-                                   [-s SERVICES [SERVICES ...]]
+  usage: cortx_support_bundle get_status [-h] [-b BUNDLE_ID [BUNDLE_ID ...]]
+                                         [-c CLUSTER_CONF_PATH [CLUSTER_CONF_PATH ...]]
 
   optional arguments:
     -h, --help            show this help message and exit
     -b BUNDLE_ID [BUNDLE_ID ...], --bundle_id BUNDLE_ID [BUNDLE_ID ...]
                           Bundle ID of generated Support Bundle
-    -cp CLUSTER_CONF_PATH, --cluster_conf_path CLUSTER_CONF_PATH
-                          Cluster config file path for Support Bundle
-    -s SERVICES [SERVICES ...], --services SERVICES [SERVICES ...]
-                          List of services for Support Bundle
-
-
+    -c CLUSTER_CONF_PATH [CLUSTER_CONF_PATH ...], --cluster_conf_path CLUSTER_CONF_PATH [CLUSTER_CONF_PATH ...]
+                          Optional, Location- CORTX confstore file location.

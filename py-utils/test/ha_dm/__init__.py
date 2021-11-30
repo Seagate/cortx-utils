@@ -1,8 +1,5 @@
-#!/usr/bin/env python3
-
-# CORTX Python common library.
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
-#
+# CORTX-Py-Utils: CORTX Python common library.
+# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -16,22 +13,4 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import unittest
-import sys
-import os
-
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
-
-from cortx.utils.validator.v_elasticsearch import ElasticsearchV
-
-
-class TestElasticsearchValidator(unittest.TestCase):
-    """Test elasticsearch related validations."""
-
-    def test_service_status(self):
-        """Check if elasticsearch service is down."""
-        ElasticsearchV().validate('service', ['localhost', '9200'])
-
-
-if __name__ == '__main__':
-    unittest.main()
+"""Ha unittests."""

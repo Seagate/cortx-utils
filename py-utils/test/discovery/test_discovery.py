@@ -56,8 +56,9 @@ class TestDiscovery(unittest.TestCase):
 
     """Test Discovery module interfaces."""
 
-    def setUp(self):
-        self.solution_platform_monitor = common_config.get(
+    @classmethod
+    def setUpClass(cls):
+        cls.solution_platform_monitor = common_config.get(
             ["discovery>solution_platform_monitor"])[0]
         # Set platform monitor path to mocked data path
         common_config.set(
@@ -123,11 +124,12 @@ class TestDiscovery(unittest.TestCase):
         url = Discovery.get_node_manifest(req_id)
         self.assertIsNotNone(url)
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(cls):
         # Reset platform monitor path
         common_config.set(
             ["discovery>solution_platform_monitor"],
-            [self.solution_platform_monitor])
+            [cls.solution_platform_monitor])
 
 
 if __name__ == '__main__':

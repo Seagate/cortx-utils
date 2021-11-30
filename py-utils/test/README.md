@@ -63,13 +63,13 @@ sudo python3 setup.py bdist_wheel --version=1.0.0
 - Install with RPM package
 
 ```sh
-sudo yum install dist/cortx_test-1.0.0-1.noarch.rpm
+sudo yum install dist/cortx-py-utils-test-1.0.0-1.noarch.rpm
 ```
 
 - Install with pip package
 
 ```bash
-sudo pip3 install dist/cortx_test-1.0.0-py3-none-any.whl
+sudo pip3 install dist/cortx-py-utils-test-1.0.0-py3-none-any.whl
 ```
 
 ### Uninstall
@@ -77,13 +77,13 @@ sudo pip3 install dist/cortx_test-1.0.0-py3-none-any.whl
 - RPM uninstall
 
 ```bash
-yum remove cortx_test
+yum remove cortx-py-utils-test
 ```
 
 - Pip package uninstall
 
 ```bash
-pip3 uninstall cortx_test
+pip3 uninstall cortx-py-utils-test
 ```
 
 ---
@@ -125,7 +125,7 @@ python3 -m unittest test_module.TestClass.test_method
 **Disclaimer:** py-utils unittests from the below test scripts will do SSH to localhost, node, hostname to verify the py-utils functionalities
 
 ```bash
-cortx-utils/py-utils/test/test_ssh_connection.py
+cortx-utils/py-utils/test/ssh_connection/test_ssh_connection.py
 cortx-utils/py-utils/test/validator/test_bmc_validator.py
 cortx-utils/py-utils/test/validator/test_consul_validator.py
 cortx-utils/py-utils/test/validator/test_controller_validator.py

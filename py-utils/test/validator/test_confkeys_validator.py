@@ -46,8 +46,13 @@ def generate_config():
     except Exception as e:
         raise Exception(f"Unexpected exception in generate_config(): {e}")
 
+
 class TestConfStore(unittest.TestCase):
     """Test case will test available API's of v_confkeys"""
+
+    @classmethod
+    def setUpClass(cls):
+        generate_config()
 
     def test_confkeys_exist(self):
         """Check if keys exist."""
@@ -62,13 +67,15 @@ class TestConfStore(unittest.TestCase):
         try:
             ConfKeysV().validate('exists', index, ['bridge', 'bridge>port_no'])
         except Exception as e:
-            os.remove(test_backend_file)
             if "key missing" not in f"{e}":
                 raise Exception(f"Unexpected exception: {e}")
             return
-        os.remove(test_backend_file)
         self.fail("Unexpected test pass, this key should not be found.")
 
+    @classmethod
+    def tearDownClass(cls):
+        os.remove(test_backend_file)
+
+
 if __name__ == '__main__':
-    generate_config()
     unittest.main()

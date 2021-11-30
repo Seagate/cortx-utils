@@ -17,6 +17,7 @@
 
 import sys
 import os
+import time
 import unittest
 
 from cortx.utils.service.service_handler import Service
@@ -27,23 +28,28 @@ sys.path.append(utils_root)
 class TestSystemHandler(unittest.TestCase):
     _service_name = 'rsyslog.service'
 
-    def setUp(self):
-        self.service_obj = Service(TestSystemHandler._service_name)
+    @classmethod
+    def setUpClass(cls):
+        cls.service_obj = Service(TestSystemHandler._service_name)
 
     def test_start(self):
         self.service_obj.start()
+        time.sleep(3)
         service_state = self.test_get_state()
         self.assertEqual(service_state.state,'active')
         self.assertEqual(service_state.substate,'running')
 
     def test_stop(self):
         self.service_obj.stop()
+        time.sleep(3)
         service_state = self.test_get_state()
         self.assertEqual(service_state.state,'inactive')
         self.assertEqual(service_state.substate,'dead')
+        self.service_obj.start()
 
     def test_restart(self):
         self.service_obj.restart()
+        time.sleep(3)
         service_state = self.test_get_state()
         self.assertEqual(service_state.state,'active')
         self.assertEqual(service_state.substate,'running')
@@ -63,6 +69,7 @@ class TestSystemHandler(unittest.TestCase):
 
     def test_is_enabled(self):
         return self.service_obj.is_enabled()
+
 
 if __name__ == '__main__':
     unittest.main()
