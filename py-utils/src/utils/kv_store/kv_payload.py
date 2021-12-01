@@ -48,8 +48,44 @@ class KvPayload:
             return self._data
         return Format.dump(self._data, format_type)
 
-    def get_keys(
-        self, starts_with: str = '', recurse: bool = True, **filters) -> list:
+    def search(self, parent_key: str, search_key: str, search_val: str) -> list:
+        """
+        Searches for the given search_key and search_val under parent_key.
+        Returns all the matching keys
+        """
+        data = self.get(parent_key)
+        return self._search(data, search_key, search_val, parent_key)
+
+    def _search(self, data, search_key: str, search_val: str,
+        key_prefix: str = "") -> list:
+        """
+        Searches the given dictionary for the key and value.
+        Returns matching keys.
+        """
+
+        keys = []
+        if isinstance(data, list):
+            for i, val in enumerate(data):
+                if isinstance(val, (str, int)):
+                    key = key_prefix.split(">")[-1]
+                    if key == search_key and val == search_val:
+                        keys.append("%s[%d]" % (key_prefix, i))
+                elif isinstance(val, dict):
+                    keys.extend(self._search(val, search_key, search_val,
+                        "%s[%d]" % (key_prefix, i)))
+            return keys
+        elif isinstance(data, dict):
+            for key, val in data.items():
+                if isinstance(val, (str, int)):
+                    if key == search_key and val == search_val:
+                        keys.append("%s%s%s" % (key_prefix, self._delim, key))
+                elif isinstance(val, (dict, list)):
+                    keys.extend(self._search(val, search_key, search_val,
+                        "%s%s%s" % (key_prefix, self._delim, key)))
+
+        return keys
+
+    def get_keys(self, starts_with: str = '', recurse: bool = True, **filters) -> list:
         """
         Obtains list of keys stored in the payload
         Input Paramters:
