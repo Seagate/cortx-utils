@@ -65,6 +65,33 @@ class SupportBundle:
         return size_limit_per_comp
 
     @staticmethod
+    def _get_component_and_services(cortx_config_store, node_id, components):
+        """Returns the list of components and services per component."""
+        components_list = []
+        service_per_comp = {}
+        if not components:
+            components = cortx_config_store.get(f'node>{node_id}>components')
+            num_components = len(components)
+            for comp_idx in range(0, num_components):
+                services = cortx_config_store.get(
+                        f'node>{node_id}>components[{comp_idx}]>services')
+                service = 'all' if services is None else ','.join(services)
+                comp_name = components[comp_idx]['name']
+                components_list.append(comp_name)
+                service_per_comp[comp_name] = service
+        else:
+            comp_list = components.lower().split(',')
+            for comp in comp_list:
+                if '|' in comp:
+                    comp_name = comp.split(':')[0]
+                    service_per_comp[comp_name] = comp.split(':')[1].replace('|', ',')
+                    components_list.append(comp_name)
+                else:
+                    components_list.append(comp)
+                    service_per_comp[comp] = 'all'
+        return components_list, service_per_comp
+
+    @staticmethod
     async def _generate_bundle(command):
         """
         Initializes the process for Generating Support Bundle at shared path.
@@ -77,6 +104,10 @@ class SupportBundle:
         duration = command.options.get(const.SB_DURATION)
         size_limit = command.options.get(const.SB_SIZE)
         config_url = command.options.get('config_url')
+        binlogs = command.options.get('binlogs')
+        coredumps = command.options.get('coredumps')
+        stacktrace = command.options.get('stacktrace')
+        components = command.options.get('components')
         config_path = config_url.split('//')[1] if '//' in config_url else ''
         path = command.options.get('target_path')
         bundle_path = os.path.join(path, bundle_id)
@@ -105,20 +136,10 @@ class SupportBundle:
 
         node_name = cortx_config_store.get(f'node>{node_id}>name')
         Log.info(f'Starting SB Generation on {node_id}:{node_name}')
-        components = cortx_config_store.get(f'node>{node_id}>components')
-        num_components = len(components)
-        # Get required SB size per component
-        size_limit_per_comp = SupportBundle.get_component_size_limit(size_limit, num_components)
-        components_list = []
-        service_per_comp = {}
-        for comp_idx in range(0, num_components):
-            services = cortx_config_store.get(
-                    f'node>{node_id}>components[{comp_idx}]>services')
-            service = 'all' if services is None else ','.join(services)
-            comp_name = components[comp_idx]['name']
-            components_list.append(comp_name)
-            service_per_comp[comp_name] = service
-        if components is None:
+        components_list, service_per_comp = SupportBundle._get_component_and_services(
+            cortx_config_store, node_id, components)
+
+        if not components_list:
             Log.warn(f"No component specified for {node_name} in CORTX config")
             Log.warn(f"Skipping SB generation on node:{node_name}.")
             return
@@ -207,7 +228,8 @@ class SupportBundle:
 
         try:
             await ComponentsBundle.init(bundle_obj, node_id, config_url,
-                duration=duration, size_limit=size_limit_per_comp)
+                duration=duration, size_limit=size_limit_per_comp,
+                binlogs=binlogs, coredumps=coredumps, stacktrace=stacktrace)
         except BundleError as be:
             Log.error(f"Bundle generation failed.{be}")
         except Exception as e:
@@ -275,8 +297,15 @@ class SupportBundle:
         config_url = kwargs.get('config_url', '')
         duration = kwargs.get('duration', 'P5D')    # Default duration is 5 days
         size_limit = kwargs.get('size_limit', '500MB') # Default size limit per node is '500MB'
+        binlogs = kwargs.get('binlogs')
+        coredumps = kwargs.get('coredumps')
+        stacktrace = kwargs.get('stacktrace')
+        components = kwargs.get('components', '')
+
         options = {'comment': comment, 'target_path': target_path, 'bundle_id': bundle_id, \
             'config_url': config_url, 'duration': duration, 'size_limit': size_limit, \
+            'binlogs': binlogs, 'coredumps': coredumps, \
+            'stacktrace': stacktrace, 'components': components, \
             'comm':{'type': 'direct', 'target': \
             'utils.support_framework', 'method': 'generate_bundle', 'class': \
             'SupportBundle', 'is_static': True, 'params': {}, 'json': {}}, \
