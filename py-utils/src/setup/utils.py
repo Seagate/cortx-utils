@@ -385,6 +385,14 @@ class Utils:
         return 0
 
     @staticmethod
+    def upgrade(config_path: str):
+        """Perform upgrade steps."""
+        # ToDo - in future, for utils/message server config changes may be
+        # required during upgrade phase.
+        # Currently no config changes required.
+        return 0
+
+    @staticmethod
     def pre_upgrade(level: str):
         """ pre upgrade hook for node and cluster level """
         if level == 'node':
