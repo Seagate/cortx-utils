@@ -51,20 +51,18 @@ class SupportBundle:
 
     @staticmethod
     def get_component_size_limit(size_limit, num_components):
-        """ Converts the size unit into KB, then divide the size limit per component."""
-        units = [('GB', 1024**2),
-                ('MB', 1024),
-                ('KB', 1)]
-        for suffix, multiplier in units:
+        """Converts the size unit into KB, then divide the size limit per component."""
+        units = ['GB', 'MB', 'KB']
+        for suffix in units:
             if size_limit.endswith(suffix):
                 num_units = size_limit[:-len(suffix)]
-                size_in_kb = int(num_units) * multiplier
-        try:
-            size_limit_per_comp = (size_in_kb // num_components)
-        except ValueError as e:
-            Log.error(f"Failed to get size_limit per component for SB. ERROR:{str(e)}")
-            return None
-        return (str(size_limit_per_comp) + 'KB')
+                try:
+                    size_limit_per_comp = (int(float(num_units)) / num_components)
+                    size_limit_per_comp = str(size_limit_per_comp) + suffix
+                except ValueError as e:
+                    Log.error(f"Failed to get size_limit per component for SB. ERROR:{str(e)}")
+                    return None
+        return size_limit_per_comp
 
     @staticmethod
     async def _generate_bundle(command):

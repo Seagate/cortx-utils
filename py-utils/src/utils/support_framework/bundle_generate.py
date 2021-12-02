@@ -82,7 +82,7 @@ class ComponentsBundle:
     @staticmethod
     async def _exc_components_cmd(commands: List, bundle_id: str, path: str, \
             component: str, node_name: str, comment: str, config_url:str,
-            services:str, duration:str, size_limit_in_kb):
+            services:str, duration:str, size_limit):
         """
         Executes the Command for Bundle Generation of Every Component.
 
@@ -96,9 +96,9 @@ class ComponentsBundle:
         for command in commands:
             Log.info(f"Executing command -> {command} -b {bundle_id} -t {path}"
                 f" -c {config_url} -s {services} --duration {duration}"
-                f" --size_limit {size_limit_in_kb}")
+                f" --size_limit {size_limit}")
             cmd_proc = SimpleProcess(f"{command} -b {bundle_id} -t {path} -c {config_url}"
-                f"-s {services} --duration {duration} --size_limit {size_limit_in_kb}")
+                f"-s {services} --duration {duration} --size_limit {size_limit}")
             output, err, return_code = cmd_proc.run()
             Log.debug(f"Command Output -> {output} {err}, {return_code}")
             if return_code != 0:
@@ -128,7 +128,7 @@ class ComponentsBundle:
         Log.info(f"components:{components_list}")
         bundle_path = bundle_obj.bundle_path
         duration = kwargs.get('duration')
-        size_limit_in_kb = kwargs.get('size_limit')
+        size_limit = kwargs.get('size_limit')
 
         Log.debug((f"{const.SB_BUNDLE_ID}: {bundle_id}, {const.SB_NODE_NAME}: "
             f"{node_name}, {const.SB_COMMENT}: {comment}, "
@@ -173,7 +173,7 @@ class ComponentsBundle:
                         components_commands, f'{bundle_id}_{node_id}_{each_component}',
                             f'{bundle_path}{os.sep}', each_component,
                             node_name, comment, config_url, services,
-                            duration, size_limit_in_kb))
+                            duration, size_limit))
                     if return_code != 0:
                         Log.error(
                             f"Bundle generation failed for component - '{component}'")

@@ -105,7 +105,7 @@ class GenerateCmd:
         s_parser.add_argument('-d', '--duration', default='P5D',
             help="Duration - duration for which log should be captured, Default - P5D")
         s_parser.add_argument('--size_limit', default='500MB',
-            help= "Size Limit - SB size limit per node, Default - 500MB")
+            help= "Size Limit - Support Bundle size limit per node, Default - 500MB")
 
 
 class StatusCmd:
