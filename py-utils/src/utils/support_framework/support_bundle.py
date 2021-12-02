@@ -80,9 +80,12 @@ class SupportBundle:
                 components_list.append(comp_name)
                 service_per_comp[comp_name] = service
         else:
+            #  Components list will be ',' seperated & services per component
+            #  will be '|' seperated.
+            #  For example:- 'S3:Authserver|BGProducer,CSM,UTILS'
             comp_list = components.lower().split(',')
             for comp in comp_list:
-                if '|' in comp:
+                if ':' in comp:
                     comp_name = comp.split(':')[0]
                     service_per_comp[comp_name] = comp.split(':')[1].replace('|', ',')
                     components_list.append(comp_name)
@@ -136,6 +139,7 @@ class SupportBundle:
 
         node_name = cortx_config_store.get(f'node>{node_id}>name')
         Log.info(f'Starting SB Generation on {node_id}:{node_name}')
+        # Get required SB size per component
         components_list, service_per_comp = SupportBundle._get_component_and_services(
             cortx_config_store, node_id, components)
 
@@ -143,6 +147,8 @@ class SupportBundle:
             Log.warn(f"No component specified for {node_name} in CORTX config")
             Log.warn(f"Skipping SB generation on node:{node_name}.")
             return
+        num_components = len(components_list)
+        size_limit_per_comp = SupportBundle.get_component_size_limit(size_limit, num_components)
         bundle_obj = Bundle(bundle_id=bundle_id, bundle_path=bundle_path, \
             comment=comment,node_name=node_name, components=components_list,
             services=service_per_comp)
