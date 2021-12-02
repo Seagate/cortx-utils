@@ -411,12 +411,12 @@ class ConsulKvPayload(KvPayload):
     """ Backend adapter for consul api. """
 
     def __init__(self, consul: Consul, delim: str = '>'):
-        self._consul = consul
         if len(delim) > 1:
             raise KvError(errno.EINVAL, "Invalid delim %s", delim)
         self._delim = delim
         self._data = {}
         self._keys = []
+        self._consul = consul
         self.get_keys(self._keys)
 
 
@@ -474,15 +474,18 @@ class ConsulKVStore(KvStore):
     def __init__(self, store_loc, store_path, delim='>'):
         KvStore.__init__(self, store_loc, store_path, delim)
         if store_loc:
-            if ':' in store_loc:
-                host, port = store_loc.split(':')
-            else:
-                host, port = store_loc, 8500
+            if ':' not in store_loc:
+                store_loc = store_loc + ':8500'
         else:
-            host, port = '127.0.0.1', 8500
-        self.c = Consul(host=host, port=port)
-        self._payload = ConsulKvPayload(self.c, self._delim)
-
+            store_loc = '127.0.0.1:8500'
+        host, port = store_loc.split(':')
+        try:
+            self.c = Consul(host=host, port=port)
+            self._payload = ConsulKvPayload(self.c, self._delim)
+        except Exception as e:
+            raise KvError(errno.ECONNREFUSED, "Connection refused." \
+                "Failed to eshtablish a new connection to consul endpoint: %s.\n %s", \
+                store_loc, e)
     def load(self, **kwargs) -> ConsulKvPayload:
         """ Return ConsulKvPayload object. """
         return self._payload
