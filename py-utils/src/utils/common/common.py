@@ -37,11 +37,12 @@ class CortxConf:
             fail_reload=False)
 
     @staticmethod
-    def get_storage_path(key):
+    def get_storage_path(key, none_allowed: bool = False):
         """Get the config file path."""
         path = Conf.get(CortxConf._cluster_index, f'cortx>common>storage>{key}')
-        if not path:
-            raise ConfError(errno.EINVAL, "Invalid key %s", key)
+        if not none_allowed:
+            if not path:
+                raise ConfError(errno.EINVAL, "Invalid key %s", key)
         return path
 
     @staticmethod

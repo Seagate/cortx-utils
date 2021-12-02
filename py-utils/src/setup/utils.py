@@ -259,7 +259,7 @@ class Utils:
         Utils._configure_rsyslog()
 
         # get shared storage from cluster.conf and set it to cortx.conf
-        shared_storage = CortxConf.get_storage_path('shared')
+        shared_storage = CortxConf.get_storage_path('shared', none_allowed=True)
         if shared_storage:
             Utils._set_to_conf_file('support>shared_path', shared_storage)
 
