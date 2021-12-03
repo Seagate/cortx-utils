@@ -51,7 +51,7 @@ class SupportBundle:
 
     @staticmethod
     def get_component_size_limit(size_limit, num_components):
-        """Converts the size unit into KB, then divide the size limit per component."""
+        """Returns the size limit per component."""
         units = ['GB', 'MB', 'KB']
         for suffix in units:
             if size_limit.endswith(suffix):
