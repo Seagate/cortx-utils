@@ -88,14 +88,14 @@ class TestConfCli(unittest.TestCase):
 
     def test_conf_cli_by_set(self):
         """ Test by setting a value into given key position """
-        cmd_1 = "conf json:///tmp/file1.json set bridge>cli_name='client'"
+        cmd_1 = "conf json:///tmp/file1.json set 'bridge>cli_name=client'"
         cmd_proc_1 = SimpleProcess(cmd_1)
         cmd_proc_1.run()
-        cmd_2 = "conf json:///tmp/file1.json get bridge>cli_name"
+        cmd_2 = "conf json:///tmp/file1.json get 'bridge>cli_name'"
         cmd_proc_2 = SimpleProcess(cmd_2)
         result_data = cmd_proc_2.run()
         self.assertTrue(True if result_data[2]==0 and
-            result_data[0]==b'["\'client\'"]\n' else False, result_data[1])
+            result_data[0]==b'[\"client\"]\n' else False, result_data[1])
 
     def test_conf_cli_by_get_list(self):
         """ Test by retrieving list of values for given keys seperated by ;"""
@@ -109,16 +109,16 @@ class TestConfCli(unittest.TestCase):
         """
         Test by setting list of k,v seperated by ';' semicolon into conf
         """
-        cmd_1 = "conf json:///tmp/file1.json set bridge>cli_name='client';" \
-                "bridge>has_internet='no'"
+        cmd_1 = "conf json:///tmp/file1.json set 'bridge>cli_name=client';" \
+                "'bridge>has_internet=no'"
         cmd_proc_1 = SimpleProcess(cmd_1)
         cmd_proc_1.run()
-        cmd_2 = "conf json:///tmp/file1.json get bridge>cli_name;" \
-                "bridge>has_internet"
+        cmd_2 = "conf json:///tmp/file1.json get 'bridge>cli_name';" \
+                "'bridge>has_internet'"
         cmd_proc_2 = SimpleProcess(cmd_2)
         result_data = cmd_proc_2.run()
         self.assertTrue(True if result_data[2] == 0 and
-            result_data[0] == b'["\'client\'", "\'no\'"]\n'
+            result_data[0] == b'[\"client\", \"no\"]\n'
             else False, result_data[1])
 
     def test_conf_cli_by_delete(self):

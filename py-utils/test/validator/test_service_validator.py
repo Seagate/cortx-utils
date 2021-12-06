@@ -18,11 +18,12 @@
 
 import unittest
 from cortx.utils.validator.v_service import ServiceV
+from cortx.utils.validator.error import VError
 
 class TestServiceValidator(unittest.TestCase):
 	"""Test service related validations."""
-	services = ["rabbitmq-server", "sshd"]
-	host = "localhost"
+	services = ['sshd']
+	host = 'localhost'
 
 	def test_service_running(self):
 		"""Check if services are running."""
@@ -33,6 +34,12 @@ class TestServiceValidator(unittest.TestCase):
 		"""Check if services are running."""
 
 		ServiceV().validate('isrunning', self.services, self.host)
+
+	def test_neg_service_running(self):
+		"""Check if ned services are running."""
+		neg_service = ['rabbitmq-server']
+		self.assertRaises(VError, ServiceV().validate, 'isrunning', neg_service)
+
 
 if __name__ == '__main__':
     unittest.main()

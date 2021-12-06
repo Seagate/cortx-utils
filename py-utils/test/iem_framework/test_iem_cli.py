@@ -24,11 +24,15 @@ from cortx.utils.process import SimpleProcess
 
 class TestIemCli(unittest.TestCase):
     """ Test case will test available API's of IemCli """
+    _cluster_conf_path = ''
 
     @classmethod
-    def setUpClass(cls) -> None:
+    def setUpClass(cls, cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
         """ Defining commands for test """
-
+        if TestIemCli._cluster_conf_path:
+            cls.cluster_conf_path = TestIemCli._cluster_conf_path
+        else:
+            cls.cluster_conf_path = cluster_conf_path
         # SEND COMMANDS
         send_cmd = "iem send"
         current_abs_path = os.path.dirname(os.path.abspath(__file__))
@@ -39,13 +43,13 @@ class TestIemCli(unittest.TestCase):
         content_file_message = f"-c 200 -f {current_abs_path}/message_file.json"
 
         cls.send_with_valid_cmdline_args =\
-            f"{send_cmd} {valid_source} {valid_info} {valid_contents}"
+            f"{send_cmd} {valid_source} {valid_info} {valid_contents} --config {TestIemCli.cluster_conf_path}"
 
         cls.send_with_invalid_cmdline_args =\
-            f"{send_cmd} {invalid_info} {valid_source} {valid_contents}"
+            f"{send_cmd} {invalid_info} {valid_source} {valid_contents} --config {TestIemCli.cluster_conf_path}"
 
         cls.send_with_valid_file_cmdline_args =\
-            f"{send_cmd} {valid_source} {valid_info} {content_file_message}"
+            f"{send_cmd} {valid_source} {valid_info} {content_file_message} --config {TestIemCli.cluster_conf_path}"
 
         # RECEIVE COMMANDS
         recv_cmd = "iem receive"
@@ -53,9 +57,9 @@ class TestIemCli(unittest.TestCase):
         receive_info = "-i S"  # source_type
         invalid_receive_info = "-i invalid_info"
         recv_file_arg = "-f /tmp/iem_receive.log"
-        cls.valid_recv = f"{recv_cmd} {receive_source} {receive_info}"
-        cls.valid_recv_log_file = f"{cls.valid_recv} {recv_file_arg}"
-        cls.invalid_recv = f"{recv_cmd} {receive_source} {invalid_receive_info}"
+        cls.valid_recv = f"{recv_cmd} {receive_source} {receive_info} --config {TestIemCli.cluster_conf_path}"
+        cls.valid_recv_log_file = f"{cls.valid_recv} {recv_file_arg} --config {TestIemCli.cluster_conf_path}"
+        cls.invalid_recv = f"{recv_cmd} {receive_source} {invalid_receive_info} --config {TestIemCli.cluster_conf_path}"
 
     @classmethod
     def tearDownClass(cls) -> None:
@@ -125,4 +129,7 @@ class TestIemCli(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    import sys
+    if len(sys.argv) >= 2:
+        TestIemCli._cluster_conf_path = sys.argv.pop()
     unittest.main()

@@ -18,36 +18,39 @@
 
 import unittest
 from cortx.utils.validator.v_pkg import PkgV
+from cortx.utils.validator.error import VError
 
 class TestRpmValidator(unittest.TestCase):
-	"""Test rpm related validations."""
-	pkg = ["lvm2-2.02.186-7.el7", "openldap-server"]
-	host = "localhost"
+    """Test rpm related validations."""
+    pkg = ['openssl']
+    # host = 'localhost'
 
-	def test_rpm_installed(self):
-		"""Check if rpm pkg installed."""
+    def test_rpm_installed(self):
+        """Check if rpm pkg installed."""
+        PkgV().validate('rpms', self.pkg)
 
-		PkgV().validate('rpms', self.pkg)
+    def test_pip3_installed(self):
+        """Check if pip3 pkg installed."""
+        try:
+            pkg = ['toml']
+            PkgV().validate('pip3s', pkg)
+        except Exception as e:
+            self.fail("{}".format(e))
 
-	def test_pip3_installed(self):
-		"""Check if pip3 pkg installed."""
+    # def test_remote_rpm_installed(self):
+    #     """Check if rpm pkg installed."""
+    #     PkgV().validate('rpms', self.pkg, self.host)
 
-		try:
-			pkg = ["toml", "salt"]
-			PkgV().validate('pip3s', pkg)
-		except Exception as e:
-			self.fail("{}".format(e))
+    # def test_remote_pip3_installed(self):
+    #     """Check if pip3 pkg installed."""
+    #     pkg = ['toml']
+    #     PkgV().validate('pip3s', pkg, self.host)
 
-	def test_remote_rpm_installed(self):
-		"""Check if rpm pkg installed."""
+    def test_neg_rpm_installed(self):
+        """Check if neagtive rpm pkg installed."""
+        neg_pkg = ['lvm2-2.02.186-7.el7']
+        self.assertRaises(VError, PkgV().validate, 'rpms', neg_pkg)
 
-		PkgV().validate('rpms', self.pkg, self.host)
-
-	def test_remote_pip3_installed(self):
-		"""Check if pip3 pkg installed."""
-
-		pkg = ["toml"]
-		PkgV().validate('pip3s', pkg, self.host)
 
 if __name__ == '__main__':
     unittest.main()

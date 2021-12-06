@@ -83,6 +83,8 @@ class TestStore(unittest.TestCase):
         'properties:///tmp/example.properties')
     loaded_dir = test_current_file('dir:///tmp/conf_dir_test')
     loaded_consul = test_current_file('consul:///')
+    loaded_dict = test_current_file('dict:{"k1":"v1","k2":'
+        '{"k3":"v3", "k4":[25,"v4",27]}}')
 
     def test_json_file(self):
         """Test Kv JSON store. load json store from json:///tmp/file.json"""
@@ -113,7 +115,7 @@ class TestStore(unittest.TestCase):
         result_data = TestStore.loaded_json[0].get(['bridge>name'])
         self.assertEqual(result_data[0], None)
 
-    # YAML starts
+    # YAML store
     def test_yaml_file_load(self):
         """Test Kv YAML store. load yaml store from yaml:///tmp/sample.toml"""
         result_data = TestStore.loaded_yaml[0].get(['bridge>model'])
@@ -141,7 +143,7 @@ class TestStore(unittest.TestCase):
         result_data = TestStore.loaded_yaml[0].get(['bridge>port'])
         self.assertEqual(result_data[0], None)
 
-    # TOML starts
+    # TOML store
     def test_toml_file_load(self):
         """Test Kv TOML store. load toml store from toml:///tmp/document.toml"""
         result_data = TestStore.loaded_toml[1].get('bridge>model')
@@ -167,7 +169,7 @@ class TestStore(unittest.TestCase):
         result_data = TestStore.loaded_toml[0].get(['user'])
         self.assertEqual(result_data[0], None)
 
-    # Ini starts
+    # Ini store
     def test_ini_file_load(self):
         """Test Kv INI store. load ini store from ini:///tmp/document.ini"""
         result_data = TestStore.loaded_ini[1].get('bridge>name')
@@ -205,7 +207,7 @@ class TestStore(unittest.TestCase):
             '"homebridge","name": "Homebridge", "pin": "031-45-154", '
             '"port": 51826, "username": "CC:22:3D:E3:CE:30"}}')
 
-    # Properties starts
+    # Properties store
     def test_properties_file_load(self):
         """
         Test Kv Properties store. load properties store from
@@ -333,7 +335,7 @@ class TestStore(unittest.TestCase):
         out = TestStore.loaded_dir[0].get(['cloud>cloud_type'])
         self.assertEqual([None], out)
 
-    #consul
+    # consul store
     def test_consul_a_set_get_kv(self):
         """ Test consul kv set and get a KV. """
         TestStore.loaded_consul[0].set(['consul_cluster_uuid'], ['#410'])
@@ -365,6 +367,73 @@ class TestStore(unittest.TestCase):
         TestStore.loaded_consul[0].delete(['cloud>cloud_type'])
         out = TestStore.loaded_consul[0].get(['cloud>cloud_type'])
         self.assertEqual([None], out)
+
+    # dict store
+    def test_001_dict_store_get_data_keys(self):
+        """Test dict kv get_data and get_keys."""
+        data_out = TestStore.loaded_dict[1].get_data()
+        keys_out = TestStore.loaded_dict[1].get_keys(key_index=False)
+        expected_data = {'k1': 'v1', 'k2': {'k3': 'v3', 'k4': [25, 'v4', 27]}}
+        expected_keys = ['k1', 'k2>k3', 'k2>k4']
+        self.assertDictEqual(expected_data, data_out)
+        self.assertListEqual(expected_keys, keys_out)
+
+    def test_002_dict_store_set_get_existing_single_kv(self):
+        """Test dict kv update existing kv."""
+        TestStore.loaded_dict[1].set('k1', 'uv1')
+        out = TestStore.loaded_dict[1].get('k1')
+        self.assertEqual('uv1', out)
+
+    def test_003_dict_store_set_get_existing_nested_kv(self):
+        """Test dict kv update existing nested kv."""
+        TestStore.loaded_dict[1].set('k2>k4[0]', '21')
+        out = TestStore.loaded_dict[1].get('k2>k4[0]')
+        self.assertEqual('21', out)
+
+    def test_004_dict_store_set_get_new_single_kv(self):
+        """Test dict kv set and get a KV. """
+        TestStore.loaded_dict[1].set('k5', 'v5')
+        out = TestStore.loaded_dict[1].get('k5')
+        self.assertEqual('v5', out)
+        self.assertIn('k5', TestStore.loaded_dict[1].get_keys())
+
+    def test_005_dict_store_set_get_new_nested_kv(self):
+        """ Test dict kv set a nested key. """
+        TestStore.loaded_dict[1].set('k2>k6', 'v6')
+        out = TestStore.loaded_dict[1].get('k2>k6')
+        self.assertEqual('v6', out)
+        self.assertIn('k2>k6', TestStore.loaded_dict[1].get_keys())
+
+    def test_006_dict_store_delete_single_kv(self):
+        """Test dict kv delete kv."""
+        TestStore.loaded_dict[1].delete('k1')
+        out = TestStore.loaded_dict[1].get('k1')
+        self.assertIsNone(out)
+        self.assertNotIn('k1', TestStore.loaded_dict[1].get_keys())
+
+    def test_007_dict_store_delete_nested_kv(self):
+        """Test dict kv delete nested kv."""
+        TestStore.loaded_dict[1].delete('k2>k4[2]')
+        out = TestStore.loaded_dict[1].get('k2>k4[2]')
+        self.assertIsNone(out)
+        self.assertNotIn('k2>k4[2]', TestStore.loaded_dict[1].get_keys())
+
+    def test_008_dict_store_delete_nonexistent_kv(self):
+        """Test dict kv delete non-existent kv."""
+        delete_out = TestStore.loaded_dict[1].delete('k1>k2>k3')
+        self.assertFalse(delete_out)
+
+    def test_009_dict_store_get_nonexistent_kv(self):
+        """Test dict kv query for a non-existent key."""
+        out = TestStore.loaded_dict[1].get('Wrong_key')
+        self.assertIsNone(out)
+
+    def test_010_dict_store_set_empty_value_to_key(self):
+        """Test dict kv set empty value to key."""
+        TestStore.loaded_dict[1].set('k1', '')
+        out = TestStore.loaded_dict[1].get('k1')
+        self.assertEqual('', out)
+
 
 if __name__ == '__main__':
     unittest.main()

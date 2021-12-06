@@ -24,7 +24,7 @@ import requests
 class TestMessage(unittest.TestCase):
     """ Test MessageBus rest server functionality. """
 
-    _base_url = 'http://127.0.0.1:28300/EventMessage/event'
+    _base_url = 'http://0.0.0.0:28300/EventMessage/event'
     _component = 'cmp'
     _headers = {'content-type': 'application/json'}
     _bulk_count = 200
