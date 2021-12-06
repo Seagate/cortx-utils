@@ -194,6 +194,20 @@ class CleanupCmd(Cmd):
         return rc
 
 
+class UpgradeCmd(Cmd):
+    """Upgrade Setup Cmd."""
+    name = 'upgrade'
+
+    def __init__(self, args: dict):
+        super().__init__(args)
+        self.config_path = args.config
+
+    def process(self):
+        Utils.validate('upgrade')
+        rc = Utils.upgrade(self.config_path)
+        return rc
+
+
 class PreUpgradeCmd(Cmd):
     """ Manages post upgrade config changes """
     name = 'pre_upgrade'
@@ -202,7 +216,7 @@ class PreUpgradeCmd(Cmd):
         super().__init__(args)
 
     def process(self):
-        Utils.validate('post_upgrade')
+        Utils.validate('pre_upgrade')
         rc = Utils.pre_upgrade(self.args[0])
         return rc
 
