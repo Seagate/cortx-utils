@@ -19,10 +19,11 @@
 import os
 import yaml
 import time
+import string
+import random
 import unittest
 from cortx.utils.conf_store import Conf
 from cortx.utils.process import SimpleProcess
-from cortx.utils.validator.v_service import ServiceV
 
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -30,15 +31,20 @@ config_file = os.path.join(dir_path, 'config.yaml')
 with open(config_file) as test_args:
     configs = yaml.safe_load(test_args)
 
+def generate_bundle_id():
+    """Generate Unique Bundle ID."""
+    alphabet = string.ascii_lowercase + string.digits
+    return f"SB{''.join(random.choices(alphabet, k=5))}"
+
 def SB_generate_CLI(target_path: str, cluster_conf_path: str):
     """Executes SB generate CLI command for the given component."""
-    cmd = f"support_bundle generate 'sample comment' -t '{target_path}' -cp '{cluster_conf_path}'"
+    cmd = f"cortx_support_bundle generate -m 'test' -b '{generate_bundle_id()}' -t '{target_path}' -c '{cluster_conf_path}'"
     cmd_proc = SimpleProcess(cmd)
     return cmd_proc.run()
 
 def SB_get_status_CLI(bundle_id: str, cluster_conf_path: str):
     """Executes SB get_status CLI command for the given bundle_id."""
-    cmd = f"support_bundle get_status -b '{bundle_id}' -cp '{cluster_conf_path}'"
+    cmd = f"cortx_support_bundle get_status -b '{bundle_id}' -c '{cluster_conf_path}'"
     cmd_proc = SimpleProcess(cmd)
     return cmd_proc.run()
 
@@ -55,20 +61,19 @@ class TestSupportBundleCli(unittest.TestCase):
         else:
             cls.cluster_conf_path = cluster_conf_path
 
-    def test_001_cli_verify_SB_generate(self):
-        """Validate SB generate for single component."""
+    def test_001_cli_verify_cortx_SB_generate(self):
+        """Validate SB generate."""
         stdout, stderr, rc = SB_generate_CLI(configs['target_path'], TestSupportBundleCli.cluster_conf_path)
         self.assertIsInstance(stdout, bytes)
         self.assertEqual(stderr, b'')
         self.assertEqual(rc, 0)
 
-    def test_003_cli_verify_SB_get_status_success(self):
-        """Validate SB get_status success for single component."""
+    def test_002_cli_verify_cortx_SB_get_status_success(self):
+        """Validate SB get_status success."""
         stdout, stderr, rc = SB_generate_CLI(configs['target_path'], TestSupportBundleCli.cluster_conf_path)
         self.assertIsInstance(stdout, bytes)
         self.assertEqual(stderr, b'')
         self.assertEqual(rc, 0)
-        bundle_id = ''
         bundle_id = stdout.decode('utf-8').split('|')[1].strip()
         stdout, stderr, rc = SB_get_status_CLI(bundle_id, TestSupportBundleCli.cluster_conf_path)
         self.assertIsInstance(stdout, bytes)
@@ -76,13 +81,11 @@ class TestSupportBundleCli(unittest.TestCase):
         self.assertEqual(rc, 0)
         status = stdout.decode('utf-8')
         self.assertIsInstance(status, str)
-        import re
-        status_bundle_id = re.search(r'/SB........', status).group(0)[1:]
-        self.assertEqual(bundle_id, status_bundle_id)
+        self.assertIn("Successfully generated SB", status)
 
-    def test_006_cli_verify_SB_generate_help_response(self):
+    def test_003_cli_verify_cortx_SB_generate_help_response(self):
         """Validate SB generate help command response."""
-        cmd = "support_bundle generate -h"
+        cmd = "cortx_support_bundle generate -h"
         cmd_proc = SimpleProcess(cmd)
         stdout, stderr, rc = cmd_proc.run()
         self.assertIsInstance(stdout, bytes)
@@ -91,9 +94,9 @@ class TestSupportBundleCli(unittest.TestCase):
         status = stdout.decode('utf-8')
         self.assertEqual(status, configs['SB_generate_help'])
 
-    def test_007_cli_verify_SB_get_status_help_response(self):
+    def test_004_cli_verify_cortx_SB_get_status_help_response(self):
         """Validate SB get_status help command response."""
-        cmd = "support_bundle get_status -h"
+        cmd = "cortx_support_bundle get_status -h"
         cmd_proc = SimpleProcess(cmd)
         stdout, stderr, rc = cmd_proc.run()
         self.assertIsInstance(stdout, bytes)
@@ -102,7 +105,7 @@ class TestSupportBundleCli(unittest.TestCase):
         status = stdout.decode('utf-8')
         self.assertEqual(status, configs['SB_get_status_help'])
 
-    def test_008_cli_verify_SB_generated_path(self):
+    def test_005_cli_verify_cortx_SB_generated_path(self):
         """Validate SB generated path."""
         stdout, stderr, rc = SB_generate_CLI(configs['target_path'], TestSupportBundleCli.cluster_conf_path)
         self.assertIsInstance(stdout, bytes)
@@ -111,105 +114,12 @@ class TestSupportBundleCli(unittest.TestCase):
         bundle_id = stdout.decode('utf-8').split('|')[1].strip()
         bundle_path = stdout.decode('utf-8').split('->')[1].strip()[:-1]
         bundle_path = bundle_path.strip()
-        tar_file_name = f"{bundle_path}/{bundle_id}.tar.gz"
+        tar_file_name = f"{bundle_path}/{bundle_id}_{Conf.machine_id}.tar.gz"
         self.assertEqual(os.path.exists(tar_file_name), True)
-
-    def test_009_cli_verify_SB_generate_after_rsyslog_service_stop(self):
-        """Validate SB generate while rsyslog service is down."""
-        cmd = "systemctl stop rsyslog"
-        cmd_proc = SimpleProcess(cmd)
-        _, _, rc = cmd_proc.run()
-        self.assertEqual(rc, 0)
-        stdout, stderr, rc = SB_generate_CLI(configs['target_path'], TestSupportBundleCli.cluster_conf_path)
-        self.assertIsInstance(stdout, bytes)
-        self.assertEqual(stderr, b'')
-        self.assertEqual(rc, 0)
-        bundle_id = stdout.decode('utf-8').split('|')[1].strip()
-        bundle_path = stdout.decode('utf-8').split('->')[1].strip()[:-1]
-        bundle_path = bundle_path.strip()
-        tar_file_name = f"{bundle_path}/{bundle_id}.tar.gz"
-        self.assertEqual(os.path.exists(tar_file_name), True)
-        cmd = "systemctl start rsyslog"
-        cmd_proc = SimpleProcess(cmd)
-        _, _, rc = cmd_proc.run()
-        self.assertEqual(rc, 0)
-        ServiceV().validate('isrunning', ['rsyslog'])
-
-    def test_010_cli_verify_SB_generate_after_elasticsearch_service_stop(self):
-        """Validate SB generate while elasticsearch service is down."""
-        cmd = "systemctl stop elasticsearch"
-        cmd_proc = SimpleProcess(cmd)
-        _, _, rc = cmd_proc.run()
-        self.assertEqual(rc, 0)
-        stdout, stderr, rc = SB_generate_CLI(configs['target_path'], TestSupportBundleCli.cluster_conf_path)
-        self.assertIsInstance(stdout, bytes)
-        self.assertEqual(stderr, b'')
-        self.assertEqual(rc, 0)
-        bundle_id = stdout.decode('utf-8').split('|')[1].strip()
-        bundle_path = stdout.decode('utf-8').split('->')[1].strip()[:-1]
-        bundle_path = bundle_path.strip()
-        tar_file_name = f"{bundle_path}/{bundle_id}.tar.gz"
-        self.assertEqual(os.path.exists(tar_file_name), True)
-        cmd = "systemctl start elasticsearch"
-        cmd_proc = SimpleProcess(cmd)
-        _, _, rc = cmd_proc.run()
-        self.assertEqual(rc, 0)
-        ServiceV().validate('isrunning', ['elasticsearch'])
-
-    def test_011_cli_verify_SB_generate_after_cluster_stop(self):
-        """Validate SB generate while cluster is down."""
-        cmd = "pcs cluster stop --all"
-        cmd_proc = SimpleProcess(cmd)
-        _, _, rc = cmd_proc.run()
-        self.assertEqual(rc, 0)
-        stdout, stderr, rc = SB_generate_CLI(configs['target_path'], TestSupportBundleCli.cluster_conf_path)
-        self.assertIsInstance(stdout, bytes)
-        self.assertEqual(stderr, b'')
-        self.assertEqual(rc, 0)
-        bundle_id = stdout.decode('utf-8').split('|')[1].strip()
-        bundle_path = stdout.decode('utf-8').split('->')[1].strip()[:-1]
-        bundle_path = bundle_path.strip()
-        tar_file_name = f"{bundle_path}/{bundle_id}.tar.gz"
-        self.assertEqual(os.path.exists(tar_file_name), True)
-        cmd = "pcs cluster start --all"
-        cmd_proc = SimpleProcess(cmd)
-        _, _, rc = cmd_proc.run()
-        self.assertEqual(rc, 0)
-
-    def test_012_cli_verify_SB_get_status_after_cluster_stop(self):
-        """Validate SB get_status while cluster is down."""
-        cmd = "pcs cluster stop --all"
-        cmd_proc = SimpleProcess(cmd)
-        _, _, rc = cmd_proc.run()
-        self.assertEqual(rc, 0)
-        stdout, stderr, rc = SB_generate_CLI(configs['target_path'], TestSupportBundleCli.cluster_conf_path)
-        self.assertIsInstance(stdout, bytes)
-        self.assertEqual(stderr, b'')
-        self.assertEqual(rc, 0)
-        bundle_id = stdout.decode('utf-8').split('|')[1].strip()
-        stdout, stderr, rc = SB_get_status_CLI(bundle_id.strip(), TestSupportBundleCli.cluster_conf_path)
-        self.assertIsInstance(stdout, bytes)
-        self.assertEqual(stderr, b'')
-        self.assertEqual(rc, 0)
-        status = stdout.decode('utf-8')
-        self.assertIsInstance(status, str)
-        import re
-        status_bundle_id = re.search(r'/SB........', status).group(0)[1:]
-        self.assertEqual(bundle_id, status_bundle_id)
-        cmd = "pcs cluster start --all"
-        cmd_proc = SimpleProcess(cmd)
-        _, _, rc = cmd_proc.run()
-        self.assertEqual(rc, 0)
 
     @classmethod
     def tearDownClass(cls):
         """Test teardown class."""
-        cmds = ["systemctl start rsyslog", "systemctl start elasticsearch", \
-            "pcs cluster start --all"]
-        for cmd in cmds:
-            cmd_proc = SimpleProcess(cmd)
-            _, _, rc = cmd_proc.run()
-            assert(rc == 0)
 
 
 if __name__ == '__main__':

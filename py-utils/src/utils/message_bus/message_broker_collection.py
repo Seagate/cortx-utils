@@ -563,3 +563,44 @@ class KafkaMessageBroker(MessageBroker):
             raise MessageBusError(errors.ERR_SERVICE_NOT_INITIALIZED,\
                 "Consumer %s is not initialized.", consumer_id)
         consumer.commit(async=False)
+
+    def set_message_type_expire(self, admin_id: str, message_type: str,
+        expire_time: int):
+        """
+        Sets expiration time for individual messages types
+
+        Parameters:
+        message_type    This is essentially equivalent to the
+                        queue/topic name. For e.g. "Alert"
+        expire_time     This should be the expire time in milliseconds
+        """
+        admin = self._clients['admin'][admin_id]
+        Log.debug(f"Set expire time for message " \
+            f"type {message_type} with admin id {admin_id}")
+        # check for message_type exist or not
+        message_type_list = self.list_message_types(admin_id)
+        if message_type not in message_type_list:
+            raise MessageBusError(errno.ENOENT, "Unknown topic: Could not"+\
+                " find the topic %s in created topic list %s", message_type, \
+                message_type_list)
+        topic_resource = ConfigResource('topic', message_type)
+        for tuned_retry in range(self._max_config_retry_count):
+            topic_resource.set_config('retention.ms', expire_time)
+            tuned_params = admin.alter_configs([topic_resource])
+            if list(tuned_params.values())[0].result() is not None:
+                if tuned_retry > 1:
+                    Log.error(f"MessageBusError: {errors.ERR_OP_FAILED} " \
+                        f"Updating message type expire time by "\
+                        f"alter_configs() for resource {topic_resource} " \
+                        f"failed using admin {admin} for message type " \
+                        f"{message_type}")
+                    raise MessageBusError(errors.ERR_OP_FAILED, \
+                        "Updating message type expire time by "+\
+                        "alter_configs() for resource %s failed using admin" +\
+                        "%s for message type %s", topic_resource, admin,\
+                        message_type)
+                continue
+            else:
+                break
+        Log.debug("Successfully updated message type expire time.")
+        return 0

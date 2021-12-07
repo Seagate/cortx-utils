@@ -147,7 +147,7 @@ class Utils:
         Conf.save(utils_index)
 
 
-        # copy this sample conf file as iem.conf
+        # copy this sample conf file as utils.conf
         try:
             os.rename(utils_conf_sample, utils_conf)
         except OSError as e:
@@ -245,7 +245,7 @@ class Utils:
             CortxConf.set('log_dir', log_dir)
             CortxConf.save()
 
-        # Create message_bus config
+        # Add message_bus config to utils conf
         try:
             from cortx.utils.message_bus import MessageBrokerFactory
             server_list, port_list, config = \
@@ -255,7 +255,7 @@ class Utils:
             raise SetupError(errno.EINVAL, \
                 "Could not find server information in %s", config_template)
 
-        # Create iem config
+        # Add iem config to utils conf
         machine_id = Conf.machine_id
         server_info = Utils._get_server_info(config_template_index, machine_id)
         if server_info is None:
@@ -269,7 +269,7 @@ class Utils:
         Utils._configure_rsyslog()
 
         # get shared storage from cluster.conf and set it to cortx.conf
-        shared_storage = CortxConf.get_storage_path('shared')
+        shared_storage = CortxConf.get_storage_path('shared', none_allowed=True)
         if shared_storage:
             Utils._set_to_conf_file('support>shared_path', shared_storage)
 
@@ -365,10 +365,9 @@ class Utils:
     def cleanup(pre_factory: bool, config_path: str):
         """Remove/Delete all the data that was created after post install."""
         local_path = CortxConf.get_storage_path('local')
-        message_bus_conf = os.path.join(local_path, 'utils/conf/message_bus.conf')
-        iem_conf = os.path.join(local_path, 'utils/conf/iem.conf')
+        utils_conf = os.path.join(local_path, 'utils/conf/utils.conf')
 
-        if os.path.exists(message_bus_conf):
+        if os.path.exists(utils_conf):
             # delete message_types
             from cortx.utils.message_bus.error import MessageBusError
             try:
@@ -383,7 +382,7 @@ class Utils:
                 raise SetupError(errors.ERR_OP_FAILED, "Can not cleanup Message  \
                     Bus. %s", e)
 
-        config_files = [message_bus_conf, iem_conf]
+        config_files = [utils_conf]
         Utils._delete_files(config_files)
 
         if pre_factory:
@@ -393,6 +392,14 @@ class Utils:
             log_files = glob.glob(cortx_utils_log_regex, recursive=True)
             Utils._delete_files(log_files)
 
+        return 0
+
+    @staticmethod
+    def upgrade(config_path: str):
+        """Perform upgrade steps."""
+        # ToDo - in future, for utils/message server config changes may be
+        # required during upgrade phase.
+        # Currently no config changes required.
         return 0
 
     @staticmethod

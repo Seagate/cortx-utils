@@ -369,28 +369,71 @@ class TestStore(unittest.TestCase):
         self.assertEqual([None], out)
 
     # dict store
-    def test_dict_store_a_set_get_kv(self):
-        """ Test dict kv set and get a KV. """
-        TestStore.loaded_dict[1].set('cluster_uuid', '#410')
-        out = TestStore.loaded_dict[1].get('cluster_uuid')
-        self.assertEqual('#410', out)
+    def test_001_dict_store_get_data_keys(self):
+        """Test dict kv get_data and get_keys."""
+        data_out = TestStore.loaded_dict[1].get_data()
+        keys_out = TestStore.loaded_dict[1].get_keys(key_index=False)
+        expected_data = {'k1': 'v1', 'k2': {'k3': 'v3', 'k4': [25, 'v4', 27]}}
+        expected_keys = ['k1', 'k2>k3', 'k2>k4']
+        self.assertDictEqual(expected_data, data_out)
+        self.assertListEqual(expected_keys, keys_out)
 
-    def test_dict_store_b_query_unknown_key(self):
-        """ Test dict kv query for an absent key. """
+    def test_002_dict_store_set_get_existing_single_kv(self):
+        """Test dict kv update existing kv."""
+        TestStore.loaded_dict[1].set('k1', 'uv1')
+        out = TestStore.loaded_dict[1].get('k1')
+        self.assertEqual('uv1', out)
+
+    def test_003_dict_store_set_get_existing_nested_kv(self):
+        """Test dict kv update existing nested kv."""
+        TestStore.loaded_dict[1].set('k2>k4[0]', '21')
+        out = TestStore.loaded_dict[1].get('k2>k4[0]')
+        self.assertEqual('21', out)
+
+    def test_004_dict_store_set_get_new_single_kv(self):
+        """Test dict kv set and get a KV. """
+        TestStore.loaded_dict[1].set('k5', 'v5')
+        out = TestStore.loaded_dict[1].get('k5')
+        self.assertEqual('v5', out)
+        self.assertIn('k5', TestStore.loaded_dict[1].get_keys())
+
+    def test_005_dict_store_set_get_new_nested_kv(self):
+        """ Test dict kv set a nested key. """
+        TestStore.loaded_dict[1].set('k2>k6', 'v6')
+        out = TestStore.loaded_dict[1].get('k2>k6')
+        self.assertEqual('v6', out)
+        self.assertIn('k2>k6', TestStore.loaded_dict[1].get_keys())
+
+    def test_006_dict_store_delete_single_kv(self):
+        """Test dict kv delete kv."""
+        TestStore.loaded_dict[1].delete('k1')
+        out = TestStore.loaded_dict[1].get('k1')
+        self.assertIsNone(out)
+        self.assertNotIn('k1', TestStore.loaded_dict[1].get_keys())
+
+    def test_007_dict_store_delete_nested_kv(self):
+        """Test dict kv delete nested kv."""
+        TestStore.loaded_dict[1].delete('k2>k4[2]')
+        out = TestStore.loaded_dict[1].get('k2>k4[2]')
+        self.assertIsNone(out)
+        self.assertNotIn('k2>k4[2]', TestStore.loaded_dict[1].get_keys())
+
+    def test_008_dict_store_delete_nonexistent_kv(self):
+        """Test dict kv delete non-existent kv."""
+        delete_out = TestStore.loaded_dict[1].delete('k1>k2>k3')
+        self.assertFalse(delete_out)
+
+    def test_009_dict_store_get_nonexistent_kv(self):
+        """Test dict kv query for a non-existent key."""
         out = TestStore.loaded_dict[1].get('Wrong_key')
         self.assertIsNone(out)
 
-    def test_dict_store_c_set_nested_key(self):
-        """ Test dict kv set a nested key. """
-        TestStore.loaded_dict[1].set('cluster>uuid', '#411')
-        out = TestStore.loaded_dict[1].get('cluster>uuid')
-        self.assertEqual('#411', out)
+    def test_010_dict_store_set_empty_value_to_key(self):
+        """Test dict kv set empty value to key."""
+        TestStore.loaded_dict[1].set('k1', '')
+        out = TestStore.loaded_dict[1].get('k1')
+        self.assertEqual('', out)
 
-    def test_dict_store_d_delete_kv(self):
-        """ Test dict kv by removing given key using delete api """
-        TestStore.loaded_dict[1].delete('cloud>cloud_type')
-        out = TestStore.loaded_dict[1].get('cloud>cloud_type')
-        self.assertEqual(None, out)
 
 if __name__ == '__main__':
     unittest.main()
