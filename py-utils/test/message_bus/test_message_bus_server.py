@@ -16,18 +16,22 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-
+import os
 import json
 import unittest
 import requests
-from cortx.utils.message_bus import MessageBusAdmin
+
+from cortx.utils.message_bus import MessageBusAdmin, MessageBus
+from cortx.utils.conf_store import Conf
+from cortx.utils.common import CortxConf
+from cortx.utils.log import Log
 
 
 class TestMessage(unittest.TestCase):
 
     """Test MessageBus rest server functionality."""
 
-    _base_url = 'http://127.0.0.1:28300/MessageBus/message/'
+    _base_url = 'http://0.0.0.0:28300/MessageBus/message/'
     _message_type = 'test'
     _consumer_group = 'receive'
     _cluster_conf_path = ''
@@ -39,8 +43,19 @@ class TestMessage(unittest.TestCase):
             cls.cluster_conf_path = TestMessage._cluster_conf_path
         else:
             cls.cluster_conf_path = cluster_conf_path
-        cls._admin = MessageBusAdmin(admin_id='register', \
-            cluster_conf = cls.cluster_conf_path)
+        
+        CortxConf.init(cluster_conf=cls.cluster_conf_path)
+        local_storage = CortxConf.get_storage_path('local')
+        utils_conf = os.path.join(local_storage, 'utils/conf/utils.conf')
+        conf_file = f'json://{utils_conf}'
+        Conf.load('utils_ind', conf_file, skip_reload=True)
+        config_params = {'message_broker': Conf.get('utils_ind', \
+            'message_broker')}
+        Log.init('message_bus', '/var/log', level='INFO', \
+            backup_count=5, file_size_in_mb=5)
+        MessageBus.init(json.loads(json.dumps(config_params)))
+
+        cls._admin = MessageBusAdmin(admin_id='register')
         cls._admin.register_message_type(message_types= \
             [TestMessage._message_type], partitions=1)
 

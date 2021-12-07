@@ -15,21 +15,38 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import os
 import json
 from aiohttp import web
 
 from cortx.utils.utils_server import RestServer
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.utils_server.error import RestServerError
-from cortx.utils.message_bus import MessageConsumer, MessageProducer
+from cortx.utils.message_bus import MessageConsumer, MessageProducer, MessageBus
 from cortx.utils.log import Log
 from cortx.utils.common import CortxConf
+from cortx.utils.conf_store import Conf
 
 routes = web.RouteTableDef()
 
 
 class MessageBusRequestHandler(RestServer):
     """ Rest interface of message bus """
+
+    @staticmethod
+    def _get_config(cluster_conf: str) -> dict:
+        CortxConf.init(cluster_conf=cluster_conf)
+        local_storage = CortxConf.get_storage_path('local')
+        utils_conf = os.path.join(local_storage, 'utils/conf/utils.conf')
+        utils_conf = f'json://{utils_conf}'
+        Conf.load('utils_ind', utils_conf, skip_reload=True)
+        config_params = {}
+        config_params['node'] = Conf._conf.get('utils_ind', 'node')
+        config_params['message_broker'] = Conf._conf.get('utils_ind', 'message_broker')
+        log_path = CortxConf.get_storage_path('log')
+        Log.init('message_bus', log_path, level='INFO', backup_count=5,
+            file_size_in_mb=5)
+        return config_params
 
     @staticmethod
     async def send(request):
@@ -40,9 +57,10 @@ class MessageBusRequestHandler(RestServer):
             payload = await request.json()
             messages = payload['messages']
             cluster_conf = CortxConf.get_cluster_conf_path()
+            config_params = MessageBusRequestHandler._get_config(cluster_conf)
+            MessageBus.init(config_params)
             producer = MessageProducer(producer_id='rest_producer', \
-                message_type=message_type, method='sync',\
-                cluster_conf=cluster_conf)
+                message_type=message_type, method='sync')
 
             producer.send(messages)
         except MessageBusError as e:
@@ -82,9 +100,11 @@ class MessageBusRequestHandler(RestServer):
             message_types = str(request.match_info['message_type']).split('&')
             consumer_group = request.rel_url.query['consumer_group']
             cluster_conf = CortxConf.get_cluster_conf_path()
+            config_params = MessageBusRequestHandler._get_config(cluster_conf)
+            MessageBus.init(config_params)
             consumer = MessageConsumer(consumer_id='rest_consumer', \
                 consumer_group=consumer_group, message_types=message_types, \
-                auto_ack=True, offset='latest', cluster_conf=cluster_conf)
+                auto_ack=True, offset='latest')
 
             message = consumer.receive()
         except MessageBusError as e:
