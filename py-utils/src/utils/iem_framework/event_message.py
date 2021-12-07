@@ -19,12 +19,12 @@ import os
 import json
 import time
 import errno
-from cortx.utils.common import CortxConf
+
 from cortx.utils import errors
 from cortx.template import Singleton
 from cortx.utils.conf_store import Conf
 from cortx.utils.iem_framework.error import EventMessageError
-from cortx.utils.message_bus import MessageProducer, MessageConsumer
+from cortx.utils.message_bus import MessageProducer, MessageConsumer, MessageBus
 from cortx.utils.log import Log
 
 
@@ -69,7 +69,7 @@ class EventMessage(metaclass=Singleton):
 
     @classmethod
     def init(cls, component: str, source: str,\
-        cluster_conf: str = 'yaml:///etc/cortx/cluster.conf'):
+        config_params: dict):
         """
         Set the Event Message context
 
@@ -80,18 +80,13 @@ class EventMessage(metaclass=Singleton):
         cluster_conf    ConfStore URL of cluster.conf file
         """
         utils_index = 'utils_ind'
-        CortxConf.init(cluster_conf=cluster_conf)
-        local_storage = CortxConf.get_storage_path('local')
-        utils_conf = os.path.join(local_storage, 'utils/conf/utils.conf')
-        cls._conf_file = f'json://{utils_conf}'
-
         cls._component = component
         cls._source = source
 
         cls._initiate_logger()
 
         try:
-            Conf.load(utils_index, cls._conf_file, skip_reload=True)
+            Conf.load(utils_index, f'dict:{config_params}', skip_reload=True)
             machine_id = Conf.machine_id
             ids = Conf.get(utils_index, f'node>{machine_id}')
             cls._site_id = ids['site_id']
@@ -112,9 +107,9 @@ class EventMessage(metaclass=Singleton):
             Log.error("Invalid source type: %s" % cls._source)
             raise EventMessageError(errno.EINVAL, "Invalid source type: %s", \
                 cls._source)
-
+        MessageBus.init(config_params)
         cls._producer = MessageProducer(producer_id='event_producer', \
-            message_type='IEM', method='sync', cluster_conf=cluster_conf)
+            message_type='IEM', method='sync')
         Log.info("IEM Producer initialized for component %s and source %s" % \
              (cls._component, cls._source))
 
@@ -215,8 +210,7 @@ class EventMessage(metaclass=Singleton):
         Log.debug("alert sent: %s" % alert)
 
     @classmethod
-    def subscribe(cls, component: str,\
-        cluster_conf: str = 'yaml:///etc/cortx/cluster.conf', **filters):
+    def subscribe(cls, component: str, **filters):
         """
         Subscribe to IEM alerts
 
@@ -228,10 +222,9 @@ class EventMessage(metaclass=Singleton):
             Log.error("Invalid component type: %s" % component)
             raise EventMessageError(errno.EINVAL, "Invalid component type: %s", \
                component)
-
         cls._consumer = MessageConsumer(consumer_id='event_consumer', \
             consumer_group=component, message_types=['IEM'], \
-            auto_ack=True, offset='earliest', cluster_conf=cluster_conf)
+            auto_ack=True, offset='earliest')
         Log.info("IEM Consumer initialized for component: %s" % component)
 
 

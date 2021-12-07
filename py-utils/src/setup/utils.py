@@ -21,7 +21,6 @@ import errno
 from pathlib import Path
 
 from cortx.utils import errors
-from cortx.utils import const
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
 from cortx.utils.common import SetupError
@@ -61,7 +60,9 @@ class Utils:
 
     @staticmethod
     def _get_utils_path() -> str:
-        """ Gets install path from cortx.conf and returns utils path """
+        """
+        Gets install path from cortx.conf and returns utils path
+        """
         install_path = CortxConf.get(key='install_path')
         if not install_path:
             local_storage_path = CortxConf.get_storage_path('local')
