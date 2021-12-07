@@ -113,7 +113,8 @@ setup(name='cortx-py-utils',
                 'cortx.utils.discovery', 'cortx.utils.common',
                 'cortx.utils.shared_storage', 'cortx.utils.support_framework',
                 'cortx.utils.manifest', 'cortx.utils.setup.openldap',
-                'cortx.utils.setup.consul', 'cortx.utils.setup.elasticsearch'
+                'cortx.utils.setup.consul', 'cortx.utils.setup.elasticsearch',
+                'cortx.utils.audit_log'
                 ],
       package_data={
         'cortx': ['py.typed'],
