@@ -213,10 +213,20 @@ class Utils:
     def init(config_path: str):
         """ Perform initialization """
         # Create message_type for Event Message
-        from cortx.utils.message_bus import MessageBusAdmin
+        from cortx.utils.message_bus import MessageBus, MessageBusAdmin
         from cortx.utils.message_bus.error import MessageBusError
         try:
-            admin = MessageBusAdmin(admin_id='register', cluster_conf=config_path)
+            # Read the config values
+            CortxConf.init(cluster_conf=config_path)
+            local_storage = CortxConf.get_storage_path('local')
+            utils_conf = os.path.join(local_storage, 'utils/conf/utils.conf')
+            conf_file = f'json://{utils_conf}'
+            Conf.load('utils_ind', conf_file, skip_reload=True)
+            config_params = {'message_broker': Conf.get('utils_ind', \
+                'message_broker')}
+            MessageBus.init(json.loads(json.dumps(config_params)))
+
+            admin = MessageBusAdmin(admin_id='register')
             admin.register_message_type(message_types=['IEM'], partitions=1)
         except MessageBusError as e:
             if 'TOPIC_ALREADY_EXISTS' not in e.desc:
