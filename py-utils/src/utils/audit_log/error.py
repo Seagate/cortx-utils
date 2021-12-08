@@ -16,9 +16,10 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 class AuditLogError(Exception):
-    """ Generic Exception with error code and output """
+    """Generic Exception with error code and output."""
 
     def __init__(self, rc, message, *args):
+        """Generic Exception with error code and output."""
         self._rc = rc
         self._desc = message % (args)
 

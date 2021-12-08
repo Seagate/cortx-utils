@@ -19,3 +19,11 @@ __title__ = 'audit_log'
 
 from cortx.utils.audit_log.audit_log_server import AuditLogRequestHandler
 from cortx.utils.audit_log.error import AuditLogError
+
+__doc__ = """
+Audit Log
+
+"""
+
+# adds all above defined packages in import *
+__all__ = ('AuditLogRequestHandler', 'AuditLogError')
