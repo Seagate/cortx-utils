@@ -63,22 +63,21 @@ class MessageBus(metaclass=Singleton):
             self._broker_conf)
 
     @staticmethod
-    def init(message_server_endpoints: list ,**message_server_params_kwargs: dict):
+    def init(message_server_endpoints: list, **message_server_params_kwargs: dict):
 
         utils_index = 'utils_ind'
         Conf.load(utils_index, 'dict:{}', skip_reload=True)
+        message_server_keys = message_server_params_kwargs.keys()
+
         endpoints = MessageBrokerFactory.get_server_list(message_server_endpoints)
         broker_type = message_server_params_kwargs['broker_type'] if \
-            message_server_params_kwargs['broker_type'] else MessageBus._broker_type
+            'broker_type' in message_server_keys else MessageBus._broker_type
         receive_timeout = message_server_params_kwargs['receive_timeout'] if \
-            message_server_params_kwargs['receive_timeout'] else \
-            MessageBus._receive_timeout
+            'receive_timeout' in message_server_keys else MessageBus._receive_timeout
         socket_timeout = message_server_params_kwargs['socket_timeout'] if \
-            message_server_params_kwargs['socket_timeout'] else \
-            MessageBus._socket_timeout
+            'socket_timeout' in message_server_keys else MessageBus._socket_timeout
         send_timeout = message_server_params_kwargs['send_timeout'] if \
-            message_server_params_kwargs['send_timeout'] else \
-            MessageBus._send_timeout
+            'send_timeout' in message_server_keys else MessageBus._send_timeout
 
         Conf.set(utils_index, 'message_broker>type', broker_type)
         Conf.set(utils_index, 'message_broker>cluster', endpoints)

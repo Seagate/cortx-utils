@@ -30,7 +30,7 @@ from cortx.utils.message_bus import MessageBus, MessageBusAdmin, \
 # Total messages to be received by consumer threads
 total = 0
 
-
+tcp://ssc-vm-rhev4-1747.colo.seagate.com:9092
 class TestMessageBus(unittest.TestCase):
 
     """Test MessageBus related functionality."""
