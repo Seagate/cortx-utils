@@ -53,13 +53,13 @@ class KafkaMessageBroker(MessageBroker):
 
         # Polling timeout
         self._recv_message_timeout = \
-            broker_conf['message_bus']['recv_message_timeout']
+            broker_conf['message_bus']['receive_timeout']
         # Socket timeout
         self._controller_socket_timeout = \
-            broker_conf['message_bus']['controller_socket_timeout']
+            broker_conf['message_bus']['socket_timeout']
         # Message timeout
         self._send_message_timeout = \
-            broker_conf['message_bus']['send_message_timeout']
+            broker_conf['message_bus']['send_timeout']
 
     def init_client(self, client_type: str, **client_conf: dict):
         """ Obtain Kafka based Producer/Consumer """
