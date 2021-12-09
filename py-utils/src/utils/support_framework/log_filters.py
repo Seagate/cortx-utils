@@ -17,8 +17,10 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
-import time
+import errno
 import shutil
+
+from cortx.utils.support_framework.errors import BundleError
 
 
 class FilterLog:
@@ -42,18 +44,20 @@ class FilterLog:
     def truncate_file_size(src_dir, dest_dir, file_name,
                            original_file_size, required_file_size):
         """Truncate the Log size to the required file size and write the file to dest dir."""
-        with open(os.path.join(src_dir, file_name), "r+b") as ReadHandle, \
-                open(os.path.join(dest_dir, file_name), "w+b") as WriteHandle:
+        with open(os.path.join(src_dir, file_name), 'r+b') as ReadHandle, \
+                open(os.path.join(dest_dir, file_name), 'w+b') as WriteHandle:
             ReadHandle.seek(original_file_size - required_file_size)
             WriteHandle.write(ReadHandle.read())
         try:
             os.truncate(os.path.join(dest_dir, file_name), required_file_size)
         except OSError as error:
-            raise("Unable to truncate the file:", error)
+            raise BundleError(errno.EINVAL, f"Failed to truncate the file, ERROR:{error}")
 
     @staticmethod
     def limit_size(src_dir, dest_dir, size, file_name_reg_ex):
         """Filter the log files in the source dir based on file size requested."""
+        if not os.path.exists(dest_dir):
+            os.makedirs(dest_dir)
 
         list_of_files = filter(lambda f: os.path.isfile(os.path.join(src_dir, f)),
                         os.listdir(src_dir))
