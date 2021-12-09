@@ -113,8 +113,8 @@ class GenerateCmd:
             help="Duration - duration for which log should be captured, Default - P5D")
         s_parser.add_argument('--size_limit', default='500MB',
             help="Size Limit - Support Bundle size limit per node, Default - 500MB")
-        s_parser.add_argument('--binlogs', type=str2bool, default=True,
-            help="Include/Exclude Binary Logs, Default = True")
+        s_parser.add_argument('--binlogs', type=str2bool, default=False,
+            help="Include/Exclude Binary Logs, Default = False")
         s_parser.add_argument('--coredumps', type=str2bool, default=False,
             help="Include/Exclude Coredumps, Default = False")
         s_parser.add_argument('--stacktrace', type=str2bool, default=False,
