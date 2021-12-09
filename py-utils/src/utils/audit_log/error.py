@@ -18,7 +18,7 @@
 from cortx.utils.errors import UtilsError
 
 
-class SharedStorageError(UtilsError):
+class AuditLogError(UtilsError):
     """ Generic Exception with error code and output. """
 
     def __init__(self, rc, message, *args):
