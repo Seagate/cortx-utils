@@ -42,11 +42,10 @@ class FilterLog:
     def truncate_file_size(src_dir, dest_dir, file_name,
                            original_file_size, required_file_size):
         """Truncate the Log size to the required file size and write the file to dest dir."""
-        shutil.copy(os.path.join(src_dir, file_name), dest_dir)
-        with open(os.path.join(dest_dir, file_name), "r+b") as reading, \
-                open(os.path.join(dest_dir, file_name), "r+b") as writing:
-            reading.seek(original_file_size - required_file_size)
-            writing.write(reading.read())
+        with open(os.path.join(src_dir, file_name), "r+b") as ReadHandle, \
+                open(os.path.join(dest_dir, file_name), "w+b") as WriteHandle:
+            ReadHandle.seek(original_file_size - required_file_size)
+            WriteHandle.write(ReadHandle.read())
         try:
             os.truncate(os.path.join(dest_dir, file_name), required_file_size)
         except OSError as error:
