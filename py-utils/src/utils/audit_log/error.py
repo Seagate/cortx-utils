@@ -15,23 +15,11 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-class AuditLogError(Exception):
-    """Generic Exception with error code and output."""
+from cortx.utils.errors import UtilsError
+
+
+class SharedStorageError(UtilsError):
+    """ Generic Exception with error code and output. """
 
     def __init__(self, rc, message, *args):
-        """Generic Exception with error code and output."""
-        self._rc = rc
-        self._desc = message % (args)
-
-    @property
-    def rc(self):
-        return self._rc
-
-    @property
-    def desc(self):
-        return self._desc
-
-    def __str__(self):
-        if self._rc == 0:
-            return self._desc
-        return "error(%d): %s" % (self._rc, self._desc)
+        super().__init__(rc, message, *args)
