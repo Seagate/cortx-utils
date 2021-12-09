@@ -27,6 +27,10 @@ from cortx.utils.message_bus.message_broker import MessageBrokerFactory
 class MessageBus(metaclass=Singleton):
     """ Message Bus Framework over various types of Message Brokers """
     _load_config = False
+    _broker_type = 'kafka'
+    _receive_timeout = 2
+    _socket_timeout = 15000
+    _send_timeout = 5000
 
     def __init__(self):
         """ Initialize a MessageBus and load its configurations """
@@ -59,18 +63,33 @@ class MessageBus(metaclass=Singleton):
             self._broker_conf)
 
     @staticmethod
-    def init(config: dict):
-        import json
-        from cortx.utils.validator.v_confkeys import ConfKeysV
+    def init(message_server_endpoints: list ,**message_server_params_kwargs: dict):
 
-        Conf.load('utils_ind', f'dict:{json.dumps(config)}', \
-            skip_reload=True)
-        config_keys = ['message_broker>type', 'message_broker>cluster[0]>server', \
-            'message_broker>cluster[0]>port', \
-            'message_broker>message_bus>recv_message_timeout', \
-            'message_broker>message_bus>controller_socket_timeout', \
-            'message_broker>message_bus>send_message_timeout']
-        ConfKeysV().validate('exists', 'utils_ind', config_keys)
+        utils_index = 'utils_ind'
+        Conf.load(utils_index, 'dict:{}', skip_reload=True)
+        endpoints = MessageBrokerFactory.get_server_list(message_server_endpoints)
+        broker_type = message_server_params_kwargs['broker_type'] if \
+            message_server_params_kwargs['broker_type'] else MessageBus._broker_type
+        receive_timeout = message_server_params_kwargs['receive_timeout'] if \
+            message_server_params_kwargs['receive_timeout'] else \
+            MessageBus._receive_timeout
+        socket_timeout = message_server_params_kwargs['socket_timeout'] if \
+            message_server_params_kwargs['socket_timeout'] else \
+            MessageBus._socket_timeout
+        send_timeout = message_server_params_kwargs['send_timeout'] if \
+            message_server_params_kwargs['send_timeout'] else \
+            MessageBus._send_timeout
+
+        Conf.set(utils_index, 'message_broker>type', broker_type)
+        Conf.set(utils_index, 'message_broker>cluster', endpoints)
+        Conf.set(utils_index, 'message_broker>message_bus>receive_timeout', \
+            receive_timeout)
+        Conf.set(utils_index, 'message_broker>message_bus>socket_timeout', \
+            socket_timeout)
+        Conf.set(utils_index, 'message_broker>message_bus>send_timeout', \
+            send_timeout)
+        Conf.save(utils_index)
+
         MessageBus._load_config = True
 
     def init_client(self, client_type: str, **client_conf: dict):
