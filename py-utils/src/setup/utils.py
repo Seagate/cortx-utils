@@ -119,10 +119,9 @@ class Utils:
         Conf.save('cluster')
 
     @staticmethod
-    def _create_utils_config(server_info: dict, machine_id: str, message_server_list: list, port_list: list, config: dict):
-        """
-        Create the utils config file required for message_bus and iem
-        """
+    def _create_utils_config(server_info: dict, machine_id: str, \
+        message_server_list: list, config: dict):
+        """Create the utils config file required for message_bus and iem."""
         utils_index = 'utils_ind'
         local_path = CortxConf.get_storage_path('local')
         utils_conf = os.path.join(local_path, 'utils/conf/utils.conf')
@@ -140,10 +139,7 @@ class Utils:
         Conf.set(utils_index, f'node>{machine_id}>node_id', machine_id)
         # Message bus conf
         Conf.set(utils_index, 'message_broker>type', 'kafka')
-        for i in range(len(message_server_list)):
-            Conf.set(utils_index, f'message_broker>cluster[{i}]>server', \
-                     message_server_list[i])
-            Conf.set(utils_index, f'message_broker>cluster[{i}]>port', port_list[i])
+        Conf.set(utils_index, 'message_broker>cluster', message_server_list)
         Conf.set(utils_index, 'message_broker>message_bus',  config)
         Conf.save(utils_index)
 
@@ -249,8 +245,10 @@ class Utils:
         # Add message_bus config to utils conf
         try:
             from cortx.utils.message_bus import MessageBrokerFactory
-            server_list, port_list, config = \
-                MessageBrokerFactory.get_server_list(config_template_index)
+            message_server_endpoints = Conf.get(config_template_index, \
+                'cortx>external>kafka>endpoints')
+            message_server_list = \
+                MessageBrokerFactory.get_server_list(message_server_endpoints)
         except SetupError:
             Log.error(f"Could not find server information in {config_template}")
             raise SetupError(errno.EINVAL, \
@@ -263,7 +261,9 @@ class Utils:
             Log.error(f"Could not find server information in {config_template}")
             raise SetupError(errno.EINVAL, "Could not find server " +\
                 "information in %s", config_template)
-        Utils._create_utils_config(server_info, machine_id, server_list, port_list, config)
+        config = CortxConf.get('message_bus')
+        Utils._create_utils_config(server_info, machine_id, \
+            message_server_list, config)
 
         # set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map(config_template_index)
