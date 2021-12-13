@@ -44,25 +44,12 @@ class TestMessageBus(unittest.TestCase):
     _cluster_conf_path = ''
 
     @classmethod
-    def setUpClass(cls, cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
+    def setUpClass(cls):
         """Register the test message_type."""
-        if TestMessageBus._cluster_conf_path:
-            cls.cluster_conf_path = TestMessageBus._cluster_conf_path
-        else:
-            cls.cluster_conf_path = cluster_conf_path
-
-        # Read the config values
-        CortxConf.init(cluster_conf=cls.cluster_conf_path)
-        local_storage = CortxConf.get_storage_path('local')
-        utils_conf = os.path.join(local_storage, 'utils/conf/utils.conf')
-        conf_file = f'json://{utils_conf}'
-        Conf.load('utils_ind', conf_file, skip_reload=True)
-        config_params = {'message_broker': Conf.get('utils_ind', \
-            'message_broker')}
 
         Log.init('message_bus', '/var/log', level='INFO', \
             backup_count=5, file_size_in_mb=5)
-        MessageBus.init(json.loads(json.dumps(config_params)))
+        MessageBus.init(TestMessageBus._endpoints.split(','))
         cls._admin = MessageBusAdmin(admin_id='register')
         cls._admin.register_message_type(message_types= \
             [TestMessageBus._message_type], partitions=1)
@@ -308,5 +295,5 @@ class TestMessageBus(unittest.TestCase):
 if __name__ == '__main__':
     import sys
     if len(sys.argv) >= 2:
-        TestMessageBus._cluster_conf_path = sys.argv.pop()
+        TestMessageBus._endpoints = sys.argv.pop()
     unittest.main()
