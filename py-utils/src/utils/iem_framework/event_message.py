@@ -77,7 +77,7 @@ class EventMessage(metaclass=Singleton):
         component       Component that generates the IEM. For e.g. 'S3', 'SSPL'
         source          Single character that indicates the type of component.
                         For e.g. H-Hardware, S-Software, F-Firmware, O-OS
-        cluster_conf    List of message server endpoints
+        cluster_conf    ConfStore URL of cluster.conf file
         """
         utils_index = 'utils_ind'
         cls._component = component
