@@ -22,12 +22,12 @@ import unittest
 import requests
 
 
-class TestMessage(unittest.TestCase):
+class TestAuditLog(unittest.TestCase):
     """Test AuditLog rest server functionality."""
     _base_url = 'http://127.0.0.1:28300/AuditLog/message/'
 
-    def test_post(self):
-        """Test send message."""
+    def test_send_audit_log(self):
+        """Send Audit log message."""
         url = self._base_url
         data = json.dumps({'messages': ['Hello', 'How are you?']})
         headers = {'content-type': 'application/json'}

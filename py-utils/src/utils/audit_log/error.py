@@ -22,4 +22,5 @@ class AuditLogError(UtilsError):
     """ Generic Exception with error code and output. """
 
     def __init__(self, rc, message, *args):
+        """Initialize AuditLogError."""
         super().__init__(rc, message, *args)

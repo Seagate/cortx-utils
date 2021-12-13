@@ -21,8 +21,9 @@ from cortx.utils.audit_log.audit_log_server import AuditLogRequestHandler
 from cortx.utils.audit_log.error import AuditLogError
 
 __doc__ = """
-Audit Log
+Audit Log Server.
 
+Audit log server can be used to send/recieve Audit logs to/from a webhook.
 """
 
 # adds all above defined packages in import *
