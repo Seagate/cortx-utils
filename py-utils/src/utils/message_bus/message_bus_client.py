@@ -127,6 +127,12 @@ class MessageBusClient:
         return self._message_bus.set_message_type_expire(client_id,\
             message_type, expire_time)
 
+    def set_message_type_retention(self, message_type: str, retention_type: str ,value: int):
+        """Set expiration time for given message type."""
+        client_id = self._get_conf('client_id')
+        return self._message_bus.set_message_type_expire(client_id,\
+            message_type, retention_type, value)
+
     def receive(self, timeout: float = None) -> list:
         """
         Receives messages from the Message Bus
