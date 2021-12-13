@@ -38,7 +38,7 @@ class Const(Enum):
     SERVICE_S3_BGWORKER     = 'bgworker'
     SERVICE_S3_BGSCHEDULER  = 'bgscheduler'
     SERVICE_CSM_AGENT       = 'agent'
-    SERVICE_UTILS_MESSAGE   = "message"
+    SERVICE_UTILS_MESSAGE   = 'message'
 
     # Deprecated services
     SERVICE_S3_IO          = 'io'
