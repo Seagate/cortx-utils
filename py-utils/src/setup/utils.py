@@ -118,10 +118,9 @@ class Utils:
         Conf.save('cluster')
 
     @staticmethod
-    def _create_utils_config(server_info: dict, machine_id: str, message_server_list: list, port_list: list, config: dict):
-        """
-        Create the utils config file required for message_bus and iem
-        """
+    def _create_utils_config(server_info: dict, machine_id: str, \
+        message_server_list: list, config: dict):
+        """Create the utils config file required for message_bus and iem."""
         utils_index = 'utils_ind'
         local_path = CortxConf.get_storage_path('local')
         utils_conf = os.path.join(local_path, 'utils/conf/utils.conf')
@@ -139,10 +138,7 @@ class Utils:
         Conf.set(utils_index, f'node>{machine_id}>node_id', machine_id)
         # Message bus conf
         Conf.set(utils_index, 'message_broker>type', 'kafka')
-        for i in range(len(message_server_list)):
-            Conf.set(utils_index, f'message_broker>cluster[{i}]>server', \
-                     message_server_list[i])
-            Conf.set(utils_index, f'message_broker>cluster[{i}]>port', port_list[i])
+        Conf.set(utils_index, 'message_broker>cluster', message_server_list)
         Conf.set(utils_index, 'message_broker>message_bus',  config)
         Conf.save(utils_index)
 
@@ -212,10 +208,20 @@ class Utils:
     def init(config_path: str):
         """ Perform initialization """
         # Create message_type for Event Message
-        from cortx.utils.message_bus import MessageBusAdmin
+        from cortx.utils.message_bus import MessageBus, MessageBusAdmin
         from cortx.utils.message_bus.error import MessageBusError
         try:
-            admin = MessageBusAdmin(admin_id='register', cluster_conf=config_path)
+            # Read the config values
+            CortxConf.init(cluster_conf=config_path)
+            local_storage = CortxConf.get_storage_path('local')
+            utils_conf = os.path.join(local_storage, 'utils/conf/utils.conf')
+            conf_file = f'json://{utils_conf}'
+            Conf.load('utils_ind', conf_file, skip_reload=True)
+            config_params = {'message_broker': Conf.get('utils_ind', \
+                'message_broker')}
+            MessageBus.init(json.loads(json.dumps(config_params)))
+
+            admin = MessageBusAdmin(admin_id='register')
             admin.register_message_type(message_types=['IEM'], partitions=1)
         except MessageBusError as e:
             if 'TOPIC_ALREADY_EXISTS' not in e.desc:
@@ -238,8 +244,10 @@ class Utils:
         # Add message_bus config to utils conf
         try:
             from cortx.utils.message_bus import MessageBrokerFactory
-            server_list, port_list, config = \
-                MessageBrokerFactory.get_server_list(config_template_index)
+            message_server_endpoints = Conf.get(config_template_index, \
+                'cortx>external>kafka>endpoints')
+            message_server_list = \
+                MessageBrokerFactory.get_server_list(message_server_endpoints)
         except SetupError:
             Log.error(f"Could not find server information in {config_template}")
             raise SetupError(errno.EINVAL, \
@@ -252,7 +260,9 @@ class Utils:
             Log.error(f"Could not find server information in {config_template}")
             raise SetupError(errno.EINVAL, "Could not find server " +\
                 "information in %s", config_template)
-        Utils._create_utils_config(server_info, machine_id, server_list, port_list, config)
+        config = CortxConf.get('message_bus')
+        Utils._create_utils_config(server_info, machine_id, \
+            message_server_list, config)
 
         # set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map(config_template_index)

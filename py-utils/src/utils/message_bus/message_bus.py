@@ -15,14 +15,10 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import os
-import stat
 import errno
-
 from cortx.utils.log import Log
 from cortx.template import Singleton
 from cortx.utils.conf_store import Conf
-from cortx.utils.common import CortxConf
 from cortx.utils.conf_store.error import ConfError
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus.message_broker import MessageBrokerFactory
@@ -30,44 +26,70 @@ from cortx.utils.message_bus.message_broker import MessageBrokerFactory
 
 class MessageBus(metaclass=Singleton):
     """ Message Bus Framework over various types of Message Brokers """
+    _load_config = False
+    _broker_type = 'kafka'
+    _receive_timeout = 2
+    _socket_timeout = 15000
+    _send_timeout = 5000
 
-    def __init__(self, cluster_conf='yaml:///etc/cortx/cluster.conf'):
+    def __init__(self):
         """ Initialize a MessageBus and load its configurations """
-        utils_index = 'utils_ind'
-        CortxConf.init(cluster_conf=cluster_conf)
-        local_storage = CortxConf.get_storage_path('local')
-        utils_conf = os.path.join(local_storage ,'utils/conf/utils.conf')
-        self.conf_file = f'json://{utils_conf}'
-        # Get the log path
-        log_dir = CortxConf.get('log_dir', '/var/log')
-        utils_log_path = CortxConf.get_log_path('message_bus', base_dir=log_dir)
 
         # if Log.logger is already initialized by some parent process
         # the same file will be used to log all the messagebus related
         # logs, else standard message_bus.log will be used.
+        if not self._load_config:
+            raise MessageBusError(errno.EINVAL, "Config is not loaded")
+
         if not Log.logger:
-            log_level = CortxConf.get('utils>log_level', 'INFO')
-            Log.init('message_bus', utils_log_path, level=log_level, \
-                backup_count=5, file_size_in_mb=5)
+            raise MessageBusError(errno.ENOSYS, "Logger is not initialized")
 
         try:
-            Conf.load(utils_index, self.conf_file, skip_reload=True)
-            self._broker_conf = Conf.get(utils_index, 'message_broker')
+            self._broker_conf = Conf.get('utils_ind', 'message_broker')
             broker_type = self._broker_conf['type']
             Log.info(f"MessageBus initialized as {broker_type}")
         except ConfError as e:
             Log.error(f"MessageBusError: {e.rc} Error while parsing" \
-                f" configuration file {self.conf_file}. {e}.")
+                f" configuration. {e}.")
             raise MessageBusError(e.rc, "Error while parsing " + \
-                "configuration file %s. %s.", self.conf_file, e)
+                "configuration %s. ", e)
         except Exception as e:
-            Log.error(f"MessageBusError: {e.rc} Error while parsing" \
-                f" configuration file {self.conf_file}. {e}.")
+            Log.error(f"MessageBusError: {errno.ENOENT} Error while parsing" \
+                f" configuration. {e}.")
             raise MessageBusError(errno.ENOENT, "Error while parsing " + \
-                "configuration file %s. %s.", self.conf_file, e)
+                "configuration %s. ", e)
 
         self._broker = MessageBrokerFactory.get_instance(broker_type, \
             self._broker_conf)
+
+    @staticmethod
+    def init(message_server_endpoints: list, **message_server_params_kwargs: dict):
+
+        utils_index = 'utils_ind'
+        Conf.load(utils_index, 'dict:{}', skip_reload=True)
+        message_server_keys = message_server_params_kwargs.keys()
+
+        endpoints = MessageBrokerFactory.get_server_list(message_server_endpoints)
+        broker_type = message_server_params_kwargs['broker_type'] if \
+            'broker_type' in message_server_keys else MessageBus._broker_type
+        receive_timeout = message_server_params_kwargs['receive_timeout'] if \
+            'receive_timeout' in message_server_keys else MessageBus._receive_timeout
+        socket_timeout = message_server_params_kwargs['socket_timeout'] if \
+            'socket_timeout' in message_server_keys else MessageBus._socket_timeout
+        send_timeout = message_server_params_kwargs['send_timeout'] if \
+            'send_timeout' in message_server_keys else MessageBus._send_timeout
+
+        Conf.set(utils_index, 'message_broker>type', broker_type)
+        Conf.set(utils_index, 'message_broker>cluster', endpoints)
+        Conf.set(utils_index, 'message_broker>message_bus>receive_timeout', \
+            receive_timeout)
+        Conf.set(utils_index, 'message_broker>message_bus>socket_timeout', \
+            socket_timeout)
+        Conf.set(utils_index, 'message_broker>message_bus>send_timeout', \
+            send_timeout)
+        Conf.save(utils_index)
+
+        MessageBus._load_config = True
 
     def init_client(self, client_type: str, **client_conf: dict):
         """ To create producer/consumer client based on the configurations """
