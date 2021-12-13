@@ -23,7 +23,6 @@ import requests
 from cortx.utils.message_bus import MessageBusAdmin, MessageBus
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
-from cortx.utils.common import CortxConf
 
 class TestMessage(unittest.TestCase):
 
