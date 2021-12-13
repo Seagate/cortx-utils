@@ -40,16 +40,9 @@ class IemRequestHandler(RestServer):
 
             component = payload['component']
             source = payload['source']
-
-            local_storage = CortxConf.get_storage_path('local')
-            utils_conf = os.path.join(local_storage, 'utils/conf/utils.conf')
-            utils_conf = f'json://{utils_conf}'
-            Conf.load('utils_ind', utils_conf, skip_reload=True)
-            config_params = {}
-            config_params['node'] = Conf._conf.get('utils_ind', 'node')
-            config_params['message_broker'] = Conf._conf.get('utils_ind', 'message_broker')
+            cluster_conf = CortxConf.get_cluster_conf_path()
             EventMessage.init(component=component, source=source,\
-                config_params=config_params)
+                cluster_conf= cluster_conf)
 
             del payload['component']
             del payload['source']

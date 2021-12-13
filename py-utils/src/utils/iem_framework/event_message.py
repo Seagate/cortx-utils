@@ -26,7 +26,7 @@ from cortx.utils.conf_store import Conf
 from cortx.utils.iem_framework.error import EventMessageError
 from cortx.utils.message_bus import MessageProducer, MessageConsumer, MessageBus
 from cortx.utils.log import Log
-
+from cortx.utils.common import CortxConf
 
 class EventMessage(metaclass=Singleton):
     """ Event Message framework to generate alerts """
@@ -69,7 +69,7 @@ class EventMessage(metaclass=Singleton):
 
     @classmethod
     def init(cls, component: str, source: str,\
-        config_params: dict):
+        cluster_conf: str):
         """
         Set the Event Message context
 
@@ -77,7 +77,7 @@ class EventMessage(metaclass=Singleton):
         component       Component that generates the IEM. For e.g. 'S3', 'SSPL'
         source          Single character that indicates the type of component.
                         For e.g. H-Hardware, S-Software, F-Firmware, O-OS
-        cluster_conf    ConfStore URL of cluster.conf file
+        cluster_conf    List of message server endpoints
         """
         utils_index = 'utils_ind'
         cls._component = component
@@ -86,7 +86,14 @@ class EventMessage(metaclass=Singleton):
         cls._initiate_logger()
 
         try:
-            Conf.load(utils_index, f'dict:{config_params}', skip_reload=True)
+            Conf.load('config', cluster_conf, skip_reload=True)
+            message_server_endpoints = Conf.get('config',\
+                'cortx>external>kafka>endpoints')
+            CortxConf.init(cluster_conf=cluster_conf)
+            local_storage = CortxConf.get_storage_path('local')
+            utils_conf = os.path.join(local_storage, 'utils/conf/utils.conf')
+            cls._utils_conf = f'json://{utils_conf}'
+            Conf.load(utils_index, cls._utils_conf, skip_reload=True)
             machine_id = Conf.machine_id
             ids = Conf.get(utils_index, f'node>{machine_id}')
             cls._site_id = ids['site_id']
@@ -94,9 +101,9 @@ class EventMessage(metaclass=Singleton):
             cls._node_id = machine_id
             cls._cluster_id = ids['cluster_id']
         except Exception as e:
-            Log.error("Invalid config in %s." % cls._conf_file)
+            Log.error("Invalid config in %s." % cls._utils_conf)
             raise EventMessageError(errno.EINVAL, "Invalid config in %s. %s", \
-                cls._conf_file, e)
+                cls._utils_conf, e)
 
         if cls._component is None:
             Log.error("Invalid component type: %s" % cls._component )
@@ -107,7 +114,7 @@ class EventMessage(metaclass=Singleton):
             Log.error("Invalid source type: %s" % cls._source)
             raise EventMessageError(errno.EINVAL, "Invalid source type: %s", \
                 cls._source)
-        MessageBus.init(config_params)
+        MessageBus.init(message_server_endpoints)
         cls._producer = MessageProducer(producer_id='event_producer', \
             message_type='IEM', method='sync')
         Log.info("IEM Producer initialized for component %s and source %s" % \
@@ -216,7 +223,6 @@ class EventMessage(metaclass=Singleton):
 
         Parameters:
         component       Component that generates the IEM. For e.g. 'S3', 'SSPL'
-        cluster_conf    ConfStore URL of cluster.conf file
         """
         if component is None:
             Log.error("Invalid component type: %s" % component)

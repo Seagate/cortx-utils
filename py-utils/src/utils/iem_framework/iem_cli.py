@@ -92,30 +92,14 @@ class IemCli:
         EventMessage.subscribe(component, **filters)
 
     @staticmethod
-    def _get_config(cluster_conf: str) -> dict:
-        CortxConf.init(cluster_conf=cluster_conf)
-        local_storage = CortxConf.get_storage_path('local')
-        utils_conf = os.path.join(local_storage, 'utils/conf/utils.conf')
-        utils_conf = f'json://{utils_conf}'
-        Conf.load('utils_ind', utils_conf, skip_reload=True)
-        config_params = {}
-        config_params['node'] = Conf._conf.get('utils_ind', 'node')
-        config_params['message_broker'] = Conf._conf.get('utils_ind', 'message_broker')
-        log_path = CortxConf.get_storage_path('log')
-        Log.init('message_bus', log_path, level='INFO', backup_count=5,
-            file_size_in_mb=5)
-        return config_params
-
-    @staticmethod
     def send(args_parse):
         """ send IE message """
 
         send_args = IemCli._parse_send_args(args_parse)
-        config_params = IemCli._get_config(send_args['cluster_conf'])
         EventMessage.init(
             component=send_args['component'],
             source=send_args['source_type'],
-            config_params=config_params
+            cluster_conf=send_args['cluster_conf']
         )
         EventMessage.send(
             module=send_args['module'],
@@ -136,11 +120,10 @@ class IemCli:
         Receives IEM Message and returns to the caller, If file[-f] is passed,
         writes message to file and returns blank string to caller
         """
-        config_params = IemCli._get_config(args.config)
         EventMessage.init(
             component=args.source,
             source=args.info,
-            config_params=config_params
+            cluster_conf=args.config
         )
         IemCli.subscribe(component=args.source)
         rec_data = ''
