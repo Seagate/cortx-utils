@@ -16,19 +16,15 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import sys
-import os
 import errno
 import inspect
 import argparse
 import traceback
 from argparse import RawTextHelpFormatter
-from cortx.utils.log import Log
-from cortx.utils.common.common import CortxConf
 
 from cortx.utils.schema import Format
 from cortx.utils.iem_framework.error import EventMessageError
 from cortx.utils.iem_framework.event_message import EventMessage
-from cortx.utils.conf_store import Conf
 
 
 class IemCli:
