@@ -29,7 +29,7 @@ routes = web.RouteTableDef()
 class AuditLogRequestHandler(RestServer):
     """Rest interface of Audit log."""
     @staticmethod
-    async def receive(request):
+    async def send(request):
         Log.debug("Received POST request for audit message")
         try:
             payload = await request.json()
