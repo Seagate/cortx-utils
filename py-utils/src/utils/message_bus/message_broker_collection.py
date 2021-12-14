@@ -623,6 +623,8 @@ class KafkaMessageBroker(MessageBroker):
         data_limit_bytes This should be the max size of log files
                          for individual message_type.
         """
-        if 'expire_time_ms' in kwargs.keys() and 'data_limit_bytes' in kwargs.keys():
-            raise MessageBusError(errno.EINVAL, "Invalid message_type retention config keys.")
-        self._configure_message_type(admin_id, message_type, **kwargs)
+        if 'expire_time_ms' not in kwargs.keys()\
+            and 'data_limit_bytes' not in kwargs.keys():
+            raise MessageBusError(errno.EINVAL,\
+                "Invalid message_type retention config keys.")
+        return self._configure_message_type(admin_id, message_type, **kwargs)
