@@ -169,7 +169,7 @@ class Utils:
         pass
 
     @staticmethod
-    def post_install(post_install_template: str):
+    def post_install(config_path: str):
         """ Performs post install operations """
         # Check required python packages
         install_path = Utils._get_from_conf_file('install_path')
@@ -193,7 +193,7 @@ class Utils:
         os.makedirs(default_sb_path, exist_ok=True)
 
         post_install_template_index = 'post_install_index'
-        Conf.load(post_install_template_index, post_install_template)
+        Conf.load(post_install_template_index, config_path)
 
         machine_id = Conf.machine_id
         key_list = [f'node>{machine_id}>hostname', f'node>{machine_id}>name']
@@ -205,36 +205,11 @@ class Utils:
         return 0
 
     @staticmethod
-    def init(config_path: str):
-        """ Perform initialization """
-        # Create message_type for Event Message
-        from cortx.utils.message_bus import MessageBus, MessageBusAdmin
-        from cortx.utils.message_bus.error import MessageBusError
-        try:
-            # Read the config values
-            CortxConf.init(cluster_conf=config_path)
-            local_storage = CortxConf.get_storage_path('local')
-            utils_conf = os.path.join(local_storage, 'utils/conf/utils.conf')
-            conf_file = f'json://{utils_conf}'
-            Conf.load('utils_ind', conf_file, skip_reload=True)
-            config_params = {'message_broker': Conf.get('utils_ind', \
-                'message_broker')}
-            MessageBus.init(json.loads(json.dumps(config_params)))
-
-            admin = MessageBusAdmin(admin_id='register')
-            admin.register_message_type(message_types=['IEM'], partitions=1)
-        except MessageBusError as e:
-            if 'TOPIC_ALREADY_EXISTS' not in e.desc:
-                raise SetupError(e.rc, "Unable to create message_type. %s", e)
-
-        return 0
-
-    @staticmethod
-    def config(config_template: str):
+    def config(config_path: str):
         """Performs configurations."""
         # Load required files
         config_template_index = 'config'
-        Conf.load(config_template_index, config_template)
+        Conf.load(config_template_index, config_path)
         # Configure log_dir for utils
         log_dir = CortxConf.get_storage_path('log')
         if log_dir is not None:
@@ -249,17 +224,17 @@ class Utils:
             message_server_list = \
                 MessageBrokerFactory.get_server_list(message_server_endpoints)
         except SetupError:
-            Log.error(f"Could not find server information in {config_template}")
+            Log.error(f"Could not find server information in {config_path}")
             raise SetupError(errno.EINVAL, \
-                "Could not find server information in %s", config_template)
+                "Could not find server information in %s", config_path)
 
         # Add iem config to utils conf
         machine_id = Conf.machine_id
         server_info = Utils._get_server_info(config_template_index, machine_id)
         if server_info is None:
-            Log.error(f"Could not find server information in {config_template}")
+            Log.error(f"Could not find server information in {config_path}")
             raise SetupError(errno.EINVAL, "Could not find server " +\
-                "information in %s", config_template)
+                "information in %s", config_path)
         config = CortxConf.get('message_bus')
         Utils._create_utils_config(server_info, machine_id, \
             message_server_list, config)
@@ -289,6 +264,26 @@ class Utils:
         os.chmod(os.path.join(utils_log_dir, 'iem'), 0o0777)
         Path(os.path.join(utils_log_dir, 'iem/iem.log')).touch(exist_ok=True)
         os.chmod(os.path.join(utils_log_dir, 'iem/iem.log'), 0o0666)
+        return 0
+
+    @staticmethod
+    def init(config_path: str):
+        """ Perform initialization """
+        # Create message_type for Event Message
+        from cortx.utils.message_bus import MessageBus, MessageBusAdmin
+        from cortx.utils.message_bus.error import MessageBusError
+        try:
+            # Read the config values
+            Conf.load('config', config_path, skip_reload=True)
+            message_server_endpoints = Conf.get('config', \
+                'cortx>external>kafka>endpoints')
+            MessageBus.init(message_server_endpoints)
+            admin = MessageBusAdmin(admin_id='register')
+            admin.register_message_type(message_types=['IEM'], partitions=1)
+        except MessageBusError as e:
+            if 'TOPIC_ALREADY_EXISTS' not in e.desc:
+                raise SetupError(e.rc, "Unable to create message_type. %s", e)
+
         return 0
 
     @staticmethod
