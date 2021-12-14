@@ -25,8 +25,8 @@ from cortx.utils.message_bus.error import MessageBusError
 class MessageBusClient:
     """ common infrastructure for producer and consumer """
 
-    def __init__(self, client_type: str, **client_conf: dict):
-        self._message_bus = MessageBus() if 'message_bus' not in \
+    def __init__(self, client_type: str, cluster_conf: str, **client_conf: dict):
+        self._message_bus = MessageBus(cluster_conf) if 'message_bus' not in \
             client_conf.keys() or client_conf['message_bus'] is None else \
             client_conf['message_bus']
         self._message_bus.init_client(client_type, **client_conf)
@@ -146,22 +146,24 @@ class MessageBusClient:
 class MessageBusAdmin(MessageBusClient):
     """ A client that do admin jobs """
 
-    def __init__(self, admin_id: str, message_bus: MessageBus = None):
+    def __init__(self, admin_id: str, message_bus: MessageBus = None, \
+         cluster_conf: str = 'yaml:///etc/cortx/cluster.conf'):
         """ Initialize a Message Admin
 
         Parameters:
         message_bus    An instance of message bus class.
         admin_id       A String that represents Admin client ID.
         """
-        super().__init__(client_type='admin',client_id=admin_id, \
-            message_bus=message_bus)
+        super().__init__(client_type='admin', cluster_conf=cluster_conf, \
+            client_id=admin_id, message_bus=message_bus)
 
 
 class MessageProducer(MessageBusClient):
     """ A client that publishes messages """
 
     def __init__(self, producer_id: str, message_type: str,
-        message_bus: MessageBus = None, method: str = None):
+        message_bus: MessageBus = None, method: str = None,
+        cluster_conf: str = 'yaml:///etc/cortx/cluster.conf'):
         """ Initialize a Message Producer
 
         Parameters:
@@ -170,8 +172,9 @@ class MessageProducer(MessageBusClient):
         message_type    This is essentially equivalent to the
                         queue/topic name. For e.g. "Alert"
         """
-        super().__init__(client_type='producer', client_id=producer_id, \
-            message_type=message_type, method=method, message_bus=message_bus)
+        super().__init__(client_type='producer', cluster_conf=cluster_conf, \
+            client_id=producer_id, message_type=message_type, method=method, \
+            message_bus=message_bus)
 
     def get_unread_count(self, consumer_group: str):
         """
@@ -188,7 +191,8 @@ class MessageConsumer(MessageBusClient):
     """ A client that consumes messages """
 
     def __init__(self, consumer_id: str, consumer_group: str, auto_ack: str,
-        message_types: list, offset: str, message_bus: MessageBus = None):
+        message_types: list, offset: str, message_bus: MessageBus = None,
+        cluster_conf: str = 'yaml:///etc/cortx/cluster.conf'):
         """ Initialize a Message Consumer
 
         Parameters:
@@ -203,9 +207,10 @@ class MessageConsumer(MessageBusClient):
                         ("earliest" will cause messages to be read from the
                         beginning)
         """
-        super().__init__(client_type='consumer', client_id=consumer_id, \
-            consumer_group=consumer_group, message_types=message_types, \
-            auto_ack=auto_ack, offset=offset, message_bus=message_bus)
+        super().__init__(client_type='consumer', cluster_conf=cluster_conf, \
+            client_id=consumer_id, consumer_group=consumer_group, \
+            message_types=message_types, auto_ack=auto_ack, offset=offset, \
+            message_bus=message_bus)
 
     def get_unread_count(self, message_type: str):
         """

@@ -54,32 +54,51 @@ class MessageBrokerFactory:
             "Invalid service name %s.", broker_type)
 
     @staticmethod
-    def get_server_list(message_server_endpoints: list) -> tuple:
-        """Fetches info of nodes in cluster from list of endpoints.
+    def get_server_list(cluster_conf_index: str) -> tuple:
+        """Fetches info of nodes in cluster from passed template file.
 
         Args:
-            message_server_endpoints: list of endpoints
+            cluster_conf_index (str): index for loaded input template file
+
+        Raises:
+            SetupError: if message bus type not kafka or missing required keys
 
         Returns:
-            list: ([message_server_list])
+            tuple: ([server_list], [port_list])
         """
-        message_server_list = []
-        server_info = {}
+        key_list = ['cortx>utils>message_bus_backend', \
+            'cortx>external>kafka>endpoints']
 
-        for server in message_server_endpoints:
+        ConfKeysV().validate('exists', cluster_conf_index, key_list)
+        msg_bus_type = Conf.get(cluster_conf_index, key_list[0])
+
+        if msg_bus_type != 'kafka':
+            Log.error(f"Message bus type {msg_bus_type} is not supported")
+            raise SetupError(errno.EINVAL, \
+                "Message bus type %s is not supported", msg_bus_type)
+
+        all_servers = Conf.get(cluster_conf_index, key_list[1])
+        message_server_list = []
+        port_list = []
+
+        for server in all_servers:
             # Value of server can be <server_fqdn:port> or <server_fqdn>
             if ':' in server:
                 endpoints = server.split('//')[1]
                 server_fqdn, port = endpoints.split(':')
-                server_info['server'] = server_fqdn
-                server_info['port'] = port
+                message_server_list.append(server_fqdn)
+                port_list.append(port)
             else:
-                server_info['server'] = server
-                server_info['port'] = '9092'  # 9092 is default kafka server port
+                message_server_list.append(server)
+                port_list.append('9092')   # 90992 is default kafka server port
 
-            message_server_list.append(server_info)
-
-        return message_server_list
+        if not message_server_list:
+            Log.error(f"Missing config entry {key_list} in input file")
+            raise SetupError(errno.EINVAL, \
+                "Missing config entry %s in config", key_list)
+        # Read the default config
+        config = CortxConf.get('message_bus')
+        return message_server_list, port_list, config
 
 
 class MessageBroker:
