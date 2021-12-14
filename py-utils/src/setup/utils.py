@@ -92,62 +92,14 @@ class Utils:
         return val
 
     @staticmethod
-    def _get_server_info(conf_url_index: str, machine_id: str) -> dict:
-        """Reads the ConfStore and derives keys related to Event Message.
-
-        Args:
-            conf_url_index (str): Index for loaded conf_url
-            machine_id (str): Machine_id
-
-        Returns:
-            dict: Server Information
-        """
-        key_list = [f'node>{machine_id}']
-        ConfKeysV().validate('exists', conf_url_index, key_list)
-        server_info = Conf.get(conf_url_index, key_list[0])
-        return server_info
-
-    @staticmethod
-    def _copy_cluster_map(conf_url_index: str):
-        Conf.load('cluster', 'yaml:///etc/cortx/cluster.conf', skip_reload=True)
-        cluster_data = Conf.get(conf_url_index, 'node')
+    def _copy_cluster_map(config_path: str):
+        Conf.load('cluster', config_path, skip_reload=True)
+        cluster_data = Conf.get('cluster', 'node')
         for _, node_data in cluster_data.items():
             hostname = node_data.get('hostname')
             node_name = node_data.get('name')
             Conf.set('cluster', f'cluster>{node_name}', hostname)
         Conf.save('cluster')
-
-    @staticmethod
-    def _create_utils_config(server_info: dict, machine_id: str, \
-        message_server_list: list, config: dict):
-        """Create the utils config file required for message_bus and iem."""
-        utils_index = 'utils_ind'
-        local_path = CortxConf.get_storage_path('local')
-        utils_conf = os.path.join(local_path, 'utils/conf/utils.conf')
-        utils_conf_sample = utils_conf + '.sample'
-        with open(utils_conf_sample, 'w+') as file:
-            json.dump({}, file, indent=2)
-        # IEM
-        for _id in ['site_id', 'rack_id']:
-            if _id not in server_info.keys():
-                server_info[_id] = 1
-        Conf.load(utils_index, f'json://{utils_conf_sample}', skip_reload=True)
-        Conf.set(utils_index, f'node>{machine_id}>cluster_id', server_info['cluster_id'])
-        Conf.set(utils_index, f'node>{machine_id}>site_id', server_info['site_id'])
-        Conf.set(utils_index, f'node>{machine_id}>rack_id', server_info['rack_id'])
-        Conf.set(utils_index, f'node>{machine_id}>node_id', machine_id)
-        # Message bus conf
-        Conf.set(utils_index, 'message_broker>type', 'kafka')
-        Conf.set(utils_index, 'message_broker>cluster', message_server_list)
-        Conf.set(utils_index, 'message_broker>message_bus',  config)
-        Conf.save(utils_index)
-
-
-        # copy this sample conf file as utils.conf
-        try:
-            os.rename(utils_conf_sample, utils_conf)
-        except OSError as e:
-            raise SetupError(e.errno, "Failed to create %s. %s", utils_conf, e)
 
     @staticmethod
     def _configure_rsyslog():
@@ -200,7 +152,7 @@ class Utils:
         ConfKeysV().validate('exists', post_install_template_index, key_list)
 
         #set cluster nodename:hostname mapping to cluster.conf (needed for Support Bundle)
-        Utils._copy_cluster_map(post_install_template_index)
+        Utils._copy_cluster_map(config_path)
 
         return 0
 
@@ -216,31 +168,8 @@ class Utils:
             CortxConf.set('log_dir', log_dir)
             CortxConf.save()
 
-        # Add message_bus config to utils conf
-        try:
-            from cortx.utils.message_bus import MessageBrokerFactory
-            message_server_endpoints = Conf.get(config_template_index, \
-                'cortx>external>kafka>endpoints')
-            message_server_list = \
-                MessageBrokerFactory.get_server_list(message_server_endpoints)
-        except SetupError:
-            Log.error(f"Could not find server information in {config_path}")
-            raise SetupError(errno.EINVAL, \
-                "Could not find server information in %s", config_path)
-
-        # Add iem config to utils conf
-        machine_id = Conf.machine_id
-        server_info = Utils._get_server_info(config_template_index, machine_id)
-        if server_info is None:
-            Log.error(f"Could not find server information in {config_path}")
-            raise SetupError(errno.EINVAL, "Could not find server " +\
-                "information in %s", config_path)
-        config = CortxConf.get('message_bus')
-        Utils._create_utils_config(server_info, machine_id, \
-            message_server_list, config)
-
         # set cluster nodename:hostname mapping to cluster.conf
-        Utils._copy_cluster_map(config_template_index)
+        Utils._copy_cluster_map(config_path)
         Utils._configure_rsyslog()
 
         # get shared storage from cluster.conf and set it to cortx.conf
