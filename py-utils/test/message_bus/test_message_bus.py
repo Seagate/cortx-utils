@@ -192,8 +192,9 @@ class TestMessageBus(unittest.TestCase):
                 break
             time.sleep(2*retry_count)
         # Set expire time to 3 seconds
-        TestMessageBus._admin.set_message_type_expire(\
-            TestMessageBus._message_type, 3000)
+        TestMessageBus._admin.configure_message_type(\
+            TestMessageBus._message_type, {'expire_time_ms': 5000,\
+            'data_limit_bytes': 1000})
         for count in range(3):
             TestMessageBus._producer.send(\
             [f"A simple test message {count}"])

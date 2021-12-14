@@ -119,14 +119,8 @@ class MessageBus(metaclass=Singleton):
         """ Provides acknowledgement on offset """
         self._broker.ack(client_id)
 
-    def set_message_type_expire(self, client_id: str, message_type: str, \
-        expire_time: int):
+    def configure_message_type(self, client_id: str, message_type: str,\
+        **kwargs):
         """Set expiration time for given message type."""
-        return self._broker.set_message_type_expire(client_id, message_type, \
-            expire_time)
-
-    def set_message_type_retention(self, client_id: str, message_type: str, \
-        retention_type: str, value: int):
-        """Set expiration time for given message type."""
-        return self._broker.set_message_type_retention(client_id, message_type, \
-            retention_type, value)
+        return self._broker.configure_message_type(client_id,\
+            message_type, kwargs)
