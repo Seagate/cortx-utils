@@ -564,8 +564,7 @@ class KafkaMessageBroker(MessageBroker):
                 "Consumer %s is not initialized.", consumer_id)
         consumer.commit(async=False)
 
-
-    def configure_message_type(self, admin_id: str, message_type: str, **kwargs):
+    def _configure_message_type(self, admin_id: str, message_type: str, **kwargs):
         """
         Sets expiration time for individual messages types
 
@@ -613,3 +612,17 @@ class KafkaMessageBroker(MessageBroker):
                 break
         Log.debug("Successfully updated message type configurations.")
         return 0
+
+    def set_message_type_expire(self, admin_id: str, message_type: str,\
+        **kwargs):
+        """
+        Set message type expire with combinational unit of time and size.
+        Kwargs:
+        expire_time_ms  This should be the expire time of message_type
+                        in milliseconds.
+        data_limit_bytes This should be the max size of log files
+                         for individual message_type.
+        """
+        if 'expire_time_ms' in kwargs.keys() and 'data_limit_bytes' in kwargs.keys():
+            raise MessageBusError(errno.EINVAL, "Invalid message_type retention config keys.")
+        self._configure_message_type(admin_id, message_type, **kwargs)
