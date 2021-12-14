@@ -125,7 +125,7 @@ class MessageBusClient:
         """Set configuration for given message type."""
         client_id = self._get_conf('client_id')
         return self._message_bus.configure_message_type(client_id,\
-            message_type, kwargs)
+            message_type, **kwargs)
 
     def receive(self, timeout: float = None) -> list:
         """
