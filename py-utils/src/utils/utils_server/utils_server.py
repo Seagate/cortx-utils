@@ -20,7 +20,8 @@ from argparse import RawTextHelpFormatter
 from aiohttp import web
 from cortx.utils.log import Log
 from cortx.utils.common import CortxConf
-
+from cortx.utils.conf_store import Conf
+from cortx.utils.message_bus import MessageBus
 
 class RestServer:
     """ Base class for Cortx Rest Server implementation """
@@ -30,6 +31,11 @@ class RestServer:
         from cortx.utils.iem_framework import IemRequestHandler
         from cortx.utils.message_bus import MessageBusRequestHandler
         from cortx.utils.audit_log import AuditLogRequestHandler
+        cluster_conf = CortxConf.get_cluster_conf_path()
+        Conf.load('config', cluster_conf, skip_reload=True)
+        message_server_endpoints = Conf.get('config',\
+                'cortx>external>kafka>endpoints')
+        MessageBus.init(message_server_endpoints=message_server_endpoints)
         app.add_routes([web.post('/EventMessage/event', IemRequestHandler.send), \
             web.get('/EventMessage/event', IemRequestHandler.receive), \
             web.post('/MessageBus/message/{message_type}', \
