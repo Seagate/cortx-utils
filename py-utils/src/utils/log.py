@@ -16,7 +16,6 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
-import sys
 import errno
 import inspect
 import traceback
@@ -101,53 +100,62 @@ class Log:
 
     @staticmethod
     def debug(msg, *args, **kwargs):
-        caller = inspect.stack()[1][3]
-        Log.logger.debug(f"[{caller}] {msg}", *args, **kwargs)
+        if Log.logger:
+            caller = inspect.stack()[1][3]
+            Log.logger.debug(f"[{caller}] {msg}", *args, **kwargs)
 
     @staticmethod
     def info(msg, *args, **kwargs):
-        caller = inspect.stack()[1][3]
-        Log.logger.info(f"[{caller}] {msg}", *args, **kwargs)
+        if Log.logger:
+            caller = inspect.stack()[1][3]
+            Log.logger.info(f"[{caller}] {msg}", *args, **kwargs)
 
     @staticmethod
     def audit(msg, *args, **kwargs):
-        caller = inspect.stack()[1][3]
-        Log.audit_logger.info(f"audit: {msg}", *args, **kwargs)
+        if Log.logger:
+            caller = inspect.stack()[1][3]
+            Log.audit_logger.info(f"[{caller}] {msg}", *args, **kwargs)
 
     @staticmethod
     def support_bundle(msg, *args, **kwargs):
-        caller = inspect.stack()[1][3]
-        Log.audit_logger.info(f"support_bundle: {msg}", *args, **kwargs)
+        if Log.logger:
+            caller = inspect.stack()[1][3]
+            Log.audit_logger.info(f"[{caller}] {msg}", *args, **kwargs)
 
     @staticmethod
     def warn(msg, *args, **kwargs):
-        caller = inspect.stack()[1][3]
-        Log.logger.warn(f"[{caller}] {msg}", *args, **kwargs)
+        if Log.logger:
+            caller = inspect.stack()[1][3]
+            Log.logger.warn(f"[{caller}] {msg}", *args, **kwargs)
 
     @staticmethod
     def error(msg, *args, **kwargs):
-        caller = inspect.stack()[1][3]
-        Log.logger.error(f"[{caller}] {msg}", *args, **kwargs)
+        if Log.logger:
+            caller = inspect.stack()[1][3]
+            Log.logger.error(f"[{caller}] {msg}", *args, **kwargs)
 
     @staticmethod
     def critical(msg, *args, **kwargs):
         """ Logs a message with level CRITICAL on this logger. """
-        caller = inspect.stack()[1][3]
-        Log.logger.critical(traceback.format_exc())
-        Log.logger.critical(f"[{caller}] {msg}", *args, **kwargs)
+        if Log.logger:
+            caller = inspect.stack()[1][3]
+            Log.logger.critical(traceback.format_exc())
+            Log.logger.critical(f"[{caller}] {msg}", *args, **kwargs)
 
     @staticmethod
     def exception(e, *args, **kwargs):
         """ Logs a message with level ERROR on this logger. """
-        caller = inspect.stack()[1][3]
-        Log.logger.exception(f"[{caller}] [{e.__class__.__name__}] e")
+        if Log.logger:
+            caller = inspect.stack()[1][3]
+            Log.logger.exception(f"[{caller}] [{e.__class__.__name__}] e")
 
     @staticmethod
     def console(msg, *args, **kwargs):
         """ Logs a message with level ERROR on this logger. """
-        caller = inspect.stack()[1][3]
-        Log.logger.debug(f"[{caller}] {msg}", *args, **kwargs)
-        print(f"[{caller}] {msg}")
+        if Log.logger:
+            caller = inspect.stack()[1][3]
+            Log.logger.debug(f"[{caller}] {msg}", *args, **kwargs)
+            print(f"[{caller}] {msg}")
 
 
     @staticmethod
