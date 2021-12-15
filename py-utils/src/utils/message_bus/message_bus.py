@@ -66,10 +66,11 @@ class MessageBus(metaclass=Singleton):
         Conf.load(utils_index, 'dict:{}', skip_reload=True)
         message_server_keys = message_server_params_kwargs.keys()
 
-        if 'logger' in message_server_params_kwargs.keys():
-            Log.logger = message_server_params_kwargs['logger']
-        else:
-            raise MessageBusError(errno.ENOSYS, "Logger is not initialized")
+        if not Log.logger:
+            if 'logger' in message_server_params_kwargs.keys():
+                Log.logger = message_server_params_kwargs['logger']
+            else:
+                raise MessageBusError(errno.ENOSYS, "Logger is not initialized")
 
         endpoints = MessageBrokerFactory.get_server_list(message_server_endpoints)
         broker_type = message_server_params_kwargs['broker_type'] if \
