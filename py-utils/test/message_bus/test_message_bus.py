@@ -206,7 +206,7 @@ class TestMessageBus(unittest.TestCase):
             auto_ack=False, offset='earliest', \
             cluster_conf = self.cluster_conf_path)
         message = _consumer_new.receive()
-        # Revert back to original timeout
+        # Revert back to original timeout to 604800000 (7 days)
         TestMessageBus._admin.set_message_type_expire(\
             TestMessageBus._message_type, expire_time_ms=604800000)
         self.assertIsNone(message)

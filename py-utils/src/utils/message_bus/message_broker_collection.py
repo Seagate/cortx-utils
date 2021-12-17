@@ -594,7 +594,7 @@ class KafkaMessageBroker(MessageBroker):
         topic_resource = ConfigResource('topic', message_type)
         for tuned_retry in range(self._max_config_retry_count):
             for key, val in kwargs.items():
-                topic_resource.set_config(key, val)
+                topic_resource.set_config(self._config_prop_map[key], val)
             tuned_params = admin.alter_configs([topic_resource])
             if list(tuned_params.values())[0].result() is not None:
                 if tuned_retry > 1:
@@ -626,13 +626,10 @@ class KafkaMessageBroker(MessageBroker):
         """
         Log.debug(f"Set expiration for message " \
             f"type {message_type} with admin id {admin_id}")
-        if 'expire_time_ms' not in kwargs.keys()\
-            and 'data_limit_bytes' not in kwargs.keys():
-            raise MessageBusError(errno.EINVAL,\
-                "Invalid message_type retention config keys.")
-        config = {}
-        for key, val in kwargs.items():
-            if key in self._config_prop_map.keys():
-                config[self._config_prop_map[key]] = val
-        config[self._config_prop_map['file_delete_ms']] = 1
-        return self._configure_message_type(admin_id, message_type, **config)
+        
+        for config_property in ['expire_time_ms', 'data_limit_bytes']:
+            if config_property not in kwargs.keys():
+                raise MessageBusError(errno.EINVAL,\
+                    "Invalid message_type retention config key %s.", config_property)
+        kwargs['file_delete_ms'] = 1
+        return self._configure_message_type(admin_id, message_type, **kwargs)
