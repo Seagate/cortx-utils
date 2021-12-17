@@ -16,25 +16,30 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import argparse
+import errno
 from argparse import RawTextHelpFormatter
 from aiohttp import web
 from cortx.utils.log import Log
 from cortx.utils.common import CortxConf
 from cortx.utils.conf_store import Conf
+from cortx.utils.errors import UtilsError
 from cortx.utils.message_bus import MessageBus
+
+class UtilsServerError(UtilsError):
+    """ UtilsServerError exception with error code and output """
+
+    def __init__(self, rc, message, *args):
+        super().__init__(rc, message, *args)
 
 class RestServer:
     """ Base class for Cortx Rest Server implementation """
 
-    def __init__(self):
+    def __init__(self, message_server_endpoints):
         app = web.Application()
         from cortx.utils.iem_framework import IemRequestHandler
         from cortx.utils.message_bus import MessageBusRequestHandler
         from cortx.utils.audit_log import AuditLogRequestHandler
-        cluster_conf = CortxConf.get_cluster_conf_path()
-        Conf.load('config', cluster_conf, skip_reload=True)
-        message_server_endpoints = Conf.get('config',\
-                'cortx>external>kafka>endpoints')
+
         MessageBus.init(message_server_endpoints=message_server_endpoints)
         app.add_routes([web.post('/EventMessage/event', IemRequestHandler.send), \
             web.get('/EventMessage/event', IemRequestHandler.receive), \
@@ -51,7 +56,6 @@ class RestServer:
 
 
 if __name__ == '__main__':
-    import os
     from cortx.utils.conf_store import Conf
     parser = argparse.ArgumentParser(description='Utils server CLI',
         formatter_class=RawTextHelpFormatter)
@@ -59,14 +63,20 @@ if __name__ == '__main__':
         help="Cluster config file path for Support Bundle",\
         default='yaml:///etc/cortx/cluster.conf')
     args=parser.parse_args()
-
-    CortxConf.init(cluster_conf=args.cluster_conf)
+    cluster_conf = args.cluster_conf
+    CortxConf.init(cluster_conf=cluster_conf)
     # Get the log path
-    log_dir = CortxConf.get('log_dir', '/var/log')
+    log_dir = CortxConf.get('log_dir')
+    if not log_dir:
+        raise UtilsServerError(errno.EINVAL, "Fail to initialize logger."+\
+            " Unable to find log_dir path entry")
     utils_log_path = CortxConf.get_log_path('utils_server', base_dir=log_dir)
     # Get the log level
     log_level = CortxConf.get('utils>log_level', 'INFO')
 
     Log.init('utils_server', utils_log_path, level=log_level, backup_count=5, \
         file_size_in_mb=5)
-    RestServer()
+    Conf.load('config', cluster_conf, skip_reload=True)
+    message_server_endpoints = Conf.get('config',\
+            'cortx>external>kafka>endpoints')
+    RestServer(message_server_endpoints)
