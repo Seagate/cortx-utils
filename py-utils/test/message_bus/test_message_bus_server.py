@@ -29,7 +29,7 @@ class TestMessage(unittest.TestCase):
     """Test MessageBus rest server functionality."""
 
     _base_url = 'http://0.0.0.0:28300/MessageBus/message/'
-    _message_type = 'testit12'
+    _message_type = 'test'
     _consumer_group = 'receive'
     _endpoints = ''
 
