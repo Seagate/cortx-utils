@@ -43,6 +43,11 @@ class KafkaMessageBroker(MessageBroker):
     _max_config_retry_count = 3
     _max_purge_retry_count = 5
     _max_list_message_type_count = 15
+    _config_prop_map={
+        'expire_time_ms': 'retention.ms',
+        'data_limit_bytes': 'segment.bytes',
+        'file_delete_ms': 'file.delete.delay.ms',
+        }
 
     def __init__(self, broker_conf: dict):
         """ Initialize Kafka based Configurations """
@@ -583,17 +588,13 @@ class KafkaMessageBroker(MessageBroker):
         # check for message_type exist or not
         message_type_list = self.list_message_types(admin_id)
         if message_type not in message_type_list:
-            raise MessageBusError(errno.ENOENT, "Unknown topic: Could not"+\
-                " find the topic %s in created topic list %s", message_type, \
-                message_type_list)
+            raise MessageBusError(errno.ENOENT, "Unknown Message type: Could"+\
+                " not find the Message type %s in created Message type list %s",
+                message_type, message_type_list)
         topic_resource = ConfigResource('topic', message_type)
         for tuned_retry in range(self._max_config_retry_count):
             for key, val in kwargs.items():
-                if key == 'expire_time_ms':
-                    topic_resource.set_config('retention.ms', val)
-                if key == 'data_limit_bytes':
-                    topic_resource.set_config('segment.bytes', val)
-            topic_resource.set_config('file.delete.delay.ms', 1)
+                topic_resource.set_config(key, val)
             tuned_params = admin.alter_configs([topic_resource])
             if list(tuned_params.values())[0].result() is not None:
                 if tuned_retry > 1:
@@ -623,8 +624,15 @@ class KafkaMessageBroker(MessageBroker):
         data_limit_bytes This should be the max size of log files
                          for individual message_type.
         """
+        Log.debug(f"Set expiration for message " \
+            f"type {message_type} with admin id {admin_id}")
         if 'expire_time_ms' not in kwargs.keys()\
             and 'data_limit_bytes' not in kwargs.keys():
             raise MessageBusError(errno.EINVAL,\
                 "Invalid message_type retention config keys.")
-        return self._configure_message_type(admin_id, message_type, **kwargs)
+        config = {}
+        for key, val in kwargs.items():
+            if key in self._config_prop_map.keys():
+                config[self._config_prop_map[key]] = val
+        config[self._config_prop_map['file_delete_ms']] = 1
+        return self._configure_message_type(admin_id, message_type, **config)
