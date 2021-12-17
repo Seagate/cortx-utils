@@ -26,13 +26,13 @@ from cortx.utils.errors import UtilsError
 from cortx.utils.message_bus import MessageBus
 
 class UtilsServerError(UtilsError):
-    """ UtilsServerError exception with error code and output """
+    """UtilsServerError exception with error code and output."""
 
     def __init__(self, rc, message, *args):
         super().__init__(rc, message, *args)
 
 class RestServer:
-    """ Base class for Cortx Rest Server implementation """
+    """Base class for Cortx Rest Server implementation."""
 
     def __init__(self, message_server_endpoints):
         app = web.Application()
