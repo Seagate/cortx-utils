@@ -144,8 +144,10 @@ class ConfCli:
     @staticmethod
     def search(args):
         """Returns list of keys matching to the criteria."""
-        return Conf.search(ConfCli._index, args.parent_key, args.search_key,
-            args.search_val)
+        search_kvs = args.search_kv.split(':')
+        search_key = search_kvs[0]
+        search_val = None if len(search_kvs) <= 1 else search_kvs[1]
+        return Conf.search(ConfCli._index, args.parent_key, search_key, search_val)
 
 
 class GetCmd:
@@ -262,11 +264,10 @@ class SearchCmd:
        s_parser = sub_parser.add_parser('search', help=
             "Searches for the given key and value under a parent key.\n"
             "Example Command:\n"
-            "# conf yaml:///tmp/test.conf search 'root' 'name' 'storage_node'\n\n")
+            "# conf yaml:///tmp/test.conf search 'root' 'name:storage_node'\n\n")
 
        s_parser.add_argument('parent_key', help="parent key")
-       s_parser.add_argument('search_key', help="search key")
-       s_parser.add_argument('search_val', help="search val")
+       s_parser.add_argument('search_kv', help="search kv")
        s_parser.set_defaults(func=ConfCli.search)
 
 def main():
