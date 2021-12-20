@@ -51,16 +51,16 @@ class SupportBundle:
 
     @staticmethod
     def _get_uncompressed_size(size_limit: float):
-        """Calculate the uncompressed size, assuming the tz utility compression to be 80%,
+        """Calculate the uncompressed size, assuming the tz utility compression to be 80%
 
-            Using Formula:
-                Data_Compression_ratio = 1-(compressed_size/uncompressed_size)
-                compressed_size/uncompressed_size = 1-(4/5) = 1/5
-                uncompressed_size = compressed_size * 5
-            Multiplying compressed size limit with 5 to get the uncompressed size limit.
-            For example:
-                say the compressed size limit given is 200MB, 
-                uncompressed size limit = 200MB * 5 = 1000MB
+        Using Formula:
+            Data_Compression_ratio = 1-(compressed_size/uncompressed_size)
+            compressed_size/uncompressed_size = 1-(4/5) = 1/5
+            uncompressed_size = compressed_size * 5
+        Multiplying compressed size limit with 5 to get the uncompressed size limit.
+        For example:
+            say the compressed size limit given is 200MB,
+            uncompressed size limit = 200MB * 5 = 1000MB
         """
         uncompressed_size = ''
         try:
