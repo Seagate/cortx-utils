@@ -193,7 +193,8 @@ class TestMessageBus(unittest.TestCase):
             time.sleep(2*retry_count)
         # Set expire time to 3 seconds
         TestMessageBus._admin.set_message_type_expire(\
-            TestMessageBus._message_type, 3000)
+            TestMessageBus._message_type, expire_time_ms=5000,\
+                data_limit_bytes=10000)
         for count in range(3):
             TestMessageBus._producer.send(\
             [f"A simple test message {count}"])
@@ -205,9 +206,9 @@ class TestMessageBus(unittest.TestCase):
             auto_ack=False, offset='earliest', \
             cluster_conf = self.cluster_conf_path)
         message = _consumer_new.receive()
-        # Revert back to original timeout
+        # Revert back to original timeout to 604800000 (7 days)
         TestMessageBus._admin.set_message_type_expire(\
-            TestMessageBus._message_type, 604800000)
+            TestMessageBus._message_type, expire_time_ms=604800000)
         self.assertIsNone(message)
 
     @staticmethod
