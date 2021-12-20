@@ -64,9 +64,10 @@ if __name__ == '__main__':
         default='yaml:///etc/cortx/cluster.conf')
     args=parser.parse_args()
     cluster_conf = args.cluster_conf
+    Conf.load('config', cluster_conf, skip_reload=True)
     CortxConf.init(cluster_conf=cluster_conf)
     # Get the log path
-    log_dir = CortxConf.get('log_dir')
+    log_dir = Conf.get('config','cortx>common>storage>log')
     if not log_dir:
         raise UtilsServerError(errno.EINVAL, "Fail to initialize logger."+\
             " Unable to find log_dir path entry")
@@ -76,7 +77,6 @@ if __name__ == '__main__':
 
     Log.init('utils_server', utils_log_path, level=log_level, backup_count=5, \
         file_size_in_mb=5)
-    Conf.load('config', cluster_conf, skip_reload=True)
     message_server_endpoints = Conf.get('config',\
             'cortx>external>kafka>endpoints')
     RestServer(message_server_endpoints)
