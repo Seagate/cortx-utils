@@ -50,6 +50,11 @@ class CortxSupportBundle:
         if not sb_size_unit:
             sys.stderr.write("Support Bundle size limit should be in KB/MB/GB units.\n")
             sys.exit(1)
+        binlogs = args.binlogs
+        coredumps = args.coredumps
+        stacktrace = args.stacktrace
+        components = args.modules
+
         # Use default cortx conf url ('yaml:///etc/cortx/cluster.conf'),
         # if not conf_url is parsed.
         config_url = args.cluster_conf_path[0] if args.cluster_conf_path else const.DEFAULT_CORTX_CONF
@@ -63,7 +68,9 @@ class CortxSupportBundle:
         os.makedirs(const.SB_PATH, exist_ok=True)
         bundle_obj = SupportBundle.generate(comment=message, target_path=path,
             bundle_id=bundle_id, duration=duration, config_url=config_url,
-            size_limit=size_limit)
+            size_limit=size_limit, binlogs=binlogs, coredumps=coredumps,
+            stacktrace=stacktrace, components=components)
+
         display_string_len = len(bundle_obj.bundle_id) + 4
         response_msg = (
             f"Please use the below bundle id for checking the status of support bundle."
@@ -106,6 +113,14 @@ class GenerateCmd:
             help="Duration - duration for which log should be captured, Default - P5D")
         s_parser.add_argument('--size_limit', default='500MB',
             help="Size Limit - Support Bundle size limit per node, Default - 500MB")
+        s_parser.add_argument('--binlogs', type=str2bool, default=False,
+            help="Include/Exclude Binary Logs, Default = False")
+        s_parser.add_argument('--coredumps', type=str2bool, default=False,
+            help="Include/Exclude Coredumps, Default = False")
+        s_parser.add_argument('--stacktrace', type=str2bool, default=False,
+            help="Include/Exclude stacktrace, Default = False")
+        s_parser.add_argument('--modules',
+            help="list of components & services to generate support bundle.")
 
 
 class StatusCmd:
@@ -129,6 +144,15 @@ class StatusCmd:
         s_parser.add_argument('-c', '--cluster_conf_path', nargs='+', default='', \
             help='Optional, Location- CORTX confstore file location.')
 
+def str2bool(value):
+    if isinstance(value, bool):
+        return value
+    if value.lower() in ('true'):
+        return True
+    elif value.lower() in ('false'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
 
 def main():
     from cortx.utils.log import Log

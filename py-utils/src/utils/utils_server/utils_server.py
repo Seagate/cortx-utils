@@ -29,12 +29,16 @@ class RestServer:
         app = web.Application()
         from cortx.utils.iem_framework import IemRequestHandler
         from cortx.utils.message_bus import MessageBusRequestHandler
+        from cortx.utils.audit_log import AuditLogRequestHandler
         app.add_routes([web.post('/EventMessage/event', IemRequestHandler.send), \
             web.get('/EventMessage/event', IemRequestHandler.receive), \
             web.post('/MessageBus/message/{message_type}', \
             MessageBusRequestHandler.send), \
             web.get('/MessageBus/message/{message_type}', \
-            MessageBusRequestHandler.receive)])
+            MessageBusRequestHandler.receive),
+            web.post('/AuditLog/message/', \
+            AuditLogRequestHandler.send)
+            ])
 
         Log.info("Starting Message Server 0.0.0.0 on port 28300")
         web.run_app(app, port=28300)
