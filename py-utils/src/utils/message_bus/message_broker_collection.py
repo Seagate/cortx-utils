@@ -595,8 +595,8 @@ class KafkaMessageBroker(MessageBroker):
             for key, val in kwargs.items():
                 if key not in self._config_prop_map:
                     raise MessageBusError(errno.EINVAL,\
-                    "Invalid configuration %s for message_type %s.", key,\
-                    message_type)
+                        "Invalid configuration %s for message_type %s.", key,\
+                        message_type)
                 topic_resource.set_config(self._config_prop_map[key], val)
             tuned_params = admin.alter_configs([topic_resource])
             if list(tuned_params.values())[0].result() is not None:
