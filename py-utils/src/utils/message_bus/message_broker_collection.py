@@ -583,14 +583,13 @@ class KafkaMessageBroker(MessageBroker):
                          for individual message_type.
         """
         admin = self._clients['admin'][admin_id]
-        Log.debug(f"Set configuration for message " \
+        Log.debug(f"New configuration for message " \
             f"type {message_type} with admin id {admin_id}")
         # check for message_type exist or not
         message_type_list = self.list_message_types(admin_id)
         if message_type not in message_type_list:
-            raise MessageBusError(errno.ENOENT, "Unknown Message type: Could"+\
-                " not find the Message type %s in created Message type list %s",
-                message_type, message_type_list)
+            raise MessageBusError(errno.ENOENT, "Unknown Message type:"+\
+                " not listed in %s", message_type_list)
         topic_resource = ConfigResource('topic', message_type)
         for tuned_retry in range(self._max_config_retry_count):
             for key, val in kwargs.items():
@@ -611,7 +610,8 @@ class KafkaMessageBroker(MessageBroker):
                 continue
             else:
                 break
-        Log.debug("Successfully updated message type configurations.")
+        Log.debug("Successfully updated message type with new"+\
+            " configuration configurations.")
         return 0
 
     def set_message_type_expire(self, admin_id: str, message_type: str,\
