@@ -18,6 +18,7 @@
 
 import unittest
 from cortx.utils.log import Log
+from cortx.utils.conf_store import Conf
 from cortx.utils.kv_store import KvPayload
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus import MessageBus, MessageBusAdmin, \
@@ -29,14 +30,22 @@ class TestKVPayloadMessage(unittest.TestCase):
     """Test Send/Receive KvPayload as message."""
 
     _message_type = 'kv_payloads'
-    _endpoints = ''
+    _cluster_conf_path = ''
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls, \
+        cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
         """Register the test message_type."""
+        if TestKVPayloadMessage._cluster_conf_path:
+            cls.cluster_conf_path = TestKVPayloadMessage._cluster_conf_path
+        else:
+            cls.cluster_conf_path = cluster_conf_path
+        Conf.load('config', cls.cluster_conf_path, skip_reload=True)
+        message_server_endpoints = Conf.get('config',\
+                'cortx>external>kafka>endpoints')
         Log.init('message_bus', '/var/log', level='INFO', \
                  backup_count=5, file_size_in_mb=5)
-        MessageBus.init(TestKVPayloadMessage._endpoints.split(','))
+        MessageBus.init(message_server_endpoints=message_server_endpoints)
         cls._admin = MessageBusAdmin(admin_id='register')
         cls._admin.register_message_type(message_types= \
             [TestKVPayloadMessage._message_type], partitions=1)
@@ -104,5 +113,5 @@ class TestKVPayloadMessage(unittest.TestCase):
 if __name__ == '__main__':
     import sys
     if len(sys.argv) >= 2:
-        TestKVPayloadMessage._endpoints = sys.argv.pop()
+        TestKVPayloadMessage._cluster_conf_path = sys.argv.pop()
     unittest.main()
