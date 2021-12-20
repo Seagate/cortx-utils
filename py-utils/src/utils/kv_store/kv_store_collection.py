@@ -433,7 +433,7 @@ class ConsulKvPayload(KvPayload):
 
     def _set(self, key: str, val: str, *args, **kwargs) -> Union[bool, None]:
         """ Set the value to the key in consul kv. """
-        return self._consul.kv.put(key, val)
+        return self._consul.kv.put(key, str(val))
 
     def _delete(self, key: str, *args, **kwargs) -> Union[bool, None]:
         """ Delete the key:value for the input key. """
