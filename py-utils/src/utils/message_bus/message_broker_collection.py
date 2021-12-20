@@ -611,7 +611,7 @@ class KafkaMessageBroker(MessageBroker):
             else:
                 break
         Log.debug("Successfully updated message type with new"+\
-            " configuration configurations.")
+            " configuration.")
         return 0
 
     def set_message_type_expire(self, admin_id: str, message_type: str,\
