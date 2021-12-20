@@ -630,7 +630,7 @@ class KafkaMessageBroker(MessageBroker):
         """
         Log.debug(f"Set expiration for message " \
             f"type {message_type} with admin id {admin_id}")
-        
+
         for config_property in ['expire_time_ms', 'data_limit_bytes']:
             if config_property not in kwargs.keys():
                 raise MessageBusError(errno.EINVAL,\
