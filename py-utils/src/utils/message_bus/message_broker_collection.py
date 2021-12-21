@@ -43,6 +43,11 @@ class KafkaMessageBroker(MessageBroker):
     _max_config_retry_count = 3
     _max_purge_retry_count = 5
     _max_list_message_type_count = 15
+    _config_prop_map = {
+        'expire_time_ms': 'retention.ms',
+        'data_limit_bytes': 'segment.bytes',
+        'file_delete_ms': 'file.delete.delay.ms',
+        }
 
     def __init__(self, broker_conf: dict):
         """ Initialize Kafka based Configurations """
@@ -564,28 +569,35 @@ class KafkaMessageBroker(MessageBroker):
                 "Consumer %s is not initialized.", consumer_id)
         consumer.commit(async=False)
 
-    def set_message_type_expire(self, admin_id: str, message_type: str,
-        expire_time: int):
+    def _configure_message_type(self, admin_id: str, message_type: str, **kwargs):
         """
         Sets expiration time for individual messages types
 
         Parameters:
         message_type    This is essentially equivalent to the
                         queue/topic name. For e.g. "Alert"
-        expire_time     This should be the expire time in milliseconds
+        Kwargs:
+        expire_time_ms  This should be the expire time of message_type
+                        in milliseconds.
+        data_limit_bytes This should be the max size of log files
+                         for individual message_type.
         """
         admin = self._clients['admin'][admin_id]
-        Log.debug(f"Set expire time for message " \
+        Log.debug(f"New configuration for message " \
             f"type {message_type} with admin id {admin_id}")
         # check for message_type exist or not
         message_type_list = self.list_message_types(admin_id)
         if message_type not in message_type_list:
-            raise MessageBusError(errno.ENOENT, "Unknown topic: Could not"+\
-                " find the topic %s in created topic list %s", message_type, \
-                message_type_list)
+            raise MessageBusError(errno.ENOENT, "Unknown Message type:"+\
+                " not listed in %s", message_type_list)
         topic_resource = ConfigResource('topic', message_type)
         for tuned_retry in range(self._max_config_retry_count):
-            topic_resource.set_config('retention.ms', expire_time)
+            for key, val in kwargs.items():
+                if key not in self._config_prop_map:
+                    raise MessageBusError(errno.EINVAL,\
+                        "Invalid configuration %s for message_type %s.", key,\
+                        message_type)
+                topic_resource.set_config(self._config_prop_map[key], val)
             tuned_params = admin.alter_configs([topic_resource])
             if list(tuned_params.values())[0].result() is not None:
                 if tuned_retry > 1:
@@ -602,5 +614,26 @@ class KafkaMessageBroker(MessageBroker):
                 continue
             else:
                 break
-        Log.debug("Successfully updated message type expire time.")
+        Log.debug("Successfully updated message type with new"+\
+            " configuration.")
         return 0
+
+    def set_message_type_expire(self, admin_id: str, message_type: str,\
+        **kwargs):
+        """
+        Set message type expire with combinational unit of time and size.
+        Kwargs:
+        expire_time_ms  This should be the expire time of message_type
+                        in milliseconds.
+        data_limit_bytes This should be the max size of log files
+                         for individual message_type.
+        """
+        Log.debug(f"Set expiration for message " \
+            f"type {message_type} with admin id {admin_id}")
+
+        for config_property in ['expire_time_ms', 'data_limit_bytes']:
+            if config_property not in kwargs.keys():
+                raise MessageBusError(errno.EINVAL,\
+                    "Invalid message_type retention config key %s.", config_property)
+        kwargs['file_delete_ms'] = 1
+        return self._configure_message_type(admin_id, message_type, **kwargs)
