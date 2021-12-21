@@ -21,8 +21,6 @@ import time
 import json
 import unittest
 from cortx.utils.log import Log
-from cortx.utils.conf_store import Conf
-from cortx.utils.common import CortxConf
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus import MessageBus, MessageBusAdmin, \
     MessageProducer, MessageConsumer
@@ -41,28 +39,15 @@ class TestMessageBus(unittest.TestCase):
     _purge_retry = 20
     _producer = None
     _consumer = None
-    _cluster_conf_path = ''
+    _endpoints = ''
 
     @classmethod
-    def setUpClass(cls, cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
+    def setUpClass(cls):
         """Register the test message_type."""
-        if TestMessageBus._cluster_conf_path:
-            cls.cluster_conf_path = TestMessageBus._cluster_conf_path
-        else:
-            cls.cluster_conf_path = cluster_conf_path
-
-        # Read the config values
-        CortxConf.init(cluster_conf=cls.cluster_conf_path)
-        local_storage = CortxConf.get_storage_path('local')
-        utils_conf = os.path.join(local_storage, 'utils/conf/utils.conf')
-        conf_file = f'json://{utils_conf}'
-        Conf.load('utils_ind', conf_file, skip_reload=True)
-        config_params = {'message_broker': Conf.get('utils_ind', \
-            'message_broker')}
 
         Log.init('message_bus', '/var/log', level='INFO', \
             backup_count=5, file_size_in_mb=5)
-        MessageBus.init(json.loads(json.dumps(config_params)))
+        MessageBus.init(TestMessageBus._endpoints.split(','))
         cls._admin = MessageBusAdmin(admin_id='register')
         cls._admin.register_message_type(message_types= \
             [TestMessageBus._message_type], partitions=1)
@@ -194,42 +179,13 @@ class TestMessageBus(unittest.TestCase):
         message = TestMessageBus._consumer.receive()
         self.assertEqual(message, b'A simple test message')
 
-    def test_015_message_type_read_after_expiry(self):
-        """Test receive expired messages."""
-        # Do Purge
-        for retry_count in range(1, (TestMessageBus._purge_retry + 2)):
-            rc = TestMessageBus._producer.delete()
-            if retry_count > TestMessageBus._purge_retry:
-                self.assertIsInstance(rc, MessageBusError)
-            if rc == 0:
-                break
-            time.sleep(2*retry_count)
-        # Set expire time to 3 seconds
-        TestMessageBus._admin.set_message_type_expire(\
-            TestMessageBus._message_type, 3000)
-        for count in range(3):
-            TestMessageBus._producer.send(\
-            [f"A simple test message {count}"])
-        # Wait for message to expire
-        time.sleep(10)
-        _consumer_new = MessageConsumer(consumer_id='receive_new', \
-            consumer_group='test_new', \
-            message_types=[TestMessageBus._message_type], \
-            auto_ack=False, offset='earliest', \
-            cluster_conf = self.cluster_conf_path)
-        message = _consumer_new.receive()
-        # Revert back to original timeout
-        TestMessageBus._admin.set_message_type_expire(\
-            TestMessageBus._message_type, 604800000)
-        self.assertIsNone(message)
-
     @staticmethod
-    def test_016_concurrency():
+    def test_015_concurrency():
         """Test add concurrency count."""
         TestMessageBus._admin.add_concurrency(message_type=\
             TestMessageBus._message_type, concurrency_count=5)
 
-    def test_017_receive_concurrently(self):
+    def test_016_receive_concurrently(self):
         """Test receive concurrently."""
         messages = []
         for msg_num in range(0, TestMessageBus._bulk_count):
@@ -270,20 +226,20 @@ class TestMessageBus(unittest.TestCase):
         time.sleep(5)
         self.assertEqual(total, TestMessageBus._bulk_count)
 
-    def test_018_reduce_concurrency(self):
+    def test_017_reduce_concurrency(self):
         """Test reduce concurrency count."""
         with self.assertRaises(MessageBusError):
             TestMessageBus._admin.add_concurrency(message_type=\
                 TestMessageBus._message_type, concurrency_count=2)
 
-    def test_019_singleton(self):
+    def test_018_singleton(self):
         """Test instance of message_bus."""
         message_bus_1 = MessageBus()
         message_bus_2 = MessageBus()
         self.assertTrue(message_bus_1 is message_bus_2)
 
     @staticmethod
-    def test_020_multiple_admins():
+    def test_019_multiple_admins():
         """Test multiple instances of admin interface."""
         message_types_list = TestMessageBus._admin.list_message_types()
         message_types_list.remove(TestMessageBus._message_type)
@@ -293,6 +249,34 @@ class TestMessageBus(unittest.TestCase):
                 producer = MessageProducer(producer_id=message_type, \
                     message_type=message_type, method='sync')
                 producer.delete()
+
+    def test_020_message_type_read_after_expiry(self):
+        """Test receive expired messages."""
+        # Do Purge
+        for retry_count in range(1, (TestMessageBus._purge_retry + 2)):
+            rc = TestMessageBus._producer.delete()
+            if retry_count > TestMessageBus._purge_retry:
+                self.assertIsInstance(rc, MessageBusError)
+            if rc == 0:
+                break
+            time.sleep(2*retry_count)
+        # Set expire time to 3 seconds
+        TestMessageBus._admin.set_message_type_expire(\
+            TestMessageBus._message_type, 3000)
+        for count in range(3):
+            TestMessageBus._producer.send(\
+            [f"A simple test message {count}"])
+        # Wait for message to expire
+        time.sleep(10)
+        _consumer_new = MessageConsumer(consumer_id='receive_new', \
+            consumer_group='test_new', \
+            message_types=[TestMessageBus._message_type], \
+            auto_ack=False, offset='earliest')
+        message = _consumer_new.receive()
+        # Revert back to original timeout
+        TestMessageBus._admin.set_message_type_expire(\
+            TestMessageBus._message_type, 604800000)
+        self.assertIsNone(message)
 
     @classmethod
     def tearDownClass(cls):
@@ -308,5 +292,5 @@ class TestMessageBus(unittest.TestCase):
 if __name__ == '__main__':
     import sys
     if len(sys.argv) >= 2:
-        TestMessageBus._cluster_conf_path = sys.argv.pop()
+        TestMessageBus._endpoints = sys.argv.pop()
     unittest.main()

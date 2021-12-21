@@ -17,6 +17,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import unittest
+from cortx.utils.log import Log
 from cortx.utils.kv_store import KvPayload
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus import MessageBus, MessageBusAdmin, \
@@ -28,26 +29,22 @@ class TestKVPayloadMessage(unittest.TestCase):
     """Test Send/Receive KvPayload as message."""
 
     _message_type = 'kv_payloads'
-    _cluster_conf_path = ''
+    _endpoints = ''
 
     @classmethod
-    def setUpClass(cls, cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
+    def setUpClass(cls):
         """Register the test message_type."""
-        if TestKVPayloadMessage._cluster_conf_path:
-            cls.cluster_conf_path = TestKVPayloadMessage._cluster_conf_path
-        else:
-            cls.cluster_conf_path = cluster_conf_path
-        cls._admin = MessageBusAdmin(admin_id='register', \
-            cluster_conf = cls.cluster_conf_path)
+        Log.init('message_bus', '/var/log', level='INFO', \
+                 backup_count=5, file_size_in_mb=5)
+        MessageBus.init(TestKVPayloadMessage._endpoints.split(','))
+        cls._admin = MessageBusAdmin(admin_id='register')
         cls._admin.register_message_type(message_types= \
             [TestKVPayloadMessage._message_type], partitions=1)
         cls._consumer = MessageConsumer(consumer_id='kv_consumer', \
             consumer_group='kv', message_types=[TestKVPayloadMessage.\
-                _message_type], auto_ack=True, offset='earliest', \
-                cluster_conf = cls.cluster_conf_path)
+                _message_type], auto_ack=True, offset='earliest')
         cls._producer = MessageProducer(producer_id='kv_producer', \
-            message_type=TestKVPayloadMessage._message_type, method='sync', \
-            cluster_conf = cls.cluster_conf_path)
+            message_type=TestKVPayloadMessage._message_type, method='sync')
 
     def test_json_kv_send(self):
         """Load json as payload."""
@@ -107,5 +104,5 @@ class TestKVPayloadMessage(unittest.TestCase):
 if __name__ == '__main__':
     import sys
     if len(sys.argv) >= 2:
-        TestKVPayloadMessage._cluster_conf_path = sys.argv.pop()
+        TestKVPayloadMessage._endpoints = sys.argv.pop()
     unittest.main()

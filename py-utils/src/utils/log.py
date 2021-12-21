@@ -16,13 +16,12 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
-import sys
 import errno
 import inspect
 import traceback
 import logging.handlers
 from functools import wraps
-
+from cortx.utils import errors
 
 class Log:
     CRITICAL = logging.CRITICAL
@@ -101,37 +100,48 @@ class Log:
 
     @staticmethod
     def debug(msg, *args, **kwargs):
+        if not Log.logger: return
         caller = inspect.stack()[1][3]
         Log.logger.debug(f"[{caller}] {msg}", *args, **kwargs)
 
     @staticmethod
     def info(msg, *args, **kwargs):
+        if not Log.logger: return
         caller = inspect.stack()[1][3]
         Log.logger.info(f"[{caller}] {msg}", *args, **kwargs)
 
     @staticmethod
     def audit(msg, *args, **kwargs):
+        if not Log.audit_Logger:
+            raise errors.UtilsError(errors.ERR_NOT_INITIALIZED, "Audit Logger "\
+                "is not initialised")
         caller = inspect.stack()[1][3]
-        Log.audit_logger.info(f"audit: {msg}", *args, **kwargs)
+        Log.audit_logger.info(f"[{caller}] {msg}", *args, **kwargs)
 
     @staticmethod
     def support_bundle(msg, *args, **kwargs):
+        if not Log.audit_logger:
+            raise errors.UtilsError(errors.ERR_NOT_INITIALIZED, "Audit Logger "\
+                "is not initialised")
         caller = inspect.stack()[1][3]
-        Log.audit_logger.info(f"support_bundle: {msg}", *args, **kwargs)
+        Log.audit_logger.info(f"[{caller}] {msg}", *args, **kwargs)
 
     @staticmethod
     def warn(msg, *args, **kwargs):
+        if not Log.logger: return
         caller = inspect.stack()[1][3]
         Log.logger.warn(f"[{caller}] {msg}", *args, **kwargs)
 
     @staticmethod
     def error(msg, *args, **kwargs):
+        if not Log.logger: return
         caller = inspect.stack()[1][3]
         Log.logger.error(f"[{caller}] {msg}", *args, **kwargs)
 
     @staticmethod
     def critical(msg, *args, **kwargs):
         """ Logs a message with level CRITICAL on this logger. """
+        if Log.logger: return
         caller = inspect.stack()[1][3]
         Log.logger.critical(traceback.format_exc())
         Log.logger.critical(f"[{caller}] {msg}", *args, **kwargs)
@@ -139,6 +149,7 @@ class Log:
     @staticmethod
     def exception(e, *args, **kwargs):
         """ Logs a message with level ERROR on this logger. """
+        if not Log.logger: return
         caller = inspect.stack()[1][3]
         Log.logger.exception(f"[{caller}] [{e.__class__.__name__}] e")
 
@@ -146,9 +157,10 @@ class Log:
     def console(msg, *args, **kwargs):
         """ Logs a message with level ERROR on this logger. """
         caller = inspect.stack()[1][3]
-        Log.logger.debug(f"[{caller}] {msg}", *args, **kwargs)
         print(f"[{caller}] {msg}")
-
+        if not Log.logger:
+            return
+        Log.logger.debug(f"[{caller}] {msg}", *args, **kwargs)
 
     @staticmethod
     def trace_method(level, exclude_args=[], truncate_at=80):

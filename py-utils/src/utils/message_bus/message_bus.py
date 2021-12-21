@@ -41,9 +41,6 @@ class MessageBus(metaclass=Singleton):
         if not self._load_config:
             raise MessageBusError(errno.EINVAL, "Config is not loaded")
 
-        if not Log.logger:
-            raise MessageBusError(errno.ENOSYS, "Logger is not initialized")
-
         try:
             self._broker_conf = Conf.get('utils_ind', 'message_broker')
             broker_type = self._broker_conf['type']
