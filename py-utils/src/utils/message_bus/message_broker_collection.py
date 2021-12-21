@@ -43,7 +43,7 @@ class KafkaMessageBroker(MessageBroker):
     _max_config_retry_count = 3
     _max_purge_retry_count = 5
     _max_list_message_type_count = 15
-    _config_prop_map={
+    _config_prop_map = {
         'expire_time_ms': 'retention.ms',
         'data_limit_bytes': 'segment.bytes',
         'file_delete_ms': 'file.delete.delay.ms',
@@ -593,6 +593,10 @@ class KafkaMessageBroker(MessageBroker):
         topic_resource = ConfigResource('topic', message_type)
         for tuned_retry in range(self._max_config_retry_count):
             for key, val in kwargs.items():
+                if key not in self._config_prop_map:
+                    raise MessageBusError(errno.EINVAL,\
+                        "Invalid configuration %s for message_type %s.", key,\
+                        message_type)
                 topic_resource.set_config(self._config_prop_map[key], val)
             tuned_params = admin.alter_configs([topic_resource])
             if list(tuned_params.values())[0].result() is not None:
@@ -611,7 +615,7 @@ class KafkaMessageBroker(MessageBroker):
             else:
                 break
         Log.debug("Successfully updated message type with new"+\
-            " configuration configurations.")
+            " configuration.")
         return 0
 
     def set_message_type_expire(self, admin_id: str, message_type: str,\
@@ -626,7 +630,7 @@ class KafkaMessageBroker(MessageBroker):
         """
         Log.debug(f"Set expiration for message " \
             f"type {message_type} with admin id {admin_id}")
-        
+
         for config_property in ['expire_time_ms', 'data_limit_bytes']:
             if config_property not in kwargs.keys():
                 raise MessageBusError(errno.EINVAL,\
