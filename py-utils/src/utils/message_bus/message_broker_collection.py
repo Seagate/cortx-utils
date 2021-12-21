@@ -374,7 +374,7 @@ class KafkaMessageBroker(MessageBroker):
 
     def delete(self, admin_id: str, message_type: str):
         """
-        Deletes all the messages from Kafka cluster(s)
+        Deletes all the messages of given message_type
 
         Parameters:
         message_type    This is essentially equivalent to the
@@ -402,19 +402,8 @@ class KafkaMessageBroker(MessageBroker):
             else:
                 break
 
-        for retry_count in range(1, (self._max_purge_retry_count + 2)):
-            if retry_count > self._max_purge_retry_count:
-                Log.error(f"MessageBusError: {errors.ERR_OP_FAILED} Unable" \
-                    f" to delete messages for message type {message_type}" \
-                    f" using admin {admin} after {retry_count} retries")
-                return MessageBusError(errors.ERR_OP_FAILED,\
-                    "Unable to delete messages for message type %s using " +\
-                    "admin %s after %d retries", message_type, admin,\
-                    retry_count)
-            time.sleep(0.1*retry_count)
-            log_size = self.get_log_size(message_type)
-            if log_size == 0:
-                break
+        # Sleep for a second to delete the messages
+        time.sleep(1)
 
         for default_retry in range(self._max_config_retry_count):
             self._resource.set_config('retention.ms', self._saved_retention)
@@ -428,7 +417,8 @@ class KafkaMessageBroker(MessageBroker):
                 continue
             else:
                 break
-        Log.debug("Successfully Deleted all the messages from Kafka cluster.")
+        Log.debug(f"Successfully deleted all the messages of message_type: " \
+            f"{message_type}")
         return 0
 
     def get_unread_count(self, message_type: str, consumer_group: str):
