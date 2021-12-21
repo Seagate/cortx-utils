@@ -154,30 +154,20 @@ class TestMessageBus(unittest.TestCase):
             TestMessageBus._admin.deregister_message_type(message_types=\
                 [''])
 
-    def test_012_purge_fail(self):
+    def test_012_purge_messages(self):
         """Test fail purge messages."""
         rc = TestMessageBus._producer.delete()
-        self.assertIsInstance(rc, MessageBusError)
-
-    def test_013_purge_messages(self):
-        """Test purge messages."""
-        for retry_count in range(1, (TestMessageBus._purge_retry + 2)):
-            rc = TestMessageBus._producer.delete()
-            if retry_count > TestMessageBus._purge_retry:
-                self.assertIsInstance(rc, MessageBusError)
-            if rc == 0:
-                break
-            time.sleep(2*retry_count)
+        self.assertEqual(rc, 0)
         message = TestMessageBus._consumer.receive()
         self.assertIsNone(message)
 
     @staticmethod
-    def test_014_concurrency():
+    def test_013_concurrency():
         """Test add concurrency count."""
         TestMessageBus._admin.add_concurrency(message_type=\
             TestMessageBus._message_type, concurrency_count=5)
 
-    def test_015_receive_concurrently(self):
+    def test_014_receive_concurrently(self):
         """Test receive concurrently."""
         messages = []
         for msg_num in range(0, TestMessageBus._bulk_count):
@@ -218,20 +208,20 @@ class TestMessageBus(unittest.TestCase):
         time.sleep(5)
         self.assertEqual(total, TestMessageBus._bulk_count)
 
-    def test_016_reduce_concurrency(self):
+    def test_015_reduce_concurrency(self):
         """Test reduce concurrency count."""
         with self.assertRaises(MessageBusError):
             TestMessageBus._admin.add_concurrency(message_type=\
                 TestMessageBus._message_type, concurrency_count=2)
 
-    def test_017_singleton(self):
+    def test_016_singleton(self):
         """Test instance of message_bus."""
         message_bus_1 = MessageBus()
         message_bus_2 = MessageBus()
         self.assertTrue(message_bus_1 is message_bus_2)
 
     @staticmethod
-    def test_018_multiple_admins():
+    def test_017_multiple_admins():
         """Test multiple instances of admin interface."""
         message_types_list = TestMessageBus._admin.list_message_types()
         message_types_list.remove(TestMessageBus._message_type)
@@ -243,7 +233,7 @@ class TestMessageBus(unittest.TestCase):
                     cluster_conf = TestMessageBus.cluster_conf_path)
                 producer.delete()
 
-    def test_019_set_message_type_expiry(self):
+    def test_018_set_message_type_expiry(self):
         """Test set message type expiry and read before expiry."""
         # Set expire time to 2 seconds
         TestMessageBus._admin.set_message_type_expire(\
@@ -254,7 +244,7 @@ class TestMessageBus(unittest.TestCase):
         message = TestMessageBus._consumer.receive()
         self.assertEqual(message, b'A simple test message')
 
-    def test_020_message_type_read_after_expiry(self):
+    def test_019_message_type_read_after_expiry(self):
         """Test receive expired messages."""
         # Do Purge
         for retry_count in range(1, (TestMessageBus._purge_retry + 2)):
