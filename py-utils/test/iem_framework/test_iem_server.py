@@ -17,13 +17,11 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import json
-import os
 import unittest
 import requests
 
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
-from cortx.utils.common import CortxConf
 from cortx.utils.message_bus import MessageBus
 
 

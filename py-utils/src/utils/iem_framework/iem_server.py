@@ -15,7 +15,6 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import os
 import json
 
 from aiohttp import web
@@ -23,7 +22,6 @@ from cortx.utils.utils_server import RestServer
 from cortx.utils.iem_framework import EventMessage
 from cortx.utils.utils_server.error import RestServerError
 from cortx.utils.iem_framework.error import EventMessageError
-from cortx.utils.conf_store import Conf
 from cortx.utils.log import Log
 from cortx.utils.common import CortxConf
 

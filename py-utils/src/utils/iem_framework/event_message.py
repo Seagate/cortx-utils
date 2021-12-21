@@ -26,7 +26,6 @@ from cortx.utils.conf_store import Conf
 from cortx.utils.iem_framework.error import EventMessageError
 from cortx.utils.message_bus import MessageProducer, MessageConsumer, MessageBus
 from cortx.utils.log import Log
-from cortx.utils.common import CortxConf
 
 class EventMessage(metaclass=Singleton):
     """ Event Message framework to generate alerts """
@@ -55,7 +54,7 @@ class EventMessage(metaclass=Singleton):
 
     @classmethod
     def prep(cls, cluster_id: str, message_server_endpoints: str):
-        """ Prepare the Event Message with required"""
+        """Prepare the Event Message with required."""
         cls._cluster_id = cluster_id
         cls._message_server_endpoints = message_server_endpoints
         MessageBus.init(message_server_endpoints)

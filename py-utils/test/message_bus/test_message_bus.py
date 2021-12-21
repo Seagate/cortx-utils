@@ -16,9 +16,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import os
 import time
-import json
 import unittest
 from cortx.utils.log import Log
 from cortx.utils.message_bus.error import MessageBusError
