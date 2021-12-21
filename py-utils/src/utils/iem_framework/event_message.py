@@ -32,6 +32,7 @@ class EventMessage(metaclass=Singleton):
     """ Event Message framework to generate alerts """
     _producer = None
     _consumer = None
+    _message_server_endpoints = None
 
     # VALID VALUES for IEC Components
     _SEVERITY_LEVELS = {
@@ -52,24 +53,15 @@ class EventMessage(metaclass=Singleton):
         'O': 'OS'
     }
 
-    @staticmethod
-    def _initiate_logger():
-        """Initialize logger if required."""
-        Conf.load('config_file', 'json:///etc/cortx/cortx.conf',
-            skip_reload=True)
-        # if Log.logger is already initialized by some parent process
-        # the same file will be used to log all the messagebus related
-        # logs, else standard iem.log will be used.
-        if not Log.logger:
-            LOG_DIR='/var/log'
-            iem_log_dir = os.path.join(LOG_DIR, 'cortx/utils/iem')
-            log_level = Conf.get('config_file', 'utils>log_level', 'INFO')
-            Log.init('iem', iem_log_dir, level=log_level, \
-                backup_count=5, file_size_in_mb=5)
+    @classmethod
+    def prep(cls, cluster_id: str, message_server_endpoints: str):
+        """ Prepare the Event Message with required"""
+        cls._cluster_id = cluster_id
+        cls._message_server_endpoints = message_server_endpoints
+        MessageBus.init(message_server_endpoints)
 
     @classmethod
-    def init(cls, component: str, source: str,\
-        cluster_conf: str):
+    def init(cls, component: str, source: str):
         """
         Set the Event Message context
 
@@ -77,33 +69,19 @@ class EventMessage(metaclass=Singleton):
         component       Component that generates the IEM. For e.g. 'S3', 'SSPL'
         source          Single character that indicates the type of component.
                         For e.g. H-Hardware, S-Software, F-Firmware, O-OS
-        cluster_conf    ConfStore URL of cluster.conf file
         """
-        utils_index = 'utils_ind'
+        if cls._message_server_endpoints is None:
+            Log.error("Call IEM prep() before calling init()")
+            raise EventMessageError(errors.ERR_SERVICE_NOT_INITIALIZED, \
+                "Call IEM prep() before calling init()")
+
         cls._component = component
         cls._source = source
-
-        cls._initiate_logger()
-
-        try:
-            Conf.load('config', cluster_conf, skip_reload=True)
-            message_server_endpoints = Conf.get('config',\
-                'cortx>external>kafka>endpoints')
-            CortxConf.init(cluster_conf=cluster_conf)
-            local_storage = CortxConf.get_storage_path('local')
-            utils_conf = os.path.join(local_storage, 'utils/conf/utils.conf')
-            cls._utils_conf = f'json://{utils_conf}'
-            Conf.load(utils_index, cls._utils_conf, skip_reload=True)
-            machine_id = Conf.machine_id
-            ids = Conf.get(utils_index, f'node>{machine_id}')
-            cls._site_id = ids['site_id']
-            cls._rack_id = ids['rack_id']
-            cls._node_id = machine_id
-            cls._cluster_id = ids['cluster_id']
-        except Exception as e:
-            Log.error("Invalid config in %s." % cls._utils_conf)
-            raise EventMessageError(errno.EINVAL, "Invalid config in %s. %s", \
-                cls._utils_conf, e)
+        machine_id = Conf.machine_id
+        cls._site_id = 1
+        cls._rack_id = 1
+        cls._node_id = machine_id
+        cls._cluster_id = cls._cluster_id
 
         if cls._component is None:
             Log.error("Invalid component type: %s" % cls._component )
@@ -114,7 +92,6 @@ class EventMessage(metaclass=Singleton):
             Log.error("Invalid source type: %s" % cls._source)
             raise EventMessageError(errno.EINVAL, "Invalid source type: %s", \
                 cls._source)
-        MessageBus.init(message_server_endpoints)
         cls._producer = MessageProducer(producer_id='event_producer', \
             message_type='IEM', method='sync')
         Log.info("IEM Producer initialized for component %s and source %s" % \
@@ -151,7 +128,6 @@ class EventMessage(metaclass=Singleton):
         import socket
         sender_host = socket.gethostname()
 
-        cls._initiate_logger()
         if cls._producer is None:
             Log.error("IEM Producer not initialized.")
             raise EventMessageError(errors.ERR_SERVICE_NOT_INITIALIZED, \
@@ -237,7 +213,6 @@ class EventMessage(metaclass=Singleton):
     @classmethod
     def receive(cls):
         """ Receive IEM alert message """
-        cls._initiate_logger()
         if cls._consumer is None:
             Log.error("IEM Consumer is not subscribed")
             raise EventMessageError(errors.ERR_SERVICE_NOT_INITIALIZED, \

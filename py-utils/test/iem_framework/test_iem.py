@@ -33,13 +33,14 @@ class TestMessage(unittest.TestCase):
         else:
             cls.cluster_conf_path = cluster_conf_path
         Conf.load('config', cls.cluster_conf_path, skip_reload=True)
+        cls.cluster_id = Conf.get('config', 'cluster>id')
         cls.message_server_endpoints = Conf.get('config',\
             'cortx>external>kafka>endpoints')
+        EventMessage.prep(cls.cluster_id, cls.message_server_endpoints)
 
     def test_alert_send(self):
         """ Test send alerts """
-        EventMessage.init(component='cmp', source='H',\
-            cluster_conf=TestMessage.cluster_conf_path)
+        EventMessage.init(component='cmp', source='H')
         EventMessage.send(module='mod', event_id='500', severity='B', \
             message_blob='This is message')
 
@@ -51,8 +52,7 @@ class TestMessage(unittest.TestCase):
 
     def test_bulk_alert_send(self):
         """ Test bulk send alerts """
-        EventMessage.init(component='cmp', source='H',\
-            cluster_conf=TestMessage.cluster_conf_path)
+        EventMessage.init(component='cmp', source='H')
         for alert_count in range(0, 1000):
             EventMessage.send(module='mod', event_id='500', severity='B', \
                 message_blob='This is message' + str(alert_count))
@@ -89,10 +89,8 @@ class TestMessage(unittest.TestCase):
     def test_init_validation(self):
         """ Validate init attributes """
         with self.assertRaises(EventMessageError):
-            EventMessage.init(component=None, source='H',\
-                cluster_conf=TestMessage.cluster_conf_path)
-            EventMessage.init(component='cmp', source='I',\
-                cluster_conf=TestMessage.cluster_conf_path)
+            EventMessage.init(component=None, source='H')
+            EventMessage.init(component='cmp', source='I')
 
     def test_send_validation(self):
         """ Validate send attributes """
@@ -112,8 +110,7 @@ class TestMessage(unittest.TestCase):
 
     def test_json_alert_send(self):
         """ Test send json as message description """
-        EventMessage.init(component='cmp', source='H',\
-            cluster_conf=TestMessage.cluster_conf_path)
+        EventMessage.init(component='cmp', source='H')
         EventMessage.send(module='mod', event_id='500', severity='B', \
             message_blob={'input': 'This is message'})
 

@@ -45,7 +45,6 @@ class TestMessage(unittest.TestCase):
             cls.cluster_conf_path = TestMessage._cluster_conf_path
         else:
             cls.cluster_conf_path = cluster_conf_path
-        # import pdb;pdb.set_trace()
         Conf.load('config', cls.cluster_conf_path)
         message_server_endpoints = Conf.get('config',\
             'cortx>external>kafka>endpoints')
