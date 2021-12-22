@@ -67,7 +67,7 @@ class KvPayload:
         if isinstance(data, list):
             for i, val in enumerate(data):
                 if isinstance(val, (str, int)):
-                    key = key_prefix.split(">")[-1]
+                    key = key_prefix.split("/")[-1]
                     if key == search_key and val == search_val:
                         keys.append("%s[%d]" % (key_prefix, i))
                 elif isinstance(val, dict):

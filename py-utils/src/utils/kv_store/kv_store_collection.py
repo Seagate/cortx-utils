@@ -446,7 +446,8 @@ class ConsulKvPayload(KvPayload):
         self._data = {}
         from cortx.utils.schema import Format
         for kv in self._consul.kv.get('', recurse=True)[1]:
-            self._data[kv['Key']] = kv['Value'].decode('utf-8')
+            self._data[kv['Key']] = kv['Value'].decode('utf-8') if kv['Value'] \
+                is not None else ''
         if not format_type:
             return self._data
         return Format.dump(self._data, format_type)
@@ -467,6 +468,21 @@ class ConsulKvPayload(KvPayload):
             keys.extend(key_list)      
         return keys
 
+    def search(self, parent_key: str, search_key: str, search_val: str) -> list:
+        """
+        Searches the given dictionary for the key and value.
+        Returns matching keys.
+        """
+
+        key_list=[]
+        keys = self.get_keys(starts_with = parent_key)
+        for key in keys:
+            key_suffix = key.split(self._delim)[-1]
+            if key_suffix == search_key:
+                value = self.get(key) if parent_key else self.get
+                if self.get(key) == search_val:
+                    key_list.append(key)
+        return key_list
 
 class ConsulKVStore(KvStore):
     """ Consul basedKV store. """
@@ -475,7 +491,7 @@ class ConsulKVStore(KvStore):
 
     def __init__(self, store_loc, store_path, delim='>'):
         KvStore.__init__(self, store_loc, store_path, delim)
-        if store_loc:
+        if store_loc:   
             if ':' not in store_loc:
                 store_loc = store_loc + ':8500'
         else:
