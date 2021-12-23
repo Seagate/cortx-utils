@@ -424,6 +424,8 @@ class ConsulKvPayload(KvPayload):
         """ Get value for consul key. """
         index, data = self._consul.kv.get(key)
         if isinstance(data, dict):
+            if data['Value'] is None:
+                return ''
             return data['Value'].decode()
         elif data is None:
             return None
