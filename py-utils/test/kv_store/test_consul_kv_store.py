@@ -60,6 +60,13 @@ class TestStore(unittest.TestCase):
         out = TestStore.loaded_consul[0].get(['cloud>cloud_type'])
         self.assertEqual([None], out)
 
+    def test_consul_set_value_null(self):
+        """ Test consul kv by setting empty strimg as value. """
+        TestStore.loaded_consul[0].set(['test'],[''])
+        out = TestStore.loaded_consul[0].get(['test'])
+        TestStore.loaded_consul[0].delete(['test'])
+        self.assertEqual([''], out)
+
 
 if __name__ == '__main__':
     unittest.main()
