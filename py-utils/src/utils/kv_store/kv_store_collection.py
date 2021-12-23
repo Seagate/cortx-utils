@@ -479,8 +479,8 @@ class ConsulKvPayload(KvPayload):
         for key in keys:
             key_suffix = key.split(self._delim)[-1]
             if key_suffix == search_key:
-                value = self.get(key) if parent_key else self.get
-                if self.get(key) == search_val:
+                value = self.get(key) if parent_key else ''
+                if value == search_val:
                     key_list.append(key)
         return key_list
 
@@ -491,7 +491,7 @@ class ConsulKVStore(KvStore):
 
     def __init__(self, store_loc, store_path, delim='>'):
         KvStore.__init__(self, store_loc, store_path, delim)
-        if store_loc:   
+        if store_loc:
             if ':' not in store_loc:
                 store_loc = store_loc + ':8500'
         else:
