@@ -67,7 +67,7 @@ class KvPayload:
         if isinstance(data, list):
             for i, val in enumerate(data):
                 if isinstance(val, (str, int)):
-                    key = key_prefix.split(">")[-1]
+                    key = key_prefix.split(self._delim)[-1]
                     if key == search_key and val == search_val:
                         keys.append("%s[%d]" % (key_prefix, i))
                 elif isinstance(val, dict):
@@ -82,7 +82,6 @@ class KvPayload:
                 elif isinstance(val, (dict, list)):
                     keys.extend(self._search(val, search_key, search_val,
                         "%s%s%s" % (key_prefix, self._delim, key)))
-
         return keys
 
     def get_keys(self, starts_with: str = '', recurse: bool = True, **filters) -> list:
