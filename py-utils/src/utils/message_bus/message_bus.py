@@ -35,7 +35,6 @@ class MessageBus(metaclass=Singleton):
     @staticmethod
     def init(message_server_endpoints: list, **message_server_params_kwargs: dict):
         """Initialize MessageBus and load its broker."""
-
         utils_index = 'utils_ind'
         Conf.load(utils_index, 'dict:{}', skip_reload=True)
         message_server_keys = message_server_params_kwargs.keys()
