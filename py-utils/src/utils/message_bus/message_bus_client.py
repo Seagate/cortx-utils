@@ -26,10 +26,7 @@ class MessageBusClient:
     """ common infrastructure for producer and consumer """
 
     def __init__(self, client_type: str, **client_conf: dict):
-        self._message_bus = MessageBus() if 'message_bus' not in \
-            client_conf.keys() or client_conf['message_bus'] is None else \
-            client_conf['message_bus']
-        self._message_bus.init_client(client_type, **client_conf)
+        MessageBus.init_client(client_type, **client_conf)
         self._client_conf = client_conf
         Log.debug(f"MessageBusClient: initialized with arguments" \
             f" client_type: {client_type}, kwargs: {client_conf}")
@@ -38,15 +35,15 @@ class MessageBusClient:
         """ To get the client configurations """
         if key not in self._client_conf.keys():
             Log.error(f"MessageBusError: {errno.ENOENT}. Could not" \
-                f" find key {key} in conf file {self._message_bus.conf_file}")
+                f" find key {key} in client config {self._client_conf}")
             raise MessageBusError(errno.ENOENT, "Could not find key %s in " +\
-                "conf file %s", key, self._message_bus.conf_file)
+                "client config %s", key, self._client_conf)
         return self._client_conf[key]
 
     def list_message_types(self) -> list:
         """ Returns list of available message types """
         client_id = self._get_conf('client_id')
-        return self._message_bus.list_message_types(client_id)
+        return MessageBus.list_message_types(client_id)
 
     def register_message_type(self, message_types: list, partitions: int):
         """
@@ -59,8 +56,7 @@ class MessageBusClient:
                          created.
         """
         client_id = self._get_conf('client_id')
-        self._message_bus.register_message_type(client_id, message_types, \
-            partitions)
+        MessageBus.register_message_type(client_id, message_types, partitions)
 
     def deregister_message_type(self, message_types: list):
         """
@@ -71,7 +67,7 @@ class MessageBusClient:
                          topic name. For e.g. ["Alert"]
         """
         client_id = self._get_conf('client_id')
-        self._message_bus.deregister_message_type(client_id, message_types)
+        MessageBus.deregister_message_type(client_id, message_types)
 
     def add_concurrency(self, message_type: str, concurrency_count: int):
         """
@@ -83,8 +79,7 @@ class MessageBusClient:
         concurrency_count    Integer to achieve concurrency among consumers
         """
         client_id = self._get_conf('client_id')
-        self._message_bus.add_concurrency(client_id, message_type, \
-            concurrency_count)
+        MessageBus.add_concurrency(client_id, message_type, concurrency_count)
 
     @staticmethod
     def _get_str_message_list(messages: list) -> list:
@@ -113,19 +108,19 @@ class MessageBusClient:
         method = self._get_conf('method')
         client_id = self._get_conf('client_id')
         messages = self._get_str_message_list(messages)
-        self._message_bus.send(client_id, message_type, method, messages)
+        MessageBus.send(client_id, message_type, method, messages)
 
     def delete(self):
         """ Deletes the messages """
         message_type = self._get_conf('message_type')
         client_id = self._get_conf('client_id')
-        return self._message_bus.delete(client_id, message_type)
+        return MessageBus.delete(client_id, message_type)
 
     def set_message_type_expire(self, message_type: str, expire_time: int):
         """Set expiration time for given message type."""
         client_id = self._get_conf('client_id')
-        return self._message_bus.set_message_type_expire(client_id,\
-            message_type, expire_time)
+        return MessageBus.set_message_type_expire(client_id,message_type, \
+            expire_time)
 
     def receive(self, timeout: float = None) -> list:
         """
@@ -135,33 +130,31 @@ class MessageBusClient:
         timeout     Time in seconds to wait for the message.
         """
         client_id = self._get_conf('client_id')
-        return self._message_bus.receive(client_id, timeout)
+        return MessageBus.receive(client_id, timeout)
 
     def ack(self):
         """ Provides acknowledgement on offset """
         client_id = self._get_conf('client_id')
-        self._message_bus.ack(client_id)
+        MessageBus.ack(client_id)
 
 
 class MessageBusAdmin(MessageBusClient):
     """ A client that do admin jobs """
 
-    def __init__(self, admin_id: str, message_bus: MessageBus = None):
+    def __init__(self, admin_id: str):
         """ Initialize a Message Admin
 
         Parameters:
         message_bus    An instance of message bus class.
         admin_id       A String that represents Admin client ID.
         """
-        super().__init__(client_type='admin',client_id=admin_id, \
-            message_bus=message_bus)
+        super().__init__(client_type='admin',client_id=admin_id)
 
 
 class MessageProducer(MessageBusClient):
     """ A client that publishes messages """
 
-    def __init__(self, producer_id: str, message_type: str,
-        message_bus: MessageBus = None, method: str = None):
+    def __init__(self, producer_id: str, message_type: str, method: str = None):
         """ Initialize a Message Producer
 
         Parameters:
@@ -171,7 +164,7 @@ class MessageProducer(MessageBusClient):
                         queue/topic name. For e.g. "Alert"
         """
         super().__init__(client_type='producer', client_id=producer_id, \
-            message_type=message_type, method=method, message_bus=message_bus)
+            message_type=message_type, method=method)
 
     def get_unread_count(self, consumer_group: str):
         """
@@ -181,14 +174,14 @@ class MessageProducer(MessageBusClient):
         consumer_group  A String that represents Consumer Group ID.
         """
         message_type = self._get_conf("message_type")
-        return self._message_bus.get_unread_count(message_type, consumer_group)
+        return MessageBus.get_unread_count(message_type, consumer_group)
 
 
 class MessageConsumer(MessageBusClient):
     """ A client that consumes messages """
 
     def __init__(self, consumer_id: str, consumer_group: str, auto_ack: str,
-        message_types: list, offset: str, message_bus: MessageBus = None):
+        message_types: list, offset: str):
         """ Initialize a Message Consumer
 
         Parameters:
@@ -205,7 +198,7 @@ class MessageConsumer(MessageBusClient):
         """
         super().__init__(client_type='consumer', client_id=consumer_id, \
             consumer_group=consumer_group, message_types=message_types, \
-            auto_ack=auto_ack, offset=offset, message_bus=message_bus)
+            auto_ack=auto_ack, offset=offset)
 
     def get_unread_count(self, message_type: str):
         """
@@ -216,4 +209,4 @@ class MessageConsumer(MessageBusClient):
                         queue/topic name. For e.g. "Alert"
         """
         consumer_group = self._get_conf("consumer_group")
-        return self._message_bus.get_unread_count(message_type, consumer_group)
+        return MessageBus.get_unread_count(message_type, consumer_group)
