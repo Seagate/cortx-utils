@@ -24,12 +24,22 @@ import requests
 
 class TestAuditLog(unittest.TestCase):
     """Test AuditLog rest server functionality."""
-    _base_url = 'http://127.0.0.1:28300/AuditLog/message/'
+    _base_url = 'http://0.0.0.0:28300/AuditLog/'
 
     def test_send_audit_log(self):
         """Send Audit log message."""
-        url = self._base_url
+        url = self._base_url + 'message/'
         data = json.dumps({'messages': ['Hello', 'How are you?']})
+        headers = {'content-type': 'application/json'}
+        response = requests.post(url=url, data=data, headers=headers)
+        self.assertEqual(response.json()['status'], 'success')
+        self.assertEqual(response.status_code, 200)
+
+    def test_send_webhook_info(self):
+        """Send Audit log message."""
+        url = self._base_url + 'webhook/'
+        data = json.dumps({'external_server_info':\
+            'external_server.com:port_no/AuditLog/webhook/'})
         headers = {'content-type': 'application/json'}
         response = requests.post(url=url, data=data, headers=headers)
         self.assertEqual(response.json()['status'], 'success')
