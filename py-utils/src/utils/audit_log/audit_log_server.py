@@ -32,14 +32,14 @@ producer = MessageProducer(producer_id='audit_log_send', \
 
 class AuditLogRequestHandler(RestServer):
     """Rest interface of Audit log."""
+    webhook_info = None
     @staticmethod
     async def send(request):
         Log.debug("Received POST request for audit message")
         try:
             payload = await request.json()
             messages = payload['messages']
-            Conf.load('webhook_info', 'yaml:///etc/cortx/external_server.conf')
-            external_server_info = Conf.get('webhook_info', 'cortx>external_server_info')
+            external_server_info = AuditLogRequestHandler.webhook_info
             # send audit logs messages to to external server provided by webhook
             if external_server_info:
                 # write Audit Log messages to the webhook server
@@ -89,9 +89,8 @@ class AuditLogRequestHandler(RestServer):
         try:
             external_server_info = await request.json()
             # write webhook info to the external server
-            Conf.load('webhook_info', 'yaml:///etc/cortx/external_server.conf')
-            Conf.set('webhook_info', 'cortx>external_server_info', external_server_info)
-            Conf.save('webhook_info')
+            AuditLogRequestHandler.webhook_info = external_server_info
+            # TODO store webhook_info to persistent storage
         except AuditLogError as e:
             status_code = e.rc
             error_message = e.desc
