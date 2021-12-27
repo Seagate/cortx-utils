@@ -31,6 +31,7 @@ producer = MessageProducer(producer_id='audit_log_send', \
 
 class AuditLogRequestHandler(RestServer):
     """Rest interface of Audit log."""
+    # webhook_info will be removed once webhook_info store to persistent storage
     webhook_info = None
     @staticmethod
     async def send(request):

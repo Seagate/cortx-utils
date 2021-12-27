@@ -211,12 +211,13 @@ class Utils:
     @staticmethod
     def init(config_path: str):
         """ Perform initialization """
-        # Create message_type for Event Message
+        # Create message_type for Event Message and audit log 
         from cortx.utils.message_bus import MessageBusAdmin
         from cortx.utils.message_bus.error import MessageBusError
         try:
             admin = MessageBusAdmin(admin_id='register', cluster_conf=config_path)
-            admin.register_message_type(message_types=['IEM'], partitions=1)
+            admin.register_message_type(message_types=['IEM', 'audit_log_message'], \
+                partitions=1)
         except MessageBusError as e:
             if 'TOPIC_ALREADY_EXISTS' not in e.desc:
                 raise SetupError(e.rc, "Unable to create message_type. %s", e)
