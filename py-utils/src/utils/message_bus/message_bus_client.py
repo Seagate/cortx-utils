@@ -179,16 +179,6 @@ class MessageProducer(MessageBusClient):
             client_id=producer_id, message_type=message_type, method=method, \
             message_bus=message_bus)
 
-    def get_unread_count(self, consumer_group: str):
-        """
-        Gets the count of unread messages from the Message Bus
-
-        Parameters:
-        consumer_group  A String that represents Consumer Group ID.
-        """
-        message_type = self._get_conf("message_type")
-        return self._message_bus.get_unread_count(message_type, consumer_group)
-
 
 class MessageConsumer(MessageBusClient):
     """ A client that consumes messages """
@@ -214,14 +204,3 @@ class MessageConsumer(MessageBusClient):
             client_id=consumer_id, consumer_group=consumer_group, \
             message_types=message_types, auto_ack=auto_ack, offset=offset, \
             message_bus=message_bus)
-
-    def get_unread_count(self, message_type: str):
-        """
-        Gets the count of unread messages from the Message Bus
-
-        Parameters:
-        message_type    This is essentially equivalent to the
-                        queue/topic name. For e.g. "Alert"
-        """
-        consumer_group = self._get_conf("consumer_group")
-        return self._message_bus.get_unread_count(message_type, consumer_group)
