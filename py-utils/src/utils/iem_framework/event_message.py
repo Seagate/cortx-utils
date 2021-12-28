@@ -183,7 +183,8 @@ class EventMessage(metaclass=Singleton):
         Log.debug("alert sent: %s" % alert)
 
     @classmethod
-    def subscribe(cls, component: str, **filters):
+    def subscribe(cls, component: str,  message_server_endpoints: str, \
+                  **message_server_kwargs):
         """
         Subscribe to IEM alerts
 
@@ -194,6 +195,7 @@ class EventMessage(metaclass=Singleton):
             Log.error("Invalid component type: %s" % component)
             raise EventMessageError(errno.EINVAL, "Invalid component type: %s", \
                component)
+        MessageBus.init(message_server_endpoints, message_server_kwargs)
         cls._consumer = MessageConsumer(consumer_id='event_consumer', \
             consumer_group=component, message_types=['IEM'], \
             auto_ack=True, offset='earliest')
