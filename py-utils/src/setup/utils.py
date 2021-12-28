@@ -216,7 +216,7 @@ class Utils:
         from cortx.utils.message_bus.error import MessageBusError
         try:
             admin = MessageBusAdmin(admin_id='register', cluster_conf=config_path)
-            admin.register_message_type(message_types=['IEM', 'audit_log_message'], \
+            admin.register_message_type(message_types=['IEM', 'audit_messages'], \
                 partitions=1)
         except MessageBusError as e:
             if 'TOPIC_ALREADY_EXISTS' not in e.desc:

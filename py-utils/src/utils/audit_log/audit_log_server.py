@@ -26,7 +26,7 @@ from cortx.utils.log import Log
 
 routes = web.RouteTableDef()
 producer = MessageProducer(producer_id='audit_log_send', \
-    message_type='audit_log_message', method='sync')
+    message_type='audit_messages', method='sync')
 
 
 class AuditLogRequestHandler(RestServer):
