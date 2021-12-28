@@ -37,7 +37,9 @@ class RestServer:
             web.get('/MessageBus/message/{message_type}', \
             MessageBusRequestHandler.receive),
             web.post('/AuditLog/message/', \
-            AuditLogRequestHandler.send)
+            AuditLogRequestHandler.send),
+            web.post('/AuditLog/webhook/', \
+            AuditLogRequestHandler.send_webhook_info)
             ])
 
         Log.info("Starting Message Server 0.0.0.0 on port 28300")
