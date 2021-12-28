@@ -348,33 +348,9 @@ class KafkaMessageBroker(MessageBroker):
                 producer.poll(timeout=timeout)
         Log.debug("Successfully Sent list of messages to Kafka cluster")
 
-    def get_log_size(self, message_type: str):
-        """ Gets size of log across all the partitions """
-        total_size = 0
-        cmd = "/opt/kafka/bin/kafka-log-dirs.sh --describe --bootstrap-server "\
-            + self._servers + " --topic-list " + message_type
-        Log.debug(f"Retrieving log size for message_type {message_type}")
-        try:
-            cmd_proc = SimpleProcess(cmd)
-            run_result = cmd_proc.run()
-            decoded_string = run_result[0].decode('utf-8')
-            output_json = json.loads(re.search(r'({.+})', decoded_string).\
-                group(0))
-            for brokers in output_json['brokers']:
-                partition = brokers['logDirs'][0]['partitions']
-                for each_partition in partition:
-                    total_size += each_partition['size']
-            Log.debug(f"Successfully retrived log size {total_size}")
-            return total_size
-        except Exception as e:
-            Log.error(f"MessageBusError:{errors.ERR_OP_FAILED} Command {cmd}" \
-                f" failed for message type {message_type} {e}")
-            raise MessageBusError(errors.ERR_OP_FAILED, "Command %s failed" +\
-                "for message type %s %s", cmd, message_type, e)
-
     def delete(self, admin_id: str, message_type: str):
         """
-        Deletes all the messages from Kafka cluster(s)
+        Deletes all the messages of given message_type
 
         Parameters:
         message_type    This is essentially equivalent to the
@@ -402,19 +378,8 @@ class KafkaMessageBroker(MessageBroker):
             else:
                 break
 
-        for retry_count in range(1, (self._max_purge_retry_count + 2)):
-            if retry_count > self._max_purge_retry_count:
-                Log.error(f"MessageBusError: {errors.ERR_OP_FAILED} Unable" \
-                    f" to delete messages for message type {message_type}" \
-                    f" using admin {admin} after {retry_count} retries")
-                return MessageBusError(errors.ERR_OP_FAILED,\
-                    "Unable to delete messages for message type %s using " +\
-                    "admin %s after %d retries", message_type, admin,\
-                    retry_count)
-            time.sleep(0.1*retry_count)
-            log_size = self.get_log_size(message_type)
-            if log_size == 0:
-                break
+        # Sleep for a second to delete the messages
+        time.sleep(1)
 
         for default_retry in range(self._max_config_retry_count):
             self._resource.set_config('retention.ms', self._saved_retention)
@@ -428,87 +393,9 @@ class KafkaMessageBroker(MessageBroker):
                 continue
             else:
                 break
-        Log.debug("Successfully Deleted all the messages from Kafka cluster.")
+        Log.debug(f"Successfully deleted all the messages of message_type: " \
+            f"{message_type}")
         return 0
-
-    def get_unread_count(self, message_type: str, consumer_group: str):
-        """
-        Gets the count of unread messages from the Kafka message server
-
-        Parameters:
-        message_type    This is essentially equivalent to the
-                        queue/topic name. For e.g. "Alert"
-        consumer_group  A String that represents Consumer Group ID.
-        """
-        table = []
-        Log.debug(f"Getting unread messages count for message_type" \
-            f" {message_type}, with consumer_group {consumer_group}")
-        # Update the offsets if purge was called
-        if self.get_log_size(message_type) == 0:
-            cmd = "/opt/kafka/bin/kafka-consumer-groups.sh \
-                --bootstrap-server " + self._servers + " --group " \
-                + consumer_group + " --topic " + message_type + \
-                " --reset-offsets --to-latest --execute"
-            cmd_proc = SimpleProcess(cmd)
-            res_op, res_err, res_rc = cmd_proc.run()
-            if res_rc != 0:
-                Log.error(f"MessageBusError: {errors.ERR_OP_FAILED}. Command" \
-                    f" {cmd} failed for consumer group {consumer_group}." \
-                    f" {res_err}")
-                raise MessageBusError(errors.ERR_OP_FAILED, "Command %s " +\
-                    "failed for consumer group %s. %s", cmd, consumer_group,\
-                    res_err)
-            decoded_string = res_op.decode("utf-8")
-            if 'Error' in decoded_string:
-                Log.error(f"MessageBusError: {errors.ERR_OP_FAILED}. Command" \
-                    f" {cmd} failed for consumer group {consumer_group}. " \
-                    f"{res_err}")
-                raise MessageBusError(errors.ERR_OP_FAILED, "Command %s" + \
-                    " failed for consumer group %s. %s", cmd, \
-                    consumer_group, res_err)
-        cmd = "/opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server "\
-            + self._servers + " --describe --group " + consumer_group
-        cmd_proc = SimpleProcess(cmd)
-        res_op, res_err, res_rc = cmd_proc.run()
-        if res_rc != 0:
-            Log.error(f"MessageBusError: {errors.ERR_OP_FAILED}. command " \
-                f"{cmd} failed for consumer group {consumer_group}. " \
-                f"{res_err}.")
-            raise MessageBusError(errors.ERR_OP_FAILED, "command %s " + \
-                "failed for consumer group %s. %s.", cmd, consumer_group, \
-                res_err)
-        decoded_string = res_op.decode("utf-8")
-        if decoded_string == "":
-            Log.error(f"MessageBusError: {errno.ENOENT}. No active consumers" \
-                f" in the consumer group, {consumer_group}.")
-            raise MessageBusError(errno.ENOENT, "No active consumers" +\
-                " in the consumer group, %s.", consumer_group)
-        elif 'Error' in decoded_string:
-            Log.error(f"{errors.ERR_OP_FAILED} command  {cmd} failed for " \
-                f"consumer group {consumer_group}. {decoded_string}.")
-            raise MessageBusError(errors.ERR_OP_FAILED, "command %s " +\
-                "failed for consumer group %s. %s.", cmd, consumer_group,\
-                decoded_string)
-        else:
-            split_rows = decoded_string.split("\n")
-            rows = [row.split(' ') for row in split_rows if row != '']
-            for each_row in rows:
-                new_row = [item for item in each_row if item != '']
-                table.append(new_row)
-            message_type_index = table[0].index('TOPIC')
-            lag_index = table[0].index('LAG')
-            unread_count = [int(lag[lag_index]) for lag in table if \
-                lag[lag_index] != 'LAG' and lag[lag_index] != '-' and \
-                lag[message_type_index] == message_type]
-
-            if len(unread_count) == 0:
-                Log.error(f"MessageBusError: {errno.ENOENT}. No active "
-                    f"consumers in the consumer group, {consumer_group}.")
-                raise MessageBusError(errno.ENOENT, "No active " +\
-                    "consumers in the consumer group, %s.", consumer_group)
-        Log.debug(f"Successfully Got the count of unread messages from the" \
-            f" Kafka message server as {unread_count}")
-        return sum(unread_count)
 
     def receive(self, consumer_id: str, timeout: float = None) -> list:
         """
