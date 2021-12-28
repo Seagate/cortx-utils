@@ -19,7 +19,6 @@ import os
 import json
 import time
 import errno
-
 from cortx.utils import errors
 from cortx.template import Singleton
 from cortx.utils.conf_store import Conf
@@ -31,7 +30,7 @@ class EventMessage(metaclass=Singleton):
     """ Event Message framework to generate alerts """
     _producer = None
     _consumer = None
-    
+
     # VALID VALUES for IEC Components
     _SEVERITY_LEVELS = {
         'A': 'alert',
@@ -54,7 +53,7 @@ class EventMessage(metaclass=Singleton):
 
     @classmethod
     def init(cls, component: str, source: str, cluster_id: str, \
-             message_server_endpoints: str, **message_server_kwargs):
+         message_server_endpoints: str, **message_server_kwargs):
         """
         Set the Event Message context
 
@@ -66,10 +65,9 @@ class EventMessage(metaclass=Singleton):
 
         cls._component = component
         cls._source = source
-        machine_id = Conf.machine_id
         cls._site_id = 1
         cls._rack_id = 1
-        cls._node_id = machine_id
+        cls._node_id = Conf.machine_id
         cls._cluster_id = cluster_id
 
         if cls._component is None:
@@ -184,7 +182,7 @@ class EventMessage(metaclass=Singleton):
 
     @classmethod
     def subscribe(cls, component: str,  message_server_endpoints: str, \
-                  **message_server_kwargs):
+        **message_server_kwargs):
         """
         Subscribe to IEM alerts
 
