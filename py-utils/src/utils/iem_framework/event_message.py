@@ -79,7 +79,7 @@ class EventMessage(metaclass=Singleton):
             Log.error("Invalid source type: %s" % cls._source)
             raise EventMessageError(errno.EINVAL, "Invalid source type: %s", \
                 cls._source)
-        MessageBus.init(message_server_endpoints, message_server_kwargs)
+        MessageBus.init(message_server_endpoints, **message_server_kwargs)
         cls._producer = MessageProducer(producer_id='event_producer', \
             message_type='IEM', method='sync')
         Log.info("IEM Producer initialized for component %s and source %s" % \
@@ -193,7 +193,7 @@ class EventMessage(metaclass=Singleton):
             Log.error("Invalid component type: %s" % component)
             raise EventMessageError(errno.EINVAL, "Invalid component type: %s", \
                component)
-        MessageBus.init(message_server_endpoints, message_server_kwargs)
+        MessageBus.init(message_server_endpoints, **message_server_kwargs)
         cls._consumer = MessageConsumer(consumer_id='event_consumer', \
             consumer_group=component, message_types=['IEM'], \
             auto_ack=True, offset='earliest')
