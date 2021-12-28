@@ -42,27 +42,31 @@ class TestMessage(unittest.TestCase):
     def test_alert_send(self):
         """ Test send alerts """
         EventMessage.init(component='cmp', source='H', \
-            TestMessage._cluster_id, TestMessage._message_server_endpoints)
+            cluster_id=TestMessage._cluster_id, \
+            message_server_endpoints=TestMessage._message_server_endpoints)
         EventMessage.send(module='mod', event_id='500', severity='B', \
             message_blob='This is message')
 
     def test_alert_verify_receive(self):
         """ Test receive alerts """
-        EventMessage.subscribe(component='cmp', TestMessage._message_server_endpoints)
+        EventMessage.subscribe(component='cmp', \
+            message_server_endpoints=TestMessage._message_server_endpoints)
         alert = EventMessage.receive()
         self.assertIs(type(alert), dict)
 
     def test_bulk_alert_send(self):
         """ Test bulk send alerts """
         EventMessage.init(component='cmp', source='H', \
-               TestMessage._cluster_id, TestMessage._message_server_endpoints)
+            cluster_id=TestMessage._cluster_id, \
+            message_server_endpoints=TestMessage._message_server_endpoints)
         for alert_count in range(0, 1000):
             EventMessage.send(module='mod', event_id='500', severity='B', \
                 message_blob='This is message' + str(alert_count))
 
     def test_bulk_verify_receive(self):
         """ Test bulk receive alerts """
-        EventMessage.subscribe(component='cmp', TestMessage._message_server_endpoints)
+        EventMessage.subscribe(component='cmp', \
+            message_server_endpoints=TestMessage._message_server_endpoints)
         count = 0
         while True:
             alert = EventMessage.receive()
@@ -85,7 +89,8 @@ class TestMessage(unittest.TestCase):
 
     def test_receive_without_send(self):
         """ Receive message without send """
-        EventMessage.subscribe(component='cmp', TestMessage._message_server_endpoints)
+        EventMessage.subscribe(component='cmp', \
+            message_server_endpoints=TestMessage._message_server_endpoints)
         alert = EventMessage.receive()
         self.assertIsNone(alert)
 
@@ -93,9 +98,11 @@ class TestMessage(unittest.TestCase):
         """ Validate init attributes """
         with self.assertRaises(EventMessageError):
             EventMessage.init(component=None, source='H', \
-              TestMessage._cluster_id, TestMessage._message_server_endpoints)
-            EventMessage.init(component='cmp', source='I', \
-                       TestMessage._cluster_id, TestMessage._message_server_endpoints)
+                cluster_id=TestMessage._cluster_id, \
+                message_server_endpoints=TestMessage._message_server_endpoints)
+            EventMessage.init(component=None, source='I', \
+                cluster_id=TestMessage._cluster_id, \
+                message_server_endpoints=TestMessage._message_server_endpoints)
 
     def test_send_validation(self):
         """ Validate send attributes """
@@ -111,18 +118,21 @@ class TestMessage(unittest.TestCase):
 
     def test_subscribe_validation(self):
         with self.assertRaises(EventMessageError):
-            EventMessage.subscribe(component=None)
+            EventMessage.subscribe(component=None, \
+                message_server_endpoints=TestMessage._message_server_endpoints)
 
     def test_json_alert_send(self):
         """ Test send json as message description """
         EventMessage.init(component='cmp', source='H', \
-                    TestMessage._cluster_id, TestMessage._message_server_endpoints)
+            cluster_id=TestMessage._cluster_id, \
+            message_server_endpoints=TestMessage._message_server_endpoints)
         EventMessage.send(module='mod', event_id='500', severity='B', \
             message_blob={'input': 'This is message'})
 
     def test_json_verify_receive(self):
         """ Test receive json as message description """
-        EventMessage.subscribe(component='cmp', TestMessage._message_server_endpoints)
+        EventMessage.subscribe(component='cmp', \
+            message_server_endpoints=TestMessage._message_server_endpoints)
         alert = EventMessage.receive()
         self.assertIs(type(alert), dict)
 
