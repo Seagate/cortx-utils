@@ -31,8 +31,7 @@ class EventMessage(metaclass=Singleton):
     """ Event Message framework to generate alerts """
     _producer = None
     _consumer = None
-    _message_server_endpoints = None
-
+    
     # VALID VALUES for IEC Components
     _SEVERITY_LEVELS = {
         'A': 'alert',
@@ -54,7 +53,8 @@ class EventMessage(metaclass=Singleton):
 
 
     @classmethod
-    def init(cls, component: str, source: str, cluster_id: str, message_server_endpoints: str, **message_server_kwargs):
+    def init(cls, component: str, source: str, cluster_id: str, \
+             message_server_endpoints: str, **message_server_kwargs):
         """
         Set the Event Message context
 
@@ -63,10 +63,6 @@ class EventMessage(metaclass=Singleton):
         source          Single character that indicates the type of component.
                         For e.g. H-Hardware, S-Software, F-Firmware, O-OS
         """
-        if cls._message_server_endpoints is None:
-            Log.error("Call IEM.prep() method before calling IEM.init()")
-            raise EventMessageError(errors.ERR_SERVICE_NOT_INITIALIZED, \
-                "Call IEM prep() before calling init()")
 
         cls._component = component
         cls._source = source
