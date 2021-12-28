@@ -52,15 +52,9 @@ class EventMessage(metaclass=Singleton):
         'O': 'OS'
     }
 
-    @classmethod
-    def prep(cls, cluster_id: str, message_server_endpoints: str):
-        """Prepare the Event Message with required."""
-        cls._cluster_id = cluster_id
-        cls._message_server_endpoints = message_server_endpoints
-        MessageBus.init(message_server_endpoints)
 
     @classmethod
-    def init(cls, component: str, source: str):
+    def init(cls, component: str, source: str, cluster_id: str, message_server_endpoints: str, **message_server_kwargs):
         """
         Set the Event Message context
 
@@ -80,7 +74,7 @@ class EventMessage(metaclass=Singleton):
         cls._site_id = 1
         cls._rack_id = 1
         cls._node_id = machine_id
-        cls._cluster_id = cls._cluster_id
+        cls._cluster_id = cluster_id
 
         if cls._component is None:
             Log.error("Invalid component type: %s" % cls._component )
@@ -91,6 +85,7 @@ class EventMessage(metaclass=Singleton):
             Log.error("Invalid source type: %s" % cls._source)
             raise EventMessageError(errno.EINVAL, "Invalid source type: %s", \
                 cls._source)
+        MessageBus.init(message_server_endpoints, message_server_kwargs)
         cls._producer = MessageProducer(producer_id='event_producer', \
             message_type='IEM', method='sync')
         Log.info("IEM Producer initialized for component %s and source %s" % \
