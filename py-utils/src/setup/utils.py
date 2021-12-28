@@ -211,7 +211,7 @@ class Utils:
     @staticmethod
     def init(config_path: str):
         """ Perform initialization """
-        # Create message_type for Event Message and audit log 
+        # Create message_type for Event Message and audit log
         from cortx.utils.message_bus import MessageBusAdmin
         from cortx.utils.message_bus.error import MessageBusError
         try:
