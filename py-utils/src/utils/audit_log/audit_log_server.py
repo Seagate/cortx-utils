@@ -18,7 +18,7 @@
 import json
 from aiohttp import web
 
-from cortx.utils.utils_server import RestServer
+from cortx.utils.utils_server import MessageServer
 from cortx.utils.audit_log.error import AuditLogError
 from cortx.utils.utils_server.error import RestServerError
 from cortx.utils.log import Log
@@ -26,7 +26,7 @@ from cortx.utils.log import Log
 routes = web.RouteTableDef()
 
 
-class AuditLogRequestHandler(RestServer):
+class AuditLogRequestHandler(MessageServer):
     """Rest interface of Audit log."""
     @staticmethod
     async def receive(request):

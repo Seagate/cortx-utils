@@ -17,7 +17,7 @@
 
 import json
 from aiohttp import web
-from cortx.utils.utils_server import RestServer
+from cortx.utils.utils_server import MessageServer
 from cortx.utils.iem_framework import EventMessage
 from cortx.utils.utils_server.error import RestServerError
 from cortx.utils.iem_framework.error import EventMessageError
@@ -27,7 +27,7 @@ from cortx.utils.common import CortxConf
 routes = web.RouteTableDef()
 
 
-class IemRequestHandler(RestServer):
+class IemRequestHandler(MessageServer):
     """ Rest interface of Iem """
 
     @staticmethod
