@@ -43,9 +43,13 @@ class UtilsSupportBundle:
     _tmp_src = '/tmp/cortx/py-utils/'
 
     @staticmethod
-    def generate(bundle_id: str, target_path: str, cluster_conf: str, duration: str,
-        size_limit: str, binlogs: bool, coredumps: bool, stacktrace: bool):
+    def generate(bundle_id: str, target_path: str, cluster_conf: str, **filters):
         """ Generate a tar file. """
+        duration = filters.get('duration', 'P5D')
+        size_limit = filters.get('size_limit', '500MB')
+        binlogs = filters.get('binlogs', False)
+        coredumps = filters.get('coredumps', False)
+        stacktrace = filters.get('stacktrace', False)
         # TODO process duration, size_limit, binlogs, coredumps and stacktrace
         # Find log dirs
         CortxConf.init(cluster_conf=cluster_conf)
