@@ -120,26 +120,27 @@ class UtilsSupportBundle:
             help="Duration - duration for which log should be captured, Default - P5D")
         parser.add_argument('--size_limit', default='500MB', dest='size_limit',
             help="Size Limit - Support Bundle size limit per node, Default - 500MB")
-        parser.add_argument('--binlogs', type=str2bool, default=False, dest='binlogs',
+        parser.add_argument('--binlogs', type=UtilsSupportBundle.str2bool, default=False, dest='binlogs',
             help="Include/Exclude Binary Logs, Default = False")
-        parser.add_argument('--coredumps', type=str2bool, default=False, dest='coredumps',
+        parser.add_argument('--coredumps', type=UtilsSupportBundle.str2bool, default=False, dest='coredumps',
             help="Include/Exclude Coredumps, Default = False")
-        parser.add_argument('--stacktrace', type=str2bool, default=False, dest='stacktrace',
+        parser.add_argument('--stacktrace', type=UtilsSupportBundle.str2bool, default=False, dest='stacktrace',
             help="Include/Exclude stacktrace, Default = False")
         parser.add_argument('--modules', dest='modules',
             help="list of components & services to generate support bundle.")
         args=parser.parse_args()
         return args
 
-def str2bool(value):
-    if isinstance(value, bool):
-        return value
-    if value.lower() in ('true'):
-        return True
-    elif value.lower() in ('false'):
-        return False
-    else:
-        raise argparse.ArgumentTypeError('Boolean value expected.')
+    @staticmethod
+    def str2bool(value):
+        if isinstance(value, bool):
+            return value
+        if value.lower() in ('true'):
+            return True
+        elif value.lower() in ('false'):
+            return False
+        else:
+            raise argparse.ArgumentTypeError('Boolean value expected.')
 
 def main():
     args = UtilsSupportBundle.parse_args()
