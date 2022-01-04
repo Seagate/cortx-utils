@@ -19,11 +19,75 @@ from cortx.utils.conf_store import Conf
 
 class Manifest:
 
-    @staticmethod
-    def _get_val(index, key):
+    def __init__(self, manifest_url: str):
+        """Load conf url."""
+        self._index = 'manifest_conf'
+        Conf.load(self._index, manifest_url)
+
+    def _get_val(self, key: str):
         """Get value for given key."""
-        val = Conf.get(index, key, '')
+        val = Conf.get(self._index, key, '')
         return val
+
+
+class Release(Manifest):
+
+    def __init__(self, release_info_url: str):
+        super().__init__(release_info_url)
+
+    def get_release_version(self):
+        """Return release version."""
+        release_version = self._get_val('VERSION')
+        return release_version
+
+    def get_component_version(self, component: str):
+        """Return component version."""
+        rpms = self._get_val('COMPONENTS')
+        component_rpm = self._get_elem_from_list(component, rpms)
+        version = self._get_rpm_version(component_rpm)
+        # Remove git_hash from rpm_version.
+        while version.find('_') != -1:
+            version = version.split('_')[0]
+        return version
+
+    def validate(self, release_spec: dict = None):
+        """Compare given release_spec with RELEASE.INFO file,
+            and return correct release info define in RELEASE.INFO file."""
+        release_info = {}
+        is_valid = True
+        keys = ['name', 'version']
+        for key in keys:
+            value = self._get_val(key.upper())
+            if release_spec is None or release_spec.get(key) != value:
+                is_valid = False
+                release_info[key] = value
+        return is_valid, release_info
+
+    def version_check(self, deploy_version: str, release_version: str):
+        """Compare deployed and release version.
+
+            e.g:
+            deploy_version = 2.0.0-428
+            release_version = 2.0.0-430
+            Return code:
+            0 - If both versions are equal.
+            1 - If deployed_version > release_version.
+            -1 - If deployed_version < release_version.
+        """
+        ret_code = 0
+        if deploy_version == release_version:
+            return ret_code
+        # Fetch all the digits present in string for comparison.
+        deploy_digits = self._get_digits(deploy_version)
+        release_digits = self._get_digits(release_version)
+        for deploy_digit, release_digit in zip_longest(deploy_digits, release_digits, fillvalue=-1):
+            if deploy_digit < release_digit:
+                ret_code = -1
+                break
+            elif deploy_digit > release_digit:
+                ret_code = 1
+                break
+        return ret_code
 
     @staticmethod
     def _get_elem_from_list(sub_str: str, search_list: list):
@@ -68,67 +132,3 @@ class Manifest:
             if elem.isdigit():
                 digits.append(int(elem))
         return digits
-
-
-class Release(Manifest):
-
-    _release_index = 'release'
-
-    def __init__(self, file_path):
-        """Load RELEASE.INFO."""
-        self._release_info_url = f'yaml://{file_path}'
-        Conf.load(self._release_index, self._release_info_url)
-
-    def get_release_version(self):
-        """Return release version."""
-        release_version = Manifest._get_val(self._release_index, 'VERSION')
-        return release_version
-
-    def get_component_version(self, component: str):
-        """Return component version."""
-        rpms = Manifest._get_val(self._release_index, 'COMPONENTS')
-        component_rpm = Manifest._get_elem_from_list(component, rpms)
-        version = Manifest._get_rpm_version(component_rpm)
-        # Remove git_hash from rpm_version.
-        while version.find('_') != -1:
-                version = version.split('_')[0]
-        return version
-
-    def validate(self, release_spec: dict = None):
-        """Compare given release_spec with RELEASE.INFO file,
-            and return correct release info define in RELEASE.INFO file."""
-        release_info = {}
-        is_valid = True
-        keys = ['name', 'version']
-        for key in keys:
-            value = Manifest._get_val(self._release_index, key.upper())
-            if release_spec is None or release_spec.get(key) != value:
-                is_valid = False
-                release_info[key] = value
-        return is_valid, release_info
-
-    def version_check(self, deploy_version: str, release_version: str):
-        """Compare deployed and release version.
-
-            e.g:
-            deploy_version = 2.0.0-428
-            release_version = 2.0.0-430
-            Return code:
-            0 - If both versions are equal.
-            1 - If deployed_version > release_version.
-            -1 - If deployed_version < release_version.
-        """
-        ret_code = 0
-        if deploy_version == release_version:
-            return ret_code
-        # Fetch all the digits present in string for comparison.
-        deploy_digits = Manifest._get_digits(deploy_version)
-        release_digits = Manifest._get_digits(release_version)
-        for deploy_digit, release_digit in zip_longest(deploy_digits, release_digits, fillvalue=-1):
-            if deploy_digit < release_digit:
-                ret_code = -1
-                break
-            elif deploy_digit > release_digit:
-                ret_code = 1
-                break
-        return ret_code
