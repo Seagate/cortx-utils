@@ -72,11 +72,11 @@ class Manifest:
 
 class Release(Manifest):
 
-    _release_info_url = 'yaml:///opt/seagate/cortx/RELEASE.INFO'
     _release_index = 'release'
 
-    def __init__(self):
+    def __init__(self, file_path):
         """Load RELEASE.INFO."""
+        self._release_info_url = f'yaml://{file_path}'
         Conf.load(self._release_index, self._release_info_url)
 
     def get_release_version(self):
@@ -85,15 +85,7 @@ class Release(Manifest):
         return release_version
 
     def get_component_version(self, component: str):
-        """Return rpm version for given component.
-
-            if build_version = False:
-                return rpm_version with githash.
-                e.g. - 2.0.0-459_git51f11338_3.10.0_1160
-            if build_version = True:
-                return only build_version from rpm.
-                e.g - 2.0.0-459.
-        """
+        """Return component version."""
         rpms = Manifest._get_val(self._release_index, 'COMPONENTS')
         component_rpm = Manifest._get_elem_from_list(component, rpms)
         version = Manifest._get_rpm_version(component_rpm)
@@ -102,7 +94,7 @@ class Release(Manifest):
                 version = version.split('_')[0]
         return version
 
-    def validate(self, release_spec: dict = {}):
+    def validate(self, release_spec: dict = None):
         """Compare given release_spec with RELEASE.INFO file,
             and return correct release info define in RELEASE.INFO file."""
         release_info = {}
@@ -110,35 +102,33 @@ class Release(Manifest):
         keys = ['name', 'version']
         for key in keys:
             value = Manifest._get_val(self._release_index, key.upper())
-            release_info[key] = value
-            if not release_spec or release_spec.get(key) != value:
+            if release_spec is None or release_spec.get(key) != value:
                 is_valid = False
+                release_info[key] = value
         return is_valid, release_info
 
     def version_check(self, deploy_version: str, release_version: str):
-        """Compare deployed and release version and decide action based on result.
+        """Compare deployed and release version.
+
             e.g:
             deploy_version = 2.0.0-428
             release_version = 2.0.0-430
+            Return code:
+            0 - If both versions are equal.
+            1 - If deployed_version > release_version.
+            -1 - If deployed_version < release_version.
         """
-        action = None
         ret_code = 0
-        # If both versions are equal return 0 and action=None.
-        # if deploy_version is null return 0, action=deploy.
-        if not deploy_version:
-            action = 'deploy'
-            return ret_code, action
-        elif deploy_version == release_version:
-            return ret_code, action
+        if deploy_version == release_version:
+            return ret_code
         # Fetch all the digits present in string for comparison.
         deploy_digits = Manifest._get_digits(deploy_version)
         release_digits = Manifest._get_digits(release_version)
         for deploy_digit, release_digit in zip_longest(deploy_digits, release_digits, fillvalue=-1):
             if deploy_digit < release_digit:
-                action = 'update'
+                ret_code = -1
                 break
             elif deploy_digit > release_digit:
                 ret_code = 1
-                # TODO: action=degrade once the degrade is supported.
                 break
-        return ret_code, action
+        return ret_code
