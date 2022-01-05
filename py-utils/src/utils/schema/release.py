@@ -33,6 +33,7 @@ class Manifest:
 class Release(Manifest):
 
     def __init__(self, release_info_url: str):
+        """Load RELEASE.INFO file url."""
         super().__init__(release_info_url)
 
     def get_release_version(self):
@@ -51,8 +52,9 @@ class Release(Manifest):
         return version
 
     def validate(self, release_spec: dict = None):
-        """Compare given release_spec with RELEASE.INFO file,
-            and return correct release info define in RELEASE.INFO file."""
+        """Compare given release_spec with RELEASE.INFO file.
+
+            Return correct release info define in RELEASE.INFO file."""
         release_info = {}
         is_valid = True
         keys = ['name', 'version']
