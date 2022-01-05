@@ -59,6 +59,7 @@ class IemCli:
         send_args = IemCli._get_empty_send_args()
         try:
             send_args['component'], send_args['module'] = args.source.split(':')
+            send_args['cluster'] = args.cluster
             send_args['source_type'], send_args['severity'] \
                 = args.info.split(':')
             if ':' in args.contents:
@@ -68,7 +69,7 @@ class IemCli:
                 send_args['event_id'] = args.contents
                 with open(args.file, 'r') as fd:
                     send_args['message'] = ''.join(fd.readlines())
-            send_args['cluster_conf'] = args.config
+            send_args['endpoints'] = args.endpoints
         except ValueError:
             raise EventMessageError(errno.EINVAL, "Invalid send arguments!")
 
@@ -84,8 +85,8 @@ class IemCli:
         return send_args
 
     @staticmethod
-    def subscribe(component: str, cluster_conf: str, **filters):
-        EventMessage.subscribe(component, cluster_conf, **filters)
+    def subscribe(component: str, message_server_endpoints: str, **filters):
+        EventMessage.subscribe(component, message_server_endpoints, **filters)
 
     @staticmethod
     def send(args_parse):
@@ -95,7 +96,8 @@ class IemCli:
         EventMessage.init(
             component=send_args['component'],
             source=send_args['source_type'],
-            cluster_conf=send_args['cluster_conf']
+            cluster_id=send_args['cluster'],
+            message_server_endpoints=[send_args['endpoints']]
         )
         EventMessage.send(
             module=send_args['module'],
@@ -116,7 +118,7 @@ class IemCli:
         Receives IEM Message and returns to the caller, If file[-f] is passed,
         writes message to file and returns blank string to caller
         """
-        IemCli.subscribe(component=args.source, cluster_conf=args.config)
+        IemCli.subscribe(component=args.source, message_server_endpoints=[args.endpoints])
         rec_data = ''
         event = ' '
         while event:
@@ -154,7 +156,9 @@ class SendCmd:
         req_s_parser.add_argument('-c', '--contents', help='event_id:message')
         req_s_parser.add_argument('-l', '--location', \
             help='cluster_id:site_id:node_id:rack_id:host')
-        req_s_parser.add_argument('--config', dest='config',\
+        req_s_parser.add_argument('-cluster', '--cluster', \
+            help='cluster id')
+        req_s_parser.add_argument('--endpoints', dest='endpoints',\
             help='ConfStore URL for the cluster.conf')
 
 
@@ -174,7 +178,9 @@ class ReceiveCmd:
         req_r_parser.add_argument('-s', '--source', help='component_id')
         req_r_parser.add_argument('-i', '--info', help='source_type',
                                   choices=['S', 'H', 'F', 'O'])
-        req_r_parser.add_argument('--config', dest='config',\
+        req_r_parser.add_argument('-cluster', '--cluster', \
+            help='cluster id')
+        req_r_parser.add_argument('--endpoints', dest='endpoints',\
             help='ConfStore URL for the cluster.conf')
 
 
