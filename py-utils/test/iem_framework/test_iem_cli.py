@@ -20,7 +20,7 @@ import os
 import unittest
 
 from cortx.utils.process import SimpleProcess
-from cortx.utils.conf_store import Conf
+
 
 class TestIemCli(unittest.TestCase):
     """ Test case will test available API's of IemCli """
@@ -33,28 +33,23 @@ class TestIemCli(unittest.TestCase):
             cls.cluster_conf_path = TestIemCli._cluster_conf_path
         else:
             cls.cluster_conf_path = cluster_conf_path
-        Conf.load('config', cls.cluster_conf_path, skip_reload=True)
-        cls.cluster_id = Conf.get('config', 'cluster>id[0]')
-        cls.message_server_endpoints = Conf.get('config',\
-            'cortx>external>kafka>endpoints')
         # SEND COMMANDS
         send_cmd = "iem send"
         current_abs_path = os.path.dirname(os.path.abspath(__file__))
         valid_source = "-s 100:200"  # <component_id>:<module_id>
         valid_info = "-i S:X"  # <source_type>:<severity>
         invalid_info = "-i invalid_source:invalid_severity"
-        location = f"-cluster {TestIemCli.cluster_id}"
         valid_contents = "-c 200:cmd_line_message"  # <event_id>:<message_blob>
         content_file_message = f"-c 200 -f {current_abs_path}/message_file.json"
 
         cls.send_with_valid_cmdline_args =\
-            f"{send_cmd} {valid_source} {valid_info} {valid_contents} {location} --endpoint {TestIemCli.message_server_endpoints}"
+            f"{send_cmd} {valid_source} {valid_info} {valid_contents} --config {TestIemCli.cluster_conf_path}"
 
         cls.send_with_invalid_cmdline_args =\
-            f"{send_cmd} {invalid_info} {valid_source} {valid_contents} {location} --endpoint {TestIemCli.message_server_endpoints}"
+            f"{send_cmd} {invalid_info} {valid_source} {valid_contents} --config {TestIemCli.cluster_conf_path}"
 
         cls.send_with_valid_file_cmdline_args =\
-            f"{send_cmd} {valid_source} {valid_info} {content_file_message} {location} --endpoint {TestIemCli.message_server_endpoints}"
+            f"{send_cmd} {valid_source} {valid_info} {content_file_message} --config {TestIemCli.cluster_conf_path}"
 
         # RECEIVE COMMANDS
         recv_cmd = "iem receive"
@@ -62,9 +57,9 @@ class TestIemCli(unittest.TestCase):
         receive_info = "-i S"  # source_type
         invalid_receive_info = "-i invalid_info"
         recv_file_arg = "-f /tmp/iem_receive.log"
-        cls.valid_recv = f"{recv_cmd} {receive_source} {receive_info} {location} --endpoint {TestIemCli.message_server_endpoints}"
-        cls.valid_recv_log_file = f"{cls.valid_recv} {recv_file_arg} {location} --endpoint {TestIemCli.message_server_endpoints}"
-        cls.invalid_recv = f"{recv_cmd} {receive_source} {invalid_receive_info} {location} --endpoint {TestIemCli.message_server_endpoints}"
+        cls.valid_recv = f"{recv_cmd} {receive_source} {receive_info} --config {TestIemCli.cluster_conf_path}"
+        cls.valid_recv_log_file = f"{cls.valid_recv} {recv_file_arg} --config {TestIemCli.cluster_conf_path}"
+        cls.invalid_recv = f"{recv_cmd} {receive_source} {invalid_receive_info} --config {TestIemCli.cluster_conf_path}"
 
     @classmethod
     def tearDownClass(cls) -> None:
@@ -75,6 +70,7 @@ class TestIemCli(unittest.TestCase):
     # POSITIVE SCENARIOS SEND
     def test_iem_send_with_valid_cmdline_arguments(self):
         cmd = self.send_with_valid_cmdline_args
+        import pdb;pdb.set_trace()
         cmd_proc = SimpleProcess(cmd)
         result_data = cmd_proc.run()
         _, _, rc = result_data  # returns output, error, return code
