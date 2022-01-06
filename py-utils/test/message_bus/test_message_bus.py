@@ -19,6 +19,7 @@
 import time
 import unittest
 from cortx.utils.log import Log
+from cortx.utils.conf_store import Conf
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus import MessageBus, MessageBusAdmin, \
     MessageProducer, MessageConsumer
@@ -40,12 +41,19 @@ class TestMessageBus(unittest.TestCase):
     _cluster_conf_path = ''
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls, \
+        cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
         """Register the test message_type."""
-
+        if TestMessageBus._cluster_conf_path:
+            cls.cluster_conf_path = TestMessageBus._cluster_conf_path
+        else:
+            cls.cluster_conf_path = cluster_conf_path
+        Conf.load('config', cls.cluster_conf_path, skip_reload=True)
+        message_server_endpoints = Conf.get('config',\
+                'cortx>external>kafka>endpoints')
         Log.init('message_bus', '/var/log', level='INFO', \
             backup_count=5, file_size_in_mb=5)
-        MessageBus.init(TestMessageBus._endpoints.split(','))
+        MessageBus.init(message_server_endpoints=message_server_endpoints)
         cls._admin = MessageBusAdmin(admin_id='register')
         cls._admin.register_message_type(message_types= \
             [TestMessageBus._message_type], partitions=1)
@@ -263,5 +271,5 @@ class TestMessageBus(unittest.TestCase):
 if __name__ == '__main__':
     import sys
     if len(sys.argv) >= 2:
-        TestMessageBus._endpoints = sys.argv.pop()
+        TestMessageBus._cluster_conf_path = sys.argv.pop()
     unittest.main()
