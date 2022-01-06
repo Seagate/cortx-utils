@@ -27,6 +27,7 @@ class Const(Enum):
     COMPONENT_S3           = 's3'
     COMPONENT_HA           = 'ha'
     COMPONENT_CSM          = 'csm'
+    COMPONENT_CCLIENT      = 'cclient'
 
     # Active Services
     SERVICE_MOTR_IO         = 'io'
@@ -39,6 +40,7 @@ class Const(Enum):
     SERVICE_S3_BGSCHEDULER  = 'bgscheduler'
     SERVICE_CSM_AGENT       = 'agent'
     SERVICE_UTILS_MESSAGE   = 'message'
+    SERVICE_CCLIENT         = 'cclient_service'
 
     # Deprecated services
     SERVICE_S3_IO          = 'io'
