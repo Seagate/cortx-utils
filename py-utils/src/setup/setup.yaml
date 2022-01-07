@@ -43,6 +43,8 @@ utils:
         args: --config $URL [--pre-factory]
 
     upgrade:
+        cmd: /opt/seagate/cortx/utils/bin/utils_setup upgrade
+        args: --config $URL
 
         post:
             args: --config $URL

@@ -30,10 +30,12 @@ def tmain():
     """Wrapper function to execute testsuites."""
     try:
         argParser = argparse.ArgumentParser(
-            usage = "%(prog)s [-h] [-t]",
+            usage = "%(prog)s [-h] [-t] [-c]",
             formatter_class = argparse.RawDescriptionHelpFormatter)
-        argParser.add_argument("-t",
+        argParser.add_argument('-t', '--test_plan',
                 help="Enter path of plan file")
+        argParser.add_argument('-c', '--cluster_conf_path',
+                help="Enter path of cluster.conf file")
         args = argParser.parse_args()
     except Exception as e:
         print(e, traceback.format_exc())

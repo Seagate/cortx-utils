@@ -13,6 +13,9 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+DEFAULT_CORTX_CONF= 'yaml:///etc/cortx/cluster.conf'
+SB_PATH = '/var/cortx/support_bundle'
+SUPPORT_YAML = 'cortx/utils/conf/support_bundle.yaml'
 SUPPORT_BUNDLE_TAG = 'support_bundle;'
 SUPPORT_BUNDLE = 'SUPPORT_BUNDLE'
 SOS_COMP = 'os'
@@ -21,6 +24,12 @@ SB_COMMENT = 'comment'
 SB_NODE_NAME = 'node_name'
 SB_BUNDLE_ID = 'bundle_id'
 SB_BUNDLE_PATH = 'bundle_path'
+SB_DURATION = 'duration'
+SB_SIZE = 'size_limit'
 SB_SYMLINK_PATH = 'symlink_path'
 SYMLINK_PATH = '/tmp/support_bundle/'
+FILESTORE_PATH = f'{SB_PATH}/sb_status.json'
+SB_INDEX = 'sb_index'
+CORTX_SOLUTION_DIR = '/etc/cortx/solution'
+CORTX_RELEASE_INFO = '/opt/seagate/cortx/RELEASE.INFO'
 PERMISSION_ERROR_MSG = "Failed to cleanup {path} due to insufficient permissions"

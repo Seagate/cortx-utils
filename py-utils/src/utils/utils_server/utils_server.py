@@ -15,8 +15,11 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import argparse
+from argparse import RawTextHelpFormatter
 from aiohttp import web
 from cortx.utils.log import Log
+from cortx.utils.common import CortxConf
 
 
 class RestServer:
@@ -26,22 +29,40 @@ class RestServer:
         app = web.Application()
         from cortx.utils.iem_framework import IemRequestHandler
         from cortx.utils.message_bus import MessageBusRequestHandler
+        from cortx.utils.audit_log import AuditLogRequestHandler
         app.add_routes([web.post('/EventMessage/event', IemRequestHandler.send), \
             web.get('/EventMessage/event', IemRequestHandler.receive), \
             web.post('/MessageBus/message/{message_type}', \
             MessageBusRequestHandler.send), \
             web.get('/MessageBus/message/{message_type}', \
-            MessageBusRequestHandler.receive)])
+            MessageBusRequestHandler.receive),
+            web.post('/AuditLog/message/', \
+            AuditLogRequestHandler.send),
+            web.post('/AuditLog/webhook/', \
+            AuditLogRequestHandler.send_webhook_info)
+            ])
 
-        Log.info("Starting Message Server 127.0.0.1 on port 28300")
-        web.run_app(app, host='127.0.0.1', port=28300)
+        Log.info("Starting Message Server 0.0.0.0 on port 28300")
+        web.run_app(app, port=28300)
 
 
 if __name__ == '__main__':
+    import os
     from cortx.utils.conf_store import Conf
+    parser = argparse.ArgumentParser(description='Utils server CLI',
+        formatter_class=RawTextHelpFormatter)
+    parser.add_argument('-c', '--config', dest='cluster_conf',\
+        help="Cluster config file path for Support Bundle",\
+        default='yaml:///etc/cortx/cluster.conf')
+    args=parser.parse_args()
 
-    Conf.load('config_file', 'json:///etc/cortx/cortx.conf')
-    log_level = Conf.get('config_file', 'utils>log_level', 'INFO')
-    Log.init('utils_server', '/var/log/cortx/utils/utils_server', \
-        level=log_level, backup_count=5, file_size_in_mb=5)
+    CortxConf.init(cluster_conf=args.cluster_conf)
+    # Get the log path
+    log_dir = CortxConf.get('log_dir', '/var/log')
+    utils_log_path = CortxConf.get_log_path('utils_server', base_dir=log_dir)
+    # Get the log level
+    log_level = CortxConf.get('utils>log_level', 'INFO')
+
+    Log.init('utils_server', utils_log_path, level=log_level, backup_count=5, \
+        file_size_in_mb=5)
     RestServer()

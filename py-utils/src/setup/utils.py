@@ -21,6 +21,7 @@ import errno
 from pathlib import Path
 
 from cortx.utils import errors
+from cortx.utils import const
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
 from cortx.utils.common import SetupError
@@ -28,11 +29,9 @@ from cortx.utils.errors import TestFailed
 from cortx.utils.validator.v_pkg import PkgV
 from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.error import VError
-from cortx.utils.validator.v_service import ServiceV
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.service.service_handler import Service
-from cortx.utils.message_bus.error import MessageBusError
-from cortx.utils.message_bus import MessageBrokerFactory
+from cortx.utils.common import CortxConf
 
 
 class Utils:
@@ -59,97 +58,48 @@ class Utils:
                 except OSError as e:
                     raise SetupError(e.errno, "Error deleting file %s, \
                         %s", each_file, e)
-        return 0
 
     @staticmethod
+    def _get_utils_path() -> str:
+        """ Gets install path from cortx.conf and returns utils path """
+        install_path = CortxConf.get(key='install_path')
+        if not install_path:
+            local_storage_path = CortxConf.get_storage_path('local')
+            config_url = "%s://%s" % ('json', \
+                os.path.join(local_storage_path, 'utils/conf/cortx.conf'))
+            raise SetupError(errno.EINVAL, "install_path not found in %s",\
+                config_url)
+        return install_path
+
     def _set_to_conf_file(key, value):
         """ Add key value pair to cortx.conf file """
-        config_file = 'json:///etc/cortx/cortx.conf'
-        Conf.load('config_file', config_file, skip_reload=True)
-        Conf.set('config_file', key, value)
-        Conf.save('config_file')
+        CortxConf.set(key, value)
+        CortxConf.save()
 
     # Utils private methods
     @staticmethod
     def _get_from_conf_file(key) -> str:
         """ Fetch and return value for the key from cortx.conf file """
-        config_file = 'json:///etc/cortx/cortx.conf'
-        Conf.load('config_file', config_file, skip_reload=True)
-        val = Conf.get('config_file', key)
+        val = CortxConf.get(key=key)
 
         if not val:
-            error_msg = f"Value for key: {key}, not found in {config_file}"
-            raise SetupError(errno.EINVAL, error_msg)
+            local_storage_path = CortxConf.get_storage_path('local')
+            config_url = "%s://%s" % ('json', \
+                os.path.join(local_storage_path, 'utils/conf/cortx.conf'))
+            raise SetupError(errno.EINVAL, "Value for key: %s, not found in \
+                %s", key, config_url)
 
         return val
 
     @staticmethod
-    def _create_msg_bus_config(message_server_list: list, port_list: list, \
-        config: dict):
-        """ Create the config file required for message bus """
-
-        with open(r'/etc/cortx/message_bus.conf.sample', 'w+') as file:
-            json.dump({}, file, indent=2)
-        Conf.load('index', 'json:///etc/cortx/message_bus.conf.sample')
-        Conf.set('index', 'message_broker>type', 'kafka')
-        for i in range(len(message_server_list)):
-            Conf.set('index', f'message_broker>cluster[{i}]>server', \
-                     message_server_list[i])
-            Conf.set('index', f'message_broker>cluster[{i}]>port', port_list[i])
-        Conf.set('index', 'message_broker>message_bus',  config)
-        Conf.save('index')
-        # copy this conf file as message_bus.conf
-        try:
-            os.rename('/etc/cortx/message_bus.conf.sample', \
-                      '/etc/cortx/message_bus.conf')
-        except OSError as e:
-            raise SetupError(e.errno, "Failed to create \
-                /etc/cortx/message_bus.conf %s", e)
-
-    @staticmethod
-    def _get_server_info(conf_url_index: str, machine_id: str) -> dict:
-        """Reads the ConfStore and derives keys related to Event Message.
-
-        Args:
-            conf_url_index (str): Index for loaded conf_url
-            machine_id (str): Machine_id
-
-        Returns:
-            dict: Server Information
-        """
-        key_list = [f'server_node>{machine_id}']
-        ConfKeysV().validate('exists', conf_url_index, key_list)
-        server_info = Conf.get(conf_url_index, key_list[0])
-        return server_info
-
-    @staticmethod
-    def _copy_cluster_map(url_index: str):
-        cluster_data = Conf.get(url_index, 'server_node')
+    def _copy_cluster_map(config_path: str):
+        Conf.load('cluster', config_path, skip_reload=True)
+        cluster_data = Conf.get('cluster', 'node')
         for _, node_data in cluster_data.items():
             hostname = node_data.get('hostname')
             node_name = node_data.get('name')
             Conf.set('cluster', f'cluster>{node_name}', hostname)
         Conf.save('cluster')
-
-    @staticmethod
-    def _create_cluster_config(server_info: dict):
-        """ Create the config file required for Event Message """
-        for key, value in server_info.items():
-            Conf.set('cluster', f'server_node>{key}', value)
-        Conf.save('cluster')
-
-    @staticmethod
-    def _copy_conf_sample_to_conf():
-        if not os.path.exists("/etc/cortx/cluster.conf.sample"):
-            with open("/etc/cortx/cluster.conf.sample", "w+") as file:
-                json.dump({}, file, indent=2)
-        # copy this sample conf file as cluster.conf
-        try:
-            os.rename('/etc/cortx/cluster.conf.sample', \
-                '/etc/cortx/cluster.conf')
-        except OSError as e:
-            raise SetupError(e.errno, "Failed to create /etc/cortx/cluster.conf\
-                %s", e)
 
     @staticmethod
     def _configure_rsyslog():
@@ -171,12 +121,8 @@ class Utils:
         pass
 
     @staticmethod
-    def post_install(post_install_template: str):
+    def post_install(config_path: str):
         """ Performs post install operations """
-        # check whether zookeeper and kafka are running
-        ServiceV().validate('isrunning', ['kafka-zookeeper.service', \
-            'kafka.service'])
-
         # Check required python packages
         install_path = Utils._get_from_conf_file('install_path')
         utils_path = install_path + '/cortx/utils'
@@ -191,7 +137,7 @@ class Utils:
                     pack = package.strip().split('==')
                     req_pack.append(f"{pack[0]} ({pack[1]})")
         except Exception:
-            Log.info("Not found: "+f"{utils_path}/conf/python_requirements.ext.txt")
+             Log.info("Not found: "+f"{utils_path}/conf/python_requirements.ext.txt")
 
         PkgV().validate(v_type='pip3s', args=req_pack)
         default_sb_path = '/var/log/cortx/support_bundle'
@@ -199,90 +145,43 @@ class Utils:
         os.makedirs(default_sb_path, exist_ok=True)
 
         post_install_template_index = 'post_install_index'
-        Conf.load(post_install_template_index, post_install_template)
+        Conf.load(post_install_template_index, config_path)
 
         machine_id = Conf.machine_id
-        key_list = [f'server_node>{machine_id}>hostname', f'server_node>{machine_id}>name']
+        key_list = [f'node>{machine_id}>hostname', f'node>{machine_id}>name']
         ConfKeysV().validate('exists', post_install_template_index, key_list)
 
         #set cluster nodename:hostname mapping to cluster.conf (needed for Support Bundle)
-        Conf.load('cluster', 'json:///etc/cortx/cluster.conf', skip_reload=True)
-        Utils._copy_cluster_map(post_install_template_index)
+        Utils._copy_cluster_map(config_path)
 
         return 0
 
     @staticmethod
-    def init():
-        """ Perform initialization """
-        # Create message_type for Event Message
-        from cortx.utils.message_bus import MessageBusAdmin
-        try:
-            admin = MessageBusAdmin(admin_id='register')
-            admin.register_message_type(message_types=['IEM'], partitions=1)
-        except MessageBusError as e:
-            raise SetupError(e.rc, "Unable to create message_type. %s", e)
-
-        # start MessageBus service and check status
-        start_cmd = SimpleProcess("systemctl start cortx_message_bus")
-        _, start_err, start_rc = start_cmd.run()
-
-        if start_rc != 0:
-            raise SetupError(start_rc, "Unable to start MessageBus Service \
-                %s", start_err.decode('utf-8'))
-
-        status_cmd = SimpleProcess("systemctl status cortx_message_bus")
-        _, status_err, status_rc = status_cmd.run()
-
-        if status_rc != 0:
-            raise SetupError(status_rc, "MessageBus Service is either failed \
-                inactive. %s", status_err.decode('utf-8'))
-        return 0
-
-    @staticmethod
-    def config(config_template: str):
+    def config(config_path: str):
         """Performs configurations."""
-        # Copy cluster.conf.sample file to /etc/cortx/cluster.conf
-        Utils._copy_conf_sample_to_conf()
-
         # Load required files
-        config_template_index = 'cluster_config'
-        Conf.load('cluster', 'json:///etc/cortx/cluster.conf', skip_reload=True)
-        Conf.load(config_template_index, config_template)
+        config_template_index = 'config'
+        Conf.load(config_template_index, config_path)
+        # Configure log_dir for utils
+        log_dir = CortxConf.get_storage_path('log')
+        if log_dir is not None:
+            CortxConf.set('log_dir', log_dir)
+            CortxConf.save()
 
-        try:
-            server_list, port_list, config = \
-                MessageBrokerFactory.get_server_list(config_template_index)
-        except SetupError:
-            Log.error(f"Could not find server information in {config_template}")
-            raise SetupError(errno.EINVAL, \
-                "Could not find server information in %s", config_template)
-
-        Utils._create_msg_bus_config(server_list, port_list, config)
-        # Cluster config
-        server_info = \
-            Utils._get_server_info(config_template_index, Conf.machine_id)
-        if server_info is None:
-            Log.error(f"Could not find server information in {config_template}")
-            raise SetupError(errno.EINVAL, "Could not find server " +\
-                "information in %s", config_template)
-        Utils._create_cluster_config(server_info)
-
-        #set cluster nodename:hostname mapping to cluster.conf
-        Utils._copy_cluster_map(config_template_index)
+        # set cluster nodename:hostname mapping to cluster.conf
+        Utils._copy_cluster_map(config_path)
         Utils._configure_rsyslog()
 
-        # get shared storage info from config phase input conf template file
-        shared_storage = Conf.get('cluster_config', 'cortx>support')
-
-        # set shared storage info to cortx.conf conf file
+        # get shared storage from cluster.conf and set it to cortx.conf
+        shared_storage = CortxConf.get_storage_path('shared', none_allowed=True)
         if shared_storage:
             Utils._set_to_conf_file('support>shared_path', shared_storage)
 
         # temporary fix for a common message bus log file
         # The issue happend when some user other than root:root is trying
         # to write logs in these log dir/files. This needs to be removed soon!
-        LOG_DIR='/var/log'
-        utils_log_dir = os.path.join(LOG_DIR, 'cortx/utils')
+        log_dir = CortxConf.get('log_dir', '/var/log')
+        utils_log_dir = CortxConf.get_log_path(base_dir=log_dir)
         #message_bus
         os.makedirs(os.path.join(utils_log_dir, 'message_bus'), exist_ok=True)
         os.chmod(os.path.join(utils_log_dir, 'message_bus'), 0o0777)
@@ -297,7 +196,30 @@ class Utils:
         return 0
 
     @staticmethod
-    def test(plan: str):
+    def init(config_path: str):
+        """ Perform initialization """
+        # Create message_type for Event Message
+        from cortx.utils.message_bus import MessageBus, MessageBusAdmin
+        from cortx.utils.message_bus.error import MessageBusError
+        try:
+            # Read the config values
+            Conf.load('config', config_path, skip_reload=True)
+            message_bus_backend = Conf.get('config', \
+                'cortx>utils>message_bus_backend')
+            message_server_endpoints = Conf.get('config', \
+                f'cortx>external>{message_bus_backend}>endpoints')
+            MessageBus.init(message_server_endpoints)
+            admin = MessageBusAdmin(admin_id='register')
+            admin.register_message_type(message_types=['IEM', \
+                'audit_messages'], partitions=1)
+        except MessageBusError as e:
+            if 'TOPIC_ALREADY_EXISTS' not in e.desc:
+                raise SetupError(e.rc, "Unable to create message_type. %s", e)
+
+        return 0
+
+    @staticmethod
+    def test(config_path: str, plan: str):
         """ Perform configuration testing """
         # Runs cortx-py-utils unittests as per test plan
         try:
@@ -309,7 +231,7 @@ class Utils:
             plan_path = os.path.join(os.path.dirname(test_dir.__file__), \
                 'plans/', plan + '.pln')
             Log.info("Running test plan: %s", plan)
-            cmd = "%s/bin/run_test -t  %s" %(utils_path, plan_path)
+            cmd = "%s/bin/run_test -c %s -t %s" %(utils_path, config_path, plan_path)
             _output, _err, _rc = SimpleProcess(cmd).run(realtime_output=True)
             if _rc != 0:
                 Log.error("Py-utils Test Failed")
@@ -322,13 +244,14 @@ class Utils:
         return 0
 
     @staticmethod
-    def reset():
+    def reset(config_path: str):
         """Remove/Delete all the data/logs that was created by user/testing."""
         import time
+        from cortx.utils.message_bus.error import MessageBusError
         _purge_retry = 20
         try:
             from cortx.utils.message_bus import MessageBusAdmin
-            from cortx.utils.message_bus.message_bus_client import MessageProducer
+            from cortx.utils.message_bus import MessageProducer
             mb = MessageBusAdmin(admin_id='reset')
             message_types_list = mb.list_message_types()
             if message_types_list:
@@ -354,7 +277,7 @@ class Utils:
             raise SetupError(errors.ERR_OP_FAILED, "Internal error, can not \
                 reset Message Bus. %s", e)
         # Clear the logs
-        utils_log_path = '/var/log/cortx/utils/'
+        utils_log_path = CortxConf.get_log_path()
         if os.path.exists(utils_log_path):
             cmd = "find %s -type f -name '*.log' -exec truncate -s 0 {} +" % utils_log_path
             cmd_proc = SimpleProcess(cmd)
@@ -365,11 +288,14 @@ class Utils:
         return 0
 
     @staticmethod
-    def cleanup(pre_factory: bool):
+    def cleanup(pre_factory: bool, config_path: str):
         """Remove/Delete all the data that was created after post install."""
-        conf_file = '/etc/cortx/message_bus.conf'
-        if os.path.exists(conf_file):
+        local_path = CortxConf.get_storage_path('local')
+        utils_conf = os.path.join(local_path, 'utils/conf/utils.conf')
+
+        if os.path.exists(utils_conf):
             # delete message_types
+            from cortx.utils.message_bus.error import MessageBusError
             try:
                 from cortx.utils.message_bus import MessageBusAdmin
                 mb = MessageBusAdmin(admin_id='cleanup')
@@ -382,16 +308,24 @@ class Utils:
                 raise SetupError(errors.ERR_OP_FAILED, "Can not cleanup Message  \
                     Bus. %s", e)
 
-        config_files = ['/etc/cortx/message_bus.conf', \
-            '/etc/cortx/cluster.conf']
+        config_files = [utils_conf]
         Utils._delete_files(config_files)
 
         if pre_factory:
             # deleting all log files as part of pre-factory cleanup
-            cortx_utils_log_regex = '/var/log/cortx/utils/**/*.log'
+            utils_log_path = CortxConf.get_log_path()
+            cortx_utils_log_regex = f'{utils_log_path}/**/*.log'
             log_files = glob.glob(cortx_utils_log_regex, recursive=True)
             Utils._delete_files(log_files)
 
+        return 0
+
+    @staticmethod
+    def upgrade(config_path: str):
+        """Perform upgrade steps."""
+        # ToDo - in future, for utils/message server config changes may be
+        # required during upgrade phase.
+        # Currently no config changes required.
         return 0
 
     @staticmethod

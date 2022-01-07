@@ -23,14 +23,11 @@ from cortx.utils import errors
 from cortx.template import Singleton
 from cortx.utils.conf_store import Conf
 from cortx.utils.iem_framework.error import EventMessageError
-from cortx.utils.message_bus import MessageProducer, MessageConsumer
+from cortx.utils.message_bus import MessageProducer, MessageConsumer, MessageBus
 from cortx.utils.log import Log
-
 
 class EventMessage(metaclass=Singleton):
     """ Event Message framework to generate alerts """
-
-    _conf_file = 'json:///etc/cortx/cluster.conf'
     _producer = None
     _consumer = None
 
@@ -53,24 +50,10 @@ class EventMessage(metaclass=Singleton):
         'O': 'OS'
     }
 
-    @staticmethod
-    def _initiate_logger():
-        """ Initialize logger if required. """
-
-        Conf.load('config_file', 'json:///etc/cortx/cortx.conf',
-            skip_reload=True)
-        # if Log.logger is already initialized by some parent process
-        # the same file will be used to log all the messagebus related
-        # logs, else standard iem.log will be used.
-        if not Log.logger:
-            LOG_DIR='/var/log'
-            iem_log_dir = os.path.join(LOG_DIR, 'cortx/utils/iem')
-            log_level = Conf.get('config_file', 'utils>log_level', 'INFO')
-            Log.init('iem', iem_log_dir, level=log_level, \
-                backup_count=5, file_size_in_mb=5)
 
     @classmethod
-    def init(cls, component: str, source: str):
+    def init(cls, component: str, source: str, cluster_id: str, \
+         message_server_endpoints: str, **message_server_kwargs):
         """
         Set the Event Message context
 
@@ -82,20 +65,10 @@ class EventMessage(metaclass=Singleton):
 
         cls._component = component
         cls._source = source
-
-        cls._initiate_logger()
-
-        try:
-            Conf.load('cluster', cls._conf_file, skip_reload=True)
-            ids = Conf.get('cluster', 'server_node')
-            cls._site_id = ids['site_id']
-            cls._rack_id = ids['rack_id']
-            cls._node_id = ids['node_id']
-            cls._cluster_id = ids['cluster_id']
-        except Exception as e:
-            Log.error("Invalid config in %s." % cls._conf_file)
-            raise EventMessageError(errno.EINVAL, "Invalid config in %s. %s", \
-                cls._conf_file, e)
+        cls._site_id = 1
+        cls._rack_id = 1
+        cls._node_id = Conf.machine_id
+        cls._cluster_id = cluster_id
 
         if cls._component is None:
             Log.error("Invalid component type: %s" % cls._component )
@@ -106,7 +79,7 @@ class EventMessage(metaclass=Singleton):
             Log.error("Invalid source type: %s" % cls._source)
             raise EventMessageError(errno.EINVAL, "Invalid source type: %s", \
                 cls._source)
-
+        MessageBus.init(message_server_endpoints, **message_server_kwargs)
         cls._producer = MessageProducer(producer_id='event_producer', \
             message_type='IEM', method='sync')
         Log.info("IEM Producer initialized for component %s and source %s" % \
@@ -209,7 +182,8 @@ class EventMessage(metaclass=Singleton):
         Log.debug("alert sent: %s" % alert)
 
     @classmethod
-    def subscribe(cls, component: str, **filters):
+    def subscribe(cls, component: str,  message_server_endpoints: str, \
+        **message_server_kwargs):
         """
         Subscribe to IEM alerts
 
@@ -220,7 +194,7 @@ class EventMessage(metaclass=Singleton):
             Log.error("Invalid component type: %s" % component)
             raise EventMessageError(errno.EINVAL, "Invalid component type: %s", \
                component)
-
+        MessageBus.init(message_server_endpoints, **message_server_kwargs)
         cls._consumer = MessageConsumer(consumer_id='event_consumer', \
             consumer_group=component, message_types=['IEM'], \
             auto_ack=True, offset='earliest')

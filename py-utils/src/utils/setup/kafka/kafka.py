@@ -55,6 +55,7 @@ class Kafka:
         try:
             PkgV().validate('rpms', ['kafka'])
         except Exception as e:
+            Log.error(f"Kafka rpm missing: {e}")
             raise KafkaSetupError(e.rc, e)
 
         # check kafak user exists
@@ -64,16 +65,20 @@ class Kafka:
             if kafka_group.gr_gid != kafka_user.pw_gid:
                 raise Exception
         except Exception as e:
+            Log.error(f"Kafka user/group missing: {e}")
             # create kafka user and group
             cmds = [
             "adduser kafka",
             "usermod -aG wheel kafka",
             "groupadd --force kafka",
             "usermod --append --groups kafka kafka"]
+            Log.info("Creating Kafka user and group")
             for cmd in cmds:
                 _, err, rc = SimpleProcess(cmd).run()
                 # rc 9 if kafka user already exists & 12 if kafka user created
                 if rc not in (0, 9, 12):
+                    Log.debug(f"Failed in running command :{cmd}")
+                    Log.error(f"Failed in creating kafka user/group:{err}")
                     raise KafkaSetupError(rc, \
                         "Failed in creating kafka user and group", err)
 
@@ -91,6 +96,7 @@ class Kafka:
             os.makedirs(directory, exist_ok=True)
             os.system(f"chown -R kafka:kafka {directory}")
         except OSError as e:
+            Log.error(f"Faild to creating directory & changing ownership:{e}")
             raise KafkaSetupError(rc=e.errno, message=e)
 
         return 0
@@ -216,11 +222,13 @@ class Kafka:
 
     def post_install(self, *args, **kwargs):
         """Performs post install operations. Raises KafkaSetupError on error."""
+        Log.info("Starting post_install phase")
         try:
             Kafka._validate_kafka_installation()
         except KafkaSetupError as e:
-            Log(e)
+            Log.info(e)
 
+        Log.info("post_install phase completed sucessfully")
         return 0
 
     def prepare(self, *args, **kwargs):
@@ -231,6 +239,7 @@ class Kafka:
 
     def init(self, *args, **kwargs):
         """Perform initialization. Raises exception on error."""
+        Log.info("Starting init phase")
         Kafka._validate_kafka_installation()
         kafka_servers = args[0]
         curr_host_fqdn = gethostname()
@@ -239,10 +248,12 @@ class Kafka:
             for server in kafka_servers]
 
         if not (curr_host_fqdn in hosts or curr_host_ip in hosts) :
-            return 0   # return if current host is not a kafka server
+            Log.info(f"{curr_host_fqdn} in not a kafka server host")
+            return 0
 
         _, err, rc = SimpleProcess("systemctl restart kafka-zookeeper").run()
         if rc != 0:
+            Log.error(f"Unable to start Zookeeper: {err}")
             raise KafkaSetupError(rc, "Unable to start Zookeeper", err)
         attempt = 0
         while attempt <= 100 :
@@ -259,12 +270,14 @@ class Kafka:
 
         _, err, rc = SimpleProcess("systemctl restart kafka").run()
         if rc != 0:
+            Log.error(f"Unable to start kafka: {err}")
             raise KafkaSetupError(rc, "Unable to start Kakfa", err)
-
+        Log.info("Init phase completed sucessfully")
         return 0
 
     def config(self, *args, **kwargs):
         """Performs configurations. Raises exception on error."""
+        Log.info("Starting config phase")
         kafka_servers = args[0]
         curr_host_fqdn = gethostname()
         curr_host_ip = gethostbyname(curr_host_fqdn)
@@ -275,7 +288,7 @@ class Kafka:
             if (host in [curr_host_fqdn, curr_host_ip]):
                 Kafka._validate_kafka_installation()
                 Kafka._set_kafka_config(host, port, kafka_servers)
-
+        Log.info("config phase completed successfully")
         return 0
 
     def test(self, *args, **kwargs):
@@ -286,7 +299,7 @@ class Kafka:
 
     def reset(self, *args, **kwargs):
         """Performs reset. Deletes all meta data and logs."""
-
+        Log.info("Starting reset phase")
         directories = [
             '/var/log/kafka', '/tmp/kafka-logs', '/var/log/zookeeper',
             '/var/lib/zookeeper', '/var/local/data/kafka']
@@ -294,16 +307,18 @@ class Kafka:
         for directory in directories:
             if os.path.exists(directory):
                 for files in os.listdir(directory):
+                    Log.debug(f"deleting {files} from {directory}")
                     path = os.path.join(directory, files)
                     try:
                         shutil.rmtree(path)
                     except OSError:
                         os.remove(path)
-
+        Log.info("reset phase completed successfully")
         return 0
 
     def cleanup(self, *args, **kwargs):
         """Performs Configuraiton cleanup. Raises exception on error."""
+        Log.info("starting cleanup phase")
         server_properties_file = '/opt/kafka/config/server.properties'
         default_server_properties = {
             'broker.id': 0,
@@ -337,4 +352,5 @@ class Kafka:
             zookeeper_properties_file, default_zookeeper_properties)
         Kafka._delete_properties_from_file(
             zookeeper_properties_file, delete_zookeeper_properties)
+        Log.info("cleanup phase completed successfully")
         return 0

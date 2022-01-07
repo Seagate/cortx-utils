@@ -22,6 +22,7 @@ import time
 import importlib
 import inspect
 
+from cortx.test_framework import const
 from cortx.utils.errors import TestFailed
 
 
@@ -34,7 +35,7 @@ class TestRunner:
     """
 
     @staticmethod
-    def _run_class_setup_method(test_class):
+    def _run_class_setup_method(ts, test_class, cluster_conf_path):
         """
         Runs class setup for test
         """
@@ -43,7 +44,10 @@ class TestRunner:
                 setup_class = method_name
         try:
             class_setup = getattr(test_class(), setup_class)
-            class_setup()
+            if ts in const.CLUSTER_CONF_TESTS:
+                class_setup(cluster_conf_path)
+            else:
+                class_setup()
         except Exception as err:
             print("Class setup failed:",err)
 
@@ -124,19 +128,19 @@ class TestRunner:
         return test_class, tests
 
     @staticmethod
-    def create_test_suite(argp):
+    def create_test_suite(test_plan):
         """
         Prepare testsuite to run the test, all or subset as
         per plan passed in command line args.
         """
         ts_list = []
-        if argp.t is not None:
-            if not os.path.exists(argp.t):
+        if test_plan is not None:
+            if not os.path.exists(test_plan):
                 raise TestFailed("Missing file: %s, Unable to run test plan."\
                     " Possibly invalid name. Check and confirm the plan name"\
-                        " is correct" %argp.t)
+                        " is correct" %test_plan)
             try:
-                with open(argp.t) as f:
+                with open(test_plan) as f:
                     content = f.readlines()
                     for line in content:
                         if not line.startswith('#') and line != '\n':
@@ -180,14 +184,18 @@ class TestRunner:
         print('*'*90)
 
     @staticmethod
-    def execute_tests(argp):
+    def execute_tests(args):
         """
         Runs the given tests and testsuites
         """
         result = {}
         ts_count = test_count = pass_count = fail_count = ts_duration = 0
         total_start_time = time.time()
-        ts_list = TestRunner.create_test_suite(argp)
+        ts_list = TestRunner.create_test_suite(args.test_plan)
+        if args.cluster_conf_path:
+            cluster_conf_path = args.cluster_conf_path
+        else:
+            cluster_conf_path = 'yaml:///etc/cortx/cluster.conf'
 
         print("\n********* Starting Test Execution *********")
         for ts in ts_list:
@@ -204,7 +212,7 @@ class TestRunner:
                 test_class, tests = TestRunner.get_tests_from_modules(ts)
             # Actual test execution starts here
             ts_start_time = time.time()
-            TestRunner._run_class_setup_method(test_class)
+            TestRunner._run_class_setup_method(ts, test_class, cluster_conf_path)
             for test in tests:
                 test_count += 1
                 try:

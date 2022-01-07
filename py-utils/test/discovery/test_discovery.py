@@ -19,15 +19,17 @@
 import os
 import unittest
 
-from cortx.utils import const
 from cortx.utils.conf_store import Conf
 from cortx.utils.discovery import Discovery
 from cortx.utils.discovery.error import DiscoveryError
 from cortx.utils.kv_store import KvStoreFactory
+from cortx.utils.common import CortxConf
 
 # Load cortx common config
 store_type = "json"
-config_url = "%s://%s" % (store_type, const.CORTX_CONF_FILE)
+CortxConf.init(cluster_conf='yaml:///etc/cortx/cluster.conf')
+local_storage_path = CortxConf.get_storage_path('local')
+config_url = "%s://%s" % (store_type, os.path.join(local_storage_path, 'utils/conf/cortx.conf'))
 common_config = KvStoreFactory.get_instance(config_url)
 common_config.load()
 
@@ -54,8 +56,9 @@ class TestDiscovery(unittest.TestCase):
 
     """Test Discovery module interfaces."""
 
-    def setUp(self):
-        self.solution_platform_monitor = common_config.get(
+    @classmethod
+    def setUpClass(cls):
+        cls.solution_platform_monitor = common_config.get(
             ["discovery>solution_platform_monitor"])[0]
         # Set platform monitor path to mocked data path
         common_config.set(
@@ -121,11 +124,12 @@ class TestDiscovery(unittest.TestCase):
         url = Discovery.get_node_manifest(req_id)
         self.assertIsNotNone(url)
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(cls):
         # Reset platform monitor path
         common_config.set(
             ["discovery>solution_platform_monitor"],
-            [self.solution_platform_monitor])
+            [cls.solution_platform_monitor])
 
 
 if __name__ == '__main__':
