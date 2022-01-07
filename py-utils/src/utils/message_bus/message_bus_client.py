@@ -121,6 +121,15 @@ class MessageBusClient:
         client_id = self._get_conf('client_id')
         return self._message_bus.delete(client_id, message_type)
 
+    def set_message_type_expire(self, message_type: str, **kwargs):
+        """Set expiration time for given message type."""
+        client_id = self._get_conf('client_id')
+        status = self._message_bus.set_message_type_expire(client_id,\
+            message_type, **kwargs)
+        Log.info(f"Successfully updated {message_type} with new"+\
+            " configuration.")
+        return status
+
     def receive(self, timeout: float = None) -> list:
         """
         Receives messages from the Message Bus
@@ -147,15 +156,15 @@ class MessageBusAdmin(MessageBusClient):
         message_bus    An instance of message bus class.
         admin_id       A String that represents Admin client ID.
         """
-        super().__init__(client_type='admin', client_id=admin_id, \
+        super().__init__(client_type='admin',client_id=admin_id, \
             message_bus=message_bus)
 
 
 class MessageProducer(MessageBusClient):
     """ A client that publishes messages """
 
-    def __init__(self, producer_id: str, message_type: str, method: str = None, \
-        message_bus: MessageBus = None):
+    def __init__(self, producer_id: str, message_type: str,
+        message_bus: MessageBus = None, method: str = None):
         """ Initialize a Message Producer
 
         Parameters:
@@ -167,23 +176,12 @@ class MessageProducer(MessageBusClient):
         super().__init__(client_type='producer', client_id=producer_id, \
             message_type=message_type, method=method, message_bus=message_bus)
 
-    def get_unread_count(self, consumer_group: str):
-        """
-        Gets the count of unread messages from the Message Bus
-
-        Parameters:
-        consumer_group  A String that represents Consumer Group ID.
-        """
-        message_type = self._get_conf("message_type")
-        return self._message_bus.get_unread_count(message_type, consumer_group)
-
 
 class MessageConsumer(MessageBusClient):
     """ A client that consumes messages """
 
-    def __init__(self, consumer_id: str, consumer_group: str, \
-        message_types: list, auto_ack: str, offset: str, \
-        message_bus: MessageBus = None):
+    def __init__(self, consumer_id: str, consumer_group: str, auto_ack: str,
+        message_types: list, offset: str, message_bus: MessageBus = None):
         """ Initialize a Message Consumer
 
         Parameters:

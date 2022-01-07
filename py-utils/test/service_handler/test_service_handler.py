@@ -28,8 +28,9 @@ sys.path.append(utils_root)
 class TestSystemHandler(unittest.TestCase):
     _service_name = 'rsyslog.service'
 
-    def setUp(self):
-        self.service_obj = Service(TestSystemHandler._service_name)
+    @classmethod
+    def setUpClass(cls):
+        cls.service_obj = Service(TestSystemHandler._service_name)
 
     def test_start(self):
         self.service_obj.start()

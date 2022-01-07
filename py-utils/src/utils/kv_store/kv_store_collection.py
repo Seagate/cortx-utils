@@ -294,10 +294,18 @@ class DictKvStore(KvStore):
 
     def load(self, **kwargs) -> KvPayload:
         """ Reads from the file """
+        import json
+        from json.decoder import JSONDecodeError
+
         recurse = True
         if 'recurse' in kwargs.keys():
             recurse = kwargs['recurse']
-        return KvPayload(self._store_path, self._delim, recurse=recurse)
+
+        try:
+            self.data = json.loads(self._store_path)
+        except JSONDecodeError as jerr:
+            raise KvError(errno.EINVAL, "Invalid dict format %s", jerr.__str__())
+        return KvPayload(self.data, self._delim, recurse=recurse)
 
     def dump(self, data) -> None:
         """ Saves data onto dictionary itself """
@@ -402,20 +410,26 @@ class PillarStore(KvStore):
 class ConsulKvPayload(KvPayload):
     """ Backend adapter for consul api. """
 
-    def __init__(self, consul: Consul, delim: str = '>'):
-        self._consul = consul
+    def __init__(self, consul: Consul, store_path: str = '', delim: str = '>'):
         if len(delim) > 1:
             raise KvError(errno.EINVAL, "Invalid delim %s", delim)
         self._delim = delim
         self._data = {}
-        self._keys = []
-        self.get_keys(self._keys)
-
+        self._consul = consul
+        self._store_path = store_path
+        if self._store_path:
+            if self._store_path.startswith('/'): self._store_path = self._store_path[1:]
+            if not self._store_path.endswith('/'): self._store_path = self._store_path + '/'
+        self._keys = self.get_keys()
 
     def get(self, key: str, *args, **kwargs) -> str:
         """ Get value for consul key. """
-        index, data = self._consul.kv.get(key)
+        if not key in self._keys:
+            return None
+        index, data = self._consul.kv.get(self._store_path + key)
         if isinstance(data, dict):
+            if data['Value'] is None:
+                return ''
             return data['Value'].decode()
         elif data is None:
             return None
@@ -425,18 +439,19 @@ class ConsulKvPayload(KvPayload):
 
     def _set(self, key: str, val: str, *args, **kwargs) -> Union[bool, None]:
         """ Set the value to the key in consul kv. """
-        return self._consul.kv.put(key, val)
+        return self._consul.kv.put(self._store_path + key, str(val))
 
     def _delete(self, key: str, *args, **kwargs) -> Union[bool, None]:
         """ Delete the key:value for the input key. """
-        return self._consul.kv.delete(key)
+        return self._consul.kv.delete(self._store_path + key)
 
     def get_data(self, format_type: str = None, *args, **kwargs):
         """ Return a dict of kv pair. """
         self._data = {}
         from cortx.utils.schema import Format
         for kv in self._consul.kv.get('', recurse=True)[1]:
-            self._data[kv['Key']] = kv['Value'].decode('utf-8')
+            self._data[kv['Key']] = kv['Value'].decode('utf-8') if kv['Value'] \
+                is not None else ''
         if not format_type:
             return self._data
         return Format.dump(self._data, format_type)
@@ -450,13 +465,32 @@ class ConsulKvPayload(KvPayload):
                     Invalid key: %s" % str(starts_with))
             else:
                 key_list =  self._consul.kv.get(
-                    starts_with, recurse=True, keys=True)[1]
+                    self._store_path+starts_with, recurse=True, keys=True)[1]
         else:
-            key_list =  self._consul.kv.get('', keys=True)[1]
+            key_list =  self._consul.kv.get(self._store_path, keys=True)[1]
         if key_list:
-            keys.extend(key_list)      
+            if self._store_path:
+                for each_key in key_list:
+                    keys.append(each_key.split(self._store_path)[1])
+            else:
+                keys.extend(key_list)
         return keys
 
+    def search(self, parent_key: str, search_key: str, search_val: str) -> list:
+        """
+        Searches the given dictionary for the key and value.
+        Returns matching keys.
+        """
+
+        key_list=[]
+        keys = self.get_keys(starts_with = parent_key)
+        for key in keys:
+            key_suffix = key.split(self._delim)[-1]
+            if key_suffix == search_key:
+                value = self.get(key) if parent_key else ''
+                if value == search_val:
+                    key_list.append(key)
+        return key_list
 
 class ConsulKVStore(KvStore):
     """ Consul basedKV store. """
@@ -466,14 +500,18 @@ class ConsulKVStore(KvStore):
     def __init__(self, store_loc, store_path, delim='>'):
         KvStore.__init__(self, store_loc, store_path, delim)
         if store_loc:
-            if ':' in store_loc:
-                host, port = store_loc.split(':')
-            else:
-                host, port = store_loc, 8500
+            if ':' not in store_loc:
+                store_loc = store_loc + ':8500'
         else:
-            host, port = '127.0.0.1', 8500
-        self.c = Consul(host=host, port=port)
-        self._payload = ConsulKvPayload(self.c, self._delim)
+            store_loc = '127.0.0.1:8500'
+        host, port = store_loc.split(':')
+        try:
+            self.c = Consul(host=host, port=port)
+            self._payload = ConsulKvPayload(self.c, self._store_path, self._delim)
+        except Exception as e:
+            raise KvError(errno.ECONNREFUSED, "Connection refused." \
+                "Failed to eshtablish a new connection to consul endpoint: %s.\n %s", \
+                store_loc, e)
 
     def load(self, **kwargs) -> ConsulKvPayload:
         """ Return ConsulKvPayload object. """

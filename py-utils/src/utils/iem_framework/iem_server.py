@@ -22,6 +22,7 @@ from cortx.utils.iem_framework import EventMessage
 from cortx.utils.utils_server.error import RestServerError
 from cortx.utils.iem_framework.error import EventMessageError
 from cortx.utils.log import Log
+from cortx.utils.common import CortxConf
 
 routes = web.RouteTableDef()
 
@@ -36,7 +37,9 @@ class IemRequestHandler(RestServer):
 
             component = payload['component']
             source = payload['source']
-            EventMessage.init(component=component, source=source)
+            cluster_conf = CortxConf.get_cluster_conf_path()
+            EventMessage.init(component=component, source=source,\
+                cluster_conf=cluster_conf)
 
             del payload['component']
             del payload['source']
@@ -74,8 +77,9 @@ class IemRequestHandler(RestServer):
         Log.debug(f"Received GET request for component " \
             f"{request.rel_url.query['component']}")
         try:
+            cluster_conf = CortxConf.get_cluster_conf_path()
             component = request.rel_url.query['component']
-            EventMessage.subscribe(component=component)
+            EventMessage.subscribe(component=component, cluster_conf=cluster_conf)
             alert = EventMessage.receive()
         except EventMessageError as e:
             status_code = e.rc

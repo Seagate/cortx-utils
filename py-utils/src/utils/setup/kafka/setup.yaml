@@ -16,25 +16,29 @@
 kafka:
     post_install:
         cmd: /opt/seagate/cortx/utils/bin/kafka_setup post_install
-        args: --config $URL
+        args: --config $URL  --cluster_conf $URL
 
     prepare:
         cmd: /opt/seagate/cortx/utils/bin/kafka_setup prepare
-        args: --config $URL
+        args: --config $URL  --cluster_conf $URL
 
     config:
         cmd: /opt/seagate/cortx/utils/bin/kafka_setup config
-        args: --config $URL
+        args: --config $URL  --cluster_conf $URL
 
     init:
         cmd: /opt/seagate/cortx/utils/bin/kafka_setup init
-        args: --config $URL
+        args: --config $URL  --cluster_conf $URL
 
     test:
         cmd: /opt/seagate/cortx/utils/bin/kafka_setup test
-        args: --config $URL
+        args: --config $URL  --cluster_conf $URL
 
     reset:
         cmd: /opt/seagate/cortx/utils/bin/kafka_setup reset
-        args: --config $URL
+        args: --config $URL  --cluster_conf $URL
+
+    cleanup:
+        cmd: /opt/seagate/cortx/utils/bin/kafka_setup cleanup
+        args: --config $URL  --cluster_conf $URL
 

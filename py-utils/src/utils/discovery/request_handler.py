@@ -26,10 +26,13 @@ from cortx.utils import const
 from cortx.utils.discovery.error import DiscoveryError
 from cortx.utils.discovery.resource import Resource, ResourceFactory
 from cortx.utils.kv_store import KvStoreFactory
+from cortx.utils.common import CortxConf
 
 # Load cortx common config
 store_type = "json"
-config_url = "%s://%s" % (store_type, const.CORTX_CONF_FILE)
+CortxConf.init(cluster_conf='yaml:///etc/cortx/cluster.conf')
+local_storage_path = CortxConf.get_storage_path('local')
+config_url = "%s://%s" % (store_type, os.path.join(local_storage_path, 'utils/conf/cortx.conf'))
 common_config = KvStoreFactory.get_instance(config_url)
 common_config.load()
 
