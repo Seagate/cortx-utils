@@ -18,7 +18,7 @@
 import json
 from aiohttp import web
 
-from cortx.utils.utils_server import RestServer
+from cortx.utils.utils_server import MessageServer
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.utils_server.error import RestServerError
 from cortx.utils.message_bus import MessageConsumer, MessageProducer, MessageBus
@@ -29,7 +29,7 @@ from cortx.utils.conf_store import Conf
 routes = web.RouteTableDef()
 
 
-class MessageBusRequestHandler(RestServer):
+class MessageBusRequestHandler(MessageServer):
     """ Rest interface of message bus """
 
     @staticmethod
