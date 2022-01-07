@@ -131,7 +131,8 @@ class IemCli:
         writes message to file and returns blank string to caller
         """
         endpoints, _ = IemCli._get_cluster_data(args.config)
-        IemCli.subscribe(component=args.source, message_server_endpoints = endpoints)
+        IemCli.subscribe(component=args.source,\
+            message_server_endpoints=endpoints)
         rec_data = ''
         event = ' '
         while event:
