@@ -25,6 +25,7 @@ from argparse import RawTextHelpFormatter
 from cortx.utils.schema import Format
 from cortx.utils.iem_framework.error import EventMessageError
 from cortx.utils.iem_framework.event_message import EventMessage
+from cortx.utils.conf_store import Conf
 
 
 class IemCli:
@@ -84,18 +85,30 @@ class IemCli:
         return send_args
 
     @staticmethod
-    def subscribe(component: str, cluster_conf: str, **filters):
-        EventMessage.subscribe(component, cluster_conf, **filters)
+    def _get_cluster_data(config_path):
+        Conf.load('cluster_conf', config_path)
+        message_bus_backend = Conf.get('cluster_conf',\
+            'cortx>utils>message_bus_backend')
+        message_server_endpoints = Conf.get('cluster_conf',\
+            f'cortx>external>{message_bus_backend}>endpoints')
+        cluster_id = Conf.get('cluster_conf','cluster>id')
+        return message_server_endpoints, cluster_id
+
+    @staticmethod
+    def subscribe(component: str, message_server_endpoints, **filters):
+        EventMessage.subscribe(component, message_server_endpoints, **filters)
 
     @staticmethod
     def send(args_parse):
         """ send IE message """
 
         send_args = IemCli._parse_send_args(args_parse)
+        message_server_endpoints, cluster_id = IemCli._get_cluster_data(send_args['cluster_conf'])
         EventMessage.init(
             component=send_args['component'],
             source=send_args['source_type'],
-            cluster_conf=send_args['cluster_conf']
+            cluster_id=cluster_id,
+            message_server_endpoints=message_server_endpoints
         )
         EventMessage.send(
             module=send_args['module'],
@@ -116,7 +129,9 @@ class IemCli:
         Receives IEM Message and returns to the caller, If file[-f] is passed,
         writes message to file and returns blank string to caller
         """
-        IemCli.subscribe(component=args.source, cluster_conf=args.config)
+        endpoints, _ = IemCli._get_cluster_data(args.config)
+        IemCli.subscribe(component=args.source,\
+            message_server_endpoints=endpoints)
         rec_data = ''
         event = ' '
         while event:
