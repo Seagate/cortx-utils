@@ -246,8 +246,7 @@ class TestMessageBus(unittest.TestCase):
         _consumer_new = MessageConsumer(consumer_id='receive_new', \
             consumer_group='test_new', \
             message_types=[TestMessageBus._message_type], \
-            auto_ack=False, offset='earliest', \
-            cluster_conf = self.cluster_conf_path)
+            auto_ack=False, offset='earliest')
         message = _consumer_new.receive()
         # Revert back to original timeout to 604800000 (7 days)
         #  and data log size to 1073741824 (1 Gb)
