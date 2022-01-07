@@ -17,6 +17,8 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import unittest
+from cortx.utils.log import Log
+from cortx.utils.conf_store import Conf
 from cortx.utils.kv_store import KvPayload
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus import MessageBus, MessageBusAdmin, \
@@ -31,23 +33,27 @@ class TestKVPayloadMessage(unittest.TestCase):
     _cluster_conf_path = ''
 
     @classmethod
-    def setUpClass(cls, cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
+    def setUpClass(cls, \
+        cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
         """Register the test message_type."""
         if TestKVPayloadMessage._cluster_conf_path:
             cls.cluster_conf_path = TestKVPayloadMessage._cluster_conf_path
         else:
             cls.cluster_conf_path = cluster_conf_path
-        cls._admin = MessageBusAdmin(admin_id='register', \
-            cluster_conf = cls.cluster_conf_path)
+        Conf.load('config', cls.cluster_conf_path, skip_reload=True)
+        message_server_endpoints = Conf.get('config',\
+                'cortx>external>kafka>endpoints')
+        Log.init('message_bus', '/var/log', level='INFO', \
+                 backup_count=5, file_size_in_mb=5)
+        MessageBus.init(message_server_endpoints=message_server_endpoints)
+        cls._admin = MessageBusAdmin(admin_id='register')
         cls._admin.register_message_type(message_types= \
             [TestKVPayloadMessage._message_type], partitions=1)
         cls._consumer = MessageConsumer(consumer_id='kv_consumer', \
             consumer_group='kv', message_types=[TestKVPayloadMessage.\
-                _message_type], auto_ack=True, offset='earliest', \
-                cluster_conf = cls.cluster_conf_path)
+                _message_type], auto_ack=True, offset='earliest')
         cls._producer = MessageProducer(producer_id='kv_producer', \
-            message_type=TestKVPayloadMessage._message_type, method='sync', \
-            cluster_conf = cls.cluster_conf_path)
+            message_type=TestKVPayloadMessage._message_type, method='sync')
 
     def test_json_kv_send(self):
         """Load json as payload."""

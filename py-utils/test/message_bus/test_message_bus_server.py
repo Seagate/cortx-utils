@@ -20,27 +20,34 @@
 import json
 import unittest
 import requests
-from cortx.utils.message_bus import MessageBusAdmin
-
+from cortx.utils.message_bus import MessageBusAdmin, MessageBus
+from cortx.utils.log import Log
+from cortx.utils.conf_store import Conf
 
 class TestMessage(unittest.TestCase):
 
     """Test MessageBus rest server functionality."""
 
-    _base_url = 'http://127.0.0.1:28300/MessageBus/message/'
+    _base_url = 'http://0.0.0.0:28300/MessageBus/message/'
     _message_type = 'test'
     _consumer_group = 'receive'
     _cluster_conf_path = ''
 
     @classmethod
-    def setUpClass(cls, cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
+    def setUpClass(cls,\
+        cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
         """Register the test message_type."""
         if TestMessage._cluster_conf_path:
             cls.cluster_conf_path = TestMessage._cluster_conf_path
         else:
             cls.cluster_conf_path = cluster_conf_path
-        cls._admin = MessageBusAdmin(admin_id='register', \
-            cluster_conf = cls.cluster_conf_path)
+        Conf.load('config', cls.cluster_conf_path, skip_reload=True)
+        message_server_endpoints = Conf.get('config',\
+                'cortx>external>kafka>endpoints')
+        Log.init('message_bus', '/var/log', level='INFO', \
+            backup_count=5, file_size_in_mb=5)
+        MessageBus.init(message_server_endpoints=message_server_endpoints)
+        cls._admin = MessageBusAdmin(admin_id='register')
         cls._admin.register_message_type(message_types= \
             [TestMessage._message_type], partitions=1)
 

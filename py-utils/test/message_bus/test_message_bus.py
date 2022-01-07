@@ -18,6 +18,8 @@
 
 import time
 import unittest
+from cortx.utils.log import Log
+from cortx.utils.conf_store import Conf
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus import MessageBus, MessageBusAdmin, \
     MessageProducer, MessageConsumer
@@ -39,22 +41,27 @@ class TestMessageBus(unittest.TestCase):
     _cluster_conf_path = ''
 
     @classmethod
-    def setUpClass(cls, cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
+    def setUpClass(cls, \
+        cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
         """Register the test message_type."""
         if TestMessageBus._cluster_conf_path:
             cls.cluster_conf_path = TestMessageBus._cluster_conf_path
         else:
             cls.cluster_conf_path = cluster_conf_path
-        cls._admin = MessageBusAdmin(admin_id='register', \
-            cluster_conf = cls.cluster_conf_path)
+        Conf.load('config', cls.cluster_conf_path, skip_reload=True)
+        message_server_endpoints = Conf.get('config',\
+                'cortx>external>kafka>endpoints')
+        Log.init('message_bus', '/var/log', level='INFO', \
+            backup_count=5, file_size_in_mb=5)
+        MessageBus.init(message_server_endpoints=message_server_endpoints)
+        cls._admin = MessageBusAdmin(admin_id='register')
         cls._admin.register_message_type(message_types= \
             [TestMessageBus._message_type], partitions=1)
         cls._producer = MessageProducer(producer_id='send', \
-            message_type=TestMessageBus._message_type, method='sync', \
-            cluster_conf = cls.cluster_conf_path)
+            message_type=TestMessageBus._message_type, method='sync')
         cls._consumer = MessageConsumer(consumer_id='receive', \
             consumer_group='test', message_types=[TestMessageBus._message_type], \
-            auto_ack=False, offset='earliest', cluster_conf = cls.cluster_conf_path)
+            auto_ack=False, offset='earliest')
 
     def test_001_list_message_type(self):
         """Test list message type."""
@@ -65,13 +72,10 @@ class TestMessageBus(unittest.TestCase):
     def test_002_unknown_message_type(self):
         """Test invalid message type."""
         with self.assertRaises(MessageBusError):
-            MessageProducer(producer_id='send', \
-                message_type='', method='sync', \
-                cluster_conf = TestMessageBus.cluster_conf_path)
+            MessageProducer(producer_id='send', message_type='', method='sync')
         with self.assertRaises(MessageBusError):
             MessageConsumer(consumer_id='receive', consumer_group='test', \
-                message_types=[''], auto_ack=False, offset='earliest', \
-                cluster_conf = TestMessageBus.cluster_conf_path)
+                message_types=[''], auto_ack=False, offset='earliest')
 
     @staticmethod
     def test_003_send():
@@ -101,8 +105,7 @@ class TestMessageBus(unittest.TestCase):
                 break
             self.assertIsNotNone(message, "Message not found")
             count += 1
-        self.assertEqual(count, (TestMessageBus._bulk_count - \
-            TestMessageBus._receive_limit))
+        self.assertEqual(count, TestMessageBus._bulk_count)
 
     def test_007_receive_different_consumer_group(self):
         """Test receive from different consumer_group."""
@@ -110,7 +113,7 @@ class TestMessageBus(unittest.TestCase):
         for cg in consumer_group:
             consumer = MessageConsumer(consumer_id=cg, consumer_group=cg, \
                 message_types=[TestMessageBus._message_type], auto_ack=False, \
-                offset='earliest', cluster_conf = TestMessageBus.cluster_conf_path)
+                offset='earliest')
             count = 0
             while True:
                 message = consumer.receive()
@@ -207,8 +210,7 @@ class TestMessageBus(unittest.TestCase):
         if message_types_list:
             for message_type in message_types_list:
                 producer = MessageProducer(producer_id=message_type, \
-                    message_type=message_type, method='sync', \
-                    cluster_conf = TestMessageBus.cluster_conf_path)
+                    message_type=message_type, method='sync')
                 producer.delete()
 
     def test_016_set_message_type_expiry(self):
