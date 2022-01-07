@@ -103,7 +103,6 @@ class IemCli:
         """ send IE message """
 
         send_args = IemCli._parse_send_args(args_parse)
-        
         message_server_endpoints, cluster_id = IemCli._get_cluster_data(send_args['cluster_conf'])
         EventMessage.init(
             component=send_args['component'],
