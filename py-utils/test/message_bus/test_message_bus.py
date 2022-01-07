@@ -105,8 +105,7 @@ class TestMessageBus(unittest.TestCase):
                 break
             self.assertIsNotNone(message, "Message not found")
             count += 1
-        self.assertEqual(count, (TestMessageBus._bulk_count - \
-            TestMessageBus._receive_limit))
+        self.assertEqual(count, TestMessageBus._bulk_count)
 
     def test_007_receive_different_consumer_group(self):
         """Test receive from different consumer_group."""
