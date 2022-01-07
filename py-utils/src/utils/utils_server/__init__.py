@@ -17,6 +17,6 @@
 
 __title__ = 'utils_server'
 
-from cortx.utils.utils_server.utils_server import RestServer
+from cortx.utils.utils_server.utils_server import MessageServer
 from cortx.utils.utils_server.error import RestServerError
 
