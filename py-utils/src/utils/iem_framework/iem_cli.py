@@ -83,12 +83,16 @@ class IemCli:
             send_args['problem_host'] = host
 
         return send_args
+
     @staticmethod
     def get_messagebus_arguments(config_path):
         Conf.load('cluster_conf', config_path)
-        message_bus_backend = Conf.get('utils>message_bus_backend')
-        message_server_endpoints = Conf.get('config', f'cortx>external>{message_bus_backend}>endpoints')
-        return message_server_endpoints
+        message_bus_backend = Conf.get('cluster_conf',\
+            'cortx>utils>message_bus_backend')
+        message_server_endpoints = Conf.get('cluster_conf',\
+            f'cortx>external>{message_bus_backend}>endpoints')
+        cluster_id = Conf.get('cluster_conf','cluster>id')
+        return message_server_endpoints, cluster_id
 
     @staticmethod
     def subscribe(component: str, message_server_endpoints, **filters):
@@ -127,7 +131,7 @@ class IemCli:
         writes message to file and returns blank string to caller
         """
         endpoints, _ = IemCli.get_messagebus_arguments(args.config)
-        IemCli.subscribe(component=args.source message_server_endpoints = endpoints)
+        IemCli.subscribe(component=args.source, message_server_endpoints = endpoints)
         rec_data = ''
         event = ' '
         while event:

@@ -70,7 +70,6 @@ class TestIemCli(unittest.TestCase):
     # POSITIVE SCENARIOS SEND
     def test_iem_send_with_valid_cmdline_arguments(self):
         cmd = self.send_with_valid_cmdline_args
-        import pdb;pdb.set_trace()
         cmd_proc = SimpleProcess(cmd)
         result_data = cmd_proc.run()
         _, _, rc = result_data  # returns output, error, return code
