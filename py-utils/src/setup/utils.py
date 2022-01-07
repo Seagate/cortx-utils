@@ -208,7 +208,7 @@ class Utils:
                 'cortx>external>kafka>endpoints')
             MessageBus.init(message_server_endpoints)
             admin = MessageBusAdmin(admin_id='register')
-            admin.register_message_type(message_types=['IEM'], partitions=1)
+            admin.register_message_type(message_types=['IEM', 'audit_messages'], partitions=1)
         except MessageBusError as e:
             if 'TOPIC_ALREADY_EXISTS' not in e.desc:
                 raise SetupError(e.rc, "Unable to create message_type. %s", e)

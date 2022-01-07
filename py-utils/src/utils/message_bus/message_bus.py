@@ -123,13 +123,6 @@ class MessageBus(metaclass=Singleton):
         """ Deletes all the messages from the configured message broker """
         return self._broker.delete(client_id, message_type)
 
-    def get_unread_count(self, message_type: str, consumer_group: str):
-        """
-        Gets the count of unread messages from the configured message
-        broker
-        """
-        return self._broker.get_unread_count(message_type, consumer_group)
-
     def receive(self, client_id: str, timeout: float = None) -> list:
         """ Receives messages from the configured message broker """
         return self._broker.receive(client_id, timeout)
@@ -138,8 +131,8 @@ class MessageBus(metaclass=Singleton):
         """ Provides acknowledgement on offset """
         self._broker.ack(client_id)
 
-    def set_message_type_expire(self, client_id: str, message_type: str, \
-        expire_time: int):
+    def set_message_type_expire(self, client_id: str, message_type: str,\
+        **kwargs):
         """Set expiration time for given message type."""
         return self._broker.set_message_type_expire(client_id, message_type, \
             expire_time)

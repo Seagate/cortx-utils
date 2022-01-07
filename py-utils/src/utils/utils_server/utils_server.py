@@ -58,7 +58,9 @@ class MessageServer(UtilsServer):
             web.get('/MessageBus/message/{message_type}', \
             MessageBusRequestHandler.receive),
             web.post('/AuditLog/message/', \
-            AuditLogRequestHandler.receive)
+            AuditLogRequestHandler.send),
+            web.post('/AuditLog/webhook/', \
+            AuditLogRequestHandler.send_webhook_info)
             ])
         super().run_app(web)
 

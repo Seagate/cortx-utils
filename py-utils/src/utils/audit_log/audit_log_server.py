@@ -21,20 +21,41 @@ from aiohttp import web
 from cortx.utils.utils_server import MessageServer
 from cortx.utils.audit_log.error import AuditLogError
 from cortx.utils.utils_server.error import RestServerError
+from cortx.utils.message_bus import MessageProducer
 from cortx.utils.log import Log
 
 routes = web.RouteTableDef()
+producer = MessageProducer(producer_id='audit_log_send', \
+    message_type='audit_messages', method='sync')
 
 
 class AuditLogRequestHandler(MessageServer):
     """Rest interface of Audit log."""
+    # webhook_info will be removed once webhook_info store to persistent storage
+    webhook_info = None
     @staticmethod
-    async def receive(request):
+    async def send(request):
         Log.debug("Received POST request for audit message")
         try:
             payload = await request.json()
             messages = payload['messages']
-            # TODO Store audit logs messages to a persistent storage.
+            external_server_info = AuditLogRequestHandler.webhook_info
+            # send audit logs messages to to external server provided by webhook
+            if external_server_info:
+                # write Audit Log messages to the webhook server
+                import requests
+
+                data = json.dumps({'messages': messages})
+                headers = {'content-type': 'application/json'}
+                response = requests.post(url=external_server_info, data=data,\
+                    headers=headers)
+                if response.status_code != 200:
+                    # if status code from webhok server is not 200 then store audit
+                    # log message to message bus
+                    producer.send(messages)
+            else:
+                # write the audit log message to message bus
+                producer.send(messages)
         except AuditLogError as e:
             status_code = e.rc
             error_message = e.desc
@@ -55,7 +76,42 @@ class AuditLogRequestHandler(MessageServer):
         else:
             status_code = 200  # No exception, Success
             response_obj = {}
-            Log.debug(f"Receiving audit messages using POST method finished with status " \
+            Log.debug(f"Receiving audit messages using POST method finished with status"\
+                f" code: {status_code}")
+            response_obj = {'status_code': status_code, 'status': 'success'}
+        finally:
+            return web.Response(text=json.dumps(response_obj), \
+                status=status_code)
+
+    @staticmethod
+    async def send_webhook_info(request):
+        Log.debug("Received POST request for webhook information")
+        try:
+            external_server_info = await request.json()
+            # write webhook info to the external server
+            AuditLogRequestHandler.webhook_info = external_server_info
+            # TODO store webhook_info to persistent storage
+        except AuditLogError as e:
+            status_code = e.rc
+            error_message = e.desc
+            Log.error(f"Unable to receive audit webhook information, status code: " \
+                f"{status_code}, error: {error_message}")
+            response_obj = {'error_code': status_code, 'exception': \
+                ['AuditLogError', {'message': error_message}]}
+        except Exception as e:
+            exception_key = type(e).__name__
+            exception = RestServerError(exception_key).http_error()
+            status_code = exception[0]
+            error_message = exception[1]
+            Log.error(f"Internal error while receiving webhook info." \
+                f"status code: {status_code}, error: {error_message}")
+            response_obj = {'error_code': status_code, 'exception': \
+                [exception_key, {'message': error_message}]}
+            raise AuditLogError(status_code, error_message) from e
+        else:
+            status_code = 200  # No exception, Success
+            response_obj = {}
+            Log.debug(f"Receiving webhook info using POST method finished with status " \
                 f"code: {status_code}")
             response_obj = {'status_code': status_code, 'status': 'success'}
         finally:
