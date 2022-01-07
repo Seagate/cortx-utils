@@ -50,14 +50,38 @@ class SupportBundle:
         return f"SB{''.join(random.choices(alphabet, k=8))}"
 
     @staticmethod
-    def get_component_size_limit(size_limit, num_components):
+    def _get_uncompressed_size(size_limit: float):
+        """Calculate the uncompressed size, assuming the tz utility compression to be 80%
+
+        Using Formula:
+            Data_Compression_ratio = 1-(compressed_size/uncompressed_size)
+            compressed_size/uncompressed_size = 1-(4/5) = 1/5
+            uncompressed_size = compressed_size * 5
+        Multiplying compressed size limit with 5 to get the uncompressed size limit.
+        For example:
+            say the compressed size limit given is 200MB,
+            uncompressed size limit = 200MB * 5 = 1000MB
+        """
+        uncompressed_size = ''
+        try:
+            uncompressed_size = int(size_limit * 5)
+        except ValueError as e:
+            Log.error(f"Failed to get uncompressed size_limit. ERROR:{str(e)}")
+        return uncompressed_size
+
+    @staticmethod
+    def get_component_size_limit(size_limit: str, num_components: int):
         """Returns the size limit per component."""
         units = ['GB', 'MB', 'KB']
         for suffix in units:
             if size_limit.endswith(suffix):
                 num_units = size_limit[:-len(suffix)]
+                # It is assumed that the size limit parsed is the compressed size,
+                # first get the uncompressed size limit, and
+                # then divide it among components.
+                num_units = SupportBundle._get_uncompressed_size(float(num_units))
                 try:
-                    size_limit_per_comp = (int(float(num_units)) / num_components)
+                    size_limit_per_comp = num_units / num_components
                     size_limit_per_comp = str(size_limit_per_comp) + suffix
                 except ValueError as e:
                     Log.error(f"Failed to get size_limit per component for SB. ERROR:{str(e)}")

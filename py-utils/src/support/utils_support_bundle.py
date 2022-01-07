@@ -43,8 +43,14 @@ class UtilsSupportBundle:
     _tmp_src = '/tmp/cortx/py-utils/'
 
     @staticmethod
-    def generate(bundle_id: str, target_path: str, cluster_conf: str):
+    def generate(bundle_id: str, target_path: str, cluster_conf: str, **filters):
         """ Generate a tar file. """
+        duration = filters.get('duration', 'P5D')
+        size_limit = filters.get('size_limit', '500MB')
+        binlogs = filters.get('binlogs', False)
+        coredumps = filters.get('coredumps', False)
+        stacktrace = filters.get('stacktrace', False)
+        # TODO process duration, size_limit, binlogs, coredumps and stacktrace
         # Find log dirs
         CortxConf.init(cluster_conf=cluster_conf)
         log_base = CortxConf.get_storage_path('log')
@@ -94,7 +100,6 @@ class UtilsSupportBundle:
             tar.add(UtilsSupportBundle._tmp_src,
                 arcname=os.path.basename(UtilsSupportBundle._tmp_src))
 
-
     @staticmethod
     def __clear_tmp_files():
         """ Clean temporary files created by the support bundle """
@@ -111,16 +116,43 @@ class UtilsSupportBundle:
             default='yaml:///etc/cortx/cluster.conf')
         parser.add_argument('-s', '--services', dest='services', nargs='+',\
             default='', help='List of services for Support Bundle')
+        parser.add_argument('-d', '--duration', default='P5D', dest='duration',
+            help="Duration - duration for which log should be captured, Default - P5D")
+        parser.add_argument('--size_limit', default='500MB', dest='size_limit',
+            help="Size Limit - Support Bundle size limit per node, Default - 500MB")
+        parser.add_argument('--binlogs', type=UtilsSupportBundle.str2bool, default=False, dest='binlogs',
+            help="Include/Exclude Binary Logs, Default = False")
+        parser.add_argument('--coredumps', type=UtilsSupportBundle.str2bool, default=False, dest='coredumps',
+            help="Include/Exclude Coredumps, Default = False")
+        parser.add_argument('--stacktrace', type=UtilsSupportBundle.str2bool, default=False, dest='stacktrace',
+            help="Include/Exclude stacktrace, Default = False")
+        parser.add_argument('--modules', dest='modules',
+            help="list of components & services to generate support bundle.")
         args=parser.parse_args()
         return args
 
+    @staticmethod
+    def str2bool(value):
+        if isinstance(value, bool):
+            return value
+        if value.lower() in ('true'):
+            return True
+        elif value.lower() in ('false'):
+            return False
+        else:
+            raise argparse.ArgumentTypeError('Boolean value expected.')
 
 def main():
     args = UtilsSupportBundle.parse_args()
     UtilsSupportBundle.generate(
         bundle_id=args.bundle_id,
         target_path=args.path,
-        cluster_conf=args.cluster_conf
+        cluster_conf=args.cluster_conf,
+        duration = args.duration,
+        size_limit = args.size_limit,
+        binlogs = args.binlogs,
+        coredumps = args.coredumps,
+        stacktrace = args.stacktrace
     )
 
 

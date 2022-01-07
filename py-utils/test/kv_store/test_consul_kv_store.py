@@ -60,6 +60,19 @@ class TestStore(unittest.TestCase):
         out = TestStore.loaded_consul[0].get(['cloud>cloud_type'])
         self.assertEqual([None], out)
 
+    def test_consul_store_f_set_value_null(self):
+        """Test consul kv by setting empty string as value."""
+        TestStore.loaded_consul[0].set(['test'],[''])
+        out = TestStore.loaded_consul[0].get(['test'])
+        TestStore.loaded_consul[0].delete(['test'])
+        self.assertEqual([''], out)
+
+    def test_consul_store_g_set_search(self):
+        """Test consul search."""
+        TestStore.loaded_consul[0].set(['test>child_key>leaf_key'],['value'])
+        out = TestStore.loaded_consul[0].search('test', 'leaf_key', 'value')
+        TestStore.loaded_consul[0].delete(['test>child_key>leaf_key'])
+        self.assertEqual(['test>child_key>leaf_key'], out)
 
 if __name__ == '__main__':
     unittest.main()

@@ -204,11 +204,14 @@ class Utils:
         try:
             # Read the config values
             Conf.load('config', config_path, skip_reload=True)
+            message_bus_backend = Conf.get('config', \
+                'cortx>utils>message_bus_backend')
             message_server_endpoints = Conf.get('config', \
-                'cortx>external>kafka>endpoints')
+                f'cortx>external>{message_bus_backend}>endpoints')
             MessageBus.init(message_server_endpoints)
             admin = MessageBusAdmin(admin_id='register')
-            admin.register_message_type(message_types=['IEM'], partitions=1)
+            admin.register_message_type(message_types=['IEM', \
+                'audit_messages'], partitions=1)
         except MessageBusError as e:
             if 'TOPIC_ALREADY_EXISTS' not in e.desc:
                 raise SetupError(e.rc, "Unable to create message_type. %s", e)
@@ -249,13 +252,12 @@ class Utils:
         try:
             from cortx.utils.message_bus import MessageBusAdmin
             from cortx.utils.message_bus import MessageProducer
-            mb = MessageBusAdmin(admin_id='reset', cluster_conf=config_path)
+            mb = MessageBusAdmin(admin_id='reset')
             message_types_list = mb.list_message_types()
             if message_types_list:
                 for message_type in message_types_list:
                     producer = MessageProducer(producer_id=message_type, \
-                        message_type=message_type, method='sync', \
-                        cluster_conf=config_path)
+                        message_type=message_type, method='sync')
                     for retry_count in range(1, (_purge_retry + 2)):
                         if retry_count > _purge_retry:
                             Log.error(f"MessageBusError: {errors.ERR_OP_FAILED} " \
@@ -296,7 +298,7 @@ class Utils:
             from cortx.utils.message_bus.error import MessageBusError
             try:
                 from cortx.utils.message_bus import MessageBusAdmin
-                mb = MessageBusAdmin(admin_id='cleanup', cluster_conf=config_path)
+                mb = MessageBusAdmin(admin_id='cleanup')
                 message_types_list = mb.list_message_types()
                 if message_types_list:
                     mb.deregister_message_type(message_types_list)
