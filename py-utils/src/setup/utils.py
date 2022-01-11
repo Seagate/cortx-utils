@@ -250,8 +250,14 @@ class Utils:
         from cortx.utils.message_bus.error import MessageBusError
         _purge_retry = 20
         try:
-            from cortx.utils.message_bus import MessageBusAdmin
+            from cortx.utils.message_bus import MessageBusAdmin, MessageBus
             from cortx.utils.message_bus import MessageProducer
+            Conf.load('config', config_path, skip_reload=True)
+            message_bus_backend = Conf.get('config', \
+                'cortx>utils>message_bus_backend')
+            message_server_endpoints = Conf.get('config', \
+                f'cortx>external>{message_bus_backend}>endpoints')
+            MessageBus.init(message_server_endpoints)
             mb = MessageBusAdmin(admin_id='reset')
             message_types_list = mb.list_message_types()
             if message_types_list:
@@ -297,7 +303,13 @@ class Utils:
             # delete message_types
             from cortx.utils.message_bus.error import MessageBusError
             try:
-                from cortx.utils.message_bus import MessageBusAdmin
+                from cortx.utils.message_bus import MessageBus, MessageBusAdmin
+                Conf.load('config', config_path, skip_reload=True)
+                message_bus_backend = Conf.get('config', \
+                    'cortx>utils>message_bus_backend')
+                message_server_endpoints = Conf.get('config', \
+                    f'cortx>external>{message_bus_backend}>endpoints')
+                MessageBus.init(message_server_endpoints)
                 mb = MessageBusAdmin(admin_id='cleanup')
                 message_types_list = mb.list_message_types()
                 if message_types_list:
