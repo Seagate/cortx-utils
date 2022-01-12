@@ -90,7 +90,6 @@ class IemRequestHandler(MessageServer):
             f"{request.rel_url.query['component']}")
         try:
             cluster_conf = CortxConf.get_cluster_conf_path()
-            print(cluster_conf)
             component = request.rel_url.query['component']
             endpoint, _ = IemRequestHandler._get_cluster_data(cluster_conf)
             EventMessage.subscribe(component=component,\
