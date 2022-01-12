@@ -19,11 +19,14 @@
 import unittest
 from cortx.utils.iem_framework import EventMessage
 from cortx.utils.iem_framework.error import EventMessageError
+from cortx.utils.conf_store import Conf
 
 
 class TestMessage(unittest.TestCase):
     """Test EventMessage send and receive functionality."""
     _cluster_conf_path = ''
+    _message_server_endpoints = ''
+    _cluster_id = ''
 
     @classmethod
     def setUpClass(cls,  cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
@@ -31,29 +34,39 @@ class TestMessage(unittest.TestCase):
             cls.cluster_conf_path = TestMessage._cluster_conf_path
         else:
             cls.cluster_conf_path = cluster_conf_path
+        Conf.load('config', cls.cluster_conf_path, skip_reload=True)
+        TestMessage._cluster_id = Conf.get('config', 'cluster>id')
+        TestMessage._message_server_endpoints = Conf.get('config',\
+            'cortx>external>kafka>endpoints')
 
     def test_alert_send(self):
         """ Test send alerts """
-        EventMessage.init(component='cmp', source='H', cluster_conf=TestMessage.cluster_conf_path)
+        EventMessage.init(component='cmp', source='H', \
+            cluster_id=TestMessage._cluster_id, \
+            message_server_endpoints=TestMessage._message_server_endpoints)
         EventMessage.send(module='mod', event_id='500', severity='B', \
             message_blob='This is message')
 
     def test_alert_verify_receive(self):
         """ Test receive alerts """
-        EventMessage.subscribe(component='cmp', cluster_conf=TestMessage.cluster_conf_path)
+        EventMessage.subscribe(component='cmp', \
+            message_server_endpoints=TestMessage._message_server_endpoints)
         alert = EventMessage.receive()
         self.assertIs(type(alert), dict)
 
     def test_bulk_alert_send(self):
         """ Test bulk send alerts """
-        EventMessage.init(component='cmp', source='H', cluster_conf=TestMessage.cluster_conf_path)
+        EventMessage.init(component='cmp', source='H', \
+            cluster_id=TestMessage._cluster_id, \
+            message_server_endpoints=TestMessage._message_server_endpoints)
         for alert_count in range(0, 1000):
             EventMessage.send(module='mod', event_id='500', severity='B', \
                 message_blob='This is message' + str(alert_count))
 
     def test_bulk_verify_receive(self):
         """ Test bulk receive alerts """
-        EventMessage.subscribe(component='cmp', cluster_conf=TestMessage.cluster_conf_path)
+        EventMessage.subscribe(component='cmp', \
+            message_server_endpoints=TestMessage._message_server_endpoints)
         count = 0
         while True:
             alert = EventMessage.receive()
@@ -76,15 +89,20 @@ class TestMessage(unittest.TestCase):
 
     def test_receive_without_send(self):
         """ Receive message without send """
-        EventMessage.subscribe(component='cmp', cluster_conf=TestMessage.cluster_conf_path)
+        EventMessage.subscribe(component='cmp', \
+            message_server_endpoints=TestMessage._message_server_endpoints)
         alert = EventMessage.receive()
         self.assertIsNone(alert)
 
     def test_init_validation(self):
         """ Validate init attributes """
         with self.assertRaises(EventMessageError):
-            EventMessage.init(component=None, source='H', cluster_conf=TestMessage.cluster_conf_path)
-            EventMessage.init(component='cmp', source='I', cluster_conf=TestMessage.cluster_conf_path)
+            EventMessage.init(component=None, source='H', \
+                cluster_id=TestMessage._cluster_id, \
+                message_server_endpoints=TestMessage._message_server_endpoints)
+            EventMessage.init(component=None, source='I', \
+                cluster_id=TestMessage._cluster_id, \
+                message_server_endpoints=TestMessage._message_server_endpoints)
 
     def test_send_validation(self):
         """ Validate send attributes """
@@ -100,17 +118,21 @@ class TestMessage(unittest.TestCase):
 
     def test_subscribe_validation(self):
         with self.assertRaises(EventMessageError):
-            EventMessage.subscribe(component=None, cluster_conf=TestMessage.cluster_conf_path)
+            EventMessage.subscribe(component=None, \
+                message_server_endpoints=TestMessage._message_server_endpoints)
 
     def test_json_alert_send(self):
         """ Test send json as message description """
-        EventMessage.init(component='cmp', source='H', cluster_conf=TestMessage.cluster_conf_path)
+        EventMessage.init(component='cmp', source='H', \
+            cluster_id=TestMessage._cluster_id, \
+            message_server_endpoints=TestMessage._message_server_endpoints)
         EventMessage.send(module='mod', event_id='500', severity='B', \
             message_blob={'input': 'This is message'})
 
     def test_json_verify_receive(self):
         """ Test receive json as message description """
-        EventMessage.subscribe(component='cmp', cluster_conf=TestMessage.cluster_conf_path)
+        EventMessage.subscribe(component='cmp', \
+            message_server_endpoints=TestMessage._message_server_endpoints)
         alert = EventMessage.receive()
         self.assertIs(type(alert), dict)
 

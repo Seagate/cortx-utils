@@ -18,7 +18,7 @@
 import json
 from aiohttp import web
 
-from cortx.utils.utils_server import RestServer
+from cortx.utils.utils_server import MessageServer
 from cortx.utils.audit_log.error import AuditLogError
 from cortx.utils.utils_server.error import RestServerError
 from cortx.utils.message_bus import MessageProducer
@@ -29,7 +29,7 @@ producer = MessageProducer(producer_id='audit_log_send', \
     message_type='audit_messages', method='sync')
 
 
-class AuditLogRequestHandler(RestServer):
+class AuditLogRequestHandler(MessageServer):
     """Rest interface of Audit log."""
     # webhook_info will be removed once webhook_info store to persistent storage
     webhook_info = None
