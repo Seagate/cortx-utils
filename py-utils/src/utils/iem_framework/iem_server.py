@@ -23,12 +23,22 @@ from cortx.utils.utils_server.error import RestServerError
 from cortx.utils.iem_framework.error import EventMessageError
 from cortx.utils.log import Log
 from cortx.utils.common import CortxConf
+from cortx.utils.conf_store import Conf
 
 routes = web.RouteTableDef()
 
 
 class IemRequestHandler(MessageServer):
     """ Rest interface of Iem """
+
+    @staticmethod
+    def _get_cluster_data(config_path):
+        message_bus_backend = Conf.get('config',\
+            'cortx>utils>message_bus_backend')
+        message_server_endpoints = Conf.get('config',\
+            f'cortx>external>{message_bus_backend}>endpoints')
+        cluster_id = Conf.get('config','cluster>id')
+        return message_server_endpoints, cluster_id
 
     @staticmethod
     async def send(request):
@@ -38,8 +48,10 @@ class IemRequestHandler(MessageServer):
             component = payload['component']
             source = payload['source']
             cluster_conf = CortxConf.get_cluster_conf_path()
+            endpoint, cluster_id = IemRequestHandler._get_cluster_data(cluster_conf)
+
             EventMessage.init(component=component, source=source,\
-                cluster_conf=cluster_conf)
+                cluster_id=cluster_id, message_server_endpoints=endpoint)
 
             del payload['component']
             del payload['source']
@@ -79,7 +91,9 @@ class IemRequestHandler(MessageServer):
         try:
             cluster_conf = CortxConf.get_cluster_conf_path()
             component = request.rel_url.query['component']
-            EventMessage.subscribe(component=component, cluster_conf=cluster_conf)
+            endpoint, _ = IemRequestHandler._get_cluster_data(cluster_conf)
+            EventMessage.subscribe(component=component,\
+                message_server_endpoints=endpoint)
             alert = EventMessage.receive()
         except EventMessageError as e:
             status_code = e.rc
