@@ -16,6 +16,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
+from cortx.utils import errors
 from cortx.utils.log import Log
 from cortx.template import Singleton
 from cortx.utils.conf_store import Conf
@@ -59,26 +60,23 @@ class MessageBus(metaclass=Singleton):
             send_timeout)
         Conf.save(utils_index)
 
-        try:
-            broker_conf = Conf.get(utils_index, 'message_broker')
-            Log.info(f"MessageBus initialized as {broker_type}")
-        except ConfError as e:
-            Log.error(f"MessageBusError: {e.rc} Unable to get broker " \
-                f" information. {e}.")
-            raise MessageBusError(e.rc, "Unable to get broker " + \
-                "information %s. ", e)
-        except Exception as e:
-            Log.error(f"MessageBusError: {e.rc} Unable to get broker " \
-                f" information. {e}.")
-            raise MessageBusError(e.rc, "Unable to get broker " + \
-                "information %s. ", e)
+        broker_conf = Conf.get(utils_index, 'message_broker')
+        if broker_conf is None:
+            Log.error(f"MessageBusError: {errno.EINVAL} Invalid broker " \
+                f"information {broker_conf}.")
+            raise MessageBusError(errno.EINVAL, "Invalid broker " + \
+                "information %s. ", broker_conf)
 
         MessageBus._broker = MessageBrokerFactory.get_instance(broker_type, \
             broker_conf)
+        Log.info(f"MessageBus initialized as {broker_type}")
 
     @staticmethod
     def init_client(client_type: str, **client_conf: dict):
         """To create producer/consumer client based on the configurations."""
+        if MessageBus._broker is None:
+            raise MessageBusError(errors.ERR_NOT_INITIALIZED ,"MessageBroker " \
+                "is not initialized %s. ", MessageBus._broker)
         MessageBus._broker.init_client(client_type, **client_conf)
 
     @staticmethod
