@@ -13,22 +13,23 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from setuptools import setup
+import os
 import sys
+from setuptools import setup
 
 
+if not os.path.isfile("./VERSION"):
+    print("error: VERSION file not found!", file=sys.stderr)
+    sys.exit(1)
 
-# Get the version string from command line
-version = "1.0.0"
-for arg in sys.argv:
-    if arg.startswith("--version") or arg.startswith("-v"):
-        version = arg.split("=")[1]
-        sys.argv.remove(arg)
+# Fetch version
+with open("VERSION") as v_file:
+    utils_version = v_file.read().strip()
 
 
 setup(
     name="cortx-py-utils-test",
-    version=version,
+    version=utils_version,
     url="https://github.com/Seagate/cortx-utils/py-utils/test",
     license="Seagate",
     author="Seagate Foundation Team",
@@ -61,6 +62,7 @@ setup(
     ],
     package_data={
         "": [
+            "VERSION",
             "plans/*.pln",
             "ha_dm/*.json",
             "ha_dm/test_schema/*.json",

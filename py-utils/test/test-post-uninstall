@@ -14,9 +14,14 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+## Replace INSTALL_PATH with cortx installation path. example: /opt/seagate
+install_path=<INSTALL_PATH>
+cortx_path=$install_path/cortx/
+utils_path=$cortx_path/utils
+
 # Take action only in case of un-install
 if [ $1 == 0 ]
 then
-    # Remove the files we have created
-    /bin/rm -f /opt/seagate/cortx/utils/bin/run_test
+    # Removes the files created by test rpm
+    /bin/rm -f $utils_path/bin/run_test
 fi
