@@ -246,9 +246,7 @@ class Utils:
     @staticmethod
     def reset(config_path: str):
         """Remove/Delete all the data/logs that was created by user/testing."""
-        import time
         from cortx.utils.message_bus.error import MessageBusError
-        _purge_retry = 20
         try:
             from cortx.utils.message_bus import MessageBusAdmin, MessageBus
             from cortx.utils.message_bus import MessageProducer
@@ -264,19 +262,8 @@ class Utils:
                 for message_type in message_types_list:
                     producer = MessageProducer(producer_id=message_type, \
                         message_type=message_type, method='sync')
-                    for retry_count in range(1, (_purge_retry + 2)):
-                        if retry_count > _purge_retry:
-                            Log.error(f"MessageBusError: {errors.ERR_OP_FAILED} " \
-                                f" Unable to delete messages for message type" \
-                                f" {message_type} after {retry_count} retries")
-                            raise MessageBusError(errors.ERR_OP_FAILED,\
-                                "Unable to delete messages for message type" + \
-                                "%s after %d retries", message_type, \
-                                retry_count)
-                        rc = producer.delete()
-                        if rc == 0:
-                            break
-                        time.sleep(2*retry_count)
+                    producer.delete()
+
         except MessageBusError as e:
             raise SetupError(e.rc, "Can not reset Message Bus. %s", e)
         except Exception as e:
@@ -296,32 +283,26 @@ class Utils:
     @staticmethod
     def cleanup(pre_factory: bool, config_path: str):
         """Remove/Delete all the data that was created after post install."""
-        local_path = CortxConf.get_storage_path('local')
-        utils_conf = os.path.join(local_path, 'utils/conf/utils.conf')
 
-        if os.path.exists(utils_conf):
-            # delete message_types
-            from cortx.utils.message_bus.error import MessageBusError
-            try:
-                from cortx.utils.message_bus import MessageBus, MessageBusAdmin
-                Conf.load('config', config_path, skip_reload=True)
-                message_bus_backend = Conf.get('config', \
-                    'cortx>utils>message_bus_backend')
-                message_server_endpoints = Conf.get('config', \
-                    f'cortx>external>{message_bus_backend}>endpoints')
-                MessageBus.init(message_server_endpoints)
-                mb = MessageBusAdmin(admin_id='cleanup')
-                message_types_list = mb.list_message_types()
-                if message_types_list:
-                    mb.deregister_message_type(message_types_list)
-            except MessageBusError as e:
-                raise SetupError(e.rc, "Can not cleanup Message Bus. %s", e)
-            except Exception as e:
-                raise SetupError(errors.ERR_OP_FAILED, "Can not cleanup Message  \
-                    Bus. %s", e)
-
-        config_files = [utils_conf]
-        Utils._delete_files(config_files)
+        # delete message_types
+        from cortx.utils.message_bus.error import MessageBusError
+        try:
+            from cortx.utils.message_bus import MessageBus, MessageBusAdmin
+            Conf.load('config', config_path, skip_reload=True)
+            message_bus_backend = Conf.get('config', \
+                'cortx>utils>message_bus_backend')
+            message_server_endpoints = Conf.get('config', \
+                f'cortx>external>{message_bus_backend}>endpoints')
+            MessageBus.init(message_server_endpoints)
+            mb = MessageBusAdmin(admin_id='cleanup')
+            message_types_list = mb.list_message_types()
+            if message_types_list:
+                mb.deregister_message_type(message_types_list)
+        except MessageBusError as e:
+            raise SetupError(e.rc, "Can not cleanup Message Bus. %s", e)
+        except Exception as e:
+            raise SetupError(errors.ERR_OP_FAILED, "Can not cleanup Message  \
+                Bus. %s", e)
 
         if pre_factory:
             # deleting all log files as part of pre-factory cleanup
