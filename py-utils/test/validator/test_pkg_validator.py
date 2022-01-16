@@ -52,11 +52,5 @@ class TestRpmValidator(unittest.TestCase):
         self.assertRaises(VError, PkgV().validate, 'rpms', neg_pkg)
 
 
-	def test_neg_rpm_installed(self):
-		"""Check if neagtive rpm pkg installed."""
-		neg_pkg = ['lvm2-2.02.186-7.el7']
-		self.assertRaises(VError, PkgV().validate, 'rpms', neg_pkg)
-
-
 if __name__ == '__main__':
     unittest.main()

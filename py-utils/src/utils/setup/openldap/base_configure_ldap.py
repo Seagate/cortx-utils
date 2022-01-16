@@ -151,15 +151,11 @@ class BaseConfig:
         except Exception:
             Log.error('Error while modifying olcDbMaxSize attribute for olcDatabase={2}mdb')
             raise Exception('Error while modifying olcDbMaxSize attribute for olcDatabase={2}mdb')
-        BaseConfig.modify_attribute(dn, 'olcRootPW', pwd)
-        BaseConfig.modify_attribute(dn, 'olcAccess', '{0}to attrs=userPassword by self write by dn.children="'+config_values.get('base_dn')+'" write by anonymous auth by * none')
-        mod_attrs = [( ldap.MOD_ADD, 'olcAccess', bytes(str('{1}to * by dn.base="'+config_values.get('bind_base_dn')+'" write by self write by * none') , 'utf-8') )]
-        try:
-            ldap_conn.modify_s(dn, mod_attrs)
-        except Exception:
-            Log.error('Error while modifying olcAccess attribute for olcDatabase={2}mdb')
-            raise Exception('Error while modifying olcAccess attribute for olcDatabase={2}mdb')
         ldap_conn.unbind_s()
+        BaseConfig.modify_attribute(dn, 'olcRootPW', pwd)
+        BaseConfig.modify_attribute(dn, 'olcAccess', '{0}to attrs=userPassword by self write by dn.base="'+config_values.get('bind_base_dn')+'" write by anonymous auth by * none')
+        BaseConfig.modify_attribute(dn, 'olcAccess', '{1}to * by dn.base="'+config_values.get('bind_base_dn')+'" write by self write by * none')
+
         #add_s - init.ldif
         base = config_values.get('base_dn').split(',')[0].split('=')[1]
         add_record = [

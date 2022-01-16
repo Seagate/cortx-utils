@@ -42,11 +42,5 @@ class TestPathValidator(unittest.TestCase):
         self.assertRaises(VError, PathV().validate, 'exists', neg_path)
 
 
-	def test_path_neg(self):
-		"""Check negative paths."""
-		neg_path = ['device:/dev/loop9']
-		self.assertRaises(VError, PathV().validate, 'exists', neg_path)
-
-
 if __name__ == '__main__':
     unittest.main()

@@ -116,7 +116,6 @@ class EventMessage(metaclass=Singleton):
         import socket
         sender_host = socket.gethostname()
 
-        cls._initiate_logger()
         if cls._producer is None:
             Log.error("IEM Producer not initialized.")
             raise EventMessageError(errors.ERR_SERVICE_NOT_INITIALIZED, \
@@ -204,7 +203,6 @@ class EventMessage(metaclass=Singleton):
     @classmethod
     def receive(cls):
         """ Receive IEM alert message """
-        cls._initiate_logger()
         if cls._consumer is None:
             Log.error("IEM Consumer is not subscribed")
             raise EventMessageError(errors.ERR_SERVICE_NOT_INITIALIZED, \
