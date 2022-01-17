@@ -43,10 +43,14 @@ git clone https://github.com/Seagate/cortx-utils.git
 
 - Create RPM package
 
+**Note:** Do not use rpm if cortx-py-utils is installed using wheel & pip
+
+It will create `cortx-py-utils-test-1.0.0-1_<git-version>.noarch.rpm` by default. One can change the version by passing extra `-v <version_string>` parameter.
+Below command passes version string as 2.0.0 and build number 2, which creates `cortx-py-utils-test-2.0.0-2_<git-version>.noarch.rpm`.
+
+Run below command from repo root (cortx-utils).
 ```bash
-# NOTE: Do not use rpm if cortx-py-utils is installed using wheel & pip
-cd cortx-utils/py-utils/test
-sudo python3 setup.py bdist_rpm  --requires cortx-py-utils --version=1.0.0 --post-install test-post-install --post-uninstall test-post-uninstall
+$ ./jenkins/build_test_rpm.sh -v 2.0.0 -b 2
 ```
 
 - Create pip Package
