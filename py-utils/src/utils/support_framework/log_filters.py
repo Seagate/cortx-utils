@@ -152,7 +152,7 @@ class FilterLog:
     @staticmethod
     def limit_time(src_dir, dest_dir, duration, file_name_reg_ex):
         """
-        filters out log in the src_dir that were not generated between passed
+        Filters out log in the src_dir that were generated between passed
         duration and copies them to dest_dir
 
         Args:
@@ -175,7 +175,8 @@ class FilterLog:
         for file in os.listdir(src_dir):
             op_file = os.path.join(dest_dir, 'tmp_' + file)
             if file.startswith(file_name_reg_ex):
-                with open(os.path.join(src_dir, file), 'r') as fd_in, open(op_file, 'a') as fd_out:
+                in_file = os.path.join(src_dir, file)
+                with open(in_file, 'r') as fd_in, open(op_file, 'a') as fd_out:
                     line = fd_in.readline()
                     while(line):
                         log_duration = line[:20].strip()
@@ -189,6 +190,11 @@ class FilterLog:
                                 elif log_time > end_time and include_lines_without_timestamp:
                                         include_lines_without_timestamp = False
                                         break
+                            # There will be some log lines which lies under passed duration,
+                            # but has no timestamp, those lines will throw ValueError while
+                            # trying to fetch log timestamp,
+                            # to capture such logs, we have set a flag
+                            # include_lines_without_timestamp = True
                             except ValueError:
                                 if include_lines_without_timestamp:
                                     fd_out.write(line)
