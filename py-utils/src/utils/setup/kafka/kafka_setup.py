@@ -21,7 +21,7 @@ import inspect
 import traceback
 
 from cortx.utils.log import Log
-from cortx.utils.common import CortxConf
+from cortx.utils.conf_store import MappedConfStore
 from cortx.utils.conf_store import Conf
 from cortx.utils.setup.kafka import Kafka
 from cortx.utils.setup.kafka import KafkaSetupError
@@ -205,10 +205,10 @@ def main(argv: dict):
         Conf.load(kafka_config, command.url)
         kafka_servers = Conf.get(kafka_config, 'cortx>software>kafka>servers')
         # Get log path and initialise Log
-        CortxConf.init(cluster_conf=command.cluster_conf)
-        log_dir = CortxConf.get_storage_path('log')
-        log_path = CortxConf.get_log_path(base_dir=log_dir)
-        log_level = CortxConf.get('utils>log_level', 'INFO')
+        MappedConfStore.init(cluster_conf=command.cluster_conf)
+        log_dir = MappedConfStore.get('cortx>common>storage>log')
+        log_path = MappedConfStore.get_log_path(base_dir=log_dir)
+        log_level = MappedConfStore.get('utils>log_level', 'INFO')
         Log.init('kafka_setup', log_path, level=log_level, backup_count=5, \
             file_size_in_mb=5)
 

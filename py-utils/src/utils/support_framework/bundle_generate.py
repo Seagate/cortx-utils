@@ -25,7 +25,7 @@ from cortx.utils.support_framework import const
 from cortx.utils.process import SimpleProcess
 from cortx.utils.conf_store.conf_store import Conf
 from cortx.utils.log import Log
-from cortx.utils.common import CortxConf
+from cortx.utils.conf_store import MappedConfStore
 
 ERROR = 'error'
 INFO = 'info'
@@ -128,9 +128,9 @@ class ComponentsBundle:
         command:        cli Command Object :type: command
         return:         None
         """
-        CortxConf.init(cluster_conf=config_url)
-        log_path = CortxConf.get_log_path('support')
-        log_level = CortxConf.get('utils>log_level', 'INFO')
+        MappedConfStore.init(cluster_conf=config_url)
+        log_path = MappedConfStore.get_log_path('support')
+        log_level = MappedConfStore.get('utils>log_level', 'INFO')
         Log.init('support_bundle_node', log_path, level=log_level, \
             backup_count=5, file_size_in_mb=5)
         bundle_id = bundle_obj.bundle_id
@@ -150,7 +150,7 @@ class ComponentsBundle:
             f"{node_name}, {const.SB_COMMENT}: {comment}, "
             f"{const.SB_COMPONENTS}: {components_list}, {const.SOS_COMP}"))
         # Read support_bundle.Yaml and Check's If It Exists.
-        cmd_setup_file = os.path.join(CortxConf.get('install_path'),\
+        cmd_setup_file = os.path.join(MappedConfStore.get('install_path'),\
             const.SUPPORT_YAML)
         try:
             support_bundle_config = Yaml(cmd_setup_file).load()

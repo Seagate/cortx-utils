@@ -24,7 +24,6 @@ from cortx.utils.conf_store import Conf
 from cortx.utils.common.errors import SetupError
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.message_bus.error import MessageBusError
-from cortx.utils.common import CortxConf
 
 
 class MessageBrokerFactory:

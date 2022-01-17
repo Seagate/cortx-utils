@@ -23,7 +23,7 @@ from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.utils_server.error import RestServerError
 from cortx.utils.message_bus import MessageConsumer, MessageProducer, MessageBus
 from cortx.utils.log import Log
-from cortx.utils.common import CortxConf
+from cortx.utils.conf_store import MappedConfStore
 from cortx.utils.conf_store import Conf
 
 routes = web.RouteTableDef()
@@ -40,7 +40,7 @@ class MessageBusRequestHandler(MessageServer):
             message_type = request.match_info['message_type']
             payload = await request.json()
             messages = payload['messages']
-            cluster_conf = CortxConf.get_cluster_conf_path()
+            cluster_conf = 'yaml:///etc/cortx/cluster.conf'
             Conf.load('config', cluster_conf, skip_reload=True)
             message_server_endpoints = Conf.get('config',\
                     'cortx>external>kafka>endpoints')
@@ -85,7 +85,7 @@ class MessageBusRequestHandler(MessageServer):
         try:
             message_types = str(request.match_info['message_type']).split('&')
             consumer_group = request.rel_url.query['consumer_group']
-            cluster_conf = CortxConf.get_cluster_conf_path()
+            cluster_conf = 'yaml:///etc/cortx/cluster.conf'
             Conf.load('config', cluster_conf, skip_reload=True)
             message_server_endpoints = Conf.get('config',\
                     'cortx>external>kafka>endpoints')

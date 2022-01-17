@@ -19,7 +19,7 @@ import os
 from cortx.utils.conf_store import Conf
 from cortx.utils.shared_storage import SharedStorageError
 from cortx.utils.shared_storage.shared_storage_agent import SharedStorageFactory
-from cortx.utils.common import CortxConf
+from cortx.utils.conf_store import MappedConfStore
 
 class Storage:
 
@@ -27,8 +27,8 @@ class Storage:
 
     def __init__(self, cluster_conf):
         """ Initialize and load shared storage backend """
-        CortxConf.init(cluster_conf=cluster_conf)
-        self.shared_storage_url = CortxConf.get('support>shared_path')
+        MappedConfStore.init(cluster_conf=cluster_conf)
+        self.shared_storage_url = MappedConfStore.get('support>shared_path')
         if self.shared_storage_url is not None:
             self.shared_storage_agent = SharedStorageFactory.get_instance( \
                 self.shared_storage_url)

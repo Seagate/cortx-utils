@@ -21,7 +21,7 @@ from argparse import RawTextHelpFormatter
 from aiohttp import web
 
 from cortx.utils.log import Log
-from cortx.utils.common import CortxConf
+from cortx.utils.conf_store import MappedConfStore
 from cortx.utils.conf_store import Conf
 from cortx.utils.errors import UtilsError
 from cortx.utils.message_bus import MessageBus
@@ -75,15 +75,15 @@ if __name__ == '__main__':
     args=parser.parse_args()
     cluster_conf = args.cluster_conf
     Conf.load('config', cluster_conf, skip_reload=True)
-    CortxConf.init(cluster_conf=cluster_conf)
+    MappedConfStore.init(cluster_conf=cluster_conf)
     # Get the log path
-    log_dir = CortxConf.get_storage_path('log')
+    log_dir = MappedConfStore.get_storage_path('log')
     if not log_dir:
         raise UtilsServerError(errno.EINVAL, "Fail to initialize logger."+\
             " Unable to find log_dir path entry")
-    utils_log_path = CortxConf.get_log_path('utils_server', base_dir=log_dir)
+    utils_log_path = MappedConfStore.get_log_path('utils_server', base_dir=log_dir)
     # Get the log level
-    log_level = CortxConf.get('utils>log_level', 'INFO')
+    log_level = MappedConfStore.get('utils>log_level', 'INFO')
     Log.init('utils_server', utils_log_path, level=log_level, backup_count=5, \
         file_size_in_mb=5)
     message_bus_backend = Conf.get('config', 'cortx>utils>message_bus_backend')
