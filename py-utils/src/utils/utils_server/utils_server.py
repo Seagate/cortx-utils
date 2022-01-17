@@ -38,14 +38,14 @@ class UtilsServer:
     def __init__(self):
         self.app = web.Application()
 
-    def run_app(self, web, port=28300):
+    def run_app(self, web, port):
        Log.info(f"Starting Message Server 0.0.0.0 on port {port}")
        web.run_app(self.app, port=port)
 
 
 class MessageServer(UtilsServer):
     """Base class for Cortx Rest Server implementation."""
-    def __init__(self, message_server_endpoints, message_server_port):
+    def __init__(self, message_server_endpoints, message_server_port=28300):
         super().__init__()
         MessageBus.init(message_server_endpoints=message_server_endpoints)
         from cortx.utils.iem_framework import IemRequestHandler
