@@ -15,7 +15,8 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.conf_store.conf_store import ConfStore
-from cortx.utils.conf_store.conf_store import Conf
-from cortx.utils.conf_store.conf_cache import ConfCache
 from cortx.utils.conf_store.error import ConfError
+from cortx.utils.conf_store.conf_store import Conf
+from cortx.utils.conf_store.conf_store import ConfStore
+from cortx.utils.conf_store.conf_cache import ConfCache
+from cortx.utils.conf_store.conf_store import MappedConf

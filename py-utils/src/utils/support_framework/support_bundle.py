@@ -29,8 +29,7 @@ from datetime import datetime, timedelta
 from cortx.utils.log import Log
 from cortx.utils.schema.providers import Response
 from cortx.utils.errors import OPERATION_SUCESSFUL, ERR_OP_FAILED
-from cortx.utils.conf_store.conf_store import Conf
-from cortx.utils.common.common import ConfigStore
+from cortx.utils.conf_store.conf_store import Conf, MappedConf
 from cortx.utils.cli_framework.command import Command
 from cortx.utils.support_framework import const
 from cortx.utils.support_framework import Bundle
@@ -144,7 +143,7 @@ class SupportBundle:
             raise BundleError(errno.EINVAL, "Bundle ID already exists,"
                 "Please use Unique Bundle ID")
 
-        cortx_config_store = ConfigStore(config_url)
+        cortx_config_store = MappedConf(config_url)
         # Get Node ID
         node_id = Conf.machine_id
         if node_id is None:
