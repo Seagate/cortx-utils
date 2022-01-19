@@ -21,14 +21,14 @@ import unittest
 
 from cortx.utils.conf_store import Conf
 from cortx.utils.discovery import Discovery
-from cortx.utils.discovery.error import DiscoveryError
+from cortx.utils.conf_store import MappedConf
 from cortx.utils.kv_store import KvStoreFactory
-from cortx.utils.common import CortxConf
+from cortx.utils.discovery.error import DiscoveryError
 
 # Load cortx common config
 store_type = "json"
-CortxConf.init(cluster_conf='yaml:///etc/cortx/cluster.conf')
-local_storage_path = CortxConf.get_storage_path('local')
+cluster_conf_mapped = MappedConf('yaml:///etc/cortx/cluster.conf')
+local_storage_path = cluster_conf_mapped.get('cortx>common>storage>local')
 config_url = "%s://%s" % (store_type, os.path.join(local_storage_path, 'utils/conf/cortx.conf'))
 common_config = KvStoreFactory.get_instance(config_url)
 common_config.load()

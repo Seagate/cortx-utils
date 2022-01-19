@@ -14,6 +14,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import os
 import sys
 import errno
 import argparse
@@ -21,9 +22,10 @@ import inspect
 import traceback
 
 from cortx.utils.log import Log
-from cortx.utils.common import CortxConf
 from cortx.utils.conf_store import Conf
 from cortx.utils.setup.kafka import Kafka
+from cortx.utils.const import CLUSTER_CONF
+from cortx.utils.conf_store import MappedConf
 from cortx.utils.setup.kafka import KafkaSetupError
 
 
@@ -85,7 +87,7 @@ class Cmd:
         parser1 = parser.add_parser(cls.name, help='setup %s' % name)
         parser1.add_argument('--config', help='Conf Store URL', type=str)
         parser1.add_argument('--cluster_conf', help='cluster.conf url',
-            type=str, default='yaml:///etc/cortx/cluster.conf')
+            type=str, default=CLUSTER_CONF)
         cls._add_extended_args(parser1)
         parser1.add_argument('args', nargs='*', default=[], help='args')
         parser1.set_defaults(command=cls)
@@ -205,10 +207,11 @@ def main(argv: dict):
         Conf.load(kafka_config, command.url)
         kafka_servers = Conf.get(kafka_config, 'cortx>software>kafka>servers')
         # Get log path and initialise Log
-        CortxConf.init(cluster_conf=command.cluster_conf)
-        log_dir = CortxConf.get_storage_path('log')
-        log_path = CortxConf.get_log_path(base_dir=log_dir)
-        log_level = CortxConf.get('utils>log_level', 'INFO')
+        cluster_conf_mapped = MappedConf(command.cluster_conf)
+        log_dir = cluster_conf_mapped.get('cortx>common>storage>log')
+        log_dir = log_dir if log_dir else cluster_conf_mapped.get('log_dir')
+        log_path = os.path.join(log_dir, f'utils/{Conf.machine_id}')
+        log_level = cluster_conf_mapped.get('utils>log_level', 'INFO')
         Log.init('kafka_setup', log_path, level=log_level, backup_count=5, \
             file_size_in_mb=5)
 
