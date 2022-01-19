@@ -185,8 +185,8 @@ class ConfStore:
         Copies one config domain to the other and saves
 
         Parameters:
-        src_index Source Index 
-        dst_index Destination Index 
+        src_index Source Index
+        dst_index Destination Index
         """
         if src_index not in self._cache.keys():
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
@@ -380,9 +380,9 @@ class MappedConf:
         """Search for given key under parent key in CORTX confstore."""
         return Conf.search(self._conf_idx, parent_key, search_key, value)
 
-    def get(self, key: str) -> str:
+    def get(self, key: str, default_val: str = None) -> str:
         """Returns value for the given key."""
-        return Conf.get(self._conf_idx, key)
+        return Conf.get(self._conf_idx, key, default_val)
 
     def delete(self, key: str):
         """Delete key from CORTX confstore."""
