@@ -34,9 +34,13 @@ git clone --recursive https://github.com/Seagate/cortx-utils -b main
 
 It will create `cortx-py-utils-1.0.0-1_<git-version>.noarch.rpm` by default. One can change the version by passing extra `-v <version_string>` parameter.
 Below command passes version string as 2.0.0 and build number 2, which creates `cortx-py-utils-2.0.0-2_<git-version>.noarch.rpm`
-Run below command from repo root (cortx-utils).
+
+Navigate to the repo root (cortx-utils) that you cloned.
+E.g. `cd cortx-utils`
+
+
+and then run the build command below:
 ```bash
-cd cortx-utils
 ./jenkins/build.sh -v 2.0.0 -b 2
 ```
 
