@@ -23,7 +23,7 @@ from pathlib import Path
 from cortx.utils import errors
 from cortx.utils import const
 from cortx.utils.log import Log
-from cortx.utils.conf_store import Conf
+from cortx.utils.conf_store import Conf, MappedConf
 from cortx.utils.common import SetupError
 from cortx.utils.errors import TestFailed
 from cortx.utils.validator.v_pkg import PkgV
@@ -31,7 +31,6 @@ from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.error import VError
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.service.service_handler import Service
-from cortx.utils.common import CortxConf
 
 
 class Utils:
@@ -59,33 +58,16 @@ class Utils:
                     raise SetupError(e.errno, "Error deleting file %s, \
                         %s", each_file, e)
 
-    # @staticmethod
-    # def _get_utils_path() -> str:
-    #     """ Gets install path from cortx.conf and returns utils path """
-    #     install_path = CortxConf.get(key='install_path')
-    #     if not install_path:
-    #         local_storage_path = CortxConf.get_storage_path('local')
-    #         config_url = "%s://%s" % ('json', \
-    #             os.path.join(local_storage_path, 'utils/conf/cortx.conf'))
-    #         raise SetupError(errno.EINVAL, "install_path not found in %s",\
-    #             config_url)
-    #     return install_path
-
     def _set_to_conf_file(key, value):
         """ Add key value pair to cortx.conf file """
-        Conf.set(const.CORTX_CONF_INDEX, key, value)
-        Conf.save(const.CORTX_CONF_INDEX)
+        Conf.set('cortx_config', key, value)
+        Conf.save('cortx_config')
 
     # Utils private methods
     @staticmethod
     def _get_from_conf_file(key) -> str:
         """ Fetch and return value for the key from cortx.conf file """
-        # local_storage_path = Conf.get(const.CLUSTER_CONF_INDEX,\
-        #     'cortx>common>storage>local')
-        # config_url = "%s://%s" % ('json', \
-        #     os.path.join(local_storage_path, 'utils/conf/cortx.conf'))
-        # Conf.load(const.CORTX_CONF_INDEX, config_url)
-        val = Conf.get(const.CORTX_CONF_INDEX, key=key)
+        val = Conf.get('cortx_config', key=key)
         if val is None:
             raise SetupError(errno.EINVAL, "Value for key: %s, not found in \
                 cortx.conf", key)
@@ -163,24 +145,24 @@ class Utils:
         config_template_index = 'config'
         Conf.load(config_template_index, config_path)
         # Configure log_dir for utils
-        log_dir = Conf.get(const.CLUSTER_CONF_INDEX, 'cortx>common>storage>log')
+        log_dir = Conf.get(MappedConf._conf_idx, 'cortx>common>storage>log')
         if log_dir is not None:
-            Conf.set(const.CORTX_CONF_INDEX, 'log_dir', log_dir)
-            Conf.save()
+            Conf.set('cortx_config', 'log_dir', log_dir)
+            Conf.save('cortx_config')
 
         # set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map(config_path)
         Utils._configure_rsyslog()
 
         # get shared storage from cluster.conf and set it to cortx.conf
-        shared_storage = Conf.get(const.CLUSTER_CONF_INDEX, 'cortx>common>storage>shared')
+        shared_storage = Conf.get(MappedConf._conf_idx, 'cortx>common>storage>shared')
         if shared_storage:
             Utils._set_to_conf_file('support>shared_path', shared_storage)
 
         # temporary fix for a common message bus log file
         # The issue happend when some user other than root:root is trying
         # to write logs in these log dir/files. This needs to be removed soon!
-        log_dir = Conf.get(const.CORTX_CONF_INDEX, 'log_dir', '/var/log')
+        log_dir = Conf.get('cortx_config', 'log_dir', '/var/log')
         utils_log_dir = os.path.join(log_dir, f'utils/{Conf.machine_id}')
         #message_bus
         os.makedirs(os.path.join(utils_log_dir, 'message_bus'), exist_ok=True)
@@ -270,7 +252,7 @@ class Utils:
             raise SetupError(errors.ERR_OP_FAILED, "Internal error, can not \
                 reset Message Bus. %s", e)
         # Clear the logs
-        log_dir = Conf.get(const.CLUSTER_CONF_INDEX, 'cortx>common>storage>log')
+        log_dir = Conf.get(MappedConf._conf_idx, 'cortx>common>storage>log')
         utils_log_path = os.path.join(log_dir, f'utils/{Conf.machine_id}')
         if os.path.exists(utils_log_path):
             cmd = "find %s -type f -name '*.log' -exec truncate -s 0 {} +" % utils_log_path
@@ -307,7 +289,7 @@ class Utils:
 
         if pre_factory:
             # deleting all log files as part of pre-factory cleanup
-            log_dir = Conf.get(const.CLUSTER_CONF_INDEX, 'cortx>common>storage>log')
+            log_dir = Conf.get(MappedConf._conf_idx, 'cortx>common>storage>log')
             utils_log_path = os.path.join(log_dir, f'utils/{Conf.machine_id}')
             cortx_utils_log_regex = f'{utils_log_path}/**/*.log'
             log_files = glob.glob(cortx_utils_log_regex, recursive=True)
