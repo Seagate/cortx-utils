@@ -22,8 +22,7 @@ from cortx.utils.iem_framework import EventMessage
 from cortx.utils.utils_server.error import RestServerError
 from cortx.utils.iem_framework.error import EventMessageError
 from cortx.utils.log import Log
-from cortx.utils import const
-from cortx.utils.conf_store import Conf
+from cortx.utils.conf_store import Conf, MappedConf
 
 routes = web.RouteTableDef()
 
@@ -33,11 +32,11 @@ class IemRequestHandler(MessageServer):
 
     @staticmethod
     def _get_cluster_data():
-        message_bus_backend = Conf.get(const.CLUSTER_CONF_INDEX,\
+        message_bus_backend = Conf.get(MappedConf._conf_idx,\
             'cortx>utils>message_bus_backend')
-        message_server_endpoints = Conf.get(const.CLUSTER_CONF_INDEX,\
+        message_server_endpoints = Conf.get(MappedConf._conf_idx,\
             f'cortx>external>{message_bus_backend}>endpoints')
-        cluster_id = Conf.get(const.CLUSTER_CONF_INDEX, 'cluster>id')
+        cluster_id = Conf.get(MappedConf._conf_idx, 'cluster>id')
         return message_server_endpoints, cluster_id
 
     @staticmethod
