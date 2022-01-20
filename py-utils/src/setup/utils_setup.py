@@ -24,6 +24,7 @@ import traceback
 from cortx.setup.utils import Utils
 from cortx.utils.log import Log
 from cortx.setup.utils import SetupError
+from cortx.utils import const
 
 
 class Cmd:
@@ -236,14 +237,12 @@ class PostUpgradeCmd(Cmd):
 
 def main():
     from cortx.utils.conf_store import Conf
-    tmpl_file_index = 'tmpl_index'
     argv = sys.argv
 
     # Get the log path
     tmpl_file = argv[3]
-    from cortx.utils.common import CortxConf
-    Conf.load(tmpl_file_index, tmpl_file, skip_reload=True)
-    local_storage_path = Conf.get(tmpl_file_index, 'cortx>common>storage>local')
+    Conf.load(const.CLUSTER_CONF_INDEX, tmpl_file, skip_reload=True)
+    local_storage_path = Conf.get(const.CLUSTER_CONF_INDEX, 'cortx>common>storage>local')
     cortx_config_file = os.path.join(f'{local_storage_path}', 'utils/conf/cortx.conf')
     if not os.path.exists(cortx_config_file):
         import shutil
@@ -252,16 +251,17 @@ def main():
             os.makedirs(f'{local_storage_path}/utils/conf', exist_ok=True)
             shutil.copy('/opt/seagate/cortx/utils/conf/cortx.conf.sample', \
                       f'{local_storage_path}/utils/conf/cortx.conf')
+            Conf.load(const.CORTX_CONF_INDEX,\
+                f'{local_storage_path}/utils/conf/cortx.conf')
         except OSError as e:
             raise SetupError(e.errno, "Failed to create %s %s", \
                 cortx_config_file, e)
 
-    CortxConf.init(cluster_conf=tmpl_file)
-    log_dir = CortxConf.get_storage_path('log')
-    utils_log_path = CortxConf.get_log_path(base_dir=log_dir)
+    log_dir = Conf.get(const.CLUSTER_CONF_INDEX, 'cortx>common>storage>log')
+    utils_log_path = os.path.join(log_dir, f'utils/{Conf.machine_id}')
 
     # Get the log level
-    log_level = CortxConf.get('utils>log_level', 'INFO')
+    log_level = Conf.get(const.CLUSTER_CONF_INDEX, 'utils>log_level', 'INFO')
 
     Log.init('utils_setup', utils_log_path, level=log_level, backup_count=5, \
         file_size_in_mb=5)

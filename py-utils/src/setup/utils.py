@@ -59,36 +59,36 @@ class Utils:
                     raise SetupError(e.errno, "Error deleting file %s, \
                         %s", each_file, e)
 
-    @staticmethod
-    def _get_utils_path() -> str:
-        """ Gets install path from cortx.conf and returns utils path """
-        install_path = CortxConf.get(key='install_path')
-        if not install_path:
-            local_storage_path = CortxConf.get_storage_path('local')
-            config_url = "%s://%s" % ('json', \
-                os.path.join(local_storage_path, 'utils/conf/cortx.conf'))
-            raise SetupError(errno.EINVAL, "install_path not found in %s",\
-                config_url)
-        return install_path
+    # @staticmethod
+    # def _get_utils_path() -> str:
+    #     """ Gets install path from cortx.conf and returns utils path """
+    #     install_path = CortxConf.get(key='install_path')
+    #     if not install_path:
+    #         local_storage_path = CortxConf.get_storage_path('local')
+    #         config_url = "%s://%s" % ('json', \
+    #             os.path.join(local_storage_path, 'utils/conf/cortx.conf'))
+    #         raise SetupError(errno.EINVAL, "install_path not found in %s",\
+    #             config_url)
+    #     return install_path
 
     def _set_to_conf_file(key, value):
         """ Add key value pair to cortx.conf file """
-        CortxConf.set(key, value)
-        CortxConf.save()
+        Conf.set(const.CORTX_CONF_INDEX, key, value)
+        Conf.save(const.CORTX_CONF_INDEX)
 
     # Utils private methods
     @staticmethod
     def _get_from_conf_file(key) -> str:
         """ Fetch and return value for the key from cortx.conf file """
-        val = CortxConf.get(key=key)
-
-        if not val:
-            local_storage_path = CortxConf.get_storage_path('local')
-            config_url = "%s://%s" % ('json', \
-                os.path.join(local_storage_path, 'utils/conf/cortx.conf'))
+        # local_storage_path = Conf.get(const.CLUSTER_CONF_INDEX,\
+        #     'cortx>common>storage>local')
+        # config_url = "%s://%s" % ('json', \
+        #     os.path.join(local_storage_path, 'utils/conf/cortx.conf'))
+        # Conf.load(const.CORTX_CONF_INDEX, config_url)
+        val = Conf.get(const.CORTX_CONF_INDEX, key=key)
+        if val is None:
             raise SetupError(errno.EINVAL, "Value for key: %s, not found in \
-                %s", key, config_url)
-
+                cortx.conf", key)
         return val
 
     @staticmethod
@@ -163,25 +163,25 @@ class Utils:
         config_template_index = 'config'
         Conf.load(config_template_index, config_path)
         # Configure log_dir for utils
-        log_dir = CortxConf.get_storage_path('log')
+        log_dir = Conf.get(const.CLUSTER_CONF_INDEX, 'cortx>common>storage>log')
         if log_dir is not None:
-            CortxConf.set('log_dir', log_dir)
-            CortxConf.save()
+            Conf.set(const.CORTX_CONF_INDEX, 'log_dir', log_dir)
+            Conf.save()
 
         # set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map(config_path)
         Utils._configure_rsyslog()
 
         # get shared storage from cluster.conf and set it to cortx.conf
-        shared_storage = CortxConf.get_storage_path('shared', none_allowed=True)
+        shared_storage = Conf.get(const.CLUSTER_CONF_INDEX, 'cortx>common>storage>shared')
         if shared_storage:
             Utils._set_to_conf_file('support>shared_path', shared_storage)
 
         # temporary fix for a common message bus log file
         # The issue happend when some user other than root:root is trying
         # to write logs in these log dir/files. This needs to be removed soon!
-        log_dir = CortxConf.get('log_dir', '/var/log')
-        utils_log_dir = CortxConf.get_log_path(base_dir=log_dir)
+        log_dir = Conf.get(const.CORTX_CONF_INDEX, 'log_dir', '/var/log')
+        utils_log_dir = os.path.join(log_dir, f'utils/{Conf.machine_id}')
         #message_bus
         os.makedirs(os.path.join(utils_log_dir, 'message_bus'), exist_ok=True)
         os.chmod(os.path.join(utils_log_dir, 'message_bus'), 0o0777)
@@ -270,7 +270,8 @@ class Utils:
             raise SetupError(errors.ERR_OP_FAILED, "Internal error, can not \
                 reset Message Bus. %s", e)
         # Clear the logs
-        utils_log_path = CortxConf.get_log_path()
+        log_dir = Conf.get(const.CLUSTER_CONF_INDEX, 'cortx>common>storage>log')
+        utils_log_path = os.path.join(log_dir, f'utils/{Conf.machine_id}')
         if os.path.exists(utils_log_path):
             cmd = "find %s -type f -name '*.log' -exec truncate -s 0 {} +" % utils_log_path
             cmd_proc = SimpleProcess(cmd)
@@ -306,7 +307,8 @@ class Utils:
 
         if pre_factory:
             # deleting all log files as part of pre-factory cleanup
-            utils_log_path = CortxConf.get_log_path()
+            log_dir = Conf.get(const.CLUSTER_CONF_INDEX, 'cortx>common>storage>log')
+            utils_log_path = os.path.join(log_dir, f'utils/{Conf.machine_id}')
             cortx_utils_log_regex = f'{utils_log_path}/**/*.log'
             log_files = glob.glob(cortx_utils_log_regex, recursive=True)
             Utils._delete_files(log_files)
