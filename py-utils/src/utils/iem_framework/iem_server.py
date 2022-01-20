@@ -22,7 +22,7 @@ from cortx.utils.iem_framework import EventMessage
 from cortx.utils.utils_server.error import RestServerError
 from cortx.utils.iem_framework.error import EventMessageError
 from cortx.utils.log import Log
-from cortx.utils.common import CortxConf
+from cortx.utils import const
 from cortx.utils.conf_store import Conf
 
 routes = web.RouteTableDef()
@@ -32,12 +32,12 @@ class IemRequestHandler(MessageServer):
     """ Rest interface of Iem """
 
     @staticmethod
-    def _get_cluster_data(config_path):
-        message_bus_backend = Conf.get('config',\
+    def _get_cluster_data():
+        message_bus_backend = Conf.get(const.CLUSTER_CONF_INDEX,\
             'cortx>utils>message_bus_backend')
-        message_server_endpoints = Conf.get('config',\
+        message_server_endpoints = Conf.get(const.CLUSTER_CONF_INDEX,\
             f'cortx>external>{message_bus_backend}>endpoints')
-        cluster_id = Conf.get('config','cluster>id')
+        cluster_id = Conf.get(const.CLUSTER_CONF_INDEX, 'cluster>id')
         return message_server_endpoints, cluster_id
 
     @staticmethod
@@ -47,9 +47,7 @@ class IemRequestHandler(MessageServer):
 
             component = payload['component']
             source = payload['source']
-            cluster_conf = CortxConf.get_cluster_conf_path()
-            endpoint, cluster_id = IemRequestHandler._get_cluster_data(cluster_conf)
-
+            endpoint, cluster_id = IemRequestHandler._get_cluster_data()
             EventMessage.init(component=component, source=source,\
                 cluster_id=cluster_id, message_server_endpoints=endpoint)
 
@@ -89,9 +87,8 @@ class IemRequestHandler(MessageServer):
         Log.debug(f"Received GET request for component " \
             f"{request.rel_url.query['component']}")
         try:
-            cluster_conf = CortxConf.get_cluster_conf_path()
             component = request.rel_url.query['component']
-            endpoint, _ = IemRequestHandler._get_cluster_data(cluster_conf)
+            endpoint, _ = IemRequestHandler._get_cluster_data()
             EventMessage.subscribe(component=component,\
                 message_server_endpoints=endpoint)
             alert = EventMessage.receive()
