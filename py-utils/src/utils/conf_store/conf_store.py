@@ -386,4 +386,6 @@ class MappedConf:
 
     def delete(self, key: str):
         """Delete key from CORTX confstore."""
-        Conf.delete(self._conf_idx, key)
+        is_deleted = Conf.delete(self._conf_idx, key)
+        if is_deleted:
+            Conf.save(self._conf_idx)
