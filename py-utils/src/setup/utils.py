@@ -23,7 +23,7 @@ from pathlib import Path
 from cortx.utils import errors
 from cortx.utils import const
 from cortx.utils.log import Log
-from cortx.utils.conf_store import Conf, MappedConf
+from cortx.utils.conf_store import Conf
 from cortx.utils.common import SetupError
 from cortx.utils.errors import TestFailed
 from cortx.utils.validator.v_pkg import PkgV
@@ -35,28 +35,9 @@ from cortx.utils.service.service_handler import Service
 
 class Utils:
     """ Represents Utils and Performs setup related actions """
+    utils_path = '/opt/seagate/cortx/utils'
 
     # Utils private methods
-
-
-    @staticmethod
-    def _delete_files(files: list):
-        """
-        Deletes the passed list of files
-
-        Args:
-            files ([str]): List of files to be deleted
-
-        Raises:
-            SetupError: If unable to delete file
-        """
-        for each_file in files:
-            if os.path.exists(each_file):
-                try:
-                    os.remove(each_file)
-                except OSError as e:
-                    raise SetupError(e.errno, "Error deleting file %s, \
-                        %s", each_file, e)
 
     @staticmethod
     def _copy_cluster_map(config_path: str):
@@ -91,19 +72,20 @@ class Utils:
     def post_install(config_path: str):
         """ Performs post install operations """
         # Check required python packages
-        utils_path = '/opt/seagate/cortx/utils'
-        with open(f"{utils_path}/conf/python_requirements.txt") as file:
+        # TODO: Remove this python package check as RPM installation
+        # doing the same.
+        with open(f"{Utils.utils_path}/conf/python_requirements.txt") as file:
             req_pack = []
             for package in file.readlines():
                 pack = package.strip().split('==')
                 req_pack.append(f"{pack[0]} ({pack[1]})")
         try:
-            with open(f"{utils_path}/conf/python_requirements.ext.txt") as extfile :
+            with open(f"{Utils.utils_path}/conf/python_requirements.ext.txt") as extfile :
                 for package in extfile.readlines():
                     pack = package.strip().split('==')
                     req_pack.append(f"{pack[0]} ({pack[1]})")
         except Exception:
-             Log.info("Not found: "+f"{utils_path}/conf/python_requirements.ext.txt")
+             Log.info("Not found: "+f"{Utils.utils_path}/conf/python_requirements.ext.txt")
 
         PkgV().validate(v_type='pip3s', args=req_pack)
         default_sb_path = '/var/log/cortx/support_bundle'
@@ -127,28 +109,10 @@ class Utils:
         # Load required files
         config_template_index = 'config'
         Conf.load(config_template_index, config_path)
-        # Configure log_dir for utils
-        log_dir = Conf.get('cluster_config', 'cortx>common>storage>log')
 
         # set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map(config_path)
         Utils._configure_rsyslog()
-
-        # temporary fix for a common message bus log file
-        # The issue happend when some user other than root:root is trying
-        # to write logs in these log dir/files. This needs to be removed soon!
-        utils_log_dir = os.path.join(log_dir, f'utils/{Conf.machine_id}')
-        #message_bus
-        os.makedirs(os.path.join(utils_log_dir, 'message_bus'), exist_ok=True)
-        os.chmod(os.path.join(utils_log_dir, 'message_bus'), 0o0777)
-        Path(os.path.join(utils_log_dir,'message_bus/message_bus.log')) \
-            .touch(exist_ok=True)
-        os.chmod(os.path.join(utils_log_dir,'message_bus/message_bus.log'), 0o0666)
-        #iem
-        os.makedirs(os.path.join(utils_log_dir, 'iem'), exist_ok=True)
-        os.chmod(os.path.join(utils_log_dir, 'iem'), 0o0777)
-        Path(os.path.join(utils_log_dir, 'iem/iem.log')).touch(exist_ok=True)
-        os.chmod(os.path.join(utils_log_dir, 'iem/iem.log'), 0o0666)
         return 0
 
     @staticmethod
@@ -181,12 +145,11 @@ class Utils:
         try:
             Log.info("Validating cortx-py-utils-test rpm")
             PkgV().validate('rpms', ['cortx-py-utils-test'])
-            utils_path = '/opt/seagate/cortx/utils'
             import cortx.utils.test as test_dir
             plan_path = os.path.join(os.path.dirname(test_dir.__file__), \
                 'plans/', plan + '.pln')
             Log.info("Running test plan: %s", plan)
-            cmd = "%s/bin/run_test -c %s -t %s" %(utils_path, config_path, plan_path)
+            cmd = "%s/bin/run_test -c %s -t %s" %(Utils.utils_path, config_path, plan_path)
             _output, _err, _rc = SimpleProcess(cmd).run(realtime_output=True)
             if _rc != 0:
                 Log.error("Py-utils Test Failed")
@@ -224,16 +187,6 @@ class Utils:
         except Exception as e:
             raise SetupError(errors.ERR_OP_FAILED, "Internal error, can not \
                 reset Message Bus. %s", e)
-        # Clear the logs
-        log_dir = Conf.get('cluster_config', 'cortx>common>storage>log')
-        utils_log_path = os.path.join(log_dir, f'utils/{Conf.machine_id}')
-        if os.path.exists(utils_log_path):
-            cmd = "find %s -type f -name '*.log' -exec truncate -s 0 {} +" % utils_log_path
-            cmd_proc = SimpleProcess(cmd)
-            _, stderr, rc = cmd_proc.run()
-            if rc != 0:
-                raise SetupError(errors.ERR_OP_FAILED, \
-                    "Can not reset log files. %s", stderr)
         return 0
 
     @staticmethod
@@ -259,14 +212,6 @@ class Utils:
         except Exception as e:
             raise SetupError(errors.ERR_OP_FAILED, "Can not cleanup Message  \
                 Bus. %s", e)
-
-        if pre_factory:
-            # deleting all log files as part of pre-factory cleanup
-            log_dir = Conf.get('cluster_config', 'cortx>common>storage>log')
-            utils_log_path = os.path.join(log_dir, f'utils/{Conf.machine_id}')
-            cortx_utils_log_regex = f'{utils_log_path}/**/*.log'
-            log_files = glob.glob(cortx_utils_log_regex, recursive=True)
-            Utils._delete_files(log_files)
 
         return 0
 
