@@ -15,23 +15,23 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import errno
 import os
-import psutil
 import re
 import time
+import errno
+import psutil
 from datetime import datetime
 
 from cortx.utils import const
+from cortx.utils.conf_store import MappedConf
+from cortx.utils.kv_store import KvStoreFactory
 from cortx.utils.discovery.error import DiscoveryError
 from cortx.utils.discovery.resource import Resource, ResourceFactory
-from cortx.utils.kv_store import KvStoreFactory
-from cortx.utils.common import CortxConf
 
 # Load cortx common config
 store_type = "json"
-CortxConf.init(cluster_conf='yaml:///etc/cortx/cluster.conf')
-local_storage_path = CortxConf.get_storage_path('local')
+cluster_conf = MappedConf(const.CLUSTER_CONF)
+local_storage_path = cluster_conf.get('cortx>common>storage>local')
 config_url = "%s://%s" % (store_type, os.path.join(local_storage_path, 'utils/conf/cortx.conf'))
 common_config = KvStoreFactory.get_instance(config_url)
 common_config.load()
