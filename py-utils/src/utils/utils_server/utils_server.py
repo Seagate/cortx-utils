@@ -38,14 +38,14 @@ class UtilsServer:
     def __init__(self):
         self.app = web.Application()
 
-    def run_app(self, web):
-       Log.info("Starting Message Server 0.0.0.0 on port 28300")
-       web.run_app(self.app, port=28300)
+    def run_app(self, web, port):
+       Log.info(f"Starting Message Server 0.0.0.0 on port {port}")
+       web.run_app(self.app, port=port)
 
 
 class MessageServer(UtilsServer):
     """Base class for Cortx Rest Server implementation."""
-    def __init__(self, message_server_endpoints):
+    def __init__(self, message_server_endpoints, message_server_port=28300):
         super().__init__()
         MessageBus.init(message_server_endpoints=message_server_endpoints)
         from cortx.utils.iem_framework import IemRequestHandler
@@ -62,7 +62,7 @@ class MessageServer(UtilsServer):
             web.post('/AuditLog/webhook/', \
             AuditLogRequestHandler.send_webhook_info)
             ])
-        super().run_app(web)
+        super().run_app(web, message_server_port)
 
 
 if __name__ == '__main__':
@@ -89,4 +89,5 @@ if __name__ == '__main__':
     message_bus_backend = Conf.get('config', 'cortx>utils>message_bus_backend')
     message_server_endpoints = Conf.get('config',\
             f'cortx>external>{message_bus_backend}>endpoints')
-    MessageServer(message_server_endpoints)
+    message_server_port = Conf.get('config', 'cortx>utils>message_server_port')
+    MessageServer(message_server_endpoints, message_server_port)
