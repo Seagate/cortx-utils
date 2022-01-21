@@ -94,5 +94,5 @@ if __name__ == '__main__':
     message_server_endpoints = cluster_conf.get(
         f'cortx>external>{message_bus_backend}>endpoints')
     message_server_port = cluster_conf.get('cortx>utils>message_server_port')
-    cluster_id = cluster_conf.get('config', 'cluster>id')
+    cluster_id = cluster_conf.get('cluster>id')
     MessageServer(message_server_endpoints, message_server_port, cluster_id)
