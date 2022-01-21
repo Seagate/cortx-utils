@@ -1,0 +1,17 @@
+cortx:
+  common:
+    storage:
+      log: TMPL_LOG_DIR
+      local: TMPL_LOCAL_PATH
+  external:
+    kafka:
+      endpoints:
+      # Value should be in format <protocol>://<FQDN>:<port>. Port is optional
+      - TMPL_KAFKA_SERVER_FQDN_1:TMPL_KAFKA_SERVER_PORT
+  utils:
+      message_bus_backend: kafka
+
+node:
+  TMPL_MACHINE_ID_1:
+    hostname: TMPL_HOSTNAME_1
+    name: TMPL_NAME_1
