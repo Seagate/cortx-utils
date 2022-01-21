@@ -24,6 +24,7 @@ import inspect
 
 from cortx.test_framework import const
 from cortx.utils.errors import TestFailed
+from cortx.test_framework.generate_test_report import generate_html_report
 
 
 class TestRunner:
@@ -239,3 +240,7 @@ class TestRunner:
         print("\n********* Test Execution Completed *********")
         TestRunner._test_report(ts_count, test_count, pass_count, fail_count, \
             total_start_time, result)
+
+        generate_html_report(result)
+        print("\n##### Test report 'py_utils_test_report.html' is "\
+        "generated at /tmp #####\n")
