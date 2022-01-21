@@ -27,8 +27,8 @@ from cortx.utils.discovery.error import DiscoveryError
 
 # Load cortx common config
 store_type = "json"
-cluster_conf_mapped = MappedConf('yaml:///etc/cortx/cluster.conf')
-local_storage_path = cluster_conf_mapped.get('cortx>common>storage>local')
+cluster_conf = MappedConf('yaml:///etc/cortx/cluster.conf')
+local_storage_path = cluster_conf.get('cortx>common>storage>local')
 config_url = "%s://%s" % (store_type, os.path.join(local_storage_path, 'utils/conf/cortx.conf'))
 common_config = KvStoreFactory.get_instance(config_url)
 common_config.load()

@@ -129,10 +129,10 @@ class ComponentsBundle:
         command:        cli Command Object :type: command
         return:         None
         """
-        cluster_conf_mapped = MappedConf(config_url)
-        log_path = os.path.join(cluster_conf_mapped.get('log_dir'), \
+        cluster_conf = MappedConf(config_url)
+        log_path = os.path.join(cluster_conf.get('log_dir'), \
             f'utils/{Conf.machine_id}/support')
-        log_level = cluster_conf_mapped.get('utils>log_level', 'INFO')
+        log_level = cluster_conf.get('utils>log_level', 'INFO')
         Log.init('support_bundle_node', log_path, level=log_level, \
             backup_count=5, file_size_in_mb=5)
         bundle_id = bundle_obj.bundle_id
@@ -152,7 +152,7 @@ class ComponentsBundle:
             f"{node_name}, {const.SB_COMMENT}: {comment}, "
             f"{const.SB_COMPONENTS}: {components_list}, {const.SOS_COMP}"))
         # Read support_bundle.Yaml and Check's If It Exists.
-        cmd_setup_file = os.path.join(cluster_conf_mapped.get('install_path'),\
+        cmd_setup_file = os.path.join(cluster_conf.get('install_path'),\
             const.SUPPORT_YAML)
         try:
             support_bundle_config = Yaml(cmd_setup_file).load()

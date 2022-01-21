@@ -177,10 +177,10 @@ def main():
     try:
         args = parser.parse_args()
         cluster_conf_path = args.cluster_conf_path[0] if args.cluster_conf_path else CLUSTER_CONF
-        cluster_conf_mapped = MappedConf(cluster_conf_path)
-        log_path = os.path.join(cluster_conf_mapped.get('log_dir'), \
+        cluster_conf = MappedConf(cluster_conf_path)
+        log_path = os.path.join(cluster_conf.get('log_dir'), \
             f'utils/{Conf.machine_id}/support')
-        log_level = cluster_conf_mapped.get('utils>log_level', 'INFO')
+        log_level = cluster_conf.get('utils>log_level', 'INFO')
         Log.init('support_bundle', log_path, level=log_level, backup_count=5, \
             file_size_in_mb=5)
         out = args.func(args)

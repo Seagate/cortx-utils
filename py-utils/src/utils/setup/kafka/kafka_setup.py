@@ -207,11 +207,11 @@ def main(argv: dict):
         Conf.load(kafka_config, command.url)
         kafka_servers = Conf.get(kafka_config, 'cortx>software>kafka>servers')
         # Get log path and initialise Log
-        cluster_conf_mapped = MappedConf(command.cluster_conf)
-        log_dir = cluster_conf_mapped.get('cortx>common>storage>log')
-        log_dir = log_dir if log_dir else cluster_conf_mapped.get('log_dir')
+        cluster_conf = MappedConf(command.cluster_conf)
+        log_dir = cluster_conf.get('cortx>common>storage>log')
+        log_dir = log_dir if log_dir else cluster_conf.get('log_dir')
         log_path = os.path.join(log_dir, f'utils/{Conf.machine_id}')
-        log_level = cluster_conf_mapped.get('utils>log_level', 'INFO')
+        log_level = cluster_conf.get('utils>log_level', 'INFO')
         Log.init('kafka_setup', log_path, level=log_level, backup_count=5, \
             file_size_in_mb=5)
 

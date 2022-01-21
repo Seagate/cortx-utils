@@ -75,19 +75,19 @@ if __name__ == '__main__':
         help="Cluster config file path for Support Bundle", \
         default=CLUSTER_CONF)
     args=parser.parse_args()
-    cluster_conf = args.cluster_conf
-    cluster_conf_mapped = MappedConf(cluster_conf)
+    cluster_conf_url = args.cluster_conf
+    cluster_conf = MappedConf(cluster_conf_url)
     # Get the log path
-    log_dir = cluster_conf_mapped.get('cortx>common>storage>log')
+    log_dir = cluster_conf.get('cortx>common>storage>log')
     if not log_dir:
         raise UtilsServerError(errno.EINVAL, "Fail to initialize logger."+\
             " Unable to find log_dir path entry")
     utils_log_path = os.path.join(log_dir, f'utils/{Conf.machine_id}/utils_server')
     # Get the log level
-    log_level = cluster_conf_mapped.get('utils>log_level', 'INFO')
+    log_level = cluster_conf.get('utils>log_level', 'INFO')
     Log.init('utils_server', utils_log_path, level=log_level, backup_count=5, \
         file_size_in_mb=5)
-    message_bus_backend = cluster_conf_mapped.get('cortx>utils>message_bus_backend')
-    message_server_endpoints = cluster_conf_mapped.get(
+    message_bus_backend = cluster_conf.get('cortx>utils>message_bus_backend')
+    message_server_endpoints = cluster_conf.get(
         f'cortx>external>{message_bus_backend}>endpoints')
     MessageServer(message_server_endpoints)
