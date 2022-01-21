@@ -24,7 +24,6 @@ import traceback
 from cortx.setup.utils import Utils
 from cortx.utils.log import Log
 from cortx.setup.utils import SetupError
-from cortx.utils import const
 
 
 class Cmd:
@@ -236,7 +235,7 @@ class PostUpgradeCmd(Cmd):
 
 
 def main():
-    from cortx.utils.conf_store import Conf, MappedConf
+    from cortx.utils.conf_store import Conf
     argv = sys.argv
 
     # Get the log path
