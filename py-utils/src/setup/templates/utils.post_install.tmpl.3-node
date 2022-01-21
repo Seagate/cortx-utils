@@ -1,8 +1,0 @@
-cortx:
-  common:
-    storage:
-      log: TMPL_LOG_DIR
-node:
-  TMPL_MACHINE_ID:
-    hostname: TMPL_HOSTNAME
-    name: TMPL_NAME

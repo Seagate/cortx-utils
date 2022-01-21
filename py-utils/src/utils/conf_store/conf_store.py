@@ -185,8 +185,8 @@ class ConfStore:
         Copies one config domain to the other and saves
 
         Parameters:
-        src_index Source Index 
-        dst_index Destination Index 
+        src_index Source Index
+        dst_index Destination Index
         """
         if src_index not in self._cache.keys():
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
@@ -330,3 +330,60 @@ class Conf:
         Returns list of keys that matched the creteria (i.e. has given value)
         """
         return Conf._conf.search(index, parent_key, search_key, search_val)
+
+
+class MappedConf:
+    """CORTX Config Store with fixed target."""
+
+    _conf_idx = "cortx_conf"
+
+    def __init__(self, conf_url):
+        """Initialize with the CONF URL."""
+        self._conf_url = conf_url
+        Conf.load(self._conf_idx, self._conf_url, skip_reload=True)
+
+    def set_kvs(self, kvs: list):
+        """
+        Parameters:
+        kvs - List of KV tuple, e.g. [('k1','v1'),('k2','v2')]
+        Where, k1, k2 - is full key path till the leaf key.
+        """
+
+        for key, val in kvs:
+            try:
+                Conf.set(self._conf_idx, key, val)
+            except (AssertionError, ConfError) as e:
+                raise ConfError(errno.EINVAL,
+                    f'Error occurred while adding key {key} and value {val}'
+                    f' in confstore. {e}')
+        Conf.save(self._conf_idx)
+
+    def set(self, key: str, val: str):
+        """Save key-value in CORTX confstore."""
+        try:
+            Conf.set(self._conf_idx, key, val)
+            Conf.save(self._conf_idx)
+        except (AssertionError, ConfError) as e:
+            raise ConfError(errno.EINVAL,
+                f'Error occurred while adding key {key} and value {val}'
+                f' in confstore. {e}')
+
+    def copy(self, src_index: str, key_list: list):
+        """Copy src_index config into CORTX confstore file."""
+        try:
+            Conf.copy(src_index, self._conf_idx, key_list)
+        except (AssertionError, ConfError) as e:
+            raise ConfError(errno.EINVAL,
+                f'Error occurred while copying config into confstore. {e}')
+
+    def search(self, parent_key, search_key, value):
+        """Search for given key under parent key in CORTX confstore."""
+        return Conf.search(self._conf_idx, parent_key, search_key, value)
+
+    def get(self, key: str, default_val: str = None) -> str:
+        """Returns value for the given key."""
+        return Conf.get(self._conf_idx, key, default_val)
+
+    def delete(self, key: str):
+        """Delete key from CORTX confstore."""
+        Conf.delete(self._conf_idx, key)

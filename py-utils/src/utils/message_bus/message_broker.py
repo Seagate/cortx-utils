@@ -65,19 +65,22 @@ class MessageBrokerFactory:
         """
         message_server_list = []
         server_info = {}
+        try:
+            for server in message_server_endpoints:
+                # Value of server can be <server_fqdn:port> or <server_fqdn>
+                if ':' in server:
+                    endpoints = server.split('//')[1]
+                    server_fqdn, port = endpoints.split(':')
+                    server_info['server'] = server_fqdn
+                    server_info['port'] = port
+                else:
+                    server_info['server'] = server
+                    server_info['port'] = '9092'  # 9092 is default kafka server port
 
-        for server in message_server_endpoints:
-            # Value of server can be <server_fqdn:port> or <server_fqdn>
-            if ':' in server:
-                endpoints = server.split('//')[1]
-                server_fqdn, port = endpoints.split(':')
-                server_info['server'] = server_fqdn
-                server_info['port'] = port
-            else:
-                server_info['server'] = server
-                server_info['port'] = '9092'  # 9092 is default kafka server port
-
-            message_server_list.append(server_info)
+                message_server_list.append(server_info)
+        except Exception as e:
+            raise MessageBusError(errno.EINVAL, "Invalid endpoint information." \
+                " %s", e)
 
         return message_server_list
 
