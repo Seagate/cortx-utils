@@ -242,5 +242,5 @@ class TestRunner:
             total_start_time, result)
 
         generate_html_report(result)
-        print("\n##### Test report (py_utils_test_report.html) is "\
+        print("\n##### Test report 'py_utils_test_report.html' is "\
         "generated at /tmp #####\n")
