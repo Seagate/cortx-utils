@@ -23,7 +23,9 @@ import sys
 import os
 import traceback
 from argparse import RawTextHelpFormatter
-from cortx.utils.common.common import CortxConf
+
+from cortx.utils.const import CLUSTER_CONF
+from cortx.utils.conf_store import MappedConf
 from cortx.utils.support_framework import const
 from cortx.utils.support_framework import SupportBundle
 
@@ -174,10 +176,11 @@ def main():
     # Parse and Process Arguments
     try:
         args = parser.parse_args()
-        cluster_conf_path = args.cluster_conf_path[0] if args.cluster_conf_path else 'yaml:///etc/cortx/cluster.conf'
-        CortxConf.init(cluster_conf=cluster_conf_path)
-        log_path = CortxConf.get_log_path('support')
-        log_level = CortxConf.get('utils>log_level', 'INFO')
+        cluster_conf_path = args.cluster_conf_path[0] if args.cluster_conf_path else CLUSTER_CONF
+        cluster_conf = MappedConf(cluster_conf_path)
+        log_path = os.path.join(cluster_conf.get('log_dir'), \
+            f'utils/{Conf.machine_id}/support')
+        log_level = cluster_conf.get('utils>log_level', 'INFO')
         Log.init('support_bundle', log_path, level=log_level, backup_count=5, \
             file_size_in_mb=5)
         out = args.func(args)

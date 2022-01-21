@@ -23,10 +23,10 @@ import tarfile
 import errno
 import argparse
 
-from cortx.utils.common import CortxConf
-from cortx.utils.conf_store import Conf
 from cortx.utils.errors import UtilsError
+from cortx.utils.const import CLUSTER_CONF
 from cortx.utils.process import SimpleProcess
+from cortx.utils.conf_store import Conf, MappedConf
 
 
 class SupportBundleError(UtilsError):
@@ -43,7 +43,7 @@ class UtilsSupportBundle:
     _tmp_src = '/tmp/cortx/py-utils/'
 
     @staticmethod
-    def generate(bundle_id: str, target_path: str, cluster_conf: str, **filters):
+    def generate(bundle_id: str, target_path: str, cluster_conf_url: str, **filters):
         """ Generate a tar file. """
         duration = filters.get('duration', 'P5D')
         size_limit = filters.get('size_limit', '500MB')
@@ -52,9 +52,9 @@ class UtilsSupportBundle:
         stacktrace = filters.get('stacktrace', False)
         # TODO process duration, size_limit, binlogs, coredumps and stacktrace
         # Find log dirs
-        CortxConf.init(cluster_conf=cluster_conf)
-        log_base = CortxConf.get_storage_path('log')
-        local_base = CortxConf.get_storage_path('local')
+        cluster_conf = MappedConf(cluster_conf_url)
+        log_base = cluster_conf.get('cortx>common>storage>log')
+        local_base = cluster_conf.get('cortx>common>storage>local')
         machine_id = Conf.machine_id
 
         if os.path.exists(UtilsSupportBundle._tmp_src):
@@ -113,7 +113,7 @@ class UtilsSupportBundle:
             nargs='?', default="/var/seagate/cortx/support_bundle/")
         parser.add_argument('-c', dest='cluster_conf',\
             help="Cluster config file path for Support Bundle",\
-            default='yaml:///etc/cortx/cluster.conf')
+            default=CLUSTER_CONF)
         parser.add_argument('-s', '--services', dest='services', nargs='+',\
             default='', help='List of services for Support Bundle')
         parser.add_argument('-d', '--duration', default='P5D', dest='duration',

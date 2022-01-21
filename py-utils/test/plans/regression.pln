@@ -46,8 +46,6 @@ message_bus.test_message_bus
 kv_store.test_consul_kv_store
 kv_store.test_kv_store
 
-### shared_storage.test_shared_storage
-
 support_bundle.test_support_bundle
 support_bundle.test_support_bundle_cli
 
