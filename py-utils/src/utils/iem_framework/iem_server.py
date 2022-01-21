@@ -29,15 +29,8 @@ routes = web.RouteTableDef()
 
 class IemRequestHandler(MessageServer):
     """ Rest interface of Iem """
-
-    @staticmethod
-    def _get_cluster_data():
-        message_bus_backend = Conf.get(MappedConf._conf_idx,\
-            'cortx>utils>message_bus_backend')
-        message_server_endpoints = Conf.get(MappedConf._conf_idx,\
-            f'cortx>external>{message_bus_backend}>endpoints')
-        cluster_id = Conf.get(MappedConf._conf_idx, 'cluster>id')
-        return message_server_endpoints, cluster_id
+    cluster_id = None
+    message_server_endpoints = None
 
     @staticmethod
     async def send(request):
@@ -46,9 +39,9 @@ class IemRequestHandler(MessageServer):
 
             component = payload['component']
             source = payload['source']
-            endpoint, cluster_id = IemRequestHandler._get_cluster_data()
             EventMessage.init(component=component, source=source,\
-                cluster_id=cluster_id, message_server_endpoints=endpoint)
+                cluster_id=IemRequestHandler.cluster_id,\
+                message_server_endpoints=IemRequestHandler.message_server_endpoints)
 
             del payload['component']
             del payload['source']
@@ -87,9 +80,9 @@ class IemRequestHandler(MessageServer):
             f"{request.rel_url.query['component']}")
         try:
             component = request.rel_url.query['component']
-            endpoint, _ = IemRequestHandler._get_cluster_data()
             EventMessage.subscribe(component=component,\
-                message_server_endpoints=endpoint)
+                message_server_endpoints=\
+                IemRequestHandler.message_server_endpoints)
             alert = EventMessage.receive()
         except EventMessageError as e:
             status_code = e.rc
