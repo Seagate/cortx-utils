@@ -241,25 +241,12 @@ def main():
 
     # Get the log path
     tmpl_file = argv[3]
-    clusterConfMapped = MappedConf(tmpl_file)
-    local_storage_path = clusterConfMapped.get('cortx>common>storage>local')
-    cortx_config_file = os.path.join(f'{local_storage_path}', 'utils/conf/cortx.conf')
-    if not os.path.exists(cortx_config_file):
-        import shutil
-        # copy local conf file as cortx.conf
-        try:
-            os.makedirs(f'{local_storage_path}/utils/conf', exist_ok=True)
-            shutil.copy('/opt/seagate/cortx/utils/conf/cortx.conf.sample', \
-                      f'{local_storage_path}/utils/conf/cortx.conf')
-        except OSError as e:
-            raise SetupError(e.errno, "Failed to create %s %s", \
-                cortx_config_file, e)
-    Conf.load('cortx_config', f'yaml:///{cortx_config_file}')
-    log_dir = clusterConfMapped.get('cortx>common>storage>log')
+    Conf.load('cluster_config', tmpl_file)
+    log_dir = Conf.get('cluster_config', 'cortx>common>storage>log')
     utils_log_path = os.path.join(log_dir, f'utils/{Conf.machine_id}')
 
     # Get the log level
-    log_level = clusterConfMapped.get('utils>log_level', 'INFO')
+    log_level = Conf.get('cluster_config', 'utils>log_level', 'INFO')
 
     Log.init('utils_setup', utils_log_path, level=log_level, backup_count=5, \
         file_size_in_mb=5)

@@ -58,21 +58,6 @@ class Utils:
                     raise SetupError(e.errno, "Error deleting file %s, \
                         %s", each_file, e)
 
-    def _set_to_conf_file(key, value):
-        """ Add key value pair to cortx.conf file """
-        Conf.set('cortx_config', key, value)
-        Conf.save('cortx_config')
-
-    # Utils private methods
-    @staticmethod
-    def _get_from_conf_file(key) -> str:
-        """ Fetch and return value for the key from cortx.conf file """
-        val = Conf.get('cortx_config', key=key)
-        if val is None:
-            raise SetupError(errno.EINVAL, "Value for key: %s, not found in \
-                cortx.conf", key)
-        return val
-
     @staticmethod
     def _copy_cluster_map(config_path: str):
         Conf.load('cluster', config_path, skip_reload=True)
@@ -106,8 +91,7 @@ class Utils:
     def post_install(config_path: str):
         """ Performs post install operations """
         # Check required python packages
-        install_path = Utils._get_from_conf_file('install_path')
-        utils_path = install_path + '/cortx/utils'
+        utils_path = '/opt/seagate/cortx/utils'
         with open(f"{utils_path}/conf/python_requirements.txt") as file:
             req_pack = []
             for package in file.readlines():
@@ -123,7 +107,6 @@ class Utils:
 
         PkgV().validate(v_type='pip3s', args=req_pack)
         default_sb_path = '/var/log/cortx/support_bundle'
-        Utils._set_to_conf_file('support>local_path', default_sb_path)
         os.makedirs(default_sb_path, exist_ok=True)
 
         post_install_template_index = 'post_install_index'
@@ -145,24 +128,15 @@ class Utils:
         config_template_index = 'config'
         Conf.load(config_template_index, config_path)
         # Configure log_dir for utils
-        log_dir = Conf.get(MappedConf._conf_idx, 'cortx>common>storage>log')
-        if log_dir is not None:
-            Conf.set('cortx_config', 'log_dir', log_dir)
-            Conf.save('cortx_config')
+        log_dir = Conf.get('cluster_config', 'cortx>common>storage>log')
 
         # set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map(config_path)
         Utils._configure_rsyslog()
 
-        # get shared storage from cluster.conf and set it to cortx.conf
-        shared_storage = Conf.get(MappedConf._conf_idx, 'cortx>common>storage>shared')
-        if shared_storage:
-            Utils._set_to_conf_file('support>shared_path', shared_storage)
-
         # temporary fix for a common message bus log file
         # The issue happend when some user other than root:root is trying
         # to write logs in these log dir/files. This needs to be removed soon!
-        log_dir = Conf.get('cortx_config', 'log_dir', '/var/log')
         utils_log_dir = os.path.join(log_dir, f'utils/{Conf.machine_id}')
         #message_bus
         os.makedirs(os.path.join(utils_log_dir, 'message_bus'), exist_ok=True)
@@ -207,8 +181,7 @@ class Utils:
         try:
             Log.info("Validating cortx-py-utils-test rpm")
             PkgV().validate('rpms', ['cortx-py-utils-test'])
-            install_path = Utils._get_from_conf_file('install_path')
-            utils_path = install_path + '/cortx/utils'
+            utils_path = '/opt/seagate/cortx/utils'
             import cortx.utils.test as test_dir
             plan_path = os.path.join(os.path.dirname(test_dir.__file__), \
                 'plans/', plan + '.pln')
@@ -252,7 +225,7 @@ class Utils:
             raise SetupError(errors.ERR_OP_FAILED, "Internal error, can not \
                 reset Message Bus. %s", e)
         # Clear the logs
-        log_dir = Conf.get(MappedConf._conf_idx, 'cortx>common>storage>log')
+        log_dir = Conf.get('cluster_config', 'cortx>common>storage>log')
         utils_log_path = os.path.join(log_dir, f'utils/{Conf.machine_id}')
         if os.path.exists(utils_log_path):
             cmd = "find %s -type f -name '*.log' -exec truncate -s 0 {} +" % utils_log_path
@@ -289,7 +262,7 @@ class Utils:
 
         if pre_factory:
             # deleting all log files as part of pre-factory cleanup
-            log_dir = Conf.get(MappedConf._conf_idx, 'cortx>common>storage>log')
+            log_dir = Conf.get('cluster_config', 'cortx>common>storage>log')
             utils_log_path = os.path.join(log_dir, f'utils/{Conf.machine_id}')
             cortx_utils_log_regex = f'{utils_log_path}/**/*.log'
             log_files = glob.glob(cortx_utils_log_regex, recursive=True)
