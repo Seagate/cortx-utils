@@ -47,12 +47,15 @@ class UtilsServer:
 
 class MessageServer(UtilsServer):
     """Base class for Cortx Rest Server implementation."""
-    def __init__(self, message_server_endpoints, message_server_port=28300):
+    def __init__(self, message_server_endpoints, message_server_port=28300,\
+        cluster_id=None):
         super().__init__()
         MessageBus.init(message_server_endpoints=message_server_endpoints)
         from cortx.utils.iem_framework import IemRequestHandler
         from cortx.utils.message_bus import MessageBusRequestHandler
         from cortx.utils.audit_log import AuditLogRequestHandler
+        IemRequestHandler.cluster_id = cluster_id
+        IemRequestHandler.message_server_endpoints = message_server_endpoints
         self.app.add_routes([web.post('/EventMessage/event', IemRequestHandler.send), \
             web.get('/EventMessage/event', IemRequestHandler.receive), \
             web.post('/MessageBus/message/{message_type}', \
@@ -91,4 +94,5 @@ if __name__ == '__main__':
     message_server_endpoints = cluster_conf.get(
         f'cortx>external>{message_bus_backend}>endpoints')
     message_server_port = cluster_conf.get('cortx>utils>message_server_port')
-    MessageServer(message_server_endpoints, message_server_port)
+    cluster_id = cluster_conf.get('cluster>id')
+    MessageServer(message_server_endpoints, message_server_port, cluster_id)
