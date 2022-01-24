@@ -13,4 +13,4 @@ python-consul==1.1.0
 python-crontab==2.5.1
 PyYAML==5.4.1
 schematics==2.1.0
-toml==0.10.0
+toml==0.10.2
