@@ -178,7 +178,7 @@ def main():
         args = parser.parse_args()
         cluster_conf_path = args.cluster_conf_path[0] if args.cluster_conf_path else CLUSTER_CONF
         cluster_conf = MappedConf(cluster_conf_path)
-        log_path = os.path.join(cluster_conf.get('log_dir'), \
+        log_path = os.path.join(cluster_conf.get('cortx>common>storage>log'), \
             f'utils/{Conf.machine_id}/support')
         log_level = cluster_conf.get('utils>log_level', 'INFO')
         Log.init('support_bundle', log_path, level=log_level, backup_count=5, \
