@@ -42,6 +42,12 @@ class ConfCli:
         Conf.load(index, url)
 
     @staticmethod
+    def add_num_keys(args):
+        """ Add num keys """
+        Conf.add_num_keys(ConfCli._index)
+        Conf.save(ConfCli._index)
+
+    @staticmethod
     def set(args):
         """ Set Key Value """
         kv_delim = '=' if args.kv_delim == None else args.kv_delim
@@ -291,6 +297,17 @@ class SearchCmd:
        s_parser.add_argument('search_key', help="search key")
        s_parser.add_argument('search_val', help="search val")
        s_parser.set_defaults(func=ConfCli.search)
+
+
+class AddNumKeysCmd:
+    @staticmethod
+    def add_args(sub_parser) -> None:
+        s_parser = sub_parser.add_parser('addnumkeys', help=
+            "Adds num keys for the list items" \
+            "Example Command:\n"
+            "# conf yaml:///tmp/test.conf addnumkeys\n\n")
+        s_parser.set_defaults(func=ConfCli.add_num_keys)
+        
 
 def main():
     # Setup Parser
