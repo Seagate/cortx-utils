@@ -24,9 +24,9 @@ import errno
 import argparse
 
 from cortx.utils.errors import UtilsError
-from cortx.utils.const import CLUSTER_CONF
 from cortx.utils.process import SimpleProcess
 from cortx.utils.conf_store import Conf, MappedConf
+from cortx.utils.const import CLUSTER_CONF, CLUSTER_CONF_LOG_KEY
 
 
 class SupportBundleError(UtilsError):
@@ -53,7 +53,7 @@ class UtilsSupportBundle:
         # TODO process duration, size_limit, binlogs, coredumps and stacktrace
         # Find log dirs
         cluster_conf = MappedConf(cluster_conf_url)
-        log_base = cluster_conf.get('cortx>common>storage>log')
+        log_base = cluster_conf.get(CLUSTER_CONF_LOG_KEY)
         local_base = cluster_conf.get('cortx>common>storage>local')
         machine_id = Conf.machine_id
 
@@ -147,7 +147,7 @@ def main():
     UtilsSupportBundle.generate(
         bundle_id=args.bundle_id,
         target_path=args.path,
-        cluster_conf=args.cluster_conf,
+        cluster_conf_url=args.cluster_conf,
         duration = args.duration,
         size_limit = args.size_limit,
         binlogs = args.binlogs,
