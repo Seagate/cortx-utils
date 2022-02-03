@@ -30,7 +30,6 @@ class Const(Enum):
 
     # Active Services
     SERVICE_MOTR_IO        = 'io'
-    SERVICE_MOTR_FSM       = 'fsm'
     SERVICE_HARE_HAX       = 'hax'
     SERVICE_CSM_AGENT      = 'agent'
     SERVICE_MOTR_CLIENT    = 'motr_client'
@@ -50,3 +49,4 @@ class Const(Enum):
     SERVICE_S3_BGSCHEDULER = 'bgscheduler'
     SERVICE_UTILS_MESSAGE  = 'message'
     SERVICE_CCLIENT        = 'cclient_service'
+    SERVICE_MOTR_FSM       = 'fsm'
