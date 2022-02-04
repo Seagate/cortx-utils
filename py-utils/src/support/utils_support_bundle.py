@@ -25,8 +25,8 @@ import argparse
 
 from cortx.utils.errors import UtilsError
 from cortx.utils.process import SimpleProcess
+from cortx.utils.const import CLUSTER_CONF_LOG_KEY
 from cortx.utils.conf_store import Conf, MappedConf
-from cortx.utils.const import CLUSTER_CONF, CLUSTER_CONF_LOG_KEY
 
 
 class SupportBundleError(UtilsError):
@@ -112,8 +112,7 @@ class UtilsSupportBundle:
         parser.add_argument('-t', dest='path', help='Path to store the created bundle',
             nargs='?', default="/var/seagate/cortx/support_bundle/")
         parser.add_argument('-c', dest='cluster_conf',\
-            help="Cluster config file path for Support Bundle",\
-            default=CLUSTER_CONF)
+            help="Cluster config file path for Support Bundle")
         parser.add_argument('-s', '--services', dest='services', nargs='+',\
             default='', help='List of services for Support Bundle')
         parser.add_argument('-d', '--duration', default='P5D', dest='duration',

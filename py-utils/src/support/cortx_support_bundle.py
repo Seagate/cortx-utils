@@ -24,7 +24,6 @@ import os
 import traceback
 from argparse import RawTextHelpFormatter
 
-from cortx.utils.const import CLUSTER_CONF
 from cortx.utils.conf_store import MappedConf
 from cortx.utils.support_framework import const
 from cortx.utils.const import CLUSTER_CONF_LOG_KEY
@@ -177,7 +176,7 @@ def main():
     # Parse and Process Arguments
     try:
         args = parser.parse_args()
-        cluster_conf_path = args.cluster_conf_path[0] if args.cluster_conf_path else CLUSTER_CONF
+        cluster_conf_path = args.cluster_conf_path[0]
         cluster_conf = MappedConf(cluster_conf_path)
         log_path = os.path.join(cluster_conf.get(CLUSTER_CONF_LOG_KEY), \
             f'utils/{Conf.machine_id}/support')
