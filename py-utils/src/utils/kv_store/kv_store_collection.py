@@ -223,8 +223,8 @@ class TomlKvStore(KvStore):
 
 class IniKvPayload(KvPayload):
     """ In memory representation of INI conf data """
-    def __init__(self, configparser, delim='>'):
-        super().__init__(configparser, delim)
+    def __init__(self, config, delim='>'):
+        super().__init__(config, delim)
 
     def _get_keys(self, keys: list, data, pkey: str = None,
         key_index: bool = True) -> None:
@@ -238,7 +238,9 @@ class IniKvPayload(KvPayload):
             raise KvError(errno.EINVAL, "Missing section in key %s", \
                 key)
 
-        self._data[k[0]][k[1]] = val
+        if k[0] not in self._data.sections():
+            self._data.add_section(k[0])
+        self._data.set(k[0], k[1], val)
         if key not in self._keys:
             self._keys.append(key)
 
@@ -251,11 +253,22 @@ class IniKvPayload(KvPayload):
 
     def delete(self, key):
         k = key.split(self._delim, 1)
-        if len(k) == 1:
-            self._data.remove_section(k[0])
-        elif len(k) == 2:
-            self._data.remove_option(k[0], k[1])
-        if key in self._keys: self._keys.remove(key)
+        if len(k) > 2:
+            raise KvError(errno.EINVAL, "Invalid key %s for INI format", key)
+
+        if k[0] not in self._data.sections():
+            return False
+
+        is_deleted = False
+        if len(k) == 2:
+            is_deleted = self._data.remove_option(k[0], k[1])
+            if is_deleted:
+                if key in self._keys: self._keys.remove(key)
+
+        if len(self._data.options(k[0])) == 0:
+            is_deleted = self._data.remove_section(k[0])
+
+        return is_deleted
 
 
 class IniKvStore(KvStore):

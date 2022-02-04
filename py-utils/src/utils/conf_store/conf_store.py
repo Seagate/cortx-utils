@@ -368,7 +368,7 @@ class MappedConf:
                 f'Error occurred while adding key {key} and value {val}'
                 f' in confstore. {e}')
 
-    def copy(self, src_index: str, key_list: list):
+    def copy(self, src_index: str, key_list: list = None):
         """Copy src_index config into CORTX confstore file."""
         try:
             Conf.copy(src_index, self._conf_idx, key_list)
