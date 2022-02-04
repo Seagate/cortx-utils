@@ -21,7 +21,7 @@ import json
 import re
 
 from cortx.template import Singleton
-from cortx.utils.task_store.error import TaskError
+from cortx.utils.task_framework.error import TaskError
 from cortx.utils.kv_store.kv_store import KvStoreFactory
 from cortx.utils.kv_store import KvPayload
 

@@ -21,8 +21,8 @@ import inspect
 import sys
 import traceback
 from argparse import RawTextHelpFormatter
-from cortx.utils.task_store import Task
-from cortx.utils.task_store import TaskError
+from cortx.utils.task_framework import Task
+from cortx.utils.task_framework.error import TaskError
 from cortx.utils.schema import Format
 
 
