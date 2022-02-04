@@ -13,18 +13,18 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from aiohttp import ClientSession
+import asyncio
 import base64
 from hashlib import sha1
 import hmac
 from http import HTTPStatus
-import ssl
-from time import gmtime, strftime
 from typing import Any, Dict, Optional, Tuple
-from urllib.parse import urlencode
+
+from cortx.utils.http import HTTPClient, HTTPClientException
+from .exceptions import RGWAdminClientException
 
 
-class RGWAdminClient:
+class RGWAdminClient(HTTPClient):
     """
     Low level RGW admin client.
 
@@ -49,23 +49,10 @@ class RGWAdminClient:
         :param timeout: connection timeout.
         :returns: None.
         """
+
+        super(RGWAdminClient, self).__init__(host, port, tls_enabled, ca_bundle, timeout)
         self._access_key_id = access_key_id
         self._secret_access_key = secret_access_key
-        self._host = host
-        self._port = port
-        self._url = f"{'https' if tls_enabled else 'http'}://{host}:{port}"
-        self._ssl_ctx = ssl.create_default_context(cafile=ca_bundle) if ca_bundle else False
-        self._timeout = timeout
-
-    def _http_date(self) -> str:
-        """
-        Return the 'now' datetime in RFC 1123 format.
-
-        :returns: string with datetime.
-        """
-
-        now = gmtime()
-        return strftime("%a, %d %b %Y %H:%M:%S +0000", now)
 
     def _generate_signature(self, verb: str, headers: Dict[str, str], path: str) -> str:
         """
@@ -113,21 +100,14 @@ class RGWAdminClient:
             headers = {}
         if 'content-type' not in headers:
             headers['content-type'] = 'application/x-www-form-urlencoded'
-        headers['date'] = self._http_date()
+        headers['date'] = self.http_date()
         # 'Authorization' header provides the required signature
         headers['authorization'] = self._generate_signature(verb, headers, path)
-        final_url = self._url
-        if path:
-            final_url += '/' if not path.startswith('/') else ""
-            final_url += path
-        if query_params is not None:
-            final_url += "?" if "?" not in path else "&"
-            final_url += urlencode(query_params)
-        # Let all the HTTP client exceptions propagate as is
-        async with ClientSession() as http_session:
-            async with http_session.request(method=verb, headers=headers, data=request_params,
-                                            url=final_url, ssl=self._ssl_ctx,
-                                            timeout=self._timeout) as resp:
-                status = resp.status
-                body = await resp.text()
-                return status, body
+        try:
+            status, body = await self.request(verb, path, headers, query_params, request_params)
+            return status, body
+        except (HTTPClientException, asyncio.TimeoutError) as e:
+            reason = str(e)
+            if isinstance(e, asyncio.TimeoutError):
+                reason = "Request timeout"
+            raise RGWAdminClientException(reason) from None
