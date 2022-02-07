@@ -43,7 +43,7 @@ class ConfCli:
 
     @staticmethod
     def add_num_keys(args):
-        """ Add num keys """
+        """Add "num_xxx" keys for all the list items in ine KV Store"""
         Conf.add_num_keys(ConfCli._index)
         Conf.save(ConfCli._index)
 

@@ -281,7 +281,10 @@ class Conf:
     @staticmethod
     def delete(index: str, key: str):
         """ Deletes a given key from the config """
-        return Conf._conf.delete(index, key)
+        is_deleted = Conf._conf.delete(index, key)
+        if is_deleted:
+            Conf.save(index)
+        return is_deleted
 
     @staticmethod
     def copy(src_index: str, dst_index: str, key_list: list = None,
@@ -341,6 +344,7 @@ class Conf:
         Add "num_xxx" keys for all the list items in ine KV Store
         """
         Conf._conf.add_num_keys(index)
+        Conf.save(index)
 
 
 class MappedConf:
@@ -401,6 +405,4 @@ class MappedConf:
 
     def delete(self, key: str):
         """Delete key from CORTX confstore."""
-        is_deleted = Conf.delete(self._conf_idx, key)
-        if is_deleted:
-            Conf.save(self._conf_idx)
+        return Conf.delete(self._conf_idx, key)
