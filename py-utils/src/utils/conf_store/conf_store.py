@@ -284,7 +284,6 @@ class Conf:
         recurse: bool = True):
         """ Creates a Copy suffixed file for main file"""
         Conf._conf.copy(src_index, dst_index, key_list, recurse)
-        Conf._conf.save(dst_index)
 
     @staticmethod
     def merge(dest_index: str, src_index: str, keys: list = None):

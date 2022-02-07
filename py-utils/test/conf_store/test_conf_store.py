@@ -253,16 +253,6 @@ class TestConfStore(unittest.TestCase):
             {'name': '3g'}, {'name': '4g'}, 'sample2', {}, {}, 'sample5']
         self.assertListEqual(result_data, expected_result)
 
-    def test_conf_store_ini(self):
-        Conf.load('ini_conf', 'json:///tmp/file1.ini')
-        Conf.set('ini_conf', 'A>A1', '1')
-        self.assertEqual(Conf.get('ini_conf', 'A>A1'), '1')
-        Conf.load('ini_copy', 'json:///tmp/file2.ini')
-        Conf.copy('ini_conf', 'ini_copy')
-        self.assertEqual(Conf.get('ini_copy', 'A>A1'), '1')
-        Conf.delete('ini_conf', 'A>A1')
-        self.assertEqual(Conf.get('ini_conf', 'A>A1'), None)
-
     def test_conf_store_set_nested_keys(self):
         """
         Test by setting the key, value to given nested key structure

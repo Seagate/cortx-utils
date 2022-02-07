@@ -15,11 +15,11 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import configparser
 import errno
 import os
 from typing import Union
 from consul import Consul
+from configparser import ConfigParser, NoOptionError, NoSectionError
 
 from cortx.utils.kv_store.error import KvError
 from cortx.utils.kv_store.kv_store import KvStore
@@ -233,10 +233,9 @@ class IniKvPayload(KvPayload):
                 keys.append(f"{section}{self._delim}{key}")
 
     def set(self, key, val):
-        k = key.split(self._delim, 1)
-        if len(k) <= 1:
-            raise KvError(errno.EINVAL, "Missing section in key %s", \
-                key)
+        k = key.split(self._delim)
+        if len(k) <= 1 or len(k) > 2:
+            raise KvError(errno.EINVAL, "Invalid key %s for INI format", key)
 
         if k[0] not in self._data.sections():
             self._data.add_section(k[0])
@@ -245,15 +244,17 @@ class IniKvPayload(KvPayload):
             self._keys.append(key)
 
     def get(self, key):
-        k = key.split(self._delim, 1)
-        if len(k) <= 1:
-            raise KvError(errno.EINVAL, "Missing section in key %s", \
-                key)
-        return self._data[k[0]][k[1]]
+        k = key.split(self._delim)
+        if len(k) <= 1 or len(k) > 2:
+            raise KvError(errno.EINVAL, "Invalid key %s for INI format", key)
+        try:
+            return self._data.get(k[0],k[1])
+        except (NoOptionError, NoSectionError):
+            return None
 
     def delete(self, key):
-        k = key.split(self._delim, 1)
-        if len(k) > 2:
+        k = key.split(self._delim)
+        if len(k) <= 1 or len(k) > 2:
             raise KvError(errno.EINVAL, "Invalid key %s for INI format", key)
 
         if k[0] not in self._data.sections():
@@ -278,8 +279,8 @@ class IniKvStore(KvStore):
 
     def __init__(self, store_loc, store_path, delim='>'):
         KvStore.__init__(self, store_loc, store_path, delim)
-        self._config = configparser.ConfigParser()
-        self._type = configparser.SectionProxy
+        self._config = ConfigParser()
+        self._config.optionxform = lambda option: option
 
     def load(self, **kwargs) -> IniKvPayload:
         """ Reads from the file """
