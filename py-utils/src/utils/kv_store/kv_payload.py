@@ -88,6 +88,7 @@ class KvPayload:
         self._add_num_keys(self._data)
 
     def _add_num_keys(self, data):
+        """Add "num_xxx" keys for all the list items in ine KV Store"""
         num_keys = {}
         for k, v in data.items():
             if type(v) == list:
