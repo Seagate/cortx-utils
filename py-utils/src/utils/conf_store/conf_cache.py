@@ -60,6 +60,13 @@ class ConfCache:
         self._data.set(key, val)
         self._dirty = True
 
+    def add_num_keys(self):
+        """
+        Add "num_xxx" keys for all the list items in ine KV Store
+        """
+        self._data.add_num_keys()
+        self._dirty = True
+
     def search(self, parent_key: str, search_key: str, search_val: str) -> list:
         """
         Search for given key and value under a node
