@@ -27,6 +27,7 @@ from cortx.utils.conf_store import MappedConf
 from cortx.utils.support_framework import const
 from cortx.utils.schema.payload import Yaml, Tar
 from cortx.utils.conf_store.conf_store import Conf
+from cortx.utils.const import CLUSTER_CONF_LOG_KEY, DEFAULT_INSTALL_PATH
 
 ERROR = 'error'
 INFO = 'info'
@@ -130,7 +131,7 @@ class ComponentsBundle:
         return:         None
         """
         cluster_conf = MappedConf(config_url)
-        log_path = os.path.join(cluster_conf.get('log_dir'), \
+        log_path = os.path.join(cluster_conf.get(CLUSTER_CONF_LOG_KEY), \
             f'utils/{Conf.machine_id}/support')
         log_level = cluster_conf.get('utils>log_level', 'INFO')
         Log.init('support_bundle_node', log_path, level=log_level, \
@@ -152,7 +153,8 @@ class ComponentsBundle:
             f"{node_name}, {const.SB_COMMENT}: {comment}, "
             f"{const.SB_COMPONENTS}: {components_list}, {const.SOS_COMP}"))
         # Read support_bundle.Yaml and Check's If It Exists.
-        cmd_setup_file = os.path.join(cluster_conf.get('install_path'),\
+        cmd_setup_file = os.path.join(
+            cluster_conf.get('install_path', DEFAULT_INSTALL_PATH),
             const.SUPPORT_YAML)
         try:
             support_bundle_config = Yaml(cmd_setup_file).load()

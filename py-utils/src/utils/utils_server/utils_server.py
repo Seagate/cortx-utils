@@ -24,9 +24,9 @@ from argparse import RawTextHelpFormatter
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
 from cortx.utils.errors import UtilsError
-from cortx.utils.const import CLUSTER_CONF
 from cortx.utils.conf_store import MappedConf
 from cortx.utils.message_bus import MessageBus
+from cortx.utils.const import CLUSTER_CONF_LOG_KEY
 
 
 class UtilsServerError(UtilsError):
@@ -75,13 +75,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Utils server CLI',
         formatter_class=RawTextHelpFormatter)
     parser.add_argument('-c', '--config', dest='cluster_conf',\
-        help="Cluster config file path for Support Bundle", \
-        default=CLUSTER_CONF)
+        help="Cluster config file path for Support Bundle")
     args=parser.parse_args()
     cluster_conf_url = args.cluster_conf
     cluster_conf = MappedConf(cluster_conf_url)
     # Get the log path
-    log_dir = cluster_conf.get('cortx>common>storage>log')
+    log_dir = cluster_conf.get(CLUSTER_CONF_LOG_KEY)
     if not log_dir:
         raise UtilsServerError(errno.EINVAL, "Fail to initialize logger."+\
             " Unable to find log_dir path entry")
