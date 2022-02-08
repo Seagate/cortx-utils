@@ -284,7 +284,6 @@ class Conf:
         recurse: bool = True):
         """ Creates a Copy suffixed file for main file"""
         Conf._conf.copy(src_index, dst_index, key_list, recurse)
-        Conf._conf.save(dst_index)
 
     @staticmethod
     def merge(dest_index: str, src_index: str, keys: list = None):
@@ -368,7 +367,7 @@ class MappedConf:
                 f'Error occurred while adding key {key} and value {val}'
                 f' in confstore. {e}')
 
-    def copy(self, src_index: str, key_list: list):
+    def copy(self, src_index: str, key_list: list = None):
         """Copy src_index config into CORTX confstore file."""
         try:
             Conf.copy(src_index, self._conf_idx, key_list)

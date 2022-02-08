@@ -15,11 +15,11 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import configparser
 import errno
 import os
 from typing import Union
 from consul import Consul
+from configparser import ConfigParser, NoOptionError, NoSectionError
 
 from cortx.utils.kv_store.error import KvError
 from cortx.utils.kv_store.kv_store import KvStore
@@ -223,8 +223,8 @@ class TomlKvStore(KvStore):
 
 class IniKvPayload(KvPayload):
     """ In memory representation of INI conf data """
-    def __init__(self, configparser, delim='>'):
-        super().__init__(configparser, delim)
+    def __init__(self, config, delim='>'):
+        super().__init__(config, delim)
 
     def _get_keys(self, keys: list, data, pkey: str = None,
         key_index: bool = True) -> None:
@@ -233,29 +233,43 @@ class IniKvPayload(KvPayload):
                 keys.append(f"{section}{self._delim}{key}")
 
     def set(self, key, val):
-        k = key.split(self._delim, 1)
-        if len(k) <= 1:
-            raise KvError(errno.EINVAL, "Missing section in key %s", \
-                key)
+        k = key.split(self._delim)
+        if len(k) <= 1 or len(k) > 2:
+            raise KvError(errno.EINVAL, "Invalid key %s for INI format", key)
 
-        self._data[k[0]][k[1]] = val
+        if k[0] not in self._data.sections():
+            self._data.add_section(k[0])
+        self._data.set(k[0], k[1], val)
         if key not in self._keys:
             self._keys.append(key)
 
     def get(self, key):
-        k = key.split(self._delim, 1)
-        if len(k) <= 1:
-            raise KvError(errno.EINVAL, "Missing section in key %s", \
-                key)
-        return self._data[k[0]][k[1]]
+        k = key.split(self._delim)
+        if len(k) <= 1 or len(k) > 2:
+            raise KvError(errno.EINVAL, "Invalid key %s for INI format", key)
+        try:
+            return self._data.get(k[0],k[1])
+        except (NoOptionError, NoSectionError):
+            return None
 
     def delete(self, key):
-        k = key.split(self._delim, 1)
-        if len(k) == 1:
-            self._data.remove_section(k[0])
-        elif len(k) == 2:
-            self._data.remove_option(k[0], k[1])
-        if key in self._keys: self._keys.remove(key)
+        k = key.split(self._delim)
+        if len(k) <= 1 or len(k) > 2:
+            raise KvError(errno.EINVAL, "Invalid key %s for INI format", key)
+
+        if k[0] not in self._data.sections():
+            return False
+
+        is_deleted = False
+        if len(k) == 2:
+            is_deleted = self._data.remove_option(k[0], k[1])
+            if is_deleted:
+                if key in self._keys: self._keys.remove(key)
+
+        if len(self._data.options(k[0])) == 0:
+            is_deleted = self._data.remove_section(k[0])
+
+        return is_deleted
 
 
 class IniKvStore(KvStore):
@@ -265,8 +279,8 @@ class IniKvStore(KvStore):
 
     def __init__(self, store_loc, store_path, delim='>'):
         KvStore.__init__(self, store_loc, store_path, delim)
-        self._config = configparser.ConfigParser()
-        self._type = configparser.SectionProxy
+        self._config = ConfigParser()
+        self._config.optionxform = lambda option: option
 
     def load(self, **kwargs) -> IniKvPayload:
         """ Reads from the file """
