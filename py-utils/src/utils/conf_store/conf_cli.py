@@ -134,7 +134,7 @@ class ConfCli:
     def copy(args):
         """Copy One or more Keys to the target config url"""
         key_list = None if len(args.args) < 1 else args.args[0].split(';')
-        target_index = "target"
+        target_index = 'target'
         ConfCli.load(args.target_url, target_index)
         Conf.copy(ConfCli._index, target_index, key_list)
 

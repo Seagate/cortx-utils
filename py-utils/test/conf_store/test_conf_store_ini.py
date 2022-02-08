@@ -26,7 +26,7 @@ from cortx.utils.conf_store.error import ConfError
 class TestConfStoreIni(unittest.TestCase):
     """Test confstore backend urls mentioned in config file."""
     def _remove_files(self):
-        for f in ["/tmp/file1.ini", "/tmp/file2.ini"]:
+        for f in ['/tmp/file1.ini', '/tmp/file2.ini']:
             if os.path.exists(f):
                 os.remove(f)
 
