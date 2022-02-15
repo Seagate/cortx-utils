@@ -22,8 +22,8 @@ COMPONENTS:
     - '<CORTX_PATH>/csm/conf/support.yaml'
   sspl:
     - '<CORTX_PATH>/sspl/conf/support.yaml'
-  s3:
-    - '<CORTX_PATH>/s3/conf/support.yaml'
+  rgw:
+    - '<CORTX_PATH>/rgw/conf/support.yaml'
   motr:
     - '<CORTX_PATH>/motr/conf/support.yaml'
   hare:
