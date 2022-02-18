@@ -13,5 +13,5 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from .client import HTTPClient
-from .exceptions import HTTPClientException
+from cortx.utils.http.client import HTTPClient
+from cortx.utils.http.exceptions import HTTPClientException

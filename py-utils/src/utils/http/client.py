@@ -20,7 +20,7 @@ from time import gmtime, strftime
 from typing import Any, Dict, Optional, Tuple
 from urllib.parse import urlencode
 
-from .exceptions import HTTPClientException
+from cortx.utils.http.exceptions import HTTPClientException
 
 
 class HTTPClient:

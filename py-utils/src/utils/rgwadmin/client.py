@@ -21,7 +21,7 @@ from http import HTTPStatus
 from typing import Any, Dict, Optional, Tuple
 
 from cortx.utils.http import HTTPClient, HTTPClientException
-from .exceptions import RGWAdminClientException
+from cortx.utils.rgwadmin.exceptions import RGWAdminClientException
 
 
 class RGWAdminClient(HTTPClient):
