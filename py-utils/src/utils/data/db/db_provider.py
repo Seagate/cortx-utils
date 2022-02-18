@@ -145,14 +145,19 @@ class AsyncDataBase:
         self._model_settings = model_config.config.get(model_config.database)
         self._db_config = db_config.databases.get(model_config.database)
         self._database_status = ServiceStatus.NOT_CREATED
-        if self._db_config.import_path == 'ElasticSearchDB':
-            from cortx.utils.data.db.elasticsearch_db import ElasticSearchDB \
-                as final_db_module
-        if self._db_config.import_path == 'ConsulDB':
-            from cortx.utils.data.db.consul_db import ConsulDB as final_db_module
-        if self._db_config.import_path == 'OpenLdap':
-            from cortx.utils.data.db.openldap import OpenLdap as final_db_module
-        self._database_module = final_db_module
+        # TODO: Generate this list automatically by listing directories
+        db_modules = {
+            'ConsulDB': 'consul_db',
+            'ElasticSearchDB': 'elasticsearch_db',
+            'OpenLdap': 'openldap'
+        }
+        db_type = self._db_config.import_path
+        if db_type not in db_modules.keys():
+            raise DataAccessError("No valid db found")
+        db_module = db_modules[db_type]
+        self._database_module = getattr(
+            __import__(f'cortx.utils.data.db.{db_module}', fromlist=[db_type]),
+            db_type)
         self._database = None
 
     def __getattr__(self, attr_name: str) -> coroutine:
