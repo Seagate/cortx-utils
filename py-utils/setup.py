@@ -115,6 +115,7 @@ setup(name='cortx-py-utils',
                 'cortx.utils.manifest', 'cortx.utils.setup.openldap',
                 'cortx.utils.setup.consul', 'cortx.utils.setup.elasticsearch',
                 'cortx.utils.audit_log', 'cortx.utils.cortx',
+                'cortx.utils.http', 'cortx.utils.rgwadmin',
                 ],
       package_data={
         'cortx': ['py.typed'],
