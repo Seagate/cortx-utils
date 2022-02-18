@@ -69,7 +69,7 @@ class RGWAdminClient(HTTPClient):
         for key in sorted(required_headers):
             val = headers.get(key, "")
             string_to_sign += f"{val}\n"
-        string_to_sign += path
+        string_to_sign += path.split('?')[0]
         string_to_sign_bytes = string_to_sign.encode("UTF-8")
         secret_access_key_bytes = self._secret_access_key.encode("UTF-8")
         secret_key_hmac = hmac.new(secret_access_key_bytes, string_to_sign_bytes, sha1).digest()
