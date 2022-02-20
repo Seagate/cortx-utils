@@ -1,7 +1,7 @@
 #!/usr/bin/python3.6
 
 # CORTX-Py-Utils: CORTX Python common library.
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# Copyright (c) 2022 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -36,9 +36,9 @@ class HEALTH_EVENT_ATTRIBUTES:
     NODE_ID = "node_id"
     RESOURCE_TYPE = "resource_type"
     RESOURCE_ID = "resource_id"
-    RESOURCE_STATUS = "event_type"
+    RESOURCE_STATUS = "resource_status"
     SPECIFIC_INFO = "specific_info"
 
 
-HEALTH_EVENT_PAYLOAD = "payload"
 HEALTH_EVENT_HEADER = "header"
+HEALTH_EVENT_PAYLOAD = "payload"
