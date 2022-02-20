@@ -1,6 +1,7 @@
 #!/usr/bin/python3.6
 
 # CORTX-Py-Utils: CORTX Python common library.
+<<<<<<< HEAD
 # Copyright (c) 2022 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
