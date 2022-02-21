@@ -17,6 +17,7 @@
 
 import time
 import uuid
+from cortx.utils.kv_store.kv_payload import KvPayload
 from cortx.utils.health.const import HEALTH_EVENT_ATTRIBUTES, \
     HEALTH_EVENT_HEADER, HEALTH_EVENT_PAYLOAD
 
@@ -44,7 +45,7 @@ class Event:
             str(uuid.uuid4().hex)
         self.event[HEALTH_EVENT_HEADER] = header
 
-        payload = {}
+        payload = KvPayload()
         payload[HEALTH_EVENT_ATTRIBUTES.SOURCE] = None
         payload[HEALTH_EVENT_ATTRIBUTES.CLUSTER_ID] = None
         payload[HEALTH_EVENT_ATTRIBUTES.SITE_ID] = None
