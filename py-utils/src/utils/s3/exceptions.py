@@ -16,8 +16,8 @@
 from cortx.utils.http import HTTPClientException
 
 
-class RGWAdminClientException(HTTPClientException):
+class S3SignedClientException(HTTPClientException):
     """
-    Base class for RGWAdminClient exceptions.
+    Base class for S3SignedClient exceptions.
     """
     pass

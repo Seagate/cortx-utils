@@ -21,14 +21,14 @@ from http import HTTPStatus
 from typing import Any, Dict, Optional, Tuple
 
 from cortx.utils.http import HTTPClient, HTTPClientException
-from cortx.utils.rgwadmin.exceptions import RGWAdminClientException
+from cortx.utils.s3.exceptions import S3SignedClientException
 
 
-class RGWAdminClient(HTTPClient):
+class S3SignedClient(HTTPClient):
     """
-    Low level RGW admin client.
+    Low level S3 HTTP client.
 
-    Enable user to send signed HTTP requests to the RADOS Gateway REST API.
+    Enable user to send signed HTTP requests to the any S3 REST API.
     """
 
     def __init__(
@@ -42,15 +42,15 @@ class RGWAdminClient(HTTPClient):
 
         :param access_key_id: access key id of the admin user.
         :param secret_access_key: secret access key of the admin user.
-        :param host: hostname of the RGW server.
-        :param port: port of the RGW server.
+        :param host: hostname of the S3 server.
+        :param port: port of the S3 server.
         :param tls_enabled: flag to use https.
         :param ca_bundle: path to the root CA certificate.
         :param timeout: connection timeout.
         :returns: None.
         """
 
-        super(RGWAdminClient, self).__init__(host, port, tls_enabled, ca_bundle, timeout)
+        super(S3SignedClient, self).__init__(host, port, tls_enabled, ca_bundle, timeout)
         self._access_key_id = access_key_id
         self._secret_access_key = secret_access_key
 
@@ -82,7 +82,7 @@ class RGWAdminClient(HTTPClient):
         query_params: Dict[str, Any] = None, request_params: Dict[str, Any] = None
     ) -> Tuple[HTTPStatus, Optional[str]]:
         """
-        Send an S3-signed request to the RGW.
+        Send an S3-signed request.
 
         :param verb: HTTP method of the request (GET, POST, etc.).
         :param path: server's URI to send the request to (e.g. /admin/user).
@@ -110,4 +110,4 @@ class RGWAdminClient(HTTPClient):
             reason = str(e)
             if isinstance(e, asyncio.TimeoutError):
                 reason = "Request timeout"
-            raise RGWAdminClientException(reason) from None
+            raise S3SignedClientException(reason) from None
