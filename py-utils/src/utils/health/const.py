@@ -15,14 +15,6 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from enum import Enum
-
-
-class HEALTH_EVENT_SOURCES(Enum):
-    HA = 'ha'
-    HARE = 'hare'
-    MONITOR = 'monitor'
-
 
 class HEALTH_EVENT_ATTRIBUTES:
     VERSION = 'version'
