@@ -25,7 +25,9 @@ VERSION = "1.0"
 
 
 class Event:
-    """Class for health status event message schema,
+
+    """
+    Class for health status event message schema,
     where producer can import this class object and add it
     in there existing schema.
     """
