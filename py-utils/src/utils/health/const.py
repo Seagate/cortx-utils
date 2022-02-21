@@ -19,26 +19,26 @@ from enum import Enum
 
 
 class HEALTH_EVENT_SOURCES(Enum):
-    HA = "ha"
-    HARE = "hare"
-    MONITOR = "monitor"
+    HA = 'ha'
+    HARE = 'hare'
+    MONITOR = 'monitor'
 
 
 class HEALTH_EVENT_ATTRIBUTES:
-    VERSION = "version"
-    TIMESTAMP = "timestamp"
-    EVENT_ID = "event_id"
-    SOURCE = "source"
-    CLUSTER_ID = "cluster_id"
-    SITE_ID = "site_id"
-    RACK_ID = "rack_id"
-    STORAGESET_ID = "storageset_id"
-    NODE_ID = "node_id"
-    RESOURCE_TYPE = "resource_type"
-    RESOURCE_ID = "resource_id"
-    RESOURCE_STATUS = "resource_status"
-    SPECIFIC_INFO = "specific_info"
+    VERSION = 'version'
+    TIMESTAMP = 'timestamp'
+    EVENT_ID = 'event_id'
+    SOURCE = 'source'
+    CLUSTER_ID = 'cluster_id'
+    SITE_ID = 'site_id'
+    RACK_ID = 'rack_id'
+    STORAGESET_ID = 'storageset_id'
+    NODE_ID = 'node_id'
+    RESOURCE_TYPE = 'resource_type'
+    RESOURCE_ID = 'resource_id'
+    RESOURCE_STATUS = 'resource_status'
+    SPECIFIC_INFO = 'specific_info'
 
 
-HEALTH_EVENT_HEADER = "header"
-HEALTH_EVENT_PAYLOAD = "payload"
+HEALTH_EVENT_HEADER = 'header'
+HEALTH_EVENT_PAYLOAD = 'payload'

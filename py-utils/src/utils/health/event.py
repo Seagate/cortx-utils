@@ -14,16 +14,16 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
-from const import HEALTH_EVENT_ATTRIBUTES, HEALTH_EVENT_HEADER, \
-    HEALTH_EVENT_PAYLOAD
+
 import time
 import uuid
+from cortx.utils.health.const import HEALTH_EVENT_ATTRIBUTES, \
+    HEALTH_EVENT_HEADER, HEALTH_EVENT_PAYLOAD
 
 VERSION = "1.0"
 
 
 class Event:
-    
     """
     Class for health status event message schema,
     where producer can import this class object and add it
@@ -65,7 +65,3 @@ class Event:
         for key in _input.keys():
             if key in list(self.event[HEALTH_EVENT_PAYLOAD].keys()):
                 self.event[HEALTH_EVENT_PAYLOAD][key] = _input[key]
-            else:
-                specific_info = HEALTH_EVENT_ATTRIBUTES.SPECIFIC_INFO
-                self.event[HEALTH_EVENT_PAYLOAD][specific_info][key] \
-                    = _input[key]
