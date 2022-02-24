@@ -90,12 +90,22 @@ class KvPayload:
     def _add_num_keys(self, data):
         """Add "num_xxx" keys for all the list items in ine KV Store"""
         num_keys = {}
-        for k, v in data.items():
-            if type(v) == list:
-                num_keys[f'num_{k}'] = len(v)
-            elif type(v) == dict:
-                self._add_num_keys(v)
-        data.update(num_keys)
+        if isinstance(data, dict):
+            for k, v in data.items():
+                if isinstance(v, dict):
+                    self._add_num_keys(v)
+                elif isinstance(v, list):
+                    num_keys[f'num_{k}'] = len(v)
+                    self._add_num_keys(v)
+            data.update(num_keys)
+
+        if isinstance(data, list):
+            for v in data:
+                if isinstance(v, dict):
+                    self._add_num_keys(v)
+                elif isinstance(v, list):
+                    num_keys[f'num_{v}'] = len(v)
+                    self._add_num_keys(v)
 
     def get_keys(self, starts_with: str = '', recurse: bool = True, **filters) -> list:
         """
