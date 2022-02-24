@@ -98,7 +98,7 @@ class KvPayload:
                     num_keys[f'num_{k}'] = len(v)
                     self._add_num_keys(v)
             data.update(num_keys)
-        
+
         if isinstance(data, list):
             for v in data:
                 if isinstance(v, dict):
