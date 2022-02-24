@@ -365,6 +365,13 @@ class TestConfStore(unittest.TestCase):
         out_lst = Conf.get_keys('reload_index')
         self.assertTrue(True if expected_lst != out_lst else False)
 
+    # search for a key
+    def test_conf_store_search_keys(self):
+        """Test conf store search key API by passing None value."""
+        keys = Conf.search('dict', 'k2', 'k5', None)
+        expected = ['k2>k4>k5[0]', 'k2>k4>k5[1]', 'k2>k4>k5[2]']
+        self.assertListEqual(expected, keys)
+
     def test_conf_load_skip_reload(self):
         """ Test conf load skip_reload argument """
         Conf.load('skip_index', 'json:///tmp/file1.json')
