@@ -444,18 +444,23 @@ class TestConfStore(unittest.TestCase):
             'cortx>software>common>test_key2'))
         self.assertEqual('kafka', Conf.get('dest_index', \
             'cortx>software>common>message_bus_type'))
-    
+
     def test_conf_store_add_num_keys(self):
-        """Test Confstore Add Num keys to KV store"""
-        expected = 5
+        """Test Confstore Add Num keys to KV store."""
         Conf.set('src_index', 'test_val[0]', '1')
         Conf.set('src_index', 'test_val[1]', '2')
         Conf.set('src_index', 'test_val[2]', '3')
         Conf.set('src_index', 'test_val[3]', '4')
         Conf.set('src_index', 'test_val[4]', '5')
+        Conf.set('src_index', 'test_nested', '2')
+        Conf.set('src_index', 'test_nested>2[0]', '1')
+        Conf.set('src_index', 'test_nested>2>1[0]', '1')
+        Conf.set('src_index', 'test_nested>2>1[1]', '2')
+        Conf.set('src_index', 'test_nested>2>1[2]', '3')
         Conf.save('src_index')
         Conf.add_num_keys('src_index')
-        self.assertEqual(expected, Conf.get('src_index', 'num_test_val'))
+        self.assertEqual(5, Conf.get('src_index', 'num_test_val'))
+        self.assertEqual(3, Conf.get('src_index', 'test_nested>2>num_1'))
 
     # DictKVstore tests
     def test_001_conf_dictkvstore_get_all_keys(self):
