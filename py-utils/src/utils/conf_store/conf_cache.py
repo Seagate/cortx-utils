@@ -61,9 +61,7 @@ class ConfCache:
         self._dirty = True
 
     def add_num_keys(self):
-        """
-        Add "num_xxx" keys for all the list items in ine KV Store
-        """
+        """Add "num_xxx" keys for all the list items in ine KV Store."""
         self._data.add_num_keys()
         self._dirty = True
 
