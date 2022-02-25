@@ -88,7 +88,7 @@ class KvPayload:
         self._add_num_keys(self._data)
 
     def _add_num_keys(self, data):
-        """Add "num_xxx" keys for all the list items in ine KV Store"""
+        """Add "num_xxx" keys for all the list items in ine KV Store."""
         num_keys = {}
         if isinstance(data, dict):
             for k, v in data.items():
@@ -102,8 +102,7 @@ class KvPayload:
 
         if isinstance(data, list):
             for v in data:
-                if isinstance(v, dict):
-                    self._add_num_keys(v)
+                self._add_num_keys(v)
 
     def get_keys(self, starts_with: str = '', recurse: bool = True, **filters) -> list:
         """

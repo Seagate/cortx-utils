@@ -444,9 +444,9 @@ class TestConfStore(unittest.TestCase):
             'cortx>software>common>test_key2'))
         self.assertEqual('kafka', Conf.get('dest_index', \
             'cortx>software>common>message_bus_type'))
-    
+
     def test_conf_store_add_num_keys(self):
-        """Test Confstore Add Num keys to KV store"""
+        """Test Confstore Add Num keys to KV store."""
         Conf.set('src_index', 'test_val[0]', '1')
         Conf.set('src_index', 'test_val[1]', '2')
         Conf.set('src_index', 'test_val[2]', '3')
