@@ -453,7 +453,7 @@ class TestConfStore(unittest.TestCase):
         Conf.set('src_index', 'test_val[3]', '4')
         Conf.set('src_index', 'test_val[4]', '5')
         Conf.set('src_index', 'test_nested', '2')
-        Conf.set('src_index', 'test_nested>2', '1')
+        Conf.set('src_index', 'test_nested>2[0]', '1')
         Conf.set('src_index', 'test_nested>2>1[0]', '1')
         Conf.set('src_index', 'test_nested>2>1[1]', '2')
         Conf.set('src_index', 'test_nested>2>1[2]', '3')

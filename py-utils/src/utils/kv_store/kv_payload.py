@@ -97,14 +97,12 @@ class KvPayload:
                 elif isinstance(v, list):
                     num_keys[f'num_{k}'] = len(v)
                     self._add_num_keys(v)
-            data.update(num_keys)
+            if len(num_keys) > 0:
+                data.update(num_keys)
 
         if isinstance(data, list):
             for v in data:
                 if isinstance(v, dict):
-                    self._add_num_keys(v)
-                elif isinstance(v, list):
-                    num_keys[f'num_{v}'] = len(v)
                     self._add_num_keys(v)
 
     def get_keys(self, starts_with: str = '', recurse: bool = True, **filters) -> list:
