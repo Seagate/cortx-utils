@@ -59,6 +59,12 @@ class KvStore:
         payload = self.load()
         return payload.search(parent_key, search_key, search_val)
 
+    def add_num_keys(self):
+        """Writes "num_xxx" keys for all the list items in ine KV Store."""
+        payload = self.load()
+        payload.add_num_keys()
+        self.dump(payload)
+
     def get_data(self, format_type: str = None) -> str:
         payload = self.load()
         return payload.get_data(format_type)
