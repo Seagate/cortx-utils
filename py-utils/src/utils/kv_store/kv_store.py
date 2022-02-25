@@ -60,7 +60,7 @@ class KvStore:
         return payload.search(parent_key, search_key, search_val)
 
     def add_num_keys(self):
-        """writes "num_xxx" keys for all the list items in ine KV Store."""
+        """Writes "num_xxx" keys for all the list items in ine KV Store."""
         payload = self.load()
         payload.add_num_keys()
         self.dump(payload)
