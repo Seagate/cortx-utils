@@ -65,9 +65,6 @@ class UtilsSupportBundle:
         shutil.copytree(os.path.join(log_base, f'utils/{machine_id}'),\
             os.path.join(UtilsSupportBundle._tmp_src, 'logs'))
 
-        # Copy configuration files
-        shutil.copytree(os.path.join(local_base, 'utils/conf'),\
-            os.path.join(UtilsSupportBundle._tmp_src, 'conf'))
         UtilsSupportBundle.__generate_tar(bundle_id, target_path)
         UtilsSupportBundle.__clear_tmp_files()
 
