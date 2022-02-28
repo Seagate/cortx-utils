@@ -43,7 +43,7 @@ class ConfCli:
 
     @staticmethod
     def add_num_keys(args):
-        """Add "num_xxx" keys for all the list items in ine KV Store"""
+        """Add "num_xxx" keys for all the list items in ine KV Store."""
         Conf.add_num_keys(ConfCli._index)
         Conf.save(ConfCli._index)
 
@@ -307,7 +307,6 @@ class AddNumKeysCmd:
             "Example Command:\n"
             "# conf yaml:///tmp/test.conf addnumkeys\n\n")
         s_parser.set_defaults(func=ConfCli.add_num_keys)
-        
 
 def main():
     # Setup Parser
