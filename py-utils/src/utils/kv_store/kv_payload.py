@@ -89,6 +89,26 @@ class KvPayload:
 
         return keys
 
+    def add_num_keys(self):
+        self._add_num_keys(self._data)
+
+    def _add_num_keys(self, data):
+        """Add "num_xxx" keys for all the list items in ine KV Store."""
+        num_keys = {}
+        if isinstance(data, dict):
+            for k, v in data.items():
+                if isinstance(v, dict):
+                    self._add_num_keys(v)
+                elif isinstance(v, list):
+                    num_keys[f'num_{k}'] = len(v)
+                    self._add_num_keys(v)
+            if len(num_keys) > 0:
+                data.update(num_keys)
+
+        if isinstance(data, list):
+            for v in data:
+                self._add_num_keys(v)
+
     def get_keys(self, starts_with: str = '', recurse: bool = True, **filters) -> list:
         """
         Obtains list of keys stored in the payload
