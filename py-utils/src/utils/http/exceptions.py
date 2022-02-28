@@ -13,7 +13,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-class HTTPClientException(Exception):
+class HttpClientException(Exception):
     """
     Base class for CORTX utils HTTP client's exceptions.
     """

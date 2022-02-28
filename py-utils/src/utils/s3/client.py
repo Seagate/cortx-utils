@@ -20,11 +20,11 @@ import hmac
 from http import HTTPStatus
 from typing import Any, Dict, Optional, Tuple
 
-from cortx.utils.http import HTTPClient, HTTPClientException
+from cortx.utils.http import HttpClient, HttpClientException
 from cortx.utils.s3.exceptions import S3ClientException
 
 
-class S3Client(HTTPClient):
+class S3Client(HttpClient):
     """
     Low level S3 HTTP client.
 
@@ -106,7 +106,7 @@ class S3Client(HTTPClient):
         try:
             status, body = await self.request(verb, path, headers, query_params, request_params)
             return status, body
-        except (HTTPClientException, asyncio.TimeoutError) as e:
+        except (HttpClientException, asyncio.TimeoutError) as e:
             reason = str(e)
             if isinstance(e, asyncio.TimeoutError):
                 reason = "Request timeout"

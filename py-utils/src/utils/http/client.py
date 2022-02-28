@@ -20,10 +20,10 @@ from time import gmtime, strftime
 from typing import Any, Dict, Optional, Tuple
 from urllib.parse import urlencode
 
-from cortx.utils.http.exceptions import HTTPClientException
+from cortx.utils.http.exceptions import HttpClientException
 
 
-class HTTPClient:
+class HttpClient:
     """
     Base HTTP client for CORTX utils.
 
@@ -95,4 +95,4 @@ class HTTPClient:
                     body = await resp.text()
                     return status, body
             except ClientError as e:
-                raise HTTPClientException(str(e)) from None
+                raise HttpClientException(str(e)) from None

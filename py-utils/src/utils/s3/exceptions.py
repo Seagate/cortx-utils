@@ -13,10 +13,10 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.http import HTTPClientException
+from cortx.utils.http import HttpClientException
 
 
-class S3ClientException(HTTPClientException):
+class S3ClientException(HttpClientException):
     """
     Base class for S3Client exceptions.
     """
