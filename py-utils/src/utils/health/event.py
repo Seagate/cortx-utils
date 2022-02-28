@@ -19,9 +19,9 @@ import errno
 import json
 import time
 import uuid
-from cortx.utils.kv_store.kv_payload import KvPayload
-from cortx.utils.kv_store.error import KvError
-from cortx.utils.health.const import HealthAttr, EventAttr
+from kv_payload import KvPayload
+from error import KvError
+from const import HealthAttr, EventAttr
 
 VERSION = "1.0"
 
@@ -35,40 +35,31 @@ class Event(KvPayload):
 
     def __init__(self):
         super().__init__()
-        event = KvPayload(delim='.')
         now = str(int(time.time()))
         _uuid = str(uuid.uuid4().hex)
-        event.set(f'header.{HealthAttr.VERSION.value}', VERSION)
-        event.set(f'header.{HealthAttr.TIMESTAMP.value}', now)
-        event.set(f'header.{HealthAttr.EVENT_ID.value}', now + _uuid)
+        self.set(f'header>{HealthAttr.VERSION.value}', VERSION)
+        self.set(f'header>{HealthAttr.TIMESTAMP.value}', now)
+        self.set(f'header>{HealthAttr.EVENT_ID.value}', now + _uuid)
 
         for key in [HealthAttr.SOURCE, HealthAttr.CLUSTER_ID,
                     HealthAttr.SITE_ID, HealthAttr.RACK_ID,
                     HealthAttr.STORAGESET_ID, HealthAttr.NODE_ID,
                     HealthAttr.RESOURCE_TYPE,
-                    HealthAttr.RESOURCE_STATUS]:
-            event.set(f'payload.{key.value}', None)
+                    HealthAttr.RESOURCE_STATUS,
+                    ]:
+            self.set(f'payload>{key.value}', None)
 
-        specific_info = KvPayload(delim='.')
-        event.set(f'payload.{HealthAttr.SPECIFIC_INFO.value}', specific_info)
-
-        self.set(f'event', event)
+        self.set(f'payload>{HealthAttr.SPECIFIC_INFO.value}', {})
 
     def set_payload(self, payload: KvPayload):
-        """
-            Update payload values.
-            params: payload data of attributes with value type : KvPayload
-            e.g. payload = {"source" : "hare", "node_id" : "2"}
-            it may be format of dict, json, yaml format.
-        """
-        for key in payload.keys():
-            if key in list(self._data['event']._data['payload'].keys()):
-                self._data['event']._data['payload'][key] = payload.get(key)
-            else:
-                raise KvError(errno.EINVAL, "Invalid key name %s", key)
+        for key in payload.get_keys():
+            self.set(f'payload>{key}', payload.get(key))
+ 
+    def get_payload(self):
+        return self.get('payload')
 
-    def ret_dict(self):
+    def get_event(self):
         """
         Return dictionary attribute.
         """
-        return json.loads(json.dumps(self, default=lambda o: o.get_data()))
+        return self.json
