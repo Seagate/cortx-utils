@@ -13,5 +13,5 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.s3.client import S3SignedClient
-from cortx.utils.s3.exceptions import S3SignedClientException
+from cortx.utils.s3.client import S3Client
+from cortx.utils.s3.exceptions import S3ClientException

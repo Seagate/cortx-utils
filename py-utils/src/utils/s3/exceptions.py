@@ -16,8 +16,8 @@
 from cortx.utils.http import HTTPClientException
 
 
-class S3SignedClientException(HTTPClientException):
+class S3ClientException(HTTPClientException):
     """
-    Base class for S3SignedClient exceptions.
+    Base class for S3Client exceptions.
     """
     pass

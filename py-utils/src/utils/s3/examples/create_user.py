@@ -33,13 +33,13 @@ TEST_USER_EMAIL = 'rgwadmintestuser@test.com'
 
 async def create_user() -> Tuple[HTTPStatus, Dict[str, Any]]:
     """
-    Illustrate S3SignedClient signed_http_request work.
+    Illustrate S3Client signed_http_request work.
 
     Create IAM user by specifying parameters, HTTP method and path.
     :returns: HTTP status code and user information as parsed json.
     """
 
-    rgwcli = S3SignedClient(
+    rgwcli = S3Client(
         ACCESS_KEY_ID, SECRET_ACCESS_KEY, HOST, PORT, tls_enabled=False)
     user_params = {
         'display-name': TEST_USER_DISPLAY_NAME,
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     # ln -s src cortx
     py_utils_rel_path = os.path.join(os.path.dirname(pathlib.Path(__file__)), '../../../..')
     sys.path.insert(1, py_utils_rel_path)
-    from cortx.utils.s3 import S3SignedClient
+    from cortx.utils.s3 import S3Client
 
     loop = asyncio.get_event_loop()
     status, user_info = loop.run_until_complete(create_user())

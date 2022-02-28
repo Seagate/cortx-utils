@@ -21,10 +21,10 @@ from http import HTTPStatus
 from typing import Any, Dict, Optional, Tuple
 
 from cortx.utils.http import HTTPClient, HTTPClientException
-from cortx.utils.s3.exceptions import S3SignedClientException
+from cortx.utils.s3.exceptions import S3ClientException
 
 
-class S3SignedClient(HTTPClient):
+class S3Client(HTTPClient):
     """
     Low level S3 HTTP client.
 
@@ -50,7 +50,7 @@ class S3SignedClient(HTTPClient):
         :returns: None.
         """
 
-        super(S3SignedClient, self).__init__(host, port, tls_enabled, ca_bundle, timeout)
+        super(S3Client, self).__init__(host, port, tls_enabled, ca_bundle, timeout)
         self._access_key_id = access_key_id
         self._secret_access_key = secret_access_key
 
@@ -110,4 +110,4 @@ class S3SignedClient(HTTPClient):
             reason = str(e)
             if isinstance(e, asyncio.TimeoutError):
                 reason = "Request timeout"
-            raise S3SignedClientException(reason) from None
+            raise S3ClientException(reason) from None
