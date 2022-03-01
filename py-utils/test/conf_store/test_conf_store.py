@@ -365,6 +365,13 @@ class TestConfStore(unittest.TestCase):
         out_lst = Conf.get_keys('reload_index')
         self.assertTrue(True if expected_lst != out_lst else False)
 
+    # search for a key
+    def test_conf_store_search_keys(self):
+        """Test conf store search key API by passing None value."""
+        keys = Conf.search('dict', 'k2', 'k5', None)
+        expected = ['k2>k4>k5[0]', 'k2>k4>k5[1]', 'k2>k4>k5[2]']
+        self.assertListEqual(expected, keys)
+
     def test_conf_load_skip_reload(self):
         """ Test conf load skip_reload argument """
         Conf.load('skip_index', 'json:///tmp/file1.json')
@@ -444,6 +451,23 @@ class TestConfStore(unittest.TestCase):
             'cortx>software>common>test_key2'))
         self.assertEqual('kafka', Conf.get('dest_index', \
             'cortx>software>common>message_bus_type'))
+
+    def test_conf_store_add_num_keys(self):
+        """Test Confstore Add Num keys to KV store."""
+        Conf.set('src_index', 'test_val[0]', '1')
+        Conf.set('src_index', 'test_val[1]', '2')
+        Conf.set('src_index', 'test_val[2]', '3')
+        Conf.set('src_index', 'test_val[3]', '4')
+        Conf.set('src_index', 'test_val[4]', '5')
+        Conf.set('src_index', 'test_nested', '2')
+        Conf.set('src_index', 'test_nested>2[0]', '1')
+        Conf.set('src_index', 'test_nested>2>1[0]', '1')
+        Conf.set('src_index', 'test_nested>2>1[1]', '2')
+        Conf.set('src_index', 'test_nested>2>1[2]', '3')
+        Conf.save('src_index')
+        Conf.add_num_keys('src_index')
+        self.assertEqual(5, Conf.get('src_index', 'num_test_val'))
+        self.assertEqual(3, Conf.get('src_index', 'test_nested>2>num_1'))
 
     # DictKVstore tests
     def test_001_conf_dictkvstore_get_all_keys(self):
