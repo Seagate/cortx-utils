@@ -44,8 +44,10 @@ class HealthEvent(Event):
         HealthAttr.RESOURCE_STATUS]
 
     def __init__(self, **kwargs):
-        """Initialize payload.
-           Param: kwargs = key, value pairs"""
+        """
+        Initialize payload,
+        Param: kwargs = key, value pairs.
+        """
         payload = KvPayload()
         for key in HealthEvent._health_attrs:
             payload.set(str(key), '')
@@ -61,7 +63,7 @@ class HealthEvent(Event):
         super().set_payload_attr(f'specific_info>{key}', val)
 
     def set_specific_info(self, spec_info: dict):
-        """Set payload attribute of key/value pairs specific to the resource type"""
+        """Set payload attribute of key/value pairs specific to the resource type."""
         specific_info = KvPayload(spec_info)
         for key in specific_info.get_keys():
             super().set_payload_attr(f'specific_info>{key}', specific_info.get(key))

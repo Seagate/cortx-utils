@@ -33,7 +33,7 @@ class TestHealthEvent(unittest.TestCase):
         self.assertEqual(he.get(f'payload>{HealthAttr.NODE_ID}'), '3')
         # Other attributes remain empty strings if not set
         self.assertEqual(he.get(f'payload>{HealthAttr.RESOURCE_ID}'), '')
-        
+
     def test_health_event_create(self):
         """Check by passing values of attributes during creation of object."""
         health_attrs = {

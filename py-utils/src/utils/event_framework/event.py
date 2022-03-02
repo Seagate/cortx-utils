@@ -23,7 +23,7 @@ from cortx.utils.kv_store.kv_payload import KvPayload
 
 class Attr(Enum):
     def __str__(self):
-        """Return value of enum""" 
+        """Return value of enum."""
         return '%s' % self.value
 
 class EventAttr(Attr):
