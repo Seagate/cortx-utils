@@ -23,6 +23,7 @@ from cortx.utils.kv_store.kv_payload import KvPayload
 
 class Attr(Enum):
     def __str__(self):
+        """Return value of enum""" 
         return '%s' % self.value
 
 class EventAttr(Attr):
@@ -40,6 +41,7 @@ class Event(KvPayload):
     """Base class for event message schema."""
 
     def __init__(self, payload: KvPayload = KvPayload()):
+        """Initialize event object with header and payload attributes."""
         super().__init__()
         # Set Header
         _now = str(time.time())

@@ -23,11 +23,10 @@ class TestHealthEvent(unittest.TestCase):
     """Test health event message schema handling"""
 
     def test_health_event_set(self):
-        """ Create of object HealthEvent, Test set attributes value."""
+        """Create of object HealthEvent, Test set attributes value."""
         he = HealthEvent()
         self.assertTrue('header>version' in he.get_keys())
         self.assertTrue('payload>source' in he.get_keys())
-        
         he.set(f'{HealthAttr.STORAGESET_ID}', '1')
         he.set(f'{HealthAttr.NODE_ID}', '3')
         self.assertEqual(he.get(f'payload>{HealthAttr.STORAGESET_ID}'), '1')
@@ -36,7 +35,7 @@ class TestHealthEvent(unittest.TestCase):
         self.assertEqual(he.get(f'payload>{HealthAttr.RESOURCE_ID}'), '')
         
     def test_health_event_create(self):
-        """ Check by passing values of attributes during creation of object."""
+        """Check by passing values of attributes during creation of object."""
         health_attrs = {
         f'{HealthAttr.SOURCE}': 's1',
         f'{HealthAttr.CLUSTER_ID}': '1234',
