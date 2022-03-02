@@ -20,7 +20,7 @@ import unittest
 from cortx.utils.event_framework.health import HealthEvent, HealthAttr
 
 class TestHealthEvent(unittest.TestCase):
-    """Test health event message schema handling"""
+    """Test health event message schema handling."""
 
     def test_health_event_set(self):
         """Create of object HealthEvent, Test set attributes value."""
@@ -40,7 +40,7 @@ class TestHealthEvent(unittest.TestCase):
         f'{HealthAttr.SOURCE}': 's1',
         f'{HealthAttr.CLUSTER_ID}': '1234',
         f'{HealthAttr.SITE_ID}': '1',
-        f'{HealthAttr.RACK_ID}': '1' }
+        f'{HealthAttr.RACK_ID}': '1'}
 
         he = HealthEvent(**health_attrs)
 
@@ -48,14 +48,14 @@ class TestHealthEvent(unittest.TestCase):
         self.assertEqual(he.get(f'payload>{HealthAttr.CLUSTER_ID}'), '1234')
         self.assertEqual(he.get(f'payload>{HealthAttr.SITE_ID}'), '1')
         self.assertEqual(he.get(f'payload>{HealthAttr.RACK_ID}'), '1')
-    
+
         # Way to set specific info
         he.set_specific_info({'a': 'a1'})
         self.assertEqual(he.get(f'payload>{HealthAttr.SPECIFIC_INFO}>a'), 'a1')
+
         # One more way to set specific attr
         he.set_specific_attr('a', 'a2')
         self.assertEqual(he.get(f'payload>{HealthAttr.SPECIFIC_INFO}>a'), 'a2')
-       
         # Other attributes remain empty strings if not set
         self.assertEqual(he.get(f'payload>{HealthAttr.RESOURCE_ID}'), '')
 
