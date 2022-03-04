@@ -434,6 +434,27 @@ class TestStore(unittest.TestCase):
         out = TestStore.loaded_dict[1].get('k1')
         self.assertEqual('', out)
 
+    def test_no_left_shift_kvstore(self):
+        """ Test and ensure left shift not happening """
+        TestStore.loaded_json[0].set(['bridge>name_list'], \
+            [['1', '2', '3', '4']])
+        initial_list = TestStore.loaded_json[0].get(['bridge>name_list'])
+        TestStore.loaded_json[0].delete(['bridge>name_list[1]'])
+        result_list = TestStore.loaded_json[0].get(['bridge>name_list'])
+        self.assertEqual(len(initial_list[0]), len(result_list[0]))
+
+    def test_no_left_shift_end_list_kvstore(self):
+        """
+        Test and ensure left shift not happening
+        while deleting last element of a list
+        """
+        TestStore.loaded_json[0].set(['bridge>end_name_list'],\
+            [['1', '2', '3', '4']])
+        initial_list = TestStore.loaded_json[0].get(['bridge>end_name_list'])
+        TestStore.loaded_json[0].delete(['bridge>end_name_list[3]'])
+        result_list = TestStore.loaded_json[0].get(['bridge>end_name_list'])
+        self.assertEqual(len(result_list[0]), 3)
+
 
 if __name__ == '__main__':
     unittest.main()
