@@ -290,12 +290,15 @@ class SearchCmd:
     def add_args(sub_parser) -> None:
        s_parser = sub_parser.add_parser('search', help=
             "Searches for the given key and value under a parent key.\n"
+            "Format:\n"
+            "# conf <url> <parent_key> <search_key> [<search_val>]\n\n"
             "Example Command:\n"
-            "# conf yaml:///tmp/test.conf search 'root' 'name' 'storage_node'\n\n")
+            "# conf yaml:///tmp/test.conf search 'root' 'name' 'storage_node'\n"
+            "# conf yaml:///tmp/test.conf search 'root' 'name' \n\n")
 
        s_parser.add_argument('parent_key', help="parent key")
        s_parser.add_argument('search_key', help="search key")
-       s_parser.add_argument('search_val', help="search val")
+       s_parser.add_argument('search_val', nargs='?', default=None, help="search val")
        s_parser.set_defaults(func=ConfCli.search)
 
 
@@ -307,7 +310,6 @@ class AddNumKeysCmd:
             "Example Command:\n"
             "# conf yaml:///tmp/test.conf addnumkeys\n\n")
         s_parser.set_defaults(func=ConfCli.add_num_keys)
-
 
 def main():
     # Setup Parser
