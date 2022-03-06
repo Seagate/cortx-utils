@@ -1,5 +1,5 @@
 # CORTX-Py-Utils: CORTX Python common library.
-# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
+# Copyright (c) 2022 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -13,30 +13,11 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-COMPONENTS:
-  health_map:
-    - '/opt/seagate/health_view/conf/setup.yaml'
-  os:
-    - '/opt/seagate/os/conf/setup.yaml'
-  csm:
-    - '<CORTX_PATH>/csm/conf/support.yaml'
-  sspl:
-    - '<CORTX_PATH>/sspl/conf/support.yaml'
-  rgw:
-    - '<CORTX_PATH>/rgw/conf/support.yaml'
-  motr:
-    - '<CORTX_PATH>/motr/conf/support.yaml'
-  hare:
-    - '<CORTX_PATH>/hare/conf/support.yaml'
-  provisioner:
-    - '<CORTX_PATH>/provisioner/conf/setup.yaml'
-  alerts:
-    - '<CORTX_PATH>/cli/conf/alerts_setup.yaml'
-  uds:
-    - '<CORTX_PATH>/cli/conf/uds_setup.yaml'
-  elasticsearch:
-    - '<CORTX_PATH>/cli/conf/elasticsearch_setup.yaml'
-  ha:
-    - '<CORTX_PATH>/ha/conf/support.yaml'
-  utils:
-    - '<CORTX_PATH>/utils/conf/support.yaml'
+from cortx.utils.http import HttpClientException
+
+
+class S3ClientException(HttpClientException):
+    """
+    Base class for S3Client exceptions.
+    """
+    pass

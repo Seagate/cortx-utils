@@ -311,7 +311,6 @@ class AddNumKeysCmd:
             "# conf yaml:///tmp/test.conf addnumkeys\n\n")
         s_parser.set_defaults(func=ConfCli.add_num_keys)
 
-
 def main():
     # Setup Parser
     parser = argparse.ArgumentParser(description='Conf Store CLI',
