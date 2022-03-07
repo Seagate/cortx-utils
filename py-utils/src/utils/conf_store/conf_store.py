@@ -164,12 +164,12 @@ class ConfStore:
                                  index)
         return self._cache[index].get_data()
 
-    def delete(self, index: str, key: str):
+    def delete(self, index: str, key: str, force: bool = False):
         """ Delets a given key from the config """
         if index not in self._cache.keys():
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
-        return self._cache[index].delete(key)
+        return self._cache[index].delete(key, force)
 
     def search(self, index: str, parent_key: str, search_key: str,
         search_val: str = None) -> list:
@@ -279,9 +279,9 @@ class Conf:
         return Conf._conf.get(index, key, default_val, **filters)
 
     @staticmethod
-    def delete(index: str, key: str):
+    def delete(index: str, key: str, force: bool = False):
         """ Deletes a given key from the config """
-        is_deleted = Conf._conf.delete(index, key)
+        is_deleted = Conf._conf.delete(index, key, force)
         if is_deleted:
             Conf.save(index)
         return is_deleted
@@ -401,6 +401,6 @@ class MappedConf:
         """Returns value for the given key."""
         return Conf.get(self._conf_idx, key, default_val)
 
-    def delete(self, key: str):
+    def delete(self, key: str, force: bool = False):
         """Delete key from CORTX confstore."""
-        return Conf.delete(self._conf_idx, key)
+        return Conf.delete(self._conf_idx, key, force)
