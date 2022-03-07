@@ -327,7 +327,7 @@ class KvPayload:
         """ read operator for KV payload, i.e. kv['xxx'] """
         return self.get(key)
 
-    def _delete(self, key: str, data: dict):
+    def _delete(self, key: str, data: dict, force: bool = False):
         k = key.split(self._delim, 1)
 
         index = None
@@ -347,21 +347,27 @@ class KvPayload:
                 del data[k[0]][index]
                 return True
             else:
-                return self._delete(k[1], data[k[0]][index])
+                return self._delete(k[1], data[k[0]][index], force)
 
         if len(k) == 1:
-            del data[k[0]]
-            return True
+            # value of key being dict/list means it's not a leaf node
+            # or below nodes are deleted
+            is_key_leaf = True if type(data[k[0]]) not in [list, dict] else False
+            if is_key_leaf or force or (len(data[k[0]]) == 0):
+                del data[k[0]]
+                return True
+            else:
+                raise KvError(errno.EINVAL, "Key: %s is not leaf key", key)
         else:
-            return self._delete(k[1], data[k[0]])
+            return self._delete(k[1], data[k[0]], force)
 
-    def delete(self, key) -> bool:
+    def delete(self, key, force: bool = False) -> bool:
         """
         Deletes given set of keys from the dictionary
         Return Value:
         returns True if key existed/deleted. Returns False if key not found.
         """
-        rc = self._delete(key, self._data)
+        rc = self._delete(key, self._data, force)
         if rc == True and key in self._keys:
             del self._keys[self._keys.index(key)]
         return rc
