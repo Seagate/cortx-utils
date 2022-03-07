@@ -82,7 +82,7 @@ class TestStore(unittest.TestCase):
     loaded_properties = test_current_file(
         'properties:///tmp/example.properties')
     loaded_dir = test_current_file('dir:///tmp/conf_dir_test')
-    loaded_consul = test_current_file('consul:///')
+    loaded_consul = test_current_file('consul://')
     loaded_dict = test_current_file('dict:{"k1":"v1","k2":'
         '{"k3":"v3", "k4":[25,"v4",27]}}')
 
