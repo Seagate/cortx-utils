@@ -435,7 +435,7 @@ class TestStore(unittest.TestCase):
         self.assertEqual('', out)
 
     def test_no_left_shift_kvstore(self):
-        """Test and ensure left shift not happening"""
+        """Test and ensure left shift not happening."""
         TestStore.loaded_json[0].set(['bridge>name_list'], \
             [['1', '2', '3', '4']])
         initial_list = TestStore.loaded_json[0].get(['bridge>name_list'])
@@ -452,7 +452,6 @@ class TestStore(unittest.TestCase):
         """
         TestStore.loaded_json[0].set(['bridge>end_name_list'],\
             [['1', '2', '3', '4']])
-        initial_list = TestStore.loaded_json[0].get(['bridge>end_name_list'])
         TestStore.loaded_json[0].delete(['bridge>end_name_list[3]'])
         result_list = TestStore.loaded_json[0].get(['bridge>end_name_list'])
         self.assertEqual(len(result_list[0]), 3)
