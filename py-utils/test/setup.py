@@ -49,6 +49,7 @@ setup(
         "cortx.utils.test.ha_dm",
         "cortx.utils.test.cli_framework",
         "cortx.utils.test.iem_framework",
+        "cortx.utils.test.event_framework",
         "cortx.utils.test.consul_service",
         "cortx.utils.test.discovery",
         "cortx.utils.test.discovery.solution",
