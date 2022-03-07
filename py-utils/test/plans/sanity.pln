@@ -36,6 +36,8 @@ conf_store.test_conf_store_conf
 
 ### elastic_search.test_elasticsearch
 
+### event_framework.test_health_event
+
 ### iem_framework.test_iem_server
 iem_framework.test_iem_cli
 
