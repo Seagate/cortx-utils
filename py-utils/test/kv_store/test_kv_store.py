@@ -436,22 +436,21 @@ class TestStore(unittest.TestCase):
 
     def test_no_left_shift_kvstore(self):
         """Test and ensure left shift not happening."""
-        TestStore.loaded_json[0].set(['bridge>name_list'], \
-            [['1', '2', '3', '4']])
-        initial_list = TestStore.loaded_json[0].get(['bridge>name_list'])
+        TestStore.loaded_json[0].set(['bridge>name_list[0]',\
+            'bridge>name_list[1]', 'bridge>name_list[2]', 
+            'bridge>name_list[3]'], ['1', '2', '3', '4'])
         TestStore.loaded_json[0].delete(['bridge>name_list[1]'])
-        result_list = TestStore.loaded_json[0].get(['bridge>name_list'])
-        initial_list_elements = initial_list[0]
-        result_list_elements = result_list[0]
-        self.assertEqual(len(initial_list_elements),len(result_list_elements))
+        result_list = TestStore.loaded_json[0].get(['bridge>name_list[1]'])
+        self.assertIsNone(result_list[0])
 
     def test_no_left_shift_end_list_kvstore(self):
         """
         Test and ensure left shift not happening
         while deleting last element of a list
         """
-        TestStore.loaded_json[0].set(['bridge>end_name_list'],\
-            [['1', '2', '3', '4']])
+        TestStore.loaded_json[0].set(['bridge>end_name_list[0]',\
+            'bridge>end_name_list[1]', 'bridge>end_name_list[2]',\
+            'bridge>end_name_list[3]'], ['1', '2', '3', '4'])
         TestStore.loaded_json[0].delete(['bridge>end_name_list[3]'])
         result_list = TestStore.loaded_json[0].get(['bridge>end_name_list'])
         self.assertEqual(len(result_list[0]), 3)
