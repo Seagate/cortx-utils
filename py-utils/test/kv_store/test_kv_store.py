@@ -82,7 +82,7 @@ class TestStore(unittest.TestCase):
     loaded_properties = test_current_file(
         'properties:///tmp/example.properties')
     loaded_dir = test_current_file('dir:///tmp/conf_dir_test')
-    loaded_consul = test_current_file('consul:///')
+    # loaded_consul = test_current_file('consul:///')
     loaded_dict = test_current_file('dict:{"k1":"v1","k2":'
         '{"k3":"v3", "k4":[25,"v4",27]}}')
 
@@ -336,37 +336,37 @@ class TestStore(unittest.TestCase):
         self.assertEqual([None], out)
 
     # consul store
-    def test_consul_a_set_get_kv(self):
-        """ Test consul kv set and get a KV. """
-        TestStore.loaded_consul[0].set(['consul_cluster_uuid'], ['#410'])
-        out = TestStore.loaded_consul[0].get(['consul_cluster_uuid'])
-        self.assertEqual('#410', out[0])
+    # def test_consul_a_set_get_kv(self):
+    #     """ Test consul kv set and get a KV. """
+    #     TestStore.loaded_consul[0].set(['consul_cluster_uuid'], ['#410'])
+    #     out = TestStore.loaded_consul[0].get(['consul_cluster_uuid'])
+    #     self.assertEqual('#410', out[0])
 
-    def test_consul_b_query_unknown_key(self):
-        """ Test consul kv query for an absent key. """
-        out = TestStore.loaded_consul[0].get(['Wrong_key'])
-        self.assertIsNone(out[0])
+    # def test_consul_b_query_unknown_key(self):
+    #     """ Test consul kv query for an absent key. """
+    #     out = TestStore.loaded_consul[0].get(['Wrong_key'])
+    #     self.assertIsNone(out[0])
 
-    def test_consul_store_c_set_nested_key(self):
-        """ Test consul kv set a nested key. """
-        TestStore.loaded_consul[0].set(['consul_cluster>uuid'], ['#411'])
-        out = TestStore.loaded_consul[0].get(['consul_cluster>uuid'])
-        self.assertEqual('#411', out[0])
+    # def test_consul_store_c_set_nested_key(self):
+    #     """ Test consul kv set a nested key. """
+    #     TestStore.loaded_consul[0].set(['consul_cluster>uuid'], ['#411'])
+    #     out = TestStore.loaded_consul[0].get(['consul_cluster>uuid'])
+    #     self.assertEqual('#411', out[0])
 
-    def test_consul_store_d_set_multiple_kv(self):
-        """ Test consul kv by setting nested key structure """
-        TestStore.loaded_consul[0].set(['cloud>cloud_type', 'kafka>message_type'],
-            ['Azure', 'receive'])
-        out1 = TestStore.loaded_consul[0].get(['kafka>message_type'])
-        out2 = TestStore.loaded_consul[0].get(['cloud>cloud_type'])
-        self.assertEqual('receive', out1[0])
-        self.assertEqual('Azure', out2[0])
+    # def test_consul_store_d_set_multiple_kv(self):
+    #     """ Test consul kv by setting nested key structure """
+    #     TestStore.loaded_consul[0].set(['cloud>cloud_type', 'kafka>message_type'],
+    #         ['Azure', 'receive'])
+    #     out1 = TestStore.loaded_consul[0].get(['kafka>message_type'])
+    #     out2 = TestStore.loaded_consul[0].get(['cloud>cloud_type'])
+    #     self.assertEqual('receive', out1[0])
+    #     self.assertEqual('Azure', out2[0])
 
-    def test_consul_store_e_delete_kv(self):
-        """ Test consul kv by removing given key using delete api """
-        TestStore.loaded_consul[0].delete(['cloud>cloud_type'])
-        out = TestStore.loaded_consul[0].get(['cloud>cloud_type'])
-        self.assertEqual([None], out)
+    # def test_consul_store_e_delete_kv(self):
+    #     """ Test consul kv by removing given key using delete api """
+    #     TestStore.loaded_consul[0].delete(['cloud>cloud_type'])
+    #     out = TestStore.loaded_consul[0].get(['cloud>cloud_type'])
+    #     self.assertEqual([None], out)
 
     # dict store
     def test_001_dict_store_get_data_keys(self):
@@ -452,8 +452,9 @@ class TestStore(unittest.TestCase):
             'bridge>end_name_list[1]', 'bridge>end_name_list[2]',\
             'bridge>end_name_list[3]'], ['1', '2', '3', '4'])
         TestStore.loaded_json[0].delete(['bridge>end_name_list[3]'])
-        result_list = TestStore.loaded_json[0].get(['bridge>end_name_list'])
-        self.assertEqual(len(result_list[0]), 3)
+        TestStore.loaded_json[0].add_num_keys()
+        result_list = TestStore.loaded_json[0].get(['bridge>num_end_name_list'])
+        self.assertEqual(result_list[0], 3)
 
 
 if __name__ == '__main__':
