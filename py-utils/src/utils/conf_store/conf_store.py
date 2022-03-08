@@ -281,7 +281,7 @@ class Conf:
     @staticmethod
     def delete(index: str, key: str, force: bool = False):
         """ Deletes a given key from the config """
-        return Conf._conf.delete(index, key)
+        return Conf._conf.delete(index, key, force)
 
     @staticmethod
     def copy(src_index: str, dst_index: str, key_list: list = None,

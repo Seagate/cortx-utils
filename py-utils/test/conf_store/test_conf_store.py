@@ -488,9 +488,7 @@ class TestConfStore(unittest.TestCase):
         self.assertEqual(True, Conf.delete('test_file_1', 'a>b>c>d'))
         # Deleting empty intermediate key
         self.assertEqual(True, Conf.delete('test_file_1', 'a>b>c'))
-        # Delete non-leaf key with force:
-        self.assertEqual(True, Conf.delete('test_file_1', 'a>b', True))
-        # Delete top key with force:
+        # Delete non leaf key with force:
         self.assertEqual(True, Conf.delete('test_file_1', 'a', True))
         # Delete indexed key
         self.assertEqual(True,  Conf.delete('test_file_1', 'a1>b>c>d[0]'))
