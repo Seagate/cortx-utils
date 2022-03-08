@@ -281,10 +281,7 @@ class Conf:
     @staticmethod
     def delete(index: str, key: str, force: bool = False):
         """ Deletes a given key from the config """
-        is_deleted = Conf._conf.delete(index, key, force)
-        if is_deleted:
-            Conf.save(index)
-        return is_deleted
+        return Conf._conf.delete(index, key)
 
     @staticmethod
     def copy(src_index: str, dst_index: str, key_list: list = None,
@@ -342,7 +339,6 @@ class Conf:
     def add_num_keys(index):
         """Add "num_xxx" keys for all the list items in ine KV Store."""
         Conf._conf.add_num_keys(index)
-        Conf.save(index)
 
 
 class MappedConf:

@@ -336,6 +336,7 @@ class TestStore(unittest.TestCase):
         self.assertEqual([None], out)
 
     # consul store
+    # Fix it
     def test_consul_a_set_get_kv(self):
         """ Test consul kv set and get a KV. """
         TestStore.loaded_consul[0].set(['consul_cluster_uuid'], ['#410'])
@@ -433,6 +434,28 @@ class TestStore(unittest.TestCase):
         TestStore.loaded_dict[1].set('k1', '')
         out = TestStore.loaded_dict[1].get('k1')
         self.assertEqual('', out)
+
+    def test_no_left_shift_kvstore(self):
+        """Test and ensure left shift not happening."""
+        TestStore.loaded_json[0].set(['bridge>name_list[0]',\
+            'bridge>name_list[1]', 'bridge>name_list[2]',
+            'bridge>name_list[3]'], ['1', '2', '3', '4'])
+        TestStore.loaded_json[0].delete(['bridge>name_list[1]'])
+        result_list = TestStore.loaded_json[0].get(['bridge>name_list[1]'])
+        self.assertIsNone(result_list[0])
+
+    def test_no_left_shift_end_list_kvstore(self):
+        """
+        Test and ensure left shift not happening
+        while deleting last element of a list
+        """
+        TestStore.loaded_json[0].set(['bridge>end_name_list[0]',\
+            'bridge>end_name_list[1]', 'bridge>end_name_list[2]',\
+            'bridge>end_name_list[3]'], ['1', '2', '3', '4'])
+        TestStore.loaded_json[0].delete(['bridge>end_name_list[3]'])
+        TestStore.loaded_json[0].add_num_keys()
+        result_list = TestStore.loaded_json[0].get(['bridge>num_end_name_list'])
+        self.assertEqual(result_list[0], 3)
 
 
 if __name__ == '__main__':
