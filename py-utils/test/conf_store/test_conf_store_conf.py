@@ -56,7 +56,11 @@ class TestConfStore(unittest.TestCase):
 
         for index_url in load_index_url():
             index = index_url[0]
-            url = endpoint_key = index_url[1]
+            if 'consul' in index:
+                endpoint_key = index_url[1]
+                Conf.load('config', 'yaml:///etc/cortx/cluster.conf')
+                url = Conf.get('config', endpoint_key).replace('http', 'consul')
+            url = index_url[1]
             if index not in TestConfStore.indexes:
                 cls.indexes.append(index)
 
