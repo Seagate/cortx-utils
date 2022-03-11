@@ -1,8 +1,10 @@
 import yaml
 import os
 import unittest
-
+import logging
 from cortx.utils.conf_store import Conf
+
+LOGGER = logging.getLogger(__name__)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 url_config_file = os.path.join(dir_path, 'config.yaml')
@@ -45,8 +47,11 @@ class TestConfStore(unittest.TestCase):
                 endpoint_key = index_url[1]
                 load_config('config', cls.cluster_conf_path)
                 endpoint_url = Conf.get('config', 'endpoint_key')
-                print("------------endpoint_url--------------",endpoint_url)
-                url = endpoint_url.replace('http', 'consul')
+                if endpoint_url is not None:
+                    url = endpoint_url.replace('http', 'consul')
+                else:
+                    LOGGER.error(f'Invalid endpoint key : {endpoint_key}')
+
             load_config(index, url)
 
     def test_set_and_get(self):
