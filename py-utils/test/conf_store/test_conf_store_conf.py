@@ -21,23 +21,29 @@ def load_config(index, backend_url):
 class TestConfStore(unittest.TestCase):
     """ Test confstore backend urls mentioned in config file. """
 
+    _cluster_conf_path = ''
     indexes = []
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls, cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
         """ Setup test class. """
+        if TestConfStore._cluster_conf_path:
+            cls.cluster_conf_path = TestConfStore._cluster_conf_path
+        else:
+            cls.cluster_conf_path = cluster_conf_path
+
         for index_url in load_index_url():
             index = index_url[0]
             print(index)
             if 'consul' in index:
                 endpoint_key = index_url[1]
-                Conf.load('config', 'yaml:///etc/cortx/cluster.conf')
-                url = Conf.get('config', endpoint_key).replace('http', 'consul')
+                Conf.load('config', cls.cluster_conf_path)
+                cls.url = Conf.get('config', endpoint_key).replace('http', 'consul')
             else:
-                url = index_url[1]
+                cls.url = index_url[1]
             if index not in TestConfStore.indexes:
                 cls.indexes.append(index)
-            load_config(index, url)
+            load_config(index, cls.url)
 
     def test_set_and_get(self):
         """ Set and get the value for a key. """
@@ -79,4 +85,7 @@ class TestConfStore(unittest.TestCase):
             self.assertEqual(val, None)
 
 if __name__ == '__main__':
+    import sys
+    if len(sys.argv) >= 2:
+        TestConfStore._cluster_conf_path = sys.argv.pop()
     unittest.main()
