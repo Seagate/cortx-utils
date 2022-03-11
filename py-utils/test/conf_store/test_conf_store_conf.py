@@ -2,6 +2,7 @@ import yaml
 import os
 import unittest
 import logging
+import sys
 from cortx.utils.conf_store import Conf
 
 LOGGER = logging.getLogger(__name__)
@@ -51,6 +52,7 @@ class TestConfStore(unittest.TestCase):
                     url = endpoint_url.replace('http', 'consul')
                 else:
                     LOGGER.error(f'Invalid endpoint key : {endpoint_key}')
+                    sys.exit(1)
 
             load_config(index, url)
 
