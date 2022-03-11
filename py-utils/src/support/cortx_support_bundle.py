@@ -21,6 +21,7 @@ import argparse
 import inspect
 import sys
 import os
+import re
 import traceback
 from argparse import RawTextHelpFormatter
 
@@ -38,34 +39,39 @@ class CortxSupportBundle:
     def generate(args):
         """Generates support bundle for specified components."""
         from cortx.utils.support_framework.errors import BundleError
-        if not args.message:  # no message provided
-            raise BundleError("Please provide message, Why you are generating \
-                Support Bundle!")
         message = args.message[0]
+        if not message:
+            raise BundleError(errno.EINVAL, ("Please provide message, Why you are generating"
+                                             " Support Bundle!"))
+
         bundle_id = args.bundle_id[0]
-        path = args.location[0]
+        bundle_id = bundle_id.strip()
+        if not bundle_id:
+            raise BundleError(errno.EINVAL, "Please provide valid Bundle ID to generate support bundle!")
+        regex = re.compile('[@!#$%^&*()<>?/\|}{~:]')
+        if (regex.search(bundle_id) != None):
+            raise BundleError(errno.EINVAL, ("Please provide valid Bundle ID,"
+                                             "No special characters allowed in Bundle ID."))
+
+        path = args.location
         duration = args.duration
         size_limit = args.size_limit.upper()
         # size_limit should be in units - KB, MB or GB.
         units = ['KB', 'MB', 'GB']
         sb_size_unit = any(unit in size_limit for unit in units)
         if not sb_size_unit:
-            sys.stderr.write("Support Bundle size limit should be in KB/MB/GB units.\n")
-            sys.exit(1)
+            raise BundleError(errno.EINVAL, "Support Bundle size limit should be in KB/MB/GB units.\n")
         binlogs = args.binlogs
         coredumps = args.coredumps
         stacktrace = args.stacktrace
         components = args.modules
 
-        # Use default cortx conf url ('yaml:///etc/cortx/cluster.conf'),
-        # if not conf_url is parsed.
-        config_url = args.cluster_conf_path[0] if args.cluster_conf_path else const.DEFAULT_CORTX_CONF
+        config_url = args.cluster_conf_path[0]
         if 'file://' not in path:
-            sys.stderr.write(" Target path should be in file format.\n"
+            raise BundleError(errno.EINVAL, "Target path should be in file format.\n"
                 "Please specify the absolute target path.\n"
                 "For example:-\n"
                 "support_bundle generate -m 'test_cortx' -b 'abc' -t file:///var/cortx/support_bundle\n")
-            sys.exit(1)
         path = path.split('//')[1]
         os.makedirs(const.SB_PATH, exist_ok=True)
         bundle_obj = SupportBundle.generate(comment=message, target_path=path,
@@ -103,10 +109,10 @@ class GenerateCmd:
                 "#$ cortx_support_bundle generate generate -c <conf URL> -t <target URL> -b <bundle_id> -m <message>\n"
                 "For more help checkout cortx_support_bundle generate -h\n\n")
         s_parser.set_defaults(func=CortxSupportBundle.generate)
-        s_parser.add_argument('-c', '--cluster_conf_path', nargs='+', default='', \
-            help='Optional, Location- CORTX confstore file location.')
-        s_parser.add_argument('-t', '--location', nargs='+', required=True, \
-            help="Location- CORTX support bundle will be generated at specified location.")
+        s_parser.add_argument('-c', '--cluster_conf_path', nargs='+', required=True, \
+            help='Required, Location- CORTX confstore file location.')
+        s_parser.add_argument('-t', '--location', default='file:///var/cortx/support_bundle', \
+            help="Optional, Location- CORTX support bundle will be generated at specified location.")
         s_parser.add_argument('-b', '--bundle_id', nargs='+', required=True, \
             help='Bundle ID for Support Bundle')
         s_parser.add_argument('-m', '--message', nargs='+', required=True, \
@@ -143,8 +149,8 @@ class StatusCmd:
         s_parser.set_defaults(func=CortxSupportBundle.get_status)
         s_parser.add_argument('-b', '--bundle_id', nargs='+', default='', \
             help='Bundle ID of generated Support Bundle')
-        s_parser.add_argument('-c', '--cluster_conf_path', nargs='+', default='', \
-            help='Optional, Location- CORTX confstore file location.')
+        s_parser.add_argument('-c', '--cluster_conf_path', nargs='+', required=True, \
+            help='Required, Location- CORTX confstore file location.')
 
 def str2bool(value):
     if isinstance(value, bool):
