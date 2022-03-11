@@ -64,11 +64,11 @@ class TestConfStore(unittest.TestCase):
             if 'consul' in index.lower():
                 endpoint_key = index_url[1]
                 load_config('config', cls.cluster_conf_path)
-                endpoint_url = Conf.get('config', 'endpoint_key')
+                endpoint_url = Conf.get('config', endpoint_key)
                 if endpoint_url is not None:
                     url = endpoint_url.replace('http', 'consul')
                 else:
-                    LOGGER.error(f'Invalid endpoint key : {endpoint_key}')
+                    LOGGER.error(f'\nInvalid endpoint key : {endpoint_key}\n')
                     sys.exit(1)
 
             load_config(index, url)
