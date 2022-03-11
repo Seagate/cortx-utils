@@ -2,7 +2,6 @@ import yaml
 import os
 import unittest
 import logging
-import sys
 from cortx.utils.conf_store import Conf
 
 LOGGER = logging.getLogger(__name__)
@@ -22,6 +21,12 @@ def load_index_url():
 def load_config(index, backend_url):
     """ Instantiate and Load Config into constore. """
     Conf.load(index, backend_url)
+
+
+def load_consul_endpoint(endpoint_key, cluster_conf_url):
+    Conf.load('config', cluster_conf_url)
+    endpoint_url = Conf.get('config', endpoint_key)
+    return endpoint_url
 
 
 class TestConfStore(unittest.TestCase):
@@ -45,14 +50,11 @@ class TestConfStore(unittest.TestCase):
                 cls.indexes.append(index)
 
             if 'consul' in index.lower():
-                endpoint_key = index_url[1]
-                load_config('config', cls.cluster_conf_path)
-                endpoint_url = Conf.get('config', endpoint_key)
+                endpoint_url = load_consul_endpoint(index, cls.cluster_conf_path)
                 if endpoint_url is not None:
                     url = endpoint_url.replace('http', 'consul')
                 else:
-                    LOGGER.error(f'\nInvalid endpoint key : {endpoint_key}\n')
-                    sys.exit(1)
+                    LOGGER.error(f'\nInvalid consul endpoint key : {index}\n')
 
             load_config(index, url)
 
