@@ -29,6 +29,7 @@ dir_path = os.path.dirname(os.path.abspath('.'))
 url_config_file = os.path.join(dir_path, 'conf_store', 'config.yaml')
 
 
+
 def test_current_file(file_path):
     kv_store = KvStoreFactory.get_instance(file_path)
     data = kv_store.load()
