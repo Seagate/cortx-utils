@@ -19,10 +19,12 @@
 import unittest
 from cortx.utils.kv_store import KvStoreFactory
 
+
 def test_current_file(file_path):
     kv_store = KvStoreFactory.get_instance(file_path)
     data = kv_store.load()
     return [kv_store, data]
+
 
 class TestStore(unittest.TestCase):
 
@@ -74,5 +76,9 @@ class TestStore(unittest.TestCase):
         TestStore.loaded_consul[0].delete(['test>child_key>leaf_key'])
         self.assertEqual(['test>child_key>leaf_key'], out)
 
+
 if __name__ == '__main__':
+    import sys
+    if len(sys.argv) >= 2:
+        TestStore._cluster_conf_path = sys.argv.pop()
     unittest.main()

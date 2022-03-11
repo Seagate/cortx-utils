@@ -97,6 +97,7 @@ class TestConfStore(unittest.TestCase):
             val = Conf.get(index, 'K1')
             self.assertEqual(val, None)
 
+
 if __name__ == '__main__':
     import sys
     if len(sys.argv) >= 2:
