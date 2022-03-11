@@ -1,3 +1,2 @@
 conf_url_list:
   consul_test_index: 'cortx>external>consul>endpoints[1]'
-  test : 'json:///tmp/file1.json'
