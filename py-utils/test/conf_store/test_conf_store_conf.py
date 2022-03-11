@@ -7,6 +7,7 @@ from cortx.utils.conf_store import Conf
 dir_path = os.path.dirname(os.path.realpath(__file__))
 url_config_file = os.path.join(dir_path, 'config.yaml')
 
+
 def load_index_url():
     """ Load index and url from config file. """
     with open(url_config_file) as fd:
@@ -14,9 +15,11 @@ def load_index_url():
     for url_index in urls:
         yield [url_index, urls[url_index]]
 
+
 def load_config(index, backend_url):
     """ Instantiate and Load Config into constore. """
     Conf.load(index, backend_url)
+
 
 class TestConfStore(unittest.TestCase):
     """ Test confstore backend urls mentioned in config file. """
@@ -34,16 +37,15 @@ class TestConfStore(unittest.TestCase):
 
         for index_url in load_index_url():
             index = index_url[0]
-            print(index)
-            if 'consul' in index:
-                endpoint_key = index_url[1]
-                Conf.load('config', cls.cluster_conf_path)
-                cls.url = Conf.get('config', endpoint_key).replace('http', 'consul')
-            else:
-                cls.url = index_url[1]
+            url = index_url[1]
             if index not in TestConfStore.indexes:
                 cls.indexes.append(index)
-            load_config(index, cls.url)
+
+            if 'consul' in index:
+                endpoint_key = index_url[1]
+                load_config('config', cls.cluster_conf_path)
+                url = Conf.get('config', endpoint_key).replace('http', 'consul')
+            load_config(index, url)
 
     def test_set_and_get(self):
         """ Set and get the value for a key. """
