@@ -61,10 +61,12 @@ class TestConfStore(unittest.TestCase):
             if index not in TestConfStore.indexes:
                 cls.indexes.append(index)
 
-            if 'consul' in index:
+            if 'consul' in index.lower():
                 endpoint_key = index_url[1]
                 load_config('config', cls.cluster_conf_path)
-                url = Conf.get('config', endpoint_key).replace('http', 'consul')
+                endpoint_url = Conf.get('config', 'endpoint_key')
+                print("------------endpoint_url--------------",endpoint_url)
+                url = endpoint_url.replace('http', 'consul')
             load_config(index, url)
 
     def test_set_and_get(self):
