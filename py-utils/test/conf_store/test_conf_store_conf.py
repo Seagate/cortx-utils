@@ -43,37 +43,30 @@ def load_config(index, backend_url):
 class TestConfStore(unittest.TestCase):
     """ Test confstore backend urls mentioned in config file. """
 
+    _cluster_conf_path = ''
     indexes = []
     _cluster_conf_path = ''
 
     @classmethod
-    def setUpClass(cls):
-        """Setup test class."""
+    def setUpClass(cls, cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
+        """ Setup test class. """
         if TestConfStore._cluster_conf_path:
             cls.cluster_conf_path = TestConfStore._cluster_conf_path
         else:
-            cls.cluster_conf_path = 'yaml:///etc/cortx/cluster.conf'
+            cls.cluster_conf_path = cluster_conf_path
 
         for index_url in load_index_url():
             index = index_url[0]
             print(index)
             if 'consul' in index:
                 endpoint_key = index_url[1]
-                Conf.load('config', 'yaml:///etc/cortx/cluster.conf')
-                url = Conf.get('config', endpoint_key).replace('http', 'consul')
+                Conf.load('config', cls.cluster_conf_path)
+                cls.url = Conf.get('config', endpoint_key).replace('http', 'consul')
             else:
-                url = index_url[1]
+                cls.url = index_url[1]
             if index not in TestConfStore.indexes:
                 cls.indexes.append(index)
-
-            Conf.load('config', cls.cluster_conf_path)
-            endpoint_url = Conf.get('config', endpoint_key)
-            if endpoint_url is not None and 'http' in endpoint_url:
-                url = endpoint_url.replace('http', 'consul')
-            else:
-                LOGGER.error(f'\nInvalid consul endpoint key : {endpoint_key}\n')
-
-        load_config(index, url)
+            load_config(index, cls.url)
 
     def test_set_and_get(self):
         """ Set and get the value for a key. """
