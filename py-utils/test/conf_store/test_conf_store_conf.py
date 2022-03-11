@@ -45,13 +45,14 @@ class TestConfStore(unittest.TestCase):
 
         for index_url in load_index_url():
             index = index_url[0]
+            print(index)
             url = endpoint_key = index_url[1]
             if index not in TestConfStore.indexes:
                 cls.indexes.append(index)
 
             if 'consul' in index.lower():
                 endpoint_url = load_consul_endpoint(endpoint_key, cls.cluster_conf_path)
-                if endpoint_url is not None:
+                if endpoint_url is not None and 'http' in endpoint_url:
                     url = endpoint_url.replace('http', 'consul')
                 else:
                     LOGGER.error(f'\nInvalid consul endpoint key : {endpoint_key}\n')
