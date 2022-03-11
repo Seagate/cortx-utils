@@ -57,16 +57,15 @@ class TestConfStore(unittest.TestCase):
 
         for index_url in load_index_url():
             index = index_url[0]
-            print(index)
-            if 'consul' in index:
-                endpoint_key = index_url[1]
-                Conf.load('config', cls.cluster_conf_path)
-                cls.url = Conf.get('config', endpoint_key).replace('http', 'consul')
-            else:
-                cls.url = index_url[1]
+            url = index_url[1]
             if index not in TestConfStore.indexes:
                 cls.indexes.append(index)
-            load_config(index, cls.url)
+
+            if 'consul' in index:
+                endpoint_key = index_url[1]
+                load_config('config', cls.cluster_conf_path)
+                url = Conf.get('config', endpoint_key).replace('http', 'consul')
+            load_config(index, url)
 
     def test_set_and_get(self):
         """ Set and get the value for a key. """
