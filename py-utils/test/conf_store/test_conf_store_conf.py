@@ -41,12 +41,6 @@ def load_config(index, backend_url):
     Conf.load(index, backend_url)
 
 
-def load_consul_endpoint(endpoint_key, cluster_conf_url):
-    Conf.load('config', cluster_conf_url)
-    endpoint_url = Conf.get('config', endpoint_key)
-    return endpoint_url
-
-
 class TestConfStore(unittest.TestCase):
     """ Test confstore backend urls mentioned in config file. """
 
@@ -67,7 +61,8 @@ class TestConfStore(unittest.TestCase):
             if index not in TestConfStore.indexes:
                 cls.indexes.append(index)
 
-            endpoint_url = load_consul_endpoint(endpoint_key, cls.cluster_conf_path)
+            Conf.load('config', cls.cluster_conf_path)
+            endpoint_url = Conf.get('config', endpoint_key)
             if endpoint_url is not None and 'http' in endpoint_url:
                 url = endpoint_url.replace('http', 'consul')
             else:
