@@ -40,7 +40,7 @@ def load_index_url():
         urls = yaml.safe_load(fd)['conf_url_list']
     for url_index in urls.keys():
         if 'consul' in url_index:
-            yield [url_index, urls[url_index]]
+            yield urls[url_index]
 
 def load_consul_endpoint(endpoint_key, cluster_conf_url):
     Conf.load('config', cluster_conf_url)
