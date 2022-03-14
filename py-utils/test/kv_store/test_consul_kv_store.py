@@ -15,14 +15,14 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
-
+import yaml
 import unittest
 import os
 from cortx.utils.kv_store import KvStoreFactory
 from cortx.utils.conf_store import Conf
 
-dir_path = os.path.dirname(os.path.abspath('..'))
-url_config_file = os.path.join(dir_path, 'conf_store', ''config.yaml')
+dir_path = os.path.dirname(os.path.abspath('.'))
+url_config_file = os.path.join(dir_path, 'conf_store', 'config.yaml')
 print(dir_path)
 print(url_config_file)
 
