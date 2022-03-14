@@ -31,6 +31,13 @@ def test_current_file(file_path):
     print("-----------------data------------------", data)
     return [kv_store, data]
 
+def load_index_url():
+    """ Load index and url from config file. """
+    with open(url_config_file) as fd:
+        urls = yaml.safe_load(fd)['conf_url_list']
+    for url_index in urls:
+        yield [url_index, urls[url_index]]
+
 def load_consul_endpoint(endpoint_key, cluster_conf_url):
     Conf.load('config', cluster_conf_url)
     endpoint_url = Conf.get('config', endpoint_key)
