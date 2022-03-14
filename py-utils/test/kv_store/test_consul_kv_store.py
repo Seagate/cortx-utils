@@ -37,30 +37,33 @@ def test_current_file(file_path):
 
 
 class TestStore(unittest.TestCase):
-
     _cluster_conf_path = ''
     loaded_consul = ''
+    indexes = []
 
     @classmethod
-    def setUpClass(cls):
-        """Setup test class."""
+    def setUpClass(cls, cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
+        """ Setup test class. """
         if TestStore._cluster_conf_path:
-            cls.cluster_conf_path = TestStore._cluster_conf_path
+            cls.cluster_conf_path = TestConfStore._cluster_conf_path
         else:
-            cls.cluster_conf_path = 'yaml:///etc/cortx/cluster.conf'
+            cls.cluster_conf_path = cluster_conf_path
 
-        with open(url_config_file) as fd:
-            urls = yaml.safe_load(fd)['conf_url_list']
-            endpoint_key = urls['consul_endpoints']
+        for index_url in load_index_url():
+            index = index_url[0]
+            print(index)
+            url = endpoint_key = index_url[1]
+            if index not in TestConfStore.indexes:
+                cls.indexes.append(index)
 
-        Conf.load('config', cls.cluster_conf_path)
-        endpoint_url = Conf.get('config', endpoint_key)
+            endpoint_url = load_consul_endpoint(endpoint_key, cls.cluster_conf_path)
+            if endpoint_url is not None and 'http' in endpoint_url:
+                url = endpoint_url.replace('http', 'consul')
+            else:
+                LOGGER.error(f'\nInvalid consul endpoint key : {endpoint_key}\n')
 
-        if endpoint_url is not None and 'http' in endpoint_url:
-            url = endpoint_url.replace('http', 'consul')
-        else:
-            LOGGER.error(f'\nInvalid consul endpoint key : {endpoint_key}\n')
         TestStore.loaded_consul = test_current_file(url)
+        print("-------------loaded_consul--------------", TestStore.loaded_consul)
 
     def test_consul_a_set_get_kv(self):
         """ Test consul kv set and get a KV. """
