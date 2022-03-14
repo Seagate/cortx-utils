@@ -42,7 +42,6 @@ properties_file = os.path.join(dir_path, 'properties.txt')
 sample_config = Json(file_path).load()
 
 
-
 def setup_and_generate_sample_files():
     """ This function will generate all required types of file """
 
