@@ -61,13 +61,13 @@ class TestStore(unittest.TestCase):
         else:
             cls.cluster_conf_path = cluster_conf_path
 
-        index_url = load_index_url()
-        url = endpoint_key = index_url[1]
-        endpoint_url = load_consul_endpoint(endpoint_key, cls.cluster_conf_path)
-        if endpoint_url is not None and 'http' in endpoint_url:
-            url = endpoint_url.replace('http', 'consul')
-        else:
-            LOGGER.error(f'\nInvalid consul endpoint key : {endpoint_key}\n')
+        for index_url in load_index_url():
+            url = endpoint_key = index_url[0]
+            endpoint_url = load_consul_endpoint(endpoint_key, cls.cluster_conf_path)
+            if endpoint_url is not None and 'http' in endpoint_url:
+                url = endpoint_url.replace('http', 'consul')
+            else:
+                LOGGER.error(f'\nInvalid consul endpoint key : {endpoint_key}\n')
 
         TestStore.loaded_consul = test_current_file(url)
         print("-------------loaded_consul--------------", TestStore.loaded_consul)
