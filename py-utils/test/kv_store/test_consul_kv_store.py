@@ -15,6 +15,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
+
 import yaml
 import unittest
 import os
@@ -37,18 +38,20 @@ def load_index_url():
     """ Load index and url from config file. """
     with open(url_config_file) as fd:
         urls = yaml.safe_load(fd)['conf_url_list']
-    for url_index in urls:
-        yield [url_index, urls[url_index]]
+    for url_index in urls.keys():
+        if 'consul' in url_index:
+            yield [url_index, urls[url_index]]
 
 def load_consul_endpoint(endpoint_key, cluster_conf_url):
     Conf.load('config', cluster_conf_url)
     endpoint_url = Conf.get('config', endpoint_key)
     return endpoint_url
 
+
 class TestStore(unittest.TestCase):
+
     _cluster_conf_path = ''
     loaded_consul = ''
-    indexes = []
 
     @classmethod
     def setUpClass(cls, cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
@@ -58,18 +61,13 @@ class TestStore(unittest.TestCase):
         else:
             cls.cluster_conf_path = cluster_conf_path
 
-        for index_url in load_index_url():
-            index = index_url[0]
-            print(index)
-            url = endpoint_key = index_url[1]
-            if index not in TestStore.indexes:
-                cls.indexes.append(index)
-
-            endpoint_url = load_consul_endpoint(endpoint_key, cls.cluster_conf_path)
-            if endpoint_url is not None and 'http' in endpoint_url:
-                url = endpoint_url.replace('http', 'consul')
-            else:
-                LOGGER.error(f'\nInvalid consul endpoint key : {endpoint_key}\n')
+        index_url = load_index_url()
+        url = endpoint_key = index_url[1]
+        endpoint_url = load_consul_endpoint(endpoint_key, cls.cluster_conf_path)
+        if endpoint_url is not None and 'http' in endpoint_url:
+            url = endpoint_url.replace('http', 'consul')
+        else:
+            LOGGER.error(f'\nInvalid consul endpoint key : {endpoint_key}\n')
 
         TestStore.loaded_consul = test_current_file(url)
         print("-------------loaded_consul--------------", TestStore.loaded_consul)
