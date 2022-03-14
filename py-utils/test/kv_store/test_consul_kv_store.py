@@ -17,10 +17,14 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import unittest
+import os
 from cortx.utils.kv_store import KvStoreFactory
 from cortx.utils.conf_store import Conf
 
+dir_path = os.path.dirname(os.path.abspath('..'))
 url_config_file = os.path.join(dir_path, 'config.yaml')
+print(dir_path)
+print(url_config_file)
 
 def test_current_file(file_path):
     kv_store = KvStoreFactory.get_instance(file_path)
