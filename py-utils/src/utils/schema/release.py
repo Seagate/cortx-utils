@@ -44,7 +44,7 @@ class Release(Manifest):
     def get_component_version(self, component: str):
         """Return component version."""
         rpms = self._get_val('COMPONENTS')
-        component_rpm = self._get_elem_from_list(component, rpms)
+        component_rpm = self._get_rpm_from_list(component, rpms)
         version = self._get_rpm_version(component_rpm)
         # Remove git_hash from rpm_version.
         while version.find('_') != -1:
@@ -92,13 +92,13 @@ class Release(Manifest):
         return ret_code
 
     @staticmethod
-    def _get_elem_from_list(sub_str: str, search_list: list):
-        """Get elements from list which contain given sub_str."""
+    def _get_rpm_from_list(component: str, search_list: list):
+        """Search rpm name for given component in rpm list."""
         matched_string = ''
         try:
-            matched_string = [x for x in search_list if sub_str in x][0]
+            matched_string = [x for x in search_list if component in x][0]
         except IndexError:
-            raise Exception(f'Key not found for key {sub_str} in {search_list}.')
+            raise Exception(f'RPM not found for {component} component.')
         return matched_string
 
     @staticmethod
