@@ -48,10 +48,10 @@ DATABASE = {
         },
         {
             "import_path": "cortx.utils.product_features.model.UnsupportedFeaturesModel",
-            "database": "es_db",
+            "database": "consul_db",
             "config": {
-                "es_db": {
-                    "collection": "config"
+                "consul_db": {
+                    "collection": "unsupported_features"
                 }
             }
         },
