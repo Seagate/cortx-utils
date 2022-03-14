@@ -20,6 +20,7 @@ import unittest
 from cortx.utils.kv_store import KvStoreFactory
 from cortx.utils.conf_store import Conf
 
+url_config_file = os.path.join(dir_path, 'config.yaml')
 
 def test_current_file(file_path):
     kv_store = KvStoreFactory.get_instance(file_path)
