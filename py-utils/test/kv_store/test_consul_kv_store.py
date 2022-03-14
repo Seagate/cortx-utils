@@ -18,20 +18,19 @@
 
 import yaml
 import unittest
+import logging
 import os
 from cortx.utils.kv_store import KvStoreFactory
 from cortx.utils.conf_store import Conf
 
+LOGGER = logging.getLogger(__name__)
+
 dir_path = os.path.dirname(os.path.abspath('.'))
 url_config_file = os.path.join(dir_path, 'conf_store', 'config.yaml')
-print(dir_path)
-print(url_config_file)
 
 def test_current_file(file_path):
     kv_store = KvStoreFactory.get_instance(file_path)
     data = kv_store.load()
-    print("-----------------kv_store------------------", kv_store)
-    print("-----------------data------------------", data)
     return [kv_store, data]
 
 def load_index_url():
@@ -61,16 +60,14 @@ class TestStore(unittest.TestCase):
         else:
             cls.cluster_conf_path = cluster_conf_path
 
-        for index_url in load_index_url():
-            url = endpoint_key = index_url[0]
+        for endpoint_key in load_index_url():
             endpoint_url = load_consul_endpoint(endpoint_key, cls.cluster_conf_path)
             if endpoint_url is not None and 'http' in endpoint_url:
                 url = endpoint_url.replace('http', 'consul')
             else:
-                LOGGER.error(f'\nInvalid consul endpoint key : {endpoint_key}\n')
+                #LOGGER.error(f'\nInvalid consul endpoint key : {endpoint_key}\n')
 
         TestStore.loaded_consul = test_current_file(url)
-        print("-------------loaded_consul--------------", TestStore.loaded_consul)
 
     def test_consul_a_set_get_kv(self):
         """ Test consul kv set and get a KV. """
