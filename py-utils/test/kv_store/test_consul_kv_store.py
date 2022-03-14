@@ -27,8 +27,33 @@ def test_current_file(file_path):
 
 
 class TestStore(unittest.TestCase):
+    _cluster_conf_path = ''
+    loaded_consul = ''
+    indexes = []
 
-    loaded_consul = test_current_file('consul://')
+    @classmethod
+    def setUpClass(cls, cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
+        """ Setup test class. """
+        if TestStore._cluster_conf_path:
+            cls.cluster_conf_path = TestConfStore._cluster_conf_path
+        else:
+            cls.cluster_conf_path = cluster_conf_path
+
+        for index_url in load_index_url():
+            index = index_url[0]
+            print(index)
+            url = endpoint_key = index_url[1]
+            if index not in TestConfStore.indexes:
+                cls.indexes.append(index)
+
+            endpoint_url = load_consul_endpoint(endpoint_key, cls.cluster_conf_path)
+            if endpoint_url is not None and 'http' in endpoint_url:
+                url = endpoint_url.replace('http', 'consul')
+            else:
+                LOGGER.error(f'\nInvalid consul endpoint key : {endpoint_key}\n')
+
+        TestStore.loaded_consul = test_current_file(url)
+        print("-------------loaded_consul--------------", TestStore.loaded_consul)
 
     def test_consul_a_set_get_kv(self):
         """ Test consul kv set and get a KV. """
