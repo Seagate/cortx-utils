@@ -42,6 +42,7 @@ properties_file = os.path.join(dir_path, 'properties.txt')
 sample_config = Json(file_path).load()
 
 
+
 def setup_and_generate_sample_files():
     """ This function will generate all required types of file """
 
@@ -91,10 +92,11 @@ class TestStore(unittest.TestCase):
     _cluster_conf_path = ''
 
     @classmethod
-    def setUpClass(cls):
-        """Setup test class."""
+    def setUpClass(cls, cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
+
+        """ Setup test class. """
         TestStore.loaded_json = test_current_file('json:///tmp/file.json')
-        TestStore.loaded_toml = test_current_file('toml:///tmp/document.toml')
+        TestStore.loaded_yaml = test_current_file('toml:///tmp/document.toml')
         TestStore.loaded_yaml = test_current_file('yaml:///tmp/sample.yaml')
         TestStore.loaded_ini = test_current_file('ini:///tmp/test.ini')
         TestStore.loaded_properties = test_current_file(
@@ -103,11 +105,11 @@ class TestStore(unittest.TestCase):
         TestStore.loaded_dict = test_current_file('dict:{"k1":"v1","k2":'
                                         '{"k3":"v3", "k4":[25,"v4",27]}}')
 
-        #Get consul endpoints
+        # Get consul endpoints
         if TestStore._cluster_conf_path:
             cls.cluster_conf_path = TestStore._cluster_conf_path
         else:
-            cls.cluster_conf_path = 'yaml:///etc/cortx/cluster.conf'
+            cls.cluster_conf_path = cluster_conf_path
 
         with open(url_config_file) as fd:
             urls = yaml.safe_load(fd)['conf_url_list']
@@ -131,7 +133,7 @@ class TestStore(unittest.TestCase):
         """
         Test Kv JSON store by retrieving value of given key from the jsonstore
         """
-        result_data = TestStore.loaded_json[0].get(['bridge>port'])
+        result_data = TestStore.TestStore.loaded_json[0].get(['bridge>port'])
         self.assertEqual(result_data[0], 51826)
 
     def test_json_file_set(self):
@@ -139,16 +141,16 @@ class TestStore(unittest.TestCase):
         Test kv JSON store by setting the value of given key, value to the
         jsonstore
         """
-        TestStore.loaded_json[0].set(['user'], ['kvstore'])
-        result_data = TestStore.loaded_json[0].get(['user'])
+        TestStore.TestStore.loaded_json[0].set(['user'], ['kvstore'])
+        result_data = TestStore.TestStore.loaded_json[0].get(['user'])
         self.assertEqual(result_data[0], 'kvstore')
 
     def test_json_delete(self):
         """
         Test kv JSON store by removing given key and its value from jsonstore
         """
-        TestStore.loaded_json[0].delete(['bridge>name'])
-        result_data = TestStore.loaded_json[0].get(['bridge>name'])
+        TestStore.TestStore.loaded_json[0].delete(['bridge>name'])
+        result_data = TestStore.TestStore.loaded_json[0].get(['bridge>name'])
         self.assertEqual(result_data[0], None)
 
     # YAML store
@@ -182,27 +184,27 @@ class TestStore(unittest.TestCase):
     # TOML store
     def test_toml_file_load(self):
         """Test Kv TOML store. load toml store from toml:///tmp/document.toml"""
-        result_data = TestStore.loaded_toml[1].get('bridge>model')
+        result_data = TestStore.TestStore.TestStore.loaded_yaml[1].get('bridge>model')
         self.assertEqual(result_data, "homebridge")
 
     def test_toml_get(self):
         """Test Kv toml store by retrieving value of given key from the
         tomlstore"""
-        result_data = TestStore.loaded_toml[0].get(['bridge>model'])
+        result_data = TestStore.TestStore.TestStore.loaded_yaml[0].get(['bridge>model'])
         self.assertEqual(result_data[0], "homebridge")
 
     def test_toml_by_set(self):
         """Test kv TOML store by setting the value of given key, value to the
         tomlstore"""
-        TestStore.loaded_toml[0].set(['user'], ['kvstore'])
-        result_data = TestStore.loaded_toml[0].get(['user'])
+        TestStore.TestStore.TestStore.loaded_yaml[0].set(['user'], ['kvstore'])
+        result_data = TestStore.TestStore.TestStore.loaded_yaml[0].get(['user'])
         self.assertEqual(result_data[0], "kvstore")
 
     def test_toml_delete(self):
         """Test kv TOML store by removing given key and its value from
         tomlstore"""
-        TestStore.loaded_toml[0].delete(['user'])
-        result_data = TestStore.loaded_toml[0].get(['user'])
+        TestStore.TestStore.TestStore.loaded_yaml[0].delete(['user'])
+        result_data = TestStore.TestStore.TestStore.loaded_yaml[0].get(['user'])
         self.assertEqual(result_data[0], None)
 
     # Ini store
