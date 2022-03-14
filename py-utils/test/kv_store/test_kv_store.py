@@ -185,27 +185,27 @@ class TestStore(unittest.TestCase):
     # TOML store
     def test_toml_file_load(self):
         """Test Kv TOML store. load toml store from toml:///tmp/document.toml"""
-        result_data = TestStore.TestStore.loaded_yaml[1].get('bridge>model')
+        result_data = TestStore.loaded_yaml[1].get('bridge>model')
         self.assertEqual(result_data, "homebridge")
 
     def test_toml_get(self):
         """Test Kv toml store by retrieving value of given key from the
         tomlstore"""
-        result_data = TestStore.TestStore.loaded_yaml[0].get(['bridge>model'])
+        result_data = TestStore.loaded_yaml[0].get(['bridge>model'])
         self.assertEqual(result_data[0], "homebridge")
 
     def test_toml_by_set(self):
         """Test kv TOML store by setting the value of given key, value to the
         tomlstore"""
-        TestStore.TestStore.loaded_yaml[0].set(['user'], ['kvstore'])
-        result_data = TestStore.TestStore.loaded_yaml[0].get(['user'])
+        TestStore.loaded_yaml[0].set(['user'], ['kvstore'])
+        result_data = TestStore.loaded_yaml[0].get(['user'])
         self.assertEqual(result_data[0], "kvstore")
 
     def test_toml_delete(self):
         """Test kv TOML store by removing given key and its value from
         tomlstore"""
-        TestStore.TestStore.loaded_yaml[0].delete(['user'])
-        result_data = TestStore.TestStore.loaded_yaml[0].get(['user'])
+        TestStore.loaded_yaml[0].delete(['user'])
+        result_data = TestStore.loaded_yaml[0].get(['user'])
         self.assertEqual(result_data[0], None)
 
     # Ini store
