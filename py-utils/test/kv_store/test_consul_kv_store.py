@@ -18,13 +18,20 @@
 
 import unittest
 from cortx.utils.kv_store import KvStoreFactory
+from cortx.utils.conf_store import Conf
 
 
 def test_current_file(file_path):
     kv_store = KvStoreFactory.get_instance(file_path)
     data = kv_store.load()
+    print("-----------------kv_store------------------", kv_store)
+    print("-----------------data------------------", data)
     return [kv_store, data]
 
+def load_consul_endpoint(endpoint_key, cluster_conf_url):
+    Conf.load('config', cluster_conf_url)
+    endpoint_url = Conf.get('config', endpoint_key)
+    return endpoint_url
 
 class TestStore(unittest.TestCase):
     _cluster_conf_path = ''
