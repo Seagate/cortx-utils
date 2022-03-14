@@ -54,7 +54,7 @@ class TestStore(unittest.TestCase):
     def setUpClass(cls, cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
         """ Setup test class. """
         if TestStore._cluster_conf_path:
-            cls.cluster_conf_path = TestConfStore._cluster_conf_path
+            cls.cluster_conf_path = TestStore._cluster_conf_path
         else:
             cls.cluster_conf_path = cluster_conf_path
 
@@ -62,7 +62,7 @@ class TestStore(unittest.TestCase):
             index = index_url[0]
             print(index)
             url = endpoint_key = index_url[1]
-            if index not in TestConfStore.indexes:
+            if index not in TestStore.indexes:
                 cls.indexes.append(index)
 
             endpoint_url = load_consul_endpoint(endpoint_key, cls.cluster_conf_path)
