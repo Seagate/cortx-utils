@@ -41,13 +41,12 @@ class TestStore(unittest.TestCase):
     loaded_consul = ''
 
     @classmethod
-    def setUpClass(cls, \
-        cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
+    def setUpClass(cls):
         """Setup test class."""
         if TestStore._cluster_conf_path:
             cls.cluster_conf_path = TestStore._cluster_conf_path
         else:
-            cls.cluster_conf_path = cluster_conf_path
+            cls.cluster_conf_path = 'yaml:///etc/cortx/cluster.conf'
 
         with open(url_config_file) as fd:
             urls = yaml.safe_load(fd)['conf_url_list']
