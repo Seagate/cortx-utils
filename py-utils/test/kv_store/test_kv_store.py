@@ -103,7 +103,7 @@ class TestStore(unittest.TestCase):
         TestStore.loaded_dict = test_current_file('dict:{"k1":"v1","k2":'
                                         '{"k3":"v3", "k4":[25,"v4",27]}}')
 
-        #Get consul endpoints
+        # Get consul endpoints
         if TestStore._cluster_conf_path:
             cls.cluster_conf_path = TestStore._cluster_conf_path
         else:
@@ -118,7 +118,7 @@ class TestStore(unittest.TestCase):
         if endpoint_url is not None and 'http' in endpoint_url:
             url = endpoint_url.replace('http', 'consul')
         else:
-            LOGGER.error(f'\nInvalid consul endpoint key : {endpoint_key}\n')
+            LOGGER.error(f'Invalid consul endpoint key : {endpoint_key}')
         TestStore.loaded_consul = test_current_file(url)
 
 
