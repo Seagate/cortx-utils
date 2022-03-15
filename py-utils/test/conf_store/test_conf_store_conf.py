@@ -65,7 +65,7 @@ class TestConfStore(unittest.TestCase):
             if endpoint_url is not None and 'http' in endpoint_url:
                 url = endpoint_url.replace('http', 'consul')
             else:
-                LOGGER.error(f'\nInvalid consul endpoint key : {endpoint_key}\n')
+                LOGGER.error(f'Invalid consul endpoint key : {endpoint_key}')
 
         load_config(index, url)
 
