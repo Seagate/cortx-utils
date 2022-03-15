@@ -59,7 +59,6 @@ class TestStore(unittest.TestCase):
             url = endpoint_url.replace('http', 'consul')
         else:
             LOGGER.error(f'\nInvalid consul endpoint key : {endpoint_key}\n')
-
         TestStore.loaded_consul = test_current_file(url)
 
     def test_consul_a_set_get_kv(self):
