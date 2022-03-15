@@ -48,8 +48,7 @@ class TestConfStore(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls,
-                   cluster_conf_path:
-                   str = 'yaml:///etc/cortx/cluster.conf'):
+        cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
         """Setup test class."""
         if TestConfStore._cluster_conf_path:
             cls.cluster_conf_path = TestConfStore._cluster_conf_path
