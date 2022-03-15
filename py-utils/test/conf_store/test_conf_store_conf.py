@@ -19,7 +19,6 @@ import yaml
 import unittest
 import logging
 import os
-from cortx.utils.kv_store import KvStoreFactory
 from cortx.utils.conf_store import Conf
 
 LOGGER = logging.getLogger(__name__)
@@ -48,7 +47,9 @@ class TestConfStore(unittest.TestCase):
     _cluster_conf_path = ''
 
     @classmethod
-    def setUpClass(cls, cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
+    def setUpClass(cls,
+                   cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
+
         """ Setup test class. """
         if TestConfStore._cluster_conf_path:
             cls.cluster_conf_path = TestConfStore._cluster_conf_path
