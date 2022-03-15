@@ -104,7 +104,7 @@ class TestStore(unittest.TestCase):
         TestStore.loaded_dict = test_current_file('dict:{"k1":"v1","k2":'
                                         '{"k3":"v3", "k4":[25,"v4",27]}}')
 
-        # Get consul endpoints
+        #Get consul endpoints
         if TestStore._cluster_conf_path:
             cls.cluster_conf_path = TestStore._cluster_conf_path
         else:
@@ -113,7 +113,6 @@ class TestStore(unittest.TestCase):
         with open(url_config_file) as fd:
             urls = yaml.safe_load(fd)['conf_url_list']
             endpoint_key = urls['consul_endpoints']
-
         Conf.load('config', cls.cluster_conf_path)
         endpoint_url = Conf.get('config', endpoint_key)
 
@@ -121,7 +120,6 @@ class TestStore(unittest.TestCase):
             url = endpoint_url.replace('http', 'consul')
         else:
             LOGGER.error(f'\nInvalid consul endpoint key : {endpoint_key}\n')
-
         TestStore.loaded_consul = test_current_file(url)
 
 
