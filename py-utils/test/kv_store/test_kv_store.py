@@ -94,7 +94,7 @@ class TestStore(unittest.TestCase):
     def setUpClass(cls):
         """Setup test class."""
         TestStore.loaded_json = test_current_file('json:///tmp/file.json')
-        TestStore.loaded_yaml = test_current_file('toml:///tmp/document.toml')
+        TestStore.loaded_toml = test_current_file('toml:///tmp/document.toml')
         TestStore.loaded_yaml = test_current_file('yaml:///tmp/sample.yaml')
         TestStore.loaded_ini = test_current_file('ini:///tmp/test.ini')
         TestStore.loaded_properties = test_current_file(
@@ -182,27 +182,27 @@ class TestStore(unittest.TestCase):
     # TOML store
     def test_toml_file_load(self):
         """Test Kv TOML store. load toml store from toml:///tmp/document.toml"""
-        result_data = TestStore.loaded_yaml[1].get('bridge>model')
+        result_data = TestStore.loaded_toml[1].get('bridge>model')
         self.assertEqual(result_data, "homebridge")
 
     def test_toml_get(self):
         """Test Kv toml store by retrieving value of given key from the
         tomlstore"""
-        result_data = TestStore.loaded_yaml[0].get(['bridge>model'])
+        result_data = TestStore.loaded_toml[0].get(['bridge>model'])
         self.assertEqual(result_data[0], "homebridge")
 
     def test_toml_by_set(self):
         """Test kv TOML store by setting the value of given key, value to the
         tomlstore"""
-        TestStore.loaded_yaml[0].set(['user'], ['kvstore'])
-        result_data = TestStore.loaded_yaml[0].get(['user'])
+        TestStore.loaded_toml[0].set(['user'], ['kvstore'])
+        result_data = TestStore.loaded_toml[0].get(['user'])
         self.assertEqual(result_data[0], "kvstore")
 
     def test_toml_delete(self):
         """Test kv TOML store by removing given key and its value from
         tomlstore"""
-        TestStore.loaded_yaml[0].delete(['user'])
-        result_data = TestStore.loaded_yaml[0].get(['user'])
+        TestStore.loaded_toml[0].delete(['user'])
+        result_data = TestStore.loaded_toml[0].get(['user'])
         self.assertEqual(result_data[0], None)
 
     # Ini store
