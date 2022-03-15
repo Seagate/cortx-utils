@@ -91,7 +91,8 @@ class TestStore(unittest.TestCase):
     _cluster_conf_path = ''
 
     @classmethod
-    def setUpClass(cls, cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
+    def setUpClass(cls,
+                   cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
 
         """ Setup test class. """
         TestStore.loaded_json = test_current_file('json:///tmp/file.json')
@@ -473,7 +474,6 @@ class TestStore(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    import sys
     if len(sys.argv) >= 2:
         TestStore._cluster_conf_path = sys.argv.pop()
     unittest.main()
