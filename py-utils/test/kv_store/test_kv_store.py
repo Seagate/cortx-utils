@@ -93,7 +93,7 @@ class TestStore(unittest.TestCase):
     @classmethod
     def setUpClass(cls, \
                    cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
-        """ Setup test class. """
+        """Setup test class."""
         TestStore.loaded_json = test_current_file('json:///tmp/file.json')
         TestStore.loaded_yaml = test_current_file('toml:///tmp/document.toml')
         TestStore.loaded_yaml = test_current_file('yaml:///tmp/sample.yaml')
