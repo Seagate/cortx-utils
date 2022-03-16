@@ -1,7 +1,7 @@
 # !/usr/bin/env python3
 
 # CORTX Python common library.
-# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
+# Copyright (c) 2022 Seagate Technology LLC and/or its Affiliates
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -19,7 +19,9 @@ import yaml
 import unittest
 import logging
 import os
+import errno
 from cortx.utils.conf_store import Conf
+from cortx.utils.conf_store.error import ConfError
 
 LOGGER = logging.getLogger(__name__)
 
@@ -65,8 +67,7 @@ class TestConfStore(unittest.TestCase):
             if endpoint_url is not None and 'http' in endpoint_url:
                 url = endpoint_url.replace('http', 'consul')
             else:
-                LOGGER.error(f'Invalid consul endpoint key : {endpoint_key}')
-
+                raise ConfError(errno.EINVAL, "Invalid consul endpoint key %s", endpoint_key)
         load_config(index, url)
 
     def test_set_and_get(self):
@@ -107,6 +108,7 @@ class TestConfStore(unittest.TestCase):
             Conf.delete(index, 'K1')
             val = Conf.get(index, 'K1')
             self.assertEqual(val, None)
+
 
 if __name__ == '__main__':
     import sys

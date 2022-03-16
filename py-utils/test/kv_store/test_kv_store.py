@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # CORTX Python common library.
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# Copyright (c) 2022 Seagate Technology LLC and/or its Affiliates
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -25,15 +25,13 @@ import configparser
 import json
 import toml
 import yaml
-import logging
+import errno
 from cortx.utils.kv_store import KvStoreFactory
+from cortx.utils.kv_store.error import KvError
 from cortx.utils.schema.payload import Json
 from cortx.utils.conf_store import Conf
 
-LOGGER = logging.getLogger(__name__)
-
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
-
 dir_path = os.path.dirname(os.path.realpath(__file__))
 config_dir_path = os.path.dirname(os.path.abspath('.'))
 url_config_file = os.path.join(config_dir_path, 'conf_store', 'config.yaml')
@@ -70,6 +68,7 @@ def setup_and_generate_sample_files():
         for each in lines:
             file.write(each)
 
+
 # This function should be executed before testcase class
 setup_and_generate_sample_files()
 
@@ -100,8 +99,7 @@ class TestStore(unittest.TestCase):
         TestStore.loaded_properties = test_current_file(
             'properties:///tmp/example.properties')
         TestStore.loaded_dir = test_current_file('dir:///tmp/conf_dir_test')
-        TestStore.loaded_dict = test_current_file('dict:{"k1":"v1","k2":'
-                                        '{"k3":"v3", "k4":[25,"v4",27]}}')
+        TestStore.loaded_dict = test_current_file('dict:{"k1":"v1","k2":''{"k3":"v3", "k4":[25,"v4",27]}}')
 
         # Get consul endpoints
         if TestStore._cluster_conf_path:
@@ -118,9 +116,8 @@ class TestStore(unittest.TestCase):
         if endpoint_url is not None and 'http' in endpoint_url:
             url = endpoint_url.replace('http', 'consul')
         else:
-            LOGGER.error(f'Invalid consul endpoint key : {endpoint_key}')
+            raise KvError(errno.EINVAL, "Invalid consul endpoint key %s", endpoint_key)
         TestStore.loaded_consul = test_current_file(url)
-
 
     def test_json_file(self):
         """Test Kv JSON store. load json store from json:///tmp/file.json"""
