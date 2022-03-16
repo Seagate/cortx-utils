@@ -33,6 +33,7 @@ def load_index_url():
     for url_index in urls:
         yield [url_index, urls[url_index]]
 
+
 def load_config(index, backend_url):
     """ Instantiate and Load Config into constore. """
     Conf.load(index, backend_url)

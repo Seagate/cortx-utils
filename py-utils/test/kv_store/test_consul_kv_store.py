@@ -8,7 +8,7 @@
 # by the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 # This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the impimport yamllied warranty of
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Affero General Public License for more details.
 # You should have received a copy of the GNU Affero General Public License
@@ -19,12 +19,14 @@
 import unittest
 import os
 import errno
+import yaml
 from cortx.utils.kv_store import KvStoreFactory
 from cortx.utils.kv_store.error import KvError
 from cortx.utils.conf_store import Conf
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 url_config_file = os.path.join(dir_path, 'config.yaml')
+
 
 def test_current_file(file_path):
     kv_store = KvStoreFactory.get_instance(file_path)
