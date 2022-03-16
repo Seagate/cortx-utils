@@ -8,7 +8,7 @@
 # by the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 # This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# but WITHOUT ANY WARRANTY; without even the impimport yamllied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Affero General Public License for more details.
 # You should have received a copy of the GNU Affero General Public License
@@ -16,7 +16,6 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import yaml
 import unittest
 import os
 import errno
@@ -24,9 +23,8 @@ from cortx.utils.kv_store import KvStoreFactory
 from cortx.utils.kv_store.error import KvError
 from cortx.utils.conf_store import Conf
 
-dir_path = os.path.dirname(os.path.abspath('.'))
-url_config_file = os.path.join(dir_path, 'conf_store', 'config.yaml')
-
+dir_path = os.path.dirname(os.path.realpath(__file__))
+url_config_file = os.path.join(dir_path, 'config.yaml')
 
 def test_current_file(file_path):
     kv_store = KvStoreFactory.get_instance(file_path)
@@ -46,14 +44,11 @@ class TestStore(unittest.TestCase):
             cls.cluster_conf_path = TestStore._cluster_conf_path
         else:
             cls.cluster_conf_path = 'yaml:///etc/cortx/cluster.conf'
-
         with open(url_config_file) as fd:
             urls = yaml.safe_load(fd)['conf_url_list']
             endpoint_key = urls['consul_endpoints']
-
         Conf.load('config', cls.cluster_conf_path)
         endpoint_url = Conf.get('config', endpoint_key)
-
         if endpoint_url is not None and 'http' in endpoint_url:
             url = endpoint_url.replace('http', 'consul')
         else:

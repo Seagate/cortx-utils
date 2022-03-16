@@ -33,8 +33,7 @@ from cortx.utils.conf_store import Conf
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 dir_path = os.path.dirname(os.path.realpath(__file__))
-config_dir_path = os.path.dirname(os.path.abspath('.'))
-url_config_file = os.path.join(config_dir_path, 'conf_store', 'config.yaml')
+url_config_file = os.path.join(dir_path, 'config.yaml')
 file_path = os.path.join(dir_path, 'conf_sample_json.json')
 properties_file = os.path.join(dir_path, 'properties.txt')
 sample_config = Json(file_path).load()
@@ -68,10 +67,8 @@ def setup_and_generate_sample_files():
         for each in lines:
             file.write(each)
 
-
 # This function should be executed before testcase class
 setup_and_generate_sample_files()
-
 
 def test_current_file(file_path):
     kv_store = KvStoreFactory.get_instance(file_path)
@@ -100,19 +97,16 @@ class TestStore(unittest.TestCase):
             'properties:///tmp/example.properties')
         TestStore.loaded_dir = test_current_file('dir:///tmp/conf_dir_test')
         TestStore.loaded_dict = test_current_file('dict:{"k1":"v1","k2":''{"k3":"v3", "k4":[25,"v4",27]}}')
-
         # Get consul endpoints
         if TestStore._cluster_conf_path:
             cls.cluster_conf_path = TestStore._cluster_conf_path
         else:
             cls.cluster_conf_path = 'yaml:///etc/cortx/cluster.conf'
-
         with open(url_config_file) as fd:
             urls = yaml.safe_load(fd)['conf_url_list']
             endpoint_key = urls['consul_endpoints']
         Conf.load('config', cls.cluster_conf_path)
         endpoint_url = Conf.get('config', endpoint_key)
-
         if endpoint_url is not None and 'http' in endpoint_url:
             url = endpoint_url.replace('http', 'consul')
         else:

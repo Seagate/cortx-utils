@@ -17,13 +17,10 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 import yaml
 import unittest
-import logging
 import os
 import errno
 from cortx.utils.conf_store import Conf
 from cortx.utils.conf_store.error import ConfError
-
-LOGGER = logging.getLogger(__name__)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 url_config_file = os.path.join(dir_path, 'config.yaml')
@@ -35,7 +32,6 @@ def load_index_url():
         urls = yaml.safe_load(fd)['conf_url_list']
     for url_index in urls:
         yield [url_index, urls[url_index]]
-
 
 def load_config(index, backend_url):
     """ Instantiate and Load Config into constore. """
@@ -58,10 +54,9 @@ class TestConfStore(unittest.TestCase):
 
         for index_url in load_index_url():
             index = index_url[0]
-            url = endpoint_key = index_url[1]
+            endpoint_key = index_url[1]
             if index not in TestConfStore.indexes:
                 cls.indexes.append(index)
-
             Conf.load('config', cls.cluster_conf_path)
             endpoint_url = Conf.get('config', endpoint_key)
             if endpoint_url is not None and 'http' in endpoint_url:
