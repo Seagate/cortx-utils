@@ -27,7 +27,6 @@ from cortx.utils.conf_store import Conf
 dir_path = os.path.dirname(os.path.realpath(__file__))
 url_config_file = os.path.join(dir_path, 'config.yaml')
 
-
 def test_current_file(file_path):
     kv_store = KvStoreFactory.get_instance(file_path)
     data = kv_store.load()

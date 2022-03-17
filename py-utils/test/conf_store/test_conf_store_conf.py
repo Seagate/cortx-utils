@@ -15,6 +15,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
+
 import yaml
 import unittest
 import os
@@ -32,6 +33,7 @@ def load_index_url():
         urls = yaml.safe_load(fd)['conf_url_list']
     for url_index in urls:
         yield [url_index, urls[url_index]]
+
 
 def load_config(index, backend_url):
     """ Instantiate and Load Config into constore. """
