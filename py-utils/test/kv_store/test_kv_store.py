@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # CORTX Python common library.
-# Copyright (c) 2022 Seagate Technology LLC and/or its Affiliates
+# Copyright (c) 2021, 2022 Seagate Technology LLC and/or its Affiliates
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -37,7 +37,6 @@ url_config_file = os.path.join(dir_path, 'config.yaml')
 file_path = os.path.join(dir_path, 'conf_sample_json.json')
 properties_file = os.path.join(dir_path, 'properties.txt')
 sample_config = Json(file_path).load()
-
 
 def setup_and_generate_sample_files():
     """ This function will generate all required types of file """
@@ -75,7 +74,6 @@ def test_current_file(file_path):
     data = kv_store.load()
     return [kv_store, data]
 
-
 class TestStore(unittest.TestCase):
     loaded_json = ''
     loaded_toml = ''
@@ -88,7 +86,8 @@ class TestStore(unittest.TestCase):
     _cluster_conf_path = ''
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls, \
+        cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
         """Setup test class."""
         TestStore.loaded_json = test_current_file('json:///tmp/file.json')
         TestStore.loaded_toml = test_current_file('toml:///tmp/document.toml')
@@ -102,7 +101,7 @@ class TestStore(unittest.TestCase):
         if TestStore._cluster_conf_path:
             cls.cluster_conf_path = TestStore._cluster_conf_path
         else:
-            cls.cluster_conf_path = 'yaml:///etc/cortx/cluster.conf'
+            cls.cluster_conf_path = cluster_conf_path
         with open(url_config_file) as fd:
             urls = yaml.safe_load(fd)['conf_url_list']
             endpoint_key = urls['consul_endpoints']
