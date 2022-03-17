@@ -34,7 +34,6 @@ def load_index_url():
     for url_index in urls:
         yield [url_index, urls[url_index]]
 
-
 def load_config(index, backend_url):
     """ Instantiate and Load Config into constore. """
     Conf.load(index, backend_url)
@@ -55,16 +54,17 @@ class TestConfStore(unittest.TestCase):
             cls.cluster_conf_path = 'yaml:///etc/cortx/cluster.conf'
         for index_url in load_index_url():
             index = index_url[0]
-            endpoint_key = index_url[1]
+            url = index_url[1]
             if index not in TestConfStore.indexes:
                 cls.indexes.append(index)
-            Conf.load('config', cls.cluster_conf_path)
-            endpoint_url = Conf.get('config', endpoint_key)
-            if endpoint_url is not None and 'http' in endpoint_url:
-                url = endpoint_url.replace('http', 'consul')
-            else:
-                raise ConfError(errno.EINVAL, "Invalid consul endpoint key %s", endpoint_key)
-        load_config(index, url)
+            if 'consul' in index.lower():
+                Conf.load('config', cls.cluster_conf_path, skip_reload=True)
+                endpoint_url = Conf.get('config', url)
+                if endpoint_url is not None and 'http' in endpoint_url:
+                    url = endpoint_url.replace('http', 'consul')
+                else:
+                    raise ConfError(errno.EINVAL, "Invalid consul endpoint key %s", url)
+            load_config(index, url)
 
     def test_set_and_get(self):
         """ Set and get the value for a key. """

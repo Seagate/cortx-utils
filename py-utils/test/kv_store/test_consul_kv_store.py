@@ -27,6 +27,7 @@ from cortx.utils.conf_store import Conf
 dir_path = os.path.dirname(os.path.realpath(__file__))
 url_config_file = os.path.join(dir_path, 'config.yaml')
 
+
 def test_current_file(file_path):
     kv_store = KvStoreFactory.get_instance(file_path)
     data = kv_store.load()
@@ -48,7 +49,7 @@ class TestStore(unittest.TestCase):
         with open(url_config_file) as fd:
             urls = yaml.safe_load(fd)['conf_url_list']
             endpoint_key = urls['consul_endpoints']
-        Conf.load('config', cls.cluster_conf_path)
+        Conf.load('config', cls.cluster_conf_path, skip_reload=True)
         endpoint_url = Conf.get('config', endpoint_key)
         if endpoint_url is not None and 'http' in endpoint_url:
             url = endpoint_url.replace('http', 'consul')

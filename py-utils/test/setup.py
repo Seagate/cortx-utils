@@ -67,6 +67,7 @@ setup(
             "ha_dm/*.json",
             "ha_dm/test_schema/*.json",
             "kv_store/*.json",
+            "kv_store/*.yaml",
             "conf_store/*.json",
             "conf_store/*.yaml",
             "message_bus/*.conf",
