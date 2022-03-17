@@ -67,10 +67,8 @@ def setup_and_generate_sample_files():
         for each in lines:
             file.write(each)
 
-
 # This function should be executed before testcase class
 setup_and_generate_sample_files()
-
 
 def test_current_file(file_path):
     kv_store = KvStoreFactory.get_instance(file_path)

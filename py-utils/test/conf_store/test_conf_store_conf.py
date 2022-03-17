@@ -33,7 +33,6 @@ def load_index_url():
     for url_index in urls:
         yield [url_index, urls[url_index]]
 
-
 def load_config(index, backend_url):
     """ Instantiate and Load Config into constore. """
     Conf.load(index, backend_url)
@@ -52,7 +51,6 @@ class TestConfStore(unittest.TestCase):
             cls.cluster_conf_path = TestConfStore._cluster_conf_path
         else:
             cls.cluster_conf_path = 'yaml:///etc/cortx/cluster.conf'
-
         for index_url in load_index_url():
             index = index_url[0]
             endpoint_key = index_url[1]
