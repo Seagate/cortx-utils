@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # CORTX Python common library.
-# Copyright (c) 2022 Seagate Technology LLC and/or its Affiliates
+# Copyright (c) 2021, 2022 Seagate Technology LLC and/or its Affiliates
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -27,12 +27,10 @@ from cortx.utils.conf_store import Conf
 dir_path = os.path.dirname(os.path.realpath(__file__))
 url_config_file = os.path.join(dir_path, 'config.yaml')
 
-
 def test_current_file(file_path):
     kv_store = KvStoreFactory.get_instance(file_path)
     data = kv_store.load()
     return [kv_store, data]
-
 
 class TestStore(unittest.TestCase):
 
@@ -40,12 +38,13 @@ class TestStore(unittest.TestCase):
     loaded_consul = ''
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls, \
+        cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
         """Setup test class."""
         if TestStore._cluster_conf_path:
             cls.cluster_conf_path = TestStore._cluster_conf_path
         else:
-            cls.cluster_conf_path = 'yaml:///etc/cortx/cluster.conf'
+            cls.cluster_conf_path = cluster_conf_path
         with open(url_config_file) as fd:
             urls = yaml.safe_load(fd)['conf_url_list']
             endpoint_key = urls['consul_endpoints']

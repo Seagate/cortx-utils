@@ -1,7 +1,7 @@
 # !/usr/bin/env python3
 
 # CORTX Python common library.
-# Copyright (c) 2022 Seagate Technology LLC and/or its Affiliates
+# Copyright (c) 2021, 2022 Seagate Technology LLC and/or its Affiliates
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -26,7 +26,6 @@ from cortx.utils.conf_store.error import ConfError
 dir_path = os.path.dirname(os.path.realpath(__file__))
 url_config_file = os.path.join(dir_path, 'config.yaml')
 
-
 def load_index_url():
     """ Load index and url from config file. """
     with open(url_config_file) as fd:
@@ -38,7 +37,6 @@ def load_config(index, backend_url):
     """ Instantiate and Load Config into constore. """
     Conf.load(index, backend_url)
 
-
 class TestConfStore(unittest.TestCase):
     """ Test confstore backend urls mentioned in config file. """
 
@@ -46,12 +44,13 @@ class TestConfStore(unittest.TestCase):
     _cluster_conf_path = ''
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls, \
+        cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
         """Setup test class."""
         if TestConfStore._cluster_conf_path:
             cls.cluster_conf_path = TestConfStore._cluster_conf_path
         else:
-            cls.cluster_conf_path = 'yaml:///etc/cortx/cluster.conf'
+            cls.cluster_conf_path = cluster_conf_path
         for index_url in load_index_url():
             index = index_url[0]
             url = index_url[1]
