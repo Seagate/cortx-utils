@@ -5,9 +5,10 @@ from functools import wraps
 
 from cortx.utils.conf_store import Conf
 from cortx.utils.conf_store.error import ConfError
+from cortx.utils.errors import UtilsError
 
 class Retry:
-    def __init__(self, exception, tries=4, delay=1, backoff=2):
+    def __init__(self, exception, tries=6, delay=1, backoff=2):
         self._exception = exception
         self._tries = tries
         self._delay = delay
@@ -34,7 +35,7 @@ class Retry:
                 return wrap
             return deco_retry
         else:
-            raise Exception
+            raise UtilsError(errno.EINVAL, "Invalid arguments passed to Retry decorator", '')
 
 class CortxConf:
     _index = 'config_file'
