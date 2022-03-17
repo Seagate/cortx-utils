@@ -26,7 +26,7 @@ def test_current_file(file_path):
 
 class TestStore(unittest.TestCase):
 
-    loaded_consul = test_current_file('consul:///')
+    loaded_consul = test_current_file('consul://')
 
     def test_consul_a_set_get_kv(self):
         """ Test consul kv set and get a KV. """
