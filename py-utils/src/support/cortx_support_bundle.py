@@ -41,7 +41,7 @@ class CortxSupportBundle:
         from cortx.utils.support_framework.errors import BundleError
         message = args.message[0]
         if not message:
-            raise BundleError(errno.EINVAL, ("Invalid or Empty message string. %s", message))
+            raise BundleError(errno.EINVAL, "Invalid or Empty message string. %s", message)
 
         bundle_id = args.bundle_id[0]
         bundle_id = bundle_id.strip()
@@ -59,8 +59,8 @@ class CortxSupportBundle:
         units = ['KB', 'MB', 'GB']
         sb_size_unit = any(unit in size_limit for unit in units)
         if not sb_size_unit:
-            raise BundleError(errno.EINVAL, ("Support Bundle size limit should be in KB/MB/GB units."
-                                             f"Size: {size_limit}"))
+            raise BundleError(errno.EINVAL, "Support Bundle size limit should be in KB/MB/GB units.\
+                Size unit: %s", size_limit)
         binlogs = args.binlogs
         coredumps = args.coredumps
         stacktrace = args.stacktrace
