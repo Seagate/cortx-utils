@@ -1,3 +1,5 @@
+###audit_log.test_audit_log_server
+
 cli_framework.test_cli_framework
 
 cmd_framework.test_cmd
@@ -31,18 +33,19 @@ conf_store.test_conf_cli.TestConfCli.test_conf_cli_merge
 
 conf_store.test_conf_store
 conf_store.test_conf_store_conf
+conf_store.test_conf_store_ini
 
-### discovery.test_discovery
+###discovery.test_discovery
 
-### elastic_search.test_elasticsearch
+###elastic_search.test_elasticsearch
 
-### event_framework.test_health_event
+###event_framework.test_health_event
 
-### iem_framework.test_iem_server
+###iem_framework.test_iem_server
 iem_framework.test_iem_cli
 
 message_bus.test_kvpayload_message
-### message_bus.test_message_bus_server
+###message_bus.test_message_bus_server
 message_bus.test_message_bus
 
 kv_store.test_consul_kv_store
@@ -53,15 +56,13 @@ support_bundle.test_support_bundle_cli
 
 validator.test_confkeys_validator
 validator.test_consul_validator
-### validator.test_elasticsearch_validator
 validator.test_path_validator
 validator.test_pkg_validator
 validator.test_salt_validator
-### validator.test_service_validator
 
-### service_handler.test_service_handler
+###service_handler.test_service_handler
 
-### ssh_connection.test_ssh_connection
+###ssh_connection.test_ssh_connection
 
 iem_framework.test_iem
 

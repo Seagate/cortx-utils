@@ -1,0 +1,4 @@
+consul_service.test_consul.TestConsul.test_get
+consul_service.test_consul.TestConsul.test_put
+consul_service.test_consul.TestConsul.test_delete
+###consul_service.test_consul.TestConsul.test_service_running
