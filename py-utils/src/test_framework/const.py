@@ -14,10 +14,13 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 CLUSTER_CONF_TESTS = [
+    'conf_store.test_conf_store_conf',
     'iem_framework.test_iem_cli',
+    'iem_framework.test_iem',
+    'kv_store.test_consul_kv_store',
+    'kv_store.test_kv_store',
     'message_bus.test_kvpayload_message',
     'message_bus.test_message_bus',
     'support_bundle.test_support_bundle',
     'support_bundle.test_support_bundle_cli',
-    'iem_framework.test_iem',
     ]
