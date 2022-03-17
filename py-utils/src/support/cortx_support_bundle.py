@@ -41,16 +41,15 @@ class CortxSupportBundle:
         from cortx.utils.support_framework.errors import BundleError
         message = args.message[0]
         if not message:
-            raise BundleError(errno.EINVAL, ("Please provide message, Why you are generating"
-                                             " Support Bundle!"))
+            raise BundleError(errno.EINVAL, ("Invalid or Empty message string. %s", message))
 
         bundle_id = args.bundle_id[0]
         bundle_id = bundle_id.strip()
         if not bundle_id:
-            raise BundleError(errno.EINVAL, "Please provide valid Bundle ID to generate support bundle!")
+            raise BundleError(errno.EINVAL, "Invalid Bundle ID to generate support bundle!")
         regex = re.compile('[@!#$%^&*()<>?/\|}{~:]')
         if (regex.search(bundle_id) != None):
-            raise BundleError(errno.EINVAL, ("Please provide valid Bundle ID,"
+            raise BundleError(errno.EINVAL, ("Invalid Bundle ID,"
                                              "No special characters allowed in Bundle ID."))
 
         path = args.location
@@ -60,7 +59,8 @@ class CortxSupportBundle:
         units = ['KB', 'MB', 'GB']
         sb_size_unit = any(unit in size_limit for unit in units)
         if not sb_size_unit:
-            raise BundleError(errno.EINVAL, "Support Bundle size limit should be in KB/MB/GB units.\n")
+            raise BundleError(errno.EINVAL, ("Support Bundle size limit should be in KB/MB/GB units."
+                                             f"Size: {size_limit}"))
         binlogs = args.binlogs
         coredumps = args.coredumps
         stacktrace = args.stacktrace
@@ -68,8 +68,8 @@ class CortxSupportBundle:
 
         config_url = args.cluster_conf_path[0]
         if 'file://' not in path:
-            raise BundleError(errno.EINVAL, "Target path should be in file format.\n"
-                "Please specify the absolute target path.\n"
+            raise BundleError(errno.EINVAL, "Invalid target path specified.\n"
+                "Target path should be in file format.\n"
                 "For example:-\n"
                 "support_bundle generate -m 'test_cortx' -b 'abc' -t file:///var/cortx/support_bundle\n")
         path = path.split('//')[1]
