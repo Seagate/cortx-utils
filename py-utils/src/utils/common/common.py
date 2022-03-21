@@ -5,37 +5,48 @@ from functools import wraps
 
 from cortx.utils.conf_store import Conf
 from cortx.utils.conf_store.error import ConfError
-from cortx.utils.errors import UtilsError
 
 class Retry:
-    def __init__(self, exception, tries=6, delay=1, backoff=2):
+    """
+    Retry decorator class can decorate a function/method to set a retry logic
+    to its call.It Retries the *calling of decorated function*, using an exponential backoff.
+
+    Example:
+    @Retry(ValueError)
+    def foo(x, y=10):
+        ...
+    or
+    @Retry(Exception, tries=2, delay=10, backoff=2)
+    def bar():
+        ...
+
+    Args:
+        exception (Exception or tuple(Exception)):  it can be a single exception
+                                                    or a tuple of exceptions.
+        tries (int): 4      number of times to try before failing.
+        delay (int): 1     initiall delay between retries.
+        backoff (int): 2    backoff multiplier.
+    """
+    def __init__(self, exception, tries=4, delay=1, backoff=2):
+        """Constructor method."""
         self._exception = exception
         self._tries = tries
         self._delay = delay
         self._backoff = backoff
 
     def __call__(self, func):
-        if len(func) == 1:
-            print(self._tries, self._exception)
-            print (func)
-            func = func[0]
-            def deco_retry(func):
-
-                @wraps(func)
-                def wrap(*x,**y):
-                    mtries, mdelay = self._tries, self._delay
-                    while mtries > 1:
-                        try:
-                            return func(*x,**y)
-                        except self._exception:
-                            time.sleep(mdelay)
-                            mtries -= 1
-                            mdelay *= self._backoff
-                    return func(*x,**y)
-                return wrap
-            return deco_retry
-        else:
-            raise UtilsError(errno.EINVAL, "Invalid arguments passed to Retry decorator", '')
+        @wraps(func)
+        def wrap(*args,**kwargs):
+            max_tries, max_delay = self._tries, self._delay
+            while max_tries > 1:
+                try:
+                    return func(*args,**kwargs)
+                except self._exception:
+                    time.sleep(max_delay)
+                    max_tries -= 1
+                    max_delay *= self._backoff
+            return func (*args,**kwargs)
+        return wrap
 
 class CortxConf:
     _index = 'config_file'

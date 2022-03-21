@@ -21,4 +21,4 @@ from cortx.utils.common.common import CortxConf
 from cortx.utils.common.common import Retry
 
 # adds all above defined packages in import *
-__all__ = ('SetupError', 'UtilsError', 'CortxConf')
+__all__ = ('SetupError', 'UtilsError', 'CortxConf', 'Retry')

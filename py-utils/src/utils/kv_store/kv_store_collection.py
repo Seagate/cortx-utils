@@ -18,7 +18,7 @@
 import errno
 import os
 from typing import Union
-from consul import Consul
+from consul import Consul, ConsulException
 from configparser import ConfigParser, NoOptionError, NoSectionError
 
 from cortx.utils.kv_store.error import KvError
