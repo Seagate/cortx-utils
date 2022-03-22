@@ -19,6 +19,8 @@ import errno
 import os
 from typing import Union
 from consul import Consul, ConsulException
+from requests.exceptions import RequestException
+from urllib.error import HTTPError
 from configparser import ConfigParser, NoOptionError, NoSectionError
 
 from cortx.utils.kv_store.error import KvError
@@ -437,7 +439,7 @@ class ConsulKvPayload(KvPayload):
             if not self._store_path.endswith('/'): self._store_path = self._store_path + '/'
         self._keys = self.get_keys()
 
-    @ExponentialBackoff(exception=(ConsulException, HttpError, RequestException), tries=4)
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def get(self, key: str, *args, **kwargs) -> str:
         """ Get value for consul key. """
         if not key in self._keys:
@@ -453,18 +455,18 @@ class ConsulKvPayload(KvPayload):
             raise KvError(errno.EINVAL, \
                 "Invalid response from consul: %d:%s", index, data)
 
-    @ExponentialBackoff(exception=(ConsulException, HttpError, RequestException), tries=4)
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def _set(self, key: str, val: str, *args, **kwargs) -> Union[bool, None]:
         """ Set the value to the key in consul kv. """
         return self._consul.kv.put(self._store_path + key, str(val))
 
 
-    @ExponentialBackoff(exception=(ConsulException, HttpError, RequestException), tries=4)
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def _delete(self, key: str, data: dict, force: bool = False, *args, **kwargs) -> Union[bool, None]:
         """ Delete the key:value for the input key. """
         return self._consul.kv.delete(key = self._store_path + key, recurse = force)
 
-    @ExponentialBackoff(exception=(ConsulException, HttpError, RequestException), tries=4)
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def get_data(self, format_type: str = None, *args, **kwargs):
         """ Return a dict of kv pair. """
         self._data = {}
@@ -476,7 +478,7 @@ class ConsulKvPayload(KvPayload):
             return self._data
         return Format.dump(self._data, format_type)
 
-    @ExponentialBackoff(exception=(ConsulException, HttpError, RequestException), tries=4)
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def get_keys(self, starts_with: str = '', *args, **kwargs) -> list:
         """ Return a list of all the keys present. """
         keys=[]
@@ -497,7 +499,7 @@ class ConsulKvPayload(KvPayload):
                 keys.extend(key_list)
         return keys
 
-    @ExponentialBackoff(exception=(ConsulException, HttpError, RequestException), tries=4)
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def search(self, parent_key: str, search_key: str, search_val: str) -> list:
         """
         Searches the given dictionary for the key and value.
@@ -535,7 +537,7 @@ class ConsulKVStore(KvStore):
                 "Failed to eshtablish a new connection to consul endpoint: %s.\n %s", \
                 store_loc, e)
 
-    @ExponentialBackoff(exception=(ConsulException, HttpError, RequestException), tries=4)
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def load(self, **kwargs) -> ConsulKvPayload:
         """ Return ConsulKvPayload object. """
         return self._payload
