@@ -6,27 +6,28 @@ from functools import wraps
 from cortx.utils.conf_store import Conf
 from cortx.utils.conf_store.error import ConfError
 
-class Retries:
+class ExponentialBackoff:
     """
-    Retries decorator class can decorate a function/method to set a retry logic
-    to its call.It Retries the *calling of decorated function*, using an exponential backoff.
+    ExponentialBackoff decorator class can decorate a function/method to set a retry logic
+    to its call.It Retries the *calling of decorated function*, using a capped exponential
+    backoff.
 
     Example:
-    @Retries(ValueError)
+    @ExponentialBackoff(ValueError)
     def foo(x, y=10):
         ...
     or
-    @Retries(Exception, tries=2, delay=10, backoff=2, cap=2)
+    @ExponentialBackoff(Exception, tries=2, delay=10, backoff=2, cap=2)
     def bar():
         ...
 
     Args:
         exception (Exception or tuple(Exception)):  it can be a single exception
                                                     or a tuple of exceptions.
-        tries (int): 10      number of times to try before failing.
-        delay (int): 1      initiall delay between retries.
+        tries (int): 10     number of times to try before failing.
+        delay (int): 1      initiall delay (in seconds) between retries.
         backoff (int): 2    backoff multiplier.
-        cap (int): 120      cap for maximum delay between retries
+        cap (int): 120      cap for maximum delay (in seconds) between retries
     """
     def __init__(self, exception, tries=10, delay=1, backoff=2, cap=120):
         """Constructor method."""
