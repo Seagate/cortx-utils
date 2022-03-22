@@ -6,17 +6,17 @@ from functools import wraps
 from cortx.utils.conf_store import Conf
 from cortx.utils.conf_store.error import ConfError
 
-class Retry:
+class Retries:
     """
-    Retry decorator class can decorate a function/method to set a retry logic
+    Retries decorator class can decorate a function/method to set a retry logic
     to its call.It Retries the *calling of decorated function*, using an exponential backoff.
 
     Example:
-    @Retry(ValueError)
+    @Retries(ValueError)
     def foo(x, y=10):
         ...
     or
-    @Retry(Exception, tries=2, delay=10, backoff=2)
+    @Retries(Exception, tries=2, delay=10, backoff=2)
     def bar():
         ...
 
