@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # CORTX Python common library.
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# Copyright (c) 2021, 2022 Seagate Technology LLC and/or its Affiliates
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -25,16 +25,18 @@ import configparser
 import json
 import toml
 import yaml
+import errno
 from cortx.utils.kv_store import KvStoreFactory
+from cortx.utils.kv_store.error import KvError
 from cortx.utils.schema.payload import Json
+from cortx.utils.conf_store import Conf
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
-
 dir_path = os.path.dirname(os.path.realpath(__file__))
+url_config_file = os.path.join(dir_path, 'config.yaml')
 file_path = os.path.join(dir_path, 'conf_sample_json.json')
 properties_file = os.path.join(dir_path, 'properties.txt')
 sample_config = Json(file_path).load()
-
 
 def setup_and_generate_sample_files():
     """ This function will generate all required types of file """
@@ -67,24 +69,49 @@ def setup_and_generate_sample_files():
 # This function should be executed before testcase class
 setup_and_generate_sample_files()
 
-
 def test_current_file(file_path):
     kv_store = KvStoreFactory.get_instance(file_path)
     data = kv_store.load()
     return [kv_store, data]
 
-
 class TestStore(unittest.TestCase):
-    loaded_json = test_current_file('json:///tmp/file.json')
-    loaded_toml = test_current_file('toml:///tmp/document.toml')
-    loaded_yaml = test_current_file('yaml:///tmp/sample.yaml')
-    loaded_ini = test_current_file('ini:///tmp/test.ini')
-    loaded_properties = test_current_file(
-        'properties:///tmp/example.properties')
-    loaded_dir = test_current_file('dir:///tmp/conf_dir_test')
-    loaded_consul = test_current_file('consul://')
-    loaded_dict = test_current_file('dict:{"k1":"v1","k2":'
-        '{"k3":"v3", "k4":[25,"v4",27]}}')
+    loaded_json = ''
+    loaded_toml = ''
+    loaded_consul = ''
+    loaded_yaml = ''
+    loaded_ini = ''
+    loaded_properties = ''
+    loaded_dir = ''
+    loaded_dict = ''
+    _cluster_conf_path = ''
+
+    @classmethod
+    def setUpClass(cls, \
+        cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
+        """Setup test class."""
+        TestStore.loaded_json = test_current_file('json:///tmp/file.json')
+        TestStore.loaded_toml = test_current_file('toml:///tmp/document.toml')
+        TestStore.loaded_yaml = test_current_file('yaml:///tmp/sample.yaml')
+        TestStore.loaded_ini = test_current_file('ini:///tmp/test.ini')
+        TestStore.loaded_properties = test_current_file(
+            'properties:///tmp/example.properties')
+        TestStore.loaded_dir = test_current_file('dir:///tmp/conf_dir_test')
+        TestStore.loaded_dict = test_current_file('dict:{"k1":"v1","k2":''{"k3":"v3", "k4":[25,"v4",27]}}')
+        # Get consul endpoints
+        if TestStore._cluster_conf_path:
+            cls.cluster_conf_path = TestStore._cluster_conf_path
+        else:
+            cls.cluster_conf_path = cluster_conf_path
+        with open(url_config_file) as fd:
+            urls = yaml.safe_load(fd)['conf_url_list']
+            endpoint_key = urls['consul_endpoints']
+        Conf.load('config', cls.cluster_conf_path, skip_reload=True)
+        endpoint_url = Conf.get('config', endpoint_key)
+        if endpoint_url is not None and 'http' in endpoint_url:
+            url = endpoint_url.replace('http', 'consul')
+        else:
+            raise KvError(errno.EINVAL, "Invalid consul endpoint key %s", endpoint_key)
+        TestStore.loaded_consul = test_current_file(url)
 
     def test_json_file(self):
         """Test Kv JSON store. load json store from json:///tmp/file.json"""
@@ -436,4 +463,6 @@ class TestStore(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    if len(sys.argv) >= 2:
+        TestStore._cluster_conf_path = sys.argv.pop()
     unittest.main()
