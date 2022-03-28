@@ -468,7 +468,7 @@ class TestStore(unittest.TestCase):
             'bridge>name_list[3]'], ['1', '2', '3', '4'])
         TestStore.loaded_json[0].delete(['bridge>name_list[1]'])
         result_list = TestStore.loaded_json[0].get(['bridge>name_list[1]'])
-        self.assertIsNone(result_list[0])
+        self.assertEqual(result_list[0], '')
 
     def test_no_left_shift_end_list_kvstore(self):
         """
