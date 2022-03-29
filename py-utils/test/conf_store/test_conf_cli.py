@@ -134,6 +134,16 @@ class TestConfCli(unittest.TestCase):
         self.assertTrue(True if result_data[2] == 0 and
             result_data[0]==b'[null]\n' else False, result_data[1])
 
+    def test_conf_cli_delete_non_leafKey(self):
+        # fail for deleting non leaf key without force
+        invalid_delete_cmd = "conf json:///tmp/file1.json delete 'bridge'"
+        invalid_delete_return_code = SimpleProcess(invalid_delete_cmd).run()[-1]
+        self.assertNotEqual(0, invalid_delete_return_code)
+        # passes for deleting non leaf key with force
+        valid_delete_cmd = invalid_delete_cmd + "--force True"
+        valid_delete_return_code = SimpleProcess(valid_delete_cmd).run()[-1]
+        self.assertEqual(0, valid_delete_return_code)
+
     def test_conf_cli_by_format_data(self):
         """ Test by converting data into toml format """
         exp_result = b'- lte_type:\n  - name: 3g\n  - name: 4g\n  ' \

@@ -131,7 +131,7 @@ class ConfCli:
         key_list = args.args[0].split(';')
         is_deleted = []
         for key in key_list:
-            status = Conf.delete(ConfCli._index, key)
+            status = Conf.delete(ConfCli._index, key, args.force)
             is_deleted.append(status)
         if any(is_deleted):
             Conf.save(ConfCli._index)
@@ -242,6 +242,8 @@ class DeleteCmd:
             "Example command:\n"
             "# conf json:///tmp/csm.conf delete 'k1>k2;k3'\n\n")
         s_parser.set_defaults(func=ConfCli.delete)
+        s_parser.add_argument('--force', default=False, help=\
+            "force option to delete non-leaf keys")
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 

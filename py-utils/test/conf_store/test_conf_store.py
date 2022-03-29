@@ -25,6 +25,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 from cortx.utils.schema.payload import Json
 from cortx.utils.conf_store import Conf
 from cortx.utils.schema.format import Format
+from cortx.utils.kv_store.error import KvError
 
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -484,6 +485,29 @@ class TestConfStore(unittest.TestCase):
         Conf.add_num_keys('src_index')
         self.assertEqual(5, Conf.get('src_index', 'num_test_val'))
         self.assertEqual(3, Conf.get('src_index', 'test_nested>2>num_1'))
+
+    def test_delete(self):
+        Conf.load('test_file_1', 'yaml:///tmp/test_file_1.yaml')
+        Conf.set('test_file_1', 'a>b>c>d', 'value1')
+        Conf.set('test_file_1', 'a1>b>c>d[0]', 11)
+        Conf.set('test_file_1', 'a1>b>c>d[1]', 22)
+
+        # Deleting non leaf keys raise KvError
+        with self.assertRaises(KvError):
+            Conf.delete('test_file_1', 'a1>b>c>d')
+        with self.assertRaises(KvError):
+            Conf.delete('test_file_1', 'a>b>c')
+        with self.assertRaises(KvError):
+            Conf.delete('test_file_1', 'a')
+
+        # Delete leaf node
+        self.assertEqual(True, Conf.delete('test_file_1', 'a>b>c>d'))
+        # Deleting empty intermediate key
+        self.assertEqual(True, Conf.delete('test_file_1', 'a>b>c'))
+        # Delete non leaf key with force:
+        self.assertEqual(True, Conf.delete('test_file_1', 'a', True))
+        # Delete indexed key
+        self.assertEqual(True,  Conf.delete('test_file_1', 'a1>b>c>d[0]'))
 
     # DictKVstore tests
     def test_001_conf_dictkvstore_get_all_keys(self):
