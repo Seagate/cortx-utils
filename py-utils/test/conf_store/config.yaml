@@ -1,2 +1,2 @@
 conf_url_list:
-  consul_test_index: 'consul://'
+  consul_endpoints: 'cortx>external>consul>endpoints[1]'

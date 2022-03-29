@@ -73,6 +73,7 @@ setup(
             "ha_dm/test_schema/*.json",
             "iem_framework/*.json",
             "kv_store/*.json",
+            "kv_store/*.yaml",
             "message_bus/*.conf",
             "support_bundle/*.yaml",
         ]

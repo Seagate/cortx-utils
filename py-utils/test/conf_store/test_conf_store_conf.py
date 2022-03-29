@@ -1,8 +1,27 @@
-import yaml
-import os
-import unittest
+# !/usr/bin/env python3
 
+# CORTX Python common library.
+# Copyright (c) 2021, 2022 Seagate Technology LLC and/or its Affiliates
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published
+# by the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+# For any questions about this software or licensing,
+# please email opensource@seagate.com or cortx-questions@seagate.com.
+
+import yaml
+import unittest
+import os
+import errno
 from cortx.utils.conf_store import Conf
+from cortx.utils.conf_store.error import ConfError
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 url_config_file = os.path.join(dir_path, 'config.yaml')
@@ -22,15 +41,28 @@ class TestConfStore(unittest.TestCase):
     """ Test confstore backend urls mentioned in config file. """
 
     indexes = []
+    _cluster_conf_path = ''
 
     @classmethod
-    def setUpClass(cls):
-        """ Setup test class. """
+    def setUpClass(cls, \
+        cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
+        """Setup test class."""
+        if TestConfStore._cluster_conf_path:
+            cls.cluster_conf_path = TestConfStore._cluster_conf_path
+        else:
+            cls.cluster_conf_path = cluster_conf_path
         for index_url in load_index_url():
             index = index_url[0]
-            url= index_url[1]
+            url = index_url[1]
             if index not in TestConfStore.indexes:
                 cls.indexes.append(index)
+            if 'consul' in index.lower():
+                Conf.load('config', cls.cluster_conf_path, skip_reload=True)
+                endpoint_url = Conf.get('config', url)
+                if endpoint_url is not None and 'http' in endpoint_url:
+                    url = endpoint_url.replace('http', 'consul')
+                else:
+                    raise ConfError(errno.EINVAL, "Invalid consul endpoint key %s", url)
             load_config(index, url)
 
     def test_set_and_get(self):
@@ -47,7 +79,7 @@ class TestConfStore(unittest.TestCase):
             for key in key_list:
                 Conf.set(index, key, '#!random_value')
             get_key_list = Conf.get_keys(index)
-            self.assertTrue(all([True if key in get_key_list else False for key in key_list ]))
+            self.assertTrue(all([True if key in get_key_list else False for key in key_list]))
 
     def test_get_keys_starts_with(self):
         """set and get keys which starts with a string. """
@@ -56,7 +88,7 @@ class TestConfStore(unittest.TestCase):
             for key in key_list:
                 Conf.set(index, key, '#!random_value')
             get_key_list = Conf.get_keys(index, starts_with='swtest')
-            self.assertTrue(all([True if key in get_key_list else False for key in key_list ]))
+            self.assertTrue(all([True if key in get_key_list else False for key in key_list]))
 
     def test_get_wrong_key(self):
         """ Get a wrong key. """
@@ -72,5 +104,9 @@ class TestConfStore(unittest.TestCase):
             val = Conf.get(index, 'K1')
             self.assertEqual(val, None)
 
+
 if __name__ == '__main__':
+    import sys
+    if len(sys.argv) >= 2:
+        TestConfStore._cluster_conf_path = sys.argv.pop()
     unittest.main()
