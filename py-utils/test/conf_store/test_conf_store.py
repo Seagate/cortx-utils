@@ -79,6 +79,22 @@ class TestConfStore(unittest.TestCase):
         dict_json = Format.dump(dict_data,"json")
         Conf.load('dict', "dict:"+dict_json)
 
+    def test_json_message_kv_store(self):
+        """Tests jsonmessage basic operation."""
+        index = 'json_message_kv_store_index'
+        Conf.load(index, 'jsonmessage:{"key1":"val1"}')
+        self.assertEqual(Conf.get(index, 'key1'), 'val1')
+        Conf.set(index, 'key2', 'val2')
+        self.assertEqual(Conf.get_keys(index),['key1', 'key2'])
+        Conf.set(index, 'key2>key3>key4', 'val4')
+        Conf.delete(index, 'key2>key3>key4')
+        self.assertEqual(Conf.get(index, 'key2>key3>key4'), None)
+        # TODO: Add delete cases when confStore branch is merged
+        # and force option is available
+
+
+
+
     def test_conf_store_load_and_get(self):
         """Test by loading the give config file to in-memory"""
         load_config('sspl_local', 'json:///tmp/file1.json')
@@ -568,6 +584,7 @@ class TestConfStore(unittest.TestCase):
         expected = [{}, {}, {}, {}, {}, {}, 'v14']
         out = Conf.get('dict', 'k14')
         self.assertListEqual(expected, out)
+
 
     @classmethod
     def tearDownClass(cls):

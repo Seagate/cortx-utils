@@ -318,7 +318,8 @@ class DictKvStore(KvStore):
         try:
             self.data = json.loads(self._store_path)
         except JSONDecodeError as jerr:
-            raise KvError(errno.EINVAL, "Invalid dict format %s", jerr.__str__())
+            raise KvError(errno.EINVAL, "Invalid %s format %s",
+                self.name, jerr.__str__())
         return KvPayload(self.data, self._delim, recurse=recurse)
 
     def dump(self, data) -> None:
@@ -326,27 +327,10 @@ class DictKvStore(KvStore):
         self._store_path = data.get_data()
 
 
-class JsonMessageKvStore(JsonKvStore):
+class JsonMessageKvStore(DictKvStore):
     """ Represents and In Memory JSON Message """
 
     name = "jsonmessage"
-
-    def __init__(self, store_loc, store_path, delim='>'):
-        """
-        Represents the Json Without FIle
-        :param json_str: Json String to be processed :type: str
-        """
-        JsonKvStore.__init__(self, store_loc, store_path, delim)
-
-    def load(self) -> KvPayload:
-        """ Load json to python Dictionary Object. Returns Dict """
-        import json
-        return KvPayload(json.loads(self._store_path), self._delim)
-
-    def dump(self, data: dict) -> None:
-        """ Sets data after converting to json """
-        import json
-        self._store_path = json.dumps(data.get_data())
 
 
 class PropertiesKvStore(KvStore):

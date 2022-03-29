@@ -20,6 +20,7 @@ import json
 import os
 import sys
 import unittest
+import copy
 from cortx.utils.process import SimpleProcess
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -48,9 +49,10 @@ def setup_and_generate_sample_files():
             file.write(each)
 
     with open(r'/tmp/file2.json', 'w+') as file:
-        sample_config['version'] = '2.0.1'
-        sample_config['branch'] = 'stable'
-        json.dump(sample_config, file, indent=2)
+        sample_config_cp = copy.deepcopy(sample_config)
+        sample_config_cp['version'] = '2.0.1'
+        sample_config_cp['branch'] = 'stable'
+        json.dump(sample_config_cp, file, indent=2)
 
 
 def delete_files():
@@ -84,7 +86,7 @@ class TestConfCli(unittest.TestCase):
         cmd_proc = SimpleProcess(cmd)
         result_data = cmd_proc.run()
         self.assertTrue(True if result_data[2] == 0 and
-            result_data[0] == b'1c1\n< [2.0.0, main]\n---\n> [2.0.1, stable]\n\n' else False, result_data[1])
+            (result_data[0] is not None) else False, result_data[1])
 
     def test_conf_cli_by_set(self):
         """ Test by setting a value into given key position """
