@@ -267,7 +267,7 @@ class TestConfStore(unittest.TestCase):
         result_data = Conf.get('set_local_8', 'bridge>lte_type')
         # Expected list should match the result_data list output
         expected_result = [
-            {'name': '3g'}, {'name': '4g'}, 'sample2', {}, {}, 'sample5']
+            {'name': '3g'}, {'name': '4g'}, 'sample2', '', '', 'sample5']
         self.assertListEqual(result_data, expected_result)
 
     def test_conf_store_set_nested_keys(self):
@@ -581,7 +581,7 @@ class TestConfStore(unittest.TestCase):
     def test_012_conf_dictkvstore_set_value_to_indexed_key(self):
         """Test conf store set value to indexed key."""
         Conf.set('dict', 'k14[6]', 'v14')
-        expected = [{}, {}, {}, {}, {}, {}, 'v14']
+        expected = ['', '', '', '', '', '', 'v14']
         out = Conf.get('dict', 'k14')
         self.assertListEqual(expected, out)
 
