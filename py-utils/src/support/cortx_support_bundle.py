@@ -61,9 +61,16 @@ class CortxSupportBundle:
         if not sb_size_unit:
             raise BundleError(errno.EINVAL, "Support Bundle size limit should be in KB/MB/GB units.\
                 Size unit: %s", size_limit)
-        binlogs = args.binlogs
-        coredumps = args.coredumps
-        stacktrace = args.stacktrace
+
+        # Collect all [binlogs, coredumps, stacktrace] if "--all true" is passed
+        all_logs  = args.all
+        if all_logs:
+            binlogs = coredumps = stacktrace = True
+        else:
+            binlogs = args.binlogs
+            coredumps = args.coredumps
+            stacktrace = args.stacktrace
+
         components = args.modules
 
         config_url = args.cluster_conf_path[0]
@@ -129,6 +136,10 @@ class GenerateCmd:
             help="Include/Exclude stacktrace, Default = False")
         s_parser.add_argument('--modules',
             help="list of components & services to generate support bundle.")
+        s_parser.add_argument('--all', type=str2bool, default=False,
+            help="Include/Exclude all debug data, including logs, config, stack"
+             + " traces, core dumps, binaries, etc, possibly resulting"
+             + " in much HEAVIER support bundle, Default = False")
 
 
 class StatusCmd:
