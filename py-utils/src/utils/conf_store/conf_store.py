@@ -127,7 +127,7 @@ class ConfStore:
         val = self._cache[index].get(key, **filters)
         return default_val if val is None else val
 
-    def set(self, index: str, key: str, val):
+    def set(self, index: str, key: str, val, force: bool = False):
         """
         Sets the value into the DB for the given index, key
 
@@ -142,7 +142,7 @@ class ConfStore:
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
 
-        self._cache[index].set(key, val)
+        self._cache[index].set(key, val, force)
 
     def get_keys(self, index: str, **filters) -> list:
         """
@@ -269,9 +269,9 @@ class Conf:
         Conf._conf.save(index)
 
     @staticmethod
-    def set(index: str, key: str, val):
+    def set(index: str, key: str, val, force: bool = False):
         """ Sets config value for the given key """
-        Conf._conf.set(index, key, val)
+        Conf._conf.set(index, key, val, force)
 
     @staticmethod
     def get(index: str, key: str, default_val: str = None, **filters):
@@ -367,10 +367,10 @@ class MappedConf:
                     f' in confstore. {e}')
         Conf.save(self._conf_idx)
 
-    def set(self, key: str, val: str):
+    def set(self, key: str, val: str, force: bool = False):
         """Save key-value in CORTX confstore."""
         try:
-            Conf.set(self._conf_idx, key, val)
+            Conf.set(self._conf_idx, key, val, force)
             Conf.save(self._conf_idx)
         except (AssertionError, ConfError) as e:
             raise ConfError(errno.EINVAL,

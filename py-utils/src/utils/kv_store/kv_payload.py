@@ -138,7 +138,8 @@ class KvPayload:
                 if isinstance(d, dict):
                     newkey = None if not pkey else "%s%s" % (pkey, index_suffix)
                     self._get_keys(keys, d, newkey, key_index)
-                elif isinstance(d, (str, int)):
+                #added support for byte array
+                elif isinstance(d, (str, int, bytes)):
                     newkey = "%s%s" % (pkey, index_suffix)
                     if newkey not in keys:
                         keys.append(newkey)
@@ -147,7 +148,8 @@ class KvPayload:
                 newkey = key if pkey is None else "%s%s%s" % (pkey, self._delim, key)
                 if isinstance(val, (list, dict)):
                     self._get_keys(keys, val, newkey, key_index)
-                elif isinstance(val, (str, int)):
+                #added support for byte array
+                elif isinstance(val, (str, int, bytes)):
                     if newkey not in keys:
                         keys.append(newkey)
 
@@ -170,8 +172,13 @@ class KvPayload:
         else:
             raise KvError(errno.ENOSYS, "Cant handle type %s", type(data))
 
-    def _set(self, key: str, val: str, data: dict):
+    def _set(self, key: str, val: str, data: dict, force: bool = False):
         k = key.split(self._delim, 1)
+
+        # Fail if type(val) != str or force otherwise
+        if not any([isinstance(val, (bytes, str, int)), force]):
+            raise KvError(errno.EINVAL,
+                "Invalid value: %s type. Value should be a 'str' type", val)
 
         # Check if key has index, if so identify index
         index = None
@@ -197,11 +204,12 @@ class KvPayload:
                 data[k[0]][index] = val
             else:
                 # In case the value is string replace with {}
-                if isinstance(data[k[0]][index], (str, list)):
+                if isinstance(data[k[0]][index], (str, list, bytes)):
                     data[k[0]][index] = {}
-                self._set(k[1], val, data[k[0]][index])
+                self._set(k[1], val, data[k[0]][index], force)
             return
 
+        # Leaf node check 
         if len(k) == 1:
             # if this is leaf node of the key
             data[k[0]] = val
@@ -209,11 +217,11 @@ class KvPayload:
             # This is not the leaf node of the key, process intermediate node
             if isinstance(data[k[0]], (str, list)):
                 data[k[0]] = {}
-            self._set(k[1], val, data[k[0]])
+            self._set(k[1], val, data[k[0]], force)
 
-    def set(self, key: str, val: str):
+    def set(self, key: str, val: str, force: bool = False):
         """ Updates the value for the given key in the dictionary """
-        self._set(key, val, self._data)
+        self._set(key, val, self._data, force)
         if key not in self._keys:
             self._keys.append(key)
 

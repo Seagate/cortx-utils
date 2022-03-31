@@ -22,6 +22,7 @@ import os
 import errno
 from cortx.utils.conf_store import Conf
 from cortx.utils.conf_store.error import ConfError
+from cortx.utils.kv_store.error import KvError
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 url_config_file = os.path.join(dir_path, 'config.yaml')
@@ -104,6 +105,13 @@ class TestConfStore(unittest.TestCase):
             val = Conf.get(index, 'K1')
             self.assertEqual(val, None)
 
+    def test_set_list_value(self):
+        """Set list type as value."""
+        for index in TestConfStore.indexes:
+            # Setting a list as value raises KvError!
+            # only str/int/byte array allowed as value of a K:V pair
+            with self.assertRaises(KvError):
+                Conf.set(index, 'K1', ['V1', 'V2'])
 
 if __name__ == '__main__':
     import sys

@@ -55,9 +55,9 @@ class ConfCache:
         """ Returns the value corresponding to the key """
         return self._data.get(key, **filters)
 
-    def set(self, key: str, val):
+    def set(self, key: str, val, force):
         """ Sets the value into the DB for the given key """
-        self._data.set(key, val)
+        self._data.set(key, val, force)
         self._dirty = True
 
     def add_num_keys(self):
