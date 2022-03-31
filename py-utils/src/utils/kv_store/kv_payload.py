@@ -173,6 +173,11 @@ class KvPayload:
     def _set(self, key: str, val: str, data: dict):
         k = key.split(self._delim, 1)
 
+        # check if val is not string type
+        if not isinstance(val, str):
+            raise KvError(errno.EINVAL,
+                "Invalid value: %s type. Value should be a 'str' type", val)
+
         # Check if key has index, if so identify index
         index = None
         ki = re.split(r'\[([0-9]+)\]', k[0])
