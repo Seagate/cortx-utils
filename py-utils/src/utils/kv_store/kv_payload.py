@@ -191,7 +191,7 @@ class KvPayload:
                 data[k[0]] = []
             # if index is more than list size, extend the list
             for i in range(len(data[k[0]]), index + 1):
-                data[k[0]].append({})
+                data[k[0]].append('')
             # if this is leaf node of the key
             if len(k) == 1:
                 data[k[0]][index] = val
@@ -347,7 +347,7 @@ class KvPayload:
                 if index == len(data[k[0]]) - 1:
                     del data[k[0]][index]
                 else:
-                    data[k[0]][index] = None
+                    data[k[0]][index] = ''
                 return True
             else:
                 return self._delete(k[1], data[k[0]][index], force)
