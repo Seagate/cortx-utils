@@ -24,7 +24,7 @@ from cortx.utils import errors
 from cortx.utils import const
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
-from cortx.utils.common import SetupError
+from cortx.utils.common import SetupError, DbConf
 from cortx.utils.errors import TestFailed
 from cortx.utils.validator.v_pkg import PkgV
 from cortx.utils.process import SimpleProcess
@@ -60,6 +60,12 @@ class Utils:
             service_obj.restart()
         except Exception as e:
             Log.warn(f"Error in rsyslog service restart: {e}")
+
+    @staticmethod
+    def _copy_database_conf(config_path: str):
+        """Copy database configuration from provided source to Consul KV"""
+        DbConf.init(config_path)
+        DbConf.import_database_conf(f'yaml://{Utils.utils_path}/conf/database.yaml')
 
     @staticmethod
     def validate(phase: str):
@@ -100,6 +106,7 @@ class Utils:
 
         #set cluster nodename:hostname mapping to cluster.conf (needed for Support Bundle)
         Utils._copy_cluster_map(config_path)
+        Utils._copy_database_conf(config_path)
 
         return 0
 
