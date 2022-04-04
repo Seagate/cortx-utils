@@ -119,8 +119,6 @@ class KvPayload:
                     when True, returns keys including array index
                     e.g. In case of "xxx[0],xxx[1]", only "xxx" is returned
         """
-        if all([len(filters.items()) == 0, not starts_with]):
-            return self._keys
         keys = []
         if recurse:
             self._get_keys(keys, self._data, None, **filters)
