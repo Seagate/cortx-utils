@@ -136,6 +136,15 @@ class TestConfStore(unittest.TestCase):
         result_data = Conf.get_keys('get_keys_local')
         self.assertTrue(True if 'bridge>name' in result_data else False)
 
+    def test_get_keys_delete(self):
+        """Test get_keys after deletion of a key."""
+        load_config('get_keys_delete', 'json:///tmp/file1.json')
+        Conf.set('get_keys_delete', 'bridge>delete>key', 'del_val')
+        pre_key_list = Conf.get_keys('get_keys_delete')
+        Conf.delete('get_keys_delete', 'bridge>delete>key')
+        post_key_list = Conf.get_keys('get_keys_delete')
+        self.assertTrue( pre_key_list != post_key_list )
+
     def test_conf_store_delete(self):
         """
         Test by removing the key, value to given index and reading it back.
