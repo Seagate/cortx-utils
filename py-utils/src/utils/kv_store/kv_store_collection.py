@@ -439,7 +439,7 @@ class ConsulKvPayload(KvPayload):
         """ Set the value to the key in consul kv. """
         if not isinstance(val, (int, str, byte)):
             if force:
-                return self._consul.kv.put(self._store_path + key, str(val)) \
+                return self._consul.kv.put(self._store_path + key, str(val))
             else:
                 raise KvError(errno.EINVAL, "Invalid value: %s \
                 type. Value should be a 'str' type", val)
