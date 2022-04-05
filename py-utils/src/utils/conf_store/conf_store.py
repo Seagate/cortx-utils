@@ -184,7 +184,7 @@ class ConfStore:
         self._cache[index].add_num_keys()
 
     def copy(self, src_index: str, dst_index: str, key_list: list = None,
-        recurse: bool = True):
+        recurse: bool = True, force: bool = False):
         """
         Copies one config domain to the other and saves
 
@@ -206,9 +206,10 @@ class ConfStore:
             else:
                 key_list = self._cache[src_index].get_keys(key_index=False)
         for key in key_list:
-            self._cache[dst_index].set(key, self._cache[src_index].get(key))
+            self._cache[dst_index].set(key, self._cache[src_index].get(key), force)
 
-    def merge(self, dest_index: str, src_index: str, keys: list = None):
+    def merge(self, dest_index: str, src_index: str, keys: list = None, \
+        force: bool = False):
         """
         Merges the content of src_index and dest_index file
 
@@ -233,12 +234,12 @@ class ConfStore:
                 if not self._cache[src_index].get(key):
                     raise ConfError(errno.ENOENT, "%s is not present in %s", \
                         key, src_index)
-        self._merge(dest_index, src_index, keys)
+        self._merge(dest_index, src_index, keys, force)
 
-    def _merge(self, dest_index, src_index, keys):
+    def _merge(self, dest_index, src_index, keys, force):
         for key in keys:
             if key not in self._cache[dest_index].get_keys():
-                self._cache[dest_index].set(key, self._cache[src_index].get(key))
+                self._cache[dest_index].set(key, self._cache[src_index].get(key), force)
 
 
 class Conf:
@@ -290,8 +291,8 @@ class Conf:
         Conf._conf.copy(src_index, dst_index, key_list, recurse)
 
     @staticmethod
-    def merge(dest_index: str, src_index: str, keys: list = None):
-        Conf._conf.merge(dest_index, src_index, keys)
+    def merge(dest_index: str, src_index: str, keys: list = None, force: bool = False):
+        Conf._conf.merge(dest_index, src_index, keys, force)
 
     class ClassProperty(property):
         """ Subclass property for classmethod properties """
@@ -351,7 +352,7 @@ class MappedConf:
         self._conf_url = conf_url
         Conf.load(self._conf_idx, self._conf_url, skip_reload=True)
 
-    def set_kvs(self, kvs: list):
+    def set_kvs(self, kvs: list, force: bool = False):
         """
         Parameters:
         kvs - List of KV tuple, e.g. [('k1','v1'),('k2','v2')]
@@ -360,7 +361,7 @@ class MappedConf:
 
         for key, val in kvs:
             try:
-                Conf.set(self._conf_idx, key, val)
+                Conf.set(self._conf_idx, key, val, force)
             except (AssertionError, ConfError) as e:
                 raise ConfError(errno.EINVAL,
                     f'Error occurred while adding key {key} and value {val}'

@@ -184,12 +184,11 @@ class TestConfStore(unittest.TestCase):
         Test by setting the key, value to given index and reading it back.
         """
         load_config('set_local1', 'json:///tmp/file1.json')
-        Conf.set('set_local', 'bridge>lte_type[2]>test',
-                       {'name': '5g', 'location': 'NY'})
-        result_data = Conf.get('set_local', 'bridge>lte_type[2]>test>location')
+        Conf.set('set_local', 'bridge>lte_type[2]>test', 'NY')
+        result_data = Conf.get('set_local', 'bridge>lte_type[2]>test')
         self.assertEqual(result_data, 'NY')
 
-    def test_conf_store_set_value_then_dict(self):
+    def test_conf_store_set_value_then_dict_force_true(self):
         """
         Test by setting the key, string value to given index and
         then try to overwrite it with dict.
@@ -198,19 +197,19 @@ class TestConfStore(unittest.TestCase):
         # set string value
         Conf.set('set_local_2', 'bridge>lte_type[2]>test', 'sample')
         Conf.set('set_local_2', 'bridge>lte_type[2]>test>nested_test',
-                       {'name': '5g', 'location': 'NY'})
+                       {'name': '5g', 'location': 'NY'}, force=True)
         result_data = Conf.get('set_local_2',
                                'bridge>lte_type[2]>test>nested_test>location')
         self.assertEqual(result_data, 'NY')
 
-    def test_conf_store_set_dict_then_string(self):
+    def test_conf_store_set_dict_with_force_then_string(self):
         """
         Test by setting the key, dict value to given index and
         then try to overwrite it with a string.
         """
         load_config('set_local_3', 'json:///tmp/file1.json')
         Conf.set('set_local_3', 'bridge>lte_type[2]>test>nested_test',
-                       {'name': '5g', 'location': 'NY'})
+                       {'name': '5g', 'location': 'NY'}, force=True)
         Conf.set('set_local_3', 'bridge>lte_type[2]>test', 'sample')
         result_data = Conf.get('set_local_3', 'bridge>lte_type[2]>test')
         self.assertEqual(result_data, 'sample')
@@ -231,8 +230,7 @@ class TestConfStore(unittest.TestCase):
         """
         load_config('set_local_6', 'json:///tmp/file1.json')
         try:
-            Conf.set('set_local_6', 'bridge>lte_type[2]>..',
-                           {'name': '5g', 'location': 'NY'})
+            Conf.set('set_local_6', 'bridge>lte_type[2]>..', '5g')
         except Exception as err:
             self.assertEqual('Invalid key name ', err.desc)
 
@@ -264,12 +262,12 @@ class TestConfStore(unittest.TestCase):
         """Set a non string value."""
         load_config('mem_dict', 'dict:{}')
         with self.assertRaises(KvError):
-            conf.set('mem_dict', 'K1>K2>K3', ['1','2','3'])
+            Conf.set('mem_dict', 'K1>K2>K3', ['1','2','3'])
 
     def test_conf_set_non_str_value_with_force(self):
         """Set a non string value."""
         load_config('mem_dict', 'dict:{}')
-        conf.set('mem_dict', 'K1>K2>K3', ['1','2','3'], force=True)
+        Conf.set('mem_dict', 'K1>K2>K3', ['1','2','3'], force=True)
         get_val = Conf.get('mem_dict', 'K1>K2>K3[0]')
         self.assertEqual(get_val, '1')
 
@@ -447,7 +445,7 @@ class TestConfStore(unittest.TestCase):
 
     def test_conf_store_merge_01new_file(self):
         self.assertEqual(Conf.get_keys('dest_index'), [])
-        Conf.merge('dest_index', 'src_index')
+        Conf.merge('dest_index', 'src_index', force=True)
         Conf.save('dest_index')
         self.assertEqual(Conf.get_keys('dest_index'),
             Conf.get_keys('src_index'))

@@ -435,9 +435,9 @@ class ConsulKvPayload(KvPayload):
             raise KvError(errno.EINVAL, \
                 "Invalid response from consul: %d:%s", index, data)
 
-    def _set(self, key: str, val: str, *args, force: bool = False, **kwargs) -> Union[bool, None]:
+    def _set(self, key: str, val: str, force: bool = False, *args, **kwargs) -> Union[bool, None]:
         """ Set the value to the key in consul kv. """
-        if not isinstance(val, (int, str, byte)):
+        if not isinstance(val, (int, str, bytes)):
             if force:
                 return self._consul.kv.put(self._store_path + key, str(val))
             else:
@@ -445,7 +445,7 @@ class ConsulKvPayload(KvPayload):
                 type. Value should be a 'str' type", val)
         return self._consul.kv.put(self._store_path + key, val)
 
-    def _delete(self, key: str, data: dict, *args, force: bool = False, **kwargs) -> Union[bool, None]:
+    def _delete(self, key: str, data: dict, force: bool = False, *args, **kwargs) -> Union[bool, None]:
         """ Delete the key:value for the input key. """
         return self._consul.kv.delete(key = self._store_path + key, recurse = force)
 

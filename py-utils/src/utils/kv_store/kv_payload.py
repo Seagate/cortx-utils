@@ -209,7 +209,7 @@ class KvPayload:
                 self._set(k[1], val, data[k[0]][index], force)
             return
 
-        # Leaf node check 
+        # Leaf node check
         if len(k) == 1:
             # if this is leaf node of the key
             data[k[0]] = val
