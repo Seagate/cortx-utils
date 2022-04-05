@@ -100,9 +100,9 @@ class ComponentsBundle:
         # SB Framework will not parse additional filters until all the components
         # accept filters in their respective support bundle scripts.
 
-            cli_cmd = f"{command} -b {bundle_id} -t {path} -c {config_url}"
-               f" -s {services} --duration {duration} --size_limit {size_limit}"
-               f" --binlogs {binlogs} --coredumps {coredumps} --stacktrace {stacktrace}"
+            cli_cmd = f"{command} -b {bundle_id} -t {path} -c {config_url}"\
+                f" -s {services} --duration {duration} --size_limit {size_limit}"\
+                f" --binlogs {binlogs} --coredumps {coredumps} --stacktrace {stacktrace}"
            Log.info(f"Executing command -> {cli_cmd}")
            cmd_proc = SimpleProcess(cli_cmd)
 
