@@ -127,7 +127,7 @@ class ConfStore:
         val = self._cache[index].get(key, **filters)
         return default_val if val is None else val
 
-    def set(self, index: str, key: str, val):
+    def set(self, index: str, key: str, val, force: bool = False):
         """
         Sets the value into the DB for the given index, key
 
@@ -142,7 +142,7 @@ class ConfStore:
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
 
-        self._cache[index].set(key, val)
+        self._cache[index].set(key, val, force)
 
     def get_keys(self, index: str, **filters) -> list:
         """
@@ -184,7 +184,7 @@ class ConfStore:
         self._cache[index].add_num_keys()
 
     def copy(self, src_index: str, dst_index: str, key_list: list = None,
-        recurse: bool = True):
+        recurse: bool = True, force: bool = False):
         """
         Copies one config domain to the other and saves
 
@@ -206,9 +206,10 @@ class ConfStore:
             else:
                 key_list = self._cache[src_index].get_keys(key_index=False)
         for key in key_list:
-            self._cache[dst_index].set(key, self._cache[src_index].get(key))
+            self._cache[dst_index].set(key, self._cache[src_index].get(key), force)
 
-    def merge(self, dest_index: str, src_index: str, keys: list = None):
+    def merge(self, dest_index: str, src_index: str, keys: list = None, \
+        force: bool = False):
         """
         Merges the content of src_index and dest_index file
 
@@ -233,12 +234,12 @@ class ConfStore:
                 if not self._cache[src_index].get(key):
                     raise ConfError(errno.ENOENT, "%s is not present in %s", \
                         key, src_index)
-        self._merge(dest_index, src_index, keys)
+        self._merge(dest_index, src_index, keys, force)
 
-    def _merge(self, dest_index, src_index, keys):
+    def _merge(self, dest_index, src_index, keys, force):
         for key in keys:
             if key not in self._cache[dest_index].get_keys():
-                self._cache[dest_index].set(key, self._cache[src_index].get(key))
+                self._cache[dest_index].set(key, self._cache[src_index].get(key), force)
 
 
 class Conf:
@@ -269,9 +270,9 @@ class Conf:
         Conf._conf.save(index)
 
     @staticmethod
-    def set(index: str, key: str, val):
+    def set(index: str, key: str, val, force: bool = False):
         """ Sets config value for the given key """
-        Conf._conf.set(index, key, val)
+        Conf._conf.set(index, key, val, force)
 
     @staticmethod
     def get(index: str, key: str, default_val: str = None, **filters):
@@ -290,8 +291,8 @@ class Conf:
         Conf._conf.copy(src_index, dst_index, key_list, recurse)
 
     @staticmethod
-    def merge(dest_index: str, src_index: str, keys: list = None):
-        Conf._conf.merge(dest_index, src_index, keys)
+    def merge(dest_index: str, src_index: str, keys: list = None, force: bool = False):
+        Conf._conf.merge(dest_index, src_index, keys, force)
 
     class ClassProperty(property):
         """ Subclass property for classmethod properties """
@@ -351,7 +352,7 @@ class MappedConf:
         self._conf_url = conf_url
         Conf.load(self._conf_idx, self._conf_url, skip_reload=True)
 
-    def set_kvs(self, kvs: list):
+    def set_kvs(self, kvs: list, force: bool = False):
         """
         Parameters:
         kvs - List of KV tuple, e.g. [('k1','v1'),('k2','v2')]
@@ -360,17 +361,17 @@ class MappedConf:
 
         for key, val in kvs:
             try:
-                Conf.set(self._conf_idx, key, val)
+                Conf.set(self._conf_idx, key, val, force)
             except (AssertionError, ConfError) as e:
                 raise ConfError(errno.EINVAL,
                     f'Error occurred while adding key {key} and value {val}'
                     f' in confstore. {e}')
         Conf.save(self._conf_idx)
 
-    def set(self, key: str, val: str):
+    def set(self, key: str, val: str, force: bool = False):
         """Save key-value in CORTX confstore."""
         try:
-            Conf.set(self._conf_idx, key, val)
+            Conf.set(self._conf_idx, key, val, force)
             Conf.save(self._conf_idx)
         except (AssertionError, ConfError) as e:
             raise ConfError(errno.EINVAL,

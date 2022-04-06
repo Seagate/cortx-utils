@@ -50,6 +50,7 @@ class ConfCli:
     @staticmethod
     def set(args):
         """ Set Key Value """
+        force = args.force
         kv_delim = '=' if args.kv_delim == None else args.kv_delim
         if len(kv_delim) > 1 or kv_delim not in [':', '>', '.', '|', '/', '=']:
             raise ConfError(errno.EINVAL, "invalid delim %s", kv_delim)
@@ -59,7 +60,7 @@ class ConfCli:
                 key, val = kv.split(kv_delim, 1)
             except:
                raise ConfError(errno.EINVAL, "Invalid KV pair %s", kv)
-            Conf.set(ConfCli._index, key, val)
+            Conf.set(ConfCli._index, key, val, force)
         Conf.save(ConfCli._index)
 
     @staticmethod
@@ -129,9 +130,10 @@ class ConfCli:
     def delete(args):
         """ Deletes given set of keys from the config """
         key_list = args.args[0].split(';')
+        force = args.force
         is_deleted = []
         for key in key_list:
-            status = Conf.delete(ConfCli._index, key, args.force)
+            status = Conf.delete(ConfCli._index, key, force)
             is_deleted.append(status)
         if any(is_deleted):
             Conf.save(ConfCli._index)
@@ -211,6 +213,8 @@ class SetCmd:
         s_parser.set_defaults(func=ConfCli.set)
         s_parser.add_argument('-d', dest='kv_delim',
             help="Delimiter for k=v (default is '=')")
+        s_parser.add_argument('--force', default=False, help=\
+            "force option to set non string values")
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 

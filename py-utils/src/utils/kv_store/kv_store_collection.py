@@ -232,7 +232,7 @@ class IniKvPayload(KvPayload):
             for key in [option for option in self._data[section]]:
                 keys.append(f"{section}{self._delim}{key}")
 
-    def set(self, key, val):
+    def set(self, key, val, *args):
         k = key.split(self._delim)
         if len(k) <= 1 or len(k) > 2:
             raise KvError(errno.EINVAL, "Invalid key %s for INI format", key)
@@ -435,9 +435,15 @@ class ConsulKvPayload(KvPayload):
             raise KvError(errno.EINVAL, \
                 "Invalid response from consul: %d:%s", index, data)
 
-    def _set(self, key: str, val: str, *args, **kwargs) -> Union[bool, None]:
+    def _set(self, key: str, val: str, force: bool = False, *args, **kwargs) -> Union[bool, None]:
         """ Set the value to the key in consul kv. """
-        return self._consul.kv.put(self._store_path + key, str(val))
+        if not isinstance(val, (int, str, bytes)):
+            if force:
+                return self._consul.kv.put(self._store_path + key, str(val))
+            else:
+                raise KvError(errno.EINVAL, "Invalid value: %s \
+                type. Value should be a 'str' type", val)
+        return self._consul.kv.put(self._store_path + key, val)
 
     def _delete(self, key: str, data: dict, force: bool = False, *args, **kwargs) -> Union[bool, None]:
         """ Delete the key:value for the input key. """

@@ -52,7 +52,7 @@ def setup_and_generate_sample_files():
 
 def load_config(index, backend_url):
     """Instantiate and Load Config into constore"""
-    Conf.load(index, backend_url)
+    Conf.load(index, backend_url, fail_reload=False)
     return Conf
 
 
@@ -193,12 +193,11 @@ class TestConfStore(unittest.TestCase):
         Test by setting the key, value to given index and reading it back.
         """
         load_config('set_local1', 'json:///tmp/file1.json')
-        Conf.set('set_local', 'bridge>lte_type[2]>test',
-                       {'name': '5g', 'location': 'NY'})
-        result_data = Conf.get('set_local', 'bridge>lte_type[2]>test>location')
+        Conf.set('set_local', 'bridge>lte_type[2]>test', 'NY')
+        result_data = Conf.get('set_local', 'bridge>lte_type[2]>test')
         self.assertEqual(result_data, 'NY')
 
-    def test_conf_store_set_value_then_dict(self):
+    def test_conf_store_set_value_then_dict_force_true(self):
         """
         Test by setting the key, string value to given index and
         then try to overwrite it with dict.
@@ -207,19 +206,19 @@ class TestConfStore(unittest.TestCase):
         # set string value
         Conf.set('set_local_2', 'bridge>lte_type[2]>test', 'sample')
         Conf.set('set_local_2', 'bridge>lte_type[2]>test>nested_test',
-                       {'name': '5g', 'location': 'NY'})
+                       {'name': '5g', 'location': 'NY'}, force=True)
         result_data = Conf.get('set_local_2',
                                'bridge>lte_type[2]>test>nested_test>location')
         self.assertEqual(result_data, 'NY')
 
-    def test_conf_store_set_dict_then_string(self):
+    def test_conf_store_set_dict_with_force_then_string(self):
         """
         Test by setting the key, dict value to given index and
         then try to overwrite it with a string.
         """
         load_config('set_local_3', 'json:///tmp/file1.json')
         Conf.set('set_local_3', 'bridge>lte_type[2]>test>nested_test',
-                       {'name': '5g', 'location': 'NY'})
+                       {'name': '5g', 'location': 'NY'}, force=True)
         Conf.set('set_local_3', 'bridge>lte_type[2]>test', 'sample')
         result_data = Conf.get('set_local_3', 'bridge>lte_type[2]>test')
         self.assertEqual(result_data, 'sample')
@@ -234,34 +233,13 @@ class TestConfStore(unittest.TestCase):
         except Exception as err:
             self.assertEqual('Invalid key index for the key lte_type', err.desc)
 
-    def test_conf_store_get_null_index(self):
-        """
-        Test by getting the null index key.
-        """
-        load_config('set_local_5', 'json:///tmp/file1.json')
-        try:
-            Conf.get('set_local_5', 'bridge>lte_type[]')
-        except Exception as err:
-            self.assertEqual('Invalid key index for the key lte_type', err.desc)
-
     def test_conf_store_set_with_wrong_key(self):
         """
         Test by setting the value to invalid wrong key.
         """
         load_config('set_local_6', 'json:///tmp/file1.json')
         try:
-            Conf.set('set_local_6', 'bridge>lte_type[2]>..',
-                           {'name': '5g', 'location': 'NY'})
-        except Exception as err:
-            self.assertEqual('Invalid key name ', err.desc)
-
-    def test_conf_store_get_with_wrong_key(self):
-        """
-        Test by getting the invalid wrong key
-        """
-        load_config('set_local_7', 'json:///tmp/file1.json')
-        try:
-            Conf.get('set_local_7', 'bridge>lte_type[2]>..>location')
+            Conf.set('set_local_6', 'bridge>lte_type[2]>..', '5g')
         except Exception as err:
             self.assertEqual('Invalid key name ', err.desc)
 
@@ -289,6 +267,26 @@ class TestConfStore(unittest.TestCase):
         result_data = Conf.get('set_local_9', 'bridge>nstd>k1>k2>k3>k4>5>6>7')
         self.assertEqual(result_data, 'okay')
 
+    def test_conf_set_non_str_value_without_force(self):
+        """Set a non string value."""
+        load_config('mem_dict', 'dict:{}')
+        with self.assertRaises(KvError):
+            Conf.set('mem_dict', 'K1>K2>K3', ['1','2','3'])
+
+    def test_conf_set_non_str_value_with_force(self):
+        """Set a non string value."""
+        load_config('mem_dict', 'dict:{}')
+        Conf.set('mem_dict', 'K1>K2>K3', ['1','2','3'], force=True)
+        get_val = Conf.get('mem_dict', 'K1>K2>K3[0]')
+        self.assertEqual(get_val, '1')
+
+    def test_conf_set_byte_array_without_force(self):
+        """Set a non string value."""
+        load_config('mem_dict', 'dict:{}')
+        Conf.set('mem_dict', 'K1>K2>K3', b'qaz12')
+        val = Conf.get('mem_dict', 'K1>K2>K3')
+        self.assertEqual(val, b'qaz12')
+
     def test_conf_store_delete_with_index(self):
         """ Test by removing the key, value from the given index. """
         load_config('delete_local_index', 'json:///tmp/file1.json')
@@ -315,6 +313,26 @@ class TestConfStore(unittest.TestCase):
         Conf.set('at_local', 'bridge>proxy@type', 'cloud')
         result_data = Conf.get('at_local', 'bridge>proxy@type')
         self.assertEqual(result_data, 'cloud')
+
+    def test_conf_store_get_with_wrong_key(self):
+        """
+        Test by getting the invalid wrong key
+        """
+        load_config('set_local_7', 'json:///tmp/file1.json')
+        try:
+            Conf.get('set_local_7', 'bridge>lte_type[2]>..>location')
+        except Exception as err:
+            self.assertEqual('Invalid key name ', err.desc)
+
+    def test_conf_store_get_null_index(self):
+        """
+        Test by getting the null index key.
+        """
+        load_config('set_local_5', 'json:///tmp/file1.json')
+        try:
+            Conf.get('set_local_5', 'bridge>lte_type[]')
+        except Exception as err:
+            self.assertEqual('Invalid key index for the key lte_type', err.desc)
 
     # Properties test
     def test_conf_store_by_load_and_get(self):
@@ -364,6 +382,18 @@ class TestConfStore(unittest.TestCase):
             'bridge>manufacturer', 'bridge>model', 'bridge>pin', 'bridge>port',
             'bridge>lte_type>name', 'node_count']
         self.assertListEqual(key_lst, expected_list)
+
+    def test_conf_get_keys_after_set_byte_array(self):
+        """Test get_keys before n after setting a byte array."""
+        load_config('mem_dict', 'dict:{}')
+        Conf.set('mem_dict', 'K1>K2>K3', 'Val3')
+        Conf.set('mem_dict', 'K1>K2>K4', 'Val4')
+        pre_get_keys = Conf.get_keys('mem_dict')
+        Conf.set('mem_dict', 'K1>K2>K5', b'qaz12')
+        post_get_keys = Conf.get_keys('mem_dict')
+        #add added key to pre_get_keys
+        pre_get_keys.append('K1>K2>K5')
+        self.assertEqual(pre_get_keys, post_get_keys)
 
     def test_conf_store_get_machine_id_none(self):
         """ Test get_machine_id None value """
@@ -424,7 +454,7 @@ class TestConfStore(unittest.TestCase):
 
     def test_conf_store_merge_01new_file(self):
         self.assertEqual(Conf.get_keys('dest_index'), [])
-        Conf.merge('dest_index', 'src_index')
+        Conf.merge('dest_index', 'src_index', force=True)
         Conf.save('dest_index')
         self.assertEqual(Conf.get_keys('dest_index'),
             Conf.get_keys('src_index'))
