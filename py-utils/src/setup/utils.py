@@ -77,23 +77,6 @@ class Utils:
     @staticmethod
     def post_install(config_path: str):
         """ Performs post install operations """
-        # Check required python packages
-        # TODO: Remove this python package check as RPM installation
-        # doing the same.
-        with open(f"{Utils.utils_path}/conf/python_requirements.txt") as file:
-            req_pack = []
-            for package in file.readlines():
-                pack = package.strip().split('==')
-                req_pack.append(f"{pack[0]} ({pack[1]})")
-        try:
-            with open(f"{Utils.utils_path}/conf/python_requirements.ext.txt") as extfile :
-                for package in extfile.readlines():
-                    pack = package.strip().split('==')
-                    req_pack.append(f"{pack[0]} ({pack[1]})")
-        except Exception:
-             Log.info("Not found: "+f"{Utils.utils_path}/conf/python_requirements.ext.txt")
-
-        PkgV().validate(v_type='pip3s', args=req_pack)
         default_sb_path = '/var/log/cortx/support_bundle'
         os.makedirs(default_sb_path, exist_ok=True)
 
