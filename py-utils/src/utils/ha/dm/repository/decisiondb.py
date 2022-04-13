@@ -18,13 +18,14 @@
 import os
 
 from cortx.utils.schema.payload import Json
+from cortx.utils import const as general_const
+from cortx.utils.common import DbConf
 from cortx.utils.ha.hac import const
 from cortx.utils.data.access import Query
 from cortx.utils.data.access.filters import Compare
 from cortx.utils.data.db.db_provider import DataBaseProvider, GeneralConfig
 from cortx.utils.ha.dm.models.decisiondb import DecisionModel
 from cortx.utils.log import Log
-from cortx.utils.schema import database
 
 class DecisionDB:
     """
@@ -35,15 +36,10 @@ class DecisionDB:
     def __init__(self) -> None:
         """
         Init load consul db for storing key in db
-        if cortx-ha database.json not available then it load
-        database.py schama having localhost consul.
         """
-        if os.path.exists(os.path.join(const.CONF_PATH, const.HA_DATABADE_SCHEMA)):
-            schema = Json(os.path.join(const.CONF_PATH,
-                                   const.HA_DATABADE_SCHEMA)).load()
-            conf = GeneralConfig(schema)
-        else:
-            conf = GeneralConfig(database.DATABASE)
+        DbConf.init(general_const.CLUSTER_CONF)
+        dict_conf = DbConf.export_database_conf()
+        conf = GeneralConfig(dict_conf)
         self.storage = DataBaseProvider(conf)
 
     async def store_event(self, entity, entity_id, component, component_id,
