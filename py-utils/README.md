@@ -21,12 +21,11 @@ A common utils framework which includes common modules across components
 <hr>
 
 ## Prerequisites for build
-### Centos7
 ```bash
+On Centos7,
 sudo yum install -y gcc rpm-build python36 python36-pip python36-devel python36-setuptools openssl-devel libffi-devel python36-dbus
-```
-### Rocky linux
-```
+
+On Rocky linux,
 sudo yum install -y gcc rpm-build python3 python3-pip python3-devel python3-setuptools openssl-devel libffi-devel python3-dbus
 ```
 
@@ -48,12 +47,11 @@ cd cortx-utils
 ## Prerequisites for Install
 
 ### Install yum packages
-#### Centos7
 ```bash
+On Centos7,
 sudo yum install -y gcc python36 python36-pip python36-devel python36-setuptools openssl-devel libffi-devel python36-dbus
-```
-#### Rocky linux
-```
+
+On Rocky linux,
 sudo yum install -y gcc python3 python3-pip python3-devel python3-setuptools openssl-devel libffi-devel python3-dbus
 ```
 
