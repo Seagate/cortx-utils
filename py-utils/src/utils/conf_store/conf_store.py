@@ -390,7 +390,7 @@ class MappedConf:
         return Conf.search(self._conf_idx, parent_key, search_key, value)
 
     def add_num_keys(self):
-        """Add "num_xxx" keys for all the list items in ine Cortx confstore."""
+        """Add "num_xxx" keys for all the list items in confstore."""
         Conf.add_num_keys(self._conf_idx)
         Conf.save(self._conf_idx)
 
