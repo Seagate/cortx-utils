@@ -337,7 +337,7 @@ class Conf:
 
     @staticmethod
     def add_num_keys(index):
-        """Add "num_xxx" keys for all the list items in ine KV Store."""
+        """Add "num_xxx" keys for all the list items in ine config store."""
         Conf._conf.add_num_keys(index)
 
 
@@ -390,8 +390,9 @@ class MappedConf:
         return Conf.search(self._conf_idx, parent_key, search_key, value)
 
     def add_num_keys(self):
-        """Add "num_xxx" keys for all the list items in ine KV Store."""
+        """Add "num_xxx" keys for all the list items in ine Cortx confstore."""
         Conf.add_num_keys(self._conf_idx)
+        Conf.save(self._conf_idx)
 
     def get(self, key: str, default_val: str = None) -> str:
         """Returns value for the given key."""

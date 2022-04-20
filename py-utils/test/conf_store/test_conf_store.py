@@ -479,7 +479,7 @@ class TestConfStore(unittest.TestCase):
             'cortx>software>common>message_bus_type'))
 
     def test_conf_store_add_num_keys(self):
-        """Test Confstore Add Num keys to KV store."""
+        """Test Confstore Add Num keys to config store."""
         Conf.set('src_index', 'test_val[0]', '1')
         Conf.set('src_index', 'test_val[1]', '2')
         Conf.set('src_index', 'test_val[2]', '3')
@@ -490,7 +490,6 @@ class TestConfStore(unittest.TestCase):
         Conf.set('src_index', 'test_nested>2>1[0]', '1')
         Conf.set('src_index', 'test_nested>2>1[1]', '2')
         Conf.set('src_index', 'test_nested>2>1[2]', '3')
-        Conf.save('src_index')
         Conf.add_num_keys('src_index')
         self.assertEqual(5, Conf.get('src_index', 'num_test_val'))
         self.assertEqual(3, Conf.get('src_index', 'test_nested>2>num_1'))
