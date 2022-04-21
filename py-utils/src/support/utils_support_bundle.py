@@ -24,8 +24,8 @@ import errno
 import argparse
 
 from cortx.utils.errors import UtilsError
-from cortx.utils.const import CLUSTER_CONF
 from cortx.utils.process import SimpleProcess
+from cortx.utils.const import CLUSTER_CONF_LOG_KEY
 from cortx.utils.conf_store import Conf, MappedConf
 
 
@@ -53,7 +53,7 @@ class UtilsSupportBundle:
         # TODO process duration, size_limit, binlogs, coredumps and stacktrace
         # Find log dirs
         cluster_conf = MappedConf(cluster_conf_url)
-        log_base = cluster_conf.get('cortx>common>storage>log')
+        log_base = cluster_conf.get(CLUSTER_CONF_LOG_KEY)
         local_base = cluster_conf.get('cortx>common>storage>local')
         machine_id = Conf.machine_id
 
@@ -65,9 +65,6 @@ class UtilsSupportBundle:
         shutil.copytree(os.path.join(log_base, f'utils/{machine_id}'),\
             os.path.join(UtilsSupportBundle._tmp_src, 'logs'))
 
-        # Copy configuration files
-        shutil.copytree(os.path.join(local_base, 'utils/conf'),\
-            os.path.join(UtilsSupportBundle._tmp_src, 'conf'))
         UtilsSupportBundle.__generate_tar(bundle_id, target_path)
         UtilsSupportBundle.__clear_tmp_files()
 
@@ -112,8 +109,7 @@ class UtilsSupportBundle:
         parser.add_argument('-t', dest='path', help='Path to store the created bundle',
             nargs='?', default="/var/seagate/cortx/support_bundle/")
         parser.add_argument('-c', dest='cluster_conf',\
-            help="Cluster config file path for Support Bundle",\
-            default=CLUSTER_CONF)
+            help="Cluster config file path for Support Bundle")
         parser.add_argument('-s', '--services', dest='services', nargs='+',\
             default='', help='List of services for Support Bundle')
         parser.add_argument('-d', '--duration', default='P5D', dest='duration',
@@ -147,7 +143,7 @@ def main():
     UtilsSupportBundle.generate(
         bundle_id=args.bundle_id,
         target_path=args.path,
-        cluster_conf=args.cluster_conf,
+        cluster_conf_url=args.cluster_conf,
         duration = args.duration,
         size_limit = args.size_limit,
         binlogs = args.binlogs,

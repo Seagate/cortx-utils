@@ -24,7 +24,7 @@ from cortx.utils import errors
 from cortx.utils import const
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
-from cortx.utils.common import SetupError
+from cortx.utils.common import SetupError, DbConf
 from cortx.utils.errors import TestFailed
 from cortx.utils.validator.v_pkg import PkgV
 from cortx.utils.process import SimpleProcess
@@ -62,6 +62,12 @@ class Utils:
             Log.warn(f"Error in rsyslog service restart: {e}")
 
     @staticmethod
+    def _copy_database_conf(config_path: str):
+        """Copy database configuration from provided source to Consul KV"""
+        DbConf.init(config_path)
+        DbConf.import_database_conf(f'yaml://{Utils.utils_path}/conf/database.yaml')
+
+    @staticmethod
     def validate(phase: str):
         """ Perform validtions """
 
@@ -71,23 +77,6 @@ class Utils:
     @staticmethod
     def post_install(config_path: str):
         """ Performs post install operations """
-        # Check required python packages
-        # TODO: Remove this python package check as RPM installation
-        # doing the same.
-        with open(f"{Utils.utils_path}/conf/python_requirements.txt") as file:
-            req_pack = []
-            for package in file.readlines():
-                pack = package.strip().split('==')
-                req_pack.append(f"{pack[0]} ({pack[1]})")
-        try:
-            with open(f"{Utils.utils_path}/conf/python_requirements.ext.txt") as extfile :
-                for package in extfile.readlines():
-                    pack = package.strip().split('==')
-                    req_pack.append(f"{pack[0]} ({pack[1]})")
-        except Exception:
-             Log.info("Not found: "+f"{Utils.utils_path}/conf/python_requirements.ext.txt")
-
-        PkgV().validate(v_type='pip3s', args=req_pack)
         default_sb_path = '/var/log/cortx/support_bundle'
         os.makedirs(default_sb_path, exist_ok=True)
 
@@ -100,6 +89,7 @@ class Utils:
 
         #set cluster nodename:hostname mapping to cluster.conf (needed for Support Bundle)
         Utils._copy_cluster_map(config_path)
+        Utils._copy_database_conf(config_path)
 
         return 0
 

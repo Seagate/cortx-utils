@@ -179,6 +179,10 @@ class ConfStore:
         """
         return self._cache[index].search(parent_key, search_key, search_val)
 
+    def add_num_keys(self, index: str):
+        """Add "num_xxx" keys for all the list items in ine KV Store."""
+        self._cache[index].add_num_keys()
+
     def copy(self, src_index: str, dst_index: str, key_list: list = None,
         recurse: bool = True):
         """
@@ -284,7 +288,6 @@ class Conf:
         recurse: bool = True):
         """ Creates a Copy suffixed file for main file"""
         Conf._conf.copy(src_index, dst_index, key_list, recurse)
-        Conf._conf.save(dst_index)
 
     @staticmethod
     def merge(dest_index: str, src_index: str, keys: list = None):
@@ -316,6 +319,7 @@ class Conf:
         """
         return Conf._conf.get_keys(index, **filters)
 
+    @staticmethod
     def search(index: str, parent_key: str, search_key: str,
         search_val: str = None) -> list:
         """
@@ -330,6 +334,12 @@ class Conf:
         Returns list of keys that matched the creteria (i.e. has given value)
         """
         return Conf._conf.search(index, parent_key, search_key, search_val)
+
+    @staticmethod
+    def add_num_keys(index):
+        """Add "num_xxx" keys for all the list items in ine KV Store."""
+        Conf._conf.add_num_keys(index)
+        Conf.save(index)
 
 
 class MappedConf:
@@ -368,7 +378,7 @@ class MappedConf:
                 f'Error occurred while adding key {key} and value {val}'
                 f' in confstore. {e}')
 
-    def copy(self, src_index: str, key_list: list):
+    def copy(self, src_index: str, key_list: list = None):
         """Copy src_index config into CORTX confstore file."""
         try:
             Conf.copy(src_index, self._conf_idx, key_list)
@@ -376,9 +386,13 @@ class MappedConf:
             raise ConfError(errno.EINVAL,
                 f'Error occurred while copying config into confstore. {e}')
 
-    def search(self, parent_key, search_key, value):
+    def search(self, parent_key: str, search_key: str, value: str = None):
         """Search for given key under parent key in CORTX confstore."""
         return Conf.search(self._conf_idx, parent_key, search_key, value)
+
+    def add_num_keys(self):
+        """Add "num_xxx" keys for all the list items in ine KV Store."""
+        Conf.add_num_keys(self._conf_idx)
 
     def get(self, key: str, default_val: str = None) -> str:
         """Returns value for the given key."""
@@ -386,6 +400,4 @@ class MappedConf:
 
     def delete(self, key: str):
         """Delete key from CORTX confstore."""
-        is_deleted = Conf.delete(self._conf_idx, key)
-        if is_deleted:
-            Conf.save(self._conf_idx)
+        return Conf.delete(self._conf_idx, key)
