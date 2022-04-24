@@ -15,10 +15,8 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
-import errno
 import shutil
 import fileinput
-import traceback
 from time import sleep
 from pwd import getpwnam as get_user_by_name
 from grp import getgrnam as get_group_by_name

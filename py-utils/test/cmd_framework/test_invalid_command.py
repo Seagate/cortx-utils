@@ -47,9 +47,9 @@ class TestCmdFramework(unittest.TestCase):
 
         except:
             rc = 0
-        
+
         self.assertEqual(rc, 0)
-            
-         
+
+
 if __name__ == '__main__':
     unittest.main()
