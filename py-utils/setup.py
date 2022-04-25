@@ -114,7 +114,7 @@ setup(name='cortx-py-utils',
                 'cortx.utils.support_framework',
                 'cortx.utils.manifest',
                 'cortx.utils.audit_log', 'cortx.utils.cortx',
-                'cortx.utils.http', 'cortx.utils.s3',
+                'cortx.utils.http', 'cortx.utils.s3', 'cortx.utils.task_framework'
                 ],
       package_data={
         'cortx': ['py.typed'],

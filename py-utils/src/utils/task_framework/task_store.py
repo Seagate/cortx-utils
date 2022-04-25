@@ -25,9 +25,8 @@ from cortx.utils.task_framework.error import TaskError
 from cortx.utils.kv_store.kv_store import KvStoreFactory
 from cortx.utils.kv_store import KvPayload
 
-
 class TaskEntry:
-    """ Represents System Activity """
+    """Represents System Activity."""
 
     def __init__(self, *args, **kwargs): 
         self._payload = KvPayload()
@@ -74,24 +73,24 @@ class TaskEntry:
 
 
 class Task(metaclass=Singleton):
-    """ Represent Task Framework. Singleton Class """
+    """Represent Task Framework. Singleton Class."""
     _kv_store = None
 
     @staticmethod
     def init(backend_url):
-        """ Initializes the backend for the Task Store """
+        """Initializes the backend for the Task Store."""
         Task._kv_store = KvStoreFactory.get_instance(backend_url)
 
     @staticmethod
     def create(resource_path: str, description: str):
-        """ Creates a task for the given resource """
+        """Creates a task for the given resource."""
         task = TaskEntry(resource_path=resource_path, description=description)
         Task._kv_store.set([task.id], [task.payload.json])
         return task
 
     @staticmethod
     def start(task: TaskEntry):
-        """ Start the task. Records the current time as the start time """
+        """Start the task. Records the current time as the start time."""
         if not isinstance(task, TaskEntry):
             raise TaskError(errno.EINVAL, "start(): Invalid arg %s", task)
         task.start()
@@ -99,19 +98,19 @@ class Task(metaclass=Singleton):
 
     @staticmethod
     def finish(task: TaskEntry):
-        """ Completes a task. Records current time as the completion time """
+        """Completes a task. Records current time as the completion time."""
         task.finish()
         Task._kv_store.set([task.id], [task.payload.json])
 
     @staticmethod
     def update(task: TaskEntry, pct_complete: int, status: str):
-        """ Updates the task progress """
+        """Updates the task progress."""
         task.set_status(pct_complete, status)
         Task._kv_store.set([task.id], [task.payload.json])
 
     @staticmethod
     def search(resource_path: str, filters: list) -> list:
-        """ Searches for a task as per given criteria """
+        """Searches for a task as per given criteria."""
         task_list = Task._kv_store.get_keys(resource_path)
         out_list = []
         for task_id in task_list:
@@ -133,6 +132,7 @@ class Task(metaclass=Singleton):
                 
     @staticmethod
     def get(task_id: str):
+        """Gets the task details"""
         val = Task._kv_store.get([task_id])       
         if len(val) == 0 or val[0] is None: 
             raise TaskError(errno.EINVAL, "get(): invalid task id %s", task_id)

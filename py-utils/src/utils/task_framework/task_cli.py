@@ -27,17 +27,17 @@ from cortx.utils.schema import Format
 
 
 class TaskCli:
-    """ CLI for the Task Store """
+    """CLI for the Task Store."""
     _index = "Task_cli"
 
     @staticmethod
     def init(url: str):
-        """ Load TaskStore URL """
+        """Load TaskStore URL."""
         Task.init(url)
 
     @staticmethod
     def create(args):
-        """ Set Key Value """
+        """Set Key Value."""
         if len(args.args) < 2:
             raise TaskError(errno.EINVAL, "Insufficient args for create")
         resource = args.args[0]
@@ -47,7 +47,7 @@ class TaskCli:
 
     @staticmethod
     def update(args) -> str:
-        """ Obtain value for the given keys """
+        """Updates value for the given keys."""
         task_id = args.args[0]
         pct_complete = args.args[1]
         status = args.args[2]
@@ -56,21 +56,21 @@ class TaskCli:
 
     @staticmethod
     def start(args):
-        """ Deletes given set of keys from the Taskig """
+        """Starts the Task."""
         task_id = args.args[0]
         task = Task.get(task_id)
         Task.start(task)
 
     @staticmethod
     def show(args):
-        """ Deletes given set of keys from the Taskig """
+        """Returns task details present in store."""
         task_id = args.args[0]
         task = Task.get(task_id)
         return task.payload.json
 
     @staticmethod
     def search(args):
-        """ Deletes given set of keys from the Taskig """
+        """Searches for a task as per given criteria."""
         resource_path = args.args[0]
         filters = args.args[1].split(',')
         task_list = Task.search(resource_path, filters)
@@ -78,14 +78,14 @@ class TaskCli:
 
     @staticmethod
     def finish(args):
-        """ Returns list of keys present in store """
+        """Completes the Task."""
         task_id = args.args[0]
         task = Task.get(task_id)
         Task.finish(task)
 
 
 class CreateCmd:
-    """ Create Cmd Structure """
+    """Create Cmd Structure."""
 
     @staticmethod
     def add_args(sub_parser) -> None:
@@ -97,7 +97,7 @@ class CreateCmd:
 
 
 class StartCmd:
-    """ Set Cmd Structure """
+    """Start Cmd Structure."""
 
     @staticmethod
     def add_args(sub_parser) -> None:
@@ -109,7 +109,7 @@ class StartCmd:
 
 
 class FinishCmd:
-    """ Finish Cmd Structure """
+    """Finish Cmd Structure."""
 
     @staticmethod
     def add_args(sub_parser) -> None:
@@ -121,7 +121,7 @@ class FinishCmd:
 
 
 class UpdateCmd:
-    """ Updarte Cmd Structure """
+    """Update Cmd Structure."""
 
     @staticmethod
     def add_args(sub_parser) -> None:
@@ -132,7 +132,7 @@ class UpdateCmd:
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 class SearchCmd:
-    """ Updarte Cmd Structure """
+    """Search Cmd Structure."""
 
     @staticmethod
     def add_args(sub_parser) -> None:
@@ -143,7 +143,7 @@ class SearchCmd:
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 class ShowCmd:
-    """ Updarte Cmd Structure """
+    """Show Cmd Structure."""
 
     @staticmethod
     def add_args(sub_parser) -> None:
