@@ -90,20 +90,24 @@ class Release(Manifest):
                 ret_code = 1
                 break
         return ret_code
- 
-    def is_version_compatible(self, current_version:str, component:str):
-        """Checks if version is compatible for upgrade/downgrade.
-        
-        Returns True if  Versions are compatible for upgrade/downgrade else returns False.
+
+    def is_version_compatible(self, deploy_version:str, component:str):
+        """
+        Checks if version is compatible for upgrade/downgrade.
+
+        Returns True if version is compatible for upgrade/downgrade else returns False.
+        Parameters:
+        deploy_version - Deployed image version.
+        component - Component to be checked for version compatibility.
         """
         compatible_versions = self._get_val('REQUIRES')
         try:
             compatible_version = [ x.split('>=')[1].strip() for x in compatible_versions if component == x][0]
         except IndexError:
             raise Exception(f'Compatible version not found for {component} component.')
-        if self.version_check(current_version, compatible_version) == -1:
+        if self.version_check(deploy_version, compatible_version) == -1:
             return False
-        return True        
+        return True
 
     @staticmethod
     def _get_rpm_from_list(component: str, search_list: list):
