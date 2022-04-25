@@ -23,7 +23,6 @@ import traceback
 from argparse import RawTextHelpFormatter
 from cortx.utils.task_framework import Task
 from cortx.utils.task_framework.error import TaskError
-from cortx.utils.schema import Format
 
 
 class TaskCli:
@@ -160,7 +159,7 @@ def main():
         formatter_class=RawTextHelpFormatter)
     parser.add_argument('url', help='URL for the TaskStore backend')
     sub_parser = parser.add_subparsers(title='command',
-        help="represents the action e.g. create, start, update, finish", 
+        help="represents the action e.g. create, start, update, finish",
             dest='command')
 
     # Add Command Parsers

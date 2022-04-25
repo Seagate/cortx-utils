@@ -15,7 +15,6 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import ast
 import errno
 import time
 import json
@@ -29,7 +28,8 @@ from cortx.utils.kv_store import KvPayload
 class TaskEntry:
     """Represents System Activity."""
 
-    def __init__(self, *args, **kwargs): 
+    def __init__(self, *args, **kwargs):
+        """Initializes the backend for the Task Store."""
         self._payload = KvPayload()
         task_id = kwargs.get('id')
         if task_id is None:
@@ -123,17 +123,17 @@ class Task(metaclass=Singleton):
                     matched = False
                     break
                 vars()[key_spec[0]] = data[key_spec[0]]
-                if not ast.literal_eval(f):
+                if not eval(f):
                     matched = False
                     break
             if matched:
                 out_list.append(task_id)
         return out_list
-                
+
     @staticmethod
     def get(task_id: str):
         """Gets the task details."""
-        val = Task._kv_store.get([task_id])       
+        val = Task._kv_store.get([task_id]) 
         if len(val) == 0 or val[0] is None:
             raise TaskError(errno.EINVAL, "get(): invalid task id %s", task_id)
         data = json.loads(val[0])

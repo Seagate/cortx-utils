@@ -69,7 +69,7 @@ class TestTaskStore(unittest.TestCase):
         self.assertEqual(task_data.get('description'), "Task Status")
 
     def test_task_store_start_task(self):
-        """Test starting a task"""
+        """Test starting a task."""
         Task.init(sample_file_url)
         task = Task.create("Tasks", "Task Status")
         rc = 0
@@ -122,7 +122,7 @@ class TestTaskStore(unittest.TestCase):
         task_data = json.loads(task_details.payload.json)
         self.assertEqual(task_data.get('resource_path'), 'Tasks')
         self.assertEqual(task_data.get('description'), 'Task Status')
-        
+
     def test_task_store_finish_task(self):
         """Test Finish task."""
         Task.init(sample_file_url)

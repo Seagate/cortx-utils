@@ -20,6 +20,7 @@ class TaskError(Exception):
     """Generic Exception with error code and output."""
 
     def __init__(self, rc, message, *args):
+        "Initializing return code and message."
         self._rc = rc
         self._desc = message % (args)
 
@@ -32,5 +33,6 @@ class TaskError(Exception):
         return self._desc
 
     def __str__(self):
+        "Returns return code and message."
         if self._rc == 0: return self._desc
         return "error(%d): %s" %(self._rc, self._desc)
