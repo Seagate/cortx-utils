@@ -41,6 +41,7 @@ def delete_file(file):
         print(e)
 
 class TestMappedConf(unittest.TestCase):
+    
     """Test MappedConf."""
 
     def test_mapped_conf_add_num_keys(self):
