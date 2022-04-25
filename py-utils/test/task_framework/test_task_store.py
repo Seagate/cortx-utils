@@ -16,7 +16,6 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import resource
 import unittest
 import os
 import json
@@ -89,7 +88,7 @@ class TestTaskStore(unittest.TestCase):
             print(e)
         self.assertEqual(rc, 0)
         self.assertIsNotNone(task_data.get('start_time'), "Start time key is not present")
-            
+
     def test_task_store_update_task(self):
         """Test Update Task."""
         Task.init(sample_file_url)

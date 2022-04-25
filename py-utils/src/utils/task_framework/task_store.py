@@ -15,6 +15,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+import ast
 import errno
 import time
 import json
@@ -46,7 +47,6 @@ class TaskEntry:
             self._id = task_id
             for key, value in kwargs.items():
                 self._payload[key] = value
-            
 
     @property
     def id(self) -> str:
@@ -123,7 +123,7 @@ class Task(metaclass=Singleton):
                     matched = False
                     break
                 vars()[key_spec[0]] = data[key_spec[0]]
-                if not eval(f):
+                if not ast.literal_eval(f):
                     matched = False
                     break
             if matched:
@@ -132,9 +132,9 @@ class Task(metaclass=Singleton):
                 
     @staticmethod
     def get(task_id: str):
-        """Gets the task details"""
+        """Gets the task details."""
         val = Task._kv_store.get([task_id])       
-        if len(val) == 0 or val[0] is None: 
+        if len(val) == 0 or val[0] is None:
             raise TaskError(errno.EINVAL, "get(): invalid task id %s", task_id)
         data = json.loads(val[0])
         return TaskEntry(**data)
