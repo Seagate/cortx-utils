@@ -102,7 +102,7 @@ class Release(Manifest):
         """
         compatible_versions = self._get_val('REQUIRES')
         try:
-            compatible_version = [ x.split('>=')[1].strip() for x in compatible_versions if component == x][0]
+            compatible_version = [ x.split('>=')[1].strip() for x in compatible_versions if component in x][0]
         except IndexError:
             raise Exception(f'Compatible version not found for {component} component.')
         if self.version_check(deploy_version, compatible_version) == -1:
