@@ -46,8 +46,8 @@ class TestMappedConf(unittest.TestCase):
     def test_mapped_conf_add_num_keys(self):
         """Test if add_num_keys adds num_xx keys for xx list in the given config."""
         data = {
-            'a' : '1',
-            'b' : ['2', {'3': ['5', '6']}, '4']
+            'a': '1',
+            'b': ['2', {'3': ['5', '6']}, '4']
         }
         sample_file = f"{dir_path}/sample_conf.yaml"
         create_file(sample_file, yaml.dump(data))
@@ -58,7 +58,7 @@ class TestMappedConf(unittest.TestCase):
         Conf.load(test_index, conf_url)
         # Test before saving
         self.assertIsNone(Conf.get(test_index, 'num_b'), "num_b key is added without even saving to conf")
-        self.assertIsNone(Conf.get(test_index, 'b>num_3'), "num_b key is added without even saving to conf")
+        self.assertIsNone(Conf.get(test_index, 'b[1]>num_3'), "num_b key is added without even saving to conf")
         # Test after saving
         test_index = 'test_index2'
         conf_id = cortx_conf._conf_idx
