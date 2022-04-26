@@ -133,7 +133,7 @@ class Task(metaclass=Singleton):
     @staticmethod
     def get(task_id: str):
         """Gets the task details."""
-        val = Task._kv_store.get([task_id]) 
+        val = Task._kv_store.get([task_id])
         if len(val) == 0 or val[0] is None:
             raise TaskError(errno.EINVAL, "get(): invalid task id %s", task_id)
         data = json.loads(val[0])
