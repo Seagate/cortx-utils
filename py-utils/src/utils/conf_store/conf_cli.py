@@ -42,6 +42,12 @@ class ConfCli:
         Conf.load(index, url)
 
     @staticmethod
+    def add_num_keys(args):
+        """Add "num_xxx" keys for all the list items in ine KV Store."""
+        Conf.add_num_keys(ConfCli._index)
+        Conf.save(ConfCli._index)
+
+    @staticmethod
     def set(args):
         """ Set Key Value """
         kv_delim = '=' if args.kv_delim == None else args.kv_delim
@@ -78,6 +84,7 @@ class ConfCli:
     @staticmethod
     def diff(args) -> str:
         """ Compare two diffenent string value for the given keys """
+        args.format = None
         if len(args.args) < 1:
             args.key_index = None
             string_1 = ConfCli.get_keys(args)
@@ -91,7 +98,6 @@ class ConfCli:
             args.url = args.second_url
             ConfCli.init(args.url)
             string_2 = ConfCli.get(args)
-        args.format = None
         cmd = """bash -c "diff <(echo \\"%s\\") <(echo \\"%s\\")" """ %(string_1, string_2)
         cmd_proc = SimpleProcess([cmd])
         cmd_proc.shell = True
@@ -284,13 +290,26 @@ class SearchCmd:
     def add_args(sub_parser) -> None:
        s_parser = sub_parser.add_parser('search', help=
             "Searches for the given key and value under a parent key.\n"
+            "Format:\n"
+            "# conf <url> <parent_key> <search_key> [<search_val>]\n\n"
             "Example Command:\n"
-            "# conf yaml:///tmp/test.conf search 'root' 'name' 'storage_node'\n\n")
+            "# conf yaml:///tmp/test.conf search 'root' 'name' 'storage_node'\n"
+            "# conf yaml:///tmp/test.conf search 'root' 'name' \n\n")
 
        s_parser.add_argument('parent_key', help="parent key")
        s_parser.add_argument('search_key', help="search key")
-       s_parser.add_argument('search_val', help="search val")
+       s_parser.add_argument('search_val', nargs='?', default=None, help="search val")
        s_parser.set_defaults(func=ConfCli.search)
+
+
+class AddNumKeysCmd:
+    @staticmethod
+    def add_args(sub_parser) -> None:
+        s_parser = sub_parser.add_parser('addnumkeys', help=
+            "Adds num keys for the list items" \
+            "Example Command:\n"
+            "# conf yaml:///tmp/test.conf addnumkeys\n\n")
+        s_parser.set_defaults(func=ConfCli.add_num_keys)
 
 def main():
     # Setup Parser

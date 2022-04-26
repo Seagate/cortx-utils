@@ -48,7 +48,7 @@ class KvPayload:
             return self._data
         return Format.dump(self._data, format_type)
 
-    def search(self, parent_key: str, search_key: str, search_val: str) -> list:
+    def search(self, parent_key: str, search_key: str, search_val: str = None) -> list:
         """
         Searches for the given search_key and search_val under parent_key.
         Returns all the matching keys
@@ -64,11 +64,15 @@ class KvPayload:
         """
 
         keys = []
+        key = key_prefix.split(self._delim)[-1]
+        if search_val is None and key == search_key:
+            self._get_keys(keys, data, key_prefix)
+            return keys
+
         if isinstance(data, list):
             for i, val in enumerate(data):
                 if isinstance(val, (str, int)):
-                    key = key_prefix.split(self._delim)[-1]
-                    if key == search_key and val == search_val:
+                    if key == search_key and search_val in (val, None):
                         keys.append("%s[%d]" % (key_prefix, i))
                 elif isinstance(val, dict):
                     keys.extend(self._search(val, search_key, search_val,
@@ -77,12 +81,33 @@ class KvPayload:
         elif isinstance(data, dict):
             for key, val in data.items():
                 if isinstance(val, (str, int)):
-                    if key == search_key and val == search_val:
+                    if key == search_key and search_val in (val, None):
                         keys.append("%s%s%s" % (key_prefix, self._delim, key))
                 elif isinstance(val, (dict, list)):
                     keys.extend(self._search(val, search_key, search_val,
                         "%s%s%s" % (key_prefix, self._delim, key)))
+
         return keys
+
+    def add_num_keys(self):
+        self._add_num_keys(self._data)
+
+    def _add_num_keys(self, data):
+        """Add "num_xxx" keys for all the list items in ine KV Store."""
+        num_keys = {}
+        if isinstance(data, dict):
+            for k, v in data.items():
+                if isinstance(v, dict):
+                    self._add_num_keys(v)
+                elif isinstance(v, list):
+                    num_keys[f'num_{k}'] = len(v)
+                    self._add_num_keys(v)
+            if len(num_keys) > 0:
+                data.update(num_keys)
+
+        if isinstance(data, list):
+            for v in data:
+                self._add_num_keys(v)
 
     def get_keys(self, starts_with: str = '', recurse: bool = True, **filters) -> list:
         """

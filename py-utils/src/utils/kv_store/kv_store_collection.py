@@ -18,13 +18,16 @@
 import errno
 import os
 from typing import Union
-from consul import Consul
+from consul import Consul, ConsulException
+from requests.exceptions import RequestException
+from urllib.error import HTTPError
 from configparser import ConfigParser, NoOptionError, NoSectionError
 
 from cortx.utils.kv_store.error import KvError
 from cortx.utils.kv_store.kv_store import KvStore
 from cortx.utils.kv_store.kv_payload import KvPayload
 from cortx.utils.process import SimpleProcess
+from cortx.utils.common import ExponentialBackoff
 
 
 class JsonKvStore(KvStore):
@@ -318,7 +321,8 @@ class DictKvStore(KvStore):
         try:
             self.data = json.loads(self._store_path)
         except JSONDecodeError as jerr:
-            raise KvError(errno.EINVAL, "Invalid dict format %s", jerr.__str__())
+            raise KvError(errno.EINVAL, "Invalid %s format %s",
+                self.name, jerr.__str__())
         return KvPayload(self.data, self._delim, recurse=recurse)
 
     def dump(self, data) -> None:
@@ -326,27 +330,10 @@ class DictKvStore(KvStore):
         self._store_path = data.get_data()
 
 
-class JsonMessageKvStore(JsonKvStore):
+class JsonMessageKvStore(DictKvStore):
     """ Represents and In Memory JSON Message """
 
     name = "jsonmessage"
-
-    def __init__(self, store_loc, store_path, delim='>'):
-        """
-        Represents the Json Without FIle
-        :param json_str: Json String to be processed :type: str
-        """
-        JsonKvStore.__init__(self, store_loc, store_path, delim)
-
-    def load(self) -> KvPayload:
-        """ Load json to python Dictionary Object. Returns Dict """
-        import json
-        return KvPayload(json.loads(self._store_path), self._delim)
-
-    def dump(self, data: dict) -> None:
-        """ Sets data after converting to json """
-        import json
-        self._store_path = json.dumps(data.get_data())
 
 
 class PropertiesKvStore(KvStore):
@@ -436,6 +423,7 @@ class ConsulKvPayload(KvPayload):
             if not self._store_path.endswith('/'): self._store_path = self._store_path + '/'
         self._keys = self.get_keys()
 
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def get(self, key: str, *args, **kwargs) -> str:
         """ Get value for consul key. """
         if not key in self._keys:
@@ -451,14 +439,17 @@ class ConsulKvPayload(KvPayload):
             raise KvError(errno.EINVAL, \
                 "Invalid response from consul: %d:%s", index, data)
 
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def _set(self, key: str, val: str, *args, **kwargs) -> Union[bool, None]:
         """ Set the value to the key in consul kv. """
         return self._consul.kv.put(self._store_path + key, str(val))
 
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def _delete(self, key: str, *args, **kwargs) -> Union[bool, None]:
         """ Delete the key:value for the input key. """
         return self._consul.kv.delete(self._store_path + key)
 
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def get_data(self, format_type: str = None, *args, **kwargs):
         """ Return a dict of kv pair. """
         self._data = {}
@@ -470,6 +461,7 @@ class ConsulKvPayload(KvPayload):
             return self._data
         return Format.dump(self._data, format_type)
 
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def get_keys(self, starts_with: str = '', *args, **kwargs) -> list:
         """ Return a list of all the keys present. """
         keys=[]
@@ -490,6 +482,7 @@ class ConsulKvPayload(KvPayload):
                 keys.extend(key_list)
         return keys
 
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def search(self, parent_key: str, search_key: str, search_val: str) -> list:
         """
         Searches the given dictionary for the key and value.
@@ -527,6 +520,7 @@ class ConsulKVStore(KvStore):
                 "Failed to eshtablish a new connection to consul endpoint: %s.\n %s", \
                 store_loc, e)
 
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def load(self, **kwargs) -> ConsulKvPayload:
         """ Return ConsulKvPayload object. """
         return self._payload

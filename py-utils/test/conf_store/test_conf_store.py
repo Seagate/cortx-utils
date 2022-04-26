@@ -78,6 +78,22 @@ class TestConfStore(unittest.TestCase):
         dict_json = Format.dump(dict_data,"json")
         Conf.load('dict', "dict:"+dict_json)
 
+    def test_json_message_kv_store(self):
+        """Tests jsonmessage basic operation."""
+        index = 'json_message_kv_store_index'
+        Conf.load(index, 'jsonmessage:{"key1":"val1"}')
+        self.assertEqual(Conf.get(index, 'key1'), 'val1')
+        Conf.set(index, 'key2', 'val2')
+        self.assertEqual(Conf.get_keys(index),['key1', 'key2'])
+        Conf.set(index, 'key2>key3>key4', 'val4')
+        Conf.delete(index, 'key2>key3>key4')
+        self.assertEqual(Conf.get(index, 'key2>key3>key4'), None)
+        # TODO: Add delete cases when confStore branch is merged
+        # and force option is available
+
+
+
+
     def test_conf_store_load_and_get(self):
         """Test by loading the give config file to in-memory"""
         load_config('sspl_local', 'json:///tmp/file1.json')
@@ -365,6 +381,13 @@ class TestConfStore(unittest.TestCase):
         out_lst = Conf.get_keys('reload_index')
         self.assertTrue(True if expected_lst != out_lst else False)
 
+    # search for a key
+    def test_conf_store_search_keys(self):
+        """Test conf store search key API by passing None value."""
+        keys = Conf.search('dict', 'k2', 'k5', None)
+        expected = ['k2>k4>k5[0]', 'k2>k4>k5[1]', 'k2>k4>k5[2]']
+        self.assertListEqual(expected, keys)
+
     def test_conf_load_skip_reload(self):
         """ Test conf load skip_reload argument """
         Conf.load('skip_index', 'json:///tmp/file1.json')
@@ -445,6 +468,23 @@ class TestConfStore(unittest.TestCase):
         self.assertEqual('kafka', Conf.get('dest_index', \
             'cortx>software>common>message_bus_type'))
 
+    def test_conf_store_add_num_keys(self):
+        """Test Confstore Add Num keys to KV store."""
+        Conf.set('src_index', 'test_val[0]', '1')
+        Conf.set('src_index', 'test_val[1]', '2')
+        Conf.set('src_index', 'test_val[2]', '3')
+        Conf.set('src_index', 'test_val[3]', '4')
+        Conf.set('src_index', 'test_val[4]', '5')
+        Conf.set('src_index', 'test_nested', '2')
+        Conf.set('src_index', 'test_nested>2[0]', '1')
+        Conf.set('src_index', 'test_nested>2>1[0]', '1')
+        Conf.set('src_index', 'test_nested>2>1[1]', '2')
+        Conf.set('src_index', 'test_nested>2>1[2]', '3')
+        Conf.save('src_index')
+        Conf.add_num_keys('src_index')
+        self.assertEqual(5, Conf.get('src_index', 'num_test_val'))
+        self.assertEqual(3, Conf.get('src_index', 'test_nested>2>num_1'))
+
     # DictKVstore tests
     def test_001_conf_dictkvstore_get_all_keys(self):
         """Test conf store get_keys."""
@@ -520,6 +560,7 @@ class TestConfStore(unittest.TestCase):
         expected = [{}, {}, {}, {}, {}, {}, 'v14']
         out = Conf.get('dict', 'k14')
         self.assertListEqual(expected, out)
+
 
     @classmethod
     def tearDownClass(cls):
