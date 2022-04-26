@@ -23,7 +23,7 @@ import json
 from cortx.utils.activity_framework import Activity
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-sample_file = os.path.join(dir_path, 'sample_activitys.json')
+sample_file = os.path.join(dir_path, 'sample_activities.json')
 sample_file_url = f"json://{sample_file}"
 
 def delete_file(file=sample_file):
@@ -50,7 +50,7 @@ class TestActivityStore(unittest.TestCase):
     def test_activity_store_create_activity(self):
         """Test activity creation."""
         Activity.init(sample_file_url)
-        activity = Activity.create("Activitys", "Activity Status")
+        activity = Activity.create("Activities", "Activity Status")
         rc = 0
         try:
             activity_id = activity.id.split('>')[1]
@@ -59,19 +59,19 @@ class TestActivityStore(unittest.TestCase):
             rc = 1
         self.assertEqual(rc, 0)
         try:
-            activitys = load_data(sample_file)['Activitys']
-            activity_data = json.loads(activitys.get(activity_id))
+            activities = load_data(sample_file)['Activities']
+            activity_data = json.loads(activities.get(activity_id))
         except Exception as e:
             rc = 1
             print(e)
         self.assertEqual(rc, 0)
-        self.assertEqual(activity_data.get('resource_path'), "Activitys")
+        self.assertEqual(activity_data.get('resource_path'), "Activities")
         self.assertEqual(activity_data.get('description'), "Activity Status")
 
     def test_activity_store_start_activity(self):
         """Test starting a activity."""
         Activity.init(sample_file_url)
-        activity = Activity.create("Activitys", "Activity Status")
+        activity = Activity.create("Activities", "Activity Status")
         rc = 0
         try:
             activity_id = activity.id.split('>')[1]
@@ -81,8 +81,8 @@ class TestActivityStore(unittest.TestCase):
         self.assertEqual(rc, 0)
         Activity.start(activity)
         try:
-            activitys = load_data(sample_file)['Activitys']
-            activity_data = json.loads(activitys.get(activity_id))
+            activities = load_data(sample_file)['Activities']
+            activity_data = json.loads(activities.get(activity_id))
         except Exception as e:
             rc = 1
             print(e)
@@ -92,7 +92,7 @@ class TestActivityStore(unittest.TestCase):
     def test_activity_store_update_activity(self):
         """Test Update Activity."""
         Activity.init(sample_file_url)
-        activity = Activity.create("Activitys", "Activity Status")
+        activity = Activity.create("Activities", "Activity Status")
         rc = 0
         try:
             activity_id = activity.id.split('>')[1]
@@ -105,8 +105,8 @@ class TestActivityStore(unittest.TestCase):
         activity_status = "InProgress"
         Activity.update(activity, pct_complete, activity_status)
         try:
-            activitys = load_data(sample_file)['Activitys']
-            activity_data = json.loads(activitys.get(activity_id))
+            activities = load_data(sample_file)['Activities']
+            activity_data = json.loads(activities.get(activity_id))
         except Exception as e:
             rc = 1
             print(e)
@@ -117,16 +117,16 @@ class TestActivityStore(unittest.TestCase):
     def test_activity_store_get_activity(self):
         """Test get activity details."""
         Activity.init(sample_file_url)
-        activity = Activity.create("Activitys", "Activity Status")
+        activity = Activity.create("Activities", "Activity Status")
         activity_details = Activity.get(activity.id)
         activity_data = json.loads(activity_details.payload.json)
-        self.assertEqual(activity_data.get('resource_path'), 'Activitys')
+        self.assertEqual(activity_data.get('resource_path'), 'Activities')
         self.assertEqual(activity_data.get('description'), 'Activity Status')
 
     def test_activity_store_finish_activity(self):
         """Test Finish activity."""
         Activity.init(sample_file_url)
-        activity = Activity.create("Activitys", "Activity Status")
+        activity = Activity.create("Activities", "Activity Status")
         rc = 0
         try:
             activity_id = activity.id.split('>')[1]
@@ -137,8 +137,8 @@ class TestActivityStore(unittest.TestCase):
         Activity.start(activity)
         Activity.finish(activity)
         try:
-            activitys = load_data(sample_file)['Activitys']
-            activity_data = json.loads(activitys.get(activity_id))
+            activities = load_data(sample_file)['Activities']
+            activity_data = json.loads(activities.get(activity_id))
         except Exception as e:
             rc = 1
             print(e)
@@ -147,14 +147,14 @@ class TestActivityStore(unittest.TestCase):
     def test_activity_store_search_activity(self):
         """Test Search activity."""
         Activity.init(sample_file_url)
-        activity1 = Activity.create("Activitys", "Activity Status One")
+        activity1 = Activity.create("Activities", "Activity Status One")
         Activity.start(activity1)
-        activity2 = Activity.create("Activitys", "Activity Status Two")
+        activity2 = Activity.create("Activities", "Activity Status Two")
         Activity.start(activity2)
         pct_complete = 30
         activity_status = "InProgress"
         Activity.update(activity2, pct_complete, activity_status)
-        self.assertEqual(Activity.search('Activitys', [f"pct_complete=={pct_complete}"])[0], activity2.id)
+        self.assertEqual(Activity.search('Activities', [f"pct_complete=={pct_complete}"])[0], activity2.id)
 
     @classmethod
     def tearDownClass(cls):
