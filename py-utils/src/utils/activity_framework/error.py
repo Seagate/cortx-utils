@@ -1,4 +1,4 @@
-#!/bin/python3
+#!/bin/env python3
 
 # CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
@@ -15,5 +15,24 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-from cortx.utils.task_framework.task_store import Task
-from cortx.utils.task_framework.task_store import TaskEntry
+
+class ActivityError(Exception):
+    """Generic Exception with error code and output."""
+
+    def __init__(self, rc, message, *args):
+        """Initializing return code and message."""
+        self._rc = rc
+        self._desc = message % (args)
+
+    @property
+    def rc(self):
+        return self._rc
+
+    @property
+    def desc(self):
+        return self._desc
+
+    def __str__(self):
+        """Returns return code and message."""
+        if self._rc == 0: return self._desc
+        return "error(%d): %s" %(self._rc, self._desc)

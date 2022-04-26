@@ -21,22 +21,22 @@ import json
 import re
 
 from cortx.template import Singleton
-from cortx.utils.task_framework.error import TaskError
+from cortx.utils.activity_framework.error import ActivityError
 from cortx.utils.kv_store.kv_store import KvStoreFactory
 from cortx.utils.kv_store import KvPayload
 
-class TaskEntry:
+class ActivityEntry:
     """Represents System Activity."""
 
     def __init__(self, *args, **kwargs):
-        """Initializes the backend for the Task Store."""
+        """Initializes the backend for the Activity Store."""
         self._payload = KvPayload()
-        task_id = kwargs.get('id')
-        if task_id is None:
+        activity_id = kwargs.get('id')
+        if activity_id is None:
             resource_path = kwargs.get('resource_path')
             description = kwargs.get('description')
             if resource_path is None or description is None:
-                raise TaskError(errno.EINVAL, "Missing resource_path/description")
+                raise ActivityError(errno.EINVAL, "Missing resource_path/description")
 
             self._id = f'{resource_path}>%s' %time.time()
             self._payload['id'] = self._id
@@ -44,7 +44,7 @@ class TaskEntry:
             self._payload['description'] = description
             self._payload['pct_complete'] = 0
         else:
-            self._id = task_id
+            self._id = activity_id
             for key, value in kwargs.items():
                 self._payload[key] = value
 
@@ -72,49 +72,49 @@ class TaskEntry:
         self._payload['status'] = status
 
 
-class Task(metaclass=Singleton):
-    """Represent Task Framework. Singleton Class."""
+class Activity(metaclass=Singleton):
+    """Represent Activity Framework. Singleton Class."""
     _kv_store = None
 
     @staticmethod
     def init(backend_url):
-        """Initializes the backend for the Task Store."""
-        Task._kv_store = KvStoreFactory.get_instance(backend_url)
+        """Initializes the backend for the Activity Store."""
+        Activity._kv_store = KvStoreFactory.get_instance(backend_url)
 
     @staticmethod
     def create(resource_path: str, description: str):
-        """Creates a task for the given resource."""
-        task = TaskEntry(resource_path=resource_path, description=description)
-        Task._kv_store.set([task.id], [task.payload.json])
-        return task
+        """Creates a activity for the given resource."""
+        activity = ActivityEntry(resource_path=resource_path, description=description)
+        Activity._kv_store.set([activity.id], [activity.payload.json])
+        return activity
 
     @staticmethod
-    def start(task: TaskEntry):
-        """Start the task. Records the current time as the start time."""
-        if not isinstance(task, TaskEntry):
-            raise TaskError(errno.EINVAL, "start(): Invalid arg %s", task)
-        task.start()
-        Task._kv_store.set([task.id], [task.payload.json])
+    def start(activity: ActivityEntry):
+        """Start the activity. Records the current time as the start time."""
+        if not isinstance(activity, ActivityEntry):
+            raise ActivityError(errno.EINVAL, "start(): Invalid arg %s", activity)
+        activity.start()
+        Activity._kv_store.set([activity.id], [activity.payload.json])
 
     @staticmethod
-    def finish(task: TaskEntry):
-        """Completes a task. Records current time as the completion time."""
-        task.finish()
-        Task._kv_store.set([task.id], [task.payload.json])
+    def finish(activity: ActivityEntry):
+        """Completes a activity. Records current time as the completion time."""
+        activity.finish()
+        Activity._kv_store.set([activity.id], [activity.payload.json])
 
     @staticmethod
-    def update(task: TaskEntry, pct_complete: int, status: str):
-        """Updates the task progress."""
-        task.set_status(pct_complete, status)
-        Task._kv_store.set([task.id], [task.payload.json])
+    def update(activity: ActivityEntry, pct_complete: int, status: str):
+        """Updates the activity progress."""
+        activity.set_status(pct_complete, status)
+        Activity._kv_store.set([activity.id], [activity.payload.json])
 
     @staticmethod
     def search(resource_path: str, filters: list) -> list:
-        """Searches for a task as per given criteria."""
-        task_list = Task._kv_store.get_keys(resource_path)
+        """Searches for a activity as per given criteria."""
+        activity_list = Activity._kv_store.get_keys(resource_path)
         out_list = []
-        for task_id in task_list:
-            val = Task._kv_store.get([task_id])
+        for activity_id in activity_list:
+            val = Activity._kv_store.get([activity_id])
             data = json.loads(val[0])
             matched = True
             for f in filters:
@@ -127,14 +127,14 @@ class Task(metaclass=Singleton):
                     matched = False
                     break
             if matched:
-                out_list.append(task_id)
+                out_list.append(activity_id)
         return out_list
 
     @staticmethod
-    def get(task_id: str):
-        """Gets the task details."""
-        val = Task._kv_store.get([task_id])
+    def get(activity_id: str):
+        """Gets the activity details."""
+        val = Activity._kv_store.get([activity_id])
         if len(val) == 0 or val[0] is None:
-            raise TaskError(errno.EINVAL, "get(): invalid task id %s", task_id)
+            raise ActivityError(errno.EINVAL, "get(): invalid activity id %s", activity_id)
         data = json.loads(val[0])
-        return TaskEntry(**data)
+        return ActivityEntry(**data)

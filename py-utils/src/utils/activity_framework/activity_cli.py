@@ -21,66 +21,66 @@ import inspect
 import sys
 import traceback
 from argparse import RawTextHelpFormatter
-from cortx.utils.task_framework import Task
-from cortx.utils.task_framework.error import TaskError
+from cortx.utils.activity_framework import Activity
+from cortx.utils.activity_framework.error import ActivityError
 
 
-class TaskCli:
-    """CLI for the Task Store."""
-    _index = "Task_cli"
+class ActivityCli:
+    """CLI for the Activity Store."""
+    _index = "Activity_cli"
 
     @staticmethod
     def init(url: str):
-        """Load TaskStore URL."""
-        Task.init(url)
+        """Load ActivityStore URL."""
+        Activity.init(url)
 
     @staticmethod
     def create(args):
         """Set Key Value."""
         if len(args.args) < 2:
-            raise TaskError(errno.EINVAL, "Insufficient args for create")
+            raise ActivityError(errno.EINVAL, "Insufficient args for create")
         resource = args.args[0]
         description = args.args[1]
-        task = Task.create(resource, description)
-        return task.id
+        activity = Activity.create(resource, description)
+        return activity.id
 
     @staticmethod
     def update(args) -> str:
         """Updates value for the given keys."""
-        task_id = args.args[0]
+        activity_id = args.args[0]
         pct_complete = args.args[1]
         status = args.args[2]
-        task = Task.get(task_id)
-        Task.update(task, pct_complete, status)
+        activity = Activity.get(activity_id)
+        Activity.update(activity, pct_complete, status)
 
     @staticmethod
     def start(args):
-        """Starts the Task."""
-        task_id = args.args[0]
-        task = Task.get(task_id)
-        Task.start(task)
+        """Starts the Activity."""
+        activity_id = args.args[0]
+        activity = Activity.get(activity_id)
+        Activity.start(activity)
 
     @staticmethod
     def show(args):
-        """Returns task details present in store."""
-        task_id = args.args[0]
-        task = Task.get(task_id)
-        return task.payload.json
+        """Returns activity details present in store."""
+        activity_id = args.args[0]
+        activity = Activity.get(activity_id)
+        return activity.payload.json
 
     @staticmethod
     def search(args):
-        """Searches for a task as per given criteria."""
+        """Searches for a activity as per given criteria."""
         resource_path = args.args[0]
         filters = args.args[1].split(',')
-        task_list = Task.search(resource_path, filters)
-        return task_list
+        activity_list = Activity.search(resource_path, filters)
+        return activity_list
 
     @staticmethod
     def finish(args):
-        """Completes the Task."""
-        task_id = args.args[0]
-        task = Task.get(task_id)
-        Task.finish(task)
+        """Completes the Activity."""
+        activity_id = args.args[0]
+        activity = Activity.get(activity_id)
+        Activity.finish(activity)
 
 
 class CreateCmd:
@@ -89,9 +89,9 @@ class CreateCmd:
     @staticmethod
     def add_args(sub_parser) -> None:
         s_parser = sub_parser.add_parser('create', help=
-            "Create Task for the given resource\n"
-            "# task create '123>1>2>3'\n\n")
-        s_parser.set_defaults(func=TaskCli.create)
+            "Create Activity for the given resource\n"
+            "# activity create '123>1>2>3'\n\n")
+        s_parser.set_defaults(func=ActivityCli.create)
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 
@@ -101,9 +101,9 @@ class StartCmd:
     @staticmethod
     def add_args(sub_parser) -> None:
         s_parser = sub_parser.add_parser('start', help=
-            "Starts the given Task. Example command:\n"
-            "# task start '123>1>2>3>222.222'\n\n")
-        s_parser.set_defaults(func=TaskCli.start)
+            "Starts the given Activity. Example command:\n"
+            "# activity start '123>1>2>3>222.222'\n\n")
+        s_parser.set_defaults(func=ActivityCli.start)
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 
@@ -113,9 +113,9 @@ class FinishCmd:
     @staticmethod
     def add_args(sub_parser) -> None:
         s_parser = sub_parser.add_parser('finish', help=
-            "Marks the given Task complete. Example command:\n"
-            "# task finish '123>1>2>3>222.222'\n\n")
-        s_parser.set_defaults(func=TaskCli.finish)
+            "Marks the given Activity complete. Example command:\n"
+            "# activity finish '123>1>2>3>222.222'\n\n")
+        s_parser.set_defaults(func=ActivityCli.finish)
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 
@@ -125,9 +125,9 @@ class UpdateCmd:
     @staticmethod
     def add_args(sub_parser) -> None:
         s_parser = sub_parser.add_parser('update', help=
-            "Updates the given Task complete. Example command:\n"
-            "# task update '123>1>2>3>222.222 50 'reading...''\n\n")
-        s_parser.set_defaults(func=TaskCli.update)
+            "Updates the given Activity complete. Example command:\n"
+            "# activity update '123>1>2>3>222.222 50 'reading...''\n\n")
+        s_parser.set_defaults(func=ActivityCli.update)
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 class SearchCmd:
@@ -136,9 +136,9 @@ class SearchCmd:
     @staticmethod
     def add_args(sub_parser) -> None:
         s_parser = sub_parser.add_parser('search', help=
-            "Lists the Tasks for given resource. Example command:\n"
-            "# task search '123>1>2>3>'\n\n")
-        s_parser.set_defaults(func=TaskCli.search)
+            "Lists the Activitys for given resource. Example command:\n"
+            "# activity search '123>1>2>3>'\n\n")
+        s_parser.set_defaults(func=ActivityCli.search)
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 class ShowCmd:
@@ -147,17 +147,17 @@ class ShowCmd:
     @staticmethod
     def add_args(sub_parser) -> None:
         s_parser = sub_parser.add_parser('show', help=
-            "Shows the Task information. Example command:\n"
-            "# task show '123>1>2>3>222.222'\n\n")
-        s_parser.set_defaults(func=TaskCli.show)
+            "Shows the Activity information. Example command:\n"
+            "# activity show '123>1>2>3>222.222'\n\n")
+        s_parser.set_defaults(func=ActivityCli.show)
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 
 def main():
     # Setup Parser
-    parser = argparse.ArgumentParser(description='Task CLI',
+    parser = argparse.ArgumentParser(description='Activity CLI',
         formatter_class=RawTextHelpFormatter)
-    parser.add_argument('url', help='URL for the TaskStore backend')
+    parser.add_argument('url', help='URL for the ActivityStore backend')
     sub_parser = parser.add_subparsers(title='command',
         help="represents the action e.g. create, start, update, finish",
             dest='command')
@@ -171,13 +171,13 @@ def main():
     # Parse and Process Arguments
     try:
         args = parser.parse_args()
-        TaskCli.init(args.url)
+        ActivityCli.init(args.url)
         out = args.func(args)
         if out is not None and len(out) > 0:
             print(out)
         return 0
 
-    except TaskError as e:
+    except ActivityError as e:
         sys.stderr.write("%s\n\n" % str(e))
         sys.stderr.write("%s\n" % traceback.format_exc())
         return e.rc
