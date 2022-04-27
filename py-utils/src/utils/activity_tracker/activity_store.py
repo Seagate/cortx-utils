@@ -21,15 +21,15 @@ import json
 import re
 
 from cortx.template import Singleton
-from cortx.utils.activity_framework.error import ActivityError
+from cortx.utils.activity_tracker.error import ActivityError
 from cortx.utils.kv_store.kv_store import KvStoreFactory
 from cortx.utils.kv_store import KvPayload
 
 class ActivityEntry:
-    """Represents System Activity."""
+    """Represents System Activity"""
 
     def __init__(self, *args, **kwargs):
-        """Initializes the backend for the Activity Store."""
+        """Initializes the backend for the Activity Store"""
         self._payload = KvPayload()
         activity_id = kwargs.get('id')
         if activity_id is None:
@@ -73,24 +73,24 @@ class ActivityEntry:
 
 
 class Activity(metaclass=Singleton):
-    """Represent Activity Framework. Singleton Class."""
+    """Represent Activity Framework. Singleton Class"""
     _kv_store = None
 
     @staticmethod
     def init(backend_url):
-        """Initializes the backend for the Activity Store."""
+        """Initializes the backend for the Activity Store"""
         Activity._kv_store = KvStoreFactory.get_instance(backend_url)
 
     @staticmethod
     def create(resource_path: str, description: str):
-        """Creates a activity for the given resource."""
+        """Creates a activity for the given resource"""
         activity = ActivityEntry(resource_path=resource_path, description=description)
         Activity._kv_store.set([activity.id], [activity.payload.json])
         return activity
 
     @staticmethod
     def start(activity: ActivityEntry):
-        """Start the activity. Records the current time as the start time."""
+        """Start the activity. Records the current time as the start time"""
         if not isinstance(activity, ActivityEntry):
             raise ActivityError(errno.EINVAL, "start(): Invalid arg %s", activity)
         activity.start()
@@ -98,19 +98,19 @@ class Activity(metaclass=Singleton):
 
     @staticmethod
     def finish(activity: ActivityEntry):
-        """Completes a activity. Records current time as the completion time."""
+        """Completes a activity. Records current time as the completion time"""
         activity.finish()
         Activity._kv_store.set([activity.id], [activity.payload.json])
 
     @staticmethod
     def update(activity: ActivityEntry, pct_complete: int, status: str):
-        """Updates the activity progress."""
+        """Updates the activity progress"""
         activity.set_status(pct_complete, status)
         Activity._kv_store.set([activity.id], [activity.payload.json])
 
     @staticmethod
     def search(resource_path: str, filters: list) -> list:
-        """Searches for a activity as per given criteria."""
+        """Searches for a activity as per given criteria"""
         activity_list = Activity._kv_store.get_keys(resource_path)
         out_list = []
         for activity_id in activity_list:
@@ -132,7 +132,7 @@ class Activity(metaclass=Singleton):
 
     @staticmethod
     def get(activity_id: str):
-        """Gets the activity details."""
+        """Gets the activity details"""
         val = Activity._kv_store.get([activity_id])
         if len(val) == 0 or val[0] is None:
             raise ActivityError(errno.EINVAL, "get(): invalid activity id %s", activity_id)

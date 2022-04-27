@@ -21,22 +21,22 @@ import inspect
 import sys
 import traceback
 from argparse import RawTextHelpFormatter
-from cortx.utils.activity_framework import Activity
-from cortx.utils.activity_framework.error import ActivityError
+from cortx.utils.activity_tracker.activity_store import Activity
+from cortx.utils.activity_tracker.error import ActivityError
 
 
 class ActivityCli:
-    """CLI for the Activity Store."""
+    """CLI for the Activity Store"""
     _index = "Activity_cli"
 
     @staticmethod
     def init(url: str):
-        """Load ActivityStore URL."""
+        """Load ActivityStore URL"""
         Activity.init(url)
 
     @staticmethod
     def create(args):
-        """Set Key Value."""
+        """Set Key Value"""
         if len(args.args) < 2:
             raise ActivityError(errno.EINVAL, "Insufficient args for create")
         resource = args.args[0]
@@ -46,7 +46,7 @@ class ActivityCli:
 
     @staticmethod
     def update(args) -> str:
-        """Updates value for the given keys."""
+        """Updates value for the given keys"""
         activity_id = args.args[0]
         pct_complete = args.args[1]
         status = args.args[2]
@@ -55,21 +55,21 @@ class ActivityCli:
 
     @staticmethod
     def start(args):
-        """Starts the Activity."""
+        """Starts the Activity"""
         activity_id = args.args[0]
         activity = Activity.get(activity_id)
         Activity.start(activity)
 
     @staticmethod
     def show(args):
-        """Returns activity details present in store."""
+        """Returns activity details present in store"""
         activity_id = args.args[0]
         activity = Activity.get(activity_id)
         return activity.payload.json
 
     @staticmethod
     def search(args):
-        """Searches for a activity as per given criteria."""
+        """Searches for a activity as per given criteria"""
         resource_path = args.args[0]
         filters = args.args[1].split(',')
         activity_list = Activity.search(resource_path, filters)
@@ -77,14 +77,14 @@ class ActivityCli:
 
     @staticmethod
     def finish(args):
-        """Completes the Activity."""
+        """Completes the Activity"""
         activity_id = args.args[0]
         activity = Activity.get(activity_id)
         Activity.finish(activity)
 
 
 class CreateCmd:
-    """Create Cmd Structure."""
+    """Create Cmd Structure"""
 
     @staticmethod
     def add_args(sub_parser) -> None:
@@ -96,7 +96,7 @@ class CreateCmd:
 
 
 class StartCmd:
-    """Start Cmd Structure."""
+    """Start Cmd Structure"""
 
     @staticmethod
     def add_args(sub_parser) -> None:
@@ -108,7 +108,7 @@ class StartCmd:
 
 
 class FinishCmd:
-    """Finish Cmd Structure."""
+    """Finish Cmd Structure"""
 
     @staticmethod
     def add_args(sub_parser) -> None:
@@ -120,7 +120,7 @@ class FinishCmd:
 
 
 class UpdateCmd:
-    """Update Cmd Structure."""
+    """Update Cmd Structure"""
 
     @staticmethod
     def add_args(sub_parser) -> None:
@@ -131,7 +131,7 @@ class UpdateCmd:
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 class SearchCmd:
-    """Search Cmd Structure."""
+    """Search Cmd Structure"""
 
     @staticmethod
     def add_args(sub_parser) -> None:
@@ -142,7 +142,7 @@ class SearchCmd:
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 class ShowCmd:
-    """Show Cmd Structure."""
+    """Show Cmd Structure"""
 
     @staticmethod
     def add_args(sub_parser) -> None:

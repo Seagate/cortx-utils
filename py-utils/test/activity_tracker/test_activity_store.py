@@ -20,7 +20,7 @@ import unittest
 import os
 import json
 
-from cortx.utils.activity_framework import Activity
+from cortx.utils.activity_tracker.activity_store import Activity
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sample_file = os.path.join(dir_path, 'sample_activities.json')
@@ -155,6 +155,8 @@ class TestActivityStore(unittest.TestCase):
         activity_status = "InProgress"
         Activity.update(activity2, pct_complete, activity_status)
         self.assertEqual(Activity.search('Activities', [f"pct_complete=={pct_complete}"])[0], activity2.id)
+        self.assertEqual(Activity.search('Activities', [f"status=='{activity_status}'"])[0], activity2.id)
+        self.assertEqual(Activity.search('Activities', ["description=='Activity Status Two'"])[0], activity2.id)
 
     @classmethod
     def tearDownClass(cls):
