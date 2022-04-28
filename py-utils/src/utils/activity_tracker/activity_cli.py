@@ -26,17 +26,18 @@ from cortx.utils.activity_tracker.error import ActivityError
 
 
 class ActivityCli:
+
     """CLI for the Activity Store"""
     _index = "Activity_cli"
 
     @staticmethod
     def init(url: str):
-        """Load ActivityStore URL"""
+        """Load ActivityStore URL."""
         Activity.init(url)
 
     @staticmethod
     def create(args):
-        """Set Key Value"""
+        """Set Key Value."""
         if len(args.args) < 2:
             raise ActivityError(errno.EINVAL, "Insufficient args for create")
         resource = args.args[0]
@@ -46,7 +47,7 @@ class ActivityCli:
 
     @staticmethod
     def update(args) -> str:
-        """Updates value for the given keys"""
+        """Updates value for the given keys."""
         activity_id = args.args[0]
         pct_complete = args.args[1]
         status = args.args[2]
@@ -55,21 +56,21 @@ class ActivityCli:
 
     @staticmethod
     def start(args):
-        """Starts the Activity"""
+        """Starts the Activity."""
         activity_id = args.args[0]
         activity = Activity.get(activity_id)
         Activity.start(activity)
 
     @staticmethod
     def show(args):
-        """Returns activity details present in store"""
+        """Returns activity details present in store."""
         activity_id = args.args[0]
         activity = Activity.get(activity_id)
         return activity.payload.json
 
     @staticmethod
     def search(args):
-        """Searches for a activity as per given criteria"""
+        """Searches for a activity as per given criteria."""
         resource_path = args.args[0]
         filters = args.args[1].split(',')
         activity_list = Activity.search(resource_path, filters)
@@ -77,13 +78,14 @@ class ActivityCli:
 
     @staticmethod
     def finish(args):
-        """Completes the Activity"""
+        """Completes the Activity."""
         activity_id = args.args[0]
         activity = Activity.get(activity_id)
         Activity.finish(activity)
 
 
 class CreateCmd:
+
     """Create Cmd Structure"""
 
     @staticmethod
@@ -96,6 +98,7 @@ class CreateCmd:
 
 
 class StartCmd:
+
     """Start Cmd Structure"""
 
     @staticmethod
@@ -108,6 +111,7 @@ class StartCmd:
 
 
 class FinishCmd:
+
     """Finish Cmd Structure"""
 
     @staticmethod
@@ -120,6 +124,7 @@ class FinishCmd:
 
 
 class UpdateCmd:
+
     """Update Cmd Structure"""
 
     @staticmethod
@@ -131,6 +136,7 @@ class UpdateCmd:
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 class SearchCmd:
+
     """Search Cmd Structure"""
 
     @staticmethod
@@ -142,6 +148,7 @@ class SearchCmd:
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 class ShowCmd:
+
     """Show Cmd Structure"""
 
     @staticmethod
