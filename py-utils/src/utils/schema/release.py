@@ -92,7 +92,8 @@ class Release(Manifest):
         return ret_code
 
     def is_version_compatible(self, deployed_version:str, component:str):
-        """Checks if version is compatible for upgrade/downgrade.
+        """
+        Checks if version is compatible for upgrade/downgrade.
 
         Returns True if version is compatible for upgrade/downgrade else returns False.
         Parameters:
