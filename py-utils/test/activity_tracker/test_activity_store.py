@@ -59,6 +59,8 @@ class TestActivityStore(unittest.TestCase):
             rc = 1
             raise ActivityError(errno.EINVAL, "Error: While fetching Activity ID")
         self.assertEqual(rc, 0)
+        with self.assertRaises(ActivityError):
+            Activity.create("activity", None)
         try:
             activities = load_data(sample_file)['Activities']
             activity_data = json.loads(activities.get(activity_id))
@@ -75,6 +77,7 @@ class TestActivityStore(unittest.TestCase):
         """Test starting a activity."""
         Activity.init(sample_file_url)
         activity = Activity.create("Activities", "Activity Status")
+        activity1 = "activity"
         rc = 0
         try:
             activity_id = activity.id.split('>')[1]
@@ -83,6 +86,8 @@ class TestActivityStore(unittest.TestCase):
             raise ActivityError(errno.EINVAL, "Error: While fetching Activity ID")
         self.assertEqual(rc, 0)
         Activity.start(activity)
+        with self.assertRaises(ActivityError):
+            Activity.start(activity1)
         try:
             activities = load_data(sample_file)['Activities']
             activity_data = json.loads(activities.get(activity_id))
@@ -131,6 +136,7 @@ class TestActivityStore(unittest.TestCase):
         """Test Finish activity."""
         Activity.init(sample_file_url)
         activity = Activity.create("Activities", "Activity Status")
+        activity1 = "activity"
         rc = 0
         try:
             activity_id = activity.id.split('>')[1]
@@ -140,6 +146,8 @@ class TestActivityStore(unittest.TestCase):
         self.assertEqual(rc, 0)
         Activity.start(activity)
         Activity.finish(activity)
+        with self.assertRaises(ActivityError):
+            Activity.finish(activity1)
         try:
             activities = load_data(sample_file)['Activities']
             activity_data = json.loads(activities.get(activity_id))
