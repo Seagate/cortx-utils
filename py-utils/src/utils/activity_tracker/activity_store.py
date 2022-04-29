@@ -21,14 +21,14 @@ import json
 import re
 
 from cortx.template import Singleton
-from cortx.utils.activity_tracker.error import ActivityError
 from cortx.utils.kv_store.kv_store import KvStoreFactory
 from cortx.utils.kv_store import KvPayload
+from cortx.utils.activity_tracker.error import ActivityError
 
 class ActivityEntry:
     """Represents System Activity"""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         """Initializes the backend for the Activity Store."""
         self._payload = KvPayload()
         activity_id = kwargs.get('id')
@@ -123,8 +123,8 @@ class Activity(metaclass=Singleton):
                     matched = False
                     break
                 vars()[key_spec[0]] = data[key_spec[0]]
-                _ , r = [i.strip() for i in f.split("==")]
-                r=r.replace("'","")
+                _, r = [i.strip() for i in f.split("==")]
+                r = r.replace("'","")
                 if str(data[key_spec[0]]) != r:
                     matched = False
                     break

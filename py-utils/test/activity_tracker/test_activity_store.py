@@ -19,8 +19,9 @@
 import unittest
 import os
 import json
-
+import errno
 from cortx.utils.activity_tracker.activity_store import Activity
+from cortx.utils.activity_tracker.error import ActivityError
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sample_file = os.path.join(dir_path, 'sample_activities.json')
@@ -54,19 +55,21 @@ class TestActivityStore(unittest.TestCase):
         rc = 0
         try:
             activity_id = activity.id.split('>')[1]
-        except AttributeError as exc:
-            print(exc)
+        except:
             rc = 1
+            raise ActivityError(errno.EINVAL, "Error: While fetching Activity ID")
         self.assertEqual(rc, 0)
         try:
             activities = load_data(sample_file)['Activities']
             activity_data = json.loads(activities.get(activity_id))
-        except Exception as e:
+        except:
             rc = 1
-            print(e)
+            raise ActivityError(errno.EINVAL, "Error: While fetching Activity data")
         self.assertEqual(rc, 0)
         self.assertEqual(activity_data.get('resource_path'), "Activities")
+        self.assertNotEqual(activity_data.get('resource_path'),"")
         self.assertEqual(activity_data.get('description'), "Activity Status")
+        self.assertNotEqual(activity_data.get('description'),"")
 
     def test_activity_store_start_activity(self):
         """Test starting a activity."""
@@ -75,17 +78,17 @@ class TestActivityStore(unittest.TestCase):
         rc = 0
         try:
             activity_id = activity.id.split('>')[1]
-        except AttributeError as exc:
-            print(exc)
+        except:
             rc = 1
+            raise ActivityError(errno.EINVAL, "Error: While fetching Activity ID")
         self.assertEqual(rc, 0)
         Activity.start(activity)
         try:
             activities = load_data(sample_file)['Activities']
             activity_data = json.loads(activities.get(activity_id))
-        except Exception as e:
+        except:
             rc = 1
-            print(e)
+            raise ActivityError(errno.EINVAL, "Error: While fetching Activity data")
         self.assertEqual(rc, 0)
         self.assertIsNotNone(activity_data.get('start_time'), "Start time key is not present")
 
@@ -96,9 +99,9 @@ class TestActivityStore(unittest.TestCase):
         rc = 0
         try:
             activity_id = activity.id.split('>')[1]
-        except AttributeError as exc:
-            print(exc)
+        except:
             rc = 1
+            raise ActivityError(errno.EINVAL, "Error: While fetching Activity ID")
         self.assertEqual(rc, 0)
         Activity.start(activity)
         pct_complete = 30
@@ -107,11 +110,12 @@ class TestActivityStore(unittest.TestCase):
         try:
             activities = load_data(sample_file)['Activities']
             activity_data = json.loads(activities.get(activity_id))
-        except Exception as e:
+        except:
             rc = 1
-            print(e)
+            raise ActivityError(errno.EINVAL, "Error: While fetching Activity data")
         self.assertEqual(rc, 0)
         self.assertEqual(activity_data.get('pct_complete'), pct_complete)
+        self.assertIsNotNone(activity_data.get('pct_complete'), "pct_complete key is not present")
         self.assertEqual(activity_data.get('status'), activity_status)
 
     def test_activity_store_get_activity(self):
@@ -130,18 +134,18 @@ class TestActivityStore(unittest.TestCase):
         rc = 0
         try:
             activity_id = activity.id.split('>')[1]
-        except AttributeError as exc:
-            print(exc)
+        except:
             rc = 1
+            raise ActivityError(errno.EINVAL, "Error: While fetching Activity ID")
         self.assertEqual(rc, 0)
         Activity.start(activity)
         Activity.finish(activity)
         try:
             activities = load_data(sample_file)['Activities']
             activity_data = json.loads(activities.get(activity_id))
-        except Exception as e:
+        except:
             rc = 1
-            print(e)
+            raise ActivityError(errno.EINVAL, "Error: While fetching Activity data")
         self.assertIsNotNone(activity_data.get('finish_time'), "finish_time key is not present")
 
     def test_activity_store_search_activity(self):

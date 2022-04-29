@@ -1,7 +1,7 @@
 #!/bin/env python3
 
 # CORTX Python common library.
-# Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates
+# Copyright (c) 2022 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -15,24 +15,11 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+from cortx.utils.errors import UtilsError
 
-class ActivityError(Exception):
+class ActivityError(UtilsError):
     """Generic Exception with error code and output."""
 
     def __init__(self, rc, message, *args):
-        """Initializing return code and message."""
-        self._rc = rc
-        self._desc = message % (args)
-
-    @property
-    def rc(self):
-        return self._rc
-
-    @property
-    def desc(self):
-        return self._desc
-
-    def __str__(self):
-        """Returns return code and message."""
-        if self._rc == 0: return self._desc
-        return "error(%d): %s" %(self._rc, self._desc)
+        """Initialize SetupError."""
+        super().__init__(rc, message, *args)
