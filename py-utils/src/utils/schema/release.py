@@ -103,7 +103,7 @@ class Release(Manifest):
         upgrade_version = self._get_val('VERSION')
         min_compatible_versions = self._get_val('REQUIRES')
         try:
-            min_compatible_version = [ x.split('>=')[1].strip() for x in min_compatible_versions if component in x][0]
+            min_compatible_version = [x.split('>=')[1].strip() for x in min_compatible_versions if component in x][0]
         except IndexError:
             raise Exception(f'Compatible version not found for {component}.')
         if self.version_check(upgrade_version, min_compatible_version) == -1:
