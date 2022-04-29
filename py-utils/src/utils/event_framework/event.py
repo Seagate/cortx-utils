@@ -44,11 +44,11 @@ class Event(KvPayload):
         """Initialize event object with header and payload attributes."""
         super().__init__()
         # Set Header
-        _now = str(time.time())
+        _now = time.time()
         _uuid = str(uuid.uuid4().hex)
         super().set(f'header>{EventAttr.VERSION}', VERSION)
-        super().set(f'header>{EventAttr.TIMESTAMP}', _now)
-        super().set(f'header>{EventAttr.EVENT_ID}', _now + _uuid)
+        super().set(f'header>{EventAttr.TIMESTAMP}', str(_now))
+        super().set(f'header>{EventAttr.EVENT_ID}', str(int(_now)) + _uuid)
         # Set payload if required
         for key in payload.get_keys():
             super().set(f'payload>{key}', payload.get(key))
