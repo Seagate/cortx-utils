@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
+#!/bin/env python3
 
 # CORTX Python common library.
-# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
-#
+# Copyright (c) 2022 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -16,40 +15,11 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import sys
-import unittest
-from cortx.utils.cmd_framework import Cmd
+from cortx.utils.errors import UtilsError
 
+class ActivityError(UtilsError):
+    """Generic Exception with error code and output."""
 
-class TestCmd(Cmd):
-  """ Test Command """
-
-  def __init__(self, args: dict):
-    super().__init__(args)
-
-  def add_args(parser: str):
-    parser.add_argument('param1', help='test')
-
-  def process(self):
-    return 0
-
-
-class TestCmdFramework(unittest.TestCase):
-    """Test EventMessage send and receive functionality."""
-
-    def test_cmd_args(self):
-        """ Test Cmd and Args """
-
-        rc = 1
-        try:
-            argv = [ 'test', 'param1' ]
-            cmd = Cmd.get_command(sys.modules[__name__], 'test', argv)
-
-        except:
-            rc = 0
-
-        self.assertEqual(rc, 0)
-
-
-if __name__ == '__main__':
-    unittest.main()
+    def __init__(self, rc, message, *args):
+        """Initialize SetupError."""
+        super().__init__(rc, message, *args)

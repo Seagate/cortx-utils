@@ -35,7 +35,7 @@ class Log:
 
     @staticmethod
     def init(service_name, log_path, level="INFO", backup_count=10, file_size_in_mb=10,
-            syslog_server=None, syslog_port=None, console_output=False):
+            syslog_server=None, syslog_port=None, console_output=False, console_output_level='WARN'):
         """ Initialize logging to log to syslog """
         # TODO: Add handler type argument to init method and let logger to
         # use default values to ease init method call by caller.
@@ -49,16 +49,16 @@ class Log:
             max_bytes = file_size_in_mb * 1024 * 1024
         Log.audit_logger = Log._get_logger(syslog_server, syslog_port, service_name,
                         "audit", getattr(Log, level), log_path, backup_count, max_bytes,
-                        console_output)
+                        console_output, console_output_level)
 
         Log.logger = Log._get_logger(syslog_server, syslog_port, service_name,
                        "system", getattr(Log, level), log_path, backup_count, max_bytes,
-                       console_output)
+                       console_output, console_output_level)
 
     @staticmethod
     def _get_logger(syslog_server: str, syslog_port: str, file_name: str, logger_type,
                         log_level, log_path: str, backup_count: int, max_bytes: int,
-                        console_output: bool):
+                        console_output: bool, console_output_level: str):
         """
         This Function Creates the Logger for Log Files.
         :param syslog_server: syslog server
@@ -92,9 +92,10 @@ class Log:
 
         if console_output:
             # Log message in console
-            sh = logging.StreamHandler()
-            sh.setFormatter(formatter)
-            logger.addHandler(sh)
+            stream_handler = logging.StreamHandler()
+            stream_handler.setFormatter(formatter)
+            stream_handler.setLevel(getattr(Log, console_output_level))
+            logger.addHandler(stream_handler)
 
         return logger
 
@@ -112,7 +113,7 @@ class Log:
 
     @staticmethod
     def audit(msg, *args, **kwargs):
-        if not Log.audit_Logger:
+        if not Log.audit_logger:
             raise errors.UtilsError(errors.ERR_NOT_INITIALIZED, "Audit Logger "\
                 "is not initialised")
         caller = inspect.stack()[1][3]

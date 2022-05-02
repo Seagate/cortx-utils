@@ -17,14 +17,9 @@
 
 from datetime import datetime, timedelta
 import requests
-import io
-import argparse
 import traceback
-import sys
 import os
-import pathlib
 import json
-from logging.handlers import SysLogHandler
 import logging
 
 class esCleanup(object):
@@ -46,8 +41,8 @@ class esCleanup(object):
         } } }
         for index in indexes:
             try:
-                response = requests.post(f'http://{host}/{index}/_delete_by_query', 
-                                                              data = json.dumps(d), headers = headers) 
+                response = requests.post(f'http://{host}/{index}/_delete_by_query',
+                                                              data = json.dumps(d), headers = headers)
             except Exception as e:
                 self.logger.error(f'ERROR: cannot delete data for {index}', traceback.format_exc())
             if response.status_code == 200:

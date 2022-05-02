@@ -16,9 +16,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
-import json
 import os
-import asyncio
 
 from cortx.utils.log import Log
 from cortx.utils.schema.payload import JsonMessage, Json

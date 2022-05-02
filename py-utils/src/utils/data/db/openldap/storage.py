@@ -15,20 +15,17 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import asyncio
-from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from distutils.util import strtobool
-import multiprocessing
 from schematics.exceptions import ConversionError
-from schematics.types import BaseType, BooleanType, DateTimeType, StringType
-from typing import Dict, List, Optional, Type, Union
+from schematics.types import BaseType, BooleanType, DateTimeType
+from typing import Union
 
-from cortx.utils.data.access import BaseModel, IDataBase, Query, SortOrder
+from cortx.utils.data.access import BaseModel
 from cortx.utils.data.access.filters import (ComparisonOperation, IFilter, FilterOperationAnd,
                                              FilterOperationCompare, FilterOperationOr)
 from cortx.utils.data.db import GenericQueryConverter
-from cortx.utils.errors import DataAccessExternalError, DataAccessInternalError
+from cortx.utils.errors import DataAccessInternalError
 
 
 class OpenLdapSyntaxTools:
