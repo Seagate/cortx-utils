@@ -16,8 +16,6 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import time
-import json
-import re
 import errno
 
 from cortx.utils.log import Log
@@ -26,7 +24,6 @@ from confluent_kafka.admin import AdminClient, ConfigResource, NewTopic, \
     NewPartitions
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus.message_broker import MessageBroker
-from cortx.utils.process import SimpleProcess
 from cortx.utils import errors
 
 

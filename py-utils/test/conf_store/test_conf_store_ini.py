@@ -21,7 +21,6 @@ import unittest
 
 from cortx.utils.conf_store import Conf
 from cortx.utils.kv_store.error import KvError
-from cortx.utils.conf_store.error import ConfError
 
 class TestConfStoreIni(unittest.TestCase):
     """Test confstore backend urls mentioned in config file."""

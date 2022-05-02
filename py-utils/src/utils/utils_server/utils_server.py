@@ -71,7 +71,6 @@ class MessageServer(UtilsServer):
 
 
 if __name__ == '__main__':
-    from cortx.utils.conf_store import Conf
     parser = argparse.ArgumentParser(description='Utils server CLI',
         formatter_class=RawTextHelpFormatter)
     parser.add_argument('-c', '--config', dest='cluster_conf',\

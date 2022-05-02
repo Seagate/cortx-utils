@@ -25,7 +25,6 @@ from cortx.utils.ha.dm.models.decisiondb import DecisionModel
 from cortx.utils.ha.dm.actions import Action
 from cortx.utils.ha.hac import const
 from cortx.utils.schema.payload import Json
-from cortx.utils.errors import DataAccessInternalError
 from cortx.utils.log import Log
 from cortx.utils.data.access import SortBy, SortOrder
 

@@ -15,13 +15,8 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
-import glob
-import json
-import errno
-from pathlib import Path
 
 from cortx.utils import errors
-from cortx.utils import const
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
 from cortx.utils.common import SetupError, DbConf

@@ -21,7 +21,7 @@ from aiohttp import web
 from cortx.utils.utils_server import MessageServer
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.utils_server.error import RestServerError
-from cortx.utils.message_bus import MessageConsumer, MessageProducer, MessageBus
+from cortx.utils.message_bus import MessageConsumer, MessageProducer
 from cortx.utils.log import Log
 
 routes = web.RouteTableDef()

@@ -24,8 +24,6 @@ from datetime import datetime, timedelta
 
 from cortx.utils.support_framework.errors import BundleError
 
-from cortx.utils.support_framework.errors import BundleError
-
 
 class FilterLog:
     """Provides Filter interfaces for support bundle."""

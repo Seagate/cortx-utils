@@ -185,7 +185,6 @@ class TestMessageBus(unittest.TestCase):
         t2.start()
 
         # sleep for thread to complete
-        import time
         time.sleep(5)
         self.assertEqual(total, TestMessageBus._bulk_count)
 

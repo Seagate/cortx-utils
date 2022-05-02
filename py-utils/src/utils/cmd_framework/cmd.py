@@ -15,7 +15,7 @@
 
 import argparse
 import inspect
-import sys
+
 
 class Cmd:
   """ Command """
