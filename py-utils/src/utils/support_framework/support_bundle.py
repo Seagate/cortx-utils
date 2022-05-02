@@ -24,7 +24,7 @@ import shutil
 import psutil
 import time
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from cortx.utils.log import Log
 from cortx.utils.schema.providers import Response
@@ -365,7 +365,6 @@ class SupportBundle:
         res = loop.run_until_complete(
             SupportBundle._get_bundle_status(cmd_obj))
         if res.rc() == OPERATION_SUCESSFUL:
-            import json
             return json.dumps(res.output(), indent=2)
         else:
             return res.output()

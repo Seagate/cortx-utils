@@ -114,7 +114,7 @@ class ConfigCmd(Cmd):
         self.consul = Consul(args.config)
 
     def process(self):
-        self.consul.validate(self.name)        
+        self.consul.validate(self.name)
         self.consul.config()
 
 
@@ -128,7 +128,7 @@ class InitCmd(Cmd):
         self.consul = Consul(args.config)
 
     def process(self):
-        self.consul.validate(self.name)        
+        self.consul.validate(self.name)
         self.consul.init()
 
 
@@ -142,7 +142,7 @@ class TestCmd(Cmd):
         self.consul = Consul(args.config)
 
     def process(self):
-        self.consul.validate(self.name)        
+        self.consul.validate(self.name)
         self.consul.test()
 
 
@@ -152,11 +152,11 @@ class ResetCmd(Cmd):
     name = "reset"
 
     def __init__(self, args):
-        super().__init__(args)        
+        super().__init__(args)
         self.consul = Consul(args.config)
 
     def process(self):
-        self.consul.validate(self.name)        
+        self.consul.validate(self.name)
         self.consul.reset()
 
 
@@ -177,7 +177,7 @@ class CleanupCmd(Cmd):
         self.pre_factory = args.pre_factory
 
     def process(self):
-        self.consul.validate(self.name)        
+        self.consul.validate(self.name)
         self.consul.cleanup(self.pre_factory)
 
 

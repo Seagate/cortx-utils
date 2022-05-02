@@ -22,7 +22,6 @@ from cortx.utils.iem_framework import EventMessage
 from cortx.utils.utils_server.error import RestServerError
 from cortx.utils.iem_framework.error import EventMessageError
 from cortx.utils.log import Log
-from cortx.utils.conf_store import Conf, MappedConf
 
 routes = web.RouteTableDef()
 

@@ -21,7 +21,6 @@ from  ast import literal_eval
 from cortx.utils.errors import BaseError
 from cortx.utils.validator.v_pkg import PkgV
 from cortx.utils.validator.v_network import NetworkV
-from cortx.utils.validator.v_service import ServiceV
 from cortx.utils.validator.v_path import PathV
 from cortx.utils.conf_store import Conf
 from cortx.utils.log import Log

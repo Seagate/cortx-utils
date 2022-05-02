@@ -15,12 +15,8 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import os
-
-from cortx.utils.schema.payload import Json
 from cortx.utils import const as general_const
 from cortx.utils.common import DbConf
-from cortx.utils.ha.hac import const
 from cortx.utils.data.access import Query
 from cortx.utils.data.access.filters import Compare
 from cortx.utils.data.db.db_provider import DataBaseProvider, GeneralConfig

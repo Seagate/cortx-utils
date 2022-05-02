@@ -16,7 +16,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 from cortx.utils.data.access.base_model import BaseModel
-from schematics.types import StringType, ListType
+from schematics.types import StringType
 
 class UnsupportedFeaturesModel(BaseModel):
     _id = "feature_id"

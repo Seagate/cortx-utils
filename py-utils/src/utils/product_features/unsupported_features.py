@@ -15,14 +15,11 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import os
 from cortx.utils.common import DbConf
 from cortx.utils.data.access import Query
 from cortx.utils.data.access.filters import Compare, And
 from cortx.utils.data.db.db_provider import DataBaseProvider, GeneralConfig
 from cortx.utils import const
-from cortx.utils.log import Log
-from cortx.utils.schema.payload import Json
 from cortx.utils.product_features.model import UnsupportedFeaturesModel
 
 class UnsupportedFeaturesDB:
