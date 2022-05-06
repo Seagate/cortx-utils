@@ -353,7 +353,7 @@ class KvPayload:
         if len(k) == 1:
             # value of key being dict/list means it's not a leaf node
             # or below nodes are deleted
-            is_key_leaf = True if type(data[k[0]]) not in [list, dict] else False
+            is_key_leaf = False if isinstance(data[k[0]], (list, dict)) else True
             if is_key_leaf or force or (len(data[k[0]]) == 0):
                 del data[k[0]]
                 return True

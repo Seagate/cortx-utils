@@ -445,8 +445,8 @@ class ConsulKvPayload(KvPayload):
         return self._consul.kv.put(self._store_path + key, str(val))
 
     @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
-    def _delete(self, key: str, *args, **kwargs) -> Union[bool, None]:
-        """ Delete the key:value for the input key. """
+    def _delete(self, key: str, data: dict, force: bool = False, *args, **kwargs) -> Union[bool, None]:
+        """Delete the key:value for the input key."""
         return self._consul.kv.delete(key = self._store_path + key, recurse = force)
 
     @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
