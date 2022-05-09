@@ -60,8 +60,8 @@ class esCleanup(object):
         # in csm_cleanup.log
         logger = logging.getLogger("util_log")
         logger.setLevel(logging.INFO)
-        format = '%(name)s %(levelname)s %(message)s'
-        formatter = logging.Formatter(format)
+        log_format = '%(name)s %(levelname)s %(message)s'
+        formatter = logging.Formatter(log_format)
         fh = logging.FileHandler(os.path.join(path, f"{filename}.log"))
         fh.setFormatter(formatter)
         logger.addHandler(fh)

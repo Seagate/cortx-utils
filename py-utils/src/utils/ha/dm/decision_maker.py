@@ -73,12 +73,10 @@ class RuleEngine(object):
             return action
         alert_type = sensor_response.get(const.ALERT_TYPE)
         severity = sensor_response.get(const.SEVERITY)
-        """
-        In case of IEM alerts for fetching the rules we will have to make use
-        of two additional fields:
-        1. component_id
-        2. module_id
-        """
+        # In case of IEM alerts for fetching the rules we will have to make use
+        # of two additional fields:
+        # 1. component_id
+        # 2. module_id
         if res_type == const.IEM:
             component_var = sensor_response.get(const.SPECIFIC_INFO).get\
                 (const.SPECIFIC_INFO_COMPONENT)
