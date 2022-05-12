@@ -61,7 +61,7 @@ class TestMessage(unittest.TestCase):
             message_server_endpoints=TestMessage._message_server_endpoints)
         for alert_count in range(0, 1000):
             EventMessage.send(module='mod', event_id='500', severity='B', \
-                message_blob='This is message' + str(alert_count))
+                message_blob='test_bulk_message' + str(alert_count))
 
     def test_bulk_verify_receive(self):
         """ Test bulk receive alerts """
@@ -73,7 +73,8 @@ class TestMessage(unittest.TestCase):
             if alert is None:
                 break
             self.assertIs(type(alert), dict)
-            count += 1
+            if 'test_bulk_message' in alert['iem']['contents']['message']:
+                count += 1
         self.assertEqual(count, 1000)
 
     def test_alert_fail_receive(self):
