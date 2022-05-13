@@ -208,6 +208,31 @@ class ConfStore:
         for key in key_list:
             self._cache[dst_index].set(key, self._cache[src_index].get(key))
 
+    def compare(self, index1: str, index2: str):
+        """
+        Compares two configs and returns difference
+
+        Parameters:
+        index1 : Conf Index 1 
+        index2 : Conf Index 2
+
+        Return Value:
+        Returns three lists : New keys, deleted keys, Updated keys
+        """
+        if index1 not in self._cache.keys():
+            raise ConfError(errno.EINVAL, "config index %s is not loaded",
+                index1)
+        if index2 not in self._cache.keys():
+            raise ConfError(errno.EINVAL, "config index %s is not loaded",
+                index2)
+        
+        key_list1 = self._cache[index1].get_keys()
+        key_list2 = self._cache[index2].get_keys()
+        deleted_keys = list(set(key_list1).difference(key_list2))
+        new_keys = list(set(key_list2).difference(key_list1))
+        updated_keys = list(filter(lambda key: key not in deleted_keys and self._cache[index1].get(key) != self._cache[index2].get(key), key_list1))
+        return new_keys, deleted_keys, updated_keys
+
     def merge(self, dest_index: str, src_index: str, keys: list = None):
         """
         Merges the content of src_index and dest_index file
@@ -292,6 +317,10 @@ class Conf:
     @staticmethod
     def merge(dest_index: str, src_index: str, keys: list = None):
         Conf._conf.merge(dest_index, src_index, keys)
+    
+    @staticmethod
+    def compare(index1: str, index2: str):
+        return Conf._conf.compare(index1, index2)
 
     class ClassProperty(property):
         """ Subclass property for classmethod properties """
