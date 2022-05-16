@@ -317,7 +317,7 @@ class Conf:
     @staticmethod
     def merge(dest_index: str, src_index: str, keys: list = None):
         Conf._conf.merge(dest_index, src_index, keys)
-    
+
     @staticmethod
     def compare(index1: str, index2: str):
         return Conf._conf.compare(index1, index2)
