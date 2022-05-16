@@ -213,7 +213,7 @@ class ConfStore:
         Compares two configs and returns difference
 
         Parameters:
-        index1 : Conf Index 1 
+        index1 : Conf Index 1
         index2 : Conf Index 2
 
         Return Value:
@@ -225,7 +225,7 @@ class ConfStore:
         if index2 not in self._cache.keys():
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index2)
-        
+
         key_list1 = self._cache[index1].get_keys()
         key_list2 = self._cache[index2].get_keys()
         deleted_keys = list(set(key_list1).difference(key_list2))
