@@ -135,20 +135,13 @@ class TestMessageBus(unittest.TestCase):
             TestMessageBus._admin.deregister_message_type(message_types=\
                 [''])
 
-    def test_010_purge_messages(self):
-        """Test purge messages."""
-        rc = TestMessageBus._producer.delete()
-        self.assertEqual(rc, 0)
-        message = TestMessageBus._consumer.receive()
-        self.assertIsNone(message)
-
     @staticmethod
-    def test_011_concurrency():
+    def test_010_concurrency():
         """Test add concurrency count."""
         TestMessageBus._admin.add_concurrency(message_type=\
             TestMessageBus._message_type, concurrency_count=5)
 
-    def test_012_receive_concurrently(self):
+    def test_011_receive_concurrently(self):
         """Test receive concurrently."""
         messages = []
         for msg_num in range(0, TestMessageBus._bulk_count):
@@ -188,31 +181,28 @@ class TestMessageBus(unittest.TestCase):
         time.sleep(5)
         self.assertEqual(total, TestMessageBus._bulk_count)
 
-    def test_013_reduce_concurrency(self):
+    def test_012_reduce_concurrency(self):
         """Test reduce concurrency count."""
         with self.assertRaises(MessageBusError):
             TestMessageBus._admin.add_concurrency(message_type=\
                 TestMessageBus._message_type, concurrency_count=2)
 
-    def test_014_singleton(self):
+    def test_013_singleton(self):
         """Test instance of message_bus."""
         message_bus_1 = MessageBus()
         message_bus_2 = MessageBus()
         self.assertTrue(message_bus_1 is message_bus_2)
 
     @staticmethod
-    def test_015_multiple_admins():
+    def test_014_multiple_admins():
         """Test multiple instances of admin interface."""
         message_types_list = TestMessageBus._admin.list_message_types()
-        message_types_list.remove(TestMessageBus._message_type)
-        message_types_list.remove('__consumer_offsets')
-        if message_types_list:
-            for message_type in message_types_list:
-                producer = MessageProducer(producer_id=message_type, \
-                    message_type=message_type, method='sync')
-                producer.delete()
+        TestMessageBus._admin.register_message_type(message_types=['test_msg_type'],
+        partitions=1)
+        admin2 = MessageBusAdmin(admin_id='deregister')
+        admin2.deregister_message_type(['test_msg_type'])
 
-    def test_016_set_message_type_expiry(self):
+    def test_015_set_message_type_expiry(self):
         """Test set message type expiry and read before expiry."""
         # Set expire time to 2 seconds
         TestMessageBus._admin.set_message_type_expire(\
@@ -222,37 +212,6 @@ class TestMessageBus(unittest.TestCase):
         # get before expire
         message = TestMessageBus._consumer.receive()
         self.assertEqual(message, b'A simple test message')
-
-    def test_017_message_type_read_after_expiry(self):
-        """Test receive expired messages."""
-        # Do Purge
-        for retry_count in range(1, (TestMessageBus._purge_retry + 2)):
-            rc = TestMessageBus._producer.delete()
-            if retry_count > TestMessageBus._purge_retry:
-                self.assertIsInstance(rc, MessageBusError)
-            if rc == 0:
-                break
-            time.sleep(2*retry_count)
-        # Set expire time to 3 seconds
-        TestMessageBus._admin.set_message_type_expire(\
-            TestMessageBus._message_type, expire_time_ms=5000,\
-                data_limit_bytes=10000)
-        for count in range(3):
-            TestMessageBus._producer.send(\
-            [f"A simple test message {count}"])
-        # Wait for message to expire
-        time.sleep(10)
-        _consumer_new = MessageConsumer(consumer_id='receive_new', \
-            consumer_group='test_new', \
-            message_types=[TestMessageBus._message_type], \
-            auto_ack=False, offset='earliest')
-        message = _consumer_new.receive()
-        # Revert back to original timeout to 604800000 (7 days)
-        #  and data log size to 1073741824 (1 Gb)
-        TestMessageBus._admin.set_message_type_expire(\
-            TestMessageBus._message_type, expire_time_ms=604800000,\
-                data_limit_bytes=1073741824 )
-        self.assertIsNone(message)
 
     @classmethod
     def tearDownClass(cls):
