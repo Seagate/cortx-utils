@@ -67,7 +67,7 @@ class KafkaMessageBroker(MessageBroker):
         """ Obtain Kafka based Producer/Consumer """
         Log.debug(f"initializing client_type: {client_type}," \
             f" **kwargs {client_conf}")
-        """ Validate and return if client already exists """
+        # Validate and return if client already exists
         if client_type not in self._clients.keys():
             Log.error(f"MessageBusError: Invalid client type " \
                 f"{errors.ERR_INVALID_CLIENT_TYPE}, {client_type}")
