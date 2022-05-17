@@ -62,7 +62,7 @@ elasticsearch_tmpl_files = glob.glob(
     'src/utils/setup/elasticsearch/templates/*.*')
 
 with open('LICENSE', 'r') as lf:
-    license = lf.read()
+    seagate_license = lf.read()
 
 with open('README.md', 'r') as rf:
     long_description = rf.read()
@@ -74,7 +74,7 @@ def get_install_requirements() -> list:
         with open('python_requirements.ext.txt') as extreq:
             install_requires = install_requires + [line.strip() for line in extreq]
     except Exception:
-        pass  ## log it!
+        print("error in reading file python_requirements.ext.txt")
     return install_requires
 
 def get_requirements_files() -> list:
