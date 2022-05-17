@@ -601,8 +601,6 @@ class TestConfStore(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    """
-    Firstly create the file and load sample json into it.
-    Start test
-    """
+    # Firstly create the file and load sample json into it.
+    # Start test
     unittest.main()
