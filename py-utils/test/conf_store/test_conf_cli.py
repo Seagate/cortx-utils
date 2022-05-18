@@ -315,6 +315,16 @@ class TestConfCli(unittest.TestCase):
         result_data = cmd_proc.run()
         self.assertEqual(result_data[2], 0)
 
+    def test_conf_cli_compare(self):
+        cmd = "conf json:///tmp/file1.json compare json:///tmp/file2.json"
+        cmd_proc = SimpleProcess(cmd)
+        result_data = cmd_proc.run()
+        print(result_data)
+        print(result_data[0])
+        print(result_data[1])
+        self.assertEqual(result_data[2], 0)
+
+
     @classmethod
     def tearDownClass(cls):
         delete_files()
