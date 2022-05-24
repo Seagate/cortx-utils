@@ -79,7 +79,7 @@ echo "\""  >> utils-pre-install
 echo "rc=0
 for package in \$PACKAGE_LIST
 do
-    python3 -m pip freeze | grep \$package > /dev/null
+    python3.7 -m pip freeze | grep \$package > /dev/null
     if [ \$? -ne 0 ]; then
        if [ \$rc -eq 0 ]; then
            echo \"===============================================\"
@@ -100,8 +100,7 @@ OS_ID=$(awk -F= '$1=="ID" { print $2 ;}' /etc/os-release|tr -d '"')
 [[ $OS_ID = rocky ]] && python_dbus="python3-dbus" || python_dbus="python36-dbus"
 
 # Create the rpm
-/bin/python3.6 setup.py bdist_rpm --requires python36,$python_dbus \
---release="$REL" --pre-install utils-pre-install \
+/bin/python3.7 setup.py bdist_rpm --release="$REL" --pre-install utils-pre-install \
 --post-install utils-post-install --post-uninstall utils-post-uninstall
 if [ $? -ne 0 ]; then
   echo "build failed"

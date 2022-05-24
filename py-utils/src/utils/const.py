@@ -1,4 +1,4 @@
-#!/usr/bin/python3.6
+#!/usr/bin/python3.7
 
 # CORTX-Py-Utils: CORTX Python common library.
 # Copyright (c) 2020 Seagate Technology LLC and/or its Affiliates

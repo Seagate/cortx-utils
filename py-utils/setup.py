@@ -158,5 +158,5 @@ setup(name='cortx-py-utils',
                                               'cortx_message_bus.service'])],
       long_description=long_description,
       zip_safe=False,
-      python_requires='>=3.6',
+      python_requires='>=3.7',
       install_requires=get_install_requirements())

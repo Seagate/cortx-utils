@@ -454,7 +454,7 @@ class KafkaMessageBroker(MessageBroker):
                 f" Consumer {consumer_id} is not initialized.")
             raise MessageBusError(errors.ERR_SERVICE_NOT_INITIALIZED,\
                 "Consumer %s is not initialized.", consumer_id)
-        consumer.commit(async=False)
+        consumer.commit(asynchronous=False)
 
     def _configure_message_type(self, admin_id: str, message_type: str, **kwargs):
         """
