@@ -198,13 +198,19 @@ class UpgradeCmd(Cmd):
     """Upgrade Setup Cmd."""
     name = 'upgrade'
 
+    @staticmethod
+    def _add_extended_args(parser):
+        parser.add_argument('--changeset', help=' changed keys in Gconf',
+            default='yaml:///etc/cortx/changeset.conf')
+
     def __init__(self, args: dict):
         super().__init__(args)
         self.config_path = args.config
+        self.change_set = args.changeset
 
     def process(self):
         Utils.validate('upgrade')
-        rc = Utils.upgrade(self.config_path)
+        rc = Utils.upgrade(self.config_path, self.change_set)
         return rc
 
 
