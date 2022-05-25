@@ -34,6 +34,12 @@ class Const(Enum):
     SERVICE_CSM_AGENT      = 'agent'
     SERVICE_MOTR_CLIENT    = 'motr_client'
 
+    # Node Types
+    DATA_NODE_TYPE         = 'data_node'
+    HA_NODE_TYPE           = 'ha_node'
+    SERVER_NODE_TYPE       = 'server_node'
+    CONTROL_NODE_TYPE      = 'control_node'
+
     # Deprecated services
     COMPONENT_S3           = 's3'
     COMPONENT_CCLIENT      = 'cclient'
