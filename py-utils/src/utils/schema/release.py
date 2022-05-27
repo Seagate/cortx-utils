@@ -15,7 +15,8 @@
 
 from itertools import zip_longest
 from cortx.utils.conf_store import Conf, MappedConf
-
+from cortx.utils import const
+from cortx.utils.schema.payload import Text
 
 class Manifest:
 
@@ -95,79 +96,83 @@ class Release(Manifest):
     @staticmethod
     def is_version_compatible(node_id:str, requires:dict):
         """
-        Checks if version is compatible for upgrade.
+        Validates whether a version is compatible for update.
 
-        Returns True if version is compatible for upgrade/downgrade else returns False.
         Parameters:
-        
+        node_id - Name of the node (as in gconf).
+        requires - Required compatibilty rules. example: 'cortx-csm_agent >= 2.0.0-5255'.
+
+        Returns:
+        status - True if version is compatible for upgrade else returns False.
+        reason - Reason why the given version is not compatible for update.
         """
-        # TODO: Remove hardcoded path
-        conf_url = "yaml:///etc/cortx/cluster.conf"
+        if not 'REQUIRES' in requires:
+            raise Exception("Compatibilty rules not found.")
         conditions = requires['REQUIRES']
+        consul_conf = Text(const.CONSUL_CONF)
+        conf_url = str(consul_conf.load()).strip()
         installed_versions = Release.get_installed_version(node_id, conf_url)
         if not installed_versions:
             raise Exception("Failed to fetch the installed version information.")
         status, reason = False, ""
         try:
-        for name, version in installed_versions.items():
-            for condition in conditions:
-                if name in condition.split('>=')[0]:
-                    status, reason = Release._validate_condition(version, condition)
-                    if not status:
-                        return status, reason
-                    break
+            for name, version in installed_versions.items():
+                for condition in conditions:
+                    if name in condition.split('>=')[0]:
+                        compatible_version = condition.split('>=')[1].strip()
+                        status, reason = True, ""
+                        if Release.version_check(version, compatible_version) == -1:
+                            reason = f"{name} deployed version {version} is older " + \
+                            f"than the compatible version {compatible_version}."
+                            status = False
+                            return status, reason
+                        break
+        except Exception:
+            raise Exception("Validation could not be performed.")
         if not status:
             raise Exception("Improper compatibility rules.")
         return status, reason
-    
-    @staticmethod
-    def _validate_condition(name, deployed_version, condition):
-        """
-        """
-        try:
-            compatible_version = condition.split('>=')[1].strip()
-        except IndexError:
-            raise Exception(f'Improper format {condition}')
-        if Release.version_check(deployed_version, compatible_version) == -1:
-            _reason = f"{name} deployed version {deployed_version} is older " + \
-            f"than the compatible version {compatible_version}."
-            return False, _reason
-        return True, "Version is compatible."
 
     @staticmethod
     def get_installed_version(node_id:str, conf_url:str):
         """
+        Get current deployed versions on the node.
+
+        Parameters:
+        node_id - Name of the node (as in gconf).
+        conf_url - Global Configuration URL.
         """
         version_conf = MappedConf(conf_url)
+        build_name =  version_conf.get(const.BUILD_NAME)
+        build_version = version_conf.get(const.BUILD_VERSION)
         version_info = {}
-        build_name =  version_conf.get('cortx>common>release>name')
-        build_version = version_conf.get('cortx>common>release>version')
         version_info[build_name] = build_version
         node_list = Release._get_node_list(version_conf)
-        node_name_key = 'node>%s>name'
         for node in node_list:
-            if node_id == version_conf.get( node_name_key % node):
-                num_components = version_conf.get( f'node>{node}>num_components')
+            if node_id == version_conf.get( const.NODE_NAME % node):
+                num_components = version_conf.get(const.NUM_COMPONENTS % node)
                 for component in range(0, num_components):
-                    _name = version_conf.get( f'node>{node}>components[{component}]>name')
-                    _version = version_conf.get( f'node>{node}>components[{component}]>version')
+                    _name = version_conf.get(const.COMPONENT_NAME % (node, component))
+                    _version = version_conf.get(const.COMPONENT_VERSION % (node, component))
                     if _name is not None and _version is not None:
                         version_info[_name] = _version
+                break
         return version_info
     
     @staticmethod
     def _get_node_list(version_conf):
         """
+        Get list of node Id.
+
+        Parameters:
+        version_conf - ConfStore instance of Gconf.
         """
         node_list = []
-        num_storage_set_key = 'cluster>num_storage_set'
-        num_nodes_key = 'cluster>storage_set[%s]>num_nodes'
-        node_key = 'cluster>storage_set[%s]>nodes[%s]'
-        num_storage_set  = version_conf.get(num_storage_set_key)
+        num_storage_set = version_conf.get(const.NUM_STORAGESET)
         for storage_set in range(0, num_storage_set):
-            num_nodes = version_conf.get( num_nodes_key % storage_set)
+            num_nodes = version_conf.get(const.NUM_NODES % storage_set)
             for node_idx in range(0, num_nodes):
-                node_list.append(version_conf.get( node_key % (storage_set, node_idx)))
+                node_list.append(version_conf.get(const.NODE_ID % (storage_set, node_idx)))
         return node_list
 
     @staticmethod
