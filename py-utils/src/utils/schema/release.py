@@ -94,33 +94,34 @@ class Release(Manifest):
         return ret_code
 
     @staticmethod
-    def is_version_compatible(node_id:str, requires:dict):
+    def is_version_compatible(resource:str, resource_id:str, requires:list):
         """
         Validates whether a version is compatible for update.
 
         Parameters:
-        node_id - Name of the node (as in gconf).
-        requires - Required compatibilty rules. example: 'cortx-csm_agent >= 2.0.0-5255'.
+        resource: resources Node/Cluster (currently supports only node).
+        resource_id - Name/Id of the node/cluster (as in gconf).
+        requires - Required compatibilty rules. example: ['cortx-csm_agent >= 2.0.0-5255'].
 
         Returns:
         status - True if version is compatible for upgrade else returns False.
         reason - Reason why the given version is not compatible for update.
         """
-        if not 'REQUIRES' in requires:
-            raise Exception("Compatibilty rules not found.")
-        conditions = requires['REQUIRES']
+        #TODO: Decide on cluster Version compatibilty design and add support
+        if resource == 'cluster':
+            raise Exception("Compatibilty check at cluster level is not yet supported")
         consul_conf = Text(const.CONSUL_CONF)
         conf_url = str(consul_conf.load()).strip()
-        installed_versions = Release.get_installed_version(node_id, conf_url)
+        installed_versions = Release.get_installed_version(resource_id, conf_url)
         if not installed_versions:
-            raise Exception("Failed to fetch the installed version information.")
+            raise Exception(f"Failed to fetch the {resource} version information.")
         status, reason = False, ""
         try:
             for name, version in installed_versions.items():
-                for condition in conditions:
+                for condition in requires:
                     if name in condition.split('>=')[0]:
                         compatible_version = condition.split('>=')[1].strip()
-                        status, reason = True, ""
+                        status, reason = True, "Versions are compatible for update."
                         if Release.version_check(version, compatible_version) == -1:
                             reason = f"{name} deployed version {version} is older " + \
                             f"than the compatible version {compatible_version}."
@@ -134,26 +135,27 @@ class Release(Manifest):
         return status, reason
 
     @staticmethod
-    def get_installed_version(node_id:str, conf_url:str):
+    def get_installed_version(resource_id:str, conf_url:str):
         """
         Get current deployed versions on the node.
 
         Parameters:
-        node_id - Name of the node (as in gconf).
+
+        resource_id - Name of the node (as in gconf).
         conf_url - Global Configuration URL.
         """
         version_conf = MappedConf(conf_url)
-        build_name =  version_conf.get(const.BUILD_NAME)
-        build_version = version_conf.get(const.BUILD_VERSION)
+        build_name =  version_conf.get(const.BUILD_NAME_KEY)
+        build_version = version_conf.get(const.BUILD_VERSION_KEY)
         version_info = {}
         version_info[build_name] = build_version
         node_list = Release._get_node_list(version_conf)
         for node in node_list:
-            if node_id == version_conf.get( const.NODE_NAME % node):
-                num_components = version_conf.get(const.NUM_COMPONENTS % node)
+            if resource_id == version_conf.get(const.NODE_NAME_KEY % node):
+                num_components = version_conf.get(const.NUM_COMPONENTS_KEY % node)
                 for component in range(0, num_components):
-                    _name = version_conf.get(const.COMPONENT_NAME % (node, component))
-                    _version = version_conf.get(const.COMPONENT_VERSION % (node, component))
+                    _name = version_conf.get(const.COMPONENT_NAME_KEY % (node, component))
+                    _version = version_conf.get(const.COMPONENT_VERSION_KEY % (node, component))
                     if _name is not None and _version is not None:
                         version_info[_name] = _version
                 break
@@ -168,11 +170,11 @@ class Release(Manifest):
         version_conf - ConfStore instance of Gconf.
         """
         node_list = []
-        num_storage_set = version_conf.get(const.NUM_STORAGESET)
+        num_storage_set = version_conf.get(const.NUM_STORAGESET_KEY)
         for storage_set in range(0, num_storage_set):
-            num_nodes = version_conf.get(const.NUM_NODES % storage_set)
-            for node_idx in range(0, num_nodes):
-                node_list.append(version_conf.get(const.NODE_ID % (storage_set, node_idx)))
+            num_nodes = version_conf.get(const.NUM_NODES_KEY % storage_set)
+            for resource_idx in range(0, num_nodes):
+                node_list.append(version_conf.get(const.NODE_ID_KEY % (storage_set, resource_idx)))
         return node_list
 
     @staticmethod
