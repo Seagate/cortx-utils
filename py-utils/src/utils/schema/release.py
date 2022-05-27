@@ -65,7 +65,7 @@ class Release(Manifest):
                 is_valid = False
                 release_info[key] = value
         return is_valid, release_info
-    
+
     @staticmethod
     def version_check(deploy_version: str, release_version: str):
         """Compare deployed and release version.
