@@ -113,25 +113,26 @@ class Release(Manifest):
         consul_conf = Text(const.CONSUL_CONF)
         conf_url = str(consul_conf.load()).strip()
         installed_versions = Release.get_installed_version(resource_id, conf_url)
-        if not installed_versions:
-            raise Exception(f"Failed to fetch the {resource} version information.")
-        status, reason = False, ""
+        matched_rules = 0
+        status, reason = False, "Versions are not compatible for update"
         try:
             for name, version in installed_versions.items():
                 for condition in requires:
                     if name in condition.split('>=')[0]:
+                        matched_rules += 1
                         compatible_version = condition.split('>=')[1].split('<=')[0].strip()
-                        status, reason = True, "Versions are compatible for update."
                         if Release.version_check(version, compatible_version) == -1:
                             reason = f"{name} deployed version {version} is older " + \
                             f"than the compatible version {compatible_version}."
                             status = False
                             return status, reason
+                        else:
+                            status, reason = True, "Versions are compatible for update."
                         break
         except Exception:
-            raise Exception("Validation could not be performed.")
-        if not status:
-            raise Exception("Improper compatibility rules.")
+            raise Exception("Error occured during version compatibility check.")
+        if matched_rules != len(installed_versions):
+            raise Exception("Invalid compatibility rules.")
         return status, reason
 
     @staticmethod
@@ -150,15 +151,18 @@ class Release(Manifest):
         version_info = {}
         version_info[build_name] = build_version
         node_list = Release._get_node_list(version_conf)
+        num_components = 0
         for node in node_list:
             if resource_id == version_conf.get(const.NODE_NAME_KEY % node):
-                num_components = version_conf.get(const.NUM_COMPONENTS_KEY % node)
+                num_components = int(version_conf.get(const.NUM_COMPONENTS_KEY % node))
                 for component in range(0, num_components):
                     _name = version_conf.get(const.COMPONENT_NAME_KEY % (node, component))
                     _version = version_conf.get(const.COMPONENT_VERSION_KEY % (node, component))
                     if _name is not None and _version is not None:
                         version_info[_name] = _version
                 break
+        if len(version_info) != (num_components + 1):
+            raise Exception('Failed to fetch all the component versions')
         return version_info
 
     @staticmethod
@@ -170,9 +174,9 @@ class Release(Manifest):
         version_conf - ConfStore instance of Gconf.
         """
         node_list = []
-        num_storage_set = version_conf.get(const.NUM_STORAGESET_KEY)
+        num_storage_set = int(version_conf.get(const.NUM_STORAGESET_KEY))
         for storage_set in range(0, num_storage_set):
-            num_nodes = version_conf.get(const.NUM_NODES_KEY % storage_set)
+            num_nodes = int(version_conf.get(const.NUM_NODES_KEY % storage_set))
             for resource_idx in range(0, num_nodes):
                 node_list.append(version_conf.get(const.NODE_ID_KEY % (storage_set, resource_idx)))
         return node_list
