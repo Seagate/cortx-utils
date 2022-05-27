@@ -158,7 +158,7 @@ class Release(Manifest):
                         version_info[_name] = _version
                 break
         return version_info
-    
+
     @staticmethod
     def _get_node_list(version_conf):
         """
