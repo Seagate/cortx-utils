@@ -120,7 +120,7 @@ class Release(Manifest):
             for name, version in installed_versions.items():
                 for condition in requires:
                     if name in condition.split('>=')[0]:
-                        compatible_version = condition.split('>=')[1].strip()
+                        compatible_version = condition.split('>=')[1].split('<=')[0].strip()
                         status, reason = True, "Versions are compatible for update."
                         if Release.version_check(version, compatible_version) == -1:
                             reason = f"{name} deployed version {version} is older " + \
