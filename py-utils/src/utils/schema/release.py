@@ -274,7 +274,7 @@ class Release(Manifest):
 
 class ReleaseError(Exception):
 
-    """ Generic Exception with error code and output """
+    """Generic Exception with error code and output."""
 
     INTERNAL_ERROR = 0x1005
 
