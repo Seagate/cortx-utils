@@ -15,6 +15,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
+import errno
 
 from cortx.utils import errors
 from cortx.utils.log import Log
@@ -26,6 +27,8 @@ from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.error import VError
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.service.service_handler import Service
+from cortx.utils.const import ( GCONF_INDEX, MSG_BUS_BACKEND_KEY, EXTERNAL_KEY,
+    CHANGED_PREFIX ,NEW_PREFIX, DELETED_PREFIX, DELTA_INDEX )
 
 
 class Utils:
@@ -92,11 +95,10 @@ class Utils:
     def config(config_path: str):
         """Performs configurations."""
         # Load required files
-        config_template_index = 'config'
-        Conf.load(config_template_index, config_path)
+        Conf.load(GCONF_INDEX, config_path)
 
         # set cluster nodename:hostname mapping to cluster.conf
-        Utils._copy_cluster_map(config_path)
+        Utils._copy_cluster_map(config_path) # saving node and host from gconf
         Utils._configure_rsyslog()
         return 0
 
@@ -108,11 +110,11 @@ class Utils:
         from cortx.utils.message_bus.error import MessageBusError
         try:
             # Read the config values
-            Conf.load('config', config_path, skip_reload=True)
-            message_bus_backend = Conf.get('config', \
-                'cortx>utils>message_bus_backend')
-            message_server_endpoints = Conf.get('config', \
-                f'cortx>external>{message_bus_backend}>endpoints')
+            # use gconf to create IEM topic
+            Conf.load(GCONF_INDEX, config_path, skip_reload=True)
+            message_bus_backend = Conf.get(GCONF_INDEX, MSG_BUS_BACKEND_KEY)
+            message_server_endpoints = Conf.get(GCONF_INDEX, \
+                f'{EXTERNAL_KEY}>{message_bus_backend}>endpoints')
             MessageBus.init(message_server_endpoints)
             admin = MessageBusAdmin(admin_id='register')
             admin.register_message_type(message_types=['IEM', \
@@ -151,13 +153,13 @@ class Utils:
         """Remove/Delete all the data/logs that was created by user/testing."""
         from cortx.utils.message_bus.error import MessageBusError
         try:
+            # use gconf to deregister IEM
             from cortx.utils.message_bus import MessageBusAdmin, MessageBus
             from cortx.utils.message_bus import MessageProducer
-            Conf.load('config', config_path, skip_reload=True)
-            message_bus_backend = Conf.get('config', \
-                'cortx>utils>message_bus_backend')
+            Conf.load(GCONF_INDEX, config_path, skip_reload=True)
+            message_bus_backend = Conf.get('config', MSG_BUS_BACKEND_KEY)
             message_server_endpoints = Conf.get('config', \
-                f'cortx>external>{message_bus_backend}>endpoints')
+                f'{EXTERNAL_KEY}>{message_bus_backend}>endpoints')
             MessageBus.init(message_server_endpoints)
             mb = MessageBusAdmin(admin_id='reset')
             message_types_list = mb.list_message_types()
@@ -181,12 +183,12 @@ class Utils:
         # delete message_types
         from cortx.utils.message_bus.error import MessageBusError
         try:
+            # use gconf to clean and delete all message type in messagebus
             from cortx.utils.message_bus import MessageBus, MessageBusAdmin
-            Conf.load('config', config_path, skip_reload=True)
-            message_bus_backend = Conf.get('config', \
-                'cortx>utils>message_bus_backend')
-            message_server_endpoints = Conf.get('config', \
-                f'cortx>external>{message_bus_backend}>endpoints')
+            Conf.load(GCONF_INDEX, config_path, skip_reload=True)
+            message_bus_backend = Conf.get(GCONF_INDEX, MSG_BUS_BACKEND_KEY)
+            message_server_endpoints = Conf.get(GCONF_INDEX, \
+                f'{EXTERNAL_KEY}>{message_bus_backend}>endpoints')
             MessageBus.init(message_server_endpoints)
             mb = MessageBusAdmin(admin_id='cleanup')
             message_types_list = mb.list_message_types()
@@ -201,11 +203,39 @@ class Utils:
         return 0
 
     @staticmethod
-    def upgrade(config_path: str):
+    def upgrade(config_path: str, change_set_path: str):
         """Perform upgrade steps."""
-        # ToDo - in future, for utils/message server config changes may be
-        # required during upgrade phase.
-        # Currently no config changes required.
+
+
+        Conf.load(DELTA_INDEX, change_set_path)
+        Conf.load(GCONF_INDEX, config_path, skip_reload=True)
+        delta_keys = Conf.get_keys(DELTA_INDEX)
+
+        # if message_bus_backend changed, add new and delete old msg bus entries
+        if CHANGED_PREFIX + MSG_BUS_BACKEND_KEY in delta_keys:
+            new_msg_bus_backend = Conf.get(DELTA_INDEX,
+                CHANGED_PREFIX + MSG_BUS_BACKEND_KEY).split('|')[1]
+            Conf.set(GCONF_INDEX, MSG_BUS_BACKEND_KEY, new_msg_bus_backend)
+            for key in delta_keys:
+                if NEW_PREFIX + EXTERNAL_KEY + new_msg_bus_backend in key:
+                    new_key = key.split(NEW_PREFIX)[1]
+                    new_val = Conf.get(DELTA_INDEX, key).split('|')[1]
+                    Conf.set(GCONF_INDEX, new_key, new_val )
+                if DELETED_PREFIX + EXTERNAL_KEY + new_msg_bus_backend in key:
+                    delete_key = key.split(DELETED_PREFIX)[1]
+                    Conf.delete(GCONF_INDEX, delete_key)
+
+        # update existing messagebus parameters
+        else:
+            msg_bus_backend = Conf.get(GCONF_INDEX, MSG_BUS_BACKEND_KEY)
+            for key in delta_keys:
+                if CHANGED_PREFIX + EXTERNAL_KEY + msg_bus_backend in key:
+                    new_val = Conf.get(DELTA_INDEX, key).split('|')[1]
+                    change_key = key.split(CHANGED_PREFIX)[1]
+                    Conf.set(GCONF_INDEX, change_key, new_val)
+
+        Conf.save(GCONF_INDEX)
+        Utils.init(config_path)
         return 0
 
     @staticmethod
