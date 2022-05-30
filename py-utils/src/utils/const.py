@@ -74,7 +74,7 @@ COMPONENT_KEY = "node>%s>components[%s]"
 COMPONENT_NAME_KEY = COMPONENT_KEY + ">name"
 COMPONENT_VERSION_KEY = COMPONENT_KEY + ">version"
 # Mapping of cortx conf component names to RELEASE.INFO component names
-COMPONENT_NAME_MAP = {'CORTX': 'CORTX', 'cortx-motr': 'motr', 'cortx-rgw': 'rgw', 
-                    'cortx-hare': 'hare', 'cortx-py-utils': 'utils', 'cortx-csm_agent': 'csm', 
+COMPONENT_NAME_MAP = {'CORTX': 'CORTX', 'cortx-motr': 'motr', 'cortx-rgw': 'rgw',
+                    'cortx-hare': 'hare', 'cortx-py-utils': 'utils', 'cortx-csm_agent': 'csm',
                     'cortx-ha': 'ha', 'cortx-prvsnr': 'prvsnr'}
 VERSION_UPGRADE = "UPGRADE"

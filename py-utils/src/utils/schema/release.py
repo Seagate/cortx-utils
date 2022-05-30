@@ -143,7 +143,7 @@ class Release(Manifest):
 
     @staticmethod
     def _validate_clauses(version_clauses:list):
-        """Validate compatibility rules for component name and version operator. """
+        """Validate compatibility rules for component name and version operator."""
         for clause in version_clauses:
             # Validate clause for valid component name.
             if not clause.split('>=')[0].strip() in const.COMPONENT_NAME_MAP:
@@ -200,7 +200,7 @@ class Release(Manifest):
             if _version is not None:
                 version_info[_name] = _version
             else:
-                raise ReleaseError(ReleaseError.INTERNAL_ERROR, 
+                raise ReleaseError(ReleaseError.INTERNAL_ERROR,
                 "No installed version found for component %s" % _name)
 
         # get cluster release version
@@ -274,12 +274,15 @@ class Release(Manifest):
 
 class ReleaseError(Exception):
     """ Generic Exception with error code and output """
+
     INTERNAL_ERROR = 0x1005
 
     def __init__(self, rc, message, *args):
+        """Initialize self."""
         self._rc = rc
         self._desc = message % (args)
 
     def __str__(self):
+        """Return str(self)."""
         if self._rc == 0: return self._desc
         return "error(%d): %s" % (self._rc, self._desc)
