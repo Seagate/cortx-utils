@@ -273,7 +273,7 @@ class Release(Manifest):
         return digits
 
 class ReleaseError(Exception):
-    
+
     """ Generic Exception with error code and output """
 
     INTERNAL_ERROR = 0x1005
