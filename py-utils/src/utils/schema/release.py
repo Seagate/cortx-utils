@@ -18,6 +18,8 @@ from cortx.utils.conf_store import Conf, MappedConf
 from cortx.utils import const
 from cortx.utils.schema.payload import Text
 
+import errno
+
 class Manifest:
 
     def __init__(self, manifest_url: str):
@@ -110,17 +112,17 @@ class Release(Manifest):
         #TODO: Decide on cluster version compatibilty design and add support
         if resource_type == 'cluster':
             raise NotImplementedError("Compatibilty check at cluster level is not yet supported")
-        
+
         if not Release._validate_clauses(version_clauses):
-            raise Exception("Invalid compatibility rules")
+            raise ReleaseError(errno.EINVAL, "Invalid compatibility rules %s" % version_clauses)
 
         # Get version details of all the components
         consul_conf = Text(const.CONSUL_CONF)
         conf_url = str(consul_conf.load()).strip()
         installed_versions = Release.get_installed_version(resource_id, conf_url)
         if not installed_versions:
-            raise Exception("Could not fetch installed versions")
-        
+            raise ReleaseError(ReleaseError.INTERNAL_ERROR, "Installed versions not found")
+
         validation_count =  0
         # Determine if the new version is compatible with the deployed version.
         for component, version in installed_versions.items():
@@ -133,21 +135,20 @@ class Release(Manifest):
                                 f"than the compatible version {new_version}."
                         return False, reason
                     break
-        
+
         if validation_count != len(installed_versions):
-            raise Exception("Incomplete compatibilty rules")
-        
+            raise ReleaseError(errno.EINVAL, "Incomplete compatibilty rules %s" % version_clauses)
+
         return True, "Versions are Compatible"
 
     @staticmethod
     def _validate_clauses(version_clauses:list):
-        """
-        """
+        """Validate compatibility rules for component name and version operator. """
         for clause in version_clauses:
             # Validate clause for valid component name.
             if not clause.split('>=')[0].strip() in const.COMPONENT_NAME_MAP:
                 return 0
-            
+
             # Validate clause for version operator '>='.
             if len(clause.split('>=')) < 1:
                 return 0
@@ -156,6 +157,11 @@ class Release(Manifest):
     @staticmethod
     def _parse_version(clause:str, operation:str):
         """
+        Parse the compatibility rule and get the new version.
+
+        Parameters:
+        clause: Compatibilty condition ex. cortx-prvsnr >= 2.0.0-0.
+        operation: Version operation like UPGRADE or DOWNGRADE.
         """
         name = ""
         version = 0
@@ -184,7 +190,7 @@ class Release(Manifest):
             if resource_id == version_conf.get(const.NODE_NAME_KEY % node):
                 node_id = node
         if node_id is None:
-            raise Exception("Invalid Resource Id.")
+            raise ReleaseError(errno.EINVAL, "Invalid Resource Id %s." % resource_id)
 
         # Get version details of all the components of a node
         num_components = int(version_conf.get(const.NUM_COMPONENTS_KEY % node_id))
@@ -194,7 +200,8 @@ class Release(Manifest):
             if _version is not None:
                 version_info[_name] = _version
             else:
-                raise Exception(f"Version not found for {_name}")
+                raise ReleaseError(ReleaseError.INTERNAL_ERROR, 
+                "No installed version found for component %s" % _name)
 
         # get cluster release version
         release_name =  version_conf.get(const.RELEASE_NAME_KEY)
@@ -264,3 +271,15 @@ class Release(Manifest):
             if elem.isdigit():
                 digits.append(int(elem))
         return digits
+
+class ReleaseError(Exception):
+    """ Generic Exception with error code and output """
+    INTERNAL_ERROR = 0x1005
+
+    def __init__(self, rc, message, *args):
+        self._rc = rc
+        self._desc = message % (args)
+
+    def __str__(self):
+        if self._rc == 0: return self._desc
+        return "error(%d): %s" % (self._rc, self._desc)
