@@ -27,6 +27,8 @@ from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.error import VError
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.service.service_handler import Service
+from cortx.utils.const import ( GCONF_INDEX, MSG_BUS_BACKEND_KEY, EXTERNAL_KEY,
+    CHANGED_PREFIX ,NEW_PREFIX, DELETED_PREFIX, DELTA_INDEX )
 
 
 class Utils:
@@ -93,8 +95,7 @@ class Utils:
     def config(config_path: str):
         """Performs configurations."""
         # Load required files
-        config_template_index = 'config'
-        Conf.load(config_template_index, config_path)
+        Conf.load(GCONF_INDEX, config_path)
 
         # set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map(config_path) # saving node and host from gconf
@@ -110,11 +111,10 @@ class Utils:
         try:
             # Read the config values
             # use gconf to create IEM topic
-            Conf.load('config', config_path, skip_reload=True)
-            message_bus_backend = Conf.get('config', \
-                'cortx>utils>message_bus_backend')
-            message_server_endpoints = Conf.get('config', \
-                f'cortx>external>{message_bus_backend}>endpoints')
+            Conf.load(GCONF_INDEX, config_path, skip_reload=True)
+            message_bus_backend = Conf.get(GCONF_INDEX, MSG_BUS_BACKEND_KEY)
+            message_server_endpoints = Conf.get(GCONF_INDEX, \
+                f'{EXTERNAL_KEY}>{message_bus_backend}>endpoints')
             MessageBus.init(message_server_endpoints)
             admin = MessageBusAdmin(admin_id='register')
             admin.register_message_type(message_types=['IEM', \
@@ -156,11 +156,10 @@ class Utils:
             # use gconf to deregister IEM
             from cortx.utils.message_bus import MessageBusAdmin, MessageBus
             from cortx.utils.message_bus import MessageProducer
-            Conf.load('config', config_path, skip_reload=True)
-            message_bus_backend = Conf.get('config', \
-                'cortx>utils>message_bus_backend')
+            Conf.load(GCONF_INDEX, config_path, skip_reload=True)
+            message_bus_backend = Conf.get('config', MSG_BUS_BACKEND_KEY)
             message_server_endpoints = Conf.get('config', \
-                f'cortx>external>{message_bus_backend}>endpoints')
+                f'{EXTERNAL_KEY}>{message_bus_backend}>endpoints')
             MessageBus.init(message_server_endpoints)
             mb = MessageBusAdmin(admin_id='reset')
             message_types_list = mb.list_message_types()
@@ -186,11 +185,10 @@ class Utils:
         try:
             # use gconf to clean and delete all message type in messagebus
             from cortx.utils.message_bus import MessageBus, MessageBusAdmin
-            Conf.load('config', config_path, skip_reload=True)
-            message_bus_backend = Conf.get('config', \
-                'cortx>utils>message_bus_backend')
-            message_server_endpoints = Conf.get('config', \
-                f'cortx>external>{message_bus_backend}>endpoints')
+            Conf.load(GCONF_INDEX, config_path, skip_reload=True)
+            message_bus_backend = Conf.get(GCONF_INDEX, MSG_BUS_BACKEND_KEY)
+            message_server_endpoints = Conf.get(GCONF_INDEX, \
+                f'{EXTERNAL_KEY}>{message_bus_backend}>endpoints')
             MessageBus.init(message_server_endpoints)
             mb = MessageBusAdmin(admin_id='cleanup')
             message_types_list = mb.list_message_types()
@@ -208,16 +206,10 @@ class Utils:
     def upgrade(config_path: str, change_set_path: str):
         """Perform upgrade steps."""
 
-        GCONF_INDEX = 'config'
-        DELTA_INDEX = 'gconf_change_set'
-        MSG_BUS_BACKEND_KEY = 'cortx>utils>message_bus_backend'
+
         Conf.load(DELTA_INDEX, change_set_path)
         Conf.load(GCONF_INDEX, config_path, skip_reload=True)
         delta_keys = Conf.get_keys(DELTA_INDEX)
-        CHANGED_PREFIX = 'changed>'
-        NEW_PREFIX = 'new>'
-        DELETED_PREFIX = 'deleted>'
-        EXTERNAL_KEY = 'cortx>external>'
 
         # if message_bus_backend changed, add new and delete old msg bus entries
         if CHANGED_PREFIX + MSG_BUS_BACKEND_KEY in delta_keys:

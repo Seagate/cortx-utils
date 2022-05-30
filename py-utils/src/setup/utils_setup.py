@@ -23,6 +23,7 @@ import traceback
 
 from cortx.setup.utils import Utils
 from cortx.utils.log import Log
+from cortx.utils.const import GCONF_INDEX, CLUSTER_CONF_LOG_KEY
 from cortx.setup.utils import SetupError
 
 
@@ -246,12 +247,12 @@ def main():
 
     # Get the log path
     tmpl_file = argv[3]
-    Conf.load('cluster_config', tmpl_file)
-    log_dir = Conf.get('cluster_config', 'cortx>common>storage>log')
+    Conf.load(GCONF_INDEX, tmpl_file)
+    log_dir = Conf.get(GCONF_INDEX, CLUSTER_CONF_LOG_KEY)
     utils_log_path = os.path.join(log_dir, f'utils/{Conf.machine_id}')
 
     # Get the log level
-    log_level = Conf.get('cluster_config', 'utils>log_level', 'INFO')
+    log_level = Conf.get(GCONF_INDEX, 'utils>log_level', 'INFO')
 
     Log.init('utils_setup', utils_log_path, level=log_level, backup_count=5, \
         file_size_in_mb=5)
