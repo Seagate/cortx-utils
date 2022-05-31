@@ -114,14 +114,14 @@ class Release(Manifest):
             raise NotImplementedError("Compatibilty check at cluster level is not yet supported")
 
         if not Release._validate_clauses(version_clauses):
-            raise CompatibilityError(errno.EINVAL, "Invalid compatibility rules %s" % version_clauses)
+            raise SetupError(errno.EINVAL, "Invalid compatibility rules %s" % version_clauses)
 
         # Get version details of all the components
         consul_conf = Text(const.CONSUL_CONF)
         conf_url = str(consul_conf.load()).strip()
         installed_versions = Release.get_installed_version(resource_id, conf_url)
         if not installed_versions:
-            raise CompatibilityError(CompatibilityError.INTERNAL_ERROR, "Installed versions not found")
+            raise SetupError(SetupError.INTERNAL_ERROR, "Installed versions not found")
 
         validation_count =  0
         # Determine if the new version is compatible with the deployed version.
@@ -137,7 +137,7 @@ class Release(Manifest):
                     break
 
         if validation_count != len(installed_versions):
-            raise CompatibilityError(errno.EINVAL, "Incomplete compatibilty rules %s" % version_clauses)
+            raise SetupError(errno.EINVAL, "Incomplete compatibilty rules %s" % version_clauses)
 
         return True, "Versions are Compatible"
 
@@ -190,7 +190,7 @@ class Release(Manifest):
             if resource_id == version_conf.get(const.NODE_NAME_KEY % node):
                 node_id = node
         if node_id is None:
-            raise CompatibilityError(errno.EINVAL, "Invalid Resource Id %s." % resource_id)
+            raise SetupError(errno.EINVAL, "Invalid Resource Id %s." % resource_id)
 
         # Get version details of all the components of a node
         num_components = int(version_conf.get(const.NUM_COMPONENTS_KEY % node_id))
@@ -200,7 +200,7 @@ class Release(Manifest):
             if _version is not None:
                 version_info[_name] = _version
             else:
-                raise CompatibilityError(CompatibilityError.INTERNAL_ERROR,
+                raise SetupError(SetupError.INTERNAL_ERROR,
                 "No installed version found for component %s" % _name)
 
         # get cluster release version
@@ -272,7 +272,7 @@ class Release(Manifest):
                 digits.append(int(elem))
         return digits
 
-class CompatibilityError(Exception):
+class SetupError(Exception):
 
     """Generic Exception with error code and output."""
 
