@@ -274,7 +274,6 @@ class Release(Manifest):
         return digits
 
 class SetupError(Exception):
-
     """Generic Exception with error code and output."""
 
     def __init__(self, rc, message, *args):
