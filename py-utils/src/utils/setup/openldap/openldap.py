@@ -21,7 +21,6 @@ from  ast import literal_eval
 from cortx.utils.errors import BaseError
 from cortx.utils.validator.v_pkg import PkgV
 from cortx.utils.validator.v_network import NetworkV
-from cortx.utils.validator.v_service import ServiceV
 from cortx.utils.validator.v_path import PathV
 from cortx.utils.conf_store import Conf
 from cortx.utils.log import Log
@@ -166,10 +165,8 @@ class Openldap:
         else:
             Log.debug("Validation failed for either cluster_id or machine_id in %s phase" % phase_name)
             raise Exception("Validation failed for either cluster_id or machine_id in %s phase" % phase_name)
-        """
-        The 'storage_set_count' is read using below hard-coded key which is the
-        max array size for storage set.
-        """
+        # The 'storage_set_count' is read using below hard-coded key which is the
+        # max array size for storage set.
         storage_set_count_key = "cluster>cluster-id>site>storage_set_count"
         storage_set_count_str = None
         storage_set_count_key = storage_set_count_key.\

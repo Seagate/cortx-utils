@@ -15,22 +15,20 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
-import glob
-import json
 import errno
-from pathlib import Path
 
 from cortx.utils import errors
-from cortx.utils import const
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
-from cortx.utils.common import SetupError
+from cortx.utils.common import SetupError, DbConf
 from cortx.utils.errors import TestFailed
 from cortx.utils.validator.v_pkg import PkgV
 from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.error import VError
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.service.service_handler import Service
+from cortx.utils.const import ( GCONF_INDEX, MSG_BUS_BACKEND_KEY, EXTERNAL_KEY,
+    CHANGED_PREFIX ,NEW_PREFIX, DELETED_PREFIX, DELTA_INDEX )
 
 
 class Utils:
@@ -62,6 +60,12 @@ class Utils:
             Log.warn(f"Error in rsyslog service restart: {e}")
 
     @staticmethod
+    def _copy_database_conf(config_path: str):
+        """Copy database configuration from provided source to Consul KV"""
+        DbConf.init(config_path)
+        DbConf.import_database_conf(f'yaml://{Utils.utils_path}/conf/database.yaml')
+
+    @staticmethod
     def validate(phase: str):
         """ Perform validtions """
 
@@ -71,23 +75,6 @@ class Utils:
     @staticmethod
     def post_install(config_path: str):
         """ Performs post install operations """
-        # Check required python packages
-        # TODO: Remove this python package check as RPM installation
-        # doing the same.
-        with open(f"{Utils.utils_path}/conf/python_requirements.txt") as file:
-            req_pack = []
-            for package in file.readlines():
-                pack = package.strip().split('==')
-                req_pack.append(f"{pack[0]} ({pack[1]})")
-        try:
-            with open(f"{Utils.utils_path}/conf/python_requirements.ext.txt") as extfile :
-                for package in extfile.readlines():
-                    pack = package.strip().split('==')
-                    req_pack.append(f"{pack[0]} ({pack[1]})")
-        except Exception:
-             Log.info("Not found: "+f"{Utils.utils_path}/conf/python_requirements.ext.txt")
-
-        PkgV().validate(v_type='pip3s', args=req_pack)
         default_sb_path = '/var/log/cortx/support_bundle'
         os.makedirs(default_sb_path, exist_ok=True)
 
@@ -100,6 +87,7 @@ class Utils:
 
         #set cluster nodename:hostname mapping to cluster.conf (needed for Support Bundle)
         Utils._copy_cluster_map(config_path)
+        Utils._copy_database_conf(config_path)
 
         return 0
 
@@ -107,11 +95,10 @@ class Utils:
     def config(config_path: str):
         """Performs configurations."""
         # Load required files
-        config_template_index = 'config'
-        Conf.load(config_template_index, config_path)
+        Conf.load(GCONF_INDEX, config_path)
 
         # set cluster nodename:hostname mapping to cluster.conf
-        Utils._copy_cluster_map(config_path)
+        Utils._copy_cluster_map(config_path) # saving node and host from gconf
         Utils._configure_rsyslog()
         return 0
 
@@ -123,11 +110,11 @@ class Utils:
         from cortx.utils.message_bus.error import MessageBusError
         try:
             # Read the config values
-            Conf.load('config', config_path, skip_reload=True)
-            message_bus_backend = Conf.get('config', \
-                'cortx>utils>message_bus_backend')
-            message_server_endpoints = Conf.get('config', \
-                f'cortx>external>{message_bus_backend}>endpoints')
+            # use gconf to create IEM topic
+            Conf.load(GCONF_INDEX, config_path, skip_reload=True)
+            message_bus_backend = Conf.get(GCONF_INDEX, MSG_BUS_BACKEND_KEY)
+            message_server_endpoints = Conf.get(GCONF_INDEX, \
+                f'{EXTERNAL_KEY}>{message_bus_backend}>endpoints')
             MessageBus.init(message_server_endpoints)
             admin = MessageBusAdmin(admin_id='register')
             admin.register_message_type(message_types=['IEM', \
@@ -166,13 +153,13 @@ class Utils:
         """Remove/Delete all the data/logs that was created by user/testing."""
         from cortx.utils.message_bus.error import MessageBusError
         try:
+            # use gconf to deregister IEM
             from cortx.utils.message_bus import MessageBusAdmin, MessageBus
             from cortx.utils.message_bus import MessageProducer
-            Conf.load('config', config_path, skip_reload=True)
-            message_bus_backend = Conf.get('config', \
-                'cortx>utils>message_bus_backend')
+            Conf.load(GCONF_INDEX, config_path, skip_reload=True)
+            message_bus_backend = Conf.get('config', MSG_BUS_BACKEND_KEY)
             message_server_endpoints = Conf.get('config', \
-                f'cortx>external>{message_bus_backend}>endpoints')
+                f'{EXTERNAL_KEY}>{message_bus_backend}>endpoints')
             MessageBus.init(message_server_endpoints)
             mb = MessageBusAdmin(admin_id='reset')
             message_types_list = mb.list_message_types()
@@ -196,12 +183,12 @@ class Utils:
         # delete message_types
         from cortx.utils.message_bus.error import MessageBusError
         try:
+            # use gconf to clean and delete all message type in messagebus
             from cortx.utils.message_bus import MessageBus, MessageBusAdmin
-            Conf.load('config', config_path, skip_reload=True)
-            message_bus_backend = Conf.get('config', \
-                'cortx>utils>message_bus_backend')
-            message_server_endpoints = Conf.get('config', \
-                f'cortx>external>{message_bus_backend}>endpoints')
+            Conf.load(GCONF_INDEX, config_path, skip_reload=True)
+            message_bus_backend = Conf.get(GCONF_INDEX, MSG_BUS_BACKEND_KEY)
+            message_server_endpoints = Conf.get(GCONF_INDEX, \
+                f'{EXTERNAL_KEY}>{message_bus_backend}>endpoints')
             MessageBus.init(message_server_endpoints)
             mb = MessageBusAdmin(admin_id='cleanup')
             message_types_list = mb.list_message_types()
@@ -216,11 +203,39 @@ class Utils:
         return 0
 
     @staticmethod
-    def upgrade(config_path: str):
+    def upgrade(config_path: str, change_set_path: str):
         """Perform upgrade steps."""
-        # ToDo - in future, for utils/message server config changes may be
-        # required during upgrade phase.
-        # Currently no config changes required.
+
+
+        Conf.load(DELTA_INDEX, change_set_path)
+        Conf.load(GCONF_INDEX, config_path, skip_reload=True)
+        delta_keys = Conf.get_keys(DELTA_INDEX)
+
+        # if message_bus_backend changed, add new and delete old msg bus entries
+        if CHANGED_PREFIX + MSG_BUS_BACKEND_KEY in delta_keys:
+            new_msg_bus_backend = Conf.get(DELTA_INDEX,
+                CHANGED_PREFIX + MSG_BUS_BACKEND_KEY).split('|')[1]
+            Conf.set(GCONF_INDEX, MSG_BUS_BACKEND_KEY, new_msg_bus_backend)
+            for key in delta_keys:
+                if NEW_PREFIX + EXTERNAL_KEY + new_msg_bus_backend in key:
+                    new_key = key.split(NEW_PREFIX)[1]
+                    new_val = Conf.get(DELTA_INDEX, key).split('|')[1]
+                    Conf.set(GCONF_INDEX, new_key, new_val )
+                if DELETED_PREFIX + EXTERNAL_KEY + new_msg_bus_backend in key:
+                    delete_key = key.split(DELETED_PREFIX)[1]
+                    Conf.delete(GCONF_INDEX, delete_key)
+
+        # update existing messagebus parameters
+        else:
+            msg_bus_backend = Conf.get(GCONF_INDEX, MSG_BUS_BACKEND_KEY)
+            for key in delta_keys:
+                if CHANGED_PREFIX + EXTERNAL_KEY + msg_bus_backend in key:
+                    new_val = Conf.get(DELTA_INDEX, key).split('|')[1]
+                    change_key = key.split(CHANGED_PREFIX)[1]
+                    Conf.set(GCONF_INDEX, change_key, new_val)
+
+        Conf.save(GCONF_INDEX)
+        Utils.init(config_path)
         return 0
 
     @staticmethod

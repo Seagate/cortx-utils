@@ -62,7 +62,7 @@ elasticsearch_tmpl_files = glob.glob(
     'src/utils/setup/elasticsearch/templates/*.*')
 
 with open('LICENSE', 'r') as lf:
-    license = lf.read()
+    seagate_license = lf.read()
 
 with open('README.md', 'r') as rf:
     long_description = rf.read()
@@ -74,7 +74,7 @@ def get_install_requirements() -> list:
         with open('python_requirements.ext.txt') as extreq:
             install_requires = install_requires + [line.strip() for line in extreq]
     except Exception:
-        pass  ## log it!
+        print("error in reading file python_requirements.ext.txt")
     return install_requires
 
 def get_requirements_files() -> list:
@@ -114,7 +114,7 @@ setup(name='cortx-py-utils',
                 'cortx.utils.support_framework',
                 'cortx.utils.manifest',
                 'cortx.utils.audit_log', 'cortx.utils.cortx',
-                'cortx.utils.http', 'cortx.utils.s3',
+                'cortx.utils.http', 'cortx.utils.s3', 'cortx.utils.activity_tracker'
                 ],
       package_data={
         'cortx': ['py.typed'],
@@ -130,8 +130,9 @@ setup(name='cortx-py-utils',
         ]
       },
       data_files = [ ('/var/lib/cortx/ha/specs', specs),
-                     ('/opt/seagate/cortx/utils/conf', tmpl_files),
-                     ('/opt/seagate/cortx/utils/conf', get_requirements_files()),
+                     ('%s/conf' % utils_path, tmpl_files),
+                     ('%s/conf' % utils_path, get_requirements_files()),
+                     ('%s/conf' % utils_path, ['src/utils/schema/database.yaml']),
                      ('/var/lib/cortx/ha', ['src/utils/ha/hac/args.yaml',
                                             'src/utils/ha/hac/re_build.sh']),
                      ('%s/conf' % utils_path, ['src/setup/setup.yaml',

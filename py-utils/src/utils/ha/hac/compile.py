@@ -16,7 +16,6 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
-import sys
 import json
 import networkx as nx
 import matplotlib.pyplot as plt

@@ -80,7 +80,6 @@ class Generator:
 class KubernetesGenerator(Generator):
     def __init__(self, compiled_file, output_file, args_file):
         super(KubernetesGenerator, self).__init__(compiled_file, output_file, args_file)
-        pass
 
     def create_script(self):
         with open(self._script, "w") as script_file:

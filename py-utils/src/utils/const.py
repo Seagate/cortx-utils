@@ -16,7 +16,17 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 CLUSTER_CONF = 'yaml:///etc/cortx/cluster.conf'
+GCONF_INDEX = 'config'
+#GCONF KEYS
 CLUSTER_CONF_LOG_KEY = 'cortx>common>storage>log'
+MSG_BUS_BACKEND_KEY = 'cortx>utils>message_bus_backend'
+EXTERNAL_KEY = 'cortx>external'
+#DELTA KEYS
+DELTA_INDEX = 'gconf_change_set'
+CHANGED_PREFIX = 'changed>'
+NEW_PREFIX = 'new>'
+DELETED_PREFIX = 'deleted>'
+
 DEFAULT_INSTALL_PATH = '/opt/seagate'
 CORTX_HA_INSTALL_PATH = "/etc/cortx/ha/"
 RULES_FILE_PATH = "rules_engine_schema.json"

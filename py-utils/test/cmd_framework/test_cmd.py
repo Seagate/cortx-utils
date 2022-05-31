@@ -45,6 +45,6 @@ class TestCmdFramework(unittest.TestCase):
         argv = [ 'test', 'param1' ]
         cmd = Cmd.get_command(sys.modules[__name__], 'test', argv)
         self.assertEqual(cmd.process(), 0)
-         
+
 if __name__ == '__main__':
     unittest.main()

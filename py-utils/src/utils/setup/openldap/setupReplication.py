@@ -35,6 +35,7 @@ class Replication:
             hostlist.append(line.strip())
         hostlist.sort()
 
+    @staticmethod
     def checkhostvalidity():
         totalhosts = 0;
         for host in hostlist :
@@ -45,6 +46,7 @@ class Replication:
                 quit()
         return totalhosts
 
+    @staticmethod
     def getserveridfromhostfile():
         serverid = 1
         for host in hostlist :
@@ -94,7 +96,7 @@ class Replication:
         dn = "cn=config"
         Replication.deleteattribute(conn, dn, 'olcserverid')
         Replication.addattribute(conn, dn, 'olcserverid', server_id)
-        
+
         dn = "cn=module,cn=config"
         add_record = [
          ('objectClass', [b'olcModuleList']),

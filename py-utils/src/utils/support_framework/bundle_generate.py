@@ -17,7 +17,6 @@
 
 import os
 import shutil
-import asyncio
 from typing import List
 from datetime import datetime
 
@@ -99,21 +98,12 @@ class ComponentsBundle:
         for command in commands:
         # SB Framework will not parse additional filters until all the components
         # accept filters in their respective support bundle scripts.
+            cli_cmd = f"{command} -b {bundle_id} -t {path} -c {config_url}"\
+                f" -s {services} --duration {duration} --size_limit {size_limit}"\
+                f" --binlogs {binlogs} --coredumps {coredumps} --stacktrace {stacktrace}"
+            Log.info(f"Executing command -> {cli_cmd}")
+            cmd_proc = SimpleProcess(cli_cmd)
 
-        #    Log.info(f"Executing command -> {command} -b {bundle_id} -t {path}"
-        #        f" -c {config_url} -s {services} --duration {duration}"
-        #        f" --size_limit {size_limit} --binlogs {binlogs}"
-        #        f" --coredumps {coredumps} --stacktrace {stacktrace}")
-
-        #    cmd_proc = SimpleProcess(f"{command} -b {bundle_id} -t {path} -c {config_url}"
-        #        f" -s {services} --duration {duration} --size_limit {size_limit}"
-        #        f" --binlogs {binlogs} --coredumps {coredumps} --stacktrace {stacktrace}")
-
-            Log.info(f"Executing command -> {command} -b {bundle_id} -t {path}"
-                f" -c {config_url} -s {services}")
-
-            cmd_proc = SimpleProcess(f"{command} -b {bundle_id} -t {path} -c {config_url}"
-                f" -s {services}")
             output, err, return_code = cmd_proc.run()
             Log.debug(f"Command Output -> {output} {err}, {return_code}")
             if return_code != 0:

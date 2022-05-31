@@ -122,9 +122,9 @@ class GenericDataBase(IDataBase):
         except ConversionError as e:
             raise DataAccessInternalError(f"{e}")
 
-        filter = Compare(self._model.primary_key, "=", converted)
+        filter_condition = Compare(self._model.primary_key, "=", converted)
 
-        result = await self.delete(filter)
+        result = await self.delete(filter_condition)
         return result > 0
 
     async def update(self, filter_obj: IFilter, to_update: dict) -> int:

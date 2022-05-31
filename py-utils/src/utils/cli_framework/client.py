@@ -14,7 +14,6 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 from importlib import import_module
-import aiohttp
 
 
 class Client:

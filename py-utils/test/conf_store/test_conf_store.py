@@ -25,6 +25,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 from cortx.utils.schema.payload import Json
 from cortx.utils.conf_store import Conf
 from cortx.utils.schema.format import Format
+from cortx.utils.conf_store.error import ConfError
 
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -134,6 +135,23 @@ class TestConfStore(unittest.TestCase):
         load_config('get_keys_local', 'json:///tmp/file1.json')
         result_data = Conf.get_keys('get_keys_local')
         self.assertTrue(True if 'bridge>name' in result_data else False)
+
+    def test_conf_store_compare(self):
+        """Test comparing given two index and return new/deleted/updated keys."""
+        load_config('conf1', 'json:///tmp/file1.json')
+        load_config('conf2', 'json:///tmp/file2.json')
+        Conf.delete('conf2', 'bridge>name')
+        Conf.set('conf2', 'bridge>protocol', 'http')
+        Conf.set('conf2', 'bridge>port', '51288')
+        expected_new_keys = ['bridge>protocol']
+        expected_updated_keys = ['bridge>port']
+        actual_new_keys, actual_deleted_keys, actual_updated_keys = Conf.compare('conf1', 'conf2')
+        self.assertEqual(actual_new_keys, expected_new_keys)
+        self.assertEqual(actual_updated_keys, expected_updated_keys)
+        self.assertTrue(True if 'bridge>name' in actual_deleted_keys else False)
+        self.assertNotEqual(actual_new_keys, None)
+        with self.assertRaises(ConfError):
+            actual_new_keys, actual_deleted_keys, actual_updated_keys = Conf.compare('conf1', 'conf4')
 
     def test_conf_store_delete(self):
         """
@@ -568,8 +586,6 @@ class TestConfStore(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    """
-    Firstly create the file and load sample json into it.
-    Start test
-    """
+    # Firstly create the file and load sample json into it.
+    # Start test
     unittest.main()

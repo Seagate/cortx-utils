@@ -18,7 +18,6 @@
 
 import os
 import yaml
-import time
 import string
 import random
 import unittest

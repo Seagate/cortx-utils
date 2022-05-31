@@ -18,6 +18,7 @@
 
 import unittest
 from cortx.utils.event_framework.health import HealthEvent, HealthAttr
+from cortx.utils.event_framework.event import EventAttr
 
 class TestHealthEvent(unittest.TestCase):
     """Test health event message schema handling."""
@@ -59,5 +60,9 @@ class TestHealthEvent(unittest.TestCase):
         # Other attributes remain empty strings if not set
         self.assertEqual(he.get(f'payload>{HealthAttr.RESOURCE_ID}'), '')
 
+    def test_health_event_id(self):
+        """Check event id is not floating value."""
+        he = HealthEvent()
+        self.assertFalse('.' in he.get(f'header>{EventAttr.EVENT_ID}'))
 if __name__ == '__main__':
     unittest.main()

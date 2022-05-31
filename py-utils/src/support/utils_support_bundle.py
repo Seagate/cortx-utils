@@ -24,7 +24,6 @@ import errno
 import argparse
 
 from cortx.utils.errors import UtilsError
-from cortx.utils.process import SimpleProcess
 from cortx.utils.const import CLUSTER_CONF_LOG_KEY
 from cortx.utils.conf_store import Conf, MappedConf
 
