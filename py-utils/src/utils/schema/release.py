@@ -107,21 +107,21 @@ class Release(Manifest):
 
         Returns:
         status - True if version is compatible for upgrade else returns False.
-        reason - Reason why the given version is not compatible for update.
+        status_string - Reason for the status being returned.
         """
         #TODO: Decide on cluster version compatibilty design and add support
         if resource_type == 'cluster':
             raise NotImplementedError("Compatibilty check at cluster level is not yet supported")
 
         if not Release._validate_clauses(version_clauses):
-            raise ReleaseError(errno.EINVAL, "Invalid compatibility rules %s" % version_clauses)
+            raise CompatibilityError(errno.EINVAL, "Invalid compatibility rules %s" % version_clauses)
 
         # Get version details of all the components
         consul_conf = Text(const.CONSUL_CONF)
         conf_url = str(consul_conf.load()).strip()
         installed_versions = Release.get_installed_version(resource_id, conf_url)
         if not installed_versions:
-            raise ReleaseError(ReleaseError.INTERNAL_ERROR, "Installed versions not found")
+            raise CompatibilityError(CompatibilityError.INTERNAL_ERROR, "Installed versions not found")
 
         validation_count =  0
         # Determine if the new version is compatible with the deployed version.
@@ -131,13 +131,13 @@ class Release(Manifest):
                 if component == const.COMPONENT_NAME_MAP[name]:
                     validation_count += 1
                     if Release.version_check(version, new_version) == -1:
-                        reason = f"{component} deployed version {version} is older " + \
+                        status_string  = f"{component} deployed version {version} is older " + \
                                 f"than the compatible version {new_version}."
-                        return False, reason
+                        return False, status_string
                     break
 
         if validation_count != len(installed_versions):
-            raise ReleaseError(errno.EINVAL, "Incomplete compatibilty rules %s" % version_clauses)
+            raise CompatibilityError(errno.EINVAL, "Incomplete compatibilty rules %s" % version_clauses)
 
         return True, "Versions are Compatible"
 
@@ -190,7 +190,7 @@ class Release(Manifest):
             if resource_id == version_conf.get(const.NODE_NAME_KEY % node):
                 node_id = node
         if node_id is None:
-            raise ReleaseError(errno.EINVAL, "Invalid Resource Id %s." % resource_id)
+            raise CompatibilityError(errno.EINVAL, "Invalid Resource Id %s." % resource_id)
 
         # Get version details of all the components of a node
         num_components = int(version_conf.get(const.NUM_COMPONENTS_KEY % node_id))
@@ -200,7 +200,7 @@ class Release(Manifest):
             if _version is not None:
                 version_info[_name] = _version
             else:
-                raise ReleaseError(ReleaseError.INTERNAL_ERROR,
+                raise CompatibilityError(CompatibilityError.INTERNAL_ERROR,
                 "No installed version found for component %s" % _name)
 
         # get cluster release version
@@ -272,7 +272,7 @@ class Release(Manifest):
                 digits.append(int(elem))
         return digits
 
-class ReleaseError(Exception):
+class CompatibilityError(Exception):
 
     """Generic Exception with error code and output."""
 
