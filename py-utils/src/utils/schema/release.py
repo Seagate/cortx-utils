@@ -17,6 +17,7 @@ from itertools import zip_longest
 from cortx.utils.conf_store import Conf, MappedConf
 from cortx.utils import const
 from cortx.utils.schema.payload import Text
+from cortx.utils.errors import INTERNAL_ERROR
 
 import errno
 
@@ -121,7 +122,7 @@ class Release(Manifest):
         conf_url = str(consul_conf.load()).strip()
         installed_versions = Release.get_installed_version(resource_id, conf_url)
         if not installed_versions:
-            raise SetupError(SetupError.INTERNAL_ERROR, "Installed versions not found")
+            raise SetupError(INTERNAL_ERROR, "Installed versions not found")
 
         validation_count =  0
         # Determine if the new version is compatible with the deployed version.
@@ -200,7 +201,7 @@ class Release(Manifest):
             if _version is not None:
                 version_info[_name] = _version
             else:
-                raise SetupError(SetupError.INTERNAL_ERROR,
+                raise SetupError(INTERNAL_ERROR,
                 "No installed version found for component %s" % _name)
 
         # get cluster release version
@@ -275,8 +276,6 @@ class Release(Manifest):
 class SetupError(Exception):
 
     """Generic Exception with error code and output."""
-
-    INTERNAL_ERROR = 0x1005
 
     def __init__(self, rc, message, *args):
         """Initialize self."""
