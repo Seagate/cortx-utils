@@ -16,7 +16,17 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 CLUSTER_CONF = 'yaml:///etc/cortx/cluster.conf'
+GCONF_INDEX = 'config'
+#GCONF KEYS
 CLUSTER_CONF_LOG_KEY = 'cortx>common>storage>log'
+MSG_BUS_BACKEND_KEY = 'cortx>utils>message_bus_backend'
+EXTERNAL_KEY = 'cortx>external'
+#DELTA KEYS
+DELTA_INDEX = 'gconf_change_set'
+CHANGED_PREFIX = 'changed>'
+NEW_PREFIX = 'new>'
+DELETED_PREFIX = 'deleted>'
+
 DEFAULT_INSTALL_PATH = '/opt/seagate'
 CORTX_HA_INSTALL_PATH = "/etc/cortx/ha/"
 RULES_FILE_PATH = "rules_engine_schema.json"
@@ -60,3 +70,21 @@ SERIAL_NO_FILE_PATH = "/opt/seagate/lr-serial-number"
 ITEMS_SEPARATOR = ", "
 STORAGE_ENCLOSURE = "storage_enclosure"
 CLUSTER_ID = "cluster_id"
+CONSUL_CONF = "/etc/cortx/consul_conf"
+RELEASE_KEY = "cortx>common>release"
+RELEASE_NAME_KEY = RELEASE_KEY + ">name"
+RELEASE_VERSION_KEY  = RELEASE_KEY + ">version"
+NUM_STORAGESET_KEY = "cluster>num_storage_set"
+STORAGE_SET = "cluster>storage_set[%s]"
+NUM_NODES_KEY = STORAGE_SET + ">num_nodes"
+NODE_ID_KEY = STORAGE_SET + ">nodes[%s]"
+NODE_NAME_KEY = "node>%s>name"
+NUM_COMPONENTS_KEY = "node>%s>num_components"
+COMPONENT_KEY = "node>%s>components[%s]"
+COMPONENT_NAME_KEY = COMPONENT_KEY + ">name"
+COMPONENT_VERSION_KEY = COMPONENT_KEY + ">version"
+# Mapping of cortx conf component names to RELEASE.INFO component names
+COMPONENT_NAME_MAP = {'CORTX': 'CORTX', 'cortx-motr': 'motr', 'cortx-rgw': 'rgw',
+                    'cortx-hare': 'hare', 'cortx-py-utils': 'utils', 'cortx-csm_agent': 'csm',
+                    'cortx-ha': 'ha', 'cortx-prvsnr': 'prvsnr'}
+VERSION_UPGRADE = "UPGRADE"

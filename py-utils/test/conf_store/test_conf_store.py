@@ -145,6 +145,23 @@ class TestConfStore(unittest.TestCase):
         post_key_list = Conf.get_keys('get_keys_delete')
         self.assertTrue( pre_key_list != post_key_list )
 
+    def test_conf_store_compare(self):
+        """Test comparing given two index and return new/deleted/updated keys."""
+        load_config('conf1', 'json:///tmp/file1.json')
+        load_config('conf2', 'json:///tmp/file2.json')
+        Conf.delete('conf2', 'bridge>name')
+        Conf.set('conf2', 'bridge>protocol', 'http')
+        Conf.set('conf2', 'bridge>port', '51288')
+        expected_new_keys = ['bridge>protocol']
+        expected_updated_keys = ['bridge>port']
+        actual_new_keys, actual_deleted_keys, actual_updated_keys = Conf.compare('conf1', 'conf2')
+        self.assertEqual(actual_new_keys, expected_new_keys)
+        self.assertEqual(actual_updated_keys, expected_updated_keys)
+        self.assertTrue(True if 'bridge>name' in actual_deleted_keys else False)
+        self.assertNotEqual(actual_new_keys, None)
+        with self.assertRaises(ConfError):
+            actual_new_keys, actual_deleted_keys, actual_updated_keys = Conf.compare('conf1', 'conf4')
+
     def test_conf_store_delete(self):
         """
         Test by removing the key, value to given index and reading it back.
