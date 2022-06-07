@@ -15,6 +15,9 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+"""Module which creates the health event with required key value"""
+
+
 from cortx.utils.kv_store.kv_payload import KvPayload
 from cortx.utils.event_framework.event import Attr, Event
 
@@ -53,13 +56,15 @@ class HealthEvent(Event):
             payload.set(str(key), '')
         for key, val in kwargs.items():
             payload.set(key, val)
-        payload.set('specific_info', '')
+        payload.set('specific_info', {})
         super().__init__(payload)
 
     def set(self, key, val):
+        """Sets up the payload"""
         super().set_payload_attr(key, val)
 
     def set_specific_attr(self, key: str, val: str):
+        """Sets up the specific info for payload"""
         super().set_payload_attr(f'specific_info>{key}', val)
 
     def set_specific_info(self, spec_info: dict):
