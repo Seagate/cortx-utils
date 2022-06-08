@@ -15,7 +15,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-"""Module which creates the health event with required key value."""
+"""Module to generate health events with required key value."""
 
 
 from cortx.utils.kv_store.kv_payload import KvPayload
@@ -64,7 +64,7 @@ class HealthEvent(Event):
         Sets up the payload
         Args:
         key: key to set
-        val: value to be set for a given key.
+        val: value to set for a given key.
         """
         super().set_payload_attr(key, val)
 
@@ -73,7 +73,7 @@ class HealthEvent(Event):
         Sets up the payload specifc_info key
         Args:
         key: key to set
-        val: value to be set for a given key.
+        val: value to set for a given key.
         """
         super().set_payload_attr(f'specific_info>{key}', val)
 
@@ -82,3 +82,27 @@ class HealthEvent(Event):
         specific_info = KvPayload(spec_info)
         for key in specific_info.get_keys():
             super().set_payload_attr(f'specific_info>{key}', specific_info.get(key))
+
+payload = {"source": "monitor",
+                "cluster_id": '1',
+                "site_id": '1',
+                "rack_id": '1',
+                "storageset_id": '1',
+                "node_id": '1',
+                "resource_type": 'node',
+                "resource_id": '1',
+                "resource_status": 'online',
+                "specific_info": {}}
+
+
+event = HealthEvent(**payload)
+# print(event.json)
+# print("#########################################")
+event.set_specific_info({"generation_id": 123})
+# print(event.json)
+payload = event['payload']
+print(payload)
+print("=========================================")
+print(payload.get('specific_info'))
+print("=========================================")
+print(payload.get("specific_info>generation_id"))
