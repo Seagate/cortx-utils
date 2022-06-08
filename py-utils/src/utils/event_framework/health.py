@@ -82,27 +82,3 @@ class HealthEvent(Event):
         specific_info = KvPayload(spec_info)
         for key in specific_info.get_keys():
             super().set_payload_attr(f'specific_info>{key}', specific_info.get(key))
-
-payload = {"source": "monitor",
-                "cluster_id": '1',
-                "site_id": '1',
-                "rack_id": '1',
-                "storageset_id": '1',
-                "node_id": '1',
-                "resource_type": 'node',
-                "resource_id": '1',
-                "resource_status": 'online',
-                "specific_info": {}}
-
-
-event = HealthEvent(**payload)
-# print(event.json)
-# print("#########################################")
-event.set_specific_info({"generation_id": 123})
-# print(event.json)
-payload = event['payload']
-print(payload)
-print("=========================================")
-print(payload.get('specific_info'))
-print("=========================================")
-print(payload.get("specific_info>generation_id"))
