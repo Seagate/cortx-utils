@@ -74,12 +74,12 @@ class ConfCache:
         """
         return self._data.search(parent_key, search_key, search_val)
 
-    def delete(self, key: str):
+    def delete(self, key: str, force: bool = False):
         """
         Delete a given key from the config.
         Return Value:
         return boolean True for success else False
         """
-        result = self._data.delete(key)
+        result = self._data.delete(key, force)
         self._dirty = True
         return result

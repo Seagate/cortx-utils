@@ -16,6 +16,6 @@ Refer to the [CORTX Contribution Guide](CONTRIBUTING.md) that hosts all informat
 - Please refer to our [Support](SUPPORT.md) section for support or to discuss things with your fellow CORTX Community members.
 - Click here to [view existing issues or to create new issues](https://github.com/Seagate/cortx-posix/issues).
 
-## Thank You!
+## Thank You
 
 We thank you for stopping by to check out the CORTX Community. Seagate is fully dedicated to its mission to build open source technologies that help the world save unlimited data and solve challenging data problems. Join our mission to help reinvent a data-driven world.

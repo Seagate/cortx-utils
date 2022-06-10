@@ -50,7 +50,7 @@ Below command passes version string as 2.0.0 and build number 2, which creates `
 
 Run below command from repo root (cortx-utils).
 ```bash
-$ ./jenkins/build_test_rpm.sh -v 2.0.0 -b 2
+./jenkins/build_test_rpm.sh -v 2.0.0 -b 2
 ```
 
 - Create pip Package

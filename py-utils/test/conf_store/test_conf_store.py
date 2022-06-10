@@ -25,6 +25,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 from cortx.utils.schema.payload import Json
 from cortx.utils.conf_store import Conf
 from cortx.utils.schema.format import Format
+from cortx.utils.kv_store.error import KvError
 from cortx.utils.conf_store.error import ConfError
 
 
@@ -135,6 +136,15 @@ class TestConfStore(unittest.TestCase):
         load_config('get_keys_local', 'json:///tmp/file1.json')
         result_data = Conf.get_keys('get_keys_local')
         self.assertTrue(True if 'bridge>name' in result_data else False)
+
+    def test_get_keys_delete(self):
+        """Test get_keys after deletion of a key."""
+        load_config('get_keys_delete', 'json:///tmp/file1.json')
+        Conf.set('get_keys_delete', 'bridge>delete>key', 'del_val')
+        pre_key_list = Conf.get_keys('get_keys_delete')
+        Conf.delete('get_keys_delete', 'bridge>delete>key')
+        post_key_list = Conf.get_keys('get_keys_delete')
+        self.assertTrue( pre_key_list != post_key_list )
 
     def test_conf_store_compare(self):
         """Test comparing given two index and return new/deleted/updated keys."""
@@ -284,7 +294,7 @@ class TestConfStore(unittest.TestCase):
         result_data = Conf.get('set_local_8', 'bridge>lte_type')
         # Expected list should match the result_data list output
         expected_result = [
-            {'name': '3g'}, {'name': '4g'}, 'sample2', {}, {}, 'sample5']
+            {'name': '3g'}, {'name': '4g'}, 'sample2', '', '', 'sample5']
         self.assertListEqual(result_data, expected_result)
 
     def test_conf_store_set_nested_keys(self):
@@ -503,6 +513,29 @@ class TestConfStore(unittest.TestCase):
         self.assertEqual(5, Conf.get('src_index', 'num_test_val'))
         self.assertEqual(3, Conf.get('src_index', 'test_nested>2>num_1'))
 
+    def test_delete(self):
+        Conf.load('test_file_1', 'yaml:///tmp/test_file_1.yaml')
+        Conf.set('test_file_1', 'a>b>c>d', 'value1')
+        Conf.set('test_file_1', 'a1>b>c>d[0]', 11)
+        Conf.set('test_file_1', 'a1>b>c>d[1]', 22)
+
+        # Deleting non leaf keys raise KvError
+        with self.assertRaises(KvError):
+            Conf.delete('test_file_1', 'a1>b>c>d')
+        with self.assertRaises(KvError):
+            Conf.delete('test_file_1', 'a>b>c')
+        with self.assertRaises(KvError):
+            Conf.delete('test_file_1', 'a')
+
+        # Delete leaf node
+        self.assertEqual(True, Conf.delete('test_file_1', 'a>b>c>d'))
+        # Deleting empty intermediate key
+        self.assertEqual(True, Conf.delete('test_file_1', 'a>b>c'))
+        # Delete non leaf key with force:
+        self.assertEqual(True, Conf.delete('test_file_1', 'a', True))
+        # Delete indexed key
+        self.assertEqual(True,  Conf.delete('test_file_1', 'a1>b>c>d[0]'))
+
     # DictKVstore tests
     def test_001_conf_dictkvstore_get_all_keys(self):
         """Test conf store get_keys."""
@@ -575,7 +608,7 @@ class TestConfStore(unittest.TestCase):
     def test_012_conf_dictkvstore_set_value_to_indexed_key(self):
         """Test conf store set value to indexed key."""
         Conf.set('dict', 'k14[6]', 'v14')
-        expected = [{}, {}, {}, {}, {}, {}, 'v14']
+        expected = ['', '', '', '', '', '', 'v14']
         out = Conf.get('dict', 'k14')
         self.assertListEqual(expected, out)
 
