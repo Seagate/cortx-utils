@@ -22,7 +22,7 @@ import requests
 
 
 class TestMessage(unittest.TestCase):
-    """ Test MessageBus rest server functionality. """
+    """Test MessageBus rest server functionality."""
 
     _base_url = 'http://0.0.0.0:28300/EventMessage/event'
     _component = 'cmp'
@@ -32,7 +32,7 @@ class TestMessage(unittest.TestCase):
         'event_id': '500', 'severity': 'B', 'message_blob': 'This is alert'}
 
     def test_alert_send(self):
-        """ Test send message """
+        """Test send message."""
         data = json.dumps(self._payload)
         response = requests.post(url=self._base_url, data=data, \
             headers=self._headers)
@@ -40,7 +40,7 @@ class TestMessage(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_alert_verify_receive(self):
-        """ Test receive message """
+        """Test receive message."""
         response = requests.get(self._base_url + '?component=' + \
             self._component)
         self.assertEqual(response.status_code, 200)
@@ -48,7 +48,7 @@ class TestMessage(unittest.TestCase):
         self.assertIs(type(alert), dict)
 
     def test_bulk_alert_send(self):
-        """ Test bulk send alerts """
+        """Test bulk send alerts."""
         for alert_count in range(0, self._bulk_count):
             self._payload['message_blob'] = f'This is alert {alert_count}'
             data = json.dumps(self._payload)
@@ -58,7 +58,7 @@ class TestMessage(unittest.TestCase):
             self.assertEqual(response.status_code, 200)
 
     def test_bulk_verify_receive(self):
-        """ Test bulk receive alerts """
+        """Test bulk receive alerts."""
         count = 0
         while True:
             response = requests.get(self._base_url + '?component=' + \
@@ -72,7 +72,7 @@ class TestMessage(unittest.TestCase):
         self.assertEqual(count, self._bulk_count)
 
     def test_json_alert_send(self):
-        """ Test send json as message description """
+        """Test send json as message description."""
         self._payload['message_blob'] = json.dumps({'input': 'This is message'})
         data = json.dumps(self._payload)
         response = requests.post(url=self._base_url, data=data, \
@@ -81,7 +81,7 @@ class TestMessage(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_json_verify_receive(self):
-        """ Test receive json as message description """
+        """Test receive json as message description."""
         response = requests.get(self._base_url + '?component=' + \
             self._component)
         self.assertEqual(response.status_code, 200)
@@ -89,7 +89,7 @@ class TestMessage(unittest.TestCase):
         self.assertIs(type(alert), dict)
 
     def test_validate_no_optional_params(self):
-        """ Validate without optional params of send attributes """
+        """Validate without optional params of send attributes."""
         data = json.dumps(self._payload)
 
         send_response = requests.post(url=self._base_url, data=data, \
@@ -110,7 +110,7 @@ class TestMessage(unittest.TestCase):
             alert['iem']['source']['rack_id'])
 
     def test_validate_optional_params(self):
-        """ Validate with optional params of send attributes """
+        """Validate with optional params of send attributes."""
         self._payload['problem_site_id'] = '2'
         self._payload['problem_rack_id'] = '6'
         self._payload['problem_node_id'] = '9'

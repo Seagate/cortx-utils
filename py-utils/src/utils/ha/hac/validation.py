@@ -28,7 +28,7 @@ class Validator:
     def execute(self):
         """
         Execute all function from _syntax_validations
-        to validate schema
+        to validate schema.
         """
         method_list = [validate_funtion for validate_funtion in dir(self)
                         if callable(getattr(self, validate_funtion)) and
@@ -41,12 +41,10 @@ class SyntaxValidator(Validator):
     SyntaxValidator check syntax for each input file
     Note:
     Add new function start with '_valisate' to execute to
-    check ha_spec
+    check ha_spec.
     """
     def __init__(self, filename):
-        """
-        Run all validation function for ha_spec
-        """
+        """Run all validation function for ha_spec."""
         self._schema_file = filename
         self._is_file()
         self._schema = self._is_valid_json()
@@ -55,16 +53,12 @@ class SyntaxValidator(Validator):
         return self._schema
 
     def _is_file(self):
-        """
-        Verify file
-        """
+        """Verify file."""
         if not os.path.isfile(self._schema_file):
             raise Exception("%s is not a file." %self._schema_file)
 
     def _is_valid_json(self):
-        """
-        Remove comment from file and validate for json
-        """
+        """Remove comment from file and validate for json."""
         try:
             with open(self._schema_file, "r") as spec_file:
                 output_file = self._schema_file + ".parse"
@@ -81,7 +75,7 @@ class SyntaxValidator(Validator):
     def _validate_mode(self):
         """
         Validate mode for HA, It should be one of active_active, active_passive, primary_secondary
-        Validate clone for mode of resources
+        Validate clone for mode of resources.
         """
         for component in self._schema.keys():
             for resource in self._schema[component].keys():
@@ -91,9 +85,7 @@ class SyntaxValidator(Validator):
                                     %(resource_mode, resource, component))
 
     def _validate_component_group(self):
-        """
-        validate component for each resource
-        """
+        """validate component for each resource."""
         for component in self._schema.keys():
             for resource in self._schema[component].keys():
                 resource_group = self._schema[component][resource]["group"]
@@ -102,17 +94,13 @@ class SyntaxValidator(Validator):
                                     %(resource_group, resource, component))
 
 class SymanticValidator(Validator):
-    """
-    SymanticValidator validate graph and compiled schema
-    """
+    """SymanticValidator validate graph and compiled schema."""
     def __init__(self, compiled_schema, order_graph):
         self.compiled_schema = compiled_schema
         self.order_graph = order_graph
 
     def _validate_resource_predecessors(self):
-        """
-        Verify predecessors for resource
-        """
+        """Verify predecessors for resource."""
         error_msg = ""
         resource_set = self.compiled_schema["resources"]
         for resource in resource_set.keys():
@@ -124,9 +112,7 @@ class SymanticValidator(Validator):
             raise Exception(error_msg)
 
     def _validate_resource_colocation(self):
-        """
-        Verify colocation for resource
-        """
+        """Verify colocation for resource."""
         error_msg = ""
         resource_set = self.compiled_schema["resources"]
         for resource in resource_set.keys():
@@ -139,9 +125,7 @@ class SymanticValidator(Validator):
             raise Exception(error_msg)
 
     def _validate_resource_relation(self):
-        """
-        Verify relation for resource
-        """
+        """Verify relation for resource."""
         error_msg = ""
         resource_set = self.compiled_schema["resources"]
         for resource in resource_set.keys():
@@ -155,9 +139,7 @@ class SymanticValidator(Validator):
 
 
     def _validate_cycle(self):
-        """
-        Verify graph to find cycle
-        """
+        """Verify graph to find cycle."""
         cycle_list = []
         cycle_gen = nx.simple_cycles(self.order_graph)
         for i in cycle_gen:

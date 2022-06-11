@@ -21,9 +21,7 @@ from cortx.utils.log import Log
 
 
 class CronJob:
-    """
-    Class to Schedule Cron Jobs
-    """
+    """Class to Schedule Cron Jobs."""
 
     def __init__(self, user):
         try:
@@ -46,7 +44,7 @@ class CronJob:
         :param command: Command to be Executed in Cron job.
         :param comment: Comment for Cron Job.
         :param schedule_time: time at which cron should be executed.
-        :return:
+        :return: None
         """
         if not self._cron:
             Log.error("Cron Job Object is not Instantiated")
@@ -60,7 +58,7 @@ class CronJob:
         """
         Remove Running/Scheduled Cron Jobs.
         :param comment: Comment for Cron Job. :type: String
-        :return:
+        :return: None
         """
         if not self._cron:
             Log.error("Cron Job Object is not Instantiated")

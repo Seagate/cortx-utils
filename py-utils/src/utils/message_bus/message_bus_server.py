@@ -28,7 +28,7 @@ routes = web.RouteTableDef()
 
 
 class MessageBusRequestHandler(MessageServer):
-    """ Rest interface of message bus """
+    """Rest interface of message bus."""
 
     @staticmethod
     async def send(request):

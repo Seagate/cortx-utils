@@ -47,8 +47,7 @@ class Kafka:
 
     @staticmethod
     def _validate_kafka_installation():
-        """validates kafka is installed and kafka user and group are present
-        """
+        """validates kafka is installed and kafka user and group are present."""
         # check kafka package installed
         try:
             PkgV().validate('rpms', ['kafka'])
@@ -101,7 +100,7 @@ class Kafka:
 
     @staticmethod
     def _update_properties_file(file_path: str, properties: dict):
-        """Updates/Add properties in provided file while retaining comments
+        """Updates/Add properties in provided file while retaining comments.
 
         Args:
             properties (dict): Key value pair of properties to be updated
@@ -127,7 +126,7 @@ class Kafka:
 
     @staticmethod
     def _delete_properties_from_file(file_path: str, properties: list):
-        """Deletes properties in provided file while retaining comments
+        """Deletes properties in provided file while retaining comments.
 
         Args:
             properties (list): Key of properties to be deleted
@@ -144,7 +143,7 @@ class Kafka:
 
     @staticmethod
     def _set_kafka_config(hostname: str, port: str, kafka_servers: list):
-        """Updates server.properties and zookeeper.properties with required keys
+        """Updates server.properties and zookeeper.properties with required keys.
 
         Args:
             hostname (str): current host name

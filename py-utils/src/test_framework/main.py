@@ -37,9 +37,7 @@ class TestRunner:
 
     @staticmethod
     def _run_class_setup_method(ts, test_class, cluster_conf_path):
-        """
-        Runs class setup for test
-        """
+        """Runs class setup for test."""
         for method_name, obj in inspect.getmembers(test_class):
             if inspect.ismethod(obj) and method_name.startswith('set'):
                 setup_class = method_name
@@ -54,9 +52,7 @@ class TestRunner:
 
     @staticmethod
     def _run_class_teardown_method(test_class):
-        """
-        Runs class teardown for test
-        """
+        """Runs class teardown for test."""
         for method_name, obj in inspect.getmembers(test_class):
             if inspect.ismethod(obj) and method_name.startswith('tear'):
                 teardown_class = method_name
@@ -68,9 +64,7 @@ class TestRunner:
 
     @staticmethod
     def _run_test_setup_method(test_class):
-        """
-        Runs test setup for test
-        """
+        """Runs test setup for test."""
         for func_name, obj in inspect.getmembers(test_class):
             if inspect.isfunction(obj) and func_name.startswith('set'):
                 setup_test = func_name
@@ -82,9 +76,7 @@ class TestRunner:
 
     @staticmethod
     def _run_test_teardown_method(test_class):
-        """
-        Runs test teardown for test
-        """
+        """Runs test teardown for test."""
         for func_name, obj in inspect.getmembers(test_class):
             if inspect.isfunction(obj) and func_name.startswith('tear'):
                 teardown_test = func_name
@@ -96,9 +88,7 @@ class TestRunner:
 
     @staticmethod
     def get_tests_from_testname(ts):
-        """
-        Loads test based on class and test name
-        """
+        """Loads test based on class and test name."""
         try:
             ts_module = importlib.import_module(ts.rsplit('.', 2)[0])
             class_name = ts.rsplit('.', 2)[1]
@@ -110,9 +100,7 @@ class TestRunner:
 
     @staticmethod
     def get_tests_from_modules(ts):
-        """
-        load test from modules
-        """
+        """load test from modules."""
         test_classes = []
         tests = []
         try:
@@ -165,9 +153,7 @@ class TestRunner:
     @staticmethod
     def _test_report(ts_count, test_count, pass_count, fail_count, \
         total_start_time, result):
-        """
-        Prints summary of tests and testsuites ran
-        """
+        """Prints summary of tests and testsuites ran."""
         #View of consolidated test suite status
         print('\n' + '*'*120)
         print('{:90} {:10} {:10}'.format('TestSuites', 'Status', 'Duration(secs)'))
@@ -186,9 +172,7 @@ class TestRunner:
 
     @staticmethod
     def execute_tests(args):
-        """
-        Runs the given tests and testsuites
-        """
+        """Runs the given tests and testsuites."""
         result = {}
         ts_count = test_count = pass_count = fail_count = ts_duration = 0
         total_start_time = time.time()

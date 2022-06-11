@@ -28,7 +28,7 @@ file_path = os.path.join(dir_path, 'test_alert.json')
 rules_schema_path = os.path.join(dir_path, 'rules_engine_schema.json')
 
 class TestDecisionMaker(unittest.TestCase):
-    """Module to test DecisionMaker class"""
+    """Module to test DecisionMaker class."""
 
     res_to_entity_mapping = {
         "enclosure": ("enclosure", "connectivity"),
@@ -42,7 +42,7 @@ class TestDecisionMaker(unittest.TestCase):
     _loop = asyncio.get_event_loop()
 
     def test_handle_alert(self):
-        """tests handle_alert functio of DecisionMaker class"""
+        """tests handle_alert functio of DecisionMaker class."""
 
         assert self.json_alert_data is not None
         self.assertTrue(isinstance(self.json_alert_data, dict))

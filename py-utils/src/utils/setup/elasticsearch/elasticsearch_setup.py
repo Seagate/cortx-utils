@@ -25,7 +25,7 @@ from cortx.utils.setup.elasticsearch import ElasticsearchSetupError
 
 
 class Cmd:
-    """ Setup Command """
+    """Setup Command."""
     _index = "setup"
 
     def __init__(self, args: dict):
@@ -42,7 +42,7 @@ class Cmd:
 
     @staticmethod
     def usage(prog: str):
-        """ Print usage instructions """
+        """Print usage instructions."""
 
         sys.stderr.write(
             f"usage: {prog} [-h] <cmd> --config <url> <args>...\n"
@@ -52,7 +52,7 @@ class Cmd:
 
     @staticmethod
     def get_command(desc: str, argv: dict):
-        """ Return the Command after parsing the command line. """
+        """Return the Command after parsing the command line."""
 
         parser = argparse.ArgumentParser(desc)
 
@@ -67,12 +67,12 @@ class Cmd:
 
     @staticmethod
     def _add_extended_args(parser):
-        """ Override this method to add extended args """
+        """Override this method to add extended args."""
         pass
 
     @staticmethod
     def add_args(parser: str, cls: str, name: str):
-        """ Add Command args for parsing """
+        """Add Command args for parsing."""
 
         parser1 = parser.add_parser(cls.name, help=f'setup {name}')
         parser1.add_argument('--config', help='Conf Store URL', type=str)
@@ -82,7 +82,7 @@ class Cmd:
 
 
 class PostInstallCmd(Cmd):
-    """ PostInstall Setup Cmd """
+    """PostInstall Setup Cmd."""
 
     name = "post_install"
 
@@ -97,7 +97,7 @@ class PostInstallCmd(Cmd):
 
 
 class PrepareCmd(Cmd):
-    """ Prepare Setup Cmd """
+    """Prepare Setup Cmd."""
 
     name = "prepare"
 
@@ -111,7 +111,7 @@ class PrepareCmd(Cmd):
 
 
 class ConfigCmd(Cmd):
-    """ Setup Config Cmd """
+    """Setup Config Cmd."""
 
     name = "config"
 
@@ -126,7 +126,7 @@ class ConfigCmd(Cmd):
 
 
 class InitCmd(Cmd):
-    """ Init Setup Cmd """
+    """Init Setup Cmd."""
 
     name = "init"
 
@@ -140,7 +140,7 @@ class InitCmd(Cmd):
 
 
 class TestCmd(Cmd):
-    """ Test Setup Cmd """
+    """Test Setup Cmd."""
 
     name = "test"
 
@@ -154,7 +154,7 @@ class TestCmd(Cmd):
 
 
 class ResetCmd(Cmd):
-    """ Reset Setup Cmd """
+    """Reset Setup Cmd."""
 
     name = "reset"
 
@@ -168,7 +168,7 @@ class ResetCmd(Cmd):
 
 
 class CleanupCmd(Cmd):
-    """ Reset Setup Cmd """
+    """Reset Setup Cmd."""
 
     name = "cleanup"
 

@@ -23,9 +23,7 @@ from cortx.utils.data.access.storage import AbstractDataBaseProvider
 
 
 class NamedEncryptedBytes(BaseModel):
-    """
-    Encrypted bytes model
-    """
+    """Encrypted bytes model."""
 
     _id = "name"
 
@@ -34,9 +32,7 @@ class NamedEncryptedBytes(BaseModel):
 
     @staticmethod
     def instantiate(name: str, data: str):
-        """
-        Creates an NamedEncryptedBytes instance
-        """
+        """Creates an NamedEncryptedBytes instance."""
 
         neb = NamedEncryptedBytes()
         neb.name = name
@@ -46,7 +42,8 @@ class NamedEncryptedBytes(BaseModel):
 
 class SecureStorage:
     """
-    Storage of explicitly CORTX cipher encrypted objects upon Consul KVS
+    Storage of explicitly CORTX cipher encrypted objects
+    upon Consul KVS.
     """
 
     def __init__(self, storage: AbstractDataBaseProvider, key: bytes) -> None:
@@ -100,9 +97,7 @@ class SecureStorage:
         return decrypted_bytes
 
     async def delete(self, name: str) -> None:
-        """
-        Removes the data from the encrypted storage
-        """
+        """Removes the data from the encrypted storage."""
 
         neb = await self._get_item(name)
         if neb is None:

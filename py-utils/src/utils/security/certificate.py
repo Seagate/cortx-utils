@@ -24,7 +24,7 @@ from cryptography.x509.oid import NameOID
 from cortx.utils.errors import SSLCertificateError
 
 class Certificate:
-    """Factory class for certificate"""
+    """Factory class for certificate."""
 
     @staticmethod
     def init(cert_type):
@@ -41,7 +41,7 @@ class Certificate:
         return cert[cert_type]()
 
 class SSLCertificate:
-    """Class to generate self signed SSL Certificate"""
+    """Class to generate self signed SSL Certificate."""
 
     def _prepare_private_key(self):
         """

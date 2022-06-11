@@ -26,13 +26,13 @@ from cortx.utils.kv_store import KvStoreFactory
 
 
 class Resource:
-    """Abstraction over all resource type"""
+    """Abstraction over all resource type."""
 
     ROOT_NODE = "node"
     _kv = None
 
     def __init__(self, name, child_resource=None):
-        """Initialize resource"""
+        """Initialize resource."""
         self._name = name
         self._child_resource = child_resource
 
@@ -46,18 +46,18 @@ class Resource:
 
     @staticmethod
     def init(url: str):
-        """Read from stored config"""
+        """Read from stored config."""
         Resource._kv = KvStoreFactory.get_instance(url)
         Resource._kv.load()
 
     @staticmethod
     def set(key: str, value: str):
-        """Update key and values"""
+        """Update key and values."""
         Resource._kv.set([key], [value])
 
     @staticmethod
     def get(rpath: str):
-        """Fetch resource map based on rpath"""
+        """Fetch resource map based on rpath."""
         if not rpath:
             rpath = Resource.ROOT_NODE
         return Resource._kv.get([rpath])
@@ -120,12 +120,12 @@ class Resource:
 
 
 class ResourceFactory:
-    """Factory class for different resources"""
+    """Factory class for different resources."""
 
     _resources = {}
 
     def __init__(self):
-        """Initialize resource factory"""
+        """Initialize resource factory."""
         pass
 
     @staticmethod

@@ -129,7 +129,7 @@ class NetworkV:
                          f"Failed to resolve host {host} Error {str(exc)}")
 
     def validate_network_drivers(self, driver, nodes):
-        """Check if drivers (eg: Mellanox OFED) are proper"""
+        """Check if drivers (eg: Mellanox OFED) are proper."""
 
         for node in nodes:
             cmd = f"ssh {node} rpm -qa | grep {driver}"
@@ -143,7 +143,7 @@ class NetworkV:
                 raise VError(errno.EINVAL, res)
 
     def validate_hca(self, provider, nodes):
-        """Check if HCA presence and ports"""
+        """Check if HCA presence and ports."""
 
         for node in nodes:
             if provider.lower() in self.hca_checks:

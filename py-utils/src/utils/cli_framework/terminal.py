@@ -23,7 +23,7 @@ import errno
 class Terminal:
     """
     Class to show prompts on consol for purpose of information,
-    waring or to get inputs from user or confirmation messages
+    waring or to get inputs from user or confirmation messages.
     """
 
     @staticmethod
@@ -61,7 +61,7 @@ class Terminal:
         """
         Fetches current password for user in non-echo mode.
         :param value:
-        :return:
+        :return: Password: str
         """
         value = value or getpass(prompt="Current Password: ")
         if not value:

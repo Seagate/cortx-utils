@@ -24,7 +24,7 @@ from cortx.utils.validator.error import VError
 
 
 class ControllerV:
-    """ Controller related validations """
+    """Controller related validations."""
 
     def __init__(self):
         self.version_cmd = "show versions"
@@ -67,7 +67,7 @@ class ControllerV:
                     Refer usage." % v_type)
 
     def validate_controller_accessibility(self, ip, username, password):
-        """ Check contoller console is accessible to node """
+        """Check contoller console is accessible to node."""
         # Check if ssh connection is successful
         try:
             session = SSHChannel(

@@ -33,12 +33,12 @@ Log = logging.getLogger(__name__)
 class RabbitMQAmqpChannel(Channel):
     """
     Represents Amqp channel to a node for communication
-    Communication to node is taken care by this class using pika
+    Communication to node is taken care by this class using pika.
     """
 
     def __init__(self, **kwargs):
         """
-        @param kwargs: keyword arguments for RabbitMQ configs
+        @param kwargs: keyword arguments for RabbitMQ configs.
         """
         Channel.__init__(self)
         self._connection = None
@@ -124,9 +124,7 @@ class RabbitMQAmqpChannel(Channel):
             Log.error(self.connection_error_msg.format(repr(e)))
 
     def disconnect(self):
-        """
-        Disconnect the connection
-        """
+        """Disconnect the connection."""
         try:
             if self._connection:
                 consumer_tag = const.CONSUMER_TAG
@@ -153,7 +151,7 @@ class RabbitMQAmqpChannel(Channel):
         """
         Publish the message to SSPL Rabbit-MQ queue.
         @param message: message to be published to queue.
-        @type message: str
+        @type message: str.
         """
         try:
             self._channel.basic_publish(exchange=self.exchange,
@@ -219,9 +217,7 @@ class RabbitMQAmqpConsumer(Comm):
         self.disconnect()
 
     def recv(self, callback_fn=None, message=None):
-        """
-        Start consuming the queue messages.
-        """
+        """Start consuming the queue messages."""
         try:
             consumer_tag = const.CONSUMER_TAG
             self.plugin_callback = callback_fn

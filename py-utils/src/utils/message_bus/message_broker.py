@@ -24,7 +24,7 @@ from cortx.utils.message_bus.error import MessageBusError
 
 
 class MessageBrokerFactory:
-    """ Factory class for Message Brokers """
+    """Factory class for Message Brokers."""
 
     _brokers = {}
 
@@ -82,7 +82,7 @@ class MessageBrokerFactory:
 
 
 class MessageBroker:
-    """ A common interface of Message Brokers"""
+    """A common interface of Message Brokers."""
 
     def __init__(self, broker_conf: dict):
         self._servers = ','.join(x['server']+':'+x['port'] for x in \

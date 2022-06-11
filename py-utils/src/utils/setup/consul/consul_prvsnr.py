@@ -35,7 +35,7 @@ from cortx.utils.service.service_handler import Service, ServiceError
 
 class ConsulSetupError(Exception):
 
-    """ Generic Exception with error code and output """
+    """Generic Exception with error code and output."""
     def __init__(self, rc, message, *args):
         """Initialize class."""
         self._rc = rc

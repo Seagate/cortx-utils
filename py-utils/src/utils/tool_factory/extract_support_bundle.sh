@@ -19,7 +19,7 @@ IS_TAR=false
 FILE=
 
 usage() {
-    echo """usage: $PROG_NAME [-f file_path] [-t target_path] [-c components]""" 1>&2;
+    echo "usage: $PROG_NAME [-f file_path] [-t target_path] [-c components]" 1>&2;
     exit 1;
 }
 

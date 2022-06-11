@@ -26,13 +26,11 @@ from cortx.utils.log import Log
 class DecisionDB:
     """
     The class encapsulates decision management activities.
-    This is intended to be used during decision management
+    This is intended to be used during decision management.
     """
 
     def __init__(self) -> None:
-        """
-        Init load consul db for storing key in db
-        """
+        """Init load consul db for storing key in db."""
         DbConf.init(general_const.CLUSTER_CONF)
         dict_conf = DbConf.export_database_conf()
         conf = GeneralConfig(dict_conf)

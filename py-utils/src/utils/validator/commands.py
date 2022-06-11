@@ -55,7 +55,7 @@ class NetworkVCommand(VCommand):
         self._network = NetworkV()
 
     def process(self):
-        """Validate network connectivity ip1 ip2 ip3..."""
+        """Validate network connectivity ip1 ip2 ip3 and so on."""
 
         self._network.validate(self.v_type, self.args)
 
@@ -109,7 +109,7 @@ class SaltVCommand(VCommand):
         self._salt = SaltV()
 
     def process(self):
-        """Validate salt minion connectivity <nodes>..."""
+        """Validate salt minion connectivity <nodes>."""
 
         self._salt.validate(self.v_type, self.args)
 

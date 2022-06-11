@@ -29,9 +29,7 @@ from cortx.utils.log import Log
 from cortx.utils.data.access import SortBy, SortOrder
 
 class DecisionMonitor:
-    """
-    Fetch Resource Decisions from Decision DB.
-    """
+    """Fetch Resource Decisions from Decision DB."""
 
     def __init__(self):
         self._resource_file = Json(
@@ -40,28 +38,20 @@ class DecisionMonitor:
         self._consul_call = self.ConsulCallHandler(self._resource_file)
 
     class ConsulCallHandler:
-        """
-        Handle async call to consul
-        """
+        """Handle async call to consul."""
         def __init__(self, resource_file):
-            """
-            Initialize consul call handler
-            """
+            """Initialize consul call handler."""
             self._decisiondb = DecisionDB()
             self._consul_timeout = resource_file.get("request_timeout", 3.0)
 
         async def get(self, **resource_key):
-            """
-            Get consul data else raise error
-            """
+            """Get consul data else raise error."""
             return await asyncio.wait_for(self._decisiondb.get_event_time(**resource_key,
                     sort_by=SortBy(DecisionModel.alert_time, SortOrder.DESC)),
                     timeout=self._consul_timeout)
 
         async def delete(self, **resource_key):
-            """
-            Delete consul data else raise error
-            """
+            """Delete consul data else raise error."""
             await asyncio.wait_for(self._decisiondb.delete_event(**resource_key),
                     timeout=self._consul_timeout)
 

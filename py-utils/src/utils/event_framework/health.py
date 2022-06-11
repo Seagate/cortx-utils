@@ -37,7 +37,7 @@ class HealthAttr(Attr):
 
 class HealthEvent(Event):
     """Event class for health event messaage schema,
-       which initialize and set payload attributes"""
+       which initialize and set payload attributes."""
 
     _health_attrs = [
         HealthAttr.SOURCE, HealthAttr.CLUSTER_ID,

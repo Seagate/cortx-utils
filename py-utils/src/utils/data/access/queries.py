@@ -41,7 +41,7 @@ class DateTimeRange:
 
 class OrderBy:
 
-    """Class to represent order by parameters for DB"""
+    """Class to represent order by parameters for DB."""
 
     def __init__(self, field, order: SortOrder = SortOrder.ASC, **kwargs):
         self.field = field
@@ -51,11 +51,11 @@ class OrderBy:
 
 class Query:
 
-    """Storage Query API"""
+    """Storage Query API."""
 
     class Data:
 
-        """Data storage class for Query parameters"""
+        """Data storage class for Query parameters."""
 
         # TODO: it can be a schematics model
         def __init__(self, order_by: OrderBy = None, filter_by: IFilter = None, limit: int = None,
@@ -119,11 +119,11 @@ class Query:
 
 class ExtQuery(Query):
 
-    """Storage Extended Query API used by Storage aggregation functions"""
+    """Storage Extended Query API used by Storage aggregation functions."""
 
     class Data:
 
-        """Data storage class for Query parameters"""
+        """Data storage class for Query parameters."""
 
         # TODO: it can be a schematics model
         def __init__(self, order_by: OrderBy = None, group_by: BaseType = None,
@@ -141,9 +141,7 @@ class ExtQuery(Query):
     def group_by(self, by_field: BaseType):
         """
         Set Query group_by parameter
-
         :param BaseType by_field: field for grouping
-
         """
         self.data.group_by = by_field
         return self

@@ -37,7 +37,8 @@ class Cipher:
     @staticmethod
     def encrypt(key: bytes, data: bytes) -> bytes:
         """
-        Performs a symmetric encryption of the provided data with the provided key
+        Performs a symmetric encryption of the provided data with
+        the provided key.
         """
 
         return Fernet(key).encrypt(data)
@@ -45,7 +46,8 @@ class Cipher:
     @staticmethod
     def decrypt(key: bytes, data: bytes) -> bytes:
         """
-        Performs a symmetric decryption of the provided data with the provided key
+        Performs a symmetric decryption of the provided data with
+        the provided key.
         """
 
         try:
@@ -80,7 +82,5 @@ class Cipher:
 
 
 class CipherInvalidToken(Exception):
-    """
-    Wrapper around actual implementation's decryption exceptions
-    """
+    """Wrapper around actual implementation's decryption exceptions."""
     pass

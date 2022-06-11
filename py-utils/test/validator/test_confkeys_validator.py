@@ -48,7 +48,7 @@ def generate_config():
 
 
 class TestConfStore(unittest.TestCase):
-    """Test case will test available API's of v_confkeys"""
+    """Test case will test available API's of v_confkeys."""
 
     @classmethod
     def setUpClass(cls):

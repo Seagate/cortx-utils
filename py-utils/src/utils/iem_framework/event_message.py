@@ -26,7 +26,7 @@ from cortx.utils.message_bus import MessageProducer, MessageConsumer, MessageBus
 from cortx.utils.log import Log
 
 class EventMessage(metaclass=Singleton):
-    """ Event Message framework to generate alerts """
+    """Event Message framework to generate alerts."""
     _producer = None
     _consumer = None
 
@@ -201,7 +201,7 @@ class EventMessage(metaclass=Singleton):
 
     @classmethod
     def receive(cls):
-        """ Receive IEM alert message """
+        """Receive IEM alert message."""
         if cls._consumer is None:
             Log.error("IEM Consumer is not subscribed")
             raise EventMessageError(errors.ERR_SERVICE_NOT_INITIALIZED, \

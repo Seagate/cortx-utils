@@ -24,23 +24,19 @@ from cortx.utils.data.access import BaseModel
 
 
 class IDataBase(ABC):
-    """Abstract Storage Interface"""
+    """Abstract Storage Interface."""
 
     @abstractmethod
     async def store(self, obj: BaseModel):
         """Store object into Storage
-
             :param Object obj: Arbitrary model object for storing into DB
-
         """
         pass
 
     @abstractmethod
     async def get(self, query: Query):
         """Get object from Storage by Query
-
             :param Query query: query object which describes request to Storage
-
         """
         pass
 
@@ -121,7 +117,6 @@ class IDataBase(ABC):
 
             :param ExtQuery ext_query: Extended query which describes how to perform average
                                        aggregation
-
         """
         pass
 

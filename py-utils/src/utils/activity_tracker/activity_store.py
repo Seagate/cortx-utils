@@ -26,7 +26,7 @@ from cortx.utils.kv_store import KvPayload
 from cortx.utils.activity_tracker.error import ActivityError
 
 class ActivityEntry:
-    """Represents System Activity"""
+    """Represents System Activity."""
 
     def __init__(self, **kwargs):
         """Initializes the backend for the Activity Store."""
@@ -73,7 +73,7 @@ class ActivityEntry:
 
 
 class Activity(metaclass=Singleton):
-    """Represent Activity Framework. Singleton Class"""
+    """Represent Activity Framework. Singleton Class."""
     _kv_store = None
 
     @staticmethod

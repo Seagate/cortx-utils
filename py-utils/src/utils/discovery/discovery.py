@@ -25,7 +25,7 @@ from cortx.utils.discovery.request_handler import RequestHandler
 
 
 class Discovery:
-    """Common interfaces of Discovery Library"""
+    """Common interfaces of Discovery Library."""
 
     @staticmethod
     def __generate__(args, kwargs):

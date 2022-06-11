@@ -24,7 +24,7 @@ from cortx.utils import errors
 
 
 class ConfStore:
-    """ Configuration Store based on the KvStore """
+    """Configuration Store based on the KvStore."""
 
     def __init__(self, delim='>'):
         """
@@ -44,7 +44,7 @@ class ConfStore:
         return self._machine_id
 
     def _get_machine_id(self):
-        """ Returns the machine id from /etc/machine-id """
+        """Returns the machine id from /etc/machine-id."""
         from pathlib import Path
         machine_id_file = Path("/etc/machine-id")
         if machine_id_file.is_file() and machine_id_file.stat().st_size > 0:
@@ -96,7 +96,7 @@ class ConfStore:
         self._cache[index] = ConfCache(kv_store, self._delim, recurse=recurse)
 
     def save(self, index: str):
-        """ Saves the given index configuration onto KV Store """
+        """Saves the given index configuration onto KV Store."""
         if index not in self._cache.keys():
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
@@ -158,14 +158,14 @@ class ConfStore:
         return self._cache[index].get_keys(**filters)
 
     def get_data(self, index: str):
-        """ Obtains entire config for given index """
+        """Obtains entire config for given index."""
         if index not in self._cache.keys():
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                                  index)
         return self._cache[index].get_data()
 
     def delete(self, index: str, key: str, force: bool = False):
-        """ Delets a given key from the config """
+        """Deletes a given key from the config."""
         if index not in self._cache.keys():
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
@@ -267,14 +267,14 @@ class ConfStore:
 
 
 class Conf:
-    """ Singleton class instance based on conf_store """
+    """Singleton class instance based on conf_store."""
     _conf = None
     _delim = '>'
     _machine_id = None
 
     @staticmethod
     def init(**kwargs):
-        """ static init for initialising and setting attributes """
+        """static init for initialising and setting attributes."""
         if Conf._conf is None:
             for key, val in kwargs.items():
                 setattr(Conf, f"_{key}", val)
@@ -283,35 +283,35 @@ class Conf:
 
     @staticmethod
     def load(index: str, url: str, recurse=True, **kwargs):
-        """ Loads Config from the given URL """
+        """Loads Config from the given URL."""
         if Conf._conf is None:
             Conf.init()
         Conf._conf.load(index, url, recurse=recurse, **kwargs)
 
     @staticmethod
     def save(index: str):
-        """ Saves the configuration onto the backend store """
+        """Saves the configuration onto the backend store."""
         Conf._conf.save(index)
 
     @staticmethod
     def set(index: str, key: str, val):
-        """ Sets config value for the given key """
+        """Sets config value for the given key."""
         Conf._conf.set(index, key, val)
 
     @staticmethod
     def get(index: str, key: str, default_val: str = None, **filters):
-        """ Obtains config value for the given key """
+        """Obtains config value for the given key."""
         return Conf._conf.get(index, key, default_val, **filters)
 
     @staticmethod
     def delete(index: str, key: str, force: bool = False):
-        """ Deletes a given key from the config """
+        """Deletes a given key from the config."""
         return Conf._conf.delete(index, key, force)
 
     @staticmethod
     def copy(src_index: str, dst_index: str, key_list: list = None,
         recurse: bool = True):
-        """ Creates a Copy suffixed file for main file"""
+        """Creates a Copy suffixed file for main file."""
         Conf._conf.copy(src_index, dst_index, key_list, recurse)
 
     @staticmethod
@@ -323,14 +323,14 @@ class Conf:
         return Conf._conf.compare(index1, index2)
 
     class ClassProperty(property):
-        """ Subclass property for classmethod properties """
+        """Subclass property for classmethod properties."""
         def __get__(self, cls, owner):
             return self.fget.__get__(None, owner)()
 
     @ClassProperty
     @classmethod
     def machine_id(self):
-        """ Returns the machine id from /etc/machine-id """
+        """Returns the machine id from /etc/machine-id."""
         if Conf._conf is None:
             Conf.init()
         return self._machine_id.strip() if self._machine_id else None

@@ -55,7 +55,7 @@ class Conf:
 
 
 class ConfSection:
-    """Represents sub-section of config file"""
+    """Represents sub-section of config file."""
 
     def __init__(self, from_dict: dict):
         """
@@ -79,10 +79,7 @@ class DebugConf:
     """
 
     def __init__(self, debug_settings: ConfSection):
-        """
-        Initialize debug configuration instance by debug settings
-
-        """
+        """Initialize debug configuration instance by debug settings."""
         self._debug_settings = debug_settings
 
     def __getattr__(self, attr):
@@ -90,7 +87,5 @@ class DebugConf:
 
     @property
     def http_enabled(self):
-        """
-        Validates if debug mode is enabled and HTTP is chosen
-        """
+        """Validates if debug mode is enabled and HTTP is chosen."""
         return self._debug_settings.enabled and self._debug_settings.http_enabled

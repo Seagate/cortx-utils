@@ -29,13 +29,13 @@ from cortx.utils.conf_store import Conf
 
 
 class IemCli:
-    """ CLI for the IEM """
+    """CLI for the IEM."""
 
     @staticmethod
     def _get_empty_send_args():
         """
         Creates a dict of required parameters for send
-        and initialises with None
+        and initialises with None.
         """
         blank_send_args: dict = {
             'component': None,
@@ -55,7 +55,7 @@ class IemCli:
 
     @staticmethod
     def _parse_send_args(args) -> dict:
-        """ Maps values from cmd line args to send_args dict """
+        """Maps values from cmd line args to send_args dict."""
 
         send_args = IemCli._get_empty_send_args()
         try:
@@ -100,7 +100,7 @@ class IemCli:
 
     @staticmethod
     def send(args_parse):
-        """ send IE message """
+        """send IE message."""
 
         send_args = IemCli._parse_send_args(args_parse)
         message_server_endpoints, cluster_id = IemCli._get_cluster_data(send_args['cluster_conf'])
@@ -127,7 +127,7 @@ class IemCli:
     def receive(args) -> str:
         """
         Receives IEM Message and returns to the caller, If file[-f] is passed,
-        writes message to file and returns blank string to caller
+        writes message to file and returns blank string to caller.
         """
         endpoints, _ = IemCli._get_cluster_data(args.config)
         IemCli.subscribe(component=args.source,\
@@ -152,7 +152,7 @@ class IemCli:
 
 
 class SendCmd:
-    """ send Cmd Structure """
+    """send Cmd Structure."""
 
     @staticmethod
     def add_args(sub_parser) -> None:
@@ -174,7 +174,7 @@ class SendCmd:
 
 
 class ReceiveCmd:
-    """ receive Cmd Structure """
+    """receive Cmd Structure."""
 
     @staticmethod
     def add_args(sub_parser) -> None:

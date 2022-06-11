@@ -39,7 +39,7 @@ properties_file = os.path.join(dir_path, 'properties.txt')
 sample_config = Json(file_path).load()
 
 def setup_and_generate_sample_files():
-    """ This function will generate all required types of file """
+    """This function will generate all required types of file."""
 
     with open(r'/tmp/file.json', 'w+') as file:
         json.dump(sample_config, file, indent=2)
@@ -114,13 +114,14 @@ class TestStore(unittest.TestCase):
         TestStore.loaded_consul = test_current_file(url)
 
     def test_json_file(self):
-        """Test Kv JSON store. load json store from json:///tmp/file.json"""
+        """Test Kv JSON store. load json store from json:///tmp/file.json."""
         result_data = TestStore.loaded_ini[1].get('bridge>name')
         self.assertTrue(result_data, 'Homebridge')
 
     def test_json_file_get(self):
         """
-        Test Kv JSON store by retrieving value of given key from the jsonstore
+        Test Kv JSON store by retrieving value of given key
+        from the jsonstore.
         """
         result_data = TestStore.loaded_json[0].get(['bridge>port'])
         self.assertEqual(result_data[0], 51826)
@@ -128,7 +129,7 @@ class TestStore(unittest.TestCase):
     def test_json_file_set(self):
         """
         Test kv JSON store by setting the value of given key, value to the
-        jsonstore
+        jsonstore.
         """
         TestStore.loaded_json[0].set(['user'], ['kvstore'])
         result_data = TestStore.loaded_json[0].get(['user'])
@@ -136,7 +137,8 @@ class TestStore(unittest.TestCase):
 
     def test_json_delete(self):
         """
-        Test kv JSON store by removing given key and its value from jsonstore
+        Test kv JSON store by removing given key and its
+        value from jsonstore.
         """
         TestStore.loaded_json[0].delete(['bridge>name'])
         result_data = TestStore.loaded_json[0].get(['bridge>name'])
@@ -144,13 +146,14 @@ class TestStore(unittest.TestCase):
 
     # YAML store
     def test_yaml_file_load(self):
-        """Test Kv YAML store. load yaml store from yaml:///tmp/sample.toml"""
+        """Test Kv YAML store. load yaml store from yaml:///tmp/sample.toml."""
         result_data = TestStore.loaded_yaml[0].get(['bridge>model'])
         self.assertEqual(result_data[0], "homebridge")
 
     def test_yaml_get(self):
         """
-        Test Kv YAML store by retrieving value of given key from the yamlstore
+        Test Kv YAML store by retrieving value of given
+        key from the yamlstore.
         """
         result_data = TestStore.loaded_yaml[0].get(['bridge>model'])
         self.assertEqual(result_data[0], "homebridge")
@@ -158,67 +161,86 @@ class TestStore(unittest.TestCase):
     def test_yaml_set(self):
         """
         Test kv YAML store by setting the value of given key, value to the
-        yamlstore"""
+        yamlstore.
+        """
         TestStore.loaded_yaml[0].set(['user'], ['kvstore'])
         result_data = TestStore.loaded_yaml[0].get(['user'])
         self.assertEqual(result_data[0], "kvstore")
 
     def test_yaml_delete(self):
-        """Test kv YAML store by removing given key and its value from
-        yamlstore"""
+        """
+        Test kv YAML store by removing given key and its value from
+        yamlstore.
+        """
         TestStore.loaded_yaml[0].delete(['bridge>port'])
         result_data = TestStore.loaded_yaml[0].get(['bridge>port'])
         self.assertEqual(result_data[0], None)
 
     # TOML store
     def test_toml_file_load(self):
-        """Test Kv TOML store. load toml store from toml:///tmp/document.toml"""
+        """
+        Test Kv TOML store. load toml store from toml:///tmp/document.toml.
+        """
         result_data = TestStore.loaded_toml[1].get('bridge>model')
         self.assertEqual(result_data, "homebridge")
 
     def test_toml_get(self):
-        """Test Kv toml store by retrieving value of given key from the
-        tomlstore"""
+        """
+        Test Kv toml store by retrieving value of given key from the
+        tomlstore.
+        """
         result_data = TestStore.loaded_toml[0].get(['bridge>model'])
         self.assertEqual(result_data[0], "homebridge")
 
     def test_toml_by_set(self):
-        """Test kv TOML store by setting the value of given key, value to the
-        tomlstore"""
+        """
+        Test kv TOML store by setting the value of given key, value to the
+        tomlstore.
+        """
         TestStore.loaded_toml[0].set(['user'], ['kvstore'])
         result_data = TestStore.loaded_toml[0].get(['user'])
         self.assertEqual(result_data[0], "kvstore")
 
     def test_toml_delete(self):
-        """Test kv TOML store by removing given key and its value from
-        tomlstore"""
+        """
+        Test kv TOML store by removing given key and its value from
+        tomlstore.
+        """
         TestStore.loaded_toml[0].delete(['user'])
         result_data = TestStore.loaded_toml[0].get(['user'])
         self.assertEqual(result_data[0], None)
 
     # Ini store
     def test_ini_file_load(self):
-        """Test Kv INI store. load ini store from ini:///tmp/document.ini"""
+        """
+        Test Kv INI store. load ini store from ini:///tmp/document.ini.
+        """
         result_data = TestStore.loaded_ini[1].get('bridge>name')
         self.assertTrue(True if result_data == 'Homebridge' else False)
 
     def test_ini_get(self):
-        """Test Kv INI store by retrieving value of given key from the
-        inistore"""
+        """
+        Test Kv INI store by retrieving value of given key from the
+        inistore.
+        """
         result_data = TestStore.loaded_ini[0].get(['bridge>model'])
         self.assertEqual(result_data[0], "homebridge")
 
     def test_ini_by_set(self):
-        """Test kv INI store by setting the value of given key, value to the
-        inistore"""
+        """
+        Test kv INI store by setting the value of given key, value to the
+        inistore.
+        """
 
         TestStore.loaded_ini[0].set(['bridge>user'], ['kvstore'])
         result_data = TestStore.loaded_ini[0].get(['bridge>user'])
         self.assertEqual(result_data[0], "kvstore")
 
     def test_ini_delete(self):
-        """Test kv INI store by removing given key and its value from
-        inistore"""
+        """
+        Test kv INI store by removing given key and its value from
+        inistore.
+        """
         TestStore.loaded_ini[0].delete(['bridge>user'])
         try:
             TestStore.loaded_ini[0].get(['bridge>user'])
@@ -226,8 +248,10 @@ class TestStore(unittest.TestCase):
             self.assertTrue('user' in err.args)
 
     def test_kv_format_yaml_to_json(self):
-        """Test Kv format converter functionality store.
-        load yaml store from yaml:///tmp/sample.toml"""
+        """
+        Test Kv format converter functionality store.
+        load yaml store from yaml:///tmp/sample.toml.
+        """
         result_data = TestStore.loaded_yaml[0].get_data('json')
         self.assertTrue(result_data,
             '{"bridge": {"manufacturer": "homebridge.io", "model": '
@@ -238,7 +262,7 @@ class TestStore(unittest.TestCase):
     def test_properties_file_load(self):
         """
         Test Kv Properties store. load properties store from
-        properties:///tmp/example.properties
+        properties:///tmp/example.properties.
         """
         result_data = TestStore.loaded_properties[1].get('model')
         self.assertEqual(result_data, "homebridge")
@@ -246,7 +270,7 @@ class TestStore(unittest.TestCase):
     def test_properties_get(self):
         """
         Test Kv properties store by retrieving value of given key from the
-        propertiesstore
+        propertiesstore.
         """
         result_data = TestStore.loaded_properties[0].get(['model'])
         self.assertEqual(result_data[0], "homebridge")
@@ -254,7 +278,7 @@ class TestStore(unittest.TestCase):
     def test_properties_by_set(self):
         """
         Test kv Properties store by setting the value of given key, value to the
-        propertiesstore
+        propertiesstore.
         """
         TestStore.loaded_properties[0].set(['user'], ['kvstore'])
         result_data = TestStore.loaded_properties[0].get(['user'])
@@ -263,7 +287,7 @@ class TestStore(unittest.TestCase):
     def test_properties_by_set_empty_string(self):
         """
         Test kv Properties store by setting the empty value for the given
-        key to the propertiesstore
+        key to the propertiesstore.
         """
         TestStore.loaded_properties[0].set(['empty_value'], [''])
         result_data = TestStore.loaded_properties[0].get(['empty_value'])
@@ -272,7 +296,7 @@ class TestStore(unittest.TestCase):
     def test_properties_by_set_eq_sp(self):
         """
         Test kv Properties store by setting the value of given key, value to the
-        propertiesstore
+        propertiesstore.
         """
         TestStore.loaded_properties[0].set(['location'], ['in'])
         result_data = TestStore.loaded_properties[0].get(['location'])
@@ -281,7 +305,7 @@ class TestStore(unittest.TestCase):
     def test_properties_delete(self):
         """
         Test kv Properties store by removing given key and its value from
-        propertiesstore
+        propertiesstore.
         """
         TestStore.loaded_properties[0].delete(['user'])
         result_data = TestStore.loaded_properties[0].get(['user'])
@@ -290,7 +314,7 @@ class TestStore(unittest.TestCase):
     def test_properties_non_exist_key_delete(self):
         """
         Test kv Properties store by trying to remove given key and its value
-        from which is not available in propertiesstore
+        from which is not available in propertiesstore.
         """
         TestStore.loaded_properties[0].delete(['user'])
         result_data = TestStore.loaded_properties[0].get(['user'])
@@ -299,7 +323,7 @@ class TestStore(unittest.TestCase):
     def test_properties_set_with_multiple_eq(self):
         """
         Test kv Properties store by setting the value of given key, value to the
-        propertiesstore
+        propertiesstore.
         """
         TestStore.loaded_properties[0].set(['test_ml_eq'], ['=kv = store'])
         try:
@@ -310,7 +334,7 @@ class TestStore(unittest.TestCase):
     def test_properties_protocol_with_yamlfile(self):
         """
         Test kv Properties store by setting the value of given key, value to the
-        propertiesstore
+        propertiesstore.
         """
         try:
             test_current_file('properties:///tmp/sample.yaml')
@@ -320,7 +344,7 @@ class TestStore(unittest.TestCase):
     def test_properties_with_invalid_kv_format_delim(self):
         """
         Test kv Properties store by accessing wrong kv format
-        key#value invalid - should be key=value
+        key#value invalid - should be key=value.
         """
         with open(r'/tmp/example_invalid.properties', 'w+') as file:
             file.write("key1#val1")
@@ -333,31 +357,31 @@ class TestStore(unittest.TestCase):
 
     # Dir store
     def test_dir_store_a_by_set_get_kv(self):
-        """ Test kv Directory store by setting given key and value """
+        """Test kv Directory store by setting given key and value."""
         TestStore.loaded_dir[0].set(['cluster_uuid'], ['#409'])
         out = TestStore.loaded_dir[0].get(['cluster_uuid'])
         self.assertEqual('#409', out[0])
 
     def test_dir_store_b_by_get_non_exist_key(self):
-        """ Test Kv Directory store to get non exist key, value """
+        """Test Kv Directory store to get non exist key, value."""
         out = TestStore.loaded_dir[0].get(['non_cluster_uuid'])
         self.assertEqual([None], out)
 
     def test_dir_store_c_by_set_nested_key(self):
-        """ Test Kv Directory store by setting nested key structure """
+        """Test Kv Directory store by setting nested key structure."""
         TestStore.loaded_dir[0].set(['cluster>cluster_uuid'], ['#409'])
         out = TestStore.loaded_dir[0].get(['cluster>cluster_uuid'])
         self.assertEqual('#409', out[0])
 
     def test_dir_store_d_by_set_multiple_kv(self):
-        """ Test Kv Directory store by setting nested key structure """
+        """Test Kv Directory store by setting nested key structure."""
         TestStore.loaded_dir[0].set(['cloud>cloud_type', 'kafka>message_type'],
             ['Azure', 'receive'])
         out = TestStore.loaded_dir[0].get(['kafka>message_type'])
         self.assertEqual('receive', out[0])
 
     def test_dir_store_e_by_delete_multiple_kv(self):
-        """ Test Kv Directory store by removing given key using delete api """
+        """Test Kv Directory store by removing given key using delete api."""
         TestStore.loaded_dir[0].delete(['cloud>cloud_type'])
         out = TestStore.loaded_dir[0].get(['cloud>cloud_type'])
         self.assertEqual([None], out)
@@ -365,24 +389,24 @@ class TestStore(unittest.TestCase):
     # consul store
     # Fix it
     def test_consul_a_set_get_kv(self):
-        """ Test consul kv set and get a KV. """
+        """Test consul kv set and get a KV."""
         TestStore.loaded_consul[0].set(['consul_cluster_uuid'], ['#410'])
         out = TestStore.loaded_consul[0].get(['consul_cluster_uuid'])
         self.assertEqual('#410', out[0])
 
     def test_consul_b_query_unknown_key(self):
-        """ Test consul kv query for an absent key. """
+        """Test consul kv query for an absent key."""
         out = TestStore.loaded_consul[0].get(['Wrong_key'])
         self.assertIsNone(out[0])
 
     def test_consul_store_c_set_nested_key(self):
-        """ Test consul kv set a nested key. """
+        """Test consul kv set a nested key."""
         TestStore.loaded_consul[0].set(['consul_cluster>uuid'], ['#411'])
         out = TestStore.loaded_consul[0].get(['consul_cluster>uuid'])
         self.assertEqual('#411', out[0])
 
     def test_consul_store_d_set_multiple_kv(self):
-        """ Test consul kv by setting nested key structure """
+        """Test consul kv by setting nested key structure."""
         TestStore.loaded_consul[0].set(['cloud>cloud_type', 'kafka>message_type'],
             ['Azure', 'receive'])
         out1 = TestStore.loaded_consul[0].get(['kafka>message_type'])
@@ -391,7 +415,7 @@ class TestStore(unittest.TestCase):
         self.assertEqual('Azure', out2[0])
 
     def test_consul_store_e_delete_kv(self):
-        """ Test consul kv by removing given key using delete api """
+        """Test consul kv by removing given key using delete api."""
         TestStore.loaded_consul[0].delete(['cloud>cloud_type'])
         out = TestStore.loaded_consul[0].get(['cloud>cloud_type'])
         self.assertEqual([None], out)
@@ -419,14 +443,14 @@ class TestStore(unittest.TestCase):
         self.assertEqual('21', out)
 
     def test_004_dict_store_set_get_new_single_kv(self):
-        """Test dict kv set and get a KV. """
+        """Test dict kv set and get a KV."""
         TestStore.loaded_dict[1].set('k5', 'v5')
         out = TestStore.loaded_dict[1].get('k5')
         self.assertEqual('v5', out)
         self.assertIn('k5', TestStore.loaded_dict[1].get_keys())
 
     def test_005_dict_store_set_get_new_nested_kv(self):
-        """ Test dict kv set a nested key. """
+        """Test dict kv set a nested key."""
         TestStore.loaded_dict[1].set('k2>k6', 'v6')
         out = TestStore.loaded_dict[1].get('k2>k6')
         self.assertEqual('v6', out)

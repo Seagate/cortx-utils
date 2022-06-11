@@ -23,7 +23,7 @@ from cortx.utils.message_bus.error import MessageBusError
 
 
 class MessageBusClient:
-    """ common infrastructure for producer and consumer """
+    """common infrastructure for producer and consumer."""
 
     def __init__(self, client_type: str, **client_conf: dict):
         MessageBus.init_client(client_type, **client_conf)
@@ -32,7 +32,7 @@ class MessageBusClient:
             f" client_type: {client_type}, kwargs: {client_conf}")
 
     def _get_conf(self, key: str):
-        """ To get the client configurations """
+        """To get the client configurations."""
         if key not in self._client_conf.keys():
             Log.error(f"MessageBusError: {errno.ENOENT}. Could not" \
                 f" find key {key} in client config {self._client_conf}")
@@ -41,7 +41,7 @@ class MessageBusClient:
         return self._client_conf[key]
 
     def list_message_types(self) -> list:
-        """ Returns list of available message types """
+        """Returns list of available message types """
         client_id = self._get_conf('client_id')
         return MessageBus.list_message_types(client_id)
 
@@ -84,7 +84,7 @@ class MessageBusClient:
 
     @staticmethod
     def _get_str_message_list(messages: list) -> list:
-        """ Convert the format of message to string """
+        """Convert the format of message to string."""
         from cortx.utils.kv_store import KvPayload
 
         message_list = []
@@ -112,7 +112,7 @@ class MessageBusClient:
         MessageBus.send(client_id, message_type, method, messages)
 
     def delete(self):
-        """ Deletes the messages """
+        """Deletes the messages."""
         message_type = self._get_conf('message_type')
         client_id = self._get_conf('client_id')
         return MessageBus.delete(client_id, message_type)
@@ -137,16 +137,16 @@ class MessageBusClient:
         return MessageBus.receive(client_id, timeout)
 
     def ack(self):
-        """ Provides acknowledgement on offset """
+        """Provides acknowledgement on offset."""
         client_id = self._get_conf('client_id')
         MessageBus.ack(client_id)
 
 
 class MessageBusAdmin(MessageBusClient):
-    """ A client that do admin jobs """
+    """A client that do admin jobs."""
 
     def __init__(self, admin_id: str):
-        """ Initialize a Message Admin
+        """Initialize a Message Admin
 
         Parameters:
         message_bus    An instance of message bus class.
@@ -156,10 +156,10 @@ class MessageBusAdmin(MessageBusClient):
 
 
 class MessageProducer(MessageBusClient):
-    """ A client that publishes messages """
+    """A client that publishes messages."""
 
     def __init__(self, producer_id: str, message_type: str, method: str = None):
-        """ Initialize a Message Producer
+        """Initialize a Message Producer
 
         Parameters:
         message_bus     An instance of message bus class.
@@ -172,11 +172,11 @@ class MessageProducer(MessageBusClient):
 
 
 class MessageConsumer(MessageBusClient):
-    """ A client that consumes messages """
+    """A client that consumes messages."""
 
     def __init__(self, consumer_id: str, consumer_group: str, auto_ack: str, \
         message_types: list, offset: str):
-        """ Initialize a Message Consumer
+        """Initialize a Message Consumer
 
         Parameters:
         message_bus     An instance of message bus class.

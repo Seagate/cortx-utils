@@ -32,7 +32,7 @@ from cortx.utils.const import ( GCONF_INDEX, MSG_BUS_BACKEND_KEY, EXTERNAL_KEY,
 
 
 class Utils:
-    """ Represents Utils and Performs setup related actions """
+    """Represents Utils and Performs setup related actions."""
     utils_path = '/opt/seagate/cortx/utils'
 
     # Utils private methods
@@ -49,9 +49,7 @@ class Utils:
 
     @staticmethod
     def _configure_rsyslog():
-        """
-        Restart rsyslog service for reflecting supportbundle rsyslog config
-        """
+        """Restart rsyslog service for reflecting supportbundle rsyslog config."""
         try:
             Log.info("Restarting rsyslog service")
             service_obj = Service("rsyslog.service")
@@ -61,20 +59,20 @@ class Utils:
 
     @staticmethod
     def _copy_database_conf(config_path: str):
-        """Copy database configuration from provided source to Consul KV"""
+        """Copy database configuration from provided source to Consul KV."""
         DbConf.init(config_path)
         DbConf.import_database_conf(f'yaml://{Utils.utils_path}/conf/database.yaml')
 
     @staticmethod
     def validate(phase: str):
-        """ Perform validtions """
+        """Perform validtions."""
 
         # Perform RPM validations
         pass
 
     @staticmethod
     def post_install(config_path: str):
-        """ Performs post install operations """
+        """Performs post install operations."""
         default_sb_path = '/var/log/cortx/support_bundle'
         os.makedirs(default_sb_path, exist_ok=True)
 
@@ -104,7 +102,7 @@ class Utils:
 
     @staticmethod
     def init(config_path: str):
-        """ Perform initialization """
+        """Perform initialization."""
         # Create message_type for Event Message
         from cortx.utils.message_bus import MessageBus, MessageBusAdmin
         from cortx.utils.message_bus.error import MessageBusError
@@ -127,7 +125,7 @@ class Utils:
 
     @staticmethod
     def test(config_path: str, plan: str):
-        """ Perform configuration testing """
+        """Perform configuration testing."""
         # Runs cortx-py-utils unittests as per test plan
         try:
             Log.info("Validating cortx-py-utils-test rpm")
@@ -240,7 +238,7 @@ class Utils:
 
     @staticmethod
     def pre_upgrade(level: str):
-        """ pre upgrade hook for node and cluster level """
+        """pre upgrade hook for node and cluster level."""
         if level == 'node':
             # TODO Perform corresponding actions for node
             pass
@@ -251,7 +249,7 @@ class Utils:
 
     @staticmethod
     def post_upgrade(level: str):
-        """ post upgrade hook for node and cluster level """
+        """post upgrade hook for node and cluster level."""
         if level == 'node':
             # TODO Perform corresponding actions for node
             pass

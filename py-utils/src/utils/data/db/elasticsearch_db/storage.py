@@ -45,7 +45,7 @@ __all__ = ["ElasticSearchDB"]
 
 
 class ESWords:
-    """ElasticSearch service words"""
+    """ElasticSearch service words."""
 
     MAPPINGS = "mappings"
     PROPERTIES = "properties"
@@ -65,7 +65,7 @@ class ESWords:
 
 
 class ESDataType:
-    """Enumeration for ElasticSearch data types"""
+    """Enumeration for ElasticSearch data types."""
 
     TEXT = "text"
     KEYWORD = "keyword"
@@ -193,11 +193,11 @@ class ElasticSearchQueryConverter(GenericQueryConverter):
 
 
 class ElasticSearchDataMapper:
-    """ElasticSearch data mappings helper"""
+    """ElasticSearch data mappings helper."""
 
     def __init__(self, model: Type[BaseModel]):
         """
-
+        initiate ElasticSearchDataMapper object
         :param Type[BaseModel] model: model for constructing data mapping for index in ElasticSearch
         """
         self._model = model
@@ -230,7 +230,7 @@ class ElasticSearchDataMapper:
         """
         Build ElasticSearch index data mapping
 
-        :return: elasticsearch data mappings dict
+        return: elasticsearch data mappings dict
         """
         for name, property_type in self._model.fields.items():
             self._add_property(name, type(property_type))
@@ -243,7 +243,7 @@ class ElasticSearchDataMapper:
 
 
 class ElasticSearchQueryService:
-    """Query service-helper for Elasticsearch"""
+    """Query service-helper for Elasticsearch."""
 
     def __init__(self, index: str, es_client: Elasticsearch,
                  query_converter: ElasticSearchQueryConverter):
@@ -291,7 +291,7 @@ class ElasticSearchQueryService:
 
 
 class ElasticSearchDB(GenericDataBase):
-    """ElasticSearch Storage Interface Implementation"""
+    """ElasticSearch Storage Interface Implementation."""
 
     elastic_instance = None
     thread_pool = None

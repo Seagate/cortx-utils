@@ -29,21 +29,21 @@ from cortx.utils.conf_store import Conf, MappedConf
 
 
 class SupportBundleError(UtilsError):
-    """ SupportBundleError exception with error code and output """
+    """SupportBundleError exception with error code and output."""
 
     def __init__(self, rc, message, *args):
         super().__init__(rc, message, *args)
 
 
 class UtilsSupportBundle:
-    """ Generate support bundle for py-utils """
+    """Generate support bundle for py-utils."""
     _default_path = '/tmp/cortx/support_bundle/'
     _tar_name = 'py-utils'
     _tmp_src = '/tmp/cortx/py-utils/'
 
     @staticmethod
     def generate(bundle_id: str, target_path: str, cluster_conf_url: str, **filters):
-        """ Generate a tar file. """
+        """Generate a tar file."""
         duration = filters.get('duration', 'P5D')
         size_limit = filters.get('size_limit', '500MB')
         binlogs = filters.get('binlogs', False)
@@ -69,7 +69,7 @@ class UtilsSupportBundle:
 
     @staticmethod
     def __copy_file(source: str, destination: str = None):
-        """ Copy a file from source to destination location """
+        """Copy a file from source to destination location."""
         directory = os.path.dirname(UtilsSupportBundle._tmp_src)
         if not os.path.exists(directory):
             os.makedirs(directory)
@@ -83,7 +83,7 @@ class UtilsSupportBundle:
 
     @staticmethod
     def __generate_tar(bundle_id: str, target_path: str):
-        """ Generate tar.gz file at given path """
+        """Generate tar.gz file at given path."""
         component = 'utils'
         target_path = target_path if target_path is not None \
             else UtilsSupportBundle._default_path
@@ -98,7 +98,7 @@ class UtilsSupportBundle:
 
     @staticmethod
     def __clear_tmp_files():
-        """ Clean temporary files created by the support bundle """
+        """Clean temporary files created by the support bundle."""
         shutil.rmtree(UtilsSupportBundle._tmp_src)
 
     @staticmethod

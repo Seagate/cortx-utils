@@ -25,7 +25,7 @@ from cortx.utils.comm import Channel
 
 
 class SSHChannel(Channel):
-    """Establish SSH connection on remote host"""
+    """Establish SSH connection on remote host."""
 
     def __init__(self, host, username=None, password=None, port=22, pkey_filename=None, allow_agent=False, **args):
         super().__init__()
@@ -75,8 +75,7 @@ class SSHChannel(Channel):
             raise Exception(f"Exception in connecting to {self.host}\n. {sshError}")
 
     def execute(self, command):
-        """Execute command on remote host
-        """
+        """Execute command on remote host."""
         if not self.is_connection_alive:
             self.connect()
         stdin, stdout, stderr = self.client.exec_command(command)
@@ -93,7 +92,7 @@ class SSHChannel(Channel):
         raise Exception('recv not implemented for SSH Channel')
 
     def recv_file(self, remote_file, local_file):
-        """ Get a file from node """
+        """Get a file from node."""
         if not self.sftp_enabled:
             raise Exception('Internal Error: SFTP is not enabled')
         try:
@@ -102,7 +101,7 @@ class SSHChannel(Channel):
             raise Exception(e)
 
     def send_file(self, local_file, remote_file):
-        """ Put a file in node """
+        """Put a file in node."""
         if not self.sftp_enabled:
             raise Exception('Internal Error: SFTP is not enabled')
         try:
@@ -114,15 +113,13 @@ class SSHChannel(Channel):
         raise Exception('acknowledge not implemented for SSH Channel')
 
     def is_connection_alive(self):
-        """Check transporting tunnel is active
-        """
+        """Check transporting tunnel is active."""
         if (self.client is None) or (self.client.get_transport() is None):
             return False
         return True
 
     def disconnect(self):
-        """Close the created ssh connection
-        """
+        """Close the created ssh connection."""
         if self.client:
             try:
                 # Failure due to this may leave transport tunnel opened.
@@ -135,6 +132,5 @@ class SSHChannel(Channel):
         self.client = None
 
     def __del__(self):
-        """Destruct the connection
-        """
+        """Destruct the connection."""
         self.disconnect()

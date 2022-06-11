@@ -63,7 +63,7 @@ class StorageV:
                     errno.EINVAL, "Action parameter %s not supported" % v_type)
 
     def validate_hba(self, provider, nodes):
-        """Check HBA presence and ports"""
+        """Check HBA presence and ports."""
 
         for node in nodes:
             if provider.lower() == "lsi":

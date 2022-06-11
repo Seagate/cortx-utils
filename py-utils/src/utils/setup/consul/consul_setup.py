@@ -68,7 +68,7 @@ class Cmd:
 
     @staticmethod
     def add_args(parser: str, cls: str, name: str):
-        """Add Command args for parsing"""
+        """Add Command args for parsing."""
         parser1 = parser.add_parser(cls.name, help='setup %s' % name)
         parser1.add_argument('--config', help='Conf Store URL', type=str)
         cls._add_extended_args(parser1)

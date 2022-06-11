@@ -22,12 +22,12 @@ from cortx.utils.schema import Format
 
 
 class KvPayload:
-    """ Dict based in memory representation of Key Value data """
+    """Dict based in memory representation of Key Value data."""
 
     def __init__(self, data: dict = None, delim='>', recurse: bool = True):
         """
         kvstore will be initialized at the time of load
-        delim is used to split key into hierarchy, e.g. "k1>2" or "k1.k2"
+        delim is used to split key into hierarchy, e.g. "k1>2" or "k1.k2".
         """
         self._data = data if data is not None else {}
         if len(delim) > 1:
@@ -51,7 +51,7 @@ class KvPayload:
     def search(self, parent_key: str, search_key: str, search_val: str = None) -> list:
         """
         Searches for the given search_key and search_val under parent_key.
-        Returns all the matching keys
+        Returns all the matching keys.
         """
         data = self.get(parent_key)
         return self._search(data, search_key, search_val, parent_key)
@@ -210,17 +210,17 @@ class KvPayload:
             self._set(k[1], val, data[k[0]])
 
     def set(self, key: str, val: str):
-        """ Updates the value for the given key in the dictionary """
+        """Updates the value for the given key in the dictionary."""
         self._set(key, val, self._data)
         if key not in self._keys:
             self._keys.append(key)
 
     def __setitem__(self, key: str, val: str):
-        """ set operator for KV payload, i.e. kv['xxx'] = 'yyy' """
+        """set operator for KV payload, i.e. kv['xxx'] = 'yyy'."""
         self.set(key, val)
 
     def _key_index_split(self, indexed_key: str) -> list:
-        """ Split index from key """
+        """Split index from key."""
         return re.split(r'\[([0-9]+)\]', indexed_key)
 
     def _shallow_get(self, key: str, data: dict) -> str:
@@ -253,7 +253,7 @@ class KvPayload:
         return self._shallow_get(k[1], data1)
 
     def _get(self, key: str, data: dict) -> str:
-        """ Core logic for get """
+        """Core logic for get."""
         # Indexed keys Validations can be put here for all methods
         key_split = key.split(self._delim, 1)
 
@@ -316,13 +316,13 @@ class KvPayload:
                 return None
 
     def get(self, key: str, recurse: bool = True) -> str:
-        """ Obtain value for the given key """
+        """Obtain value for the given key."""
         if recurse:
             return self._get(key, self._data)
         return self._shallow_get(key, self._data)
 
     def __getitem__(self, key: str):
-        """ read operator for KV payload, i.e. kv['xxx'] """
+        """read operator for KV payload, i.e. kv['xxx']."""
         return self.get(key)
 
     def _delete(self, key: str, data: dict, force: bool = False):

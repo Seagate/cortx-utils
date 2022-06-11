@@ -25,7 +25,7 @@ from cortx.utils.message_bus.message_broker import MessageBrokerFactory
 
 
 class MessageBus(metaclass=Singleton):
-    """ Message Bus Framework over various types of Message Brokers """
+    """Message Bus Framework over various types of Message Brokers."""
     _broker = None
     _broker_type = 'kafka'
     _receive_timeout = 2

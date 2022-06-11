@@ -27,7 +27,7 @@ routes = web.RouteTableDef()
 
 
 class IemRequestHandler(MessageServer):
-    """ Rest interface of Iem """
+    """Rest interface of Iem."""
     cluster_id = None
     message_server_endpoints = None
 

@@ -31,14 +31,14 @@ from cortx.utils.service.service_handler import ServiceError
 
 
 class ElasticsearchSetupError(Exception):
-    """ Generic Exception with error code and output """
+    """Generic Exception with error code and output."""
 
     def __init__(self, rc, message, *args):
         self._rc = rc
         self._desc = message % (args)
 
     def __str__(self):
-        """ Return error msg."""
+        """Return error msg."""
 
         if self._rc == 0: return self._desc
         return "error(%d): %s\n\n%s" % (
@@ -49,7 +49,7 @@ class ElasticsearchSetupError(Exception):
 
 
 class Elasticsearch:
-    """ Represents Elasticsearch and Performs setup related actions """
+    """Represents Elasticsearch and Performs setup related actions."""
 
     index = "Elasticsearch"
 
@@ -68,12 +68,12 @@ class Elasticsearch:
         level='DEBUG')
 
     def __init__(self, conf_url):
-        """ Initialize config."""
+        """Initialize config."""
 
         Conf.load(self.index, conf_url)
 
     def validate(self, phase: str):
-        """ Perform validations. Raises exceptions if validation fails """
+        """Perform validations. Raises exceptions if validation fails."""
 
         if phase == "post_install":
             # Perform python pkg validations.
@@ -119,7 +119,7 @@ class Elasticsearch:
         return 0
 
     def post_install(self):
-        """ Performs post install operations. Raises exception on error """
+        """Performs post install operations. Raises exception on error."""
 
         try:
             # Remove opendistro_security plugins.
@@ -150,7 +150,7 @@ class Elasticsearch:
         return 0
 
     def config(self):
-        """ Performs configurations. Raises exception on error """
+        """Performs configurations. Raises exception on error."""
 
         try:
             # Create backup of elasticsearch_config file.
@@ -202,7 +202,7 @@ class Elasticsearch:
         return 0
 
     def reset(self):
-        """ Performs reset. Raises exception on error """
+        """Performs reset. Raises exception on error."""
 
         # Check service status
         service_obj = Service('elasticsearch.service')
@@ -219,7 +219,7 @@ class Elasticsearch:
         return 0
 
     def cleanup(self, pre_factory=False):
-        """ Performs cleanup. Raises exception on error """
+        """Performs cleanup. Raises exception on error."""
 
         # Reset config.
         if os.path.exists(
@@ -240,27 +240,27 @@ class Elasticsearch:
         return 0
 
     def prepare(self):
-        """ Perform prepare, Raises exception on error """
+        """Perform prepare, Raises exception on error."""
         Log.info("No action needed for Prepare Miniprovisioner Interface.")
         return 0
 
     def init(self):
-        """ Perform init, Raises exception on error """
+        """Perform init, Raises exception on error."""
         Log.info("No action needed for Init Miniprovisioner Interface.")
         return 0
 
     def pre_upgrade(self):
-        """ Perform pre_upgrade. Raises exception on error """
+        """Perform pre_upgrade. Raises exception on error."""
         Log.info("No action needed for Pre_upgrade Miniprovisioner Interface.")
         return 0
 
     def post_upgrade(self):
-        """ Perform post_upgrade. Raises exception on error """
+        """Perform post_upgrade. Raises exception on error."""
         Log.info("No action needed for Post_upgrade Miniprovisioner Interface.")
         return 0
 
     def test(self):
-        """ Perform configuration testing. Raises exception on error """
+        """Perform configuration testing. Raises exception on error."""
 
         Log.info("Test starting...")
         unittest.TextTestRunner().run(
@@ -280,7 +280,7 @@ class Elasticsearch:
         return ElasticsearchTest
 
     def get_config_entries(self):
-        """ Returns config that needs to add in elasticsearch.yml file. """
+        """Returns config that needs to add in elasticsearch.yml file."""
         # Read required config from provisioner config.
         srvnodes = []
         server_nodes_id = []

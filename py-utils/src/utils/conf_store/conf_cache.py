@@ -21,7 +21,7 @@ from cortx.utils.kv_store.kv_store import KvStore
 
 
 class ConfCache:
-    """ In-memory configuration Data """
+    """In-memory configuration Data."""
 
     def __init__(self, kv_store: KvStore, delim='>', recurse=True):
         if len(delim) > 1:
@@ -40,37 +40,35 @@ class ConfCache:
         return self._data.get_keys(**filters)
 
     def load(self):
-        """ Loads the configuration from the KV backend """
+        """Loads the configuration from the KV backend."""
         if self._dirty:
             raise Exception('%s not synced to disk' % self._kv_store)
         self._data = self._kv_store.load(recurse = self.recurse)
 
     def dump(self):
-        """ Dump the config values onto the corresponding KV backend """
+        """Dump the config values onto the corresponding KV backend."""
         if self._dirty:
             self._kv_store.dump(self._data)
         self._dirty = False
 
     def get(self, key: str = None, **filters):
-        """ Returns the value corresponding to the key """
+        """Returns the value corresponding to the key."""
         return self._data.get(key, **filters)
 
     def set(self, key: str, val):
-        """ Sets the value into the DB for the given key """
+        """Sets the value into the DB for the given key."""
         self._data.set(key, val)
         self._dirty = True
 
     def add_num_keys(self):
-        """
-        Add "num_xxx" keys for all the list items in ine KV Store
-        """
+        """Add "num_xxx" keys for all the list items in ine KV Store."""
         self._data.add_num_keys()
         self._dirty = True
 
     def search(self, parent_key: str, search_key: str, search_val: str) -> list:
         """
-        Search for given key and value under a node
-        Returns list of keys that matched the creteria (i.e. has given value)
+        Search for given key and value under a node.
+        Returns list of keys that matched the creteria (i.e. has given value).
         """
         return self._data.search(parent_key, search_key, search_val)
 

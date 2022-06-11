@@ -22,9 +22,7 @@ from cortx.utils.errors import MalformedQueryError
 
 
 class IFilter(ABC):
-    """
-    Abstract class for IFilter
-    """
+    """Abstract class for IFilter."""
 
     @abstractmethod
     def accept_visitor(self, visitor) -> Any:
@@ -70,9 +68,7 @@ class FilterOperationOr(IFilter):
 
 
 class ComparisonOperation(Enum):
-    """
-    Enumeration that represents possible comparison operations
-    """
+    """Enumeration that represents possible comparison operations."""
 
     OPERATION_GT = '>'
     OPERATION_LT = '<'
@@ -101,9 +97,7 @@ class ComparisonOperation(Enum):
 
 
 class FilterOperationCompare(IFilter):
-    """
-    Class representing a comparison operation.
-    """
+    """Class representing a comparison operation."""
 
     def __init__(self, left_operand, operation: ComparisonOperation, right_operand):
         self.left_operand = left_operand

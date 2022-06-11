@@ -32,9 +32,7 @@ class ArgumentParser(argparse.ArgumentParser):
 
 
 class CommandParser:
-    """
-    This Class Parses the Commands from the dictionary object
-    """
+    """This Class Parses the Commands from the dictionary object."""
 
     def __init__(self, cmd_data: Dict, permissions: Dict):
         self.command = cmd_data
@@ -46,7 +44,7 @@ class CommandParser:
         This Function Handles the Parsing of Single-Level and Multi-Level
         Command Arguments
         :param subparsers: argparser Object
-        :return:
+        :return: None
         """
         if "sub_commands" in self.command:
             self._handle_subparsers(subparsers, self.command,
@@ -73,8 +71,8 @@ class CommandParser:
 
     def _check_permissions(self, sub_command):
         """
-        filter sub_command if found any permissions tag
-        if no permissions tag is found it returns true
+        filter sub_command if found any permissions tag.
+        if no permissions tag is found it returns true.
         """
         allowed = False
         permission_tag =  sub_command.get(const.SUB_COMMANDS_PERMISSIONS, False)
@@ -86,7 +84,7 @@ class CommandParser:
         """
         This method will handle the rest params and create the necessary object.
         :param each_args:
-        :return:
+        :return: None
         """
         if each_args.get("params", False):
             each_args.pop("params")

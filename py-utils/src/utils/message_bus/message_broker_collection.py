@@ -28,7 +28,7 @@ from cortx.utils import errors
 
 
 class KafkaMessageBroker(MessageBroker):
-    """ Kafka Server based message broker implementation """
+    """Kafka Server based message broker implementation."""
 
     name = 'kafka'
 
@@ -47,7 +47,7 @@ class KafkaMessageBroker(MessageBroker):
         }
 
     def __init__(self, broker_conf: dict):
-        """ Initialize Kafka based Configurations """
+        """Initialize Kafka based Configurations."""
         super().__init__(broker_conf)
         Log.debug(f"KafkaMessageBroker: initialized with broker " \
             f"configurations broker_conf: {broker_conf}")
@@ -64,7 +64,7 @@ class KafkaMessageBroker(MessageBroker):
             broker_conf['message_bus']['send_timeout']
 
     def init_client(self, client_type: str, **client_conf: dict):
-        """ Obtain Kafka based Producer/Consumer """
+        """Obtain Kafka based Producer/Consumer."""
         Log.debug(f"initializing client_type: {client_type}," \
             f" **kwargs {client_conf}")
         # Validate and return if client already exists
@@ -152,7 +152,7 @@ class KafkaMessageBroker(MessageBroker):
             self._clients[client_type][client_conf['client_id']] = consumer
 
     def _task_status(self, tasks: dict, method: str):
-        """ Check if the task is completed successfully """
+        """Check if the task is completed successfully."""
         for task in tasks.values():
             try:
                 task.result()  # The result itself is None
@@ -163,7 +163,7 @@ class KafkaMessageBroker(MessageBroker):
                     "Admin operation fails for %s. %s", method, e)
 
     def _get_metadata(self, admin: object):
-        """ To get the metadata information of message type """
+        """To get the metadata information of message type."""
         try:
             message_type_metadata = admin.list_topics().__dict__
             return message_type_metadata['topics']
@@ -182,7 +182,7 @@ class KafkaMessageBroker(MessageBroker):
 
     @staticmethod
     def _error_cb(err):
-        """ Callback to check if all brokers are down """
+        """Callback to check if all brokers are down."""
         if err.code() == KafkaError._ALL_BROKERS_DOWN:
             raise MessageBusError(errors.ERR_SERVICE_UNAVAILABLE, \
                 "Kafka service(s) unavailable. %s", err)
@@ -444,7 +444,7 @@ class KafkaMessageBroker(MessageBroker):
                 "while trying to receive message for consumer %s", consumer_id)
 
     def ack(self, consumer_id: str):
-        """ To manually commit offset """
+        """To manually commit offset."""
         consumer = self._clients['consumer'][consumer_id]
         if consumer is None:
             Log.error(f"MessageBusError: {errors.ERR_SERVICE_NOT_INITIALIZED}"\

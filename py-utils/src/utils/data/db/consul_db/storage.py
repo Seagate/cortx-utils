@@ -43,7 +43,7 @@ OBJECT_DIR = "obj"
 PROPERTY_DIR = "prop"
 
 class ConsulWords:
-    """Consul service words"""
+    """Consul service words."""
 
     VALUE = "Value"
     KEY = "Key"
@@ -131,7 +131,7 @@ def query_converter_build(model: BaseModel, filter_obj: IFilter,
     return query_converter.build(filter_obj, raw_data)
 
 class ConsulKeyTemplate:
-    """Class-helper for storing consul key structure"""
+    """Class-helper for storing consul key structure."""
 
     _OBJECT_ROOT = f"{CONSUL_ROOT}/$OBJECT_TYPE"
     _OBJECT_DIR = _OBJECT_ROOT + f"/{OBJECT_DIR}"
@@ -188,7 +188,7 @@ class ConsulKeyTemplate:
                                      PROPERTY_VALUE=property_value)
 
 class ConsulDB(GenericDataBase):
-    """Consul Storage Interface Implementation"""
+    """Consul Storage Interface Implementation."""
 
     consul_client = None
     thread_pool = None

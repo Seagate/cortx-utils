@@ -29,7 +29,7 @@ from cortx.utils.data.access.filters import (FilterOperationCompare, FilterOpera
 
 
 class GenericDataBase(IDataBase):
-    """Generic database class for aggregation functions"""
+    """Generic database class for aggregation functions."""
 
     _model_scheme = None
 
@@ -38,7 +38,6 @@ class GenericDataBase(IDataBase):
         Store object into Storage
 
         :param Model obj: Arbitrary base object for storing into DB
-
         """
         try:
             obj.validate()  # validate that object is correct and perform necessary type conversions
@@ -80,7 +79,7 @@ class GenericDataBase(IDataBase):
                                                     Compare(YourBaseModel.primary_key, "=", obj_id)))
 
         :param Any obj_id:
-        :return: BaseModel if object was found by its id and None otherwise
+        :return: BaseModel if object was found by its id and None otherwise.
         """
         id_field = getattr(self._model, self._model.primary_key)
         try:

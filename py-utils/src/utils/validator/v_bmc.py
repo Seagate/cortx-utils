@@ -29,8 +29,7 @@ class BmcV:
         self.session = None
 
     def __get_bmc_ip(self, node):
-        """ Get BMC IP along with status of command
-        """
+        """Get BMC IP along with status of command."""
         cmd = "ipmitool lan print 1 | grep 'IP Address'"
         rc, output = self.session.execute(cmd)
         if rc != 0 :
@@ -42,8 +41,7 @@ class BmcV:
         return bmc_ip
 
     def __get_bmc_power_status(self, node):
-        """ Get BMC power status
-        """
+        """Get BMC power status."""
         cmd = "ipmitool chassis status | grep 'System Power'"
         rc, output = self.session.execute(cmd)
         if rc != 0 :
@@ -55,8 +53,7 @@ class BmcV:
         return pw_status
 
     def __ping_bmc(self, node):
-        """ Ping BMC IP
-        """
+        """Ping BMC IP."""
         ip = self.__get_bmc_ip(node)
         cmd = f"ping -c 1 -W 1 {ip}"
         rc, output = self.session.execute(cmd)
@@ -101,8 +98,7 @@ class BmcV:
         self.session.disconnect()
 
     def validate_bmc_accessibility(self, node, bmc_ip, bmc_user, bmc_passwd):
-        """ Validate BMC accessibility
-        """
+        """Validate BMC accessibility."""
         # Validate bmc accessibility on inband setup
         self.validate_inband_bmc_channel(node)
         # BMC IP based validations
@@ -112,8 +108,7 @@ class BmcV:
         self.__ping_bmc(node)
 
     def validate_bmc_stonith_config(self, node, bmc_ip, bmc_user, bmc_passwd):
-        """ Validations for BMC STONITH Configuration
-        """
+        """Validations for BMC STONITH Configuration."""
         cmd = f"fence_ipmilan -P -a {bmc_ip} -o status -l {bmc_user} -p {bmc_passwd}"
         rc, output = self.session.execute(cmd)
         if rc != 0:
@@ -123,8 +118,7 @@ class BmcV:
             raise VError(errno.EINVAL, msg)
 
     def validate_inband_bmc_channel(self, node):
-        """ Get BMC channel information (inband)
-        """
+        """Get BMC channel information (inband)."""
         cmd = f"ipmitool {self.channel_cmd}"
         rc, output = self.session.execute(cmd)
         if rc != 0:
@@ -135,8 +129,7 @@ class BmcV:
         return True
 
     def validate_bmc_channel_over_lan(self, bmc_ip, bmc_user, bmc_passwd):
-        """ Get BMC channel information over lan (out-of-band)
-        """
+        """Get BMC channel information over lan (out-of-band)."""
         # check BMC ip is accessible over lan (out of band)
         cmd = f"ipmitool -H {bmc_ip} -U {bmc_user} -P {bmc_passwd} -I lan {self.channel_cmd}"
         rc, output = self.session.execute(cmd)

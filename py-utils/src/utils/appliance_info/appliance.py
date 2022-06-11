@@ -19,7 +19,8 @@ from cortx.utils import const
 
 class ApplianceInfo:
     """
-    This class handles information related to CORTX appliance like serial number etc.
+    This class handles information related to CORTX appliance
+    like serial number etc.
     """
     _type = dict
 
@@ -29,15 +30,11 @@ class ApplianceInfo:
         self._appliance_obj = CommonPayload(const.SERIAL_NO_FILE_PATH)
 
     def load(self):
-        """
-        This method will create an in-memory object from the appliance JSON file.
-        """
+        """This method will create an in-memory object from the appliance JSON file."""
         self._data = self._appliance_obj.load()
 
     def _getval(self, key, data):
-        """
-        Recursively obtains the value for the given key
-        """
+        """Recursively obtains the value for the given key."""
         new_key = key.split('.', 1)
         if new_key[0] not in data.keys(): return None
         return self._getval(new_key[1], data[new_key[0]]) if len(new_key) > 1 else data[new_key[0]]
@@ -58,9 +55,7 @@ class ApplianceInfo:
         return ret
 
     def _setval(self, key, val, data):
-        """
-        This method recursively searches for the key and sets the value specified.
-        """
+        """This method recursively searches for the key and sets the value specified."""
         new_key = key.split('.', 1)
         if len(new_key) == 1:
             data[new_key[0]] = val
@@ -70,16 +65,12 @@ class ApplianceInfo:
         self._setval(new_key[1], val, data[new_key[0]])
 
     def _set(self, key, value):
-        """
-        This method sets the in-memory value based on the key provided.
-        """
+        """This method sets the in-memory value based on the key provided."""
         try:
             self._setval(key, value, self._data)
         except Exception as ex:
             Log.error(f"Error in setting the appliance info. {ex}")
 
     def _save(self, data):
-        """
-        This method saves the in-memory aplliannce info to a physical JSON
-        """
+        """This method saves the in-memory aplliannce info to a physical JSON."""
         self._appliance_obj.dump(data)
