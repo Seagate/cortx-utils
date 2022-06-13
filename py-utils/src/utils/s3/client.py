@@ -19,6 +19,7 @@ from hashlib import sha1
 import hmac
 from http import HTTPStatus
 from typing import Any, Dict, Optional, Tuple
+from urllib.parse import urlparse
 
 from cortx.utils.http import HttpClient, HttpClientException
 from cortx.utils.s3.exceptions import S3ClientException
@@ -33,8 +34,7 @@ class S3Client(HttpClient):
 
     def __init__(
         self, access_key_id: str, secret_access_key: str,
-        host: str = 'localhost', port: int = 8000,
-        tls_enabled: bool = False, ca_bundle: str = '',
+        url: str = '', ca_bundle: str = '',
         timeout: int = 5
     ) -> None:
         """
@@ -45,11 +45,15 @@ class S3Client(HttpClient):
         :param host: hostname of the S3 server.
         :param port: port of the S3 server.
         :param tls_enabled: flag to use https.
+        :param url: whole URL for the client, if set, then host, port and tls_enabled are ignored.
         :param ca_bundle: path to the root CA certificate.
         :param timeout: connection timeout.
         :returns: None.
         """
-
+        parsed_url = urlparse(url)
+        host = parsed_url.hostname
+        port = parsed_url.port
+        tls_enabled = parsed_url.scheme == 'https'
         super(S3Client, self).__init__(host, port, tls_enabled, ca_bundle, timeout)
         self._access_key_id = access_key_id
         self._secret_access_key = secret_access_key
