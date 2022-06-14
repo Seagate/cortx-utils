@@ -196,7 +196,6 @@ class TestMessageBus(unittest.TestCase):
     @staticmethod
     def test_014_multiple_admins():
         """Test multiple instances of admin interface."""
-        message_types_list = TestMessageBus._admin.list_message_types()
         TestMessageBus._admin.register_message_type(message_types=['test_msg_type'],
         partitions=1)
         admin2 = MessageBusAdmin(admin_id='deregister')
