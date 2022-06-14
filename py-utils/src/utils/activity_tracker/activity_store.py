@@ -63,7 +63,7 @@ class ActivityEntry:
             self._payload[const.PROGRESS] = 0
             self._payload[const.STATUS] = const.NEW
             self._payload[const.STATUS_DESC] = f"{const.CREATED_DESC}: {activity_name}"
-            self._payload[const.CREATED_TIME] = time.time()
+            self._payload[const.CREATED_TIME] = int(time.time())
         else:
             self._id = activity_id
             for key, value in kwargs.items():
@@ -84,14 +84,14 @@ class ActivityEntry:
         self._payload[const.PROGRESS] = progress
         self._payload[const.STATUS] = status
         self._payload[const.STATUS_DESC] = status_description
-        self._payload[const.UPDATED_TIME] = time.time()
+        self._payload[const.UPDATED_TIME] = int(time.time())
 
     def start(self):
-        self._payload[const.UPDATED_TIME] = time.time()
+        self._payload[const.UPDATED_TIME] = int(time.time())
 
     def finish(self, status: str = ""):
         self._payload[const.PROGRESS] = 100
-        self._payload[const.UPDATED_TIME] = time.time()
+        self._payload[const.UPDATED_TIME] = int(time.time())
         self._payload[const.STATUS] = status
 
 
