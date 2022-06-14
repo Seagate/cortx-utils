@@ -72,6 +72,19 @@ class TestConfCli(unittest.TestCase):
     def setUpClass(cls):
         setup_and_generate_sample_files()
 
+    def test_conf_cli_by_force_get(self):
+        """Test force option in get."""
+        cmd = "conf json:///tmp/file1.json get bridge -f yaml --force True"
+        cmd_proc = SimpleProcess(cmd)
+        result_data = cmd_proc.run()
+        exp_result = b'- lte_type:\n  - name: 3g\n  - name: 4g\n  ' \
+                     b'manufacturer: homebridge.io\n  model: homebridge\n' \
+                     b'  name: Homebridge\n  pin: 031-45-154\n' \
+                     b'  username: CC:22:3D:E3:CE:30\n\n'
+        self.assertTrue(True if result_data[2]==0 and
+            result_data[0]==exp_result else False, result_data[1])
+
+
     def test_conf_cli_by_get(self):
         """ Test by retrieving a value using get api """
         cmd = "conf json:///tmp/file1.json get bridge>name"
@@ -146,14 +159,11 @@ class TestConfCli(unittest.TestCase):
 
     def test_conf_cli_by_format_data(self):
         """ Test by converting data into toml format """
-        exp_result = b'- lte_type:\n  - name: 3g\n  - name: 4g\n  ' \
-                     b'manufacturer: homebridge.io\n  model: homebridge\n' \
-                     b'  name: Homebridge\n  pin: 031-45-154\n' \
-                     b'  username: CC:22:3D:E3:CE:30\n\n'
+        exp_result = b'- Homebridge\n\n'
         cmd_1 = "conf json:///tmp/file1.json delete bridge>port"
         cmd_proc_1 = SimpleProcess(cmd_1)
         cmd_proc_1.run()
-        cmd_2 = "conf json:///tmp/file1.json get bridge -f yaml"
+        cmd_2 = "conf json:///tmp/file1.json get bridge>name -f yaml"
         cmd_proc_2 = SimpleProcess(cmd_2)
         result_data = cmd_proc_2.run()
         self.assertTrue(True if result_data[2]==0 and

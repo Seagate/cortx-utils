@@ -103,7 +103,8 @@ class ConfStore:
 
         self._cache[index].dump()
 
-    def get(self, index: str, key: str, default_val: str = None, **filters):
+    def get(self, index: str, key: str, default_val: str = None,
+            force: bool = False, **filters):
         """
         Obtain value for the given configuration
 
@@ -124,7 +125,7 @@ class ConfStore:
         if key is None:
             raise ConfError(errno.EINVAL, "can't able to find config key "
                                                "%s in loaded config", key)
-        val = self._cache[index].get(key, **filters)
+        val = self._cache[index].get(key, force=force, **filters)
         return default_val if val is None else val
 
     def set(self, index: str, key: str, val):
@@ -206,7 +207,7 @@ class ConfStore:
             else:
                 key_list = self._cache[src_index].get_keys(key_index=False)
         for key in key_list:
-            self._cache[dst_index].set(key, self._cache[src_index].get(key))
+            self._cache[dst_index].set(key, self._cache[src_index].get(key, force=True))
 
     def compare(self, index1: str, index2: str):
         """
@@ -230,7 +231,10 @@ class ConfStore:
         key_list2 = self._cache[index2].get_keys()
         deleted_keys = list(set(key_list1).difference(key_list2))
         new_keys = list(set(key_list2).difference(key_list1))
-        updated_keys = list(filter(lambda key: key not in deleted_keys and self._cache[index1].get(key) != self._cache[index2].get(key), key_list1))
+        updated_keys = list(filter(
+            lambda key: key not in deleted_keys and \
+                self._cache[index1].get(key, force=True) != self._cache[index2].get(key, force=True),
+            key_list1))
         return new_keys, deleted_keys, updated_keys
 
     def merge(self, dest_index: str, src_index: str, keys: list = None):
@@ -263,7 +267,8 @@ class ConfStore:
     def _merge(self, dest_index, src_index, keys):
         for key in keys:
             if key not in self._cache[dest_index].get_keys():
-                self._cache[dest_index].set(key, self._cache[src_index].get(key))
+                self._cache[dest_index].set(
+                    key, self._cache[src_index].get(key, force=True))
 
 
 class Conf:

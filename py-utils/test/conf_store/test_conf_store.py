@@ -93,9 +93,6 @@ class TestConfStore(unittest.TestCase):
         # TODO: Add delete cases when confStore branch is merged
         # and force option is available
 
-
-
-
     def test_conf_store_load_and_get(self):
         """Test by loading the give config file to in-memory"""
         load_config('sspl_local', 'json:///tmp/file1.json')
@@ -105,8 +102,20 @@ class TestConfStore(unittest.TestCase):
     def test_conf_store_get_by_index_with_single_key(self):
         """Test by getting the key from the loaded config"""
         load_config('msg_local', 'json:///tmp/file1.json')
-        result_data = Conf.get('msg_local', 'bridge')
+        result_data = Conf.get('msg_local', 'bridge', force=True)
         self.assertTrue(True if 'name' in result_data else False)
+
+    def test_force_get_for_indexed_keys(self):
+        Conf.load('indexed_key_test', 'yaml:///tmp/index_file.yaml')
+        Conf.set('indexed_key_test', 'key1[0]>key2>key3', 11)
+        self.assertEqual(Conf.get('indexed_key_test', 'key1[0]>key2>key3'), 11)
+        with self.assertRaises(KvError):
+            Conf.get('indexed_key_test', 'key1[0]')
+
+    def test_disable_non_leaf_get(self):
+        load_config('non_leaf_index', 'json:///tmp/file1.json')
+        with self.assertRaises(KvError):
+            Conf.get('msg_local', 'bridge')
 
     def test_conf_store_get_by_index_with_chained_key(self):
         """
@@ -291,7 +300,7 @@ class TestConfStore(unittest.TestCase):
         load_config('set_local_8', 'json:///tmp/file1.json')
         Conf.set('set_local_8', 'bridge>lte_type[2]', 'sample2')
         Conf.set('set_local_8', 'bridge>lte_type[5]', 'sample5')
-        result_data = Conf.get('set_local_8', 'bridge>lte_type')
+        result_data = Conf.get('set_local_8', 'bridge>lte_type', force=True)
         # Expected list should match the result_data list output
         expected_result = [
             {'name': '3g'}, {'name': '4g'}, 'sample2', '', '', 'sample5']
@@ -609,7 +618,7 @@ class TestConfStore(unittest.TestCase):
         """Test conf store set value to indexed key."""
         Conf.set('dict', 'k14[6]', 'v14')
         expected = ['', '', '', '', '', '', 'v14']
-        out = Conf.get('dict', 'k14')
+        out = Conf.get('dict', 'k14', force=True)
         self.assertListEqual(expected, out)
 
 

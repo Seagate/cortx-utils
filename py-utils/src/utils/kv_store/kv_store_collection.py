@@ -246,7 +246,7 @@ class IniKvPayload(KvPayload):
         if key not in self._keys:
             self._keys.append(key)
 
-    def get(self, key):
+    def get(self, key, *args, **kwargs):
         k = key.split(self._delim)
         if len(k) <= 1 or len(k) > 2:
             raise KvError(errno.EINVAL, "Invalid key %s for INI format", key)
