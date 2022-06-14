@@ -121,7 +121,7 @@ class CommandParser:
                         type_method = each_args.pop("type_method")
                         if each_args.get("type_target"):
                             module_obj = import_module(each_args.pop("type_target"))
-                            each_args["type"] = eval(f"module_obj.{type_method}")
+                            each_args["type"] = getattr(module_obj, f'{type_method}')
                     else:
                         each_args["type"] = eval(each_args["type"])
                 if each_args.get("suppress_help", False):

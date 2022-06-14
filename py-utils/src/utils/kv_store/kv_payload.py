@@ -188,7 +188,7 @@ class KvPayload:
             if k[0] not in data.keys() or not isinstance(data[k[0]], list):
                 data[k[0]] = []
             # if index is more than list size, extend the list
-            for i in range(len(data[k[0]]), index + 1):
+            for _ in range(len(data[k[0]]), index + 1):
                 data[k[0]].append('')
             # if this is leaf node of the key
             if len(k) == 1:
