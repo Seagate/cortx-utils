@@ -53,7 +53,7 @@ class KvPayload:
         Searches for the given search_key and search_val under parent_key.
         Returns all the matching keys
         """
-        data = self.get(parent_key)
+        data = self.get(parent_key, force=True)
         return self._search(data, search_key, search_val, parent_key)
 
     def _search(self, data, search_key: str, search_val: str,
@@ -252,11 +252,10 @@ class KvPayload:
         # This is not the leaf node of the key, process intermediate node
         return self._shallow_get(k[1], data1)
 
-    def _get(self, key: str, data: dict) -> str:
+    def _get(self, key: str, data: dict, force: bool = False) -> str:
         """ Core logic for get """
         # Indexed keys Validations can be put here for all methods
         key_split = key.split(self._delim, 1)
-
         # leaf node
         if len(key_split) == 1:
             [leaf_key] = key_split
@@ -274,15 +273,30 @@ class KvPayload:
                 leaf_key, leaf_index = leaf_key_index[0], int(leaf_key_index[1])
                 if leaf_key not in data.keys() or \
                     leaf_index > len(data[leaf_key])-1 or \
-                    leaf_key not in data.keys() or \
                     not isinstance(data[leaf_key], list):
                     return None
-                return data[leaf_key][leaf_index]
+
+                if isinstance(data[leaf_key][leaf_index], (str, int)):
+                    return data[leaf_key][leaf_index]
+                elif force:
+                    return data[leaf_key][leaf_index]
+                else:
+                    raise KvError(errno.EINVAL, \
+                        "Invalid key index for the key %s", leaf_key)
 
             if isinstance(data, dict):
-                if leaf_key not in data.keys():
+                if leaf_key in data.keys():
+                    # num_keys value can be int
+                    if isinstance(data[leaf_key], (str, int)):
+                        return data[leaf_key]
+                    if force:
+                        return data[leaf_key]  # RETURN IF KEY HAS VAL DICT
+                    if data == {}:
+                        return None
+                else:
                     return None
-                return data[leaf_key]
+
+                raise KvError(errno.EINVAL, "Key: %s is not leaf key", leaf_key)
         elif len(key_split) > 1:
             p_key, c_key = key_split
 
@@ -303,7 +317,7 @@ class KvPayload:
                 if p_index > (len(data[p_key])-1):
                     return None
                 if isinstance(data[p_key][p_index], dict):
-                    return self._get(c_key, data[p_key][p_index])
+                    return self._get(c_key, data[p_key][p_index], force)
             else:
                 # Index for a dict!
                 return None
@@ -311,14 +325,14 @@ class KvPayload:
             if p_key not in data.keys():
                 return None
             if isinstance(data[p_key], dict):
-                return self._get(c_key, data[p_key])
+                return self._get(c_key, data[p_key], force)
             else:
                 return None
 
-    def get(self, key: str, recurse: bool = True) -> str:
+    def get(self, key: str, force: bool = False, recurse: bool = True) -> str:
         """ Obtain value for the given key """
         if recurse:
-            return self._get(key, self._data)
+            return self._get(key, self._data, force)
         return self._shallow_get(key, self._data)
 
     def __getitem__(self, key: str):

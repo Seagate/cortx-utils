@@ -76,7 +76,7 @@ class ConfCli:
                     "No. of default values, dont match no. of keys")
         val_list = []
         for i in range(0, n_keys):
-            val = Conf.get(ConfCli._index, key_list[i], def_val_list[i])
+            val = Conf.get(ConfCli._index, key_list[i], def_val_list[i], force=bool(args.force))
             val_list.append(val)
         format_type = 'json' if args.format == None else args.format
         return Format.dump(val_list, format_type)
@@ -85,6 +85,7 @@ class ConfCli:
     def diff(args) -> str:
         """ Compare two diffenent string value for the given keys """
         args.format = None
+        setattr(args, 'force', 'True')
         if len(args.args) < 1:
             args.key_index = None
             string_1 = ConfCli.get_keys(args)
@@ -186,6 +187,8 @@ class GetCmd:
         s_parser.set_defaults(func=ConfCli.get)
         s_parser.add_argument('-f', dest='format', help=
                 'Output Format json(default), yaml or toml')
+        s_parser.add_argument('--force', default=False, help=\
+            "force option to delete non-leaf keys")
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 
