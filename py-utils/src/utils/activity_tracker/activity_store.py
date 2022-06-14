@@ -128,6 +128,8 @@ class Activity(metaclass=Singleton):
     @staticmethod
     def finish(activity: ActivityEntry):
         """Completes a activity. Records current time as the completion time."""
+        if not isinstance(activity, ActivityEntry):
+            raise ActivityError(errno.EINVAL, "finish(): Invalid arg %s", activity)
         activity.finish()
         Activity._kv_store.set([activity.id], [activity.payload.json])
 
