@@ -108,6 +108,7 @@ class Activity(metaclass=Singleton):
     def create(name:str, resource_path: str, description: str):
         """
         Creates an activity.
+
         Sets progress to 0 and status to NEW.
         Records the current time as the created time.
         """
