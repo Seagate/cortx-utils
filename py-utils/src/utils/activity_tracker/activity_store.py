@@ -122,6 +122,8 @@ class Activity(metaclass=Singleton):
         if not isinstance(activity, ActivityEntry):
             raise ActivityError(errno.EINVAL, "update(): Invalid arg %s", activity)
         activity_data = json.loads(activity.payload.json)
+        if activity_data.get(const.STATUS) == const.COMPLETED:
+            raise ActivityError(errno.EINVAL, "update(): COMPLETED activity can not be updated")
         if pct_progress < activity_data.get(const.PCT_PROGRESS):
             raise ActivityError(errno.EINVAL, "update(): pct_progress: %s\
                 can not be less than the previously updated value", pct_progress)
@@ -149,6 +151,9 @@ class Activity(metaclass=Singleton):
         """
         if not isinstance(activity, ActivityEntry):
             raise ActivityError(errno.EINVAL, "suspend(): Invalid arg %s", activity)
+        activity_data = json.loads(activity.payload.json)
+        if activity_data.get(const.STATUS) == const.COMPLETED:
+            raise ActivityError(errno.EINVAL, "suspend(): COMPLETED activity can not be suspended")
         activity.suspend(status_desc)
         Activity._kv_store.set([activity.id], [activity.payload.json])
 

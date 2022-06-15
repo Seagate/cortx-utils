@@ -165,6 +165,58 @@ class TestActivityStore(unittest.TestCase):
         self.assertEqual(activity_data.get('pct_progress'), pct_progress)
         self.assertEqual(activity_data.get('status'), "SUSPENDED")
 
+    def test_activity_store_update_after_finish(self):
+        """Test Finish activity."""
+        Activity.init(sample_file_url)
+        activity = Activity.create("Activity", "Activities", "Activity Status")
+        rc = 0
+        try:
+            activity_id = activity.id
+        except:
+            rc = 1
+            raise ActivityError(errno.EINVAL, "Error: While fetching Activity ID")
+        self.assertEqual(rc, 0)
+        pct_progress = 40
+        Activity.update(activity, pct_progress)
+        Activity.finish(activity, "activity completed successfully")
+        with self.assertRaises(ActivityError):
+            pct_progress= 50
+            Activity.update(activity, pct_progress)
+        try:
+            activities = load_data(sample_file)
+            activity_data = json.loads(activities.get(activity_id))
+        except:
+            rc = 1
+            raise ActivityError(errno.EINVAL, "Error: While fetching Activity data")
+        self.assertEqual(activity_data.get('pct_progress'), 100)
+        self.assertEqual(activity_data.get('status'), "COMPLETED")
+
+    def test_activity_store_suspend_after_finish(self):
+        """Test Finish activity."""
+        Activity.init(sample_file_url)
+        activity = Activity.create("Activity", "Activities", "Activity Status")
+        rc = 0
+        try:
+            activity_id = activity.id
+        except:
+            rc = 1
+            raise ActivityError(errno.EINVAL, "Error: While fetching Activity ID")
+        self.assertEqual(rc, 0)
+        pct_progress = 40
+        Activity.update(activity, pct_progress)
+        Activity.finish(activity, "activity completed successfully")
+        with self.assertRaises(ActivityError):
+            pct_progress= 50
+            Activity.suspend(activity)
+        try:
+            activities = load_data(sample_file)
+            activity_data = json.loads(activities.get(activity_id))
+        except:
+            rc = 1
+            raise ActivityError(errno.EINVAL, "Error: While fetching Activity data")
+        self.assertEqual(activity_data.get('pct_progress'), 100)
+        self.assertEqual(activity_data.get('status'), "COMPLETED")
+
     # Disabling the test as search functionality needs to be redesigned.
     # ToDo: Modify below test case once search functionality is available.
     # def test_activity_store_search_activity(self):
