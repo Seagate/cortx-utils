@@ -190,7 +190,7 @@ async def example():
 
     limit = 1
     offset = 0
-    for i in range(4):
+    for _ in range(4):
         res = await db(AlertModel).get(Query().offset(offset).limit(limit))
         for model in res:
             print(f"Get by offset = {offset}, limit = {limit} : {model.to_primitive()}")

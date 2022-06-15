@@ -24,7 +24,6 @@ from subprocess import TimeoutExpired, CalledProcessError  # nosec
 class Process:
     def __init__(self, cmd):
         self._cmd = cmd
-        pass
 
     def run(self):
         pass

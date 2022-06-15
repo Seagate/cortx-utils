@@ -125,13 +125,23 @@ class ConfCli:
         Conf.merge(dest_index, src_index, keys)
         Conf.save(dest_index)
 
+
+    @staticmethod
+    def compare(args):
+        """Compares two conf urls and return 3 lists: new_keys, deleted_keys, updated_keys."""
+        index1 = ConfCli._index
+        index2 = 'index2'
+        ConfCli.load(args.second_url, index2)
+        return Conf.compare(index1, index2)
+
+
     @staticmethod
     def delete(args):
         """ Deletes given set of keys from the config """
         key_list = args.args[0].split(';')
         is_deleted = []
         for key in key_list:
-            status = Conf.delete(ConfCli._index, key)
+            status = Conf.delete(ConfCli._index, key, args.force)
             is_deleted.append(status)
         if any(is_deleted):
             Conf.save(ConfCli._index)
@@ -242,6 +252,8 @@ class DeleteCmd:
             "Example command:\n"
             "# conf json:///tmp/csm.conf delete 'k1>k2;k3'\n\n")
         s_parser.set_defaults(func=ConfCli.delete)
+        s_parser.add_argument('--force', default=False, help=\
+            "force option to delete non-leaf keys")
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 
@@ -281,6 +293,20 @@ class MergeCmd:
         s_parser.set_defaults(func=ConfCli.merge)
         s_parser.add_argument('-k', dest='keys',  nargs='+', default=[], \
             help='Only specified keys will be merged.')
+
+
+class CompareCmd:
+    """ Get Compare Cmd Structure """
+
+    @staticmethod
+    def add_args(sub_parser) -> None:
+        s_parser = sub_parser.add_parser('compare', help=
+            "Compares two given urls\n."
+            "Where it returns new_keys, deleted_keys and updated_keys lists by comparing url2 with url1\n"
+            "Example command:\n"
+            "# conf yaml:///tmp/url1.conf compare yaml:///tmp/url2.conf\n\n")
+        s_parser.add_argument('second_url', help='second url for compare')
+        s_parser.set_defaults(func=ConfCli.compare)
 
 
 class SearchCmd:

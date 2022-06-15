@@ -164,12 +164,12 @@ class ConfStore:
                                  index)
         return self._cache[index].get_data()
 
-    def delete(self, index: str, key: str):
+    def delete(self, index: str, key: str, force: bool = False):
         """ Delets a given key from the config """
         if index not in self._cache.keys():
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
-        return self._cache[index].delete(key)
+        return self._cache[index].delete(key, force)
 
     def search(self, index: str, parent_key: str, search_key: str,
         search_val: str = None) -> list:
@@ -207,6 +207,31 @@ class ConfStore:
                 key_list = self._cache[src_index].get_keys(key_index=False)
         for key in key_list:
             self._cache[dst_index].set(key, self._cache[src_index].get(key))
+
+    def compare(self, index1: str, index2: str):
+        """
+        Compares two configs and returns difference
+
+        Parameters:
+        index1 : Conf Index 1
+        index2 : Conf Index 2
+
+        Return Value:
+        Returns three lists : New keys, deleted keys, Updated keys
+        """
+        if index1 not in self._cache.keys():
+            raise ConfError(errno.EINVAL, "config index %s is not loaded",
+                index1)
+        if index2 not in self._cache.keys():
+            raise ConfError(errno.EINVAL, "config index %s is not loaded",
+                index2)
+
+        key_list1 = self._cache[index1].get_keys()
+        key_list2 = self._cache[index2].get_keys()
+        deleted_keys = list(set(key_list1).difference(key_list2))
+        new_keys = list(set(key_list2).difference(key_list1))
+        updated_keys = list(filter(lambda key: key not in deleted_keys and self._cache[index1].get(key) != self._cache[index2].get(key), key_list1))
+        return new_keys, deleted_keys, updated_keys
 
     def merge(self, dest_index: str, src_index: str, keys: list = None):
         """
@@ -279,9 +304,9 @@ class Conf:
         return Conf._conf.get(index, key, default_val, **filters)
 
     @staticmethod
-    def delete(index: str, key: str):
+    def delete(index: str, key: str, force: bool = False):
         """ Deletes a given key from the config """
-        return Conf._conf.delete(index, key)
+        return Conf._conf.delete(index, key, force)
 
     @staticmethod
     def copy(src_index: str, dst_index: str, key_list: list = None,
@@ -292,6 +317,10 @@ class Conf:
     @staticmethod
     def merge(dest_index: str, src_index: str, keys: list = None):
         Conf._conf.merge(dest_index, src_index, keys)
+
+    @staticmethod
+    def compare(index1: str, index2: str):
+        return Conf._conf.compare(index1, index2)
 
     class ClassProperty(property):
         """ Subclass property for classmethod properties """
@@ -339,7 +368,6 @@ class Conf:
     def add_num_keys(index):
         """Add "num_xxx" keys for all the list items in ine KV Store."""
         Conf._conf.add_num_keys(index)
-        Conf.save(index)
 
 
 class MappedConf:
@@ -398,6 +426,6 @@ class MappedConf:
         """Returns value for the given key."""
         return Conf.get(self._conf_idx, key, default_val)
 
-    def delete(self, key: str):
+    def delete(self, key: str, force: bool = False):
         """Delete key from CORTX confstore."""
-        return Conf.delete(self._conf_idx, key)
+        return Conf.delete(self._conf_idx, key, force)

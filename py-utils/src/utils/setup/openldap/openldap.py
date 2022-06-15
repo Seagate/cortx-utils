@@ -165,10 +165,8 @@ class Openldap:
         else:
             Log.debug("Validation failed for either cluster_id or machine_id in %s phase" % phase_name)
             raise Exception("Validation failed for either cluster_id or machine_id in %s phase" % phase_name)
-        """
-        The 'storage_set_count' is read using below hard-coded key which is the
-        max array size for storage set.
-        """
+        # The 'storage_set_count' is read using below hard-coded key which is the
+        # max array size for storage set.
         storage_set_count_key = "cluster>cluster-id>site>storage_set_count"
         storage_set_count_str = None
         storage_set_count_key = storage_set_count_key.\

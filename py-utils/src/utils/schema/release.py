@@ -14,8 +14,12 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 from itertools import zip_longest
-from cortx.utils.conf_store import Conf
+from cortx.utils.conf_store import Conf, MappedConf
+from cortx.utils import const
+from cortx.utils.schema.payload import Text
+from cortx.utils.errors import INTERNAL_ERROR
 
+import errno
 
 class Manifest:
 
@@ -65,7 +69,8 @@ class Release(Manifest):
                 release_info[key] = value
         return is_valid, release_info
 
-    def version_check(self, deploy_version: str, release_version: str):
+    @staticmethod
+    def version_check(deploy_version: str, release_version: str):
         """Compare deployed and release version.
 
             e.g:
@@ -80,8 +85,8 @@ class Release(Manifest):
         if deploy_version == release_version:
             return ret_code
         # Fetch all the digits present in string for comparison.
-        deploy_digits = self._get_digits(deploy_version)
-        release_digits = self._get_digits(release_version)
+        deploy_digits = Release._get_digits(deploy_version)
+        release_digits = Release._get_digits(release_version)
         for deploy_digit, release_digit in zip_longest(deploy_digits, release_digits, fillvalue=-1):
             if deploy_digit < release_digit:
                 ret_code = -1
@@ -91,23 +96,138 @@ class Release(Manifest):
                 break
         return ret_code
 
-    def is_version_compatible(self, deployed_version:str, component:str):
+    @staticmethod
+    def is_version_compatible(resource_type:str, resource_id:str, version_clauses:list):
         """
-        Checks if version is compatible for upgrade/downgrade.
+        Validates whether a version is compatible for update.
 
-        Returns True if version is compatible for upgrade/downgrade else returns False.
         Parameters:
-        deployed_version - Deployed image version.
-        component - Component to be checked for version compatibility.
+        resource_type: Resource type like node, cluster (currently supports only node).
+        resource_id - Name/Id of the node/cluster (as in gconf).
+        version_clauses - Version compatibilty rules. example: ['cortx-csm_agent >= 2.0.0-5255'].
+
+        Returns:
+        status - True if version is compatible for upgrade else returns False.
+        status_string - Reason for the status being returned.
         """
-        min_compatible_versions = self._get_val('REQUIRES')
-        try:
-            min_compatible_version = [x.split('>=')[1].strip() for x in min_compatible_versions if component in x][0]
-        except IndexError:
-            raise Exception(f'Compatible version not found for {component}.')
-        if self.version_check(deployed_version, min_compatible_version) == -1:
-            return False
-        return True
+        #TODO: Decide on cluster version compatibilty design and add support
+        if resource_type == 'cluster':
+            raise NotImplementedError("Compatibilty check at cluster level is not yet supported")
+
+        if not Release._validate_clauses(version_clauses):
+            raise SetupError(errno.EINVAL, "Invalid compatibility rules %s" % version_clauses)
+
+        # Get version details of all the components
+        consul_conf = Text(const.CONSUL_CONF)
+        conf_url = str(consul_conf.load()).strip()
+        installed_versions = Release.get_installed_version(resource_id, conf_url)
+        if not installed_versions:
+            raise SetupError(INTERNAL_ERROR, "Installed versions not found")
+
+        validation_count =  0
+        # Determine if the new version is compatible with the deployed version.
+        for component, version in installed_versions.items():
+            for clause in version_clauses:
+                name, new_version = Release._parse_version(clause, const.VERSION_UPGRADE)
+                if component == const.COMPONENT_NAME_MAP[name]:
+                    validation_count += 1
+                    if Release.version_check(version, new_version) == -1:
+                        status_string  = f"{component} deployed version {version} is older " + \
+                                f"than the compatible version {new_version}."
+                        return False, status_string
+                    break
+
+        if validation_count != len(installed_versions):
+            raise SetupError(errno.EINVAL, "Incomplete compatibilty rules %s" % version_clauses)
+
+        return True, "Versions are Compatible"
+
+    @staticmethod
+    def _validate_clauses(version_clauses:list):
+        """Validate compatibility rules for component name and version operator."""
+        for clause in version_clauses:
+            # Validate clause for valid component name.
+            if not clause.split('>=')[0].strip() in const.COMPONENT_NAME_MAP:
+                return 0
+
+            # Validate clause for version operator '>='.
+            if len(clause.split('>=')) < 1:
+                return 0
+        return 1
+
+    @staticmethod
+    def _parse_version(clause:str, operation:str):
+        """
+        Parse the compatibility rule and get the new version.
+
+        Parameters:
+        clause: Compatibilty condition ex. cortx-prvsnr >= 2.0.0-0.
+        operation: Version operation like UPGRADE or DOWNGRADE.
+        """
+        name = ""
+        version = 0
+        # get upgrade compatible version
+        if operation.upper() == const.VERSION_UPGRADE:
+            name = clause.split('>=')[0].strip()
+            version = clause.split('>=')[1].split('<=')[0].strip()
+        return name, version
+
+    @staticmethod
+    def get_installed_version(resource_id:str, conf_url:str):
+        """
+        Get current deployed versions on the node.
+
+        Parameters:
+        resource_id - Name of the node (as in gconf).
+        conf_url - Global Configuration URL.
+        """
+        node_id = None
+        version_info = {}
+        version_conf = MappedConf(conf_url)
+
+        # Get list of all the nodes in the cluster.
+        node_list = Release._get_node_list(version_conf)
+        for node in node_list:
+            if resource_id == version_conf.get(const.NODE_NAME_KEY % node):
+                node_id = node
+        if node_id is None:
+            raise SetupError(errno.EINVAL, "Invalid Resource Id %s." % resource_id)
+
+        # Get version details of all the components of a node
+        num_components = int(version_conf.get(const.NUM_COMPONENTS_KEY % node_id))
+        for component in range(0, num_components):
+            _name = version_conf.get(const.COMPONENT_NAME_KEY % (node_id, component))
+            _version = version_conf.get(const.COMPONENT_VERSION_KEY % (node_id, component))
+            if _version is not None:
+                version_info[_name] = _version
+            else:
+                raise SetupError(INTERNAL_ERROR,
+                "No installed version found for component %s" % _name)
+
+        # get cluster release version
+        release_name =  version_conf.get(const.RELEASE_NAME_KEY)
+        release_version = version_conf.get(const.RELEASE_VERSION_KEY)
+        version_info[release_name] = release_version
+
+        return version_info if len(version_info) > 1 else 0
+
+    @staticmethod
+    def _get_node_list(version_conf:MappedConf):
+        """
+        Get list of node Id.
+
+        Parameters:
+        version_conf - ConfStore instance of Gconf.
+        """
+        node_list = []
+        num_storage_set = int(version_conf.get(const.NUM_STORAGESET_KEY))
+        for storage_set_idx in range(0, num_storage_set):
+            num_nodes = int(version_conf.get(const.NUM_NODES_KEY % storage_set_idx))
+            for node_idx in range(0, num_nodes):
+                # Add node id to node list. ex: cluster>storage_set[storage_set_idx]>nodes[node_idx].
+                # node list: [ '0cdf725015124cbbbc578114dbc51982' ].
+                node_list.append(version_conf.get(const.NODE_ID_KEY % (storage_set_idx, node_idx)))
+        return node_list
 
     @staticmethod
     def _get_rpm_from_list(component: str, search_list: list):
@@ -152,3 +272,16 @@ class Release(Manifest):
             if elem.isdigit():
                 digits.append(int(elem))
         return digits
+
+class SetupError(Exception):
+    """Generic Exception with error code and output."""
+
+    def __init__(self, rc, message, *args):
+        """Initialize self."""
+        self._rc = rc
+        self._desc = message % (args)
+
+    def __str__(self):
+        """Return str(self)."""
+        if self._rc == 0: return self._desc
+        return "error(%d): %s" % (self._rc, self._desc)

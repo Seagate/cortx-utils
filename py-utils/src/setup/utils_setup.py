@@ -23,6 +23,7 @@ import traceback
 
 from cortx.setup.utils import Utils
 from cortx.utils.log import Log
+from cortx.utils.const import GCONF_INDEX, CLUSTER_CONF_LOG_KEY
 from cortx.setup.utils import SetupError
 
 
@@ -198,13 +199,19 @@ class UpgradeCmd(Cmd):
     """Upgrade Setup Cmd."""
     name = 'upgrade'
 
+    @staticmethod
+    def _add_extended_args(parser):
+        parser.add_argument('--changeset', help=' changed keys in Gconf',
+            default='yaml:///etc/cortx/changeset.conf')
+
     def __init__(self, args: dict):
         super().__init__(args)
         self.config_path = args.config
+        self.change_set = args.changeset
 
     def process(self):
         Utils.validate('upgrade')
-        rc = Utils.upgrade(self.config_path)
+        rc = Utils.upgrade(self.config_path, self.change_set)
         return rc
 
 
@@ -240,12 +247,12 @@ def main():
 
     # Get the log path
     tmpl_file = argv[3]
-    Conf.load('cluster_config', tmpl_file)
-    log_dir = Conf.get('cluster_config', 'cortx>common>storage>log')
+    Conf.load(GCONF_INDEX, tmpl_file)
+    log_dir = Conf.get(GCONF_INDEX, CLUSTER_CONF_LOG_KEY)
     utils_log_path = os.path.join(log_dir, f'utils/{Conf.machine_id}')
 
     # Get the log level
-    log_level = Conf.get('cluster_config', 'utils>log_level', 'INFO')
+    log_level = Conf.get(GCONF_INDEX, 'utils>log_level', 'INFO')
 
     Log.init('utils_setup', utils_log_path, level=log_level, backup_count=5, \
         file_size_in_mb=5)

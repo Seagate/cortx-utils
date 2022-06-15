@@ -119,8 +119,6 @@ class KvPayload:
                     when True, returns keys including array index
                     e.g. In case of "xxx[0],xxx[1]", only "xxx" is returned
         """
-        if all([len(filters.items()) == 0, not starts_with]):
-            return self._keys
         keys = []
         if recurse:
             self._get_keys(keys, self._data, None, **filters)
@@ -190,8 +188,8 @@ class KvPayload:
             if k[0] not in data.keys() or not isinstance(data[k[0]], list):
                 data[k[0]] = []
             # if index is more than list size, extend the list
-            for i in range(len(data[k[0]]), index + 1):
-                data[k[0]].append({})
+            for _ in range(len(data[k[0]]), index + 1):
+                data[k[0]].append('')
             # if this is leaf node of the key
             if len(k) == 1:
                 data[k[0]][index] = val
@@ -327,7 +325,7 @@ class KvPayload:
         """ read operator for KV payload, i.e. kv['xxx'] """
         return self.get(key)
 
-    def _delete(self, key: str, data: dict):
+    def _delete(self, key: str, data: dict, force: bool = False):
         k = key.split(self._delim, 1)
 
         index = None
@@ -344,24 +342,33 @@ class KvPayload:
             if index >= len(data[k[0]]):
                 return False
             if len(k) == 1:
-                del data[k[0]][index]
+                if index == len(data[k[0]]) - 1:
+                    del data[k[0]][index]
+                else:
+                    data[k[0]][index] = ''
                 return True
             else:
-                return self._delete(k[1], data[k[0]][index])
+                return self._delete(k[1], data[k[0]][index], force)
 
         if len(k) == 1:
-            del data[k[0]]
-            return True
+            # value of key being dict/list means it's not a leaf node
+            # or below nodes are deleted
+            is_key_leaf = False if isinstance(data[k[0]], (list, dict)) else True
+            if is_key_leaf or force or (len(data[k[0]]) == 0):
+                del data[k[0]]
+                return True
+            else:
+                raise KvError(errno.EINVAL, "Key: %s is not leaf key", key)
         else:
-            return self._delete(k[1], data[k[0]])
+            return self._delete(k[1], data[k[0]], force)
 
-    def delete(self, key) -> bool:
+    def delete(self, key, force: bool = False) -> bool:
         """
         Deletes given set of keys from the dictionary
         Return Value:
         returns True if key existed/deleted. Returns False if key not found.
         """
-        rc = self._delete(key, self._data)
+        rc = self._delete(key, self._data, force)
         if rc == True and key in self._keys:
             del self._keys[self._keys.index(key)]
         return rc
