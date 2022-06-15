@@ -42,10 +42,7 @@ class S3Client(HttpClient):
 
         :param access_key_id: access key id of the admin user.
         :param secret_access_key: secret access key of the admin user.
-        :param host: hostname of the S3 server.
-        :param port: port of the S3 server.
-        :param tls_enabled: flag to use https.
-        :param url: whole URL for the client, if set, then host, port and tls_enabled are ignored.
+        :param url: whole URL for the client
         :param ca_bundle: path to the root CA certificate.
         :param timeout: connection timeout.
         :returns: None.
