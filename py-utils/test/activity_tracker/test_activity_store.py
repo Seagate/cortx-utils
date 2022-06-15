@@ -51,7 +51,7 @@ class TestActivityStore(unittest.TestCase):
     def test_activity_store_create_activity(self):
         """Test activity creation."""
         Activity.init(sample_file_url)
-        activity = Activity.create("Activity","Activities", "Activity Status")
+        activity = Activity.create("Activity", "Activities", "Activity Status")
         rc = 0
         try:
             activity_id = activity.id
@@ -60,7 +60,7 @@ class TestActivityStore(unittest.TestCase):
             raise ActivityError(errno.EINVAL, "Error: While fetching Activity ID")
         self.assertEqual(rc, 0)
         with self.assertRaises(ActivityError):
-            Activity.create("Activity","Activities", None)
+            Activity.create("Activity", "Activities", None)
         try:
             activities = load_data(sample_file)
             activity_data = json.loads(activities.get(activity_id))
@@ -109,10 +109,10 @@ class TestActivityStore(unittest.TestCase):
             raise ActivityError(errno.EINVAL, "Error: While fetching Activity ID")
         self.assertEqual(rc, 0)
         Activity.start(activity)
-        progress = 30
+        pct_progress = 30
         status = "IN_PROGRESS"
         status_desc = "Activity is in progress."
-        Activity.update(activity, progress, status, status_desc)
+        Activity.update(activity, pct_progress, status, status_desc)
         try:
             activities = load_data(sample_file)
             activity_data = json.loads(activities.get(activity_id))
@@ -120,8 +120,8 @@ class TestActivityStore(unittest.TestCase):
             rc = 1
             raise ActivityError(errno.EINVAL, "Error: While fetching Activity data")
         self.assertEqual(rc, 0)
-        self.assertEqual(activity_data.get('progress'), progress)
-        self.assertIsNotNone(activity_data.get('progress'), "progress key is not present")
+        self.assertEqual(activity_data.get('pct_progress'), pct_progress)
+        self.assertIsNotNone(activity_data.get('pct_progress'), "pct_progress key is not present")
         self.assertEqual(activity_data.get('status'), status)
         self.assertIsNotNone(activity_data.get('status'), "status key is not present")
         self.assertEqual(activity_data.get('status_description'), status_desc)
@@ -160,7 +160,7 @@ class TestActivityStore(unittest.TestCase):
             rc = 1
             raise ActivityError(errno.EINVAL, "Error: While fetching Activity data")
         self.assertIsNotNone(activity_data.get('updated_time'), "updated_time key is not present")
-        self.assertEqual(activity_data.get('progress'), 100)
+        self.assertEqual(activity_data.get('pct_progress'), 100)
 
     # Disabling the test as search functionality needs to be redesigned.
     # ToDo: Modify below test case once search functionality is available.
@@ -171,11 +171,11 @@ class TestActivityStore(unittest.TestCase):
     #     Activity.start(activity1)
     #     activity2 = Activity.create("Activity","Activities", "Activity Status Two")
     #     Activity.start(activity2)
-    #     progress = 30
+    #     pct_progress = 30
     #     status = "IN_PROGRESS"
     #     status_desc = "Activity is in progress."
-    #     Activity.update(activity2, progress, status, status_desc)
-    #     self.assertEqual(Activity.search('Activities', [f"progress=={progress}"])[0], activity2.id)
+    #     Activity.update(activity2, pct_progress, status, status_desc)
+    #     self.assertEqual(Activity.search('Activities', [f"pct_progress=={pct_progress}"])[0], activity2.id)
     #     self.assertEqual(Activity.search('Activities', [f"status=='{status}'"])[0], activity2.id)
     #     self.assertEqual(Activity.search('Activities', ["status_description=='Activity Status Two'"])[0], activity2.id)
 
