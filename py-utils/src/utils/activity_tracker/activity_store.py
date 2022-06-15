@@ -70,7 +70,7 @@ class ActivityEntry:
     def set_attr(self, attr: str, val: str):
         self._payload[attr] = val
 
-    def set_progress(self, pct_progress: int, status_desc: str = const.IN_PROGRESS_DESC):
+    def set_progress(self, pct_progress: int, status_desc: str):
         if pct_progress < 0 or pct_progress > 99:
             raise ActivityError(errno.EINVAL, "update(): Invalid pct_progress: %s", pct_progress)
         self._payload[const.PCT_PROGRESS] = pct_progress
@@ -78,13 +78,13 @@ class ActivityEntry:
         self._payload[const.STATUS_DESC] = status_desc
         self._payload[const.UPDATED_TIME] = int(time.time())
 
-    def finish(self, status_desc: str = const.COMPLETED_DESC):
+    def finish(self, status_desc: str):
         self._payload[const.PCT_PROGRESS] = 100
         self._payload[const.STATUS] = const.COMPLETED
         self._payload[const.STATUS_DESC] = status_desc
         self._payload[const.UPDATED_TIME] = int(time.time())
 
-    def suspend(self, status_desc: str = const.SUSPENDED_DESC):
+    def suspend(self, status_desc: str):
         self._payload[const.STATUS] = const.SUSPENDED
         self._payload[const.STATUS_DESC] = status_desc
         self._payload[const.UPDATED_TIME] = int(time.time())
@@ -113,7 +113,7 @@ class Activity(metaclass=Singleton):
         return activity
 
     @staticmethod
-    def update(activity: ActivityEntry, pct_progress: int, status_desc: str):
+    def update(activity: ActivityEntry, pct_progress: int, status_desc: str = const.IN_PROGRESS_DESC):
         """
         Updates the pct_progress and status_description.
         Sets the status to IN_PROGRESS.
@@ -129,7 +129,7 @@ class Activity(metaclass=Singleton):
         Activity._kv_store.set([activity.id], [activity.payload.json])
 
     @staticmethod
-    def finish(activity: ActivityEntry, status_desc: str):
+    def finish(activity: ActivityEntry, status_desc: str = const.COMPLETED_DESC):
         """
         Completes the activity and updates the status_description.
         Sets the status to COMPLETE and pct_progress to 100.
@@ -141,7 +141,7 @@ class Activity(metaclass=Singleton):
         Activity._kv_store.set([activity.id], [activity.payload.json])
 
     @staticmethod
-    def suspend(activity: ActivityEntry, status_desc: str):
+    def suspend(activity: ActivityEntry, status_desc: str = const.SUSPENDED_DESC):
         """
         Suspends the activity and updates the status_description.
         Sets the status to SUSPEND.
