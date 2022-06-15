@@ -63,7 +63,7 @@ sudo pip3 install -r https://raw.githubusercontent.com/Seagate/cortx-utils/main/
 ```
 
 ## Install the RPM package
- 
+
 -   Note : The rpm package installation will fail if any dependent python package is not installed.
 -   Please refer to WIKI (https://github.com/Seagate/cortx-utils/wiki/%22cortx-py-utils%22-single-node-manual-provisioning)
 
@@ -80,7 +80,7 @@ yum remove cortx-py-utils
 
 ## Update new dependency package
 
-  - Add package in `python_requirements.txt`.
+- Add package in `python_requirements.txt`.
 
 <hr>
 
@@ -146,7 +146,7 @@ Note The second example below shows how to check if given services are running o
 ```python
 	ServiceV().validate('isrunning', ["rabbitmq-server", "sshd"], "remote_hostname")
 ```
-  - Path validator: This can be used to check if certain paths and their types are as expected. Use command "exists" to check, pass a list of colon separated types followed by absolute paths. e.g. ["dir:/", "file:/etc/hosts", "device:/dev/loop9"]
+- Path validator: This can be used to check if certain paths and their types are as expected. Use command "exists" to check, pass a list of colon separated types followed by absolute paths. e.g. `["dir:/", "file:/etc/hosts", "device:/dev/loop9"]`
 ```python
 from cortx.utils.validator.v_path import PathV
 try:
@@ -158,7 +158,7 @@ Note The second example below shows how to check if given paths are ok on a remo
 ```python
 	PathV().validate('exists', ["dir:/", "file:/etc/hosts", "device:/dev/loop9"], "remote_hostname")
 ```
-  - Confstore key validator: This can be used to check if an preloaded index on confstore has the requested keys present or not. Use command "exists" to check, pass the preloaded index and a list of 'keys'.
+- Confstore key validator: This can be used to check if an preloaded index on confstore has the requested keys present or not. Use command "exists" to check, pass the preloaded index and a list of 'keys'.
 ```python
 from cortx.utils.validator.v_confkeys import ConfKeysV
 try:

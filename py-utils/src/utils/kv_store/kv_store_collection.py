@@ -73,7 +73,7 @@ class YamlKvStore(KvStore):
     def __init__(self, store_loc, store_path, delim='>'):
         KvStore.__init__(self, store_loc, store_path, delim)
         if not os.path.exists(self._store_path):
-            with open(self._store_path, 'w+') as f:
+            with open(self._store_path, 'w+'):
                 pass
 
     def load(self, **kwargs) -> KvPayload:
@@ -255,7 +255,7 @@ class IniKvPayload(KvPayload):
         except (NoOptionError, NoSectionError):
             return None
 
-    def delete(self, key):
+    def delete(self, key, *args):
         k = key.split(self._delim)
         if len(k) <= 1 or len(k) > 2:
             raise KvError(errno.EINVAL, "Invalid key %s for INI format", key)
@@ -445,9 +445,9 @@ class ConsulKvPayload(KvPayload):
         return self._consul.kv.put(self._store_path + key, str(val))
 
     @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
-    def _delete(self, key: str, *args, **kwargs) -> Union[bool, None]:
+    def _delete(self, key: str, data: dict, force: bool = False, *args, **kwargs) -> Union[bool, None]:
         """ Delete the key:value for the input key. """
-        return self._consul.kv.delete(self._store_path + key)
+        return self._consul.kv.delete(key = self._store_path + key, recurse = force)
 
     @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def get_data(self, format_type: str = None, *args, **kwargs):

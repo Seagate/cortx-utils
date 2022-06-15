@@ -44,16 +44,15 @@ class UtilsSupportBundle:
     @staticmethod
     def generate(bundle_id: str, target_path: str, cluster_conf_url: str, **filters):
         """ Generate a tar file. """
-        duration = filters.get('duration', 'P5D')
-        size_limit = filters.get('size_limit', '500MB')
-        binlogs = filters.get('binlogs', False)
-        coredumps = filters.get('coredumps', False)
-        stacktrace = filters.get('stacktrace', False)
+        # duration = filters.get('duration', 'P5D')
+        # size_limit = filters.get('size_limit', '500MB')
+        # binlogs = filters.get('binlogs', False)
+        # coredumps = filters.get('coredumps', False)
+        # stacktrace = filters.get('stacktrace', False)
         # TODO process duration, size_limit, binlogs, coredumps and stacktrace
         # Find log dirs
         cluster_conf = MappedConf(cluster_conf_url)
         log_base = cluster_conf.get(CLUSTER_CONF_LOG_KEY)
-        local_base = cluster_conf.get('cortx>common>storage>local')
         machine_id = Conf.machine_id
 
         if os.path.exists(UtilsSupportBundle._tmp_src):
