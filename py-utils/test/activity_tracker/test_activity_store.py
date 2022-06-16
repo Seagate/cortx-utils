@@ -125,9 +125,9 @@ class TestActivityStore(unittest.TestCase):
             rc = 1
             raise ActivityError(errno.EINVAL, "Error: While fetching Activity ID")
         self.assertEqual(rc, 0)
-        Activity.finish(activity, "activity completed successfully.")
+        Activity.finish(activity, 0, "activity completed successfully.")
         with self.assertRaises(ActivityError):
-            Activity.finish(activity1)
+            Activity.finish(activity1, 0)
         try:
             activities = load_data(sample_file)
             activity_data = json.loads(activities.get(activity_id))
@@ -136,6 +136,8 @@ class TestActivityStore(unittest.TestCase):
             raise ActivityError(errno.EINVAL, "Error: While fetching Activity data")
         self.assertIsNotNone(activity_data.get('updated_time'), "updated_time key is not present")
         self.assertEqual(activity_data.get('pct_progress'), 100)
+        self.assertEqual(activity_data.get('rc'), 0)
+        self.assertNotEqual(activity_data.get('rc'),"0")
         self.assertEqual(activity_data.get('status'), "COMPLETED")
 
     def test_activity_store_suspend_activity(self):
@@ -154,7 +156,7 @@ class TestActivityStore(unittest.TestCase):
         Activity.update(activity, pct_progress)
         Activity.suspend(activity, "activity suspended ..")
         with self.assertRaises(ActivityError):
-            Activity.finish(activity1)
+            Activity.finish(activity1, 0)
         try:
             activities = load_data(sample_file)
             activity_data = json.loads(activities.get(activity_id))
@@ -178,7 +180,7 @@ class TestActivityStore(unittest.TestCase):
         self.assertEqual(rc, 0)
         pct_progress = 40
         Activity.update(activity, pct_progress)
-        Activity.finish(activity, "activity completed successfully")
+        Activity.finish(activity, 0, "activity completed successfully")
         with self.assertRaises(ActivityError):
             pct_progress= 50
             Activity.update(activity, pct_progress)
@@ -204,7 +206,7 @@ class TestActivityStore(unittest.TestCase):
         self.assertEqual(rc, 0)
         pct_progress = 40
         Activity.update(activity, pct_progress)
-        Activity.finish(activity, "activity completed successfully")
+        Activity.finish(activity, 0, "activity completed successfully")
         with self.assertRaises(ActivityError):
             pct_progress= 50
             Activity.suspend(activity)

@@ -82,11 +82,12 @@ class ActivityEntry:
         self._payload[const.STATUS_DESC] = status_desc
         self._payload[const.UPDATED_TIME] = int(time.time())
 
-    def finish(self, status_desc: str):
+    def finish(self, rc: int, status_desc: str):
         self._payload[const.PCT_PROGRESS] = 100
         self._payload[const.STATUS] = const.COMPLETED
         self._payload[const.STATUS_DESC] = status_desc
         self._payload[const.UPDATED_TIME] = int(time.time())
+        self._payload[const.RC] = rc
 
     def suspend(self, status_desc: str):
         self._payload[const.STATUS] = const.SUSPENDED
@@ -138,16 +139,17 @@ class Activity(metaclass=Singleton):
         Activity._kv_store.set([activity.id], [activity.payload.json])
 
     @staticmethod
-    def finish(activity: ActivityEntry, status_desc: str = const.COMPLETED_DESC):
+    def finish(activity: ActivityEntry, rc: int, status_desc: str = \
+        const.COMPLETED_DESC):
         """
-        Completes the activity and updates the status_description.
+        Completes the activity. Updates the rc and status_description.
         Sets the status to COMPLETE and pct_progress to 100.
         Records current time as the updated_time.
         """
         if not isinstance(activity, ActivityEntry):
             raise ActivityError(errno.EINVAL, "finish(): Invalid arg %s",
                 activity)
-        activity.finish(status_desc)
+        activity.finish(rc, status_desc)
         Activity._kv_store.set([activity.id], [activity.payload.json])
 
     @staticmethod
