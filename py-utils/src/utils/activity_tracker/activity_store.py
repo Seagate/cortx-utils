@@ -154,7 +154,7 @@ class Activity(metaclass=Singleton):
 
     @staticmethod
     def suspend(activity: ActivityEntry, status_desc: str = \
-            const.SUSPENDED_DESC):
+        const.SUSPENDED_DESC):
         """
         Suspends the activity and updates the status_description.
         Sets the status to SUSPEND.

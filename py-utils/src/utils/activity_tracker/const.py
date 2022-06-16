@@ -32,4 +32,3 @@ CREATED_DESC = "An activity has been created"
 IN_PROGRESS_DESC = "Activity is in progress"
 COMPLETED_DESC = "Activity has been completed"
 SUSPENDED_DESC = "Activity has been suspended"
-
