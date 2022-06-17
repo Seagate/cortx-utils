@@ -1,5 +1,5 @@
-# CORTX Python common library.
-# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
+# CORTX-Py-Utils: CORTX Python common library.
+# Copyright (c) 2022 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -13,18 +13,5 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-__title__ = 'shared_storage'
-
-from cortx.utils.shared_storage.error import SharedStorageError
-from cortx.utils.shared_storage.shared_storage_agent import SharedStorageAgent
-from cortx.utils.shared_storage.shared_storage import Storage
-
-__doc__ = """
-Shared storage framework
-
-This framework is a tool to fetch the shared storage available in the environment.
-It fetches the shared path from a conf file and returns it to the caller. 
-
-module: Storage"""
-
-__all__ = [SharedStorageError, SharedStorageAgent, Storage]
+from cortx.utils.http.client import HttpClient
+from cortx.utils.http.exceptions import HttpClientException

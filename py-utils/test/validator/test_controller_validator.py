@@ -18,10 +18,8 @@
 
 import sys
 import os
-import errno
 import unittest
 
-from cortx.utils import const
 from cortx.utils.validator.v_controller import ControllerV
 from cortx.utils.validator.error import VError
 

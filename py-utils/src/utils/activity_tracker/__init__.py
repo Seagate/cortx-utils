@@ -1,5 +1,7 @@
+#!/bin/env python3
+
 # CORTX Python common library.
-# Copyright (c) 2021 Seagate Technology LLC and/or its Affiliates
+# Copyright (c) 2022 Seagate Technology LLC and/or its Affiliates
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
@@ -12,23 +14,3 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
-
-import errno
-
-from cortx.utils.shared_storage import SharedStorageAgent
-from cortx.utils.shared_storage import SharedStorageError
-
-class GlusterSharedStorage(SharedStorageAgent):
-
-    """ GlusterFS based shared storage implementation """
-
-    name = 'glusterfs'
-
-    def __init__(self, shared_path: str  = ''):
-        """ Construct an object for GlusterSharedStorage class """
-        self.shared_path = shared_path
-
-    def _fetch_path(self):
-        """ fetch path from confstore """
-        shared_path = self.shared_path
-        return shared_path

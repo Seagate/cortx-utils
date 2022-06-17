@@ -16,9 +16,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
-import sys
 import json
-import inspect
 import networkx as nx
 
 from cortx.utils.ha.hac import const

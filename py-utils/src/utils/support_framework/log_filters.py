@@ -24,8 +24,6 @@ from datetime import datetime, timedelta
 
 from cortx.utils.support_framework.errors import BundleError
 
-from cortx.utils.support_framework.errors import BundleError
-
 
 class FilterLog:
     """Provides Filter interfaces for support bundle."""
@@ -85,33 +83,6 @@ class FilterLog:
             start_time = datetime.fromtimestamp(
                 end_time.timestamp() - duration_seconds)
         return start_time, end_time
-
-    @staticmethod
-    def _is_valid_log_line(log_line, start_time, end_time):
-        """
-        checks if line passed is between start imte and end time
-
-        Args:
-            log_line (str): single log line
-            start_time (datetime): datetime object of log start time
-            end_time (datetime): datetime object of log end time
-
-        Returns:
-            [boot]: returns true if the log was added between start time and
-                    end time else false
-        """
-        log_duration = log_line[:20].strip()
-        if log_duration:
-            # convert log timestamp to datetime object
-            log_time = datetime.strptime(log_duration, '%Y-%m-%d %H:%M:%S')
-        else:
-            return False
-
-        if start_time <= log_time and log_time <= end_time:
-            return True
-        else:
-            return False
-
 
     @staticmethod
     def _get_size_in_bytes(size: str):
@@ -179,7 +150,7 @@ class FilterLog:
     @staticmethod
     def limit_time(src_dir, dest_dir, duration, file_name_reg_ex):
         """
-        filters out log in the src_dir that were not generated between passed
+        Filters out log in the src_dir that were generated between passed
         duration and copies them to dest_dir
 
         Args:
@@ -197,16 +168,34 @@ class FilterLog:
             raise BundleError(errno.EINVAL,"Invalid duration passed! "
             + f"unexpected charecters: {invalid_chars}")
 
+        include_lines_without_timestamp = False
         start_time, end_time = FilterLog._parse_duration(duration)
         for file in os.listdir(src_dir):
             op_file = os.path.join(dest_dir, 'tmp_' + file)
             if file.startswith(file_name_reg_ex):
-                with open(file, 'r') as fd_in, open(op_file, 'a') as fd_out:
+                in_file = os.path.join(src_dir, file)
+                with open(in_file, 'r') as fd_in, open(op_file, 'a') as fd_out:
                     line = fd_in.readline()
                     while(line):
-                        if FilterLog._is_valid_log_line(line, start_time,
-                            end_time):
-                            fd_out.write(line)
+                        log_duration = line[:20].strip()
+                        if log_duration:
+                            # convert log timestamp to datetime object
+                            try:
+                                log_time = datetime.strptime(log_duration, '%Y-%m-%d %H:%M:%S')
+                                if start_time <= log_time and log_time <= end_time:
+                                    include_lines_without_timestamp = True
+                                    fd_out.write(line)
+                                elif log_time > end_time and include_lines_without_timestamp:
+                                        include_lines_without_timestamp = False
+                                        break
+                            # There will be some log lines which lies under passed duration,
+                            # but has no timestamp, those lines will throw ValueError while
+                            # trying to fetch log timestamp,
+                            # to capture such logs, we have set a flag
+                            # include_lines_without_timestamp = True
+                            except ValueError:
+                                if include_lines_without_timestamp:
+                                    fd_out.write(line)
                         line = fd_in.readline()
                 try:
                     final_op_file = os.path.join(dest_dir, file)

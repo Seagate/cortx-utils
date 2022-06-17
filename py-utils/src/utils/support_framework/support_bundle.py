@@ -24,7 +24,7 @@ import shutil
 import psutil
 import time
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from cortx.utils.log import Log
 from cortx.utils.schema.providers import Response
@@ -143,7 +143,7 @@ class SupportBundle:
             raise BundleError(errno.EINVAL, "Bundle ID already exists,"
                 "Please use Unique Bundle ID")
 
-        cortx_config_store = MappedConf(config_url)
+        cluster_conf = MappedConf(config_url)
         # Get Node ID
         node_id = Conf.machine_id
         if node_id is None:
@@ -160,11 +160,11 @@ class SupportBundle:
         Conf.set(const.SB_INDEX, f'{node_id}>{bundle_id}', data)
         Conf.save(const.SB_INDEX)
 
-        node_name = cortx_config_store.get(f'node>{node_id}>name')
+        node_name = cluster_conf.get(f'node>{node_id}>name')
         Log.info(f'Starting SB Generation on {node_id}:{node_name}')
         # Get required SB size per component
         components_list, service_per_comp = SupportBundle._get_component_and_services(
-            cortx_config_store, node_id, components)
+            cluster_conf, node_id, components)
 
         if not components_list:
             Log.warn(f"No component specified for {node_name} in CORTX config")
@@ -365,7 +365,6 @@ class SupportBundle:
         res = loop.run_until_complete(
             SupportBundle._get_bundle_status(cmd_obj))
         if res.rc() == OPERATION_SUCESSFUL:
-            import json
             return json.dumps(res.output(), indent=2)
         else:
             return res.output()

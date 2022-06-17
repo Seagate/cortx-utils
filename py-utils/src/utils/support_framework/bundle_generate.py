@@ -16,16 +16,17 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
-import asyncio
 import shutil
-from datetime import datetime
 from typing import List
-from cortx.utils.schema.payload import Yaml, Tar
-from cortx.utils.support_framework import const
-from cortx.utils.process import SimpleProcess
-from cortx.utils.conf_store.conf_store import Conf
+from datetime import datetime
+
 from cortx.utils.log import Log
-from cortx.utils.common import CortxConf
+from cortx.utils.process import SimpleProcess
+from cortx.utils.conf_store import MappedConf
+from cortx.utils.support_framework import const
+from cortx.utils.schema.payload import Yaml, Tar
+from cortx.utils.conf_store.conf_store import Conf
+from cortx.utils.const import CLUSTER_CONF_LOG_KEY, DEFAULT_INSTALL_PATH
 
 ERROR = 'error'
 INFO = 'info'
@@ -97,21 +98,12 @@ class ComponentsBundle:
         for command in commands:
         # SB Framework will not parse additional filters until all the components
         # accept filters in their respective support bundle scripts.
-    
-        #    Log.info(f"Executing command -> {command} -b {bundle_id} -t {path}"
-        #        f" -c {config_url} -s {services} --duration {duration}"
-        #        f" --size_limit {size_limit} --binlogs {binlogs}"
-        #        f" --coredumps {coredumps} --stacktrace {stacktrace}")
+            cli_cmd = f"{command} -b {bundle_id} -t {path} -c {config_url}"\
+                f" -s {services} --duration {duration} --size_limit {size_limit}"\
+                f" --binlogs {binlogs} --coredumps {coredumps} --stacktrace {stacktrace}"
+            Log.info(f"Executing command -> {cli_cmd}")
+            cmd_proc = SimpleProcess(cli_cmd)
 
-        #    cmd_proc = SimpleProcess(f"{command} -b {bundle_id} -t {path} -c {config_url}"
-        #        f" -s {services} --duration {duration} --size_limit {size_limit}"
-        #        f" --binlogs {binlogs} --coredumps {coredumps} --stacktrace {stacktrace}")
-        
-            Log.info(f"Executing command -> {command} -b {bundle_id} -t {path}"
-                f" -c {config_url} -s {services}")
-
-            cmd_proc = SimpleProcess(f"{command} -b {bundle_id} -t {path} -c {config_url}"
-                f" -s {services}")
             output, err, return_code = cmd_proc.run()
             Log.debug(f"Command Output -> {output} {err}, {return_code}")
             if return_code != 0:
@@ -128,9 +120,10 @@ class ComponentsBundle:
         command:        cli Command Object :type: command
         return:         None
         """
-        CortxConf.init(cluster_conf=config_url)
-        log_path = CortxConf.get_log_path('support')
-        log_level = CortxConf.get('utils>log_level', 'INFO')
+        cluster_conf = MappedConf(config_url)
+        log_path = os.path.join(cluster_conf.get(CLUSTER_CONF_LOG_KEY), \
+            f'utils/{Conf.machine_id}/support')
+        log_level = cluster_conf.get('utils>log_level', 'INFO')
         Log.init('support_bundle_node', log_path, level=log_level, \
             backup_count=5, file_size_in_mb=5)
         bundle_id = bundle_obj.bundle_id
@@ -150,7 +143,8 @@ class ComponentsBundle:
             f"{node_name}, {const.SB_COMMENT}: {comment}, "
             f"{const.SB_COMPONENTS}: {components_list}, {const.SOS_COMP}"))
         # Read support_bundle.Yaml and Check's If It Exists.
-        cmd_setup_file = os.path.join(CortxConf.get('install_path'),\
+        cmd_setup_file = os.path.join(
+            cluster_conf.get('install_path', DEFAULT_INSTALL_PATH),
             const.SUPPORT_YAML)
         try:
             support_bundle_config = Yaml(cmd_setup_file).load()

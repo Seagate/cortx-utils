@@ -62,7 +62,7 @@ elasticsearch_tmpl_files = glob.glob(
     'src/utils/setup/elasticsearch/templates/*.*')
 
 with open('LICENSE', 'r') as lf:
-    license = lf.read()
+    seagate_license = lf.read()
 
 with open('README.md', 'r') as rf:
     long_description = rf.read()
@@ -74,7 +74,7 @@ def get_install_requirements() -> list:
         with open('python_requirements.ext.txt') as extreq:
             install_requires = install_requires + [line.strip() for line in extreq]
     except Exception:
-        pass  ## log it!
+        print("error in reading file python_requirements.ext.txt")
     return install_requires
 
 def get_requirements_files() -> list:
@@ -107,14 +107,14 @@ setup(name='cortx-py-utils',
                 'cortx.utils.product_features', 'cortx.utils.security',
                 'cortx.utils.schema', 'cortx.utils.appliance_info',
                 'cortx.setup', 'cortx.support', 'cortx.utils.service',
-                'cortx.utils.setup', 'cortx.utils.setup.kafka',
+                'cortx.utils.setup', 'cortx.utils.event_framework',
                 'cortx.utils.cli_framework', 'cortx.utils.cmd_framework',
                 'cortx.utils.utils_server', 'cortx.utils.iem_framework',
                 'cortx.utils.discovery', 'cortx.utils.common',
-                'cortx.utils.shared_storage', 'cortx.utils.support_framework',
-                'cortx.utils.manifest', 'cortx.utils.setup.openldap',
-                'cortx.utils.setup.consul', 'cortx.utils.setup.elasticsearch',
+                'cortx.utils.support_framework',
+                'cortx.utils.manifest',
                 'cortx.utils.audit_log', 'cortx.utils.cortx',
+                'cortx.utils.http', 'cortx.utils.s3', 'cortx.utils.activity_tracker'
                 ],
       package_data={
         'cortx': ['py.typed'],
@@ -125,17 +125,14 @@ setup(name='cortx-py-utils',
             'conf = cortx.utils.conf_store.conf_cli:main',
             'utils_setup = cortx.setup.utils_setup:main',
             'iem = cortx.utils.iem_framework.iem_cli:main',
-            'kafka_setup = cortx.utils.setup.kafka.kafka_setup:main',
             'utils_support_bundle = cortx.support.utils_support_bundle:main',
             'cortx_support_bundle = cortx.support.cortx_support_bundle:main',
-            'openldap_setup = cortx.utils.setup.openldap.openldap_setup:main',
-            'consul_setup = cortx.utils.setup.consul.consul_setup:main',
-            'elasticsearch_setup = cortx.utils.setup.elasticsearch.elasticsearch_setup:main'
         ]
       },
       data_files = [ ('/var/lib/cortx/ha/specs', specs),
-                     ('/opt/seagate/cortx/utils/conf', tmpl_files),
-                     ('/opt/seagate/cortx/utils/conf', get_requirements_files()),
+                     ('%s/conf' % utils_path, tmpl_files),
+                     ('%s/conf' % utils_path, get_requirements_files()),
+                     ('%s/conf' % utils_path, ['src/utils/schema/database.yaml']),
                      ('/var/lib/cortx/ha', ['src/utils/ha/hac/args.yaml',
                                             'src/utils/ha/hac/re_build.sh']),
                      ('%s/conf' % utils_path, ['src/setup/setup.yaml',

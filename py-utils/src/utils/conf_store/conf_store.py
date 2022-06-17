@@ -164,12 +164,12 @@ class ConfStore:
                                  index)
         return self._cache[index].get_data()
 
-    def delete(self, index: str, key: str):
+    def delete(self, index: str, key: str, force: bool = False):
         """ Delets a given key from the config """
         if index not in self._cache.keys():
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
-        return self._cache[index].delete(key)
+        return self._cache[index].delete(key, force)
 
     def search(self, index: str, parent_key: str, search_key: str,
         search_val: str = None) -> list:
@@ -178,6 +178,10 @@ class ConfStore:
         Returns list of keys that matched the creteria (i.e. has given value)
         """
         return self._cache[index].search(parent_key, search_key, search_val)
+
+    def add_num_keys(self, index: str):
+        """Add "num_xxx" keys for all the list items in ine KV Store."""
+        self._cache[index].add_num_keys()
 
     def copy(self, src_index: str, dst_index: str, key_list: list = None,
         recurse: bool = True):
@@ -203,6 +207,31 @@ class ConfStore:
                 key_list = self._cache[src_index].get_keys(key_index=False)
         for key in key_list:
             self._cache[dst_index].set(key, self._cache[src_index].get(key))
+
+    def compare(self, index1: str, index2: str):
+        """
+        Compares two configs and returns difference
+
+        Parameters:
+        index1 : Conf Index 1
+        index2 : Conf Index 2
+
+        Return Value:
+        Returns three lists : New keys, deleted keys, Updated keys
+        """
+        if index1 not in self._cache.keys():
+            raise ConfError(errno.EINVAL, "config index %s is not loaded",
+                index1)
+        if index2 not in self._cache.keys():
+            raise ConfError(errno.EINVAL, "config index %s is not loaded",
+                index2)
+
+        key_list1 = self._cache[index1].get_keys()
+        key_list2 = self._cache[index2].get_keys()
+        deleted_keys = list(set(key_list1).difference(key_list2))
+        new_keys = list(set(key_list2).difference(key_list1))
+        updated_keys = list(filter(lambda key: key not in deleted_keys and self._cache[index1].get(key) != self._cache[index2].get(key), key_list1))
+        return new_keys, deleted_keys, updated_keys
 
     def merge(self, dest_index: str, src_index: str, keys: list = None):
         """
@@ -275,20 +304,23 @@ class Conf:
         return Conf._conf.get(index, key, default_val, **filters)
 
     @staticmethod
-    def delete(index: str, key: str):
+    def delete(index: str, key: str, force: bool = False):
         """ Deletes a given key from the config """
-        return Conf._conf.delete(index, key)
+        return Conf._conf.delete(index, key, force)
 
     @staticmethod
     def copy(src_index: str, dst_index: str, key_list: list = None,
         recurse: bool = True):
         """ Creates a Copy suffixed file for main file"""
         Conf._conf.copy(src_index, dst_index, key_list, recurse)
-        Conf._conf.save(dst_index)
 
     @staticmethod
     def merge(dest_index: str, src_index: str, keys: list = None):
         Conf._conf.merge(dest_index, src_index, keys)
+
+    @staticmethod
+    def compare(index1: str, index2: str):
+        return Conf._conf.compare(index1, index2)
 
     class ClassProperty(property):
         """ Subclass property for classmethod properties """
@@ -316,6 +348,7 @@ class Conf:
         """
         return Conf._conf.get_keys(index, **filters)
 
+    @staticmethod
     def search(index: str, parent_key: str, search_key: str,
         search_val: str = None) -> list:
         """
@@ -330,6 +363,11 @@ class Conf:
         Returns list of keys that matched the creteria (i.e. has given value)
         """
         return Conf._conf.search(index, parent_key, search_key, search_val)
+
+    @staticmethod
+    def add_num_keys(index):
+        """Add "num_xxx" keys for all the list items in ine KV Store."""
+        Conf._conf.add_num_keys(index)
 
 
 class MappedConf:
@@ -368,7 +406,7 @@ class MappedConf:
                 f'Error occurred while adding key {key} and value {val}'
                 f' in confstore. {e}')
 
-    def copy(self, src_index: str, key_list: list):
+    def copy(self, src_index: str, key_list: list = None):
         """Copy src_index config into CORTX confstore file."""
         try:
             Conf.copy(src_index, self._conf_idx, key_list)
@@ -376,14 +414,18 @@ class MappedConf:
             raise ConfError(errno.EINVAL,
                 f'Error occurred while copying config into confstore. {e}')
 
-    def search(self, parent_key, search_key, value):
+    def search(self, parent_key: str, search_key: str, value: str = None):
         """Search for given key under parent key in CORTX confstore."""
         return Conf.search(self._conf_idx, parent_key, search_key, value)
+
+    def add_num_keys(self):
+        """Add "num_xxx" keys for all the list items in ine KV Store."""
+        Conf.add_num_keys(self._conf_idx)
 
     def get(self, key: str, default_val: str = None) -> str:
         """Returns value for the given key."""
         return Conf.get(self._conf_idx, key, default_val)
 
-    def delete(self, key: str):
+    def delete(self, key: str, force: bool = False):
         """Delete key from CORTX confstore."""
-        Conf.delete(self._conf_idx, key)
+        return Conf.delete(self._conf_idx, key, force)

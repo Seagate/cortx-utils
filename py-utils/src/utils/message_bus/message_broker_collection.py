@@ -16,8 +16,6 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import time
-import json
-import re
 import errno
 
 from cortx.utils.log import Log
@@ -26,7 +24,6 @@ from confluent_kafka.admin import AdminClient, ConfigResource, NewTopic, \
     NewPartitions
 from cortx.utils.message_bus.error import MessageBusError
 from cortx.utils.message_bus.message_broker import MessageBroker
-from cortx.utils.process import SimpleProcess
 from cortx.utils import errors
 
 
@@ -70,7 +67,7 @@ class KafkaMessageBroker(MessageBroker):
         """ Obtain Kafka based Producer/Consumer """
         Log.debug(f"initializing client_type: {client_type}," \
             f" **kwargs {client_conf}")
-        """ Validate and return if client already exists """
+        # Validate and return if client already exists
         if client_type not in self._clients.keys():
             Log.error(f"MessageBusError: Invalid client type " \
                 f"{errors.ERR_INVALID_CLIENT_TYPE}, {client_type}")

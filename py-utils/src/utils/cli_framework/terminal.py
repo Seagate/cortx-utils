@@ -54,7 +54,7 @@ class Terminal:
             sys.stdout.write("Successfully logged out\n")
         else:
             Log.error(traceback.format_exc())
-            sys.stderr("Logout failed\n")
+            sys.stderr.write("Logout failed\n")
 
     @staticmethod
     def get_current_password(value):

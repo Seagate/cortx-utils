@@ -1,32 +1,51 @@
 target_path: 'file:///var/cortx/support_bundle'
 SB_generate_help: |
-  usage: cortx_support_bundle generate [-h]
-                                       [-c CLUSTER_CONF_PATH [CLUSTER_CONF_PATH ...]]
-                                       -t LOCATION [LOCATION ...] -b BUNDLE_ID
-                                       [BUNDLE_ID ...] -m MESSAGE [MESSAGE ...]
-                                       [-d DURATION]
+  usage: cortx_support_bundle generate [-h] -c CLUSTER_CONF_PATH
+                                       [CLUSTER_CONF_PATH ...] [-t LOCATION] -b
+                                       BUNDLE_ID [BUNDLE_ID ...] -m MESSAGE
+                                       [MESSAGE ...] [-d DURATION]
+                                       [--size_limit SIZE_LIMIT]
+                                       [--binlogs BINLOGS]
+                                       [--coredumps COREDUMPS]
+                                       [--stacktrace STACKTRACE]
+                                       [--modules MODULES] [--all ALL]
 
   optional arguments:
     -h, --help            show this help message and exit
     -c CLUSTER_CONF_PATH [CLUSTER_CONF_PATH ...], --cluster_conf_path CLUSTER_CONF_PATH [CLUSTER_CONF_PATH ...]
-                          Optional, Location- CORTX confstore file location.
-    -t LOCATION [LOCATION ...], --location LOCATION [LOCATION ...]
-                          Location- CORTX support bundle will be generated at
-                          specified location.
+                          Required, Location- CORTX confstore file location.
+    -t LOCATION, --location LOCATION
+                          Optional, Location- CORTX support bundle will be
+                          generated at specified location.
     -b BUNDLE_ID [BUNDLE_ID ...], --bundle_id BUNDLE_ID [BUNDLE_ID ...]
                           Bundle ID for Support Bundle
     -m MESSAGE [MESSAGE ...], --message MESSAGE [MESSAGE ...]
                           Message - Reason for generating Support Bundle
     -d DURATION, --duration DURATION
-                          Duration - duration for which log should be captured
-
+                          Duration - duration for which log should be captured,
+                          Default - P5D
+    --size_limit SIZE_LIMIT
+                          Size Limit - Support Bundle size limit per node,
+                          Default - 500MB
+    --binlogs BINLOGS     Include/Exclude Binary Logs, Default = False
+    --coredumps COREDUMPS
+                          Include/Exclude Coredumps, Default = False
+    --stacktrace STACKTRACE
+                          Include/Exclude stacktrace, Default = False
+    --modules MODULES     list of components & services to generate support
+                          bundle.
+    --all ALL             Include/Exclude all debug data, including logs,
+                          config, stack traces, core dumps, binaries, etc,
+                          possibly resulting in much HEAVIER support bundle,
+                          Default = False
 SB_get_status_help: |
-  usage: cortx_support_bundle get_status [-h] [-b BUNDLE_ID [BUNDLE_ID ...]]
-                                         [-c CLUSTER_CONF_PATH [CLUSTER_CONF_PATH ...]]
+  usage: cortx_support_bundle get_status [-h] [-b BUNDLE_ID [BUNDLE_ID ...]] -c
+                                         CLUSTER_CONF_PATH
+                                         [CLUSTER_CONF_PATH ...]
 
   optional arguments:
     -h, --help            show this help message and exit
     -b BUNDLE_ID [BUNDLE_ID ...], --bundle_id BUNDLE_ID [BUNDLE_ID ...]
                           Bundle ID of generated Support Bundle
     -c CLUSTER_CONF_PATH [CLUSTER_CONF_PATH ...], --cluster_conf_path CLUSTER_CONF_PATH [CLUSTER_CONF_PATH ...]
-                          Optional, Location- CORTX confstore file location.
+                          Required, Location- CORTX confstore file location.

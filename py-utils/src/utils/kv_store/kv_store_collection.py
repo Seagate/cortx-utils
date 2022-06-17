@@ -15,16 +15,19 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import configparser
 import errno
 import os
 from typing import Union
-from consul import Consul
+from consul import Consul, ConsulException
+from requests.exceptions import RequestException
+from urllib.error import HTTPError
+from configparser import ConfigParser, NoOptionError, NoSectionError
 
 from cortx.utils.kv_store.error import KvError
 from cortx.utils.kv_store.kv_store import KvStore
 from cortx.utils.kv_store.kv_payload import KvPayload
 from cortx.utils.process import SimpleProcess
+from cortx.utils.common import ExponentialBackoff
 
 
 class JsonKvStore(KvStore):
@@ -70,7 +73,7 @@ class YamlKvStore(KvStore):
     def __init__(self, store_loc, store_path, delim='>'):
         KvStore.__init__(self, store_loc, store_path, delim)
         if not os.path.exists(self._store_path):
-            with open(self._store_path, 'w+') as f:
+            with open(self._store_path, 'w+'):
                 pass
 
     def load(self, **kwargs) -> KvPayload:
@@ -223,8 +226,8 @@ class TomlKvStore(KvStore):
 
 class IniKvPayload(KvPayload):
     """ In memory representation of INI conf data """
-    def __init__(self, configparser, delim='>'):
-        super().__init__(configparser, delim)
+    def __init__(self, config, delim='>'):
+        super().__init__(config, delim)
 
     def _get_keys(self, keys: list, data, pkey: str = None,
         key_index: bool = True) -> None:
@@ -233,29 +236,43 @@ class IniKvPayload(KvPayload):
                 keys.append(f"{section}{self._delim}{key}")
 
     def set(self, key, val):
-        k = key.split(self._delim, 1)
-        if len(k) <= 1:
-            raise KvError(errno.EINVAL, "Missing section in key %s", \
-                key)
+        k = key.split(self._delim)
+        if len(k) <= 1 or len(k) > 2:
+            raise KvError(errno.EINVAL, "Invalid key %s for INI format", key)
 
-        self._data[k[0]][k[1]] = val
+        if k[0] not in self._data.sections():
+            self._data.add_section(k[0])
+        self._data.set(k[0], k[1], val)
         if key not in self._keys:
             self._keys.append(key)
 
     def get(self, key):
-        k = key.split(self._delim, 1)
-        if len(k) <= 1:
-            raise KvError(errno.EINVAL, "Missing section in key %s", \
-                key)
-        return self._data[k[0]][k[1]]
+        k = key.split(self._delim)
+        if len(k) <= 1 or len(k) > 2:
+            raise KvError(errno.EINVAL, "Invalid key %s for INI format", key)
+        try:
+            return self._data.get(k[0],k[1])
+        except (NoOptionError, NoSectionError):
+            return None
 
-    def delete(self, key):
-        k = key.split(self._delim, 1)
-        if len(k) == 1:
-            self._data.remove_section(k[0])
-        elif len(k) == 2:
-            self._data.remove_option(k[0], k[1])
-        if key in self._keys: self._keys.remove(key)
+    def delete(self, key, *args):
+        k = key.split(self._delim)
+        if len(k) <= 1 or len(k) > 2:
+            raise KvError(errno.EINVAL, "Invalid key %s for INI format", key)
+
+        if k[0] not in self._data.sections():
+            return False
+
+        is_deleted = False
+        if len(k) == 2:
+            is_deleted = self._data.remove_option(k[0], k[1])
+            if is_deleted:
+                if key in self._keys: self._keys.remove(key)
+
+        if len(self._data.options(k[0])) == 0:
+            is_deleted = self._data.remove_section(k[0])
+
+        return is_deleted
 
 
 class IniKvStore(KvStore):
@@ -265,8 +282,8 @@ class IniKvStore(KvStore):
 
     def __init__(self, store_loc, store_path, delim='>'):
         KvStore.__init__(self, store_loc, store_path, delim)
-        self._config = configparser.ConfigParser()
-        self._type = configparser.SectionProxy
+        self._config = ConfigParser()
+        self._config.optionxform = lambda option: option
 
     def load(self, **kwargs) -> IniKvPayload:
         """ Reads from the file """
@@ -304,7 +321,8 @@ class DictKvStore(KvStore):
         try:
             self.data = json.loads(self._store_path)
         except JSONDecodeError as jerr:
-            raise KvError(errno.EINVAL, "Invalid dict format %s", jerr.__str__())
+            raise KvError(errno.EINVAL, "Invalid %s format %s",
+                self.name, jerr.__str__())
         return KvPayload(self.data, self._delim, recurse=recurse)
 
     def dump(self, data) -> None:
@@ -312,27 +330,10 @@ class DictKvStore(KvStore):
         self._store_path = data.get_data()
 
 
-class JsonMessageKvStore(JsonKvStore):
+class JsonMessageKvStore(DictKvStore):
     """ Represents and In Memory JSON Message """
 
     name = "jsonmessage"
-
-    def __init__(self, store_loc, store_path, delim='>'):
-        """
-        Represents the Json Without FIle
-        :param json_str: Json String to be processed :type: str
-        """
-        JsonKvStore.__init__(self, store_loc, store_path, delim)
-
-    def load(self) -> KvPayload:
-        """ Load json to python Dictionary Object. Returns Dict """
-        import json
-        return KvPayload(json.loads(self._store_path), self._delim)
-
-    def dump(self, data: dict) -> None:
-        """ Sets data after converting to json """
-        import json
-        self._store_path = json.dumps(data.get_data())
 
 
 class PropertiesKvStore(KvStore):
@@ -422,6 +423,7 @@ class ConsulKvPayload(KvPayload):
             if not self._store_path.endswith('/'): self._store_path = self._store_path + '/'
         self._keys = self.get_keys()
 
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def get(self, key: str, *args, **kwargs) -> str:
         """ Get value for consul key. """
         if not key in self._keys:
@@ -437,14 +439,17 @@ class ConsulKvPayload(KvPayload):
             raise KvError(errno.EINVAL, \
                 "Invalid response from consul: %d:%s", index, data)
 
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def _set(self, key: str, val: str, *args, **kwargs) -> Union[bool, None]:
         """ Set the value to the key in consul kv. """
         return self._consul.kv.put(self._store_path + key, str(val))
 
-    def _delete(self, key: str, *args, **kwargs) -> Union[bool, None]:
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
+    def _delete(self, key: str, data: dict, force: bool = False, *args, **kwargs) -> Union[bool, None]:
         """ Delete the key:value for the input key. """
-        return self._consul.kv.delete(self._store_path + key)
+        return self._consul.kv.delete(key = self._store_path + key, recurse = force)
 
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def get_data(self, format_type: str = None, *args, **kwargs):
         """ Return a dict of kv pair. """
         self._data = {}
@@ -456,6 +461,7 @@ class ConsulKvPayload(KvPayload):
             return self._data
         return Format.dump(self._data, format_type)
 
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def get_keys(self, starts_with: str = '', *args, **kwargs) -> list:
         """ Return a list of all the keys present. """
         keys=[]
@@ -476,6 +482,7 @@ class ConsulKvPayload(KvPayload):
                 keys.extend(key_list)
         return keys
 
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def search(self, parent_key: str, search_key: str, search_val: str) -> list:
         """
         Searches the given dictionary for the key and value.
@@ -513,6 +520,7 @@ class ConsulKVStore(KvStore):
                 "Failed to eshtablish a new connection to consul endpoint: %s.\n %s", \
                 store_loc, e)
 
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def load(self, **kwargs) -> ConsulKvPayload:
         """ Return ConsulKvPayload object. """
         return self._payload

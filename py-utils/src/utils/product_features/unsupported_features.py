@@ -15,20 +15,19 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import os
+from cortx.utils.common import DbConf
 from cortx.utils.data.access import Query
 from cortx.utils.data.access.filters import Compare, And
 from cortx.utils.data.db.db_provider import DataBaseProvider, GeneralConfig
 from cortx.utils import const
-from cortx.utils.log import Log
-from cortx.utils.schema import database
-from cortx.utils.schema.payload import Json
 from cortx.utils.product_features.model import UnsupportedFeaturesModel
 
 class UnsupportedFeaturesDB:
     def __init__(self) -> None:
         """Init load consul db for storing key in db."""
-        conf = GeneralConfig(database.DATABASE)
+        DbConf.init(const.CLUSTER_CONF)
+        dict_conf = DbConf.export_database_conf()
+        conf = GeneralConfig(dict_conf)
         self.storage = DataBaseProvider(conf)
 
     async def store_unsupported_feature(self, component_name, feature_name):

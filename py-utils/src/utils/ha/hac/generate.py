@@ -56,7 +56,6 @@ class Generator:
         to configuration provided by provision.
         """
         keys = re.findall(r"\${[^}]+}(?=[^]*[^]*)", str(compiled_schema))
-        args = {}
         new_compiled_schema = str(compiled_schema)
         for element in keys:
             key = element.replace("${", "").replace("}", "")
@@ -80,7 +79,6 @@ class Generator:
 class KubernetesGenerator(Generator):
     def __init__(self, compiled_file, output_file, args_file):
         super(KubernetesGenerator, self).__init__(compiled_file, output_file, args_file)
-        pass
 
     def create_script(self):
         with open(self._script, "w") as script_file:
@@ -183,7 +181,7 @@ class PCSGenerator(Generator):
             with open(self._script, "a") as f:
                 f.writelines("pcs cluster verify -V " +self._cluster_cfg+ "\n")
                 f.writelines("pcs cluster cib-push " +self._cluster_cfg+ "\n")
-        except Exception as e:
+        except Exception:
             raise Exception(str(traceback.format_exc()))
 
     def _res_create(self, res, res_mode):

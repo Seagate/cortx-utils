@@ -1,0 +1,5 @@
+validator.test_confkeys_validator
+validator.test_consul_validator
+validator.test_path_validator
+validator.test_pkg_validator
+validator.test_salt_validator

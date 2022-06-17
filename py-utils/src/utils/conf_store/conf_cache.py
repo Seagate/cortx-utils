@@ -60,6 +60,13 @@ class ConfCache:
         self._data.set(key, val)
         self._dirty = True
 
+    def add_num_keys(self):
+        """
+        Add "num_xxx" keys for all the list items in ine KV Store
+        """
+        self._data.add_num_keys()
+        self._dirty = True
+
     def search(self, parent_key: str, search_key: str, search_val: str) -> list:
         """
         Search for given key and value under a node
@@ -67,12 +74,12 @@ class ConfCache:
         """
         return self._data.search(parent_key, search_key, search_val)
 
-    def delete(self, key: str):
+    def delete(self, key: str, force: bool = False):
         """
         Delete a given key from the config.
         Return Value:
         return boolean True for success else False
         """
-        result = self._data.delete(key)
+        result = self._data.delete(key, force)
         self._dirty = True
         return result

@@ -43,13 +43,13 @@ class TestCmdFramework(unittest.TestCase):
         rc = 1
         try:
             argv = [ 'test', 'param1' ]
-            cmd = Cmd.get_command(sys.modules[__name__], 'test', argv)
+            Cmd.get_command(sys.modules[__name__], 'test', argv)
 
         except:
             rc = 0
-        
+
         self.assertEqual(rc, 0)
-            
-         
+
+
 if __name__ == '__main__':
     unittest.main()

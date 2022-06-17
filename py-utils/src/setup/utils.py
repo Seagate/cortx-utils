@@ -15,81 +15,27 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
-import glob
-import json
 import errno
-from pathlib import Path
 
 from cortx.utils import errors
-from cortx.utils import const
 from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
-from cortx.utils.common import SetupError
+from cortx.utils.common import SetupError, DbConf
 from cortx.utils.errors import TestFailed
 from cortx.utils.validator.v_pkg import PkgV
 from cortx.utils.process import SimpleProcess
 from cortx.utils.validator.error import VError
 from cortx.utils.validator.v_confkeys import ConfKeysV
 from cortx.utils.service.service_handler import Service
-from cortx.utils.common import CortxConf
+from cortx.utils.const import ( GCONF_INDEX, MSG_BUS_BACKEND_KEY, EXTERNAL_KEY,
+    CHANGED_PREFIX ,NEW_PREFIX, DELETED_PREFIX, DELTA_INDEX )
 
 
 class Utils:
     """ Represents Utils and Performs setup related actions """
+    utils_path = '/opt/seagate/cortx/utils'
 
     # Utils private methods
-
-
-    @staticmethod
-    def _delete_files(files: list):
-        """
-        Deletes the passed list of files
-
-        Args:
-            files ([str]): List of files to be deleted
-
-        Raises:
-            SetupError: If unable to delete file
-        """
-        for each_file in files:
-            if os.path.exists(each_file):
-                try:
-                    os.remove(each_file)
-                except OSError as e:
-                    raise SetupError(e.errno, "Error deleting file %s, \
-                        %s", each_file, e)
-
-    @staticmethod
-    def _get_utils_path() -> str:
-        """ Gets install path from cortx.conf and returns utils path """
-        install_path = CortxConf.get(key='install_path')
-        if not install_path:
-            local_storage_path = CortxConf.get_storage_path('local')
-            config_url = "%s://%s" % ('json', \
-                os.path.join(local_storage_path, 'utils/conf/cortx.conf'))
-            raise SetupError(errno.EINVAL, "install_path not found in %s",\
-                config_url)
-        return install_path
-
-    def _set_to_conf_file(key, value):
-        """ Add key value pair to cortx.conf file """
-        CortxConf.set(key, value)
-        CortxConf.save()
-
-    # Utils private methods
-    @staticmethod
-    def _get_from_conf_file(key) -> str:
-        """ Fetch and return value for the key from cortx.conf file """
-        val = CortxConf.get(key=key)
-
-        if not val:
-            local_storage_path = CortxConf.get_storage_path('local')
-            config_url = "%s://%s" % ('json', \
-                os.path.join(local_storage_path, 'utils/conf/cortx.conf'))
-            raise SetupError(errno.EINVAL, "Value for key: %s, not found in \
-                %s", key, config_url)
-
-        return val
 
     @staticmethod
     def _copy_cluster_map(config_path: str):
@@ -114,6 +60,12 @@ class Utils:
             Log.warn(f"Error in rsyslog service restart: {e}")
 
     @staticmethod
+    def _copy_database_conf(config_path: str):
+        """Copy database configuration from provided source to Consul KV"""
+        DbConf.init(config_path)
+        DbConf.import_database_conf(f'yaml://{Utils.utils_path}/conf/database.yaml')
+
+    @staticmethod
     def validate(phase: str):
         """ Perform validtions """
 
@@ -123,25 +75,7 @@ class Utils:
     @staticmethod
     def post_install(config_path: str):
         """ Performs post install operations """
-        # Check required python packages
-        install_path = Utils._get_from_conf_file('install_path')
-        utils_path = install_path + '/cortx/utils'
-        with open(f"{utils_path}/conf/python_requirements.txt") as file:
-            req_pack = []
-            for package in file.readlines():
-                pack = package.strip().split('==')
-                req_pack.append(f"{pack[0]} ({pack[1]})")
-        try:
-            with open(f"{utils_path}/conf/python_requirements.ext.txt") as extfile :
-                for package in extfile.readlines():
-                    pack = package.strip().split('==')
-                    req_pack.append(f"{pack[0]} ({pack[1]})")
-        except Exception:
-             Log.info("Not found: "+f"{utils_path}/conf/python_requirements.ext.txt")
-
-        PkgV().validate(v_type='pip3s', args=req_pack)
         default_sb_path = '/var/log/cortx/support_bundle'
-        Utils._set_to_conf_file('support>local_path', default_sb_path)
         os.makedirs(default_sb_path, exist_ok=True)
 
         post_install_template_index = 'post_install_index'
@@ -153,6 +87,7 @@ class Utils:
 
         #set cluster nodename:hostname mapping to cluster.conf (needed for Support Bundle)
         Utils._copy_cluster_map(config_path)
+        Utils._copy_database_conf(config_path)
 
         return 0
 
@@ -160,39 +95,11 @@ class Utils:
     def config(config_path: str):
         """Performs configurations."""
         # Load required files
-        config_template_index = 'config'
-        Conf.load(config_template_index, config_path)
-        # Configure log_dir for utils
-        log_dir = CortxConf.get_storage_path('log')
-        if log_dir is not None:
-            CortxConf.set('log_dir', log_dir)
-            CortxConf.save()
+        Conf.load(GCONF_INDEX, config_path)
 
         # set cluster nodename:hostname mapping to cluster.conf
-        Utils._copy_cluster_map(config_path)
+        Utils._copy_cluster_map(config_path) # saving node and host from gconf
         Utils._configure_rsyslog()
-
-        # get shared storage from cluster.conf and set it to cortx.conf
-        shared_storage = CortxConf.get_storage_path('shared', none_allowed=True)
-        if shared_storage:
-            Utils._set_to_conf_file('support>shared_path', shared_storage)
-
-        # temporary fix for a common message bus log file
-        # The issue happend when some user other than root:root is trying
-        # to write logs in these log dir/files. This needs to be removed soon!
-        log_dir = CortxConf.get('log_dir', '/var/log')
-        utils_log_dir = CortxConf.get_log_path(base_dir=log_dir)
-        #message_bus
-        os.makedirs(os.path.join(utils_log_dir, 'message_bus'), exist_ok=True)
-        os.chmod(os.path.join(utils_log_dir, 'message_bus'), 0o0777)
-        Path(os.path.join(utils_log_dir,'message_bus/message_bus.log')) \
-            .touch(exist_ok=True)
-        os.chmod(os.path.join(utils_log_dir,'message_bus/message_bus.log'), 0o0666)
-        #iem
-        os.makedirs(os.path.join(utils_log_dir, 'iem'), exist_ok=True)
-        os.chmod(os.path.join(utils_log_dir, 'iem'), 0o0777)
-        Path(os.path.join(utils_log_dir, 'iem/iem.log')).touch(exist_ok=True)
-        os.chmod(os.path.join(utils_log_dir, 'iem/iem.log'), 0o0666)
         return 0
 
     @staticmethod
@@ -203,11 +110,11 @@ class Utils:
         from cortx.utils.message_bus.error import MessageBusError
         try:
             # Read the config values
-            Conf.load('config', config_path, skip_reload=True)
-            message_bus_backend = Conf.get('config', \
-                'cortx>utils>message_bus_backend')
-            message_server_endpoints = Conf.get('config', \
-                f'cortx>external>{message_bus_backend}>endpoints')
+            # use gconf to create IEM topic
+            Conf.load(GCONF_INDEX, config_path, skip_reload=True)
+            message_bus_backend = Conf.get(GCONF_INDEX, MSG_BUS_BACKEND_KEY)
+            message_server_endpoints = Conf.get(GCONF_INDEX, \
+                f'{EXTERNAL_KEY}>{message_bus_backend}>endpoints')
             MessageBus.init(message_server_endpoints)
             admin = MessageBusAdmin(admin_id='register')
             admin.register_message_type(message_types=['IEM', \
@@ -225,13 +132,11 @@ class Utils:
         try:
             Log.info("Validating cortx-py-utils-test rpm")
             PkgV().validate('rpms', ['cortx-py-utils-test'])
-            install_path = Utils._get_from_conf_file('install_path')
-            utils_path = install_path + '/cortx/utils'
             import cortx.utils.test as test_dir
             plan_path = os.path.join(os.path.dirname(test_dir.__file__), \
                 'plans/', plan + '.pln')
             Log.info("Running test plan: %s", plan)
-            cmd = "%s/bin/run_test -c %s -t %s" %(utils_path, config_path, plan_path)
+            cmd = "%s/bin/run_test -c %s -t %s" %(Utils.utils_path, config_path, plan_path)
             _output, _err, _rc = SimpleProcess(cmd).run(realtime_output=True)
             if _rc != 0:
                 Log.error("Py-utils Test Failed")
@@ -248,13 +153,13 @@ class Utils:
         """Remove/Delete all the data/logs that was created by user/testing."""
         from cortx.utils.message_bus.error import MessageBusError
         try:
+            # use gconf to deregister IEM
             from cortx.utils.message_bus import MessageBusAdmin, MessageBus
             from cortx.utils.message_bus import MessageProducer
-            Conf.load('config', config_path, skip_reload=True)
-            message_bus_backend = Conf.get('config', \
-                'cortx>utils>message_bus_backend')
+            Conf.load(GCONF_INDEX, config_path, skip_reload=True)
+            message_bus_backend = Conf.get('config', MSG_BUS_BACKEND_KEY)
             message_server_endpoints = Conf.get('config', \
-                f'cortx>external>{message_bus_backend}>endpoints')
+                f'{EXTERNAL_KEY}>{message_bus_backend}>endpoints')
             MessageBus.init(message_server_endpoints)
             mb = MessageBusAdmin(admin_id='reset')
             message_types_list = mb.list_message_types()
@@ -269,15 +174,6 @@ class Utils:
         except Exception as e:
             raise SetupError(errors.ERR_OP_FAILED, "Internal error, can not \
                 reset Message Bus. %s", e)
-        # Clear the logs
-        utils_log_path = CortxConf.get_log_path()
-        if os.path.exists(utils_log_path):
-            cmd = "find %s -type f -name '*.log' -exec truncate -s 0 {} +" % utils_log_path
-            cmd_proc = SimpleProcess(cmd)
-            _, stderr, rc = cmd_proc.run()
-            if rc != 0:
-                raise SetupError(errors.ERR_OP_FAILED, \
-                    "Can not reset log files. %s", stderr)
         return 0
 
     @staticmethod
@@ -287,12 +183,12 @@ class Utils:
         # delete message_types
         from cortx.utils.message_bus.error import MessageBusError
         try:
+            # use gconf to clean and delete all message type in messagebus
             from cortx.utils.message_bus import MessageBus, MessageBusAdmin
-            Conf.load('config', config_path, skip_reload=True)
-            message_bus_backend = Conf.get('config', \
-                'cortx>utils>message_bus_backend')
-            message_server_endpoints = Conf.get('config', \
-                f'cortx>external>{message_bus_backend}>endpoints')
+            Conf.load(GCONF_INDEX, config_path, skip_reload=True)
+            message_bus_backend = Conf.get(GCONF_INDEX, MSG_BUS_BACKEND_KEY)
+            message_server_endpoints = Conf.get(GCONF_INDEX, \
+                f'{EXTERNAL_KEY}>{message_bus_backend}>endpoints')
             MessageBus.init(message_server_endpoints)
             mb = MessageBusAdmin(admin_id='cleanup')
             message_types_list = mb.list_message_types()
@@ -304,21 +200,42 @@ class Utils:
             raise SetupError(errors.ERR_OP_FAILED, "Can not cleanup Message  \
                 Bus. %s", e)
 
-        if pre_factory:
-            # deleting all log files as part of pre-factory cleanup
-            utils_log_path = CortxConf.get_log_path()
-            cortx_utils_log_regex = f'{utils_log_path}/**/*.log'
-            log_files = glob.glob(cortx_utils_log_regex, recursive=True)
-            Utils._delete_files(log_files)
-
         return 0
 
     @staticmethod
-    def upgrade(config_path: str):
+    def upgrade(config_path: str, change_set_path: str):
         """Perform upgrade steps."""
-        # ToDo - in future, for utils/message server config changes may be
-        # required during upgrade phase.
-        # Currently no config changes required.
+
+
+        Conf.load(DELTA_INDEX, change_set_path)
+        Conf.load(GCONF_INDEX, config_path, skip_reload=True)
+        delta_keys = Conf.get_keys(DELTA_INDEX)
+
+        # if message_bus_backend changed, add new and delete old msg bus entries
+        if CHANGED_PREFIX + MSG_BUS_BACKEND_KEY in delta_keys:
+            new_msg_bus_backend = Conf.get(DELTA_INDEX,
+                CHANGED_PREFIX + MSG_BUS_BACKEND_KEY).split('|')[1]
+            Conf.set(GCONF_INDEX, MSG_BUS_BACKEND_KEY, new_msg_bus_backend)
+            for key in delta_keys:
+                if NEW_PREFIX + EXTERNAL_KEY + new_msg_bus_backend in key:
+                    new_key = key.split(NEW_PREFIX)[1]
+                    new_val = Conf.get(DELTA_INDEX, key).split('|')[1]
+                    Conf.set(GCONF_INDEX, new_key, new_val )
+                if DELETED_PREFIX + EXTERNAL_KEY + new_msg_bus_backend in key:
+                    delete_key = key.split(DELETED_PREFIX)[1]
+                    Conf.delete(GCONF_INDEX, delete_key)
+
+        # update existing messagebus parameters
+        else:
+            msg_bus_backend = Conf.get(GCONF_INDEX, MSG_BUS_BACKEND_KEY)
+            for key in delta_keys:
+                if CHANGED_PREFIX + EXTERNAL_KEY + msg_bus_backend in key:
+                    new_val = Conf.get(DELTA_INDEX, key).split('|')[1]
+                    change_key = key.split(CHANGED_PREFIX)[1]
+                    Conf.set(GCONF_INDEX, change_key, new_val)
+
+        Conf.save(GCONF_INDEX)
+        Utils.init(config_path)
         return 0
 
     @staticmethod

@@ -23,10 +23,9 @@ import tarfile
 import errno
 import argparse
 
-from cortx.utils.common import CortxConf
-from cortx.utils.conf_store import Conf
 from cortx.utils.errors import UtilsError
-from cortx.utils.process import SimpleProcess
+from cortx.utils.const import CLUSTER_CONF_LOG_KEY
+from cortx.utils.conf_store import Conf, MappedConf
 
 
 class SupportBundleError(UtilsError):
@@ -43,18 +42,17 @@ class UtilsSupportBundle:
     _tmp_src = '/tmp/cortx/py-utils/'
 
     @staticmethod
-    def generate(bundle_id: str, target_path: str, cluster_conf: str, **filters):
+    def generate(bundle_id: str, target_path: str, cluster_conf_url: str, **filters):
         """ Generate a tar file. """
-        duration = filters.get('duration', 'P5D')
-        size_limit = filters.get('size_limit', '500MB')
-        binlogs = filters.get('binlogs', False)
-        coredumps = filters.get('coredumps', False)
-        stacktrace = filters.get('stacktrace', False)
+        # duration = filters.get('duration', 'P5D')
+        # size_limit = filters.get('size_limit', '500MB')
+        # binlogs = filters.get('binlogs', False)
+        # coredumps = filters.get('coredumps', False)
+        # stacktrace = filters.get('stacktrace', False)
         # TODO process duration, size_limit, binlogs, coredumps and stacktrace
         # Find log dirs
-        CortxConf.init(cluster_conf=cluster_conf)
-        log_base = CortxConf.get_storage_path('log')
-        local_base = CortxConf.get_storage_path('local')
+        cluster_conf = MappedConf(cluster_conf_url)
+        log_base = cluster_conf.get(CLUSTER_CONF_LOG_KEY)
         machine_id = Conf.machine_id
 
         if os.path.exists(UtilsSupportBundle._tmp_src):
@@ -65,9 +63,6 @@ class UtilsSupportBundle:
         shutil.copytree(os.path.join(log_base, f'utils/{machine_id}'),\
             os.path.join(UtilsSupportBundle._tmp_src, 'logs'))
 
-        # Copy configuration files
-        shutil.copytree(os.path.join(local_base, 'utils/conf'),\
-            os.path.join(UtilsSupportBundle._tmp_src, 'conf'))
         UtilsSupportBundle.__generate_tar(bundle_id, target_path)
         UtilsSupportBundle.__clear_tmp_files()
 
@@ -112,8 +107,7 @@ class UtilsSupportBundle:
         parser.add_argument('-t', dest='path', help='Path to store the created bundle',
             nargs='?', default="/var/seagate/cortx/support_bundle/")
         parser.add_argument('-c', dest='cluster_conf',\
-            help="Cluster config file path for Support Bundle",\
-            default='yaml:///etc/cortx/cluster.conf')
+            help="Cluster config file path for Support Bundle")
         parser.add_argument('-s', '--services', dest='services', nargs='+',\
             default='', help='List of services for Support Bundle')
         parser.add_argument('-d', '--duration', default='P5D', dest='duration',
@@ -147,7 +141,7 @@ def main():
     UtilsSupportBundle.generate(
         bundle_id=args.bundle_id,
         target_path=args.path,
-        cluster_conf=args.cluster_conf,
+        cluster_conf_url=args.cluster_conf,
         duration = args.duration,
         size_limit = args.size_limit,
         binlogs = args.binlogs,

@@ -42,6 +42,12 @@ class ConfCli:
         Conf.load(index, url)
 
     @staticmethod
+    def add_num_keys(args):
+        """Add "num_xxx" keys for all the list items in ine KV Store."""
+        Conf.add_num_keys(ConfCli._index)
+        Conf.save(ConfCli._index)
+
+    @staticmethod
     def set(args):
         """ Set Key Value """
         kv_delim = '=' if args.kv_delim == None else args.kv_delim
@@ -78,6 +84,7 @@ class ConfCli:
     @staticmethod
     def diff(args) -> str:
         """ Compare two diffenent string value for the given keys """
+        args.format = None
         if len(args.args) < 1:
             args.key_index = None
             string_1 = ConfCli.get_keys(args)
@@ -91,7 +98,6 @@ class ConfCli:
             args.url = args.second_url
             ConfCli.init(args.url)
             string_2 = ConfCli.get(args)
-        args.format = None
         cmd = """bash -c "diff <(echo \\"%s\\") <(echo \\"%s\\")" """ %(string_1, string_2)
         cmd_proc = SimpleProcess([cmd])
         cmd_proc.shell = True
@@ -119,16 +125,34 @@ class ConfCli:
         Conf.merge(dest_index, src_index, keys)
         Conf.save(dest_index)
 
+
+    @staticmethod
+    def compare(args):
+        """Compares two conf urls and return 3 lists: new_keys, deleted_keys, updated_keys."""
+        index1 = ConfCli._index
+        index2 = 'index2'
+        ConfCli.load(args.second_url, index2)
+        return Conf.compare(index1, index2)
+
+
     @staticmethod
     def delete(args):
         """ Deletes given set of keys from the config """
         key_list = args.args[0].split(';')
         is_deleted = []
         for key in key_list:
-            status = Conf.delete(ConfCli._index, key)
+            status = Conf.delete(ConfCli._index, key, args.force)
             is_deleted.append(status)
         if any(is_deleted):
             Conf.save(ConfCli._index)
+
+    @staticmethod
+    def copy(args):
+        """Copy One or more Keys to the target config url"""
+        key_list = None if len(args.args) < 1 else args.args[0].split(';')
+        target_index = 'target'
+        ConfCli.load(args.target_url, target_index)
+        Conf.copy(ConfCli._index, target_index, key_list)
 
     @staticmethod
     def get_keys(args, index: str = None) -> list:
@@ -200,6 +224,21 @@ class SetCmd:
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 
+class CopyCmd:
+    """ Copy Cmd Structure """
+
+    @staticmethod
+    def add_args(sub_parser) -> None:
+        s_parser = sub_parser.add_parser('copy', help=
+            "Copy Keys or whole config to the target config url.\n"
+            "Example command(s):\n"
+            "# conf json:///tmp/csm.conf copy json:///tmp/csm1.conf\n"
+            "# conf json:///tmp/csm.conf copy json:///tmp/csm1.conf 'k1>k2;k3'\n\n")
+        s_parser.set_defaults(func=ConfCli.copy)
+        s_parser.add_argument('target_url', help='target url for copy')
+        s_parser.add_argument('args', nargs='*', default=[], help='args')
+
+
 class DeleteCmd:
     """ Delete Cmd Structure """
 
@@ -213,6 +252,8 @@ class DeleteCmd:
             "Example command:\n"
             "# conf json:///tmp/csm.conf delete 'k1>k2;k3'\n\n")
         s_parser.set_defaults(func=ConfCli.delete)
+        s_parser.add_argument('--force', default=False, help=\
+            "force option to delete non-leaf keys")
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 
@@ -254,6 +295,20 @@ class MergeCmd:
             help='Only specified keys will be merged.')
 
 
+class CompareCmd:
+    """ Get Compare Cmd Structure """
+
+    @staticmethod
+    def add_args(sub_parser) -> None:
+        s_parser = sub_parser.add_parser('compare', help=
+            "Compares two given urls\n."
+            "Where it returns new_keys, deleted_keys and updated_keys lists by comparing url2 with url1\n"
+            "Example command:\n"
+            "# conf yaml:///tmp/url1.conf compare yaml:///tmp/url2.conf\n\n")
+        s_parser.add_argument('second_url', help='second url for compare')
+        s_parser.set_defaults(func=ConfCli.compare)
+
+
 class SearchCmd:
     """Search for a given key and value in conf store."""
 
@@ -261,13 +316,26 @@ class SearchCmd:
     def add_args(sub_parser) -> None:
        s_parser = sub_parser.add_parser('search', help=
             "Searches for the given key and value under a parent key.\n"
+            "Format:\n"
+            "# conf <url> <parent_key> <search_key> [<search_val>]\n\n"
             "Example Command:\n"
-            "# conf yaml:///tmp/test.conf search 'root' 'name' 'storage_node'\n\n")
+            "# conf yaml:///tmp/test.conf search 'root' 'name' 'storage_node'\n"
+            "# conf yaml:///tmp/test.conf search 'root' 'name' \n\n")
 
        s_parser.add_argument('parent_key', help="parent key")
        s_parser.add_argument('search_key', help="search key")
-       s_parser.add_argument('search_val', help="search val")
+       s_parser.add_argument('search_val', nargs='?', default=None, help="search val")
        s_parser.set_defaults(func=ConfCli.search)
+
+
+class AddNumKeysCmd:
+    @staticmethod
+    def add_args(sub_parser) -> None:
+        s_parser = sub_parser.add_parser('addnumkeys', help=
+            "Adds num keys for the list items" \
+            "Example Command:\n"
+            "# conf yaml:///tmp/test.conf addnumkeys\n\n")
+        s_parser.set_defaults(func=ConfCli.add_num_keys)
 
 def main():
     # Setup Parser

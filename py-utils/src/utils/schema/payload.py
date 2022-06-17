@@ -15,7 +15,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
-import os, errno, sys
+import os
 import tarfile
 import configparser
 from typing import List
@@ -224,18 +224,18 @@ class Payload:
         self._set(key, val, self._data)
         self._dirty = True
 
-    def convert(self, map, payload):
+    def convert(self, dict_map, payload):
         """
         Converts 1 Schema to 2nd Schema depending on mapping dictionary.
-        :param map: mapping dictionary :type:Dict
+        :param dict_map: mapping dictionary :type:Dict
         :param payload: Payload Class Object with desired Source.
         :return: :type: Dict
         Mapping file example -
         key <input schema> : value <output schema>
         """
-        for key in map.keys():
+        for key in dict_map.keys():
             val = self.get(key)
-            payload.set(map[key], val)
+            payload.set(dict_map[key], val)
         return payload
 
 class CommonPayload:
@@ -257,12 +257,10 @@ class CommonPayload:
         """
         try:
             extension = os.path.splitext(self._source)[1][1:].strip().lower()
-            """
-            The below if statement is just for temporary purpose to handle
-            serial number fie that has no extension to it.
-            In future the file will be moved to JSON with key, value pair and
-            the below check will be removed.
-            """
+            # The below if statement is just for temporary purpose to handle
+            # serial number fie that has no extension to it.
+            # In future the file will be moved to JSON with key, value pair and
+            # the below check will be removed.
             if not extension:
                 extension = "txt"
             doc_obj = self._MAP[extension]

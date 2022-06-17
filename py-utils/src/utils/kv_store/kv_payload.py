@@ -48,7 +48,7 @@ class KvPayload:
             return self._data
         return Format.dump(self._data, format_type)
 
-    def search(self, parent_key: str, search_key: str, search_val: str) -> list:
+    def search(self, parent_key: str, search_key: str, search_val: str = None) -> list:
         """
         Searches for the given search_key and search_val under parent_key.
         Returns all the matching keys
@@ -64,11 +64,15 @@ class KvPayload:
         """
 
         keys = []
+        key = key_prefix.split(self._delim)[-1]
+        if search_val is None and key == search_key:
+            self._get_keys(keys, data, key_prefix)
+            return keys
+
         if isinstance(data, list):
             for i, val in enumerate(data):
                 if isinstance(val, (str, int)):
-                    key = key_prefix.split(self._delim)[-1]
-                    if key == search_key and val == search_val:
+                    if key == search_key and search_val in (val, None):
                         keys.append("%s[%d]" % (key_prefix, i))
                 elif isinstance(val, dict):
                     keys.extend(self._search(val, search_key, search_val,
@@ -77,12 +81,33 @@ class KvPayload:
         elif isinstance(data, dict):
             for key, val in data.items():
                 if isinstance(val, (str, int)):
-                    if key == search_key and val == search_val:
+                    if key == search_key and search_val in (val, None):
                         keys.append("%s%s%s" % (key_prefix, self._delim, key))
                 elif isinstance(val, (dict, list)):
                     keys.extend(self._search(val, search_key, search_val,
                         "%s%s%s" % (key_prefix, self._delim, key)))
+
         return keys
+
+    def add_num_keys(self):
+        self._add_num_keys(self._data)
+
+    def _add_num_keys(self, data):
+        """Add "num_xxx" keys for all the list items in ine KV Store."""
+        num_keys = {}
+        if isinstance(data, dict):
+            for k, v in data.items():
+                if isinstance(v, dict):
+                    self._add_num_keys(v)
+                elif isinstance(v, list):
+                    num_keys[f'num_{k}'] = len(v)
+                    self._add_num_keys(v)
+            if len(num_keys) > 0:
+                data.update(num_keys)
+
+        if isinstance(data, list):
+            for v in data:
+                self._add_num_keys(v)
 
     def get_keys(self, starts_with: str = '', recurse: bool = True, **filters) -> list:
         """
@@ -94,8 +119,6 @@ class KvPayload:
                     when True, returns keys including array index
                     e.g. In case of "xxx[0],xxx[1]", only "xxx" is returned
         """
-        if all([len(filters.items()) == 0, not starts_with]):
-            return self._keys
         keys = []
         if recurse:
             self._get_keys(keys, self._data, None, **filters)
@@ -165,8 +188,8 @@ class KvPayload:
             if k[0] not in data.keys() or not isinstance(data[k[0]], list):
                 data[k[0]] = []
             # if index is more than list size, extend the list
-            for i in range(len(data[k[0]]), index + 1):
-                data[k[0]].append({})
+            for _ in range(len(data[k[0]]), index + 1):
+                data[k[0]].append('')
             # if this is leaf node of the key
             if len(k) == 1:
                 data[k[0]][index] = val
@@ -302,7 +325,7 @@ class KvPayload:
         """ read operator for KV payload, i.e. kv['xxx'] """
         return self.get(key)
 
-    def _delete(self, key: str, data: dict):
+    def _delete(self, key: str, data: dict, force: bool = False):
         k = key.split(self._delim, 1)
 
         index = None
@@ -319,24 +342,33 @@ class KvPayload:
             if index >= len(data[k[0]]):
                 return False
             if len(k) == 1:
-                del data[k[0]][index]
+                if index == len(data[k[0]]) - 1:
+                    del data[k[0]][index]
+                else:
+                    data[k[0]][index] = ''
                 return True
             else:
-                return self._delete(k[1], data[k[0]][index])
+                return self._delete(k[1], data[k[0]][index], force)
 
         if len(k) == 1:
-            del data[k[0]]
-            return True
+            # value of key being dict/list means it's not a leaf node
+            # or below nodes are deleted
+            is_key_leaf = False if isinstance(data[k[0]], (list, dict)) else True
+            if is_key_leaf or force or (len(data[k[0]]) == 0):
+                del data[k[0]]
+                return True
+            else:
+                raise KvError(errno.EINVAL, "Key: %s is not leaf key", key)
         else:
-            return self._delete(k[1], data[k[0]])
+            return self._delete(k[1], data[k[0]], force)
 
-    def delete(self, key) -> bool:
+    def delete(self, key, force: bool = False) -> bool:
         """
         Deletes given set of keys from the dictionary
         Return Value:
         returns True if key existed/deleted. Returns False if key not found.
         """
-        rc = self._delete(key, self._data)
+        rc = self._delete(key, self._data, force)
         if rc == True and key in self._keys:
             del self._keys[self._keys.index(key)]
         return rc

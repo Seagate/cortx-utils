@@ -17,11 +17,10 @@
 
 import os
 import unittest
-from unittest.mock import MagicMock
 import asyncio
 
 from cortx.utils.ha.dm.decision_maker import DecisionMaker
-from cortx.utils.schema.payload import Json, JsonMessage
+from cortx.utils.schema.payload import Json
 from cortx.utils.ha.dm.repository.decisiondb import DecisionDB
 
 dir_path = os.path.dirname(os.path.realpath(__file__))

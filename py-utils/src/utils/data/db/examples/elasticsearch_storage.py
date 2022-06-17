@@ -183,11 +183,11 @@ async def example():
         for i, model in enumerate(res):
             print(f"Model {i}: {model.to_primitive()}")
 
-    filter = And(Compare(AlertModel.primary_key, "=", 1),
+    filter_condition = And(Compare(AlertModel.primary_key, "=", 1),
                  And(Compare(AlertModel.status, "=", "Success"),
                      Compare(AlertModel.primary_key, ">", 1)))
 
-    query = Query().filter_by(filter).order_by(AlertModel.primary_key, SortOrder.DESC)
+    query = Query().filter_by(filter_condition).order_by(AlertModel.primary_key, SortOrder.DESC)
     res = await db(AlertModel).get(query)
     print(f"Get by query: {[alert.to_primitive() for alert in res]}")
 
@@ -198,7 +198,7 @@ async def example():
         'created_time': datetime.now()
     }
 
-    await db(AlertModel).update(filter, to_update)
+    await db(AlertModel).update(filter_condition, to_update)
 
     res = await db(AlertModel).get(query)
     print(f"Get by query after update: {[alert.to_primitive() for alert in res]}")

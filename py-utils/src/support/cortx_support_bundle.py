@@ -21,10 +21,13 @@ import argparse
 import inspect
 import sys
 import os
+import re
 import traceback
 from argparse import RawTextHelpFormatter
-from cortx.utils.common.common import CortxConf
+
+from cortx.utils.conf_store import MappedConf
 from cortx.utils.support_framework import const
+from cortx.utils.const import CLUSTER_CONF_LOG_KEY
 from cortx.utils.support_framework import SupportBundle
 
 
@@ -36,34 +39,46 @@ class CortxSupportBundle:
     def generate(args):
         """Generates support bundle for specified components."""
         from cortx.utils.support_framework.errors import BundleError
-        if not args.message:  # no message provided
-            raise BundleError("Please provide message, Why you are generating \
-                Support Bundle!")
         message = args.message[0]
+        if not message:
+            raise BundleError(errno.EINVAL, "Invalid or Empty message string. %s", message)
+
         bundle_id = args.bundle_id[0]
-        path = args.location[0]
+        bundle_id = bundle_id.strip()
+        if not bundle_id:
+            raise BundleError(errno.EINVAL, "Invalid Bundle ID to generate support bundle!")
+        regex = re.compile('[@!#$%^&*()<>?/\|}{~:]')
+        if (regex.search(bundle_id) != None):
+            raise BundleError(errno.EINVAL, ("Invalid Bundle ID,"
+                                             "No special characters allowed in Bundle ID."))
+
+        path = args.location
         duration = args.duration
         size_limit = args.size_limit.upper()
         # size_limit should be in units - KB, MB or GB.
         units = ['KB', 'MB', 'GB']
         sb_size_unit = any(unit in size_limit for unit in units)
         if not sb_size_unit:
-            sys.stderr.write("Support Bundle size limit should be in KB/MB/GB units.\n")
-            sys.exit(1)
-        binlogs = args.binlogs
-        coredumps = args.coredumps
-        stacktrace = args.stacktrace
+            raise BundleError(errno.EINVAL, "Support Bundle size limit should be in KB/MB/GB units.\
+                Size unit: %s", size_limit)
+
+        # Collect all [binlogs, coredumps, stacktrace] if "--all true" is passed
+        all_logs  = args.all
+        if all_logs:
+            binlogs = coredumps = stacktrace = True
+        else:
+            binlogs = args.binlogs
+            coredumps = args.coredumps
+            stacktrace = args.stacktrace
+
         components = args.modules
 
-        # Use default cortx conf url ('yaml:///etc/cortx/cluster.conf'),
-        # if not conf_url is parsed.
-        config_url = args.cluster_conf_path[0] if args.cluster_conf_path else const.DEFAULT_CORTX_CONF
+        config_url = args.cluster_conf_path[0]
         if 'file://' not in path:
-            sys.stderr.write(" Target path should be in file format.\n"
-                "Please specify the absolute target path.\n"
+            raise BundleError(errno.EINVAL, "Invalid target path specified.\n"
+                "Target path should be in file format.\n"
                 "For example:-\n"
                 "support_bundle generate -m 'test_cortx' -b 'abc' -t file:///var/cortx/support_bundle\n")
-            sys.exit(1)
         path = path.split('//')[1]
         os.makedirs(const.SB_PATH, exist_ok=True)
         bundle_obj = SupportBundle.generate(comment=message, target_path=path,
@@ -101,10 +116,10 @@ class GenerateCmd:
                 "#$ cortx_support_bundle generate generate -c <conf URL> -t <target URL> -b <bundle_id> -m <message>\n"
                 "For more help checkout cortx_support_bundle generate -h\n\n")
         s_parser.set_defaults(func=CortxSupportBundle.generate)
-        s_parser.add_argument('-c', '--cluster_conf_path', nargs='+', default='', \
-            help='Optional, Location- CORTX confstore file location.')
-        s_parser.add_argument('-t', '--location', nargs='+', required=True, \
-            help="Location- CORTX support bundle will be generated at specified location.")
+        s_parser.add_argument('-c', '--cluster_conf_path', nargs='+', required=True, \
+            help='Required, Location- CORTX confstore file location.')
+        s_parser.add_argument('-t', '--location', default='file:///var/cortx/support_bundle', \
+            help="Optional, Location- CORTX support bundle will be generated at specified location.")
         s_parser.add_argument('-b', '--bundle_id', nargs='+', required=True, \
             help='Bundle ID for Support Bundle')
         s_parser.add_argument('-m', '--message', nargs='+', required=True, \
@@ -121,6 +136,10 @@ class GenerateCmd:
             help="Include/Exclude stacktrace, Default = False")
         s_parser.add_argument('--modules',
             help="list of components & services to generate support bundle.")
+        s_parser.add_argument('--all', type=str2bool, default=False,
+            help="Include/Exclude all debug data, including logs, config, stack"
+             + " traces, core dumps, binaries, etc, possibly resulting"
+             + " in much HEAVIER support bundle, Default = False")
 
 
 class StatusCmd:
@@ -141,8 +160,8 @@ class StatusCmd:
         s_parser.set_defaults(func=CortxSupportBundle.get_status)
         s_parser.add_argument('-b', '--bundle_id', nargs='+', default='', \
             help='Bundle ID of generated Support Bundle')
-        s_parser.add_argument('-c', '--cluster_conf_path', nargs='+', default='', \
-            help='Optional, Location- CORTX confstore file location.')
+        s_parser.add_argument('-c', '--cluster_conf_path', nargs='+', required=True, \
+            help='Required, Location- CORTX confstore file location.')
 
 def str2bool(value):
     if isinstance(value, bool):
@@ -174,10 +193,11 @@ def main():
     # Parse and Process Arguments
     try:
         args = parser.parse_args()
-        cluster_conf_path = args.cluster_conf_path[0] if args.cluster_conf_path else 'yaml:///etc/cortx/cluster.conf'
-        CortxConf.init(cluster_conf=cluster_conf_path)
-        log_path = CortxConf.get_log_path('support')
-        log_level = CortxConf.get('utils>log_level', 'INFO')
+        cluster_conf_path = args.cluster_conf_path[0]
+        cluster_conf = MappedConf(cluster_conf_path)
+        log_path = os.path.join(cluster_conf.get(CLUSTER_CONF_LOG_KEY), \
+            f'utils/{Conf.machine_id}/support')
+        log_level = cluster_conf.get('utils>log_level', 'INFO')
         Log.init('support_bundle', log_path, level=log_level, backup_count=5, \
             file_size_in_mb=5)
         out = args.func(args)

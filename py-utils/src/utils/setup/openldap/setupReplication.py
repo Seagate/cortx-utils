@@ -35,6 +35,7 @@ class Replication:
             hostlist.append(line.strip())
         hostlist.sort()
 
+    @staticmethod
     def checkhostvalidity():
         totalhosts = 0;
         for host in hostlist :
@@ -45,6 +46,7 @@ class Replication:
                 quit()
         return totalhosts
 
+    @staticmethod
     def getserveridfromhostfile():
         serverid = 1
         for host in hostlist :
@@ -63,7 +65,7 @@ class Replication:
 
     def deleteattribute_old(conn, dn, attr_to_delete):
         ldap_result_id = conn.search_s(dn, ldap.SCOPE_BASE, None, [attr_to_delete])
-        for result1,result2 in ldap_result_id:
+        for _, result2 in ldap_result_id:
             if(result2):
                 for value in result2[attr_to_delete]:
                     if(value):
@@ -94,7 +96,7 @@ class Replication:
         dn = "cn=config"
         Replication.deleteattribute(conn, dn, 'olcserverid')
         Replication.addattribute(conn, dn, 'olcserverid', server_id)
-        
+
         dn = "cn=module,cn=config"
         add_record = [
          ('objectClass', [b'olcModuleList']),
