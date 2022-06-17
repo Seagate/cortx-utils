@@ -44,6 +44,6 @@ class ThreadSafeEvent(asyncio.Event):
         # await a future
         future = asyncio.run_coroutine_threadsafe(super().wait(), self._event_loop)
         future = asyncio.wrap_future(future)
-        done, pending = await asyncio.wait({future})
+        done, _ = await asyncio.wait({future})
         if not done:
             raise InternalError("Some internal asyncio error during waiting asyncio.Event.wait")

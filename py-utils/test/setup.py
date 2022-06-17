@@ -60,6 +60,7 @@ setup(
         "cortx.utils.test.ssh_connection",
         "cortx.utils.test.support_bundle",
         "cortx.utils.test.validator",
+        "cortx.utils.test.activity_tracker",
     ],
     package_data={
         "": [

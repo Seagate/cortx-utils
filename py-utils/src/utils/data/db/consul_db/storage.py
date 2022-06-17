@@ -294,7 +294,7 @@ class ConsulDB(GenericDataBase):
 
         obj_root = self._templates.get_object_root()
         obj_dir = self._templates.get_object_dir()
-        index, data = await self._consul_client.kv.get(obj_root)
+        _, data = await self._consul_client.kv.get(obj_root)
         if data is None:
             # maybe need to post creation time
             creation_time = datetime.now()
@@ -327,7 +327,7 @@ class ConsulDB(GenericDataBase):
     async def _get_all_raw(self) -> List[Dict]:
         obj_dir = self._templates.get_object_dir()
         obj_dir = obj_dir.lower() + "/"  # exclude key cortx/base/type/obj without trailing "/"
-        index, data = await self._consul_client.kv.get(obj_dir, recurse=True,
+        _, data = await self._consul_client.kv.get(obj_dir, recurse=True,
                                                        consistency=True)
         if data is None:
             return list()

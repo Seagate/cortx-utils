@@ -43,7 +43,7 @@ class esCleanup(object):
             try:
                 response = requests.post(f'http://{host}/{index}/_delete_by_query',
                                                               data = json.dumps(d), headers = headers)
-            except Exception as e:
+            except Exception:
                 self.logger.error(f'ERROR: cannot delete data for {index}', traceback.format_exc())
             if response.status_code == 200:
                 res = json.loads(response.text)

@@ -134,9 +134,9 @@ class KvStoreFactory:
 
         from cortx.utils.kv_store import kv_store_collection
         storage = inspect.getmembers(kv_store_collection, inspect.isclass)
-        for name, cls in storage:
-            if hasattr(cls, 'name') and store_type == cls.name:
-                KvStoreFactory._stores[store_url] = cls(store_loc, store_path,
+        for _, cls_obj in storage:
+            if hasattr(cls_obj, 'name') and store_type == cls_obj.name:
+                KvStoreFactory._stores[store_url] = cls_obj(store_loc, store_path,
                                                         delim)
                 return KvStoreFactory._stores[store_url]
 

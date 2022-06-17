@@ -81,7 +81,7 @@ class ControllerV:
         # ping controller IP
         cmd = "ping -c 1 -W 1 %s" % ip
         cmd_proc = SimpleProcess(cmd)
-        stdout, stderr, rc = cmd_proc.run()
+        _, stderr, rc = cmd_proc.run()
         if rc != 0:
             msg = "Ping failed for IP '%s'. Command: '%s', Return Code: '%s'." % (
                 ip, cmd, rc)

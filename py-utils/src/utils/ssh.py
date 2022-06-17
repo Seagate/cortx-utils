@@ -78,7 +78,7 @@ class SSHChannel(Channel):
         """Execute command on remote host."""
         if not self.is_connection_alive:
             self.connect()
-        stdin, stdout, stderr = self.client.exec_command(command)
+        _, stdout, stderr = self.client.exec_command(command)
         rc = stdout.channel.recv_exit_status()
         output = stdout.read().decode()
         error = stderr.read().decode()
