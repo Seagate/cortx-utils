@@ -437,7 +437,7 @@ class ElasticSearchDB(GenericDataBase):
         for key in self._model_scheme:
             doc[key] = getattr(obj, key)
             #  TODO: This will serialize only one level of nested objects. Need to implement for multi-level
-            if type(doc[key]) is list:
+            if isinstance(doc[key], list):
                 list_nested = []
                 for item in doc[key]:
                     nested_obj = dict()

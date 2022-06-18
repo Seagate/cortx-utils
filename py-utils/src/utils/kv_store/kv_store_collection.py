@@ -200,7 +200,7 @@ class TomlKvStore(KvStore):
     def __init__(self, store_loc, store_path, delim='>'):
         KvStore.__init__(self, store_loc, store_path, delim)
         if not os.path.exists(self._store_path):
-            with open(self._store_path, 'w+') as f:
+            with open(self._store_path, 'w+'):
                 pass
 
     def load(self, **kwargs) -> KvPayload:

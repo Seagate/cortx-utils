@@ -215,7 +215,7 @@ class Payload:
         if len(k) == 1:
             data[k[0]] = val
             return
-        if k[0] not in data.keys() or type(data[k[0]]) != self._doc._type:
+        if k[0] not in data.keys() or not isinstance(data[k[0]], self._doc._type):
             data[k[0]] = {}
         self._set(k[1], val, data[k[0]])
 

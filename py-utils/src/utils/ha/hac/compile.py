@@ -52,7 +52,7 @@ class Compiler:
         """
         Parse source_path for all component spec file
         """
-        for root, directories, filenames in os.walk(self.source_path):
+        for _, directories, filenames in os.walk(self.source_path):
             self._create_parse_file(directories, filenames)
 
     def create_schema(self):

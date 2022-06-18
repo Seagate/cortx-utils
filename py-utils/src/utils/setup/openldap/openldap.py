@@ -121,7 +121,7 @@ class Openldap:
                     Log.debug("Validation failed for %s in %s phase" % (key,  phase))
                     raise Exception("Validation failed for %s in %s phase" % (key, phase))
             elif (key.endswith("server_nodes")):
-                if type(value) is str:
+                if isinstance(value, str):
                     value = literal_eval(value)
                 for node_machine_id in value:
                     host_name = Conf.get(self.index, f'server_node>{node_machine_id}>hostname')

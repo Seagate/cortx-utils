@@ -235,7 +235,6 @@ class Elasticsearch:
             # log and data directory for Elasticsearch got cleared during
             # elasticsearch-oss,opendistro rpms removal.
             Log.info("No action needed for --pre-factory.")
-            pass
         Log.info("Cleanup done.")
         return 0
 
