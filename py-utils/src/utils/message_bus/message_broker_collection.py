@@ -62,6 +62,9 @@ class KafkaMessageBroker(MessageBroker):
         # Message timeout
         self._send_message_timeout = \
             broker_conf['message_bus']['send_timeout']
+        # Admin API timeout
+        self._admin_api_timeout = \
+            broker_conf['message_bus']['admin_api_timeout']
 
     def init_client(self, client_type: str, **client_conf: dict):
         """ Obtain Kafka based Producer/Consumer """
@@ -165,7 +168,7 @@ class KafkaMessageBroker(MessageBroker):
     def _get_metadata(self, admin: object):
         """ To get the metadata information of message type """
         try:
-            message_type_metadata = admin.list_topics().__dict__
+            message_type_metadata = admin.list_topics(timeout=self._admin_api_timeout).__dict__
             return message_type_metadata['topics']
         except KafkaException as e:
             Log.error(f"MessageBusError: {errors.ERR_OP_FAILED}. " \
