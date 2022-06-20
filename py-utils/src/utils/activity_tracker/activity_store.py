@@ -19,11 +19,14 @@ import errno
 import time
 import json
 import re
+import uuid
 
 from cortx.template import Singleton
 from cortx.utils.kv_store.kv_store import KvStoreFactory
 from cortx.utils.kv_store import KvPayload
 from cortx.utils.activity_tracker.error import ActivityError
+from cortx.utils.activity_tracker import const
+
 
 class ActivityEntry:
     """Represents System Activity"""
@@ -31,18 +34,29 @@ class ActivityEntry:
     def __init__(self, **kwargs):
         """Initializes the backend for the Activity Store."""
         self._payload = KvPayload()
-        activity_id = kwargs.get('id')
+        activity_id = kwargs.get(const.ID)
         if activity_id is None:
-            resource_path = kwargs.get('resource_path')
-            description = kwargs.get('description')
-            if resource_path is None or description is None:
-                raise ActivityError(errno.EINVAL, "Missing resource_path/description")
+            try:
+                activity_name = kwargs[const.NAME]
+                resource_path = kwargs[const.RESOURCE_PATH]
+                description = kwargs[const.DESCRIPTION]
+            except KeyError as e:
+                raise ActivityError(errno.EINVAL, "Missing required key: %s",
+                    str(e))
+            if activity_name is None or resource_path is None or \
+                description is None:
+                raise ActivityError(errno.EINVAL, "Missing activity_name/\
+                    resource_path/description")
 
-            self._id = f'{resource_path}>%s' %time.time()
-            self._payload['id'] = self._id
-            self._payload['resource_path'] = resource_path
-            self._payload['description'] = description
-            self._payload['pct_complete'] = 0
+            self._id = uuid.uuid1().hex
+            self._payload[const.ID] = self._id
+            self._payload[const.NAME] = activity_name
+            self._payload[const.RESOURCE_PATH] = resource_path
+            self._payload[const.DESCRIPTION] = description
+            self._payload[const.PCT_PROGRESS] = 0
+            self._payload[const.STATUS] = const.NEW
+            self._payload[const.STATUS_DESC] = const.CREATED_DESC
+            self._payload[const.CREATED_TIME] = int(time.time())
         else:
             self._id = activity_id
             for key, value in kwargs.items():
@@ -59,17 +73,26 @@ class ActivityEntry:
     def set_attr(self, attr: str, val: str):
         self._payload[attr] = val
 
-    def set_status(self, pct_complete: int, status: str):
-        self._payload['pct_complete'] = pct_complete
-        self._payload['status'] = status
+    def set_progress(self, pct_progress: int, status_desc: str):
+        if pct_progress < 0 or pct_progress > 99:
+            raise ActivityError(errno.EINVAL, f"update(): Invalid pct_progress:\
+                {pct_progress}")
+        self._payload[const.PCT_PROGRESS] = pct_progress
+        self._payload[const.STATUS] = const.IN_PROGRESS
+        self._payload[const.STATUS_DESC] = status_desc
+        self._payload[const.UPDATED_TIME] = int(time.time())
 
-    def start(self):
-        self._payload['start_time'] = time.time()
+    def finish(self, rc: int, status_desc: str):
+        self._payload[const.PCT_PROGRESS] = 100
+        self._payload[const.STATUS] = const.COMPLETED
+        self._payload[const.STATUS_DESC] = status_desc
+        self._payload[const.UPDATED_TIME] = int(time.time())
+        self._payload[const.RC] = rc
 
-    def finish(self, status: str = ""):
-        self._payload['pct_complete'] = 100
-        self._payload['finish_time'] = time.time()
-        self._payload['status'] = status
+    def suspend(self, status_desc: str):
+        self._payload[const.STATUS] = const.SUSPENDED
+        self._payload[const.STATUS_DESC] = status_desc
+        self._payload[const.UPDATED_TIME] = int(time.time())
 
 
 class Activity(metaclass=Singleton):
@@ -82,30 +105,69 @@ class Activity(metaclass=Singleton):
         Activity._kv_store = KvStoreFactory.get_instance(backend_url)
 
     @staticmethod
-    def create(resource_path: str, description: str):
-        """Creates a activity for the given resource."""
-        activity = ActivityEntry(resource_path=resource_path, description=description)
+    def create(name:str, resource_path: str, description: str) -> ActivityEntry:
+        """
+        Creates an activity.
+
+        Sets pct_progress to 0 and status to NEW.
+        Records the current time as the created time.
+        """
+        activity = ActivityEntry(name=name, resource_path=resource_path,
+            description=description)
         Activity._kv_store.set([activity.id], [activity.payload.json])
         return activity
 
     @staticmethod
-    def start(activity: ActivityEntry):
-        """Start the activity. Records the current time as the start time."""
+    def update(activity: ActivityEntry, pct_progress: int, status_desc: str = \
+        const.IN_PROGRESS_DESC):
+        """
+        Updates the pct_progress and status_description.
+        Sets the status to IN_PROGRESS.
+        Records current time as the updated_time.
+        """
         if not isinstance(activity, ActivityEntry):
-            raise ActivityError(errno.EINVAL, "start(): Invalid arg %s", activity)
-        activity.start()
+            raise ActivityError(errno.EINVAL, "update(): Invalid arg %s",
+                activity)
+        activity_data = json.loads(activity.payload.json)
+        if Activity.is_complete(activity_data):
+            raise ActivityError(errno.EINVAL, "update(): COMPLETED activity \
+                can not be updated")
+        if pct_progress < activity_data.get(const.PCT_PROGRESS):
+            raise ActivityError(errno.EINVAL, "update(): pct_progress: %s can \
+                not be less than the previously updated value", pct_progress)
+        activity.set_progress(pct_progress, status_desc)
         Activity._kv_store.set([activity.id], [activity.payload.json])
 
     @staticmethod
-    def finish(activity: ActivityEntry):
-        """Completes a activity. Records current time as the completion time."""
-        activity.finish()
+    def finish(activity: ActivityEntry, rc: int, status_desc: str = \
+        const.COMPLETED_DESC):
+        """
+        Completes the activity. Updates the rc and status_description.
+        Sets the status to COMPLETE and pct_progress to 100.
+        Records current time as the updated_time.
+        """
+        if not isinstance(activity, ActivityEntry):
+            raise ActivityError(errno.EINVAL, "finish(): Invalid arg %s",
+                activity)
+        activity.finish(rc, status_desc)
         Activity._kv_store.set([activity.id], [activity.payload.json])
 
     @staticmethod
-    def update(activity: ActivityEntry, pct_complete: int, status: str):
-        """Updates the activity progress."""
-        activity.set_status(pct_complete, status)
+    def suspend(activity: ActivityEntry, status_desc: str = \
+        const.SUSPENDED_DESC):
+        """
+        Suspends the activity and updates the status_description.
+        Sets the status to SUSPEND.
+        Records current time as the updated_time.
+        """
+        if not isinstance(activity, ActivityEntry):
+            raise ActivityError(errno.EINVAL, "suspend(): Invalid arg %s",
+                activity)
+        activity_data = json.loads(activity.payload.json)
+        if Activity.is_complete(activity_data):
+            raise ActivityError(errno.EINVAL, "suspend(): COMPLETED activity \
+                can not be suspended")
+        activity.suspend(status_desc)
         Activity._kv_store.set([activity.id], [activity.payload.json])
 
     @staticmethod
@@ -133,10 +195,15 @@ class Activity(metaclass=Singleton):
         return out_list
 
     @staticmethod
-    def get(activity_id: str):
-        """Gets the activity details."""
+    def get(activity_id: str) -> ActivityEntry:
+        """Gets the activity details by activity_id."""
         val = Activity._kv_store.get([activity_id])
         if len(val) == 0 or val[0] is None:
-            raise ActivityError(errno.EINVAL, "get(): invalid activity id %s", activity_id)
+            raise ActivityError(errno.EINVAL, "get(): invalid activity id %s",
+                activity_id)
         data = json.loads(val[0])
         return ActivityEntry(**data)
+
+    @staticmethod
+    def is_complete(activity_data: dict) -> bool:
+        return activity_data.get(const.STATUS) == const.COMPLETED
