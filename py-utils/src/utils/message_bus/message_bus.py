@@ -31,6 +31,7 @@ class MessageBus(metaclass=Singleton):
     _receive_timeout = 2
     _socket_timeout = 15000
     _send_timeout = 5000
+    _admin_api_timeout = 60
 
     @staticmethod
     def init(message_server_endpoints: list, **message_server_params_kwargs: dict):
@@ -48,6 +49,8 @@ class MessageBus(metaclass=Singleton):
             'socket_timeout' in message_server_keys else MessageBus._socket_timeout
         send_timeout = message_server_params_kwargs['send_timeout'] if \
             'send_timeout' in message_server_keys else MessageBus._send_timeout
+        admin_api_timeout = message_server_params_kwargs['admin_api_timeout'] if \
+            'admin_api_timeout' in message_server_keys else MessageBus._admin_api_timeout
 
         Conf.set(utils_index, 'message_broker>type', broker_type)
         Conf.set(utils_index, 'message_broker>cluster', endpoints)
@@ -57,6 +60,8 @@ class MessageBus(metaclass=Singleton):
             socket_timeout)
         Conf.set(utils_index, 'message_broker>message_bus>send_timeout', \
             send_timeout)
+        Conf.set(utils_index, 'message_broker>message_bus>admin_api_timeout', \
+            admin_api_timeout)
         Conf.save(utils_index)
 
         broker_conf = Conf.get(utils_index, 'message_broker')
