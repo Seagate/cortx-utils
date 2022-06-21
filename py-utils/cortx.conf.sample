@@ -19,6 +19,7 @@
   "message_bus": {
     "recv_message_timeout": 2,
     "controller_socket_timeout": 15000,
-    "send_message_timeout": 5000
+    "send_message_timeout": 5000,
+    "admin_api_timeout": 60.0
   }
 }
