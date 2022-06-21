@@ -45,7 +45,7 @@ class TestCmdFramework(unittest.TestCase):
             argv = [ 'test', 'param1' ]
             Cmd.get_command(sys.modules[__name__], 'test', argv)
 
-        except:
+        except Exception:
             rc = 0
 
         self.assertEqual(rc, 0)
