@@ -23,9 +23,7 @@ from cortx.utils.data.access.storage import AbstractDataBaseProvider
 
 
 class NamedEncryptedBytes(BaseModel):
-    """
-    Encrypted bytes model
-    """
+    """Encrypted bytes model."""
 
     _id = "name"
 
@@ -34,9 +32,7 @@ class NamedEncryptedBytes(BaseModel):
 
     @staticmethod
     def instantiate(name: str, data: str):
-        """
-        Creates an NamedEncryptedBytes instance
-        """
+        """Creates an NamedEncryptedBytes instance."""
 
         neb = NamedEncryptedBytes()
         neb.name = name
@@ -45,9 +41,7 @@ class NamedEncryptedBytes(BaseModel):
 
 
 class SecureStorage:
-    """
-    Storage of explicitly CORTX cipher encrypted objects upon Consul KVS
-    """
+    """Storage of explicitly CORTX cipher encrypted objects upon Consul KVS."""
 
     def __init__(self, storage: AbstractDataBaseProvider, key: bytes) -> None:
         self._storage = storage
@@ -55,7 +49,7 @@ class SecureStorage:
 
     async def _get_item(self, name: str) -> NamedEncryptedBytes:
         """
-        Gets NamedEncryptedBytes object with encrypted payload from the storage
+        Gets NamedEncryptedBytes object with encrypted payload from the storage.
 
         Returns NamedEncryptedBytes object if the item with provided name exists or None
         """
@@ -66,7 +60,7 @@ class SecureStorage:
 
     async def store(self, name: str, data: bytes, force=False) -> None:
         """
-        Saves the data to the encrypted storage
+        Saves the data to the encrypted storage.
 
         Data is AES encrypted with the default CORTX cipher and stored
         as Base64 encoded string with the provided name.
@@ -86,7 +80,7 @@ class SecureStorage:
 
     async def get(self, name: str) -> bytes:
         """
-        Gets bytes from the encrypted storage
+        Gets bytes from the encrypted storage.
 
         Acquires the data from the storage and decrypts it with the default CORTX cipher
         Raises CipherInvalidToken if decryption fails.
@@ -100,9 +94,7 @@ class SecureStorage:
         return decrypted_bytes
 
     async def delete(self, name: str) -> None:
-        """
-        Removes the data from the encrypted storage
-        """
+        """Removes the data from the encrypted storage."""
 
         neb = await self._get_item(name)
         if neb is None:

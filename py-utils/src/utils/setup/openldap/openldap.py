@@ -60,7 +60,7 @@ class Openldap:
     cluster_id_key = None
 
     def __init__(self, conf_url):
-        """Constructor"""
+        """Constructor."""
         Conf.load(self.prov, f'yaml://{self._prov_conf_file}')
         if not os.path.isfile(self._preqs_conf_file):
             raise Exception("%s file file not found" % (self._preqs_conf_file))
@@ -71,7 +71,7 @@ class Openldap:
         self.url = conf_url
         self.machine_id = Conf.machine_id
 
-        self.cluster_id_key = Conf.get(self.prov, \
+        self.cluster_id_key = Conf.get(self.prov,\
             'CONFIG>CONFSTORE_CLUSTER_ID_KEY').\
             replace("machine-id", self.machine_id)
         self.cluster_id = Conf.get(self.index, self.cluster_id_key)
@@ -121,7 +121,7 @@ class Openldap:
                     Log.debug("Validation failed for %s in %s phase" % (key,  phase))
                     raise Exception("Validation failed for %s in %s phase" % (key, phase))
             elif (key.endswith("server_nodes")):
-                if type(value) is str:
+                if isinstance(value, str):
                     value = literal_eval(value)
                 for node_machine_id in value:
                     host_name = Conf.get(self.index, f'server_node>{node_machine_id}>hostname')
@@ -227,7 +227,10 @@ class Openldap:
             raise Exception("ERROR : Validating keys failed")
 
     def post_install(self):
-        """Performs post install operations. Raises exception on error."""
+        """Performs post install operations.
+
+        Raises exception on error.
+        """
         phase_name = "post_install"
         Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)
@@ -236,7 +239,10 @@ class Openldap:
         return 0
 
     def prepare(self):
-        """Perform prepare operations. Raises exception on error."""
+        """Perform prepare operations.
+
+        Raises exception on error.
+        """
         phase_name = "prepare"
         Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)
@@ -245,7 +251,10 @@ class Openldap:
         return 0
 
     def config(self):
-        """Performs configurations. Raises exception on error."""
+        """Performs configurations.
+
+        Raises exception on error.
+        """
         phase_name = "config"
         Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)
@@ -255,7 +264,10 @@ class Openldap:
         return 0
 
     def init(self):
-        """Perform initialization. Raises exception on error."""
+        """Perform initialization.
+
+        Raises exception on error.
+        """
         phase_name = "init"
         Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)
@@ -264,7 +276,10 @@ class Openldap:
         return 0
 
     def test(self, plan, config: str):
-        """Perform configuration testing. Raises exception on error."""
+        """Perform configuration testing.
+
+        Raises exception on error.
+        """
         phase_name = "test"
         Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)
@@ -274,7 +289,10 @@ class Openldap:
         return 0
 
     def reset(self):
-        """Performs Configuration reset. Raises exception on error."""
+        """Performs Configuration reset.
+
+        Raises exception on error.
+        """
         phase_name = "reset"
         Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)
@@ -284,7 +302,10 @@ class Openldap:
         return 0
 
     def cleanup(self):
-        """Performs Configuration cleanup. Raises exception on error."""
+        """Performs Configuration cleanup.
+
+        Raises exception on error.
+        """
         phase_name = "cleanup"
         Log.debug("%s - Starting" % phase_name)
         self.validate(phase_name)

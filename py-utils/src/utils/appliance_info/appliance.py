@@ -65,7 +65,7 @@ class ApplianceInfo:
         if len(new_key) == 1:
             data[new_key[0]] = val
             return
-        if new_key[0] not in data.keys() or type(data[new_key[0]]) != self._type:
+        if new_key[0] not in data.keys() or not isinstance(data[new_key[0]], self._type):
             data[new_key[0]] = {}
         self._setval(new_key[1], val, data[new_key[0]])
 

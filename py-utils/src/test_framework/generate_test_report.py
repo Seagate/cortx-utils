@@ -65,9 +65,7 @@ footer_template = """
                 </body></html>"""
 
 def generate_html_report(test_result):
-    """
-    Generates HTML test_report under /tmp.
-    """
+    """Generates HTML test_report under /tmp."""
     result_table = ''
     overall_status = 'Passed'
     total_ts = 0
@@ -82,11 +80,11 @@ def generate_html_report(test_result):
             st_style = "<p style='color:red'>"
             st_end = "</p>"
             status = st_style + status + st_end
-        result_table += result_template.format(testsuite=ts, status=status, \
+        result_table += result_template.format(testsuite=ts, status=status,\
             duration=duration)
         total_ts += 1
         time_taken += duration
-    footer = footer_template.format(overall_status, total_ts, \
+    footer = footer_template.format(overall_status, total_ts,\
         total_ts-total_failed, total_failed, time_taken)
     test_data = header_template + result_table + footer
     with open('/tmp/py_utils_test_report.html', 'w') as test_report:

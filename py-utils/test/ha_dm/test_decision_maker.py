@@ -28,7 +28,7 @@ file_path = os.path.join(dir_path, 'test_alert.json')
 rules_schema_path = os.path.join(dir_path, 'rules_engine_schema.json')
 
 class TestDecisionMaker(unittest.TestCase):
-    """Module to test DecisionMaker class"""
+    """Module to test DecisionMaker class."""
 
     res_to_entity_mapping = {
         "enclosure": ("enclosure", "connectivity"),
@@ -42,7 +42,7 @@ class TestDecisionMaker(unittest.TestCase):
     _loop = asyncio.get_event_loop()
 
     def test_handle_alert(self):
-        """tests handle_alert functio of DecisionMaker class"""
+        """Tests handle_alert functio of DecisionMaker class."""
 
         assert self.json_alert_data is not None
         self.assertTrue(isinstance(self.json_alert_data, dict))
@@ -68,11 +68,11 @@ class TestDecisionMaker(unittest.TestCase):
         res_type_data = self.rules_data[res_type]
         if res_type_data is not None:
             for item in res_type_data:
-                if alert_type == item["alert_type"] and \
+                if alert_type == item["alert_type"] and\
                     severity == item["severity"]:
                     action = item["action"]
 
-        self.mock_decisiondb.store_event.assert_called_with(entity, entity_id, \
+        self.mock_decisiondb.store_event.assert_called_with(entity, entity_id,\
             component, component_id, event_time, action)
 
 if __name__ == '__main__':

@@ -31,7 +31,7 @@ class FilterLog:
     @staticmethod
     def _get_delim_value(duration:str, delim:str) -> int:
         """
-        Returns value for passed delim
+        Returns value for passed delim.
 
         Args:
             duration (str): duration is ISO 8601 format eg P4DT2H10M
@@ -49,7 +49,7 @@ class FilterLog:
     @staticmethod
     def _parse_duration(duration:str):
         """
-        Parses duration and and converts correspondign time in millisecons
+        Parses duration and and converts correspondign time in millisecons.
 
         Args:
             duration (str): Duraion in ISO 8601 format,
@@ -103,11 +103,11 @@ class FilterLog:
     def _truncate_file_size(src_dir: str, dest_dir: str, file_name: str,
                            original_file_size: int, required_file_size: int):
         """
-        Truncate the Log file's size to the required file size,
+        Truncate the Log file's size to the required file size,.
 
         Returns the output file after writing in dest_dir.
         """
-        with open(os.path.join(src_dir, file_name), 'r+b') as ReadHandle, \
+        with open(os.path.join(src_dir, file_name), 'r+b') as ReadHandle,\
                 open(os.path.join(dest_dir, file_name), 'w+b') as WriteHandle:
             ReadHandle.seek(original_file_size - required_file_size)
             WriteHandle.write(ReadHandle.read())
@@ -150,7 +150,8 @@ class FilterLog:
     @staticmethod
     def limit_time(src_dir, dest_dir, duration, file_name_reg_ex):
         """
-        Filters out log in the src_dir that were generated between passed
+        Filters out log in the src_dir that were generated between passed.
+
         duration and copies them to dest_dir
 
         Args:

@@ -29,7 +29,8 @@ class ServiceV:
 	def validate(self, v_type: str, args: list, host: str = None):
 		"""
 		Process service validations.
-		Usage (arguments to be provided):
+
+                Usage (arguments to be provided):
 		1. service isrunning host (optional) [servicenames]
 		"""
 

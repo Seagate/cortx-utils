@@ -31,7 +31,8 @@ class StorageResourceMap:
     @staticmethod
     def get_health_info(rpath):
         """
-        Fetch health information for given FRU
+        Fetch health information for given FRU.
+
         rpath: Resource id (Example: node>storage[0]>hw>controller)
         """
         return Conf.get(mock_health, rpath)
@@ -39,7 +40,8 @@ class StorageResourceMap:
     @staticmethod
     def get_manifest_info(rpath):
         """
-        Fetch manifest for given FRU
+        Fetch manifest for given FRU.
+
         rpath: Resource id (Example: node>storage[0]>hw>controller)
         """
         return Conf.get(mock_manifest, rpath)

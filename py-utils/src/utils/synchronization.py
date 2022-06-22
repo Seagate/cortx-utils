@@ -28,7 +28,7 @@ class ThreadSafeEvent(asyncio.Event):
 
     @property
     def _event_loop(self):
-        """Method-wrapper to obtain a current event loop"""
+        """Method-wrapper to obtain a current event loop."""
         return self._loop  # TODO: maybe it is better to call asyncio.get_event_loop()
 
     def clear(self):

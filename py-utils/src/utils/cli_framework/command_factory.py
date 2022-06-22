@@ -22,14 +22,16 @@ from cortx.utils.cli_framework.parser import ArgumentParser, CommandParser
 
 class CommandFactory(object):
     """
-    Factory for representing and creating command objects using
+    Factory for representing and creating command objects using.
+
     a generic skeleton.
     """
 
     @staticmethod
     def get_command(argv, permissions={}, component_cmd_dir="", excluded_cmds=[], hidden_cmds=[]):
         """
-        Parse the command line as per the syntax and retuns
+        Parse the command line as per the syntax and retuns.
+
         returns command representing the command line.
         """
         if len(argv) <= 1:

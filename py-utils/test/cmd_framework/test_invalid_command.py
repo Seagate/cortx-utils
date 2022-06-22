@@ -22,7 +22,7 @@ from cortx.utils.cmd_framework import Cmd
 
 
 class TestCmd(Cmd):
-  """ Test Command """
+  """Test Command."""
 
   def __init__(self, args: dict):
     super().__init__(args)
@@ -38,7 +38,7 @@ class TestCmdFramework(unittest.TestCase):
     """Test EventMessage send and receive functionality."""
 
     def test_cmd_args(self):
-        """ Test Cmd and Args """
+        """Test Cmd and Args."""
 
         rc = 1
         try:

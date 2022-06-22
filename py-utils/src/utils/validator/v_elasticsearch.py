@@ -27,6 +27,7 @@ class ElasticsearchV:
     def validate(self, v_type, args):
         """
         Process elasticsearch validations.
+
         Usage (arguments to be provided):
         1. elasticsearch service localhost 9200
         """

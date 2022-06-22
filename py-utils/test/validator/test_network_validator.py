@@ -56,7 +56,7 @@ class TestNetworkValidator(unittest.TestCase):
                           args)
 
     def test_ofed_install_ok(self):
-        """Check OFED Installed"""
+        """Check OFED Installed."""
 
         NetworkV().validate('drivers', ["mlnx-ofed", 'srvnode-1'])
 

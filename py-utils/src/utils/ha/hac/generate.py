@@ -30,7 +30,8 @@ from cortx.utils.ha.hac import const
 class Generator:
     def __init__(self, compiled_file, output_file, args_file):
         """
-        compiled_file   : Compiled file generate by hac compiler
+        Compiled_file   : Compiled file generate by hac compiler.
+
         output_file     : Output file for target ha tool
         args_file       : Provision file for dynamic input
         """
@@ -52,7 +53,8 @@ class Generator:
 
     def _provision_compiled_schema(self, compiled_schema):
         """
-        Scan schema and replace ${var} in compiled schema
+        Scan schema and replace ${var} in compiled schema.
+
         to configuration provided by provision.
         """
         keys = re.findall(r"\${[^}]+}(?=[^]*[^]*)", str(compiled_schema))
@@ -64,9 +66,7 @@ class Generator:
         self.compiled_json = ast.literal_eval(new_compiled_schema)
 
     def _is_file(self, filename):
-        """
-        Check if file exists
-        """
+        """Check if file exists."""
         if not os.path.isfile(filename):
             raise Exception("%s invalid file in genarator" %filename)
 
@@ -94,7 +94,8 @@ class KubernetesGenerator(Generator):
 class PCSGenerator(Generator):
     def __init__(self, compiled_file, output_file, args_file):
         """
-        compiled_file: combined spec file
+        Compiled_file: combined spec file.
+
         output_file: output file generate by Generator
         """
         super(PCSGenerator, self).__init__(compiled_file, output_file, args_file)
@@ -106,9 +107,7 @@ class PCSGenerator(Generator):
         }
 
     def create_script(self):
-        """
-        Create targeted rule file for PCSGenerate
-        """
+        """Create targeted rule file for PCSGenerate."""
         with open(self._script, "w") as script_file:
             script_file.writelines("#!/bin/bash\n\n")
             script_file.writelines("#Assign variable\n\n")
@@ -120,11 +119,8 @@ class PCSGenerator(Generator):
         self._cluster_create()
 
     def _assign_var(self):
-        """
-        Assign value to runtime variable
-        """
+        """Assign value to runtime variable."""
         keys = list(set(re.findall(r"\${[^}]+}(?=[^]*[^]*)", str(self.compiled_json))))
-        args = {}
         with open(self._script, "a") as script_file:
             script_file.writelines("pcs_status=$(pcs constraint)\n")
             script_file.writelines("pcs_location=$(pcs constraint location)\n")
@@ -135,9 +131,7 @@ class PCSGenerator(Generator):
                     script_file.writelines(variable+ "="+ str(Conf.get(const.PROV_CONF_INDEX, key))+"\n")
 
     def _pcs_cmd_load(self):
-        """
-        Contain all command to generate pcs cluster
-        """
+        """Contain all command to generate pcs cluster."""
         self._resource_create = Template("echo $$pcs_status | grep -q $resource || "+
             "pcs -f $cluster_cfg resource create $resource "+
             "$provider $param meta failure-timeout=$fail_tout "+
@@ -159,9 +153,7 @@ class PCSGenerator(Generator):
             "pcs -f $cluster_cfg constraint colocation set $res1 $res2")
 
     def _cluster_create(self):
-        """
-        Create pcs cluster
-        """
+        """Create pcs cluster."""
         try:
             self._pcs_cmd_load()
             for res in self._resource_set.keys():
@@ -247,9 +239,7 @@ class PCSGenerator(Generator):
             f.writelines(primary+ "\n")
 
     def _get_clone_name(self, resource):
-        """
-        Parse and return clone name
-        """
+        """Parse and return clone name."""
         res_name = ""
         mode = self._resource_set[resource]["ha"]["mode"]
         if mode != "active_passive":
@@ -297,16 +287,12 @@ class PCSGenerator(Generator):
 class PCSGeneratorResource(PCSGenerator):
 
     def __init__(self, compiled_file, output_file, args_file, resources):
-        """
-        Update schema for perticular resource
-        """
+        """Update schema for perticular resource."""
         self._resources = resources if resources is None else resources.split()
         super(PCSGeneratorResource, self).__init__(compiled_file, output_file, args_file)
 
     def _modify_schema(self):
-        """
-        Modify schema sutaible for less resources
-        """
+        """Modify schema sutaible for less resources."""
         if self._resources is None:
             return
         for resource in self._resources:
@@ -322,9 +308,7 @@ class PCSGeneratorResource(PCSGenerator):
         self.compiled_json = self._new_compiled_schema
 
     def _search_recursive(self):
-        """
-        Search all predecessors resources recursivlly
-        """
+        """Search all predecessors resources recursivlly."""
         for resource in self._recursive_list:
             predecessors = self.compiled_json['resources'][resource]['dependencies']['predecessors']
             colocation = self.compiled_json['resources'][resource]['dependencies']['colocation']
@@ -333,17 +317,13 @@ class PCSGeneratorResource(PCSGenerator):
         self._recursive_list = list(set(self._recursive_list))
 
     def _modify_compiled_schema_resources(self):
-        """
-        Remove all unwanted resources from compiled schema
-        """
+        """Remove all unwanted resources from compiled schema."""
         for resource in self.compiled_json['resources']:
             if resource not in self._recursive_list:
                 del self._new_compiled_schema['resources'][resource]
 
     def _update_edge(self, key):
-        """
-        Remove edges that not in use
-        """
+        """Remove edges that not in use."""
         for edge in self.compiled_json[key]:
             if edge[0] not in self._recursive_list or edge[1] not in self._recursive_list:
                 self._new_compiled_schema[key].remove(edge)

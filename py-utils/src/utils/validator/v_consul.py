@@ -27,6 +27,7 @@ class ConsulV:
     def validate(self, v_type, args):
         """
         Process consul validations.
+
         Usage (arguments to be provided):
         1. consul service localhost 8500
         """

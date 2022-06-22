@@ -22,7 +22,7 @@ from cortx.utils.cmd_framework import Cmd
 
 
 class TestCmd(Cmd):
-  """ Test Command """
+  """Test Command."""
 
   name = "test"
 
@@ -40,7 +40,7 @@ class TestCmdFramework(unittest.TestCase):
     """Test EventMessage send and receive functionality."""
 
     def test_cmd_args(self):
-        """ Test Cmd and Args """
+        """Test Cmd and Args."""
 
         argv = [ 'test', 'param1' ]
         cmd = Cmd.get_command(sys.modules[__name__], 'test', argv)

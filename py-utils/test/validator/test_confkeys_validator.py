@@ -23,16 +23,18 @@ import os
 from cortx.utils.conf_store import Conf
 from cortx.utils.validator.v_confkeys import ConfKeysV
 
-json_test_data ={
-"bridge": {
-"name": "Homebridge",
-"username": "CC:22:3D:E3:CE:30",
-"manufacturer": "homebridge.io",
-"model": "homebridge",
-"pin": "031-45-154",
-"port": 51826,
-"lte_type": [{"name": "3g"}, {"name": "4g"}]
-}
+json_test_data =
+{
+    "bridge":
+    {
+        "name": "Homebridge",
+        "username": "CC:22:3D:E3:CE:30",
+        "manufacturer": "homebridge.io",
+        "model": "homebridge",
+        "pin": "031-45-154",
+        "port": 51826,
+        "lte_type": [ {"name": "3g"}, {"name": "4g"} ]
+    }
 }
 
 index="test_conf_idx"
@@ -48,7 +50,7 @@ def generate_config():
 
 
 class TestConfStore(unittest.TestCase):
-    """Test case will test available API's of v_confkeys"""
+    """Test case will test available API's of v_confkeys."""
 
     @classmethod
     def setUpClass(cls):

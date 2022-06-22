@@ -24,7 +24,7 @@ from cortx.utils.setup.openldap.setupcmd import SetupCmd, OpenldapPROVError
 
 class ResetCmd(SetupCmd):
 
-    """Reset cmd initialization"""
+    """Reset cmd initialization."""
     Log.init('OpenldapProvisioning','/var/log/cortx/utils/openldap',\
              level='DEBUG')
     def __init__(self, config: str):

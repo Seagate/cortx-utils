@@ -149,7 +149,7 @@ class IDataBase(ABC):
     async def max(self, ext_query: ExtQuery):
         """Max Aggregation function
 
-            :param ExtQuery ext_query: Extended query which describes how to perform Max aggregation
+        :param ExtQuery ext_query: Extended query which describes how to perform Max aggregation
 
         """
         pass
@@ -158,7 +158,7 @@ class IDataBase(ABC):
     async def min(self, ext_query: ExtQuery):
         """Min Aggregation function
 
-            :param ExtQuery ext_query: Extended query which describes how to perform Min aggregation
+        :param ExtQuery ext_query: Extended query which describes how to perform Min aggregation
 
         """
         pass

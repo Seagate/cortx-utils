@@ -24,12 +24,13 @@ from cryptography.x509.oid import NameOID
 from cortx.utils.errors import SSLCertificateError
 
 class Certificate:
-    """Factory class for certificate"""
+    """Factory class for certificate."""
 
     @staticmethod
     def init(cert_type):
         """
-        This function creates a object of desired certificate type
+        This function creates a object of desired certificate type.
+
         :param: cert_type: Certificate type
         :returns: Object of desired certificate type
         """
@@ -41,11 +42,12 @@ class Certificate:
         return cert[cert_type]()
 
 class SSLCertificate:
-    """Class to generate self signed SSL Certificate"""
+    """Class to generate self signed SSL Certificate."""
 
     def _prepare_private_key(self):
         """
-        This function generates a private key
+        This function generates a private key.
+
         :return: Private key
         """
         private_key = rsa.generate_private_key(
@@ -58,7 +60,8 @@ class SSLCertificate:
     def _prepare_ssl_certificate(self, private_key:rsa.RSAPrivateKeyWithSerialization,
                                 dns_list, expiry_days, **ssl_cert_configs):
         """
-        This function generates a self-signed certificate
+        This function generates a self-signed certificate.
+
         :param private_key: Private_key
         :param dns_list: List of unicode dns names eg. [u"*.seagate.com", u"localhost"]
         :param expiry_days: Period in days for which certificate will be valid, default: 10 yrs
@@ -101,7 +104,8 @@ class SSLCertificate:
 
     def _create_dirs(self, file_path):
         """
-        This function creates parent directories if not already present
+        This function creates parent directories if not already present.
+
         :param file_path: File path
         :return: None
         """
@@ -111,7 +115,8 @@ class SSLCertificate:
 
     def generate(self, cert_path, dns_list, expiry_days = 3650, **ssl_cert_configs):
         """
-        This function generate a self signed certificate and save it
+        This function generate a self signed certificate and save it.
+
         at specified location.
         :param cert_path: File path at which certificate will be saved.
         :param dns_list: List of unicode dns names eg. [u"*.seagate.com", u"localhost"]

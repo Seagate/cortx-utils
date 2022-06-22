@@ -28,6 +28,7 @@ class SaltV:
     def validate(self, v_type, args):
         """
         Process salt validations.
+
         Usage (arguments to be provided):
         1. salt minions <nodes>
         """

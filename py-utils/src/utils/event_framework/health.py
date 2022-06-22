@@ -36,8 +36,7 @@ class HealthAttr(Attr):
     SPECIFIC_INFO   = 'specific_info'
 
 class HealthEvent(Event):
-    """Event class for health event messaage schema,
-       which initialize and set payload attributes"""
+    """Event class for health event messaage schema, which initialize and set payload attributes."""
 
     _health_attrs = [
         HealthAttr.SOURCE, HealthAttr.CLUSTER_ID,
@@ -48,8 +47,10 @@ class HealthEvent(Event):
 
     def __init__(self, **kwargs):
         """
-        Initialize payload,
-        Param: kwargs = key, value pairs.
+        Initialize payload.
+
+        Param:
+        kwargs = key, value pairs.
         """
         payload = KvPayload()
         for key in HealthEvent._health_attrs:
@@ -61,7 +62,8 @@ class HealthEvent(Event):
 
     def set(self, key, val):
         """
-        Sets up the payload
+        Sets up the payload.
+
         Args:
         key: key to set
         val: value to set for a given key.
@@ -70,7 +72,8 @@ class HealthEvent(Event):
 
     def set_specific_attr(self, key: str, val: str):
         """
-        Sets up the payload specifc_info key
+        Sets up the payload specifc_info key.
+
         Args:
         key: key to set
         val: value to set for a given key.

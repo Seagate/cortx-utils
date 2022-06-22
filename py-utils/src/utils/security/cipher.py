@@ -28,7 +28,7 @@ cortxsec_cmd = '/opt/seagate/cortx/extension/cortxsec'
 
 class Cipher:
     """
-    Wrapper around actual actual AES implementation (Fernet)
+    Wrapper around actual actual AES implementation (Fernet).
 
     Serves a single purpose: wraps the actual implementation in order to be able
     to change it in the future.
@@ -36,17 +36,13 @@ class Cipher:
 
     @staticmethod
     def encrypt(key: bytes, data: bytes) -> bytes:
-        """
-        Performs a symmetric encryption of the provided data with the provided key
-        """
+        """Performs a symmetric encryption of the provided data with the provided key."""
 
         return Fernet(key).encrypt(data)
 
     @staticmethod
     def decrypt(key: bytes, data: bytes) -> bytes:
-        """
-        Performs a symmetric decryption of the provided data with the provided key
-        """
+        """Performs a symmetric decryption of the provided data with the provided key."""
 
         try:
             decrypted = Fernet(key).decrypt(data)
@@ -80,7 +76,5 @@ class Cipher:
 
 
 class CipherInvalidToken(Exception):
-    """
-    Wrapper around actual implementation's decryption exceptions
-    """
+    """Wrapper around actual implementation's decryption exceptions."""
     pass

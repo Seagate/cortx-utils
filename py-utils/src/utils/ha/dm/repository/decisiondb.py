@@ -26,13 +26,12 @@ from cortx.utils.log import Log
 class DecisionDB:
     """
     The class encapsulates decision management activities.
+
     This is intended to be used during decision management
     """
 
     def __init__(self) -> None:
-        """
-        Init load consul db for storing key in db
-        """
+        """Init load consul db for storing key in db."""
         DbConf.init(general_const.CLUSTER_CONF)
         dict_conf = DbConf.export_database_conf()
         conf = GeneralConfig(dict_conf)
@@ -42,6 +41,7 @@ class DecisionDB:
                           alert_time, action):
         """
         Stores Data in Decision DB in Consul.
+
         :param entity: Entity Name :type: Str
         :param entity_id: Entity Id :type: Str
         :param component: Component Name :type: Str
@@ -66,6 +66,7 @@ class DecisionDB:
                         alert_time):
         """
         Get a event with specific time.
+
         :param entity: Entity Name :type: Str
         :param entity_id: Entity Id :type: Str
         :param component: Component Name :type: Str
@@ -87,6 +88,7 @@ class DecisionDB:
                              **kwargs):
         """
         Fetch All Event with All Components Name.
+
         :param entity: Entity Name :type: Str
         :param entity_id: Entity Id :type: Str
         :param component: Component Name :type: Str
@@ -109,6 +111,7 @@ class DecisionDB:
     async def delete_event(self, entity, entity_id, component, component_id):
         """
         Delete all Component Related Events.
+
         :param entity: Entity Name :type: Str
         :param entity_id: Entity Id :type: Str
         :param component: Component Name :type: Str

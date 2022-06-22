@@ -28,17 +28,17 @@ from cortx.utils.schema import Format
 
 
 class ConfCli:
-    """ CLI for the Conf Store """
+    """CLI for the Conf Store."""
     _index = "conf_cli"
 
     @staticmethod
     def init(url: str):
-        """ Load ConfStore URL """
+        """Load ConfStore URL."""
         Conf.load(ConfCli._index, url)
 
     @staticmethod
     def load(url: str, index: str):
-        """ Load ConfStore URL """
+        """Load ConfStore URL."""
         Conf.load(index, url)
 
     @staticmethod
@@ -49,7 +49,7 @@ class ConfCli:
 
     @staticmethod
     def set(args):
-        """ Set Key Value """
+        """Set Key Value."""
         kv_delim = '=' if args.kv_delim == None else args.kv_delim
         if len(kv_delim) > 1 or kv_delim not in [':', '>', '.', '|', '/', '=']:
             raise ConfError(errno.EINVAL, "invalid delim %s", kv_delim)
@@ -64,7 +64,7 @@ class ConfCli:
 
     @staticmethod
     def get(args) -> str:
-        """ Obtain value for the given keys """
+        """Obtain value for the given keys."""
         params = args.args
         key_list = params[0].split(';')
         n_keys = len(key_list)
@@ -83,7 +83,7 @@ class ConfCli:
 
     @staticmethod
     def diff(args) -> str:
-        """ Compare two diffenent string value for the given keys """
+        """Compare two diffenent string value for the given keys."""
         args.format = None
         if len(args.args) < 1:
             args.key_index = None
@@ -102,13 +102,13 @@ class ConfCli:
         cmd_proc = SimpleProcess([cmd])
         cmd_proc.shell = True
         stdout, stderr, rc = cmd_proc.run()
-        output = stdout.decode('utf-8') if rc == 1 else \
+        output = stdout.decode('utf-8') if rc == 1 else\
              stderr.decode('utf-8')
         return output
 
     @staticmethod
     def merge(args):
-        """ merges source conf file into dest. conf file. """
+        """Merges source conf file into destination conf file."""
 
         src_index = 'src_index'
         dest_index = ConfCli._index
@@ -120,7 +120,7 @@ class ConfCli:
             src_keys = Conf.get_keys(src_index)
             for key in keys:
                 if key not in src_keys:
-                    raise ConfError(errno.ENOENT, "%s is not present in %s", \
+                    raise ConfError(errno.ENOENT, "%s is not present in %s",\
                         key, args.src_url)
         Conf.merge(dest_index, src_index, keys)
         Conf.save(dest_index)
@@ -128,7 +128,9 @@ class ConfCli:
 
     @staticmethod
     def compare(args):
-        """Compares two conf urls and return 3 lists: new_keys, deleted_keys, updated_keys."""
+        """Compares two conf urls and return 3 lists: new_keys, deleted_keys,
+        updated_keys.
+        """
         index1 = ConfCli._index
         index2 = 'index2'
         ConfCli.load(args.second_url, index2)
@@ -137,7 +139,7 @@ class ConfCli:
 
     @staticmethod
     def delete(args):
-        """ Deletes given set of keys from the config """
+        """Deletes given set of keys from the config."""
         key_list = args.args[0].split(';')
         is_deleted = []
         for key in key_list:
@@ -148,7 +150,7 @@ class ConfCli:
 
     @staticmethod
     def copy(args):
-        """Copy One or more Keys to the target config url"""
+        """Copy One or more Keys to the target config url."""
         key_list = None if len(args.args) < 1 else args.args[0].split(';')
         target_index = 'target'
         ConfCli.load(args.target_url, target_index)
@@ -156,7 +158,7 @@ class ConfCli:
 
     @staticmethod
     def get_keys(args, index: str = None) -> list:
-        """ Returns list of keys present in store """
+        """Returns list of keys present in store."""
         key_index = 'true' if args.key_index == None else args.key_index.lower().strip()
         key_index = True if key_index == 'true' else False if key_index == 'false' else None
         if key_index is None:
@@ -173,7 +175,7 @@ class ConfCli:
 
 
 class GetCmd:
-    """ Get Cmd Structure """
+    """Get Cmd Structure."""
 
     @staticmethod
     def add_args(sub_parser) -> None:
@@ -190,7 +192,7 @@ class GetCmd:
 
 
 class DiffCmd:
-    """ Get Diff Cmd Structure """
+    """Get Diff Cmd Structure."""
 
     @staticmethod
     def add_args(sub_parser) -> None:
@@ -206,7 +208,7 @@ class DiffCmd:
 
 
 class SetCmd:
-    """ Set Cmd Structure """
+    """Set Cmd Structure."""
 
     @staticmethod
     def add_args(sub_parser) -> None:
@@ -225,7 +227,7 @@ class SetCmd:
 
 
 class CopyCmd:
-    """ Copy Cmd Structure """
+    """Copy Cmd Structure."""
 
     @staticmethod
     def add_args(sub_parser) -> None:
@@ -240,7 +242,7 @@ class CopyCmd:
 
 
 class DeleteCmd:
-    """ Delete Cmd Structure """
+    """Delete Cmd Structure."""
 
     @staticmethod
     def add_args(sub_parser) -> None:
@@ -258,7 +260,7 @@ class DeleteCmd:
 
 
 class GetsKeysCmd:
-    """ Get keys command structure """
+    """Get keys command structure."""
 
     @staticmethod
     def add_args(sub_parser) -> None:
@@ -277,7 +279,7 @@ class GetsKeysCmd:
 
 
 class MergeCmd:
-    """ Get Merge Cmd Structure """
+    """Get Merge Cmd Structure."""
 
     @staticmethod
     def add_args(sub_parser) -> None:
@@ -291,12 +293,12 @@ class MergeCmd:
             "# conf yaml:///tmp/test_dest.file merge yaml:///tmp/test_src.file -k 'k1;k2;k3'\n\n")
         s_parser.add_argument('src_url', help='Source url for merge')
         s_parser.set_defaults(func=ConfCli.merge)
-        s_parser.add_argument('-k', dest='keys',  nargs='+', default=[], \
+        s_parser.add_argument('-k', dest='keys',  nargs='+', default=[],\
             help='Only specified keys will be merged.')
 
 
 class CompareCmd:
-    """ Get Compare Cmd Structure """
+    """Get Compare Cmd Structure."""
 
     @staticmethod
     def add_args(sub_parser) -> None:
@@ -332,7 +334,7 @@ class AddNumKeysCmd:
     @staticmethod
     def add_args(sub_parser) -> None:
         s_parser = sub_parser.add_parser('addnumkeys', help=
-            "Adds num keys for the list items" \
+            "Adds num keys for the list items"\
             "Example Command:\n"
             "# conf yaml:///tmp/test.conf addnumkeys\n\n")
         s_parser.set_defaults(func=ConfCli.add_num_keys)

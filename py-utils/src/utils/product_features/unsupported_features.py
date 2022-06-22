@@ -33,6 +33,7 @@ class UnsupportedFeaturesDB:
     async def store_unsupported_feature(self, component_name, feature_name):
         """
         Store un-supported features in db.
+
         :param component_name: Name of Component :type :String.
         :param feature_name: Name of Feature :type: String.
         :return:
@@ -52,6 +53,7 @@ class UnsupportedFeaturesDB:
         feature_name = ""):
         """
         Get Unsupported Features in Following Formats:
+
             1) No Component Name : Return All Features List.
             2) No Feature Name : Return All the Features Related to Components Provided.
         :param component_name: Name of Component :type: String
@@ -76,6 +78,7 @@ class UnsupportedFeaturesDB:
     async def is_feature_supported(self, component_name, feature_name):
         """
         Check whether the feature supported or not.
+
         :param component_name: Name of Component :type: String
         :param feature_name: Name of Feature :type: String
         :return: Supported -> True/Not-Supported -> False
@@ -93,6 +96,7 @@ class UnsupportedFeaturesDB:
     async def store_unsupported_features(self, component_name, features):
         """
         Store Multiple un-supported features for a single component in db.
+
         :param component_name: Name of Component :type :String.
         :param features: List of Features :type: List.
         :return:

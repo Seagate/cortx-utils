@@ -17,7 +17,7 @@
 
 class Singleton(type):
 
-    """Template to create same instance for multiple objects"""
+    """Template to create same instance for multiple objects."""
 
     _obj = {}
 

@@ -29,9 +29,7 @@ from cortx.utils.log import Log
 from cortx.utils.data.access import SortBy, SortOrder
 
 class DecisionMonitor:
-    """
-    Fetch Resource Decisions from Decision DB.
-    """
+    """Fetch Resource Decisions from Decision DB."""
 
     def __init__(self):
         self._resource_file = Json(
@@ -40,34 +38,27 @@ class DecisionMonitor:
         self._consul_call = self.ConsulCallHandler(self._resource_file)
 
     class ConsulCallHandler:
-        """
-        Handle async call to consul
-        """
+        """Handle async call to consul."""
         def __init__(self, resource_file):
-            """
-            Initialize consul call handler
-            """
+            """Initialize consul call handler."""
             self._decisiondb = DecisionDB()
             self._consul_timeout = resource_file.get("request_timeout", 3.0)
 
         async def get(self, **resource_key):
-            """
-            Get consul data else raise error
-            """
+            """Get consul data else raise error."""
             return await asyncio.wait_for(self._decisiondb.get_event_time(**resource_key,
                     sort_by=SortBy(DecisionModel.alert_time, SortOrder.DESC)),
                     timeout=self._consul_timeout)
 
         async def delete(self, **resource_key):
-            """
-            Delete consul data else raise error
-            """
+            """Delete consul data else raise error."""
             await asyncio.wait_for(self._decisiondb.delete_event(**resource_key),
                     timeout=self._consul_timeout)
 
     def get_resource_status(self, resource: AnyStr):
         """
-        Get the Status for Resource
+        Get the Status for Resource.
+
         :param resource: Name of Resource :type: str
         :return:
         """
@@ -87,6 +78,7 @@ class DecisionMonitor:
     def get_resource_group_status(self, resource_group):
         """
         Fetch Resource Group Status.
+
         :param resource_group: Name of Resource Group.
         :return:
         """
@@ -110,6 +102,7 @@ class DecisionMonitor:
     def acknowledge_resource(self, resource, force=False):
         """
         Acknowledge a Single Resource Group.
+
         :param resource:
         :return:
         """
@@ -125,6 +118,7 @@ class DecisionMonitor:
     def acknowledge_resource_group(self, resource_group):
         """
         Acknowledge a Single Resource Group.
+
         :param resource_group:
         :return:
         """

@@ -24,6 +24,7 @@ from cortx.utils.validator.error import VError
 class Service:
     """
     This Abstract class will serve as base for all service validators.
+
     The classes will extend this and provide their implementation of
     validate_service_status.
     """
@@ -37,7 +38,8 @@ class Service:
 
 class HttpService(Service):
     """
-    This class has validate_service_status implementation that makes http call
+    This class has validate_service_status implementation that makes http call.
+
     to check if service is up and running.
     """
 

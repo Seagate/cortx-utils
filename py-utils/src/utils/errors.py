@@ -26,9 +26,10 @@ ERR_NOT_INITIALIZED = 0x1505
 
 
 class UtilsError(Exception):
-    """ Generic Exception with error code and output """
+    """Generic Exception with error code and output."""
 
     def __init__(self, rc, message, *args):
+        """Constructor with rc and message."""
         self._rc = rc
         self._desc = message % (args)
 
@@ -41,13 +42,14 @@ class UtilsError(Exception):
         return self._desc
 
     def __str__(self):
+        """str representation."""
         if self._rc == 0:
             return self._desc
         return "error(%d): %s" %(self._rc, self._desc)
 
 
 class BaseError(Exception):
-    """ Parent class for the cli error classes """
+    """Parent class for the cli error classes."""
 
     _rc = OPERATION_SUCESSFUL
     _desc = 'Operation Successful'
@@ -82,9 +84,7 @@ class BaseError(Exception):
 
 
 class InternalError(BaseError):
-    """
-    This error is raised by CLI for all unknown internal errors
-    """
+    """This error is raised by CLI for all unknown internal errors."""
 
     def __init__(self, desc=None, message_id=None, message_args=None):
         super(InternalError, self).__init__(
@@ -93,49 +93,47 @@ class InternalError(BaseError):
 
 class DataAccessError(InternalError):
 
-    """Base Data Access Error"""
+    """Base Data Access Error."""
 
 
 class DataAccessExternalError(DataAccessError):
 
-    """Internal DB errors which happen outside of db framework"""
+    """Internal DB errors which happen outside of db framework."""
 
 
 class DataAccessInternalError(DataAccessError):
 
-    """Errors regarding db framework part of Data Access implementation"""
+    """Errors regarding db framework part of Data Access implementation."""
 
 
 class MalformedQueryError(DataAccessError):
 
-    """Malformed Query or Filter error"""
+    """Malformed Query or Filter error."""
 
 
 class MalformedConfigurationError(DataAccessError):
 
-    """Error in configuration of data bases or storages or db drivers"""
+    """Error in configuration of data bases or storages or db drivers."""
 
 
 class StorageNotFoundError(DataAccessError):
 
-    """Model object is not associated with any storage"""
+    """Model object is not associated with any storage."""
 
 
 class AmqpConnectionError(Exception):
 
-    """ Amqp connection problems """
+    """Amqp connection problems."""
 
 
 class TestFailed(Exception):
-    """
-    Errors related to test execution
-    """
+    """Errors related to test execution."""
     def __init__(self, desc):
         self.desc = '[%s] %s' %(inspect.stack()[1][3], desc)
         super(TestFailed, self).__init__(desc)
 
 class CertificateError(InternalError):
-    """Base Certificate Error"""
+    """Base Certificate Error."""
 
 class SSLCertificateError(CertificateError):
-    """SSL Certificate Error"""
+    """SSL Certificate Error."""

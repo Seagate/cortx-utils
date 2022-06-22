@@ -27,6 +27,7 @@ class StorageV:
     def validate(self, v_type, args):
         """
         Process storage validations.
+
         Usage (arguments to be provided):
         1. storage hba <provider> nodes
         2. storage luns <v_check> nodes
@@ -63,7 +64,7 @@ class StorageV:
                     errno.EINVAL, "Action parameter %s not supported" % v_type)
 
     def validate_hba(self, provider, nodes):
-        """Check HBA presence and ports"""
+        """Check HBA presence and ports."""
 
         for node in nodes:
             if provider.lower() == "lsi":
@@ -101,8 +102,10 @@ class StorageV:
                     raise VError(errno.EINVAL, res)
 
     def validate_luns(self, v_check, nodes):
-        """Validate luns size
-           accessibility and mapping."""
+        """Validate luns size.
+
+           accessibility and mapping.
+        """
 
         for node in nodes:
             if v_check == "accessible":

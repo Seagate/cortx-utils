@@ -36,7 +36,7 @@ sample_config = Json(file_path).load()
 
 
 def setup_and_generate_sample_files():
-    """ This function will generate all required types of file """
+    """This function will generate all required types of file."""
     with open(r'/tmp/file1.json', 'w+') as file:
         json.dump(sample_config, file, indent=2)
 
@@ -52,7 +52,7 @@ def setup_and_generate_sample_files():
 
 
 def load_config(index, backend_url):
-    """Instantiate and Load Config into constore"""
+    """Instantiate and Load Config into constore."""
     Conf.load(index, backend_url)
     return Conf
 
@@ -68,14 +68,14 @@ def delete_files():
 
 
 class TestConfStore(unittest.TestCase):
-    """Test case will test available API's of ConfStore"""
+    """Test case will test available API's of ConfStore."""
 
     @classmethod
     def setUpClass(cls):
         setup_and_generate_sample_files()
         Conf.load('src_index', 'yaml:///tmp/test_conf_merge.conf.sample')
         Conf.load('dest_index', 'yaml:///tmp/test_conf_merge.conf')
-        dict_data = {'k1': 'v1', 'k2': {'k3': 'v3', 'k4': {'k5': \
+        dict_data = {'k1': 'v1', 'k2': {'k3': 'v3', 'k4': {'k5':\
             [25,'v5',27], 'k6': {'k7': 'v7', 'k8': 'v8'}}}}
         dict_json = Format.dump(dict_data,"json")
         Conf.load('dict', "dict:"+dict_json)
@@ -97,42 +97,38 @@ class TestConfStore(unittest.TestCase):
 
 
     def test_conf_store_load_and_get(self):
-        """Test by loading the give config file to in-memory"""
+        """Test by loading the give config file to in-memory."""
         load_config('sspl_local', 'json:///tmp/file1.json')
         result_data = Conf.get_keys('sspl_local')
         self.assertTrue('bridge>name' in result_data)
 
     def test_conf_store_get_by_index_with_single_key(self):
-        """Test by getting the key from the loaded config"""
+        """Test by getting the key from the loaded config."""
         load_config('msg_local', 'json:///tmp/file1.json')
         result_data = Conf.get('msg_local', 'bridge')
         self.assertTrue(True if 'name' in result_data else False)
 
     def test_conf_store_get_by_index_with_chained_key(self):
-        """
-        Test by getting the chained key(key1.key2.key3) from the loaded config
-        """
+        """Test by getting the chained key(key1.key2.key3) from the loaded config."""
         load_config('test_local', 'json:///tmp/file1.json')
         result_data = Conf.get('test_local', 'bridge>name')
         self.assertEqual(result_data, 'Homebridge')
 
     def test_conf_store_get_wrong_key(self):
-        """Test by trying to get the wrong key from the loaded config"""
+        """Test by trying to get the wrong key from the loaded config."""
         load_config('new_local', 'json:///tmp/file1.json')
         result_data = Conf.get('test_local', 'bridge>no_name_field')
         self.assertEqual(result_data, None)
 
     def test_conf_store_set(self):
-        """
-        Test by setting the key, value to given index and reading it back.
-        """
+        """Test by setting the key, value to given index and reading it back."""
         load_config('set_local', 'json:///tmp/file1.json')
         Conf.set('set_local', 'bridge>proxy', 'no')
         result_data = Conf.get('set_local', 'bridge>proxy')
         self.assertEqual(result_data, 'no')
 
     def test_conf_store_get_keys(self):
-        """Test listing all available keys for given index"""
+        """Test listing all available keys for given index."""
         load_config('get_keys_local', 'json:///tmp/file1.json')
         result_data = Conf.get_keys('get_keys_local')
         self.assertTrue(True if 'bridge>name' in result_data else False)
@@ -164,9 +160,7 @@ class TestConfStore(unittest.TestCase):
             actual_new_keys, actual_deleted_keys, actual_updated_keys = Conf.compare('conf1', 'conf4')
 
     def test_conf_store_delete(self):
-        """
-        Test by removing the key, value to given index and reading it back.
-        """
+        """Test by removing the key, value to given index and reading it back."""
         load_config('delete_local', 'json:///tmp/file1.json')
         Conf.delete('delete_local', 'bridge>proxy')
         result_data = Conf.get('delete_local', 'bridge>proxy')
@@ -187,9 +181,7 @@ class TestConfStore(unittest.TestCase):
         self.assertTrue(True if len(expected_list) == len(result_data) else False)
 
     def test_conf_load_invalid_arguments(self):
-        """
-        Test by passing invalid argument to confstore load -invalid case
-        """
+        """Test by passing invalid argument to confstore load -invalid case."""
         try:
             Conf.load('invalid_arg', 'json:/tmp/file1.json',
                       test_arg='This is invalid')
@@ -198,18 +190,13 @@ class TestConfStore(unittest.TestCase):
                             and err.args[0] == 22 else False)
 
     def test_conf_store_get_by_index_with_chained_index(self):
-        """
-        Test by getting the chained key(key1.key2.key3) from the loaded config
-        at given index
-        """
+        """Test by getting the chained key(key1.key2.key3) from the loaded config at given index."""
         load_config('test_local1', 'json:///tmp/file1.json')
         result_data = Conf.get('test_local1', 'bridge>lte_type[0]>name')
         self.assertEqual(result_data, '3g')
 
     def test_conf_store_set_index(self):
-        """
-        Test by setting the key, value to given index and reading it back.
-        """
+        """Test by setting the key, value to given index and reading it back."""
         load_config('set_local1', 'json:///tmp/file1.json')
         Conf.set('set_local', 'bridge>lte_type[2]>test',
                        {'name': '5g', 'location': 'NY'})
@@ -217,10 +204,7 @@ class TestConfStore(unittest.TestCase):
         self.assertEqual(result_data, 'NY')
 
     def test_conf_store_set_value_then_dict(self):
-        """
-        Test by setting the key, string value to given index and
-        then try to overwrite it with dict.
-        """
+        """Test by setting the key, string value to given index and then try to overwrite it with dict."""
         load_config('set_local_2', 'json:///tmp/file1.json')
         # set string value
         Conf.set('set_local_2', 'bridge>lte_type[2]>test', 'sample')
@@ -231,10 +215,7 @@ class TestConfStore(unittest.TestCase):
         self.assertEqual(result_data, 'NY')
 
     def test_conf_store_set_dict_then_string(self):
-        """
-        Test by setting the key, dict value to given index and
-        then try to overwrite it with a string.
-        """
+        """Test by setting the key, dict value to given index and then try to overwrite it with a string."""
         load_config('set_local_3', 'json:///tmp/file1.json')
         Conf.set('set_local_3', 'bridge>lte_type[2]>test>nested_test',
                        {'name': '5g', 'location': 'NY'})
@@ -243,9 +224,7 @@ class TestConfStore(unittest.TestCase):
         self.assertEqual(result_data, 'sample')
 
     def test_conf_store_set_value_with_null_index(self):
-        """
-        Test by setting the key, value to null index
-        """
+        """Test by setting the key, value to null index."""
         load_config('set_local_4', 'json:///tmp/file1.json')
         try:
             Conf.set('set_local_4', 'bridge>lte_type[]>test', 'sample')
@@ -253,9 +232,7 @@ class TestConfStore(unittest.TestCase):
             self.assertEqual('Invalid key index for the key lte_type', err.desc)
 
     def test_conf_store_get_null_index(self):
-        """
-        Test by getting the null index key.
-        """
+        """Test by getting the null index key."""
         load_config('set_local_5', 'json:///tmp/file1.json')
         try:
             Conf.get('set_local_5', 'bridge>lte_type[]')
@@ -263,9 +240,7 @@ class TestConfStore(unittest.TestCase):
             self.assertEqual('Invalid key index for the key lte_type', err.desc)
 
     def test_conf_store_set_with_wrong_key(self):
-        """
-        Test by setting the value to invalid wrong key.
-        """
+        """Test by setting the value to invalid wrong key."""
         load_config('set_local_6', 'json:///tmp/file1.json')
         try:
             Conf.set('set_local_6', 'bridge>lte_type[2]>..',
@@ -274,9 +249,7 @@ class TestConfStore(unittest.TestCase):
             self.assertEqual('Invalid key name ', err.desc)
 
     def test_conf_store_get_with_wrong_key(self):
-        """
-        Test by getting the invalid wrong key
-        """
+        """Test by getting the invalid wrong key."""
         load_config('set_local_7', 'json:///tmp/file1.json')
         try:
             Conf.get('set_local_7', 'bridge>lte_type[2]>..>location')
@@ -285,7 +258,8 @@ class TestConfStore(unittest.TestCase):
 
     def test_conf_store_set_value_with_empty_in_between(self):
         """
-        Test by setting the key, value to given index and
+        Test by setting the key, value to given index.
+
         then try to set 1 more value by skipping the index inbetween.
         """
         load_config('set_local_8', 'json:///tmp/file1.json')
@@ -298,37 +272,28 @@ class TestConfStore(unittest.TestCase):
         self.assertListEqual(result_data, expected_result)
 
     def test_conf_store_set_nested_keys(self):
-        """
-        Test by setting the key, value to given nested key structure
-        and retrieve it.
-        """
+        """Test by setting the key, value to given nested key structure and retrieve it."""
         load_config('set_local_9', 'json:///tmp/file1.json')
         Conf.set('set_local_9', 'bridge>nstd>k1>k2>k3>k4>5>6>7', 'okay')
         result_data = Conf.get('set_local_9', 'bridge>nstd>k1>k2>k3>k4>5>6>7')
         self.assertEqual(result_data, 'okay')
 
     def test_conf_store_delete_with_index(self):
-        """ Test by removing the key, value from the given index. """
+        """Test by removing the key, value from the given index."""
         load_config('delete_local_index', 'json:///tmp/file1.json')
         Conf.delete('delete_local_index', 'bridge>lte_type[1]')
         result_data = Conf.get('delete_local_index', 'bridge>lte_type[1]>name')
         self.assertEqual(result_data, None)
 
     def test_conf_store_set_key_with_hypen(self):
-        """
-        Test by setting the key with hypen special character in it
-        & reading it back.
-        """
+        """Test by setting the key with hypen special character in it & reading it back."""
         load_config('sc_local', 'json:///tmp/file1.json')
         Conf.set('sc_local', 'bridge>proxy-type', 'cloud')
         result_data = Conf.get('sc_local', 'bridge>proxy-type')
         self.assertEqual(result_data, 'cloud')
 
     def test_conf_store_set_key_with_at(self):
-        """
-        Test by setting the key with at '@' special character in it
-        & reading it back.
-        """
+        """Test by setting the key with at '@' special character in it & reading it back."""
         load_config('at_local', 'json:///tmp/file1.json')
         Conf.set('at_local', 'bridge>proxy@type', 'cloud')
         result_data = Conf.get('at_local', 'bridge>proxy@type')
@@ -336,25 +301,25 @@ class TestConfStore(unittest.TestCase):
 
     # Properties test
     def test_conf_store_by_load_and_get(self):
-        """ Test by loading the give properties config file to in-memory """
+        """Test by loading the give properties config file to in-memory."""
         load_config('pro_local', 'properties:///tmp/example.properties')
         result_data = Conf.get_keys('pro_local')
         self.assertTrue('bridge' in result_data)
 
     def test_conf_store_by_set_and_get(self):
-        """ Test by setting the value to given key. """
+        """Test by setting the value to given key."""
         Conf.set('pro_local', 'studio_location', 'amritsar')
         result_data = Conf.get('pro_local', 'studio_location')
         self.assertEqual(result_data, 'amritsar')
 
     def test_conf_store_delte_and_get(self):
-        """ Test by removing the key, value from the given index. """
+        """Test by removing the key, value from the given index."""
         Conf.delete('pro_local', 'studio_location')
         result_data = Conf.get('pro_local', 'studio_location')
         self.assertEqual(result_data, None)
 
     def test_conf_store_by_wrong_value(self):
-        """ Test by setting the wrong value to given key. """
+        """Test by setting the wrong value to given key."""
         Conf.set('pro_local', 'studio_location', '=amritsar')
         Conf.save('pro_local')
         try:
@@ -365,7 +330,8 @@ class TestConfStore(unittest.TestCase):
     # Get_keys API
     def test_conf_key_index_a_True(self):
         """
-        Test confStore get_key api with key_index argument as True
+        Test confStore get_key api with key_index argument as True.
+
         Default key_index will be True
         """
         load_config('getKeys_local', 'json:///tmp/file1.json')
@@ -376,7 +342,7 @@ class TestConfStore(unittest.TestCase):
         self.assertListEqual(key_lst, expected_list)
 
     def test_conf_key_index_b_False(self):
-        """ Test confStore get_key api with key_index argument as False """
+        """Test confStore get_key api with key_index argument as False."""
         key_lst = Conf.get_keys("getKeys_local", key_index=False)
         expected_list = ['version', 'branch', 'bridge>name', 'bridge>username',
             'bridge>manufacturer', 'bridge>model', 'bridge>pin', 'bridge>port',
@@ -384,7 +350,7 @@ class TestConfStore(unittest.TestCase):
         self.assertListEqual(key_lst, expected_list)
 
     def test_conf_store_get_machine_id_none(self):
-        """ Test get_machine_id None value """
+        """Test get_machine_id None value."""
         from cortx.utils.conf_store import ConfStore
         # rename /etc/machine-id
         os.rename("/etc/machine-id", "/etc/machine-id.old")
@@ -395,14 +361,14 @@ class TestConfStore(unittest.TestCase):
         self.assertEqual(mc_id, None)
 
     def test_conf_store_get_machine_id(self):
-        """ Test get_machine_id """
+        """Test get_machine_id."""
         mc_id = Conf.machine_id
         with open("/etc/machine-id", 'r') as mc_id_file:
             actual_id = mc_id_file.read()
         self.assertEqual(mc_id, actual_id.strip())
 
     def test_conf_load_fail_reload(self):
-        """ Test conf load fail_reload argument """
+        """Test conf load fail_reload argument."""
         Conf.load('reload_index', 'json:///tmp/file1.json')
         expected_lst = Conf.get_keys('reload_index')
         Conf.load('reload_index', 'toml:///tmp/document.toml', fail_reload=False)
@@ -417,7 +383,7 @@ class TestConfStore(unittest.TestCase):
         self.assertListEqual(expected, keys)
 
     def test_conf_load_skip_reload(self):
-        """ Test conf load skip_reload argument """
+        """Test conf load skip_reload argument."""
         Conf.load('skip_index', 'json:///tmp/file1.json')
         expected_lst = Conf.get_keys('skip_index')
         Conf.load('skip_index', 'toml:///tmp/document.toml', skip_reload=True)
@@ -425,7 +391,7 @@ class TestConfStore(unittest.TestCase):
         self.assertTrue(True if expected_lst == out_lst else False)
 
     def test_conf_load_fail_and_skip(self):
-        """ Test conf load fail_reload and skip_reload argument """
+        """Test conf load fail_reload and skip_reload argument."""
         Conf.load('fail_skip_index', 'json:///tmp/file1.json')
         expected_lst = Conf.get_keys('fail_skip_index')
         Conf.load('fail_skip_index', 'toml:///tmp/document.toml', fail_reload=False, skip_reload=True)
@@ -433,7 +399,7 @@ class TestConfStore(unittest.TestCase):
         self.assertTrue(True if expected_lst == out_lst else False)
 
     def test_conf_load_fail_and_skip_non_hap(self):
-        """ Test conf load fail_reload True and skip_reload as True argument """
+        """Test conf load fail_reload True and skip_reload as True argument."""
         Conf.load('non_happy_index', 'json:///tmp/file1.json')
         expected_lst = Conf.get_keys('non_happy_index')
         Conf.load('non_happy_index', 'toml:///tmp/document.toml', fail_reload=True, skip_reload=True)
@@ -481,7 +447,7 @@ class TestConfStore(unittest.TestCase):
     def test_conf_store_merge_06_with_keys(self):
         Conf.set('src_index', 'cortx>software>common>test_key1', 'test_value')
         Conf.set('src_index', 'cortx>software>common>test_key2', 'test_value')
-        Conf.set('src_index', 'cortx>software>common>message_bus_type', \
+        Conf.set('src_index', 'cortx>software>common>message_bus_type',\
             'rabbitmq')
         Conf.save('src_index')
         Conf.merge('dest_index', 'src_index', keys=\
@@ -489,11 +455,11 @@ class TestConfStore(unittest.TestCase):
              'cortx>software>common>test_key2',
              'cortx>software>common>message_bus_type'])
         Conf.save('dest_index')
-        self.assertEqual('test_value', Conf.get('dest_index', \
+        self.assertEqual('test_value', Conf.get('dest_index',\
             'cortx>software>common>test_key1'))
-        self.assertEqual('test_value', Conf.get('dest_index', \
+        self.assertEqual('test_value', Conf.get('dest_index',\
             'cortx>software>common>test_key2'))
-        self.assertEqual('kafka', Conf.get('dest_index', \
+        self.assertEqual('kafka', Conf.get('dest_index',\
             'cortx>software>common>message_bus_type'))
 
     def test_conf_store_add_num_keys(self):

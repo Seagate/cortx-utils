@@ -14,7 +14,5 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 class HttpClientException(Exception):
-    """
-    Base class for CORTX utils HTTP client's exceptions.
-    """
+    """Base class for CORTX utils HTTP client's exceptions."""
     pass

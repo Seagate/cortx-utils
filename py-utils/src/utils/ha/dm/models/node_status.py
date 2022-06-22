@@ -28,7 +28,8 @@ class NodeStatusModel(HAModel):
     @staticmethod
     def create_model_obj(node_id, **status_payload):
         """
-        Create Model Object for Node Status Model
+        Create Model Object for Node Status Model.
+
         :param node_id: Node Id :type: Str
         :param status_payload: Payload or remaining keys for Model :type: Dict
         :return: Model Object :type NodeStatusModel

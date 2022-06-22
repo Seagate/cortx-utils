@@ -105,7 +105,7 @@ class ManifestSupportBundle:
     def __generate_tar(bundle_id: str, target_path: str, bundle_time: str):
         """Generate tar.gz file at given path."""
         component = 'manifest'
-        target_path = target_path if target_path is not None \
+        target_path = target_path if target_path is not None\
             else ManifestSupportBundle._default_path
         target_path = os.path.join(target_path, component)
         tar_name, _ = ManifestSupportBundle.__generate_file_names(
@@ -123,7 +123,7 @@ class ManifestSupportBundle:
         Conf.load('cluster', ManifestSupportBundle._conf_file, skip_reload=True)
         cluster_conf = Conf.get('cluster', 'server_node')
         cluster_id = cluster_conf['cluster_id']
-        enclosure_id = cluster_conf['storage']['enclosure_id'] if 'storage' in \
+        enclosure_id = cluster_conf['storage']['enclosure_id'] if 'storage' in\
             cluster_conf else 'NA'
         hostname = ManifestSupportBundle.__get_private_hostname(cluster_conf)
         tar_name = 'manifest_{0}_SN-{1}_Server-{2}_{3}'.format(bundle_time,
@@ -153,7 +153,8 @@ class ManifestSupportBundle:
     @staticmethod
     def parse_args():
         """
-        Parse and return available argument
+        Parse and return available argument.
+
         Parameters:
         action: used to create| delete| status| cancel the support bundle
                 script.
@@ -190,7 +191,7 @@ if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt as e:
-        print(f"\n\nWARNING: User aborted command. Partial data " \
-            f"save/corruption might occur. It is advised to re-run the" \
+        print(f"\n\nWARNING: User aborted command. Partial data "\
+            f"save/corruption might occur. It is advised to re-run the"\
             f"command. {e}")
         sys.exit(1)

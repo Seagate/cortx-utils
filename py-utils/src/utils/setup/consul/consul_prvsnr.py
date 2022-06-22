@@ -35,7 +35,7 @@ from cortx.utils.service.service_handler import Service, ServiceError
 
 class ConsulSetupError(Exception):
 
-    """ Generic Exception with error code and output """
+    """Generic Exception with error code and output."""
     def __init__(self, rc, message, *args):
         """Initialize class."""
         self._rc = rc
@@ -107,15 +107,24 @@ class Consul:
                         key)
 
     def post_install(self):
-        """Performs post install operations. Raises exception on error."""
+        """Performs post install operations.
+
+        Raises exception on error.
+        """
         pass
 
     def prepare(self):
-        """Performs prepare operations. Raises exception on error."""
+        """Performs prepare operations.
+
+        Raises exception on error.
+        """
         pass
 
     def init(self):
-        """Perform initialization. Raises exception on error."""
+        """Perform initialization.
+
+        Raises exception on error.
+        """
         max_retry = 3
         for i in range(max_retry):
             try:
@@ -128,7 +137,10 @@ class Consul:
                 time.sleep(0.5)
 
     def config(self):
-        """Performs configurations. Raises exception on error."""
+        """Performs configurations.
+
+        Raises exception on error.
+        """
         config_path = Conf.get(self.index, "cortx>software>consul>config_path",
                                "/etc/consul.d")
         data_path = Conf.get(self.index, "cortx>software>consul>data_path",
@@ -232,13 +244,19 @@ class Consul:
         return TestConsul
 
     def test(self):
-        """Perform configuration testing. Raises exception on error."""
+        """Perform configuration testing.
+
+        Raises exception on error.
+        """
         unittest.TextTestRunner().run(
             unittest.TestLoader().loadTestsFromTestCase(
                 self.get_test_module()))
 
     def reset(self):
-        """Performs Configuraiton reset. Raises exception on error."""
+        """Performs Configuraiton reset.
+
+        Raises exception on error.
+        """
         command = "consul kv delete --recurse"
         _, err, returncode = SimpleProcess(command).run()
         if returncode != 0:

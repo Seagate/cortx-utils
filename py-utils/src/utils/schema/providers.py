@@ -17,7 +17,7 @@
 
 
 class Request(object):
-    """ Represents a request to be processed by Provider """
+    """Represents a request to be processed by Provider."""
 
     def __init__(self, action, args, options=None):
         self._action = action
@@ -35,7 +35,7 @@ class Request(object):
 
 
 class Response(object):
-    """ Represents a response after processing of a request """
+    """Represents a response after processing of a request."""
     # TODO:Wherever this class is used for raising the error; that will be
     #  replaced with proper CsmError type
 

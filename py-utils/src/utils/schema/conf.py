@@ -19,12 +19,12 @@ import os
 from cortx.utils.schema.payload import *
 
 class Conf:
-    ''' Represents conf file - singleton '''
+    """Represents conf file - singleton."""
     _payloads = {}
 
     @staticmethod
     def init():
-        ''' Initializes data from conf file '''
+        """Initializes data from conf file."""
         pass
 
     @staticmethod
@@ -39,12 +39,12 @@ class Conf:
 
     @staticmethod
     def get(index, key, default_val=""):
-        ''' Obtain value for the given key '''
+        """Obtain value for the given key."""
         return Conf._payloads[index].get(key) if Conf._payloads[index].get(key) is not None else default_val
 
     @staticmethod
     def set(index, key, val):
-        ''' Sets the value into the conf for the given key '''
+        """Sets the value into the conf for the given key."""
         Conf._payloads[index].set(key, val)
 
     @staticmethod
@@ -55,11 +55,11 @@ class Conf:
 
 
 class ConfSection:
-    """Represents sub-section of config file"""
+    """Represents sub-section of config file."""
 
     def __init__(self, from_dict: dict):
         """
-        Initialize ConfSection by dictionary object
+        Initialize ConfSection by dictionary object.
 
         :param dict from_dict: base dictionary to create object from its keys and values
         """
@@ -79,10 +79,7 @@ class DebugConf:
     """
 
     def __init__(self, debug_settings: ConfSection):
-        """
-        Initialize debug configuration instance by debug settings
-
-        """
+        """Initialize debug configuration instance by debug settings."""
         self._debug_settings = debug_settings
 
     def __getattr__(self, attr):
@@ -90,7 +87,5 @@ class DebugConf:
 
     @property
     def http_enabled(self):
-        """
-        Validates if debug mode is enabled and HTTP is chosen
-        """
+        """Validates if debug mode is enabled and HTTP is chosen."""
         return self._debug_settings.enabled and self._debug_settings.http_enabled
