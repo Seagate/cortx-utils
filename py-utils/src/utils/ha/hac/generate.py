@@ -124,7 +124,6 @@ class PCSGenerator(Generator):
         Assign value to runtime variable
         """
         keys = list(set(re.findall(r"\${[^}]+}(?=[^]*[^]*)", str(self.compiled_json))))
-        args = {}
         with open(self._script, "a") as script_file:
             script_file.writelines("pcs_status=$(pcs constraint)\n")
             script_file.writelines("pcs_location=$(pcs constraint location)\n")

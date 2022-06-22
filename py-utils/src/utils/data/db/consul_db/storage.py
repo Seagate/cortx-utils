@@ -456,7 +456,7 @@ class ConsulDB(GenericDataBase):
             self._consul_client.kv.delete(model[ConsulWords.KEY])) for
                  model in suitable_models]
 
-        done, pending = await asyncio.wait(tasks)
+        done, _ = await asyncio.wait(tasks)
 
         for task in done:
             if not task.result():
