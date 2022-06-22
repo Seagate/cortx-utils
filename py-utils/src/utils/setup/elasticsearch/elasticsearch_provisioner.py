@@ -73,7 +73,8 @@ class Elasticsearch:
         Conf.load(self.index, conf_url)
 
     def validate(self, phase: str):
-        """Perform validations.
+        """
+        Perform validations.
 
         Raises exceptions if validation fails
         """
@@ -122,7 +123,8 @@ class Elasticsearch:
         return 0
 
     def post_install(self):
-        """Performs post install operations.
+        """
+        Performs post install operations.
 
         Raises exception on error
         """
@@ -156,7 +158,8 @@ class Elasticsearch:
         return 0
 
     def config(self):
-        """Performs configurations.
+        """
+        Performs configurations.
 
         Raises exception on error
         """
@@ -211,7 +214,8 @@ class Elasticsearch:
         return 0
 
     def reset(self):
-        """Performs reset.
+        """
+        Performs reset.
 
         Raises exception on error
         """
@@ -231,7 +235,8 @@ class Elasticsearch:
         return 0
 
     def cleanup(self, pre_factory=False):
-        """Performs cleanup.
+        """
+        Performs cleanup.
 
         Raises exception on error
         """
@@ -264,7 +269,8 @@ class Elasticsearch:
         return 0
 
     def pre_upgrade(self):
-        """Perform pre_upgrade.
+        """
+        Perform pre_upgrade.
 
         Raises exception on error
         """
@@ -272,7 +278,8 @@ class Elasticsearch:
         return 0
 
     def post_upgrade(self):
-        """Perform post_upgrade.
+        """
+        Perform post_upgrade.
 
         Raises exception on error
         """
@@ -280,7 +287,8 @@ class Elasticsearch:
         return 0
 
     def test(self):
-        """Perform configuration testing.
+        """
+        Perform configuration testing.
 
         Raises exception on error
         """

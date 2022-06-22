@@ -23,8 +23,7 @@ import os
 from cortx.utils.conf_store import Conf
 from cortx.utils.validator.v_confkeys import ConfKeysV
 
-json_test_data =
-{
+json_test_data = {
     "bridge":
     {
         "name": "Homebridge",

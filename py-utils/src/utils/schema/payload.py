@@ -47,6 +47,7 @@ class Doc:
         self._dump(data)
 
 class Toml(Doc):
+
     """Represents a TOML doc."""
 
     def __init__(self, file_path):
@@ -63,6 +64,7 @@ class Toml(Doc):
             toml.dump(data, f)
 
 class Json(Doc):
+
     """Represents a JSON doc."""
 
     def __init__(self, file_path):
@@ -79,6 +81,7 @@ class Json(Doc):
             json.dump(data, f, indent=2)
 
 class Yaml(Doc):
+
     """Represents a YAML doc."""
 
     def __init__(self, file_path):
@@ -95,6 +98,7 @@ class Yaml(Doc):
             yaml.dump(data, f)
 
 class Tar(Doc):
+
     """Represents Tar File."""
 
     def __init__(self, file_path):
@@ -113,6 +117,7 @@ class Tar(Doc):
                     recursive=True)
 
 class Ini(Doc):
+
     """Represents a YAML doc."""
 
     def __init__(self, file_path):
@@ -129,6 +134,7 @@ class Ini(Doc):
             data.write(f)
 
 class Dict(Doc):
+
     """Represents Dictionary Without file."""
 
     def __init__(self, data={}):
@@ -169,6 +175,7 @@ class JsonMessage(Json):
         self._source = json.dumps(data)
 
 class Text(Doc):
+
     """Represents a TEXT doc."""
 
     def __init__(self, file_path):
@@ -185,6 +192,7 @@ class Text(Doc):
             f.write(data)
 
 class Payload:
+
     """Implements a Payload in specified format."""
 
     def __init__(self, doc):
@@ -244,6 +252,7 @@ class Payload:
         return payload
 
 class CommonPayload:
+
     """Implements a common payload to represent Json, Toml, Yaml, Ini Doc."""
 
     def __init__(self, source):

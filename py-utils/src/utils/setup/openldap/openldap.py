@@ -227,7 +227,8 @@ class Openldap:
             raise Exception("ERROR : Validating keys failed")
 
     def post_install(self):
-        """Performs post install operations.
+        """
+        Performs post install operations.
 
         Raises exception on error.
         """
@@ -239,7 +240,8 @@ class Openldap:
         return 0
 
     def prepare(self):
-        """Perform prepare operations.
+        """
+        Perform prepare operations.
 
         Raises exception on error.
         """
@@ -251,7 +253,8 @@ class Openldap:
         return 0
 
     def config(self):
-        """Performs configurations.
+        """
+        Performs configurations.
 
         Raises exception on error.
         """
@@ -264,7 +267,8 @@ class Openldap:
         return 0
 
     def init(self):
-        """Perform initialization.
+        """
+        Perform initialization.
 
         Raises exception on error.
         """
@@ -276,7 +280,8 @@ class Openldap:
         return 0
 
     def test(self, plan, config: str):
-        """Perform configuration testing.
+        """
+        Perform configuration testing.
 
         Raises exception on error.
         """
@@ -289,7 +294,8 @@ class Openldap:
         return 0
 
     def reset(self):
-        """Performs Configuration reset.
+        """
+        Performs Configuration reset.
 
         Raises exception on error.
         """
@@ -302,7 +308,8 @@ class Openldap:
         return 0
 
     def cleanup(self):
-        """Performs Configuration cleanup.
+        """
+        Performs Configuration cleanup.
 
         Raises exception on error.
         """

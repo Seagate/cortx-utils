@@ -127,13 +127,16 @@ class AmqpConnectionError(Exception):
 
 
 class TestFailed(Exception):
+
     """Errors related to test execution."""
     def __init__(self, desc):
         self.desc = '[%s] %s' %(inspect.stack()[1][3], desc)
         super(TestFailed, self).__init__(desc)
 
 class CertificateError(InternalError):
+
     """Base Certificate Error."""
 
 class SSLCertificateError(CertificateError):
+
     """SSL Certificate Error."""

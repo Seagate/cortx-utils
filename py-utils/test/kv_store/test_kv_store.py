@@ -114,7 +114,8 @@ class TestStore(unittest.TestCase):
         TestStore.loaded_consul = test_current_file(url)
 
     def test_json_file(self):
-        """Test Kv JSON store.
+        """
+        Test Kv JSON store.
 
         load json store from json:///tmp/file.json
         """
@@ -140,7 +141,8 @@ class TestStore(unittest.TestCase):
 
     # YAML store
     def test_yaml_file_load(self):
-        """Test Kv YAML store.
+        """
+        Test Kv YAML store.
 
         load yaml store from yaml:///tmp/sample.toml
         """
@@ -166,7 +168,8 @@ class TestStore(unittest.TestCase):
 
     # TOML store
     def test_toml_file_load(self):
-        """Test Kv TOML store.
+        """
+        Test Kv TOML store.
 
         load toml store from toml:///tmp/document.toml
         """
@@ -192,7 +195,8 @@ class TestStore(unittest.TestCase):
 
     # Ini store
     def test_ini_file_load(self):
-        """Test Kv INI store.
+        """
+        Test Kv INI store.
 
         load ini store from ini:///tmp/document.ini
         """
@@ -220,7 +224,8 @@ class TestStore(unittest.TestCase):
             self.assertTrue('user' in err.args)
 
     def test_kv_format_yaml_to_json(self):
-        """Test Kv format converter functionality store.
+        """
+        Test Kv format converter functionality store.
 
         load yaml store from yaml:///tmp/sample.toml
         """

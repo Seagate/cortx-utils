@@ -36,6 +36,7 @@ from cortx.utils.service.service_handler import Service, ServiceError
 class ConsulSetupError(Exception):
 
     """Generic Exception with error code and output."""
+
     def __init__(self, rc, message, *args):
         """Initialize class."""
         self._rc = rc
@@ -55,6 +56,7 @@ class ConsulSetupError(Exception):
 class Consul:
 
     """Represents Consul and Performs setup related actions."""
+
     index = "consul"
 
     def __init__(self, conf_url):
@@ -107,21 +109,24 @@ class Consul:
                         key)
 
     def post_install(self):
-        """Performs post install operations.
+        """
+        Performs post install operations.
 
         Raises exception on error.
         """
         pass
 
     def prepare(self):
-        """Performs prepare operations.
+        """
+        Performs prepare operations.
 
         Raises exception on error.
         """
         pass
 
     def init(self):
-        """Perform initialization.
+        """
+        Perform initialization.
 
         Raises exception on error.
         """
@@ -137,7 +142,8 @@ class Consul:
                 time.sleep(0.5)
 
     def config(self):
-        """Performs configurations.
+        """
+        Performs configurations.
 
         Raises exception on error.
         """
@@ -244,7 +250,8 @@ class Consul:
         return TestConsul
 
     def test(self):
-        """Perform configuration testing.
+        """
+        Perform configuration testing.
 
         Raises exception on error.
         """
@@ -253,7 +260,8 @@ class Consul:
                 self.get_test_module()))
 
     def reset(self):
-        """Performs Configuraiton reset.
+        """
+        Performs Configuraiton reset.
 
         Raises exception on error.
         """

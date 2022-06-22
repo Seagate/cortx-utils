@@ -81,7 +81,8 @@ class Kafka:
 
     @staticmethod
     def _create_dir_and_set_kafka_ownership(directory: str):
-        """Creats directory if dosent exist and changes ownership to kafka:kafka.
+        """
+        Creats directory if dosent exist and changes ownership to kafka:kafka.
 
         Args:
             directory (str): directory to be created
@@ -100,7 +101,8 @@ class Kafka:
 
     @staticmethod
     def _update_properties_file(file_path: str, properties: dict):
-        """Updates/Add properties in provided file while retaining comments.
+        """
+        Updates/Add properties in provided file while retaining comments.
 
         Args:
             properties (dict): Key value pair of properties to be updated
@@ -126,7 +128,8 @@ class Kafka:
 
     @staticmethod
     def _delete_properties_from_file(file_path: str, properties: list):
-        """Deletes properties in provided file while retaining comments.
+        """
+        Deletes properties in provided file while retaining comments.
 
         Args:
             properties (list): Key of properties to be deleted
@@ -212,7 +215,8 @@ class Kafka:
 
 
     def validate(self, *args, **kwargs):
-        """Perform validtions.
+        """
+        Perform validtions.
 
         Raises exceptions if validation fails.
         """
@@ -221,7 +225,8 @@ class Kafka:
         return
 
     def post_install(self, *args, **kwargs):
-        """Performs post install operations.
+        """
+        Performs post install operations.
 
         Raises KafkaSetupError on error.
         """
@@ -235,7 +240,8 @@ class Kafka:
         return 0
 
     def prepare(self, *args, **kwargs):
-        """Perform prepration.
+        """
+        Perform prepration.
 
         Raises exception on error.
         """
@@ -244,7 +250,8 @@ class Kafka:
         return 0
 
     def init(self, *args, **kwargs):
-        """Perform initialization.
+        """
+        Perform initialization.
 
         Raises exception on error.
         """
@@ -285,7 +292,8 @@ class Kafka:
         return 0
 
     def config(self, *args, **kwargs):
-        """Performs configurations.
+        """
+        Performs configurations.
 
         Raises exception on error.
         """
@@ -304,7 +312,8 @@ class Kafka:
         return 0
 
     def test(self, *args, **kwargs):
-        """Perform configuration testing.
+        """
+        Perform configuration testing.
 
         Raises exception on error.
         """
@@ -313,7 +322,8 @@ class Kafka:
         return 0
 
     def reset(self, *args, **kwargs):
-        """Performs reset.
+        """
+        Performs reset.
 
         Deletes all meta data and logs.
         """
@@ -335,7 +345,8 @@ class Kafka:
         return 0
 
     def cleanup(self, *args, **kwargs):
-        """Performs Configuraiton cleanup.
+        """
+        Performs Configuraiton cleanup.
 
         Raises exception on error.
         """

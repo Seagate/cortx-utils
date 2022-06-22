@@ -23,6 +23,7 @@ from cortx.utils.data.access.storage import AbstractDataBaseProvider
 
 
 class NamedEncryptedBytes(BaseModel):
+
     """Encrypted bytes model."""
 
     _id = "name"
@@ -33,7 +34,6 @@ class NamedEncryptedBytes(BaseModel):
     @staticmethod
     def instantiate(name: str, data: str):
         """Creates an NamedEncryptedBytes instance."""
-
         neb = NamedEncryptedBytes()
         neb.name = name
         neb.data = data
@@ -41,6 +41,7 @@ class NamedEncryptedBytes(BaseModel):
 
 
 class SecureStorage:
+
     """Storage of explicitly CORTX cipher encrypted objects upon Consul KVS."""
 
     def __init__(self, storage: AbstractDataBaseProvider, key: bytes) -> None:
@@ -53,7 +54,6 @@ class SecureStorage:
 
         Returns NamedEncryptedBytes object if the item with provided name exists or None
         """
-
         query = Query().filter_by(Compare(NamedEncryptedBytes.name, '=', name))
         neb = next(iter(await self._storage(NamedEncryptedBytes).get(query)), None)
         return neb
@@ -67,7 +67,6 @@ class SecureStorage:
         Raises KeyError if an item with the provided name exists and "force" flag
         is not set.
         """
-
         if not force:
             neb = await self._get_item(name)
             if neb is not None:
@@ -85,7 +84,6 @@ class SecureStorage:
         Acquires the data from the storage and decrypts it with the default CORTX cipher
         Raises CipherInvalidToken if decryption fails.
         """
-
         neb = await self._get_item(name)
         if neb is None:
             return None
