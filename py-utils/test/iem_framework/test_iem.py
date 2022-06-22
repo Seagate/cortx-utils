@@ -24,6 +24,7 @@ from cortx.utils.conf_store import Conf
 
 class TestMessage(unittest.TestCase):
     """Test EventMessage send and receive functionality."""
+
     _cluster_conf_path = ''
     _message_server_endpoints = ''
     _cluster_id = ''

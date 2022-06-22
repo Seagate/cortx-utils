@@ -29,6 +29,7 @@ from cortx.utils.schema import Format
 
 class ConfCli:
     """CLI for the Conf Store."""
+
     _index = "conf_cli"
 
     @staticmethod
@@ -109,7 +110,6 @@ class ConfCli:
     @staticmethod
     def merge(args):
         """Merges source conf file into destination conf file."""
-
         src_index = 'src_index'
         dest_index = ConfCli._index
         ConfCli.load(args.src_url, src_index)
@@ -128,9 +128,7 @@ class ConfCli:
 
     @staticmethod
     def compare(args):
-        """Compares two conf urls and return 3 lists: new_keys, deleted_keys,
-        updated_keys.
-        """
+        """Compares two conf urls and return 3 lists: new_keys, deleted_keys, updated_keys."""
         index1 = ConfCli._index
         index2 = 'index2'
         ConfCli.load(args.second_url, index2)

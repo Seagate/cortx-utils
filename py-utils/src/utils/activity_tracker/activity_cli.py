@@ -26,8 +26,8 @@ from cortx.utils.activity_tracker.error import ActivityError
 
 
 class ActivityCli:
-
     """CLI for the Activity Store."""
+
     _index = "Activity_cli"
 
     @staticmethod
@@ -85,7 +85,6 @@ class ActivityCli:
 
 
 class CreateCmd:
-
     """Create Cmd Structure."""
 
     @staticmethod
@@ -98,7 +97,6 @@ class CreateCmd:
 
 
 class StartCmd:
-
     """Start Cmd Structure."""
 
     @staticmethod
@@ -111,7 +109,6 @@ class StartCmd:
 
 
 class FinishCmd:
-
     """Finish Cmd Structure."""
 
     @staticmethod
@@ -124,7 +121,6 @@ class FinishCmd:
 
 
 class UpdateCmd:
-
     """Update Cmd Structure."""
 
     @staticmethod
@@ -136,7 +132,6 @@ class UpdateCmd:
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 class SearchCmd:
-
     """Search Cmd Structure."""
 
     @staticmethod
@@ -148,7 +143,6 @@ class SearchCmd:
         s_parser.add_argument('args', nargs='+', default=[], help='args')
 
 class ShowCmd:
-
     """Show Cmd Structure."""
 
     @staticmethod

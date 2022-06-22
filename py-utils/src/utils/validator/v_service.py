@@ -33,7 +33,6 @@ class ServiceV:
                 Usage (arguments to be provided):
 		1. service isrunning host (optional) [servicenames]
 		"""
-
 		# Ensure we can perform passwordless ssh and there are no prompts
 		if host:
 			NetworkV().validate('passwordless',
@@ -47,7 +46,6 @@ class ServiceV:
 
 	def validate_services(self, host, services):
 		"""Check if services are running."""
-
 		for service in services:
 			if host != None:
 				cmd = f"ssh {host} systemctl status {service}"

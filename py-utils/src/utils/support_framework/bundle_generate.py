@@ -33,7 +33,6 @@ INFO = 'info'
 
 
 class ComponentsBundle:
-
     """This class handles generation for support bundles for different components."""
 
     @staticmethod

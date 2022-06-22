@@ -165,7 +165,7 @@ class Log:
         Log.logger.debug(f"[{caller}] {msg}", *args, **kwargs)
 
     @staticmethod
-    def trace_method(level, exclude_args=[], truncate_at=80):
+    def trace_method(level, exclude_args=None, truncate_at=80):
         """
         A wrapper method that logs each invocation and exit of the wrapped function.
 
@@ -179,6 +179,8 @@ class Log:
         def some_function(arg_1, arg_2):
             pass
         """
+        if exclude_args is None:
+            exclude_args = []
         def _fmt_value(obj):
             str_value = repr(obj)
             if len(str_value) < truncate_at:

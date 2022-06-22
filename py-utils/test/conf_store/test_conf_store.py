@@ -36,7 +36,7 @@ sample_config = Json(file_path).load()
 
 
 def setup_and_generate_sample_files():
-    """This function will generate all required types of file."""
+    """Generate all required types of file."""
     with open(r'/tmp/file1.json', 'w+') as file:
         json.dump(sample_config, file, indent=2)
 
@@ -92,9 +92,6 @@ class TestConfStore(unittest.TestCase):
         self.assertEqual(Conf.get(index, 'key2>key3>key4'), None)
         # TODO: Add delete cases when confStore branch is merged
         # and force option is available
-
-
-
 
     def test_conf_store_load_and_get(self):
         """Test by loading the give config file to in-memory."""

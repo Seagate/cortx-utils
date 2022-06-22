@@ -8,8 +8,7 @@ from cortx.utils.conf_store.error import ConfError
 
 class ExponentialBackoff:
     """
-    ExponentialBackoff decorator class can decorate a function/method to set
-    a retry logic.
+    ExponentialBackoff decorator class can decorate a function/method to set a retry logic.
 
     to its call.It Retries the *calling of decorated function*, using a capped exponential
     backoff.
@@ -29,6 +28,7 @@ class ExponentialBackoff:
         backoff (int): 2    backoff multiplier.
         cap (int): 120      cap for maximum delay (in seconds) between retries
     """
+
     def __init__(self, exception, tries=10, delay=1, backoff=2, cap=120):
         """Constructor method."""
         self._exception = exception

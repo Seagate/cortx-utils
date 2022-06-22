@@ -101,7 +101,7 @@ class DecisionMaker(object):
     """
     This class is responsible for taking the HA decisions.
 
-    such as failover/failback with the help of RuleEngine
+    such as failover/failback with the help of RuleEngine.
     """
 
     def __init__(self, decisiondb=DecisionDB()):
@@ -147,7 +147,7 @@ class DecisionMaker(object):
 
     async def _store_action(self, alert, action):
         """
-        Further parses the alert to store information such as:
+        Further parses the alert to store information such as.
 
         component: Actual Hw component which has been affected
         component_id: FRU_ID
@@ -241,7 +241,6 @@ class DecisionMaker(object):
             # Since BMC interface is also included in NIC alert we do not have to
             # take any against against it.
             # In case we found the interface related to BMC so we will ignore it.
-            
             comp_id = await self._get_component_id_for_nic(host_id, resource_id)
             if comp_id:
                 info_dict[const.COMPONENT_ID] = comp_id
@@ -257,12 +256,12 @@ class DecisionMaker(object):
 
     async def _get_component_id_for_nic(self, host_id, resource_id):
         component_id = ""
-        """First checking if resource is found in data_nw."""
+        # First checking if resource is found in data_nw.
         nw_interface = await self._get_data_nw_interface(host_id)
         if resource_id in nw_interface:
             component_id = const.DATA
         else:
-            """Since resource not found in data_nw lets serach is mgmt_nw."""
+            # Since resource not found in data_nw lets serach is mgmt_nw.
             nw_interface = await self._get_mgmt_nw_interface(host_id)
             if resource_id in nw_interface:
                 component_id = const.MGMT

@@ -65,12 +65,9 @@ class Resource:
     @staticmethod
     def get_module_from_path(path, product_id):
         """
-        Using the configured solution monitor path, import.
+        Using the configured solution monitor path, import solution specific module to collect data.
 
-        solution specific module to collect data.
-
-        The module communicate with resources such as server
-        and storage, etc,. in the solution path.
+        The module communicate with resources such as server and storage, etc,. in the solution path.
         Example: lr2.__init__
         """
         module = None

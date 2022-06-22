@@ -31,7 +31,6 @@ from cortx.utils.common import ExponentialBackoff
 
 
 class JsonKvStore(KvStore):
-
     """Represents a JSON File Store."""
 
     name = "json"
@@ -67,7 +66,6 @@ class JsonKvStore(KvStore):
 
 
 class YamlKvStore(KvStore):
-
     """Represents a YAML File Store."""
 
     name = "yaml"
@@ -100,7 +98,6 @@ class YamlKvStore(KvStore):
 
 
 class DirKvStore(KvStore):
-
     """Organizes Key Values in a dir structure."""
 
     name = "dir"
@@ -111,7 +108,8 @@ class DirKvStore(KvStore):
             os.mkdir(self._store_path)
 
     def load(self, **kwargs):
-        """Return Empty Set.
+        """
+        Return Empty Set.
 
         Cant read dir structure. Not supported
         """
@@ -200,7 +198,6 @@ class DirKvStore(KvStore):
 
 
 class TomlKvStore(KvStore):
-
     """Represents a TOML File Store."""
 
     name = "toml"
@@ -233,7 +230,6 @@ class TomlKvStore(KvStore):
 
 
 class IniKvPayload(KvPayload):
-
     """In memory representation of INI conf data."""
 
     def __init__(self, config, delim='>'):
@@ -286,7 +282,6 @@ class IniKvPayload(KvPayload):
 
 
 class IniKvStore(KvStore):
-
     """Represents a Ini File Store."""
 
     name = "ini"
@@ -313,7 +308,6 @@ class IniKvStore(KvStore):
 
 
 class DictKvStore(KvStore):
-
     """Represents Dictionary Without file."""
 
     name = "dict"
@@ -343,14 +337,12 @@ class DictKvStore(KvStore):
 
 
 class JsonMessageKvStore(DictKvStore):
-
     """Represents and In Memory JSON Message."""
 
     name = "jsonmessage"
 
 
 class PropertiesKvStore(KvStore):
-
     """Represents a Properties File Store."""
 
     name = "properties"
@@ -383,7 +375,6 @@ class PropertiesKvStore(KvStore):
 
 
 class PillarStore(KvStore):
-
     """Salt Pillar based KV Store."""
 
     name = "salt"
@@ -425,7 +416,6 @@ class PillarStore(KvStore):
 
 
 class ConsulKvPayload(KvPayload):
-
     """Backend adapter for consul api."""
 
     def __init__(self, consul: Consul, store_path: str = '', delim: str = '>'):
@@ -518,7 +508,6 @@ class ConsulKvPayload(KvPayload):
         return key_list
 
 class ConsulKVStore(KvStore):
-
     """Consul basedKV store."""
 
     name = 'consul'

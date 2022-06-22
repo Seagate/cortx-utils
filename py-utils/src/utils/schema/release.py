@@ -56,9 +56,10 @@ class Release(Manifest):
         return version
 
     def validate(self, release_spec: dict = None):
-        """Compare given release_spec with RELEASE.INFO file.
+        """
+        Compare given release_spec with RELEASE.INFO file.
 
-            Return correct release info define in RELEASE.INFO file.
+        Return correct release info define in RELEASE.INFO file.
         """
         release_info = {}
         is_valid = True
@@ -72,7 +73,8 @@ class Release(Manifest):
 
     @staticmethod
     def version_check(deploy_version: str, release_version: str):
-        """Compare deployed and release version.
+        """
+        Compare deployed and release version.
 
             e.g:
             deploy_version = 2.0.0-428

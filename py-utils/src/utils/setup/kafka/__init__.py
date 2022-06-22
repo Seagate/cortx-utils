@@ -15,5 +15,7 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+"""Sub-package for kafka setup."""
+
 from cortx.utils.setup.kafka.kafka import Kafka
 from cortx.utils.setup.kafka.kafka import KafkaSetupError

@@ -26,6 +26,7 @@ from cortx.utils.setup.elasticsearch import ElasticsearchSetupError
 
 class Cmd:
     """Setup Command."""
+
     _index = "setup"
 
     def __init__(self, args: dict):
@@ -43,7 +44,6 @@ class Cmd:
     @staticmethod
     def usage(prog: str):
         """Print usage instructions."""
-
         sys.stderr.write(
             f"usage: {prog} [-h] <cmd> --config <url> <args>...\n"
             f"where:\n"
@@ -53,7 +53,6 @@ class Cmd:
     @staticmethod
     def get_command(desc: str, argv: dict):
         """Return the Command after parsing the command line."""
-
         parser = argparse.ArgumentParser(desc)
 
         subparsers = parser.add_subparsers()
@@ -73,7 +72,6 @@ class Cmd:
     @staticmethod
     def add_args(parser: str, cls: str, name: str):
         """Add Command args for parsing."""
-
         parser1 = parser.add_parser(cls.name, help=f'setup {name}')
         parser1.add_argument('--config', help='Conf Store URL', type=str)
         cls._add_extended_args(parser1)

@@ -51,7 +51,8 @@ class MessageBrokerFactory:
 
     @staticmethod
     def get_server_list(message_server_endpoints: list) -> tuple:
-        """Fetches info of nodes in cluster from list of endpoints.
+        """
+        Fetches info of nodes in cluster from list of endpoints.
 
         Args:
             message_server_endpoints: list of endpoints

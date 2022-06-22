@@ -39,8 +39,7 @@ properties_file = os.path.join(dir_path, 'properties.txt')
 sample_config = Json(file_path).load()
 
 def setup_and_generate_sample_files():
-    """This function will generate all required types of file."""
-
+    """Generate all required types of file."""
     with open(r'/tmp/file.json', 'w+') as file:
         json.dump(sample_config, file, indent=2)
 
@@ -210,7 +209,6 @@ class TestStore(unittest.TestCase):
 
     def test_ini_by_set(self):
         """Test kv INI store by setting the value of given key, value to the inistore."""
-
         TestStore.loaded_ini[0].set(['bridge>user'], ['kvstore'])
         result_data = TestStore.loaded_ini[0].get(['bridge>user'])
         self.assertEqual(result_data[0], "kvstore")

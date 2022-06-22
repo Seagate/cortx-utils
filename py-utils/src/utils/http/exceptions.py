@@ -15,4 +15,5 @@
 
 class HttpClientException(Exception):
     """Base class for CORTX utils HTTP client's exceptions."""
+
     pass

@@ -30,15 +30,15 @@ from cortx.utils.process import SimpleProcess
 
 
 class KafkaSetupError(UtilsError):
-
     """Generic Exception with error code and output."""
+
     def __init__(self, rc, message, *args):
         super().__init__(rc, message, *args)
 
 
 class Kafka:
-
     """Represents Kafka and Performs setup related actions."""
+
     input_config_index = 'kafka_config'
 
     def __init__(self):
@@ -146,7 +146,8 @@ class Kafka:
 
     @staticmethod
     def _set_kafka_config(hostname: str, port: str, kafka_servers: list):
-        """Updates server.properties and zookeeper.properties with required keys.
+        """
+        Updates server.properties and zookeeper.properties with required keys.
 
         Args:
             hostname (str): current host name

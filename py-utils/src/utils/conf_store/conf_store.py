@@ -271,6 +271,7 @@ class ConfStore:
 
 class Conf:
     """Singleton class instance based on conf_store."""
+
     _conf = None
     _delim = '>'
     _machine_id = None
@@ -327,6 +328,7 @@ class Conf:
 
     class ClassProperty(property):
         """Subclass property for classmethod properties."""
+
         def __get__(self, cls, owner):
             return self.fget.__get__(None, owner)()
 
@@ -386,8 +388,9 @@ class MappedConf:
 
     def set_kvs(self, kvs: list):
         """
-        Parameters:
+        Set key:value.
 
+        Parameters:
         kvs - List of KV tuple, e.g. [('k1','v1'),('k2','v2')]
         Where, k1, k2 - is full key path till the leaf key.
         """

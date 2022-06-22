@@ -24,6 +24,7 @@ from cortx.utils.process import SimpleProcess
 
 class TestIemCli(unittest.TestCase):
     """Test case will test available API's of IemCli."""
+
     _cluster_conf_path = ''
 
     @classmethod
@@ -64,7 +65,6 @@ class TestIemCli(unittest.TestCase):
     @classmethod
     def tearDownClass(cls) -> None:
         """Runs once after all tests are run."""
-
         SimpleProcess("rm /tmp/iem_receive.log").run()
 
     # POSITIVE SCENARIOS SEND

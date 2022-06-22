@@ -48,6 +48,7 @@ class Format:
 
 class JsonFormat(Format):
     """Json Format Handler."""
+
     name = "json"
 
     @staticmethod
@@ -58,6 +59,7 @@ class JsonFormat(Format):
 
 class YamlFormat(Format):
     """YAML Format Handler."""
+
     name = "yaml"
 
     @staticmethod
@@ -68,6 +70,7 @@ class YamlFormat(Format):
 
 class TomlFormat(Format):
     """TOML Format Handler."""
+
     name = "toml"
 
     @staticmethod

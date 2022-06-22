@@ -53,7 +53,6 @@ class HttpService(Service):
 
     def validate_service_status(self):
         """Validate service status."""
-
         url = f"http://{self.host}:{self.port}{self.service_url}"
 
         try:

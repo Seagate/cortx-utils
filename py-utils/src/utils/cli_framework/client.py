@@ -28,6 +28,7 @@ class Client:
 
 class CliClient(Client):
     """Class Handles Direct Calls for CLI."""
+
     def __init__(self):
         super(CliClient, self).__init__(None)
 
@@ -45,6 +46,7 @@ class CliClient(Client):
 
 class RestClient(Client):
     """Class handles REST call for cli."""
+
     # TODO: Implement RestClient as per the use case.
     def __init__(self):
         super(RestClient, self).__init__(None)

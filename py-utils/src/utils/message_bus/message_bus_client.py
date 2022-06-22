@@ -146,7 +146,8 @@ class MessageBusAdmin(MessageBusClient):
     """A client that do admin jobs."""
 
     def __init__(self, admin_id: str):
-        """Initialize a Message Admin.
+        """
+        Initialize a Message Admin.
 
         Parameters:
         message_bus    An instance of message bus class.
@@ -159,7 +160,8 @@ class MessageProducer(MessageBusClient):
     """A client that publishes messages."""
 
     def __init__(self, producer_id: str, message_type: str, method: str = None):
-        """Initialize a Message Producer.
+        """
+        Initialize a Message Producer.
 
         Parameters:
         message_bus     An instance of message bus class.
@@ -176,7 +178,8 @@ class MessageConsumer(MessageBusClient):
 
     def __init__(self, consumer_id: str, consumer_group: str, auto_ack: str,\
         message_types: list, offset: str):
-        """Initialize a Message Consumer.
+        """
+        Initialize a Message Consumer.
 
         Parameters:
         message_bus     An instance of message bus class.

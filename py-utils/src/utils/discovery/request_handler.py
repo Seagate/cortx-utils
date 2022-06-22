@@ -52,7 +52,6 @@ req_register.load()
 
 
 class RequestHandler:
-
     """This handles resource map generation requests."""
 
     ROOT_NODE = "node"
@@ -139,9 +138,7 @@ class RequestHandler:
     @staticmethod
     def process(rpath: str, req_id: str, store_url: str, req_type: str = "health"):
         """
-        Creates resource map and updates resource information for given.
-
-        request type.
+        Creates resource map and updates resource information for given request type.
 
         rpath: Resource path for information fetched
         req_id: Request ID to be processed and used in store url format

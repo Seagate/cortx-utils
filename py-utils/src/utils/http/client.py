@@ -45,7 +45,6 @@ class HttpClient:
         :param timeout: connection timeout.
         :returns: None.
         """
-
         self._host = host
         self._port = port
         self._url = f"{'https' if tls_enabled else 'http'}://{host}:{port}"
@@ -58,7 +57,6 @@ class HttpClient:
 
         :returns: string with datetime.
         """
-
         now = gmtime()
         return strftime("%a, %d %b %Y %H:%M:%S +0000", now)
 
@@ -78,7 +76,6 @@ class HttpClient:
         :param request_params: request parameters to be added into the body.
         :returns: HTTP status and the body of the response.
         """
-
         final_url = self._url
         if path is not None:
             final_url += '/' if not path.startswith('/') else ""

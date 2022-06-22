@@ -37,6 +37,7 @@ class SupportBundleError(UtilsError):
 
 class UtilsSupportBundle:
     """Generate support bundle for py-utils."""
+
     _default_path = '/tmp/cortx/support_bundle/'
     _tar_name = 'py-utils'
     _tmp_src = '/tmp/cortx/py-utils/'

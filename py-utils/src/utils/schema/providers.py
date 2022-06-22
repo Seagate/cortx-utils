@@ -36,6 +36,7 @@ class Request(object):
 
 class Response(object):
     """Represents a response after processing of a request."""
+
     # TODO:Wherever this class is used for raising the error; that will be
     #  replaced with proper CsmError type
 

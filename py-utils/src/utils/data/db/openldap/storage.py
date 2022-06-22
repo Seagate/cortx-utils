@@ -37,7 +37,6 @@ class OpenLdapSyntaxTools:
         :param field_name: model field name.
         :returns: LDAP attribute name as a string.
         """
-
         return field_name.translate(str.maketrans('_', '-'))
 
     @staticmethod
@@ -48,7 +47,6 @@ class OpenLdapSyntaxTools:
         :param attr_name: attribute name.
         :returns: field name as a string.
         """
-
         return attr_name.translate(str.maketrans('-', '_'))
 
     @staticmethod
@@ -59,7 +57,6 @@ class OpenLdapSyntaxTools:
         :param timestamp: datetime object to generalize.
         :returns: generalized timestamp as a string.
         """
-
         return timestamp.strftime('%Y%m%d%H%M%SZ')
 
     @staticmethod
@@ -70,7 +67,6 @@ class OpenLdapSyntaxTools:
         :param attr_timestamp: timestamp from OpenLdap's attribute.
         :returns: datetime object.
         """
-
         return datetime.strptime(attr_timestamp, '%Y%m%d%H%M%SZ')
 
     @staticmethod
@@ -81,7 +77,6 @@ class OpenLdapSyntaxTools:
         :param attr_bool: Boolean string from OpenLdap's attribute.
         :returns: bool object.
         """
-
         return bool(strtobool(attr_bool))
 
     @staticmethod
@@ -93,7 +88,6 @@ class OpenLdapSyntaxTools:
         :param to_bytes: flag to convert the resulting string to bytes object.
         :returns: generalized field value as a string.
         """
-
         default_converter = str
         special_converters = {
             datetime: OpenLdapSyntaxTools._generalize_datetime,
@@ -115,7 +109,6 @@ class OpenLdapSyntaxTools:
         :param value: attribute value.
         :returns: object for model's field.
         """
-
         special_converters = {
             DateTimeType: OpenLdapSyntaxTools._pythonize_datetime,
             BooleanType: OpenLdapSyntaxTools._pythonize_bool,
@@ -130,7 +123,7 @@ class OpenLdapSyntaxTools:
 
 def field_to_str(field: Union[str, BaseType]) -> str:
     """
-    Convert model field to its string representation
+    Convert model field to its string representation.
 
     :param Union[str, BaseType] field:
     :return: model field string representation
@@ -151,7 +144,6 @@ class OpenLdapQueryConverter(GenericQueryConverter):
         :param model: object model to query.
         :returns: None.
         """
-
         self._model = model
 
     def _handle_composite(self, op: str, conditions: IFilter) -> str:
@@ -162,7 +154,6 @@ class OpenLdapQueryConverter(GenericQueryConverter):
         :param conditions: a list of conditions.
         :returns: compiled filter as a string.
         """
-
         conditions_filter_list = [f'({condition.accept_visitor(self)})' for condition in conditions]
         conditions_filter_str = ''.join(conditions_filter_list)
         return f'{op}{conditions_filter_str}'
@@ -174,7 +165,6 @@ class OpenLdapQueryConverter(GenericQueryConverter):
         :param entry: filter object.
         :returns: compiled filter as a string.
         """
-
         operands = entry.get_operands()
         return self._handle_composite('&', operands)
 
@@ -190,12 +180,11 @@ class OpenLdapQueryConverter(GenericQueryConverter):
 
     def handle_compare(self, entry: FilterOperationCompare) -> str:
         """
-        Handle all kinds of comparison filters: '<', '<=', '>', '>=', '==', '!=', 'LIKE'
+        Handle all kinds of comparison filters: '<', '<=', '>', '>=', '==', '!=', 'LIKE'.
 
         :param entry: filter object.
         :returns: compiled filter as a string.
         """
-
         field = entry.get_left_operand()
         field_str = field_to_str(field)
 
@@ -222,6 +211,5 @@ class OpenLdapQueryConverter(GenericQueryConverter):
         :param root: filter object.
         :returns: filter for OpenLdap as a string.
         """
-
         filter_str = root.accept_visitor(self)
         return f'({filter_str})'

@@ -28,8 +28,9 @@ class KvStore:
 
     def __init__(self, store_loc, store_path, delim='>'):
         """
-        Args:
+        Constructor method.
 
+        Args:
         store_loc: store location
         store_path: store path from where to load data
         delim: It is used to split key into hierarchy, e.g. "k1>2" or "k1.k2"
@@ -77,7 +78,8 @@ class KvStore:
         self.dump(p_payload)
 
     def get(self, keys: list) -> list:
-        """Obtains values of keys.
+        """
+        Obtains values of keys.
 
         Return list of values.
         """
@@ -116,6 +118,7 @@ class KvStore:
 
 
 class KvStoreFactory:
+
     """Factory class for File based KV Store."""
 
     _stores = {}
@@ -127,7 +130,6 @@ class KvStoreFactory:
     @staticmethod
     def get_instance(store_url: str, delim='>') -> KvStore:
         """Obtain instance of KvStore for given file_type."""
-
         url_spec = urlparse(store_url)
         store_type = url_spec.scheme
         store_loc = url_spec.netloc

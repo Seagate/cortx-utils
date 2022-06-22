@@ -32,7 +32,6 @@ from cortx.utils.setup.openldap.preupgradecmd import PreUpgradeCmd
 from cortx.utils.setup.openldap.postupgradecmd import PostUpgradeCmd
 
 class OpenldapSetupError(BaseError):
-
     """Generic Exception with error code and output."""
 
     def __init__(self, rc, message, *args):
@@ -47,8 +46,8 @@ class OpenldapSetupError(BaseError):
             traceback.format_exc())
 
 class Openldap:
-
     """Represents Openldap and Performs setup related actions."""
+
     index = "openldap"
     prov = "provisioning"
     _preqs_conf_file = "/opt/seagate/cortx/utils/conf/openldapsetup_prereqs.json"

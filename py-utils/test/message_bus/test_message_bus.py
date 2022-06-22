@@ -29,7 +29,6 @@ total = 0
 
 
 class TestMessageBus(unittest.TestCase):
-
     """Test MessageBus related functionality."""
 
     _message_type = 'test_mb'

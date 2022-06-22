@@ -27,6 +27,7 @@ from cortx.utils.log import Log
 
 class EventMessage(metaclass=Singleton):
     """Event Message framework to generate alerts."""
+
     _producer = None
     _consumer = None
 
@@ -61,7 +62,6 @@ class EventMessage(metaclass=Singleton):
         source          Single character that indicates the type of component.
                         For e.g. H-Hardware, S-Software, F-Firmware, O-OS
         """
-
         cls._component = component
         cls._source = source
         cls._site_id = 1
@@ -111,7 +111,6 @@ class EventMessage(metaclass=Singleton):
                             (Problem Location)
         event_time          Time of the event
         """
-
         import socket
         sender_host = socket.gethostname()
 

@@ -40,6 +40,7 @@ class ManifestBundleError(UtilsError):
 
 class ManifestSupportBundle:
     """Generate support bundle for manifest."""
+
     _tmp_dir = '/tmp/cortx'
     _default_path = '%s/support_bundle/' % _tmp_dir
     _tar_name = 'manifest'
@@ -141,7 +142,7 @@ class ManifestSupportBundle:
         try:
             private_fqdn = cluster_conf['network']['data']['private_fqdn']
             hostname = private_fqdn.split('.')[0]
-        except:
+        except Exception:
             hostname = 'NA'
         return hostname
 

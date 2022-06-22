@@ -41,7 +41,6 @@ class TestCmdFramework(unittest.TestCase):
 
     def test_cmd_args(self):
         """Test Cmd and Args."""
-
         argv = [ 'test', 'param1' ]
         cmd = Cmd.get_command(sys.modules[__name__], 'test', argv)
         self.assertEqual(cmd.process(), 0)

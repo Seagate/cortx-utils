@@ -75,6 +75,7 @@ class Command:
 
 class Output:
     """CLI Response Display Class."""
+
     def __init__(self, command, response):
         self.command = command
         self.rc = response.rc()

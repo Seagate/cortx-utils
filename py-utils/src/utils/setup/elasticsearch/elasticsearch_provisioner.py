@@ -39,7 +39,6 @@ class ElasticsearchSetupError(Exception):
 
     def __str__(self):
         """Return error msg."""
-
         if self._rc == 0: return self._desc
         return "error(%d): %s\n\n%s" % (
             self._rc, self._desc, traceback.format_exc())
@@ -69,16 +68,14 @@ class Elasticsearch:
 
     def __init__(self, conf_url):
         """Initialize config."""
-
         Conf.load(self.index, conf_url)
 
     def validate(self, phase: str):
         """
         Perform validations.
 
-        Raises exceptions if validation fails
+        Raises exceptions if validation fails.
         """
-
         if phase == "post_install":
             # Perform python pkg validations.
             pip3_packages = {
@@ -128,7 +125,6 @@ class Elasticsearch:
 
         Raises exception on error
         """
-
         try:
             # Remove opendistro_security plugins.
             Elasticsearch.delete_path(self.opendistro_security_plugin)
@@ -163,7 +159,6 @@ class Elasticsearch:
 
         Raises exception on error
         """
-
         try:
             # Create backup of elasticsearch_config file.
             if not os.path.exists(
@@ -219,7 +214,6 @@ class Elasticsearch:
 
         Raises exception on error
         """
-
         # Check service status
         service_obj = Service('elasticsearch.service')
         service_state = service_obj.get_state()
@@ -240,7 +234,6 @@ class Elasticsearch:
 
         Raises exception on error
         """
-
         # Reset config.
         if os.path.exists(
                 f'{self.elasticsearch_file_path}/elasticsearch.yml.bkp'):
@@ -292,7 +285,6 @@ class Elasticsearch:
 
         Raises exception on error
         """
-
         Log.info("Test starting...")
         unittest.TextTestRunner().run(
             unittest.TestLoader().loadTestsFromTestCase(

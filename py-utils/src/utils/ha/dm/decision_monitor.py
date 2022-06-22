@@ -29,7 +29,6 @@ from cortx.utils.log import Log
 from cortx.utils.data.access import SortBy, SortOrder
 
 class DecisionMonitor:
-
     """Fetch Resource Decisions from Decision DB."""
 
     def __init__(self):
@@ -39,7 +38,6 @@ class DecisionMonitor:
         self._consul_call = self.ConsulCallHandler(self._resource_file)
 
     class ConsulCallHandler:
-
         """Handle async call to consul."""
 
         def __init__(self, resource_file):

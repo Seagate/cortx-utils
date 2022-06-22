@@ -27,12 +27,10 @@ class TestServiceValidator(unittest.TestCase):
 
 	def test_service_running(self):
 		"""Check if services are running."""
-
 		ServiceV().validate('isrunning', self.services)
 
 	def test_remote_service_running(self):
 		"""Check if services are running."""
-
 		ServiceV().validate('isrunning', self.services, self.host)
 
 	def test_neg_service_running(self):

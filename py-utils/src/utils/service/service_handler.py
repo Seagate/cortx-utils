@@ -23,6 +23,7 @@ import sys
 
 class ServiceError(Exception):
     """Generic Exception with error code and output."""
+
     _module = 'service'
 
     def __init__(self, rc, message, *args):
@@ -51,6 +52,7 @@ class ServiceHandler:
 
 class DbusServiceHandler(ServiceHandler):
     """Handler for Service Control using DBUS interface."""
+
     name = "dbus"
 
     def __init__(self):

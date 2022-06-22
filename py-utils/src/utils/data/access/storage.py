@@ -24,23 +24,23 @@ from cortx.utils.data.access import BaseModel
 
 
 class IDataBase(ABC):
-    """Abstract Storage Interface"""
+    """Abstract Storage Interface."""
 
     @abstractmethod
     async def store(self, obj: BaseModel):
-        """Store object into Storage
+        """
+        Store object into Storage.
 
-            :param Object obj: Arbitrary model object for storing into DB
-
+        :param Object obj: Arbitrary model object for storing into DB
         """
         pass
 
     @abstractmethod
     async def get(self, query: Query):
-        """Get object from Storage by Query
+        """
+        Get object from Storage by Query.
 
-            :param Query query: query object which describes request to Storage
-
+        :param Query query: query object which describes request to Storage
         """
         pass
 
@@ -48,6 +48,7 @@ class IDataBase(ABC):
     async def get_by_id(self, obj_id: Any) -> Union[BaseModel, None]:
         """
         Simple implementation of get function.
+
         Important note: in terms of this API 'id' means BaseModel.primary_key reference. If model
         contains 'id' field please use ordinary get call. For example,
 
@@ -66,7 +67,7 @@ class IDataBase(ABC):
     @abstractmethod
     async def update(self, filter_obj: IFilter, to_update: dict) -> int:
         """
-        Update object in Storage by filter
+        Update object in Storage by filter.
 
         :param IFilter filter_obj: filter object which describes what objects need to update
         :param dict to_update: dictionary with fields and values which should be updated
@@ -77,7 +78,7 @@ class IDataBase(ABC):
     @abstractmethod
     async def update_by_id(self, obj_id: Any, to_update: dict) -> bool:
         """
-        Update base model in db by id (primary key)
+        Update base model in db by id (primary key).
 
         :param Any obj_id: id-value of the object which should be updated (primary key value)
         :param dict to_update: dictionary with fields and values which should be updated
@@ -88,7 +89,7 @@ class IDataBase(ABC):
     @abstractmethod
     async def delete(self, filter_obj: IFilter) -> int:
         """
-        Delete objects in DB by Query
+        Delete objects in DB by Query.
 
         :param IFilter filter_obj: filter object to perform delete operation
         :return: number of deleted entries
@@ -98,7 +99,7 @@ class IDataBase(ABC):
     @abstractmethod
     async def delete_by_id(self, obj_id: Any) -> bool:
         """
-        Delete base model by its id
+        Delete base model by its id.
 
         :param Any obj_id: id of the object to be deleted
         :return: BaseModel if object was found by its id and None otherwise
@@ -108,58 +109,56 @@ class IDataBase(ABC):
 
     @abstractmethod
     async def sum(self, ext_query: ExtQuery):
-        """Sum Aggregation function
+        """
+        Sum Aggregation function.
 
-            :param ExtQuery ext_query: Extended query which describes how to perform sum aggregation
-
+        :param ExtQuery ext_query: Extended query which describes how to perform sum aggregation
         """
         pass
 
     @abstractmethod
     async def avg(self, ext_query: ExtQuery):
-        """Average Aggregation function
+        """
+        Average Aggregation function.
 
-            :param ExtQuery ext_query: Extended query which describes how to perform average
-                                       aggregation
-
+        :param ExtQuery ext_query: Extended query which describes how to perform average
+                                   aggregation
         """
         pass
 
     @abstractmethod
     async def count(self, filter_obj: IFilter = None) -> int:
         """
-        Returns count of entities for given filter_obj
+        Returns count of entities for given filter_obj.
 
-        :param filter_obj: filter object to perform count operation
-        :return:
+        :param filter_obj: filter object to perform count operation.
         """
         pass
 
     @abstractmethod
     async def count_by_query(self, ext_query: ExtQuery):
         """
-        Count Aggregation function
+        Count Aggregation function.
 
-        :param ExtQuery ext_query: Extended query which describes to perform count aggregation
-        :return:
+        :param ExtQuery ext_query: Extended query which describes to perform count aggregation.
         """
         pass
 
     @abstractmethod
     async def max(self, ext_query: ExtQuery):
-        """Max Aggregation function
+        """
+        Max Aggregation function.
 
-        :param ExtQuery ext_query: Extended query which describes how to perform Max aggregation
-
+        :param ExtQuery ext_query: Extended query which describes how to perform Max aggregation.
         """
         pass
 
     @abstractmethod
     async def min(self, ext_query: ExtQuery):
-        """Min Aggregation function
+        """
+        Min Aggregation function.
 
         :param ExtQuery ext_query: Extended query which describes how to perform Min aggregation
-
         """
         pass
 
@@ -172,13 +171,12 @@ class AbstractDataBaseProvider(ABC):
     Suppose db is an instance of AbstractDbProvider.
 
     await db(SomeModel).get(some_query)
-    await db(some_model_instance).get(some_query)  # we can avoid passing model class
-
+    await db(some_model_instance).get(some_query)  # we can avoid passing model class.
     """
+
     def __call__(self, model: Union[BaseModel, Type[BaseModel]]) -> IDataBase:
         if isinstance(model, BaseModel):
             model = type(model)
-
         return self.get_storage(model)
 
     @abstractmethod

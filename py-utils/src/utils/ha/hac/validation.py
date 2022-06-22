@@ -45,6 +45,7 @@ class SyntaxValidator(Validator):
     Add new function start with '_valisate' to execute to
     check ha_spec
     """
+
     def __init__(self, filename):
         """Run all validation function for ha_spec."""
         self._schema_file = filename
@@ -98,6 +99,7 @@ class SyntaxValidator(Validator):
 
 class SymanticValidator(Validator):
     """SymanticValidator validate graph and compiled schema."""
+
     def __init__(self, compiled_schema, order_graph):
         self.compiled_schema = compiled_schema
         self.order_graph = order_graph

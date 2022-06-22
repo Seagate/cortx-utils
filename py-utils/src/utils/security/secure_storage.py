@@ -23,7 +23,6 @@ from cortx.utils.data.access.storage import AbstractDataBaseProvider
 
 
 class NamedEncryptedBytes(BaseModel):
-
     """Encrypted bytes model."""
 
     _id = "name"
@@ -41,7 +40,6 @@ class NamedEncryptedBytes(BaseModel):
 
 
 class SecureStorage:
-
     """Storage of explicitly CORTX cipher encrypted objects upon Consul KVS."""
 
     def __init__(self, storage: AbstractDataBaseProvider, key: bytes) -> None:
@@ -93,7 +91,6 @@ class SecureStorage:
 
     async def delete(self, name: str) -> None:
         """Removes the data from the encrypted storage."""
-
         neb = await self._get_item(name)
         if neb is None:
             raise KeyError(f'Item "{name}" was not found in secure storage')

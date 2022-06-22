@@ -39,13 +39,12 @@ class TestCmdFramework(unittest.TestCase):
 
     def test_cmd_args(self):
         """Test Cmd and Args."""
-
         rc = 1
         try:
             argv = [ 'test', 'param1' ]
             Cmd.get_command(sys.modules[__name__], 'test', argv)
 
-        except:
+        except Exception:
             rc = 0
 
         self.assertEqual(rc, 0)

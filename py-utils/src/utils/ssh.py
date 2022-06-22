@@ -47,7 +47,8 @@ class SSHChannel(Channel):
         raise Exception('init not implemented for SSH Channel')
 
     def connect(self):
-        """Creates ssh connection.
+        """
+        Creates ssh connection.
 
            Also helps to reconnect same client without invoking new
            instance again if diconnect caller on the client is called

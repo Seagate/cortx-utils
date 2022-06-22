@@ -96,7 +96,8 @@ class ActivityEntry:
 
 
 class Activity(metaclass=Singleton):
-    """Represent Activity Framework.
+    """
+    Represent Activity Framework.
 
     Singleton Class
     """

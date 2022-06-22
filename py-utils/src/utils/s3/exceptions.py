@@ -18,4 +18,5 @@ from cortx.utils.http import HttpClientException
 
 class S3ClientException(HttpClientException):
     """Base class for S3Client exceptions."""
+
     pass

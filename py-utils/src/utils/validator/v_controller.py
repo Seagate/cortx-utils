@@ -38,7 +38,6 @@ class ControllerV:
         1. controller accessible <ip> <username> <password>
         2. controller firmware <ip> <username> <password> <mc_version>
         """
-
         if not isinstance(args, list):
             raise VError(errno.EINVAL, "Invalid parameters %s" % args)
 

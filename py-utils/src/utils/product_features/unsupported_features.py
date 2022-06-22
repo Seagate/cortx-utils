@@ -52,7 +52,7 @@ class UnsupportedFeaturesDB:
     async def get_unsupported_features(self, component_name = "",
         feature_name = ""):
         """
-        Get Unsupported Features in Following Formats:
+        Get Unsupported Features in Following Formats.
 
             1) No Component Name : Return All Features List.
             2) No Feature Name : Return All the Features Related to Components Provided.

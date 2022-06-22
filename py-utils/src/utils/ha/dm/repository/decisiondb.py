@@ -25,7 +25,7 @@ from cortx.utils.log import Log
 
 class DecisionDB:
     """
-    The class encapsulates decision management activities.
+    Encapsulates decision management activities.
 
     This is intended to be used during decision management
     """

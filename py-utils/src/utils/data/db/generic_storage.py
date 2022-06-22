@@ -29,16 +29,15 @@ from cortx.utils.data.access.filters import (FilterOperationCompare, FilterOpera
 
 
 class GenericDataBase(IDataBase):
-    """Generic database class for aggregation functions"""
+    """Generic database class for aggregation functions."""
 
     _model_scheme = None
 
     async def store(self, obj: BaseModel):
         """
-        Store object into Storage
+        Store object into Storage.
 
         :param Model obj: Arbitrary base object for storing into DB
-
         """
         try:
             obj.validate()  # validate that object is correct and perform necessary type conversions
@@ -58,7 +57,7 @@ class GenericDataBase(IDataBase):
 
     async def get(self, query: Query):
         """
-        Get object from Storage by Query
+        Get object from Storage by Query.
 
         :param query:
         :return: empty list or list with objects which satisfy the passed query condition
@@ -69,6 +68,7 @@ class GenericDataBase(IDataBase):
     async def get_by_id(self, obj_id: Any) -> Union[BaseModel, None]:
         """
         Simple implementation of get function.
+
         Important note: in terms of this API 'id' means BaseModel.primary_key reference. If model
         contains 'id' field please use ordinary get call. For example,
 
@@ -99,7 +99,7 @@ class GenericDataBase(IDataBase):
 
     async def delete(self, filter_obj: IFilter) -> int:
         """
-        Delete objects in DB by Query
+        Delete objects in DB by Query.
 
         :param IFilter filter_obj: filter object to perform delete operation
         :return: number of deleted entries
@@ -109,7 +109,7 @@ class GenericDataBase(IDataBase):
 
     async def delete_by_id(self, obj_id: Any) -> bool:
         """
-        Delete base model by its id
+        Delete base model by its id.
 
         :param Any obj_id: id of the object to be deleted
         :return: BaseModel if object was found by its id and None otherwise
@@ -129,7 +129,7 @@ class GenericDataBase(IDataBase):
 
     async def update(self, filter_obj: IFilter, to_update: dict) -> int:
         """
-        Update object in Storage by filter
+        Update object in Storage by filter.
 
         :param IFilter filter_obj: filter which specifies what objects need to update
         :param dict to_update: dictionary with fields and values which should be updated
@@ -149,7 +149,7 @@ class GenericDataBase(IDataBase):
 
     async def update_by_id(self, obj_id: Any, to_update: dict) -> bool:
         """
-        Update base model in db by id (primary key)
+        Update base model in db by id (primary key).
 
         :param Any obj_id: id-value of the object which should be updated (primary key value)
         :param dict to_update: dictionary with fields and values which should be updated
@@ -162,15 +162,15 @@ class GenericDataBase(IDataBase):
         except ConversionError as e:
             raise DataAccessInternalError(f"{e}")
 
-        filter = Compare(self._model.primary_key, "=", converted)
+        model_filter = Compare(self._model.primary_key, "=", converted)
 
-        result = await self.update(filter, to_update)
+        result = await self.update(model_filter, to_update)
 
         return result > 0
 
     async def sum(self, ext_query: ExtQuery):
         """
-        Sum Aggregation function
+        Sum Aggregation function.
 
         :param ExtQuery ext_query: Extended query which describes how to perform sum aggregation
         :return:
@@ -178,7 +178,7 @@ class GenericDataBase(IDataBase):
         pass
 
     async def avg(self, ext_query: ExtQuery):
-        """Average Aggregation function
+        """Average Aggregation function.
 
         :param ExtQuery ext_query: Extended query which describes how to perform average
                                    aggregation
@@ -188,7 +188,7 @@ class GenericDataBase(IDataBase):
 
     async def count(self, filter_obj: IFilter = None) -> int:
         """
-        Returns count of entities for given filter_obj
+        Returns count of entities for given filter_obj.
 
         :param filter_obj: filter object to perform count operation
         :return:
@@ -197,7 +197,7 @@ class GenericDataBase(IDataBase):
 
     async def count_by_query(self, ext_query: ExtQuery):
         """
-        Count Aggregation function
+        Count Aggregation function.
 
         :param ExtQuery ext_query: Extended query which describes to perform count aggregation
         :return:
@@ -206,7 +206,7 @@ class GenericDataBase(IDataBase):
 
     async def max(self, ext_query: ExtQuery):
         """
-        Max Aggregation function
+        Max Aggregation function.
 
         :param ExtQuery ext_query: Extended query which describes how to perform Max aggregation
         :return:
@@ -215,7 +215,7 @@ class GenericDataBase(IDataBase):
 
     async def min(self, ext_query: ExtQuery):
         """
-        Min Aggregation function
+        Min Aggregation function.
 
         :param ExtQuery ext_query: Extended query which describes how to perform Min aggregation
         :return:
@@ -225,8 +225,7 @@ class GenericDataBase(IDataBase):
 
 class GenericQueryConverter(IFilterTreeVisitor):
     """
-    Implementation of filter tree visitor that converts the tree into the Query
-    object of elasticsearch-dsl library.
+    Implementation of filter tree visitor that converts the tree into the Query object of elasticsearch-dsl library.
 
     Usage:
     converter = GenericQueryConverter()

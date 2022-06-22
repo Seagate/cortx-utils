@@ -30,7 +30,6 @@ class ConfKeysV:
         Usage (arguments to be provided):
         1.  exists keylist <i.e. ['k1', 'k2>k3', ...]>
         """
-
         if v_type == "exists":
             return self.validate_keys(index, keylist)
         else:

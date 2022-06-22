@@ -24,7 +24,6 @@ from cortx.utils.setup.consul.consul_prvsnr import Consul, ConsulSetupError
 
 
 class Cmd:
-
     """Setup Command."""
 
     _index = 'setup'
@@ -78,13 +77,12 @@ class Cmd:
 
 
 class PostInstallCmd(Cmd):
-
-    """PostInstall Setup Cmd."""
+    """Post Install Setup Cmd."""
 
     name = "post_install"
 
     def __init__(self, args: dict):
-        """PostInstall cmd."""
+        """Post Install cmd."""
         super().__init__(args)
         self.consul = Consul(args.config)
 
@@ -95,7 +93,6 @@ class PostInstallCmd(Cmd):
 
 
 class PrepareCmd(Cmd):
-
     """Prepare Setup Cmd."""
 
     name = "prepare"
@@ -111,7 +108,6 @@ class PrepareCmd(Cmd):
 
 
 class ConfigCmd(Cmd):
-
     """Setup Config Cmd."""
 
     name = "config"
@@ -128,7 +124,6 @@ class ConfigCmd(Cmd):
 
 
 class InitCmd(Cmd):
-
     """Init Setup Cmd."""
 
     name = "init"
@@ -145,7 +140,6 @@ class InitCmd(Cmd):
 
 
 class TestCmd(Cmd):
-
     """Test Setup Cmd."""
 
     name = "test"
@@ -162,7 +156,6 @@ class TestCmd(Cmd):
 
 
 class ResetCmd(Cmd):
-
     """Reset Setup Cmd."""
 
     name = "reset"
@@ -179,7 +172,6 @@ class ResetCmd(Cmd):
 
 
 class CleanupCmd(Cmd):
-
     """Cleanup Setup Cmd."""
 
     name = "cleanup"
@@ -203,7 +195,6 @@ class CleanupCmd(Cmd):
 
 
 class PreUpgradeCmd(Cmd):
-
     """Pre Upgrade Setup Cmd."""
 
     name = "preupgrade"
@@ -219,13 +210,12 @@ class PreUpgradeCmd(Cmd):
 
 
 class PostUpgradeCmd(Cmd):
-
     """Post Upgrade Setup Cmd."""
 
     name = "postupgrade"
 
     def __init__(self, args):
-        """PostUpgrade cmd."""
+        """Postupgrade cmd."""
         super().__init__(args)
         self.consul = Consul(args.config)
 

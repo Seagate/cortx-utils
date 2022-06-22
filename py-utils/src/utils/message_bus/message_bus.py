@@ -26,6 +26,7 @@ from cortx.utils.message_bus.message_broker import MessageBrokerFactory
 
 class MessageBus(metaclass=Singleton):
     """Message Bus Framework over various types of Message Brokers."""
+
     _broker = None
     _broker_type = 'kafka'
     _receive_timeout = 2
@@ -85,11 +86,7 @@ class MessageBus(metaclass=Singleton):
 
     @staticmethod
     def list_message_types(client_id: str) -> list:
-        """
-        Returns list of available message types from the configured message.
-
-        broker
-        """
+        """Returns list of available message types from the configured message broker."""
         return MessageBus._broker.list_message_types(client_id)
 
     @staticmethod

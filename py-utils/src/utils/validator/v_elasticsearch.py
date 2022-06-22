@@ -31,7 +31,6 @@ class ElasticsearchV:
         Usage (arguments to be provided):
         1. elasticsearch service localhost 9200
         """
-
         if not isinstance(args, list):
             raise VError(errno.EINVAL, f"Invalid parameters {args}")
 

@@ -39,7 +39,6 @@ from cortx.utils.process import SimpleProcess
 
 
 class SupportBundle:
-
     """This Class initializes the Support Bundle Generation for CORTX."""
 
     @staticmethod
@@ -50,7 +49,8 @@ class SupportBundle:
 
     @staticmethod
     def _get_uncompressed_size(size_limit: float):
-        """Calculate the uncompressed size, assuming the tz utility compression to be 80%.
+        """
+        Calculate the uncompressed size, assuming the tz utility compression to be 80%.
 
         Using Formula:
             Data_Compression_ratio = 1-(compressed_size/uncompressed_size)

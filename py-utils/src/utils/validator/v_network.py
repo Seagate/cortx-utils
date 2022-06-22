@@ -35,7 +35,6 @@ class NetworkV:
         3. network drivers <driver_name> <node1> <node2>
         4. network hca <provider> <node1> <node2>
         """
-
         if not isinstance(args, list):
             raise VError(errno.EINVAL, "Invalid parameters %s" % args)
 
@@ -68,7 +67,6 @@ class NetworkV:
 
     def validate_ip_connectivity(self, ips):
         """Check if IPs are reachable."""
-
         unreachable_ips = []
         for ip in ips:
             if ip.count(".") == 3 and all(self._is_valid_ipv4_part(ip_part)
@@ -97,7 +95,6 @@ class NetworkV:
 
     def validate_passwordless_ssh(self, user, nodes):
         """Check passwordless ssh."""
-
         for node in nodes:
             cmd = ("ssh -o PreferredAuthentications=publickey "
                    f"-o StrictHostKeyChecking=no {user}@{node} /bin/true")
@@ -131,7 +128,6 @@ class NetworkV:
 
     def validate_network_drivers(self, driver, nodes):
         """Check if drivers (eg: Mellanox OFED) are proper."""
-
         for node in nodes:
             cmd = f"ssh {node} rpm -qa | grep {driver}"
             cmd_proc = SimpleProcess(cmd)
@@ -145,7 +141,6 @@ class NetworkV:
 
     def validate_hca(self, provider, nodes):
         """Check if HCA presence and ports."""
-
         for node in nodes:
             if provider.lower() in self.hca_checks:
                 cmd = f"ssh {node} lspci -nn | grep '{provider.capitalize()}'"

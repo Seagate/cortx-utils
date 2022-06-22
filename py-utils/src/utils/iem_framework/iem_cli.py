@@ -29,7 +29,6 @@ from cortx.utils.conf_store import Conf
 
 
 class IemCli:
-
     """CLI for the IEM."""
 
     @staticmethod
@@ -58,7 +57,6 @@ class IemCli:
     @staticmethod
     def _parse_send_args(args) -> dict:
         """Maps values from cmd line args to send_args dict."""
-
         send_args = IemCli._get_empty_send_args()
         try:
             send_args['component'], send_args['module'] = args.source.split(':')
@@ -127,7 +125,7 @@ class IemCli:
     @staticmethod
     def receive(args) -> str:
         """
-        Receives IEM Message and returns to the caller, If file[-f] is passed, 
+        Receives IEM Message and returns to the caller, If file[-f] is passed,.
         writes message to file and returns blank string to caller.
         """
         endpoints, _ = IemCli._get_cluster_data(args.config)
@@ -153,7 +151,6 @@ class IemCli:
 
 
 class SendCmd:
-
     """Send Cmd Structure."""
 
     @staticmethod
@@ -176,7 +173,6 @@ class SendCmd:
 
 
 class ReceiveCmd:
-
     """Receive Cmd Structure."""
 
     @staticmethod

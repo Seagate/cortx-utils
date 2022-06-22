@@ -23,7 +23,6 @@ mock_manifest = "mock-manifest"
 
 
 class StorageResourceMap:
-
     """Provides health and manifest information of FRUs in storage."""
 
     name = "storage"

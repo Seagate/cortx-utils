@@ -31,6 +31,8 @@ from cortx.utils.data.db.openldap.storage import OpenLdapQueryConverter, \
 
 
 class OpenLdap(GenericDataBase):
+    """Open ldap."""
+
     _client: ldap.ldapobject.LDAPObject = None
     _loop: asyncio.AbstractEventLoop = None
     _thread_pool: ThreadPoolExecutor = None
@@ -71,7 +73,6 @@ class OpenLdap(GenericDataBase):
         :param port: LDAP server port.
         :returns: internal LDAP client object.
         """
-
         LDAP_PROTO = 'ldap'
         ldap_url = f'{LDAP_PROTO}://{host}:{port}'
         ldap_obj = ldap.initialize(ldap_url, bytes_mode=False)
@@ -85,7 +86,6 @@ class OpenLdap(GenericDataBase):
         :param obj: object to be stored in OpenLdap.
         :returns: LDIF to store the object.
         """
-
         attrs = obj.to_native()
         attrs['objectclass'] = type(obj).__name__
         ldif = ldap.modlist.addModlist(attrs)
@@ -104,7 +104,6 @@ class OpenLdap(GenericDataBase):
         :param bool create_schema: if the flag is True, the base DN will be created.
         :returns: OpenLdap client instanse
         """
-
         if not all((cls._client, cls._thread_pool, cls._loop)):
             cls._client = OpenLdap._ldap_init(config.hosts[0], config.port)
             try:
@@ -133,7 +132,6 @@ class OpenLdap(GenericDataBase):
         :param model: object model.
         :returns: LDIF object to be added to LDAP.
         """
-
         attrs = {}
         attrs['objectClass'] = OpenLdapSyntaxTools.generalize_field_value(type(model).__name__)
         for field, value in model.to_native().items():
@@ -149,7 +147,6 @@ class OpenLdap(GenericDataBase):
         :param attrs: object attributes from OpenLdap.
         :returns: BaseModel object.
         """
-
         model_attrs = {}
         del(attrs['objectClass'])
         for attr_name, attr_value in attrs.items():
@@ -166,7 +163,6 @@ class OpenLdap(GenericDataBase):
         :param obj: object to be stored.
         :returns: object's DN as a string.
         """
-
         primary_key_name = OpenLdapSyntaxTools.generalize_field_name(obj.primary_key)
         dn = f'{primary_key_name}={obj.primary_key_val},{self._collection}'
         return dn
@@ -178,7 +174,6 @@ class OpenLdap(GenericDataBase):
         :param obj: object to store.
         :returns: None.
         """
-
         # Current OpenLdap implementation in the framework does not retrieve schema details
         # from the server.
         # Make sure the model corresponds to the pre-created collection before using the framework.
@@ -202,7 +197,6 @@ class OpenLdap(GenericDataBase):
         :param filter_obj: filter.
         :returns: list of dictionaries.
         """
-
         # Prepare the filter string
         ldap_filter = self._query_converter.build(filter_obj) if filter_obj else None
         # Query the OpenLdap
@@ -224,7 +218,6 @@ class OpenLdap(GenericDataBase):
         :param query: query object.
         :returns: list with objects that satisfy the query condition.
         """
-
         def _sorted_key_func(_by_field, _field_type):
             """
             Generates key function for built-in sorted function to perform correct sorting
@@ -275,7 +268,6 @@ class OpenLdap(GenericDataBase):
         :param to_update: fields to update.
         :returns: None.
         """
-
         obj_attrs = model.to_native()
         key_generalizer = OpenLdapSyntaxTools.generalize_field_name
         val_generalizer = OpenLdapSyntaxTools.generalize_field_value
@@ -305,7 +297,6 @@ class OpenLdap(GenericDataBase):
         :param to_update: attributes with new values.
         :returns: number of updated entries.
         """
-
         models = await self._get_ldap(filter_obj)
         for model in models:
             await self._update_ldap(model, to_update)
@@ -318,7 +309,6 @@ class OpenLdap(GenericDataBase):
         :param filter_obj: filter object.
         :returns: number of deleted entries.
         """
-
         models = await self._get_ldap(filter_obj)
         for model in models:
             dn = self._get_object_dn(model)
@@ -336,6 +326,5 @@ class OpenLdap(GenericDataBase):
         :param filter_obj: filter object.
         :returns: number of entities.
         """
-
         models = await self._get_ldap(filter_obj)
         return len(models)

@@ -43,7 +43,6 @@ class TestDecisionMaker(unittest.TestCase):
 
     def test_handle_alert(self):
         """Tests handle_alert functio of DecisionMaker class."""
-
         assert self.json_alert_data is not None
         self.assertTrue(isinstance(self.json_alert_data, dict))
         self._loop.run_until_complete(self._dec_maker.handle_alert(self.json_alert_data))

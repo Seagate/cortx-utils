@@ -33,6 +33,7 @@ from cortx.utils.const import ( GCONF_INDEX, MSG_BUS_BACKEND_KEY, EXTERNAL_KEY,
 
 class Utils:
     """Represents Utils and Performs setup related actions."""
+
     utils_path = '/opt/seagate/cortx/utils'
 
     # Utils private methods
@@ -66,7 +67,6 @@ class Utils:
     @staticmethod
     def validate(phase: str):
         """Perform validtions."""
-
         # Perform RPM validations
         pass
 

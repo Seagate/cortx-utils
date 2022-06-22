@@ -25,7 +25,6 @@ from cortx.utils.setup.openldap.setupcmd import SetupCmd, OpenldapPROVError
 
 
 class PostUpgradeCmd(SetupCmd):
-
   """Post Upgrade Setup Cmd."""
 
   name = "postupgrade"

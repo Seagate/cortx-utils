@@ -23,8 +23,10 @@ import json
 import logging
 
 class esCleanup(object):
+    """Es cleanup object."""
 
     def __init__(self, service_name, path):
+        """Es cleanup object."""
         self._path = path
         self.logger = self.get_logger(service_name, path)
 

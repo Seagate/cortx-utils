@@ -52,8 +52,7 @@ class Discovery:
         """
         Generates node resource map and health information.
 
-        This returns
-        unique id for any accepted request.
+        This returns unique id for any accepted request.
 
         rpath: Resource path in resource map to fetch its health.
             If rpath is not given, it will fetch whole Cortx Node

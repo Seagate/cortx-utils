@@ -29,9 +29,11 @@ from cortx.setup.utils import SetupError
 
 class Cmd:
     """Setup Command."""
+
     _index = 'setup'
 
     def __init__(self, args: dict):
+        """Setup Command."""
         if os.geteuid() != 0:
             raise SetupError(errno.EPERM, "Permission denied! You need to be a \
                 root user")
@@ -59,7 +61,6 @@ class Cmd:
     @staticmethod
     def get_command(desc: str, argv: dict):
         """Return the Command after parsing the command line."""
-
         parser = argparse.ArgumentParser(desc)
         subparsers = parser.add_subparsers()
         cmds = inspect.getmembers(sys.modules[__name__])
@@ -78,7 +79,6 @@ class Cmd:
     @staticmethod
     def add_args(parser: str, cls: str, name: str):
         """Add Command args for parsing."""
-
         parser1 = parser.add_parser(cls.name, help='setup %s' % name)
         parser1.add_argument('--config', help='Conf Store URL', type=str)
         parser1.add_argument('--services', help='Cortx Services', default='all')
@@ -89,6 +89,7 @@ class Cmd:
 
 class PostInstallCmd(Cmd):
     """PostInstall Setup Cmd."""
+
     name = 'post_install'
 
     def __init__(self, args: dict):
@@ -102,6 +103,7 @@ class PostInstallCmd(Cmd):
 
 class PrepareCmd(Cmd):
     """Prepare Setup Cmd."""
+
     name = 'prepare'
 
     def __init__(self, args: dict):
@@ -113,6 +115,7 @@ class PrepareCmd(Cmd):
 
 class ConfigCmd(Cmd):
     """Setup Config Cmd."""
+
     name = 'config'
 
     def __init__(self, args):
@@ -126,6 +129,7 @@ class ConfigCmd(Cmd):
 
 class InitCmd(Cmd):
     """Init Setup Cmd."""
+
     name = 'init'
 
     def __init__(self, args):
@@ -140,6 +144,7 @@ class InitCmd(Cmd):
 
 class TestCmd(Cmd):
     """Test Setup Cmd."""
+
     name = 'test'
 
     @staticmethod
@@ -161,6 +166,7 @@ class TestCmd(Cmd):
 
 class ResetCmd(Cmd):
     """Reset Setup Cmd."""
+
     name = 'reset'
 
     def __init__(self, args):
@@ -175,6 +181,7 @@ class ResetCmd(Cmd):
 
 class CleanupCmd(Cmd):
     """Cleanup Setup Cmd."""
+
     name = 'cleanup'
 
     @staticmethod
@@ -197,6 +204,7 @@ class CleanupCmd(Cmd):
 
 class UpgradeCmd(Cmd):
     """Upgrade Setup Cmd."""
+
     name = 'upgrade'
 
     @staticmethod
@@ -217,6 +225,7 @@ class UpgradeCmd(Cmd):
 
 class PreUpgradeCmd(Cmd):
     """Manages post upgrade config changes."""
+
     name = 'pre_upgrade'
 
     def __init__(self, args: dict):
@@ -230,6 +239,7 @@ class PreUpgradeCmd(Cmd):
 
 class PostUpgradeCmd(Cmd):
     """Manages post upgrade config changes."""
+
     name = 'post_upgrade'
 
     def __init__(self, args: dict):

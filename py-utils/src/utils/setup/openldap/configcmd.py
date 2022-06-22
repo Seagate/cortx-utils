@@ -28,8 +28,8 @@ from cortx.utils.setup.openldap.setupReplication import Replication
 from pathlib import Path
 
 class ConfigCmd(SetupCmd):
-
   """Config Setup Cmd."""
+
   name = "config"
   utils_tmp_dir = "/var/tmp"
   Log.init('OpenldapProvisioning','/var/log/cortx/utils/openldap',level='DEBUG')

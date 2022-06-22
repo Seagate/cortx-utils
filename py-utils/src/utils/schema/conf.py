@@ -20,6 +20,7 @@ from cortx.utils.schema.payload import *
 
 class Conf:
     """Represents conf file - singleton."""
+
     _payloads = {}
 
     @staticmethod
@@ -72,7 +73,7 @@ class ConfSection:
 
 class DebugConf:
     """
-    Class which simplifies work with debug settings in debug mode:
+    Class which simplifies work with debug settings in debug mode.
 
     make easy check whether debug-mode is enabled and requested option is set
     to desired value

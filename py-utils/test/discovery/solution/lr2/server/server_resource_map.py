@@ -23,7 +23,6 @@ mock_manifest = "mock-manifest"
 
 
 class ServerResourceMap:
-
     """Provides health and manifest information of FRUs in server."""
 
     name = "server"

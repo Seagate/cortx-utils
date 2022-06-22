@@ -45,7 +45,7 @@ __all__ = ["ElasticSearchDB"]
 
 
 class ESWords:
-    """ElasticSearch service words"""
+    """ElasticSearch service words."""
 
     MAPPINGS = "mappings"
     PROPERTIES = "properties"
@@ -65,7 +65,7 @@ class ESWords:
 
 
 class ESDataType:
-    """Enumeration for ElasticSearch data types"""
+    """Enumeration for ElasticSearch data types."""
 
     TEXT = "text"
     KEYWORD = "keyword"
@@ -112,7 +112,7 @@ DATA_MAP = {
 
 def field_to_str(field: Union[str, BaseType]) -> str:
     """
-    Convert model field to its string representation
+    Convert model field to its string representation.
 
     :param Union[str, BaseType] field:
     :return: model field string representation
@@ -127,8 +127,7 @@ def field_to_str(field: Union[str, BaseType]) -> str:
 
 class ElasticSearchQueryConverter(GenericQueryConverter):
     """
-    Implementation of filter tree visitor that converts the tree into the Query
-    object of ElasticSearch-dsl library.
+    Implementation of filter tree visitor that converts the tree into the Query object of ElasticSearch-dsl library.
 
     Usage:
     converter = ElasticSearchQueryConverter()
@@ -193,10 +192,11 @@ class ElasticSearchQueryConverter(GenericQueryConverter):
 
 
 class ElasticSearchDataMapper:
-    """ElasticSearch data mappings helper"""
+    """ElasticSearch data mappings helper."""
 
     def __init__(self, model: Type[BaseModel]):
         """
+        Constructor method.
 
         :param Type[BaseModel] model: model for constructing data mapping for index in ElasticSearch
         """
@@ -210,7 +210,7 @@ class ElasticSearchDataMapper:
 
     def _add_property(self, name: str, property_type: Type[BaseType]):
         """
-        Add property to mappings
+        Add property to mappings.
 
         :param str name: property name
         :param Type[BaseType] property_type: type of property for given property `name`
@@ -228,7 +228,7 @@ class ElasticSearchDataMapper:
 
     def build_index_mappings(self, replication: int) -> dict:
         """
-        Build ElasticSearch index data mapping
+        Build ElasticSearch index data mapping.
 
         :return: elasticsearch data mappings dict
         """
@@ -243,7 +243,7 @@ class ElasticSearchDataMapper:
 
 
 class ElasticSearchQueryService:
-    """Query service-helper for Elasticsearch"""
+    """Query service-helper for Elasticsearch."""
 
     def __init__(self, index: str, es_client: Elasticsearch,
                  query_converter: ElasticSearchQueryConverter):
@@ -252,7 +252,7 @@ class ElasticSearchQueryService:
         self._query_converter = query_converter
     def search_by_query(self, query: Query) -> Search:
         """
-        Get Elasticsearch Search instance by given query object
+        Get Elasticsearch Search instance by given query object.
 
         :param Query query: query object to construct ES's Search object
         :return: Search object constructed by given `query` param
@@ -291,7 +291,7 @@ class ElasticSearchQueryService:
 
 
 class ElasticSearchDB(GenericDataBase):
-    """ElasticSearch Storage Interface Implementation"""
+    """ElasticSearch Storage Interface Implementation."""
 
     elastic_instance = None
     thread_pool = None
@@ -308,6 +308,7 @@ class ElasticSearchDB(GenericDataBase):
     def __init__(self, es_client: Elasticsearch, model: Type[BaseModel], collection: str,
                  thread_pool_exec: ThreadPoolExecutor, loop: asyncio.AbstractEventLoop = None):
         """
+        ElasticSearchDB.
 
         :param Elasticsearch es_client: elasticsearch client
         :param Type[BaseModel] model: model (class object) to associate it with elasticsearch storage
@@ -340,7 +341,7 @@ class ElasticSearchDB(GenericDataBase):
     async def create_database(cls, config, collection: str, model: Type[BaseModel],
                               create_schema=True) -> IDataBase:
         """
-        Creates new instance of ElasticSearch DB and performs necessary initializations
+        Creates new instance of ElasticSearch DB and performs necessary initializations.
 
         :param DBSettings config: configuration for elasticsearch server
         :param str collection: collection for storing model onto db
@@ -380,10 +381,7 @@ class ElasticSearchDB(GenericDataBase):
         return es_db
 
     async def attach_to_index(self, replication: int) -> None:
-        """
-        Provides async method to connect storage to index bound to provided model and collection
-        :return:
-        """
+        """Provides async method to connect storage to index bound to provided model and collection."""
         def _get_alias(_index):
             return self._es_client.indices.get_alias(self._index, ignore_unavailable=True)
 
@@ -415,14 +413,13 @@ class ElasticSearchDB(GenericDataBase):
 
     async def store(self, obj: BaseModel):
         """
-        Store object into Storage
+        Store object into Storage.
 
         :param BaseModel obj: Arbitrary base object for storing into DB
-
         """
         def _store(_id, _doc: dict):
             """
-            Store particular object into elasticsearch index
+            Store particular object into elasticsearch index.
 
             :param dict _doc: dict representation of the object
             :return: elastic search server response
@@ -460,7 +457,7 @@ class ElasticSearchDB(GenericDataBase):
 
     async def get(self, query: Query) -> List[BaseModel]:
         """
-        Get object from Storage by Query
+        Get object from Storage by Query.
 
         :param query:
         :return: empty list or list with objects which satisfy the passed query condition
@@ -474,7 +471,7 @@ class ElasticSearchDB(GenericDataBase):
 
     async def update(self, filter_obj: IFilter, to_update: dict) -> int:
         """
-        Update object in Storage by Query
+        Update object in Storage by Query.
 
         :param IFilter filter_obj: filter object which describes what objects need to update
         :param dict to_update: dictionary with fields and values which should be updated
@@ -482,11 +479,11 @@ class ElasticSearchDB(GenericDataBase):
         """
         def dict_to_source(__to_update: dict) -> str:
             """
-            Convert __to_update dict into elasticsearch source representation
+            Convert __to_update dict into elasticsearch source representation.
+
             :param __to_update: dictionary with fields and values which should be updated
             :return: elasticsearch inline representation
             """
-
             def _value_converter(_value: Any) -> Any:
                 """
                 Convert value if it is necessary
@@ -507,7 +504,8 @@ class ElasticSearchDB(GenericDataBase):
 
         def _update(_ubq) -> UpdateByQueryResponse:
             """
-            Perform Update by Query in separate thread
+            Perform Update by Query in separate thread.
+
             :param UpdateByQuery _ubq: UpdateByQuery instance
             :return: Response object of ElasticSearch DSL module
             """
@@ -531,11 +529,7 @@ class ElasticSearchDB(GenericDataBase):
         return result.updated
 
     async def _refresh_index(self):
-        """
-        Refresh index
-
-        :return:
-        """
+        """Refresh index."""
         def _refresh():
             self._es_client.indices.refresh(index=self._index)
 
@@ -543,7 +537,7 @@ class ElasticSearchDB(GenericDataBase):
 
     async def delete(self, filter_obj: IFilter) -> int:
         """
-        Delete objects in DB by Query
+        Delete objects in DB by Query.
 
         :param IFilter filter_obj: filter object to perform delete operation
         :return: number of deleted entries
@@ -566,7 +560,7 @@ class ElasticSearchDB(GenericDataBase):
 
     async def count(self, filter_obj: IFilter = None) -> int:
         """
-        Returns count of entities for given filter_obj
+        Returns count of entities for given filter_obj.
 
         :param IFilter filter_obj: filter to perform count aggregation
         :return: count of entries which satisfy the `filter_obj`
@@ -587,9 +581,8 @@ class ElasticSearchDB(GenericDataBase):
 
     async def count_by_query(self, ext_query: ExtQuery):
         """
-        Count Aggregation function
+        Count Aggregation function.
 
         :param ExtQuery ext_query: Extended query which describes to perform count aggregation
-        :return:
         """
         pass

@@ -26,6 +26,7 @@ from cortx.utils.setup.openldap import OpenldapSetupError
 
 class Cmd:
     """Setup Command."""
+
     _index = "setup"
 
     def __init__(self, args: dict):
@@ -80,6 +81,7 @@ class Cmd:
 
 class PostInstallCmd(Cmd):
     """PostInstall Setup Cmd."""
+
     name = "post_install"
 
     def __init__(self, args: dict):
@@ -94,6 +96,7 @@ class PostInstallCmd(Cmd):
 
 class PrepareCmd(Cmd):
     """Prepare Setup Cmd."""
+
     name = "prepare"
 
     def __init__(self, args: dict):
@@ -108,6 +111,7 @@ class PrepareCmd(Cmd):
 
 class ConfigCmd(Cmd):
     """Setup Config Cmd."""
+
     name = "config"
 
     def __init__(self, args):
@@ -122,6 +126,7 @@ class ConfigCmd(Cmd):
 
 class InitCmd(Cmd):
     """Init Setup Cmd."""
+
     name = "init"
 
     def __init__(self, args):
@@ -136,6 +141,7 @@ class InitCmd(Cmd):
 
 class TestCmd(Cmd):
     """Test Setup Cmd."""
+
     name = "test"
 
     @staticmethod
@@ -155,6 +161,7 @@ class TestCmd(Cmd):
 
 class ResetCmd(Cmd):
     """Reset Setup Cmd."""
+
     name = "reset"
 
     def __init__(self, args):
@@ -168,6 +175,7 @@ class ResetCmd(Cmd):
 
 class CleanupCmd(Cmd):
     """Cleanup Setup Cmd."""
+
     name = "cleanup"
 
     def __init__(self, args):
@@ -181,6 +189,7 @@ class CleanupCmd(Cmd):
 
 class PreUpgradeCmd(Cmd):
     """Pre Upgrade Setup Cmd."""
+
     name = "preupgrade"
 
     def __init__(self, args):
@@ -194,6 +203,7 @@ class PreUpgradeCmd(Cmd):
 
 class PostUpgradeCmd(Cmd):
     """Post Upgrade Setup Cmd."""
+
     name = "postupgrade"
 
     def __init__(self, args):

@@ -33,7 +33,7 @@ sample_config = Json(file_path).load()
 
 
 def setup_and_generate_sample_files():
-    """This function will generate all required types of file."""
+    """Generate all required types of file."""
     with open(r'/tmp/file1.json', 'w+') as file:
         json.dump(sample_config, file, indent=2)
 
@@ -133,6 +133,7 @@ class TestConfCli(unittest.TestCase):
             result_data[0]==b'[null]\n' else False, result_data[1])
 
     def test_conf_cli_delete_non_leafKey(self):
+        """Delete leaaf_key by toggling force."""
         # fail for deleting non leaf key without force
         invalid_delete_cmd = "conf json:///tmp/file1.json delete 'bridge'"
         invalid_delete_return_code = SimpleProcess(invalid_delete_cmd).run()[-1]

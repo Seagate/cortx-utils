@@ -37,13 +37,11 @@ class Cipher:
     @staticmethod
     def encrypt(key: bytes, data: bytes) -> bytes:
         """Performs a symmetric encryption of the provided data with the provided key."""
-
         return Fernet(key).encrypt(data)
 
     @staticmethod
     def decrypt(key: bytes, data: bytes) -> bytes:
         """Performs a symmetric decryption of the provided data with the provided key."""
-
         try:
             decrypted = Fernet(key).decrypt(data)
         except (InvalidSignature, InvalidToken):
@@ -52,6 +50,7 @@ class Cipher:
 
     @staticmethod
     def generate_key(str1: str, str2: str, *strs) -> bytes:
+        """Generate key."""
         if os.path.exists(cortxsec_cmd):
             args = ' '.join(['getkey', str1, str2] + list(strs))
             getkey_cmd = f'{cortxsec_cmd} {args}'
@@ -65,6 +64,7 @@ class Cipher:
 
     @staticmethod
     def gen_key(str1: str, str2: str, *strs):
+        """Gen key."""
         kdf = PBKDF2HMAC(algorithm=hashes.SHA256(),
                          length=32,
                          salt=str1.encode('utf-8'),
@@ -77,4 +77,5 @@ class Cipher:
 
 class CipherInvalidToken(Exception):
     """Wrapper around actual implementation's decryption exceptions."""
+
     pass
