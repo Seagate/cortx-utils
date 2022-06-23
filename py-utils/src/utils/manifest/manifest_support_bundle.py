@@ -141,7 +141,7 @@ class ManifestSupportBundle:
         try:
             private_fqdn = cluster_conf['network']['data']['private_fqdn']
             hostname = private_fqdn.split('.')[0]
-        except:
+        except Exception:
             hostname = 'NA'
         return hostname
 

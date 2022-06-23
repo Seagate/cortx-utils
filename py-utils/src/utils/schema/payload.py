@@ -130,7 +130,9 @@ class Ini(Doc):
 class Dict(Doc):
     """Represents Dictionary Without file"""
 
-    def __init__(self, data={}):
+    def __init__(self, data=None):
+        if data is None:
+            data = {}
         Doc.__init__(self, data)
 
     def load(self):

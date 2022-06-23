@@ -162,9 +162,9 @@ class GenericDataBase(IDataBase):
         except ConversionError as e:
             raise DataAccessInternalError(f"{e}")
 
-        filter = Compare(self._model.primary_key, "=", converted)
+        model_filter = Compare(self._model.primary_key, "=", converted)
 
-        result = await self.update(filter, to_update)
+        result = await self.update(model_filter, to_update)
 
         return result > 0
 

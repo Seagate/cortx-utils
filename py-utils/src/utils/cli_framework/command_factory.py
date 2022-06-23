@@ -27,11 +27,18 @@ class CommandFactory(object):
     """
 
     @staticmethod
-    def get_command(argv, permissions={}, component_cmd_dir="", excluded_cmds=[], hidden_cmds=[]):
+    def get_command(argv, permissions=None, component_cmd_dir="", excluded_cmds=None, hidden_cmds=None):
         """
         Parse the command line as per the syntax and retuns
         returns command representing the command line.
         """
+        if permissions is None:
+            permissions = {}
+        if excluded_cmds is None:
+            excluded_cmds = []
+        if hidden_cmds is None:
+            hidden_cmds = []
+
         if len(argv) <= 1:
             argv.append("-h")
 
