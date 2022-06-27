@@ -36,7 +36,7 @@ class Log:
     @staticmethod
     def init(service_name, log_path, level="INFO", backup_count=10, file_size_in_mb=10,
             syslog_server=None, syslog_port=None, console_output=False, console_output_level='WARN'):
-        """ Initialize logging to log to syslog """
+        """Initialize logging to log to syslog."""
         # TODO: Add handler type argument to init method and let logger to
         # use default values to ease init method call by caller.
 
@@ -61,6 +61,7 @@ class Log:
                         console_output: bool, console_output_level: str):
         """
         This Function Creates the Logger for Log Files.
+
         :param syslog_server: syslog server
         :param syslog_port: syslog port
         :param file_name: File name for Log Files. :type: Str
@@ -141,7 +142,7 @@ class Log:
 
     @staticmethod
     def critical(msg, *args, **kwargs):
-        """ Logs a message with level CRITICAL on this logger. """
+        """Logs a message with level CRITICAL on this logger."""
         if Log.logger: return
         caller = inspect.stack()[1][3]
         Log.logger.critical(traceback.format_exc())
@@ -149,14 +150,14 @@ class Log:
 
     @staticmethod
     def exception(e, *args, **kwargs):
-        """ Logs a message with level ERROR on this logger. """
+        """Logs a message with level ERROR on this logger."""
         if not Log.logger: return
         caller = inspect.stack()[1][3]
         Log.logger.exception(f"[{caller}] [{e.__class__.__name__}] e")
 
     @staticmethod
     def console(msg, *args, **kwargs):
-        """ Logs a message with level ERROR on this logger. """
+        """Logs a message with level ERROR on this logger."""
         caller = inspect.stack()[1][3]
         print(f"[{caller}] {msg}")
         if not Log.logger:
@@ -167,6 +168,7 @@ class Log:
     def trace_method(level, exclude_args=None, truncate_at=80):
         """
         A wrapper method that logs each invocation and exit of the wrapped function.
+
         :param: level - Level of logging (e.g. Logger.DEBUG)
         :param: exclude_args - Array of arguments to exclude from the logging
                 (it can be useful e.g. for hiding passwords from the log file)

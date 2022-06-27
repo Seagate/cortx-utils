@@ -37,6 +37,7 @@ class PkgV:
     def __execute_cmd(self, cmd):
         """
         Execute command using SSHChannel or SimpleProcees and returns result.
+
         Uses SimpleProcess to execute the command on passwordless ssh configured
         host. Otherwise, uses SSHChannel to execute command.
         """
@@ -54,6 +55,7 @@ class PkgV:
     def validate(self, v_type: str, args: list, host: str = None):
         """
         Process rpm validations.
+
         Usage (arguments to be provided):
         1. pkg validate_rpms host (optional) [packagenames]
         2. pkg validate_pip3s host (optional) [pip3 packagenames]

@@ -15,6 +15,8 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+"""Subpackage for access db."""
+
 from .base_model import BaseModel
 from .filters import And, Or, Compare, IFilter, IFilterTreeVisitor
 from .queries import Query, ExtQuery, SortOrder, SortBy, QueryLimits, DateTimeRange

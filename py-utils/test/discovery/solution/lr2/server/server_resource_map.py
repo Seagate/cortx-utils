@@ -23,7 +23,6 @@ mock_manifest = "mock-manifest"
 
 
 class ServerResourceMap:
-
     """Provides health and manifest information of FRUs in server."""
 
     name = "server"
@@ -31,7 +30,8 @@ class ServerResourceMap:
     @staticmethod
     def get_health_info(rpath):
         """
-        Fetch health information for given FRU
+        Fetch health information for given FRU.
+
         rpath: Resource id (Example: node>server[0]>hw>disk)
         """
         return Conf.get(mock_health, rpath)
@@ -39,7 +39,8 @@ class ServerResourceMap:
     @staticmethod
     def get_manifest_info(rpath):
         """
-        Fetch manifest information for given FRU
+        Fetch manifest information for given FRU.
+
         rpath: Resource id (Example: node>server[0]>hw>disk)
         """
         return Conf.get(mock_manifest, rpath)

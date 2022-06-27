@@ -22,7 +22,8 @@ import errno
 import sys
 
 class ServiceError(Exception):
-    """ Generic Exception with error code and output """
+    """Generic Exception with error code and output."""
+
     _module = 'service'
 
     def __init__(self, rc, message, *args):
@@ -35,7 +36,7 @@ class ServiceError(Exception):
 
 
 class ServiceHandler:
-    """ Handler for Service Control """
+    """Handler for Service Control."""
 
     @staticmethod
     def get(handler_type: str):
@@ -50,12 +51,13 @@ class ServiceHandler:
         pass
 
 class DbusServiceHandler(ServiceHandler):
-    """ Handler for Service Control using DBUS interface """
+    """Handler for Service Control using DBUS interface."""
+
     name = "dbus"
 
     def __init__(self):
         DBusGMainLoop(set_as_default=True)
-        self._system_bus, self._dbus_manager = \
+        self._system_bus, self._dbus_manager =\
             DbusServiceHandler._get_systemd_interface()
 
     @classmethod
@@ -138,7 +140,7 @@ class DbusServiceHandler(ServiceHandler):
         del self._system_bus
 
 class ServiceState:
-    """ Return service information:state, substate, pid, command_line_path. """
+    """Return service information:state, substate, pid, command_line_path."""
 
     def __init__(self, pid, state, substate, command_line_path):
         self._pid = pid
@@ -163,7 +165,7 @@ class ServiceState:
         return self._command_line_path
 
 class Service:
-    """ Represents a Service which needs to be controlled """
+    """Represents a Service which needs to be controlled."""
 
     def __init__(self, service_name: str, handler_type: str=None):
         self._service_name = service_name

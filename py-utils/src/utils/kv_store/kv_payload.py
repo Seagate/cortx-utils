@@ -22,11 +22,12 @@ from cortx.utils.schema import Format
 
 
 class KvPayload:
-    """ Dict based in memory representation of Key Value data """
+    """Dict based in memory representation of Key Value data."""
 
     def __init__(self, data: dict = None, delim='>', recurse: bool = True):
         """
-        kvstore will be initialized at the time of load
+        Kvstore will be initialized at the time of load.
+
         delim is used to split key into hierarchy, e.g. "k1>2" or "k1.k2"
         """
         self._data = data if data is not None else {}
@@ -51,6 +52,7 @@ class KvPayload:
     def search(self, parent_key: str, search_key: str, search_val: str = None) -> list:
         """
         Searches for the given search_key and search_val under parent_key.
+
         Returns all the matching keys
         """
         data = self.get(parent_key)
@@ -60,6 +62,7 @@ class KvPayload:
         key_prefix: str = "") -> list:
         """
         Searches the given dictionary for the key and value.
+
         Returns matching keys.
         """
 
@@ -111,7 +114,8 @@ class KvPayload:
 
     def get_keys(self, starts_with: str = '', recurse: bool = True, **filters) -> list:
         """
-        Obtains list of keys stored in the payload
+        Obtains list of keys stored in the payload.
+
         Input Paramters:
         Filters - Filters to be applied before the keys to be returned.
                   List of filters:
@@ -210,17 +214,17 @@ class KvPayload:
             self._set(k[1], val, data[k[0]])
 
     def set(self, key: str, val: str):
-        """ Updates the value for the given key in the dictionary """
+        """Updates the value for the given key in the dictionary."""
         self._set(key, val, self._data)
         if key not in self._keys:
             self._keys.append(key)
 
     def __setitem__(self, key: str, val: str):
-        """ set operator for KV payload, i.e. kv['xxx'] = 'yyy' """
+        """Set operator for KV payload, i.e. kv['xxx'] = 'yyy'."""
         self.set(key, val)
 
     def _key_index_split(self, indexed_key: str) -> list:
-        """ Split index from key """
+        """Split index from key."""
         return re.split(r'\[([0-9]+)\]', indexed_key)
 
     def _shallow_get(self, key: str, data: dict) -> str:
@@ -253,7 +257,7 @@ class KvPayload:
         return self._shallow_get(k[1], data1)
 
     def _get(self, key: str, data: dict) -> str:
-        """ Core logic for get """
+        """Core logic for get."""
         # Indexed keys Validations can be put here for all methods
         key_split = key.split(self._delim, 1)
 
@@ -266,15 +270,15 @@ class KvPayload:
                 raise KvError(errno.EINVAL, "Empyt key %s", leaf_key)
             if len(leaf_key_index) > 1:
                 if not leaf_key_index[1].isnumeric():
-                    raise KvError(errno.EINVAL, \
+                    raise KvError(errno.EINVAL,\
                         "Invalid key index for the key %s", leaf_key)
                 if leaf_key_index[2]:
                     raise KvError(errno.EINVAL, "Invalid key %s", leaf_key)
 
                 leaf_key, leaf_index = leaf_key_index[0], int(leaf_key_index[1])
-                if leaf_key not in data.keys() or \
-                    leaf_index > len(data[leaf_key])-1 or \
-                    leaf_key not in data.keys() or \
+                if leaf_key not in data.keys() or\
+                    leaf_index > len(data[leaf_key])-1 or\
+                    leaf_key not in data.keys() or\
                     not isinstance(data[leaf_key], list):
                     return None
                 return data[leaf_key][leaf_index]
@@ -294,7 +298,7 @@ class KvPayload:
 
         if len(key_index) > 1:
             if not key_index[1].isnumeric():
-                raise KvError(errno.EINVAL, \
+                raise KvError(errno.EINVAL,\
                     "Invalid key index for the key %s", p_key)
             if key_index[2]:
                 raise KvError(errno.EINVAL, "Invalid key %s", p_key)
@@ -316,13 +320,13 @@ class KvPayload:
                 return None
 
     def get(self, key: str, recurse: bool = True) -> str:
-        """ Obtain value for the given key """
+        """Obtain value for the given key."""
         if recurse:
             return self._get(key, self._data)
         return self._shallow_get(key, self._data)
 
     def __getitem__(self, key: str):
-        """ read operator for KV payload, i.e. kv['xxx'] """
+        """Read operator for KV payload, i.e. kv['xxx']."""
         return self.get(key)
 
     def _delete(self, key: str, data: dict, force: bool = False):
@@ -364,7 +368,8 @@ class KvPayload:
 
     def delete(self, key, force: bool = False) -> bool:
         """
-        Deletes given set of keys from the dictionary
+        Deletes given set of keys from the dictionary.
+
         Return Value:
         returns True if key existed/deleted. Returns False if key not found.
         """

@@ -52,7 +52,6 @@ req_register.load()
 
 
 class RequestHandler:
-
     """This handles resource map generation requests."""
 
     ROOT_NODE = "node"
@@ -100,7 +99,8 @@ class RequestHandler:
     @staticmethod
     def _update_resource_map(rpath, request_type):
         """
-        Fetch information based on request type and update
+        Fetch information based on request type and update.
+
         resource map for given rpath.
         """
         # Parse rpath and find left node
@@ -138,8 +138,7 @@ class RequestHandler:
     @staticmethod
     def process(rpath: str, req_id: str, store_url: str, req_type: str = "health"):
         """
-        Creates resource map and updates resource information for given
-        request type.
+        Creates resource map and updates resource information for given request type.
 
         rpath: Resource path for information fetched
         req_id: Request ID to be processed and used in store url format
@@ -194,6 +193,7 @@ class RequestHandler:
     def get_processing_status(req_id):
         """
         Returns "in-progress" if any request is being processed.
+
         Otherwise returns "Success" or "Failed (with reason)" status.
         """
         status_list = req_register.get(["%s>status" % req_id])
@@ -213,7 +213,7 @@ class RequestHandler:
             req_start_time = int(time.mktime(system_time))
             current_time = int(time.time())
             is_req_expired = (current_time - req_start_time) > expiry_sec
-            if is_req_expired or (last_reboot > req_start_time and \
+            if is_req_expired or (last_reboot > req_start_time and\
                 status is RequestHandler.INPROGRESS):
                 # Set request state as failed
                 RequestHandler._set_discovery_request_processed(
@@ -244,7 +244,7 @@ class RequestHandler:
             if not os.path.exists(data_file):
                 raise DiscoveryError(
                     errno.ENOENT,
-                    "%s resource map is unavailable. " \
+                    "%s resource map is unavailable. "\
                         "Please generate." % req_type.title())
 
             store_url = "%s://%s" % (store_type, data_file)

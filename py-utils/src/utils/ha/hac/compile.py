@@ -27,7 +27,8 @@ from cortx.utils.ha.hac.validation import SymanticValidator
 class Compiler:
     def __init__(self, source_path, compile_file, ha_spec_file):
         """
-        Initialize Compiler
+        Initialize Compiler.
+
         source_path: Source path for multiple component HA_SPEC Files
         compile_file: Name of compiled spec file
         ha_spec_file: Filename to verify file
@@ -49,23 +50,17 @@ class Compiler:
             self.order_graph = nx.DiGraph()
 
     def parse_files(self):
-        """
-        Parse source_path for all component spec file
-        """
+        """Parse source_path for all component spec file."""
         for _, directories, filenames in os.walk(self.source_path):
             self._create_parse_file(directories, filenames)
 
     def create_schema(self):
-        """
-        Dump Compiled spec to output file
-        """
+        """Dump Compiled spec to output file."""
         with open(self.compiled_file, 'w') as fp:
             json.dump(self.compiled_schema, fp, indent=4)
 
     def compile_graph(self):
-        """
-        Compile graph for predecessors, colocation, relation
-        """
+        """Compile graph for predecessors, colocation, relation."""
         resource_set = self.compiled_schema["resources"]
         predecessors_edges = []
         colocation_edges = []
@@ -82,9 +77,7 @@ class Compiler:
         self._isolate(isolate_resources)
 
     def draw_graph(self):
-        """
-        Drow graph
-        """
+        """Drow graph."""
         options = {
             'node_color': 'blue',
             'node_size': 100,
@@ -100,26 +93,20 @@ class Compiler:
         plt.savefig(self.build_path + "colocation_graph.png")
 
     def verify_schema(self):
-        """
-        add edge and verify schema for cycle
-        """
+        """Add edge and verify schema for cycle."""
         self._add_nodes(self.compiled_schema["resources"])
         self._add_edge(self.order_graph, self.compiled_schema["predecessors_edge"])
         self._add_edge(self.colocation_graph, self.compiled_schema["colocation_edges"])
         self._verify_compiled_schema()
 
     def _verify_ha_spec_schema(self, ha_spec_file):
-        """
-        Verify ha spec file
-        """
+        """Verify ha spec file."""
         validator = SyntaxValidator(ha_spec_file)
         validator.execute()
         return validator.get_schema()
 
     def _create_parse_file(self, directories, filenames):
-        """
-        Parse each file and validate for json
-        """
+        """Parse each file and validate for json."""
         for filename in filenames:
             if filename.endswith('json'):
                 components = self._verify_ha_spec_schema(self.source_path + filename)
@@ -132,24 +119,18 @@ class Compiler:
                         self.compiled_schema["resources"][resource]["component"] = component
 
     def _add_nodes(self, resource_set):
-        """
-        Add Node in resource set
-        """
+        """Add Node in resource set."""
         for resource in resource_set.keys():
             self.order_graph.add_node(resource)
             self.colocation_graph.add_node(resource)
 
     def _update_dependencies(self, dependencies, edges, resource):
-        """
-        Create edges for graph
-        """
+        """Create edges for graph."""
         for res_name in dependencies:
             edges.append((res_name, resource))
 
     def _isolate(self, isolate_resources):
-        """
-        Find isolated resource
-        """
+        """Find isolated resource."""
         predecessors = self.compiled_schema["predecessors_edge"]
         for edge in predecessors:
             for res in edge:
@@ -158,15 +139,11 @@ class Compiler:
         self.compiled_schema["isolate_resources"] = isolate_resources
 
     def _verify_compiled_schema(self):
-        """
-        Verify all compiletion rule
-        """
+        """Verify all compiletion rule."""
         validator = SymanticValidator(self.compiled_schema, self.order_graph)
         validator.execute()
 
     def _add_edge(self, graph, edges):
-        """
-        Add edges for graph
-        """
+        """Add edges for graph."""
         for edge in edges:
             graph.add_edge(*edge)

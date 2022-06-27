@@ -8,7 +8,8 @@ from cortx.utils.conf_store.error import ConfError
 
 class ExponentialBackoff:
     """
-    ExponentialBackoff decorator class can decorate a function/method to set a retry logic
+    ExponentialBackoff decorator class can decorate a function/method to set a retry logic.
+
     to its call.It Retries the *calling of decorated function*, using a capped exponential
     backoff.
     Example:
@@ -27,6 +28,7 @@ class ExponentialBackoff:
         backoff (int): 2    backoff multiplier.
         cap (int): 120      cap for maximum delay (in seconds) between retries
     """
+
     def __init__(self, exception, tries=10, delay=1, backoff=2, cap=120):
         """Constructor method."""
         self._exception = exception
@@ -57,7 +59,8 @@ class CortxConf:
     @staticmethod
     def init(**kwargs):
         """
-        static init for initialising
+        Static init for initialising.
+
         Arguments:
         cluster_conf:
             confStore path of cluster.conf. eg. yaml:///etc/cortx/cluster.conf
@@ -71,8 +74,8 @@ class CortxConf:
     def _load_config() -> None:
         """Load cortx.conf file into conf in-memory."""
         local_storage_path = CortxConf.get_storage_path('local')
-        Conf.load(CortxConf._index, \
-            f"json://{os.path.join(local_storage_path, 'utils/conf/cortx.conf')}", \
+        Conf.load(CortxConf._index,\
+            f"json://{os.path.join(local_storage_path, 'utils/conf/cortx.conf')}",\
             fail_reload=False)
 
     @staticmethod
@@ -92,7 +95,7 @@ class CortxConf:
     @staticmethod
     def get_log_path(component = None, base_dir: str = None) -> str:
         """
-        Get the log path with machine-id as sub directory
+        Get the log path with machine-id as sub directory.
 
         Parameters:
         Component: Name of the component directory. If passed then the

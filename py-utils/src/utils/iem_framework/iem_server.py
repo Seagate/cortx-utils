@@ -27,7 +27,8 @@ routes = web.RouteTableDef()
 
 
 class IemRequestHandler(MessageServer):
-    """ Rest interface of Iem """
+    """Rest interface of Iem."""
+
     cluster_id = None
     message_server_endpoints = None
 
@@ -48,20 +49,20 @@ class IemRequestHandler(MessageServer):
         except EventMessageError as e:
             status_code = e.rc
             error_message = e.desc
-            Log.error(f"Unable to send event message for component: " \
-                      f"{component}, status code: {status_code}," \
+            Log.error(f"Unable to send event message for component: "\
+                      f"{component}, status code: {status_code},"\
                       f" error: {error_message}")
-            response_obj = {'error_code': status_code, 'exception': \
+            response_obj = {'error_code': status_code, 'exception':\
                 ['EventMessageError', {'message': error_message}]}
         except Exception as e:
             exception_key = type(e).__name__
             exception = RestServerError(exception_key).http_error()
             status_code = exception[0]
             error_message = exception[1]
-            Log.error(f"Internal error while sending event messages for " \
-                f"component: {component}, status code: " \
+            Log.error(f"Internal error while sending event messages for "\
+                f"component: {component}, status code: "\
                 f"{status_code}, error: {error_message}")
-            response_obj = {'error_code': status_code, 'exception': \
+            response_obj = {'error_code': status_code, 'exception':\
                 [exception_key, {'message': error_message}]}
             raise EventMessageError(status_code, error_message) from e
         else:
@@ -70,12 +71,12 @@ class IemRequestHandler(MessageServer):
             Log.debug(f"POST method finished for component: {component} "
                 f"and source: {source}, with status code: {status_code}")
         finally:
-            return web.Response(text=json.dumps(response_obj), \
+            return web.Response(text=json.dumps(response_obj),\
                 status=status_code)
 
     @staticmethod
     async def receive(request):
-        Log.debug(f"Received GET request for component " \
+        Log.debug(f"Received GET request for component "\
             f"{request.rel_url.query['component']}")
         try:
             component = request.rel_url.query['component']
@@ -86,28 +87,28 @@ class IemRequestHandler(MessageServer):
         except EventMessageError as e:
             status_code = e.rc
             error_message = e.desc
-            Log.error(f"Unable to receive event message for component: " \
-                f"{component}, status code: {status_code}," \
+            Log.error(f"Unable to receive event message for component: "\
+                f"{component}, status code: {status_code},"\
                 f" error: {error_message}")
-            response_obj = {'error_code': status_code, 'exception': \
+            response_obj = {'error_code': status_code, 'exception':\
                 ['EventMessageError', {'message': error_message}]}
         except Exception as e:
             exception_key = type(e).__name__
             exception = RestServerError(exception_key).http_error()
             status_code = exception[0]
             error_message = exception[1]
-            Log.error(f"Internal error while receiving event messages for " \
-                f"component: {component}, status code: " \
+            Log.error(f"Internal error while receiving event messages for "\
+                f"component: {component}, status code: "\
                 f"{status_code}, error: {error_message}")
-            response_obj = {'error_code': status_code, 'exception': \
+            response_obj = {'error_code': status_code, 'exception':\
                 [exception_key, {'message': error_message}]}
             raise EventMessageError(status_code, error_message) from e
         else:
             status_code = 200  # No exception, Success
             response_obj = {'alert': alert}
-            Log.debug(f"GET method finished with status code: {status_code}" \
-                f"for component {component} and received event message " \
+            Log.debug(f"GET method finished with status code: {status_code}"\
+                f"for component {component} and received event message "\
                 f"alert info. - {alert['iem']['info']}.")
         finally:
-            return web.Response(text=json.dumps(response_obj), \
+            return web.Response(text=json.dumps(response_obj),\
                 status=status_code)

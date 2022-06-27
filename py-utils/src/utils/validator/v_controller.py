@@ -24,7 +24,7 @@ from cortx.utils.validator.error import VError
 
 
 class ControllerV:
-    """ Controller related validations """
+    """Controller related validations."""
 
     def __init__(self):
         self.version_cmd = "show versions"
@@ -33,11 +33,11 @@ class ControllerV:
     def validate(self, v_type, args):
         """
         Process controller validations.
+
         Usage (arguments to be provided):
         1. controller accessible <ip> <username> <password>
         2. controller firmware <ip> <username> <password> <mc_version>
         """
-
         if not isinstance(args, list):
             raise VError(errno.EINVAL, "Invalid parameters %s" % args)
 
@@ -67,7 +67,7 @@ class ControllerV:
                     Refer usage." % v_type)
 
     def validate_controller_accessibility(self, ip, username, password):
-        """ Check contoller console is accessible to node """
+        """Check contoller console is accessible to node."""
         # Check if ssh connection is successful
         try:
             session = SSHChannel(
@@ -90,7 +90,8 @@ class ControllerV:
 
     def validate_firmware(self, ip, username, password, mc_expected):
         """
-        Check expected contoller bundle version found
+        Check expected contoller bundle version found.
+
         mc_expected: string or list of expected version(s).
         """
         try:

@@ -59,9 +59,6 @@ class PrimaryKeyValue:
 
 
 class BaseModel(Model):
-    """
-    Base model
-    """
 
     _id = None  # This field used as Primary key of the Model
     primary_key = PrimaryKey()

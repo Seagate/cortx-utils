@@ -20,9 +20,8 @@ from typing import Optional, Type
 
 
 class KeyMaterialStore:
-    """
-    Context manager for safe access to key material store.
-    """
+    """Context manager for safe access to key material store."""
+
     _old_umask: int
     _store_path: Path
 

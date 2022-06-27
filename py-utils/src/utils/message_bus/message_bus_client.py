@@ -23,31 +23,31 @@ from cortx.utils.message_bus.error import MessageBusError
 
 
 class MessageBusClient:
-    """ common infrastructure for producer and consumer """
+    """Common infrastructure for producer and consumer."""
 
     def __init__(self, client_type: str, **client_conf: dict):
         MessageBus.init_client(client_type, **client_conf)
         self._client_conf = client_conf
-        Log.debug(f"MessageBusClient: initialized with arguments" \
+        Log.debug(f"MessageBusClient: initialized with arguments"\
             f" client_type: {client_type}, kwargs: {client_conf}")
 
     def _get_conf(self, key: str):
-        """ To get the client configurations """
+        """To get the client configurations."""
         if key not in self._client_conf.keys():
-            Log.error(f"MessageBusError: {errno.ENOENT}. Could not" \
+            Log.error(f"MessageBusError: {errno.ENOENT}. Could not"\
                 f" find key {key} in client config {self._client_conf}")
             raise MessageBusError(errno.ENOENT, "Could not find key %s in " +\
                 "client config %s", key, self._client_conf)
         return self._client_conf[key]
 
     def list_message_types(self) -> list:
-        """ Returns list of available message types """
+        """Returns list of available message types."""
         client_id = self._get_conf('client_id')
         return MessageBus.list_message_types(client_id)
 
     def register_message_type(self, message_types: list, partitions: int):
         """
-        Registers a list of message types
+        Registers a list of message types.
 
         Parameters:
         message_types    This is essentially equivalent to the list of queue
@@ -60,7 +60,7 @@ class MessageBusClient:
 
     def deregister_message_type(self, message_types: list):
         """
-        Deregisters a list of message types
+        Deregisters a list of message types.
 
         Parameters:
         message_types    This is essentially equivalent to the list of queue
@@ -71,7 +71,7 @@ class MessageBusClient:
 
     def add_concurrency(self, message_type: str, concurrency_count: int):
         """
-        To achieve concurrency for a message type
+        To achieve concurrency for a message type.
 
         Parameters:
         message_type         This is essentially equivalent to queue/topic name.
@@ -79,12 +79,12 @@ class MessageBusClient:
         concurrency_count    Integer to achieve concurrency among consumers
         """
         client_id = self._get_conf('client_id')
-        MessageBus.add_concurrency(client_id, message_type, \
+        MessageBus.add_concurrency(client_id, message_type,\
             concurrency_count)
 
     @staticmethod
     def _get_str_message_list(messages: list) -> list:
-        """ Convert the format of message to string """
+        """Convert the format of message to string."""
         from cortx.utils.kv_store import KvPayload
 
         message_list = []
@@ -100,7 +100,7 @@ class MessageBusClient:
 
     def send(self, messages: list):
         """
-        Sends list of messages to the Message Bus
+        Sends list of messages to the Message Bus.
 
         Parameters:
         messages     A list of messages sent to Message Bus
@@ -112,7 +112,7 @@ class MessageBusClient:
         MessageBus.send(client_id, message_type, method, messages)
 
     def delete(self):
-        """ Deletes the messages """
+        """Deletes the messages."""
         message_type = self._get_conf('message_type')
         client_id = self._get_conf('client_id')
         return MessageBus.delete(client_id, message_type)
@@ -120,7 +120,7 @@ class MessageBusClient:
     def set_message_type_expire(self, message_type: str, **kwargs):
         """Set expiration time for given message type."""
         client_id = self._get_conf('client_id')
-        status = MessageBus.set_message_type_expire(client_id, message_type, \
+        status = MessageBus.set_message_type_expire(client_id, message_type,\
             **kwargs)
         Log.info(f"Successfully updated {message_type} with new"+\
             " configuration.")
@@ -128,7 +128,7 @@ class MessageBusClient:
 
     def receive(self, timeout: float = None) -> list:
         """
-        Receives messages from the Message Bus
+        Receives messages from the Message Bus.
 
         Parameters:
         timeout     Time in seconds to wait for the message.
@@ -137,16 +137,17 @@ class MessageBusClient:
         return MessageBus.receive(client_id, timeout)
 
     def ack(self):
-        """ Provides acknowledgement on offset """
+        """Provides acknowledgement on offset."""
         client_id = self._get_conf('client_id')
         MessageBus.ack(client_id)
 
 
 class MessageBusAdmin(MessageBusClient):
-    """ A client that do admin jobs """
+    """A client that do admin jobs."""
 
     def __init__(self, admin_id: str):
-        """ Initialize a Message Admin
+        """
+        Initialize a Message Admin.
 
         Parameters:
         message_bus    An instance of message bus class.
@@ -156,10 +157,11 @@ class MessageBusAdmin(MessageBusClient):
 
 
 class MessageProducer(MessageBusClient):
-    """ A client that publishes messages """
+    """A client that publishes messages."""
 
     def __init__(self, producer_id: str, message_type: str, method: str = None):
-        """ Initialize a Message Producer
+        """
+        Initialize a Message Producer.
 
         Parameters:
         message_bus     An instance of message bus class.
@@ -167,16 +169,17 @@ class MessageProducer(MessageBusClient):
         message_type    This is essentially equivalent to the
                         queue/topic name. For e.g. "Alert"
         """
-        super().__init__(client_type='producer', client_id=producer_id, \
+        super().__init__(client_type='producer', client_id=producer_id,\
             message_type=message_type, method=method)
 
 
 class MessageConsumer(MessageBusClient):
-    """ A client that consumes messages """
+    """A client that consumes messages."""
 
-    def __init__(self, consumer_id: str, consumer_group: str, auto_ack: str, \
+    def __init__(self, consumer_id: str, consumer_group: str, auto_ack: str,\
         message_types: list, offset: str):
-        """ Initialize a Message Consumer
+        """
+        Initialize a Message Consumer.
 
         Parameters:
         message_bus     An instance of message bus class.
@@ -190,6 +193,6 @@ class MessageConsumer(MessageBusClient):
                         ("earliest" will cause messages to be read from the
                         beginning)
         """
-        super().__init__(client_type='consumer', client_id=consumer_id, \
-            consumer_group=consumer_group, message_types=message_types, \
+        super().__init__(client_type='consumer', client_id=consumer_id,\
+            consumer_group=consumer_group, message_types=message_types,\
             auto_ack=auto_ack, offset=offset)

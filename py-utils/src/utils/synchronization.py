@@ -20,7 +20,8 @@ from cortx.utils.errors import InternalError
 
 
 class ThreadSafeEvent(asyncio.Event):
-    """Attempt to add thread-safe feature to the asyncio.Event class.
+    """
+    Attempt to add thread-safe feature to the asyncio.Event class.
 
     Standard asyncio.Event class is not thread safe. From other side, threading.Event class is not
     suitable for as asyncio synchronization primitive: class methods is not awaitable objects
@@ -28,7 +29,7 @@ class ThreadSafeEvent(asyncio.Event):
 
     @property
     def _event_loop(self):
-        """Method-wrapper to obtain a current event loop"""
+        """Method-wrapper to obtain a current event loop."""
         return self._loop  # TODO: maybe it is better to call asyncio.get_event_loop()
 
     def clear(self):

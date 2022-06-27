@@ -33,13 +33,13 @@ from cortx.utils.conf_store import MappedConf
 from cortx.utils.const import CLUSTER_CONF
 
 class OpenldapPROVError(Exception):
-
   """Parent class for the openldap provisioner error classes."""
+
   pass
 
 class SetupCmd(object):
-
   """Base class for setup commands."""
+
   ldap_root_user = None
   rootdn_passwd = None
   cluster_id = None
