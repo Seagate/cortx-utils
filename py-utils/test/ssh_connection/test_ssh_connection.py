@@ -38,7 +38,7 @@ class TestSSHChannel(unittest.TestCase):
         cls.__user = "utiltester"
         cls.__passwd = "P@ssw0rd"
         e_pass = crypt.crypt(cls.__passwd, "22")
-        os.system(f"sudo useradd -M -p {e_pass} {cls.__user}")
+        os.system(f"useradd -M -p {e_pass} {cls.__user}")
 
         # Let ssh connection be alive across all tests
         cls.session = SSHChannel(cls.hostname, cls.__user, cls.__passwd, sftp_enabled=True)
@@ -103,7 +103,7 @@ class TestSSHChannel(unittest.TestCase):
     def tearDownClass(cls):
         """Cleanup the setup."""
         cls.session.disconnect()
-        os.system(f"sudo userdel {cls.__user}")
+        os.system(f"userdel {cls.__user}")
 
 
 if __name__ == '__main__':
