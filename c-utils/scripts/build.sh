@@ -156,7 +156,7 @@ cortx_utils_rpm_install() {
         echo "$rpm"
     done
 
-    sudo yum install -y ${myrpms[@]}
+    yum install -y ${myrpms[@]}
     local rc=$?
 
     echo "Done ($rc)."
@@ -164,7 +164,7 @@ cortx_utils_rpm_install() {
 }
 
 cortx_utils_rpm_uninstall() {
-    sudo yum remove -y "${PROJECT_NAME_BASE}-utils*"
+    yum remove -y "${PROJECT_NAME_BASE}-utils*"
 }
 
 cortx_utils_reinstall() {
