@@ -19,7 +19,6 @@ please email opensource@seagate.com or cortx-questions@seagate.com.
 
 ---
 
-
 ## Prerequisite for running tests
 
 1.  cortx-py-utils, Kafka server and cortx-py-utils-test must be installed, if not please follow [Link](https://github.com/Seagate/cortx-utils/blob/main/py-utils/test/README.md)
@@ -39,7 +38,6 @@ please email opensource@seagate.com or cortx-questions@seagate.com.
 > Ex: conf_store.test_conf_cli
 
 **Note:** Here, `<plane_name>.pln` file can have a combination of both the test command structures. Directory_name is the name of directories under /py-utils/test
-
 
 ## Procedure to run py-utils unittests through utils test framework with Test RPM installed
 
@@ -70,4 +68,3 @@ python3 run_test.py -t <plan_file_path> -c <cluster.conf path>
 ## Test report generation
 
 *   Post test execution, test framework will generate a `py_utils_test_report.html` file with test execution status under `/tmp` directory.
-
