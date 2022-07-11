@@ -19,17 +19,29 @@ please email opensource@seagate.com or cortx-questions@seagate.com.
 
 ---
 
-## Clone
-
-```bash
-git clone https://github.com/Seagate/cortx-utils.git
-```
 
 ## Prerequisite for running tests
 
 1.  cortx-py-utils, Kafka server and cortx-py-utils-test must be installed, if not please follow [Link](https://github.com/Seagate/cortx-utils/blob/main/py-utils/test/README.md)
 
-## Procedure to run tests
+## Test command structure in <plane_name>.pln file
+
+*   To run a single test
+```bash
+<directory_name>.<test_file_name>.<class_name>.<test_name>
+```
+> Ex: conf_store.test_conf_cli.TestConfCli.test_conf_cli_properties_wrong_format_kv
+
+*   To run all the tests from a test_file.py
+```bash
+<directory_name>.<test_file_name>
+```
+> Ex: conf_store.test_conf_cli
+
+**Note:** Here, `<plane_name>.pln` file can have a combination of both the test command structures. Directory_name is the name of directories under /py-utils/test
+
+
+## Procedure to run py-utils unittests through utils test framework with Test RPM installed
 
 *   Running tests from entrypoint by passing path of a plan
 ```bash
@@ -48,18 +60,14 @@ run_test -c <cluster.conf path> -t /usr/lib/python3.6/site-packages/cortx/utils/
 
 **Note:** Here, `<plan_name>.pln` should exist in plans directory under /py-utils/test, i.e, `cortx-utils/py-utils/test/plans/`
 
-## Test command structure in <plane_name>.pln file
+## Procedure to run py-utils unittests through utils test framework without Test RPM
 
-*   To run a single test
+*   After cloning cortx-utils repo and installing prerequisites, Go to `py-utils/test` directory and execute the below command
 ```bash
-<directory_name>.<test_file_name>.<class_name>.<test_name>
+python3 run_test.py -t <plan_file_path> -c <cluster.conf path>
 ```
-> Ex: conf_store.test_conf_cli.TestConfCli.test_conf_cli_properties_wrong_format_kv
 
-*   To run all the tests from a test_file.py
-```bash
-<directory_name>.<test_file_name>
-```
-> Ex: conf_store.test_conf_cli
+## Test report generation
 
-**Note:** Here, `<plane_name>.pln` file can have a combination of both the test command structures. Directory_name is the name of directories under /py-utils/test
+*   Post test execution, test framework will generate a `py_utils_test_report.html` file with test execution status under `/tmp` directory.
+
