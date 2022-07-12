@@ -60,7 +60,7 @@ echo $VER > VERSION
 /bin/chmod +rx VERSION
 
 # Put install_path in utils-post-install
-sed -i -e "s|<INSTALL_PATH>|${INSTALL_PATH}|g" utils-post-install_script.py
+sed -i -e "s|<INSTALL_PATH>|${INSTALL_PATH}|g" utils-post-install
 
 # Put install_path in utils-post-uninstall
 sed -i -e "s|<INSTALL_PATH>|${INSTALL_PATH}|g" utils-post-uninstall
