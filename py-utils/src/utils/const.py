@@ -88,3 +88,7 @@ COMPONENT_NAME_MAP = {'CORTX': 'CORTX', 'cortx-motr': 'motr', 'cortx-rgw': 'rgw'
                     'cortx-hare': 'hare', 'cortx-py-utils': 'utils', 'cortx-csm_agent': 'csm',
                     'cortx-ha': 'ha', 'cortx-prvsnr': 'prvsnr'}
 VERSION_UPGRADE = "UPGRADE"
+# Distributed Lock related keys
+SERVICE = "conf-service"
+LEAD_KEY = "gconf>leader"
+ACQUIRED_TIME_KEY = "gconf>acquisition_time"

@@ -116,6 +116,9 @@ class KvStore:
         raise KvError(errno.ENOSYS, "%s:dump() not implemented",
                       type(self).__name__)
 
+    def lock(self, payload, delim='>'):
+        payload = self.load()
+        return payload.lock()
 
 class KvStoreFactory:
 

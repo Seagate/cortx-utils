@@ -22,12 +22,14 @@ from consul import Consul, ConsulException
 from requests.exceptions import RequestException
 from urllib.error import HTTPError
 from configparser import ConfigParser, NoOptionError, NoSectionError
+from datetime import datetime
 
 from cortx.utils.kv_store.error import KvError
 from cortx.utils.kv_store.kv_store import KvStore
 from cortx.utils.kv_store.kv_payload import KvPayload
 from cortx.utils.process import SimpleProcess
 from cortx.utils.common import ExponentialBackoff
+import cortx.utils.const as const
 
 
 class JsonKvStore(KvStore):
@@ -425,6 +427,7 @@ class ConsulKvPayload(KvPayload):
         self._data = {}
         self._consul = consul
         self._store_path = store_path
+        self._session_id = None
         if self._store_path:
             if self._store_path.startswith('/'): self._store_path = self._store_path[1:]
             if not self._store_path.endswith('/'): self._store_path = self._store_path + '/'
@@ -506,6 +509,30 @@ class ConsulKvPayload(KvPayload):
                 if value == search_val:
                     key_list.append(key)
         return key_list
+    
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
+    def lock(self):
+        """ """
+        service = const.SERVICE
+        self._session_id = self._create_session(service)
+        lead_key = self._store_path + const.LEAD_KEY
+        lead_value = str(datetime.timestamp(datetime.now()))
+        return self._consul.kv.put(key=lead_key, value=lead_value, acquire=self._session_id)
+
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
+    def unlock(self):
+        """ """
+        released = self._consul.session.destroy(
+            session_id=self._session_id
+        )
+        if released:
+            self._consul.kv.put(
+                key=self._store_path + const.LEAD_KEY, value=None)
+        return released
+        
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
+    def _create_session(self, service):
+        return self._consul.session.create(name=service, lock_delay=0, ttl=180, behavior='delete')
 
 class ConsulKVStore(KvStore):
     """Consul basedKV store."""

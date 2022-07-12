@@ -83,3 +83,9 @@ class ConfCache:
         result = self._data.delete(key, force)
         self._dirty = True
         return result
+
+    def lock(self):
+        return self._data.lock()
+
+    def unlock(self):
+        return self._data.unlock()

@@ -268,6 +268,17 @@ class ConfStore:
             if key not in self._cache[dest_index].get_keys():
                 self._cache[dest_index].set(key, self._cache[src_index].get(key))
 
+    def lock(self, index:str):
+        if index not in self._cache.keys():
+            raise ConfError(errno.EINVAL, "config index %s is not loaded",
+                index)
+        return self._cache[index].lock()
+    
+    def unlock(self, index:str):
+        if index not in self._cache.keys():
+            raise ConfError(errno.EINVAL, "config index %s is not loaded",
+                index)
+        return self._cache[index].unlock()
 
 class Conf:
     """Singleton class instance based on conf_store."""
@@ -375,6 +386,13 @@ class Conf:
         """Add "num_xxx" keys for all the list items in ine KV Store."""
         Conf._conf.add_num_keys(index)
 
+    @staticmethod
+    def lock(index):
+        return Conf._conf.lock(index)
+
+    @staticmethod
+    def unlock(index):
+        return Conf._conf.unlock(index)
 
 class MappedConf:
     """CORTX Config Store with fixed target."""
