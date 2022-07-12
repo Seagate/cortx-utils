@@ -148,7 +148,9 @@ class FilterLog:
                     break
 
     @staticmethod
-    def limit_time(src_dir, dest_dir, duration, file_name_reg_ex):
+    def limit_time(src_dir, dest_dir, duration, file_name_reg_ex,
+        log_timestamp_regex = '[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}',
+        datetime_format = '%Y-%m-%d %H:%M:%S'):
         """
         Filters out log in the src_dir that were generated between passed.
 
@@ -160,9 +162,18 @@ class FilterLog:
             duration [str]: Duraion in ISO 8601 format,
                             eg: 2020-09-06T05:30:00P5DT3H3S
             file_name_reg_ex [str]: File name regex
+            log_timestamp_regex [str] : regex format for timestamp to be
+                                        fetched from log file using re library
+            datetime_format [str] : datetime format for regex
 
         Raises:
             BundleError: In case of failure
+
+        Example:
+            for log_timestamp 2022-07-10T05:45:36,
+            datetime_format: '%Y-%m-%dT%H:%M:%S'
+            log_timestamp_regex:
+            '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}'
         """
         invalid_chars = re.findall("[^PTDHMS0-9-:]+", duration)
         if invalid_chars:
@@ -178,11 +189,12 @@ class FilterLog:
                 with open(in_file, 'r') as fd_in, open(op_file, 'a') as fd_out:
                     line = fd_in.readline()
                     while(line):
-                        log_duration = line[:20].strip()
+                        regex_res = re.search(log_timestamp_regex, line)
+                        log_duration = regex_res.group(0) if regex_res else None
                         if log_duration:
                             # convert log timestamp to datetime object
                             try:
-                                log_time = datetime.strptime(log_duration, '%Y-%m-%d %H:%M:%S')
+                                log_time = datetime.strptime(log_duration, datetime_format)
                                 if start_time <= log_time and log_time <= end_time:
                                     include_lines_without_timestamp = True
                                     fd_out.write(line)
