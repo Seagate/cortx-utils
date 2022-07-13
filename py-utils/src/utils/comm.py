@@ -18,8 +18,7 @@
 from abc import ABCMeta, abstractmethod
 
 class Channel(metaclass=ABCMeta):
-
-    """Abstract class to represent a comm channel to a node"""
+    """Abstract class to represent a comm channel to a node."""
 
     @abstractmethod
     def init(self):
@@ -55,8 +54,7 @@ class Channel(metaclass=ABCMeta):
 
 
 class Comm(metaclass=ABCMeta):
-
-    """Abstract class to represent a comm channel"""
+    """Abstract class to represent a comm channel."""
 
     @abstractmethod
     def init(self):

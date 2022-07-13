@@ -29,7 +29,7 @@ from cortx.utils.activity_tracker import const
 
 
 class ActivityEntry:
-    """Represents System Activity"""
+    """Represents System Activity."""
 
     def __init__(self, **kwargs):
         """Initializes the backend for the Activity Store."""
@@ -43,7 +43,7 @@ class ActivityEntry:
             except KeyError as e:
                 raise ActivityError(errno.EINVAL, "Missing required key: %s",
                     str(e))
-            if activity_name is None or resource_path is None or \
+            if activity_name is None or resource_path is None or\
                 description is None:
                 raise ActivityError(errno.EINVAL, "Missing activity_name/\
                     resource_path/description")
@@ -96,7 +96,11 @@ class ActivityEntry:
 
 
 class Activity(metaclass=Singleton):
-    """Represent Activity Framework. Singleton Class"""
+    """
+    Represent Activity Framework.
+
+    Singleton Class
+    """
     _kv_store = None
 
     @staticmethod
@@ -118,10 +122,11 @@ class Activity(metaclass=Singleton):
         return activity
 
     @staticmethod
-    def update(activity: ActivityEntry, pct_progress: int, status_desc: str = \
+    def update(activity: ActivityEntry, pct_progress: int, status_desc: str =\
         const.IN_PROGRESS_DESC):
         """
         Updates the pct_progress and status_description.
+
         Sets the status to IN_PROGRESS.
         Records current time as the updated_time.
         """
@@ -139,10 +144,12 @@ class Activity(metaclass=Singleton):
         Activity._kv_store.set([activity.id], [activity.payload.json])
 
     @staticmethod
-    def finish(activity: ActivityEntry, rc: int, status_desc: str = \
+    def finish(activity: ActivityEntry, rc: int, status_desc: str =\
         const.COMPLETED_DESC):
         """
-        Completes the activity. Updates the rc and status_description.
+        Completes the activity.
+
+        Updates the rc and status_description.
         Sets the status to COMPLETE and pct_progress to 100.
         Records current time as the updated_time.
         """
@@ -153,10 +160,11 @@ class Activity(metaclass=Singleton):
         Activity._kv_store.set([activity.id], [activity.payload.json])
 
     @staticmethod
-    def suspend(activity: ActivityEntry, status_desc: str = \
+    def suspend(activity: ActivityEntry, status_desc: str =\
         const.SUSPENDED_DESC):
         """
         Suspends the activity and updates the status_description.
+
         Sets the status to SUSPEND.
         Records current time as the updated_time.
         """

@@ -43,14 +43,14 @@ OBJECT_DIR = "obj"
 PROPERTY_DIR = "prop"
 
 class ConsulWords:
-    """Consul service words"""
+    """Consul service words."""
 
     VALUE = "Value"
     KEY = "Key"
 
 def field_to_str(field: Union[str, BaseType]) -> str:
     """
-    Convert model field to its string representation
+    Convert model field to its string representation.
 
     :param Union[str, BaseType] field:
     :return: model field string representation
@@ -65,9 +65,9 @@ def field_to_str(field: Union[str, BaseType]) -> str:
 
 class ConsulQueryConverterWithData(GenericQueryConverter):
     """
-    Implementation of filter tree visitor which performs query tree traversal in parallel with
-    data filtering based on given filter logical and comparison operations
+    Implementation of filter tree visitor which performs query tree traversal in parallel with.
 
+    data filtering based on given filter logical and comparison operations.
     Usage:
     converter = ConsulQueryConverter()
     q_obj = converter.build(filter_root)
@@ -131,7 +131,7 @@ def query_converter_build(model: BaseModel, filter_obj: IFilter,
     return query_converter.build(filter_obj, raw_data)
 
 class ConsulKeyTemplate:
-    """Class-helper for storing consul key structure"""
+    """Class-helper for storing consul key structure."""
 
     _OBJECT_ROOT = f"{CONSUL_ROOT}/$OBJECT_TYPE"
     _OBJECT_DIR = _OBJECT_ROOT + f"/{OBJECT_DIR}"
@@ -147,7 +147,7 @@ class ConsulKeyTemplate:
 
     def set_object_type(self, object_type: str) -> None:
         """
-        Render templates using given object_type
+        Render templates using given object_type.
 
         :param str object_type: BaseModel type or collection
         :return:
@@ -188,7 +188,7 @@ class ConsulKeyTemplate:
                                      PROPERTY_VALUE=property_value)
 
 class ConsulDB(GenericDataBase):
-    """Consul Storage Interface Implementation"""
+    """Consul Storage Interface Implementation."""
 
     consul_client = None
     thread_pool = None
@@ -199,6 +199,7 @@ class ConsulDB(GenericDataBase):
                  process_pool: ThreadPoolExecutor,
                  loop: asyncio.AbstractEventLoop = None):
         """
+        Constructor method.
 
         :param Consul consul_client: consul client
         :param Type[BaseModel] model: model (class object) to associate it with consul storage
@@ -233,7 +234,7 @@ class ConsulDB(GenericDataBase):
                               model: Type[BaseModel],
                               create_schema: bool=True) -> IDataBase:
         """
-        Creates new instance of Consul KV DB and performs necessary initializations
+        Creates new instance of Consul KV DB and performs necessary initializations.
 
         :param DBSettings config: configuration for consul kv server
         :param str collection: collection for storing model onto db
@@ -270,14 +271,14 @@ class ConsulDB(GenericDataBase):
 
     async def create_object_root(self) -> None:
         """
-        Provides async method to initialize key structure for given object type
+        Provides async method to initialize key structure for given object type.
 
         :return:
         """
-
         async def _create_obj_dir():
             """
-            Create obj dir if it does not exist and load model_scheme
+            Create obj dir if it does not exist and load model_scheme.
+
             :return:
             """
             _index, _data = await self._consul_client.kv.get(obj_dir)
@@ -308,7 +309,7 @@ class ConsulDB(GenericDataBase):
 
     async def store(self, obj: BaseModel):
         """
-        Store object into Storage
+        Store object into Storage.
 
         :param Model obj: Arbitrary base object for storing into DB
 
@@ -335,16 +336,14 @@ class ConsulDB(GenericDataBase):
 
     async def get(self, query: Query) -> List[BaseModel]:
         """
-        Get object from Storage by Query
+        Get object from Storage by Query.
 
         :param query:
-        :return: empty list or list with objects which satisfy the passed query condition
+        :return: empty list or list with objects which satisfy the passed query condition.
         """
-
         def _sorted_key_func(_by_field, _field_type):
             """
-            Generates key function for built-in sorted function to perform correct sorting
-            of get results
+            Generates key function for built-in sorted function to perform correct sorting of get results.
 
             :param _by_field: field which will be used for sorting (ordering by)
             :param _field_type: type of the field which will be used for sorting
@@ -399,7 +398,7 @@ class ConsulDB(GenericDataBase):
 
     async def update(self, filter_obj: IFilter, to_update: dict) -> int:
         """
-        Update object in Storage by filter
+        Update object in Storage by filter.
 
         :param IFilter filter_obj: filter which specifies what objects need to update
         :param dict to_update: dictionary with fields and values which should be updated
@@ -432,7 +431,7 @@ class ConsulDB(GenericDataBase):
 
     async def delete(self, filter_obj: IFilter) -> int:
         """
-        Delete objects in DB by Query
+        Delete objects in DB by Query.
 
         :param IFilter filter_obj: filter object to perform delete operation
         :return: number of deleted entries
@@ -456,7 +455,7 @@ class ConsulDB(GenericDataBase):
             self._consul_client.kv.delete(model[ConsulWords.KEY])) for
                  model in suitable_models]
 
-        done, pending = await asyncio.wait(tasks)
+        done, _ = await asyncio.wait(tasks)
 
         for task in done:
             if not task.result():
@@ -475,7 +474,7 @@ class ConsulDB(GenericDataBase):
 
     async def count(self, filter_obj: IFilter = None) -> int:
         """
-        Returns count of entities for given filter_obj
+        Returns count of entities for given filter_obj.
 
         :param IFilter filter_obj: filter to perform count aggregation
         :return: count of entries which satisfy the `filter_obj`
@@ -499,12 +498,11 @@ class ConsulDB(GenericDataBase):
 
     async def count_by_query(self, ext_query: ExtQuery):
         """
-        Count Aggregation function
+        Count Aggregation function.
 
-        :param ExtQuery ext_query: Extended query which describes to perform count aggregation
-        :return:
+        :param ExtQuery ext_query: Extended query which describes to perform count aggregation.
         """
         pass
 
     async def get_by_prefix(self):
-        """"""
+        """Get by prefix."""

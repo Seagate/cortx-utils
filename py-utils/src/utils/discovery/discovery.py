@@ -25,7 +25,7 @@ from cortx.utils.discovery.request_handler import RequestHandler
 
 
 class Discovery:
-    """Common interfaces of Discovery Library"""
+    """Common interfaces of Discovery Library."""
 
     @staticmethod
     def __generate__(args, kwargs):
@@ -50,8 +50,9 @@ class Discovery:
     @staticmethod
     def generate_node_health(rpath: str = None, store_url: str = None):
         """
-        Generates node resource map and health information. This returns
-        unique id for any accepted request.
+        Generates node resource map and health information.
+
+        This returns unique id for any accepted request.
 
         rpath: Resource path in resource map to fetch its health.
             If rpath is not given, it will fetch whole Cortx Node
@@ -86,7 +87,9 @@ class Discovery:
     @staticmethod
     def generate_node_manifest(rpath: str = None, store_url: str = None):
         """
-        This generates manifest for given rpath. This returns
+        This generates manifest for given rpath.
+
+        This returns
         unique id for any accepted request.
 
         If no rpath given it generates manifest for all resources.
@@ -115,9 +118,10 @@ class Discovery:
     def get_gen_node_health_status(request_id):
         """
         Returns processing status of the given request id.
-        "In-progress" if health generation request is being processed
-        "Success" if health generation request is completed
-        "Failed (with reason)" if request is failed
+
+        In-progress: if health generation request is being processed
+        Success: if health generation request is completed
+        Failed (with reason): if request is failed
         """
         return Discovery.__get_request_status__(request_id)
 
@@ -125,8 +129,9 @@ class Discovery:
     def get_gen_node_manifest_status(request_id):
         """
         Returns processing status of the given request id.
-        "In-progress" if manifest generation request is being processed
-        "Success" if manifest generation request is completed
-        "Failed (with reason)" if request is failed
+
+        In-progress: if manifest generation request is being processed
+        Success: if manifest generation request is completed
+        Failed (with reason): if request is failed
         """
         return Discovery.__get_request_status__(request_id)

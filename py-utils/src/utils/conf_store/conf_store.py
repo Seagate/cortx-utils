@@ -24,11 +24,12 @@ from cortx.utils import errors
 
 
 class ConfStore:
-    """ Configuration Store based on the KvStore """
+    """Configuration Store based on the KvStore."""
 
     def __init__(self, delim='>'):
         """
-        ConfStore will be initialized at the time of load
+        ConfStore will be initialized at the time of load.
+
         delim is used to split key into hierarchy, e.g. "k1>2" or "k1.k2"
         """
 
@@ -44,7 +45,7 @@ class ConfStore:
         return self._machine_id
 
     def _get_machine_id(self):
-        """ Returns the machine id from /etc/machine-id """
+        """Returns the machine id from /etc/machine-id."""
         from pathlib import Path
         machine_id_file = Path("/etc/machine-id")
         if machine_id_file.is_file() and machine_id_file.stat().st_size > 0:
@@ -54,7 +55,7 @@ class ConfStore:
 
     def load(self, index: str, kvs_url: str, **kwargs):
         """
-        Loads the config from KV Store
+        Loads the config from KV Store.
 
         Parameters:
         index:     Identifier for the config loaded from the KV Store
@@ -96,7 +97,7 @@ class ConfStore:
         self._cache[index] = ConfCache(kv_store, self._delim, recurse=recurse)
 
     def save(self, index: str):
-        """ Saves the given index configuration onto KV Store """
+        """Saves the given index configuration onto KV Store."""
         if index not in self._cache.keys():
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
@@ -105,7 +106,7 @@ class ConfStore:
 
     def get(self, index: str, key: str, default_val: str = None, **filters):
         """
-        Obtain value for the given configuration
+        Obtain value for the given configuration.
 
         Paraeters:
         index   Configuration Domain ID where config key values are stored
@@ -129,7 +130,7 @@ class ConfStore:
 
     def set(self, index: str, key: str, val):
         """
-        Sets the value into the DB for the given index, key
+        Sets the value into the DB for the given index, key.
 
         Parameters:
         index   Configuration Domain ID where config key values are stored
@@ -146,7 +147,8 @@ class ConfStore:
 
     def get_keys(self, index: str, **filters) -> list:
         """
-        Obtains list of keys stored in the specific config store
+        Obtains list of keys stored in the specific config store.
+
         Input Paramters:
         Index   - Index for which the list of keys to be obtained
         Filters - Filters to be applied before the keys to be returned.
@@ -158,14 +160,14 @@ class ConfStore:
         return self._cache[index].get_keys(**filters)
 
     def get_data(self, index: str):
-        """ Obtains entire config for given index """
+        """Obtains entire config for given index."""
         if index not in self._cache.keys():
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                                  index)
         return self._cache[index].get_data()
 
     def delete(self, index: str, key: str, force: bool = False):
-        """ Delets a given key from the config """
+        """Delets a given key from the config."""
         if index not in self._cache.keys():
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
@@ -174,7 +176,8 @@ class ConfStore:
     def search(self, index: str, parent_key: str, search_key: str,
         search_val: str = None) -> list:
         """
-        Search for a given value in the conf store
+        Search for a given value in the conf store.
+
         Returns list of keys that matched the creteria (i.e. has given value)
         """
         return self._cache[index].search(parent_key, search_key, search_val)
@@ -186,7 +189,7 @@ class ConfStore:
     def copy(self, src_index: str, dst_index: str, key_list: list = None,
         recurse: bool = True):
         """
-        Copies one config domain to the other and saves
+        Copies one config domain to the other and saves.
 
         Parameters:
         src_index Source Index
@@ -210,7 +213,7 @@ class ConfStore:
 
     def compare(self, index1: str, index2: str):
         """
-        Compares two configs and returns difference
+        Compares two configs and returns difference.
 
         Parameters:
         index1 : Conf Index 1
@@ -235,7 +238,7 @@ class ConfStore:
 
     def merge(self, dest_index: str, src_index: str, keys: list = None):
         """
-        Merges the content of src_index and dest_index file
+        Merges the content of src_index and dest_index file.
 
         Parameters:
         dst_index - Destination Index, to this index resulted values will be
@@ -256,7 +259,7 @@ class ConfStore:
         else:
             for key in keys:
                 if not self._cache[src_index].get(key):
-                    raise ConfError(errno.ENOENT, "%s is not present in %s", \
+                    raise ConfError(errno.ENOENT, "%s is not present in %s",\
                         key, src_index)
         self._merge(dest_index, src_index, keys)
 
@@ -267,14 +270,15 @@ class ConfStore:
 
 
 class Conf:
-    """ Singleton class instance based on conf_store """
+    """Singleton class instance based on conf_store."""
+
     _conf = None
     _delim = '>'
     _machine_id = None
 
     @staticmethod
     def init(**kwargs):
-        """ static init for initialising and setting attributes """
+        """Static init for initialising and setting attributes."""
         if Conf._conf is None:
             for key, val in kwargs.items():
                 setattr(Conf, f"_{key}", val)
@@ -283,35 +287,35 @@ class Conf:
 
     @staticmethod
     def load(index: str, url: str, recurse=True, **kwargs):
-        """ Loads Config from the given URL """
+        """Loads Config from the given URL."""
         if Conf._conf is None:
             Conf.init()
         Conf._conf.load(index, url, recurse=recurse, **kwargs)
 
     @staticmethod
     def save(index: str):
-        """ Saves the configuration onto the backend store """
+        """Saves the configuration onto the backend store."""
         Conf._conf.save(index)
 
     @staticmethod
     def set(index: str, key: str, val):
-        """ Sets config value for the given key """
+        """Sets config value for the given key."""
         Conf._conf.set(index, key, val)
 
     @staticmethod
     def get(index: str, key: str, default_val: str = None, **filters):
-        """ Obtains config value for the given key """
+        """Obtains config value for the given key."""
         return Conf._conf.get(index, key, default_val, **filters)
 
     @staticmethod
     def delete(index: str, key: str, force: bool = False):
-        """ Deletes a given key from the config """
+        """Deletes a given key from the config."""
         return Conf._conf.delete(index, key, force)
 
     @staticmethod
     def copy(src_index: str, dst_index: str, key_list: list = None,
         recurse: bool = True):
-        """ Creates a Copy suffixed file for main file"""
+        """Creates a Copy suffixed file for main file."""
         Conf._conf.copy(src_index, dst_index, key_list, recurse)
 
     @staticmethod
@@ -323,21 +327,23 @@ class Conf:
         return Conf._conf.compare(index1, index2)
 
     class ClassProperty(property):
-        """ Subclass property for classmethod properties """
+        """Subclass property for classmethod properties."""
+
         def __get__(self, cls, owner):
             return self.fget.__get__(None, owner)()
 
     @ClassProperty
     @classmethod
     def machine_id(self):
-        """ Returns the machine id from /etc/machine-id """
+        """Returns the machine id from /etc/machine-id."""
         if Conf._conf is None:
             Conf.init()
         return self._machine_id.strip() if self._machine_id else None
 
     def get_keys(index: str, **filters) -> list:
         """
-        Obtains list of keys stored in the specific config store
+        Obtains list of keys stored in the specific config store.
+
         Input Paramters:
         Index   - Index for which the list of keys to be obtained
         Filters - Filters to be applied before the keys to be returned.
@@ -352,7 +358,7 @@ class Conf:
     def search(index: str, parent_key: str, search_key: str,
         search_val: str = None) -> list:
         """
-        Search for a given key or key-value under a parent key
+        Search for a given key or key-value under a parent key.
 
         Input Parameters:
         index   - Index for which the list of keys to be obtained
@@ -382,6 +388,8 @@ class MappedConf:
 
     def set_kvs(self, kvs: list):
         """
+        Set key:value.
+
         Parameters:
         kvs - List of KV tuple, e.g. [('k1','v1'),('k2','v2')]
         Where, k1, k2 - is full key path till the leaf key.

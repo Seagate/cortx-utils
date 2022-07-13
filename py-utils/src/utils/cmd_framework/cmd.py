@@ -18,14 +18,14 @@ import inspect
 
 
 class Cmd:
-  """ Command """
+  """Command."""
 
   def __init__(self, args: dict):
     self._args = args
 
   @staticmethod
   def get_command(module, desc: str, argv: dict):
-    """ Return the Command after parsing the command line. """
+    """Return the Command after parsing the command line."""
 
     parser = argparse.ArgumentParser(desc)
     subparsers = parser.add_subparsers()

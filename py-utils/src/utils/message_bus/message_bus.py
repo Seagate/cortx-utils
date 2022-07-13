@@ -25,12 +25,14 @@ from cortx.utils.message_bus.message_broker import MessageBrokerFactory
 
 
 class MessageBus(metaclass=Singleton):
-    """ Message Bus Framework over various types of Message Brokers """
+    """Message Bus Framework over various types of Message Brokers."""
+
     _broker = None
     _broker_type = 'kafka'
     _receive_timeout = 2
     _socket_timeout = 15000
     _send_timeout = 5000
+    _admin_api_timeout = 60
 
     @staticmethod
     def init(message_server_endpoints: list, **message_server_params_kwargs: dict):
@@ -40,33 +42,37 @@ class MessageBus(metaclass=Singleton):
         message_server_keys = message_server_params_kwargs.keys()
 
         endpoints = MessageBrokerFactory.get_server_list(message_server_endpoints)
-        broker_type = message_server_params_kwargs['broker_type'] if \
+        broker_type = message_server_params_kwargs['broker_type'] if\
             'broker_type' in message_server_keys else MessageBus._broker_type
-        receive_timeout = message_server_params_kwargs['receive_timeout'] if \
+        receive_timeout = message_server_params_kwargs['receive_timeout'] if\
             'receive_timeout' in message_server_keys else MessageBus._receive_timeout
-        socket_timeout = message_server_params_kwargs['socket_timeout'] if \
+        socket_timeout = message_server_params_kwargs['socket_timeout'] if\
             'socket_timeout' in message_server_keys else MessageBus._socket_timeout
-        send_timeout = message_server_params_kwargs['send_timeout'] if \
+        send_timeout = message_server_params_kwargs['send_timeout'] if\
             'send_timeout' in message_server_keys else MessageBus._send_timeout
+        admin_api_timeout = message_server_params_kwargs['admin_api_timeout'] if\
+            'admin_api_timeout' in message_server_keys else MessageBus._admin_api_timeout
 
         Conf.set(utils_index, 'message_broker>type', broker_type)
         Conf.set(utils_index, 'message_broker>cluster', endpoints)
-        Conf.set(utils_index, 'message_broker>message_bus>receive_timeout', \
+        Conf.set(utils_index, 'message_broker>message_bus>receive_timeout',\
             receive_timeout)
-        Conf.set(utils_index, 'message_broker>message_bus>socket_timeout', \
+        Conf.set(utils_index, 'message_broker>message_bus>socket_timeout',\
             socket_timeout)
-        Conf.set(utils_index, 'message_broker>message_bus>send_timeout', \
+        Conf.set(utils_index, 'message_broker>message_bus>send_timeout',\
             send_timeout)
+        Conf.set(utils_index, 'message_broker>message_bus>admin_api_timeout',\
+            admin_api_timeout)
         Conf.save(utils_index)
 
         broker_conf = Conf.get(utils_index, 'message_broker')
         if broker_conf is None:
-            Log.error(f"MessageBusError: {errno.EINVAL} Invalid broker " \
+            Log.error(f"MessageBusError: {errno.EINVAL} Invalid broker "\
                 f"information {broker_conf}.")
-            raise MessageBusError(errno.EINVAL, "Invalid broker " + \
+            raise MessageBusError(errno.EINVAL, "Invalid broker " +\
                 "information %s. ", broker_conf)
 
-        MessageBus._broker = MessageBrokerFactory.get_instance(broker_type, \
+        MessageBus._broker = MessageBrokerFactory.get_instance(broker_type,\
             broker_conf)
         Log.info(f"MessageBus initialized as {broker_type}")
 
@@ -74,23 +80,20 @@ class MessageBus(metaclass=Singleton):
     def init_client(client_type: str, **client_conf: dict):
         """To create producer/consumer client based on the configurations."""
         if MessageBus._broker is None:
-            raise MessageBusError(errors.ERR_NOT_INITIALIZED ,"MessageBroker " \
+            raise MessageBusError(errors.ERR_NOT_INITIALIZED ,"MessageBroker "\
                 "is not initialized %s. ", MessageBus._broker)
         MessageBus._broker.init_client(client_type, **client_conf)
 
     @staticmethod
     def list_message_types(client_id: str) -> list:
-        """
-        Returns list of available message types from the configured message
-        broker
-        """
+        """Returns list of available message types from the configured message broker."""
         return MessageBus._broker.list_message_types(client_id)
 
     @staticmethod
-    def register_message_type(client_id: str, message_types: list, \
+    def register_message_type(client_id: str, message_types: list,\
         partitions: int):
         """Registers list of message types in the configured message broker."""
-        MessageBus._broker.register_message_type(client_id, message_types, \
+        MessageBus._broker.register_message_type(client_id, message_types,\
             partitions)
 
     @staticmethod
@@ -99,10 +102,10 @@ class MessageBus(metaclass=Singleton):
         MessageBus._broker.deregister_message_type(client_id, message_types)
 
     @staticmethod
-    def add_concurrency(client_id: str, message_type: str, \
+    def add_concurrency(client_id: str, message_type: str,\
         concurrency_count: int):
         """To achieve concurrency among consumers."""
-        MessageBus._broker.add_concurrency(client_id, message_type, \
+        MessageBus._broker.add_concurrency(client_id, message_type,\
             concurrency_count)
 
     @staticmethod
@@ -129,5 +132,5 @@ class MessageBus(metaclass=Singleton):
     def set_message_type_expire(client_id: str, message_type: str,\
         **kwargs):
         """Set expiration time for given message type."""
-        return MessageBus._broker.set_message_type_expire(client_id, \
+        return MessageBus._broker.set_message_type_expire(client_id,\
             message_type, **kwargs)

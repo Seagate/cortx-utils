@@ -21,21 +21,18 @@ from getpass import getpass
 import errno
 
 class Terminal:
-    """
-    Class to show prompts on consol for purpose of information,
-    waring or to get inputs from user or confirmation messages
-    """
+    """Class to show prompts on consol for purpose of information waring or to get inputs from user or confirmation messages."""
 
     @staticmethod
     def get_quest_answer(name: str) -> bool:
         """
-        Asks user user a question using stdout
+        Asks user user a question using stdout.
+
         Returns True or False, depending on an answer
 
         :param quest: question string
         :return: True or False depending on user input
         """
-
         while True:
             # Postive answer is default
             sys.stdout.write(f'Are you sure you want to perform "{name}" command? [Y/n] ')
@@ -60,6 +57,7 @@ class Terminal:
     def get_current_password(value):
         """
         Fetches current password for user in non-echo mode.
+
         :param value:
         :return:
         """
@@ -73,6 +71,7 @@ class Terminal:
     def get_password(value, confirm_pass_flag=True):
         """
         Fetches the Password from Terminal in Non-Echo Mode.
+
         :return:
         """
         sys.stdout.write(("\nPassword must contain the following.\n1) 1 upper and lower "

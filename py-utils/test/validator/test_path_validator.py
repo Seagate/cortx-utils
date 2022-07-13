@@ -22,6 +22,7 @@ from cortx.utils.validator.error import VError
 
 class TestPathValidator(unittest.TestCase):
     """Test Path related validations."""
+
     paths = ['dir:/', 'file:/etc/hosts']
     # host = 'localhost'
 

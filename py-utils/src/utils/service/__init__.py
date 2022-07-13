@@ -16,4 +16,5 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+"""Sub-package for service."""
 from cortx.utils.service.service_handler import ServiceHandler, DbusServiceHandler

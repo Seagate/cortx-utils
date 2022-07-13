@@ -32,7 +32,6 @@ from cortx.utils.support_framework import SupportBundle
 
 
 class CortxSupportBundle:
-
     """CLI for the Support Bundle Framework."""
 
     @staticmethod
@@ -104,7 +103,6 @@ class CortxSupportBundle:
 
 
 class GenerateCmd:
-
     """Get Generate Cmd Structure."""
 
     @staticmethod
@@ -143,7 +141,6 @@ class GenerateCmd:
 
 
 class StatusCmd:
-
     """Get Status Cmd Structure."""
 
     @staticmethod

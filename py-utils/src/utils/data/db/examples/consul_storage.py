@@ -25,10 +25,7 @@ from cortx.utils.data.access import BaseModel, Query
 
 
 class AlertModel(BaseModel):
-
-    """
-    Alert model example
-    """
+    """Alert model example."""
 
     _id = "alert_uuid"  # reference to another Alert model field to consider it as primary key
     alert_uuid = StringType()
@@ -60,6 +57,7 @@ class AlertModel(BaseModel):
         return obj
 
     def __hash__(self):
+        """Return hash of alert_uuid."""
         return hash(self.alert_uuid)
 
 

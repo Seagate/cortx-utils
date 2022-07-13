@@ -38,7 +38,7 @@ class TestStore(unittest.TestCase):
     loaded_consul = ''
 
     @classmethod
-    def setUpClass(cls, \
+    def setUpClass(cls,\
         cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
         """Setup test class."""
         if TestStore._cluster_conf_path:
@@ -57,24 +57,24 @@ class TestStore(unittest.TestCase):
         TestStore.loaded_consul = test_current_file(url)
 
     def test_consul_a_set_get_kv(self):
-        """ Test consul kv set and get a KV. """
+        """Test consul kv set and get a KV."""
         TestStore.loaded_consul[0].set(['consul_cluster_uuid'], ['#410'])
         out = TestStore.loaded_consul[0].get(['consul_cluster_uuid'])
         self.assertEqual('#410', out[0])
 
     def test_consul_b_query_unknown_key(self):
-        """ Test consul kv query for an absent key. """
+        """Test consul kv query for an absent key."""
         out = TestStore.loaded_consul[0].get(['Wrong_key'])
         self.assertIsNone(out[0])
 
     def test_consul_store_c_set_nested_key(self):
-        """ Test consul kv set a nested key. """
+        """Test consul kv set a nested key."""
         TestStore.loaded_consul[0].set(['consul_cluster>uuid'], ['#411'])
         out = TestStore.loaded_consul[0].get(['consul_cluster>uuid'])
         self.assertEqual('#411', out[0])
 
     def test_consul_store_d_set_multiple_kv(self):
-        """ Test consul kv by setting nested key structure """
+        """Test consul kv by setting nested key structure."""
         TestStore.loaded_consul[0].set(['cloud>cloud_type', 'kafka>message_type'],
             ['Azure', 'receive'])
         out1 = TestStore.loaded_consul[0].get(['kafka>message_type'])
@@ -83,7 +83,7 @@ class TestStore(unittest.TestCase):
         self.assertEqual('Azure', out2[0])
 
     def test_consul_store_e_delete_kv(self):
-        """ Test consul kv by removing given key using delete api """
+        """Test consul kv by removing given key using delete api."""
         TestStore.loaded_consul[0].delete(['cloud>cloud_type'])
         out = TestStore.loaded_consul[0].get(['cloud>cloud_type'])
         self.assertEqual([None], out)
@@ -102,10 +102,15 @@ class TestStore(unittest.TestCase):
         TestStore.loaded_consul[0].delete(['test>child_key>leaf_key'])
         self.assertEqual(['test>child_key>leaf_key'], out)
 
+    def test_consul_store_h_search_without_val(self):
+        """Test consul search without search_val."""
+        TestStore.loaded_consul[0].set(['test>child_key>leaf_key'],['value'])
+        out = TestStore.loaded_consul[0].search('test', 'leaf_key')
+        TestStore.loaded_consul[0].delete(['test>child_key>leaf_key'])
+        self.assertEqual(['test>child_key>leaf_key'], out)
 
 if __name__ == '__main__':
     import sys
     if len(sys.argv) >= 2:
         TestStore._cluster_conf_path = sys.argv.pop()
     unittest.main()
-    

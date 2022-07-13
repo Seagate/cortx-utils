@@ -34,7 +34,7 @@ class TestBmcValidator(unittest.TestCase):
     """Test BMC related validations."""
 
     def setUp(self):
-        """Get bmc data on nodes in cluster"""
+        """Get bmc data on nodes in cluster."""
         self.bmc_data = dict()
         self.cluster_id = self.fetch_salt_data('grains.get', const.CLUSTER_ID)
         self.node_list = self.fetch_salt_data('pillar.get', 'cluster')['node_list']
@@ -43,14 +43,14 @@ class TestBmcValidator(unittest.TestCase):
             self.bmc_data.update({node: node_bmc})
 
     def fetch_salt_data(self, func, arg):
-        """Get value for any required key"""
+        """Get value for any required key."""
         result = salt.client.Caller().function(func, arg)
         if not result:
             raise VError(errno.EINVAL, f"No result found for '{arg}' in salt")
         return result
 
     def test_accessibility_ok(self):
-        """ Check BMC accessibility for nodes in cluster"""
+        """Check BMC accessibility for nodes in cluster."""
         for node in self.node_list:
             bmc_ip = self.bmc_data[node]['ip']
             bmc_user = self.bmc_data[node]['user']
@@ -60,11 +60,11 @@ class TestBmcValidator(unittest.TestCase):
             BmcV().validate('accessible', [node, bmc_ip, bmc_user, bmc_passwd])
 
     def test_accessibility_no_args_error(self):
-        """ Check 'accessible' validation type for no arguments """
+        """Check 'accessible' validation type for no arguments."""
         self.assertRaises(VError, BmcV().validate, 'accessible', [])
 
     def test_accessibility_error_on_invalid_bmc_ip(self):
-        """ Check 'accessible' validation type for fake bmc_ip argument """
+        """Check 'accessible' validation type for fake bmc_ip argument."""
         node = self.node_list[0]
         bmc_ip = "10.256.256.10"
         user = self.bmc_data[node]['user']
@@ -74,7 +74,7 @@ class TestBmcValidator(unittest.TestCase):
         self.assertRaises(VError, BmcV().validate, 'accessible', [node, bmc_ip, user, passwd])
 
     def test_accessibility_error_on_invalid_auth(self):
-        """ Check 'accessible' validation type for fake password argument """
+        """Check 'accessible' validation type for fake password argument."""
         node = self.node_list[0]
         bmc_ip = self.bmc_data[node]['ip']
         user = self.bmc_data[node]['user']
@@ -82,7 +82,7 @@ class TestBmcValidator(unittest.TestCase):
         self.assertRaises(VError, BmcV().validate, 'accessible', [node, bmc_ip, user, passwd])
 
     def test_stonith_ok(self):
-        """ Check Stonith configuration """
+        """Check Stonith configuration."""
         for node in self.node_list:
             bmc_ip = self.bmc_data[node]['ip']
             bmc_user = self.bmc_data[node]['user']
@@ -92,21 +92,21 @@ class TestBmcValidator(unittest.TestCase):
             BmcV().validate('stonith', [node, bmc_ip, bmc_user, bmc_passwd])
 
     def test_stonith_no_args_error(self):
-        """ Check 'stonith' validation type for no arguments """
+        """Check 'stonith' validation type for no arguments."""
         self.assertRaises(VError, BmcV().validate, 'stonith',[])
 
     def test_stonith_less_args_error(self):
-        """ Check 'stonith' validation type for less arguments """
+        """Check 'stonith' validation type for less arguments."""
         cfg_args = ['srvnode-1', '192.168.12.123', 'admin']
         self.assertRaises(VError, BmcV().validate, 'stonith',cfg_args)
 
     def test_stonith_more_args_error(self):
-        """ Check 'stonith' validation type for more arguments """
+        """Check 'stonith' validation type for more arguments."""
         cfg_args = ['srvnode-1', '192.168.12.123', 'admin', 'Admin!', 'DummyData']
         self.assertRaises(VError, BmcV().validate, 'stonith',cfg_args)
 
     def test_incorrect_vtype(self):
-        """ Check incorrect validation type """
+        """Check incorrect validation type."""
         self.assertRaises(VError, BmcV().validate, 'dummy',[])
 
     def tearDown(self):

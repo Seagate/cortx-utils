@@ -18,7 +18,7 @@
 from collections import defaultdict
 
 class RestServerError(Exception):
-    """ Error class for cortx rest server """
+    """Error class for cortx rest server."""
 
     def __init__(self, e):
         self._e = e

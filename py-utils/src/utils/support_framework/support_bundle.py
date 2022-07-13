@@ -39,7 +39,6 @@ from cortx.utils.process import SimpleProcess
 
 
 class SupportBundle:
-
     """This Class initializes the Support Bundle Generation for CORTX."""
 
     @staticmethod
@@ -50,7 +49,8 @@ class SupportBundle:
 
     @staticmethod
     def _get_uncompressed_size(size_limit: float):
-        """Calculate the uncompressed size, assuming the tz utility compression to be 80%
+        """
+        Calculate the uncompressed size, assuming the tz utility compression to be 80%.
 
         Using Formula:
             Data_Compression_ratio = 1-(compressed_size/uncompressed_size)
@@ -121,6 +121,7 @@ class SupportBundle:
     async def _generate_bundle(command):
         """
         Initializes the process for Generating Support Bundle at shared path.
+
         command:    Command Object :type: command
         return:     None.
         """
@@ -147,7 +148,7 @@ class SupportBundle:
         # Get Node ID
         node_id = Conf.machine_id
         if node_id is None:
-            raise  BundleError(errno.EINVAL, "Invalid node_id: %s", \
+            raise  BundleError(errno.EINVAL, "Invalid node_id: %s",\
                 node_id)
         # Update SB status in Filestore.
         # load conf for Support Bundle
@@ -172,7 +173,7 @@ class SupportBundle:
             return
         num_components = len(components_list)
         size_limit_per_comp = SupportBundle.get_component_size_limit(size_limit, num_components)
-        bundle_obj = Bundle(bundle_id=bundle_id, bundle_path=bundle_path, \
+        bundle_obj = Bundle(bundle_id=bundle_id, bundle_path=bundle_path,\
             comment=comment,node_name=node_name, components=components_list,
             services=service_per_comp)
 
@@ -205,7 +206,7 @@ class SupportBundle:
             if os.path.exists(sln_target):
                 shutil.rmtree(sln_target)
             if os.path.exists(const.CORTX_SOLUTION_DIR):
-                _ = shutil.copytree(const.CORTX_SOLUTION_DIR, sln_target, \
+                _ = shutil.copytree(const.CORTX_SOLUTION_DIR, sln_target,\
                         ignore=shutil.ignore_patterns('secret'))
                 common_locations.add(const.CORTX_SOLUTION_DIR.split('/')[1])
 
@@ -293,14 +294,14 @@ class SupportBundle:
             else:
                 status = Conf.get(const.SB_INDEX, f'{node_id}>{bundle_id}>status')
             if not status:
-                return Response(output=(f"No status found for bundle_id: {bundle_id}" \
-                    "in input config. Please check if the Bundle ID is correct"), \
+                return Response(output=(f"No status found for bundle_id: {bundle_id}"\
+                    "in input config. Please check if the Bundle ID is correct"),\
                     rc=ERR_OP_FAILED)
             return Response(output = status, rc = OPERATION_SUCESSFUL)
         except Exception as e:
             Log.error(f"Failed to get bundle status: {e}")
-            return Response(output=(f"Support Bundle status is not available " \
-                f"Failed to get status of bundle. Related error - {e}"), \
+            return Response(output=(f"Support Bundle status is not available "\
+                f"Failed to get status of bundle. Related error - {e}"),\
                 rc=str(errno.ENOENT))
 
     @staticmethod
@@ -331,33 +332,33 @@ class SupportBundle:
         stacktrace = kwargs.get('stacktrace')
         components = kwargs.get('components', '')
 
-        options = {'comment': comment, 'target_path': target_path, 'bundle_id': bundle_id, \
-            'config_url': config_url, 'duration': duration, 'size_limit': size_limit, \
-            'binlogs': binlogs, 'coredumps': coredumps, \
-            'stacktrace': stacktrace, 'components': components, \
-            'comm':{'type': 'direct', 'target': \
-            'utils.support_framework', 'method': 'generate_bundle', 'class': \
-            'SupportBundle', 'is_static': True, 'params': {}, 'json': {}}, \
+        options = {'comment': comment, 'target_path': target_path, 'bundle_id': bundle_id,\
+            'config_url': config_url, 'duration': duration, 'size_limit': size_limit,\
+            'binlogs': binlogs, 'coredumps': coredumps,\
+            'stacktrace': stacktrace, 'components': components,\
+            'comm':{'type': 'direct', 'target':\
+            'utils.support_framework', 'method': 'generate_bundle', 'class':\
+            'SupportBundle', 'is_static': True, 'params': {}, 'json': {}},\
             'output': {}, 'need_confirmation': False, 'sub_command_name': 'generate_bundle'}
 
         cmd_obj = Command('generate_bundle', options, [])
         loop = asyncio.get_event_loop()
-        bundle_obj = loop.run_until_complete( \
+        bundle_obj = loop.run_until_complete(\
             SupportBundle._generate_bundle(cmd_obj))
         return bundle_obj
 
     @staticmethod
     def get_status(bundle_id: str = None):
         """
-        Initializes the process for Displaying the Status for Support Bundle
+        Initializes the process for Displaying the Status for Support Bundle.
 
         bundle_id:  Using this will fetch bundle status :type: string
         """
-        options = {'bundle_id': bundle_id, 'comm': {'type': 'direct', \
-            'target': 'utils.support_framework', 'method': 'get_bundle_status', \
-            'class': 'SupportBundle', \
+        options = {'bundle_id': bundle_id, 'comm': {'type': 'direct',\
+            'target': 'utils.support_framework', 'method': 'get_bundle_status',\
+            'class': 'SupportBundle',\
             'is_static': True, 'params': {}, 'json': {}},'output': {},\
-            'need_confirmation': False, 'sub_command_name': \
+            'need_confirmation': False, 'sub_command_name':\
             'get_bundle_status'}
 
         cmd_obj = Command('get_bundle_status', options, [])
@@ -407,16 +408,16 @@ class SupportBundle:
         root.mountpoint = '/'
         for obj in [root]+psutil.disk_partitions():
 	        disk_usage = {
-                "volume": obj.mountpoint,
-                "totalSpace": str(int(psutil.disk_usage(obj.mountpoint).\
+	               "volume": obj.mountpoint,
+	               "totalSpace": str(int(psutil.disk_usage(obj.mountpoint).\
                     total)//int(units_factor_GB)) + ' GB',
-                "usedSpace": str(int(psutil.disk_usage(obj.mountpoint).\
+	               "usedSpace": str(int(psutil.disk_usage(obj.mountpoint).\
                     used)//int(units_factor_GB)) + ' GB',
-                "freeSpace": str(int(psutil.disk_usage(obj.mountpoint).\
+	               "freeSpace": str(int(psutil.disk_usage(obj.mountpoint).\
                     free)//int(units_factor_GB)) + ' GB',
-                "diskUsedPercentage": str(psutil.disk_usage(obj.mountpoint).\
+	               "diskUsedPercentage": str(psutil.disk_usage(obj.mountpoint).\
                     percent) + ' %',
-            }
+	           }
 	        overall_usage.append(disk_usage)
         return overall_usage
 

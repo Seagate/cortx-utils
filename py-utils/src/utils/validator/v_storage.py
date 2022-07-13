@@ -27,12 +27,12 @@ class StorageV:
     def validate(self, v_type, args):
         """
         Process storage validations.
+
         Usage (arguments to be provided):
         1. storage hba <provider> nodes
         2. storage luns <v_check> nodes
         3. storage lvms nodes
         """
-
         if not isinstance(args, list):
             raise VError(errno.EINVAL, "Invalid parameters %s" % args)
 
@@ -63,8 +63,7 @@ class StorageV:
                     errno.EINVAL, "Action parameter %s not supported" % v_type)
 
     def validate_hba(self, provider, nodes):
-        """Check HBA presence and ports"""
-
+        """Check HBA presence and ports."""
         for node in nodes:
             if provider.lower() == "lsi":
                 cmd = f"ssh {node} lspci -nn | grep 'SCSI'"
@@ -101,9 +100,7 @@ class StorageV:
                     raise VError(errno.EINVAL, res)
 
     def validate_luns(self, v_check, nodes):
-        """Validate luns size
-           accessibility and mapping."""
-
+        """Validate luns size, accessibility and mapping."""
         for node in nodes:
             if v_check == "accessible":
                 cmd = f"ssh {node} lsblk -S | grep sas | wc -l"
@@ -177,7 +174,6 @@ class StorageV:
 
     def validate_lvm(self, nodes):
         """Validate lvms are present and size."""
-
         for node in nodes:
 
             cmd = f"ssh {node} vgdisplay | grep vg_metadata_{node}"

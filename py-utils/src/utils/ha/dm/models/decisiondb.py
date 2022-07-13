@@ -30,6 +30,7 @@ class DecisionModel(HAModel):
     def create_decision_id(*decision_payload):
         """
         This method creates the key for Decision DB.
+
         :param decision_payload: Parameters for Decision Payload. :type: Tuple
         :return:
         """
@@ -39,6 +40,7 @@ class DecisionModel(HAModel):
     def instantiate_decision(**decision_payload):
         """
         Generate the Decision DB model object.
+
         :param decision_payload: Data For Decision DB.
         :return:
         """

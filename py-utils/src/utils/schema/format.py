@@ -21,7 +21,7 @@ import inspect
 
 
 class FormatError(Exception):
-    """ Generic Exception with error code and output """
+    """Generic Exception with error code and output."""
 
     def __init__(self, rc, message, *args):
         self._rc = rc
@@ -33,7 +33,7 @@ class FormatError(Exception):
 
 
 class Format:
-    """ Facilitates Format of dictionary as per defined format type """
+    """Facilitates Format of dictionary as per defined format type."""
 
     @staticmethod
     def dump(data: dict, format_type: str) -> str:
@@ -47,7 +47,8 @@ class Format:
 
 
 class JsonFormat(Format):
-    """ Json Format Handler """
+    """Json Format Handler."""
+
     name = "json"
 
     @staticmethod
@@ -57,7 +58,8 @@ class JsonFormat(Format):
 
 
 class YamlFormat(Format):
-    """ YAML Format Handler """
+    """YAML Format Handler."""
+
     name = "yaml"
 
     @staticmethod
@@ -67,7 +69,8 @@ class YamlFormat(Format):
 
 
 class TomlFormat(Format):
-    """ TOML Format Handler """
+    """TOML Format Handler."""
+
     name = "toml"
 
     @staticmethod

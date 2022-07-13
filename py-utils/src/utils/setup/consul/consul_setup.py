@@ -24,8 +24,8 @@ from cortx.utils.setup.consul.consul_prvsnr import Consul, ConsulSetupError
 
 
 class Cmd:
-
     """Setup Command."""
+
     _index = 'setup'
 
     def __init__(self, args: dict):
@@ -68,7 +68,7 @@ class Cmd:
 
     @staticmethod
     def add_args(parser: str, cls: str, name: str):
-        """Add Command args for parsing"""
+        """Add Command args for parsing."""
         parser1 = parser.add_parser(cls.name, help='setup %s' % name)
         parser1.add_argument('--config', help='Conf Store URL', type=str)
         cls._add_extended_args(parser1)
@@ -77,22 +77,24 @@ class Cmd:
 
 
 class PostInstallCmd(Cmd):
+    """Post Install Setup Cmd."""
 
-    """PostInstall Setup Cmd."""
     name = "post_install"
 
     def __init__(self, args: dict):
+        """Post Install cmd."""
         super().__init__(args)
         self.consul = Consul(args.config)
 
     def process(self):
+        """Process cmd."""
         self.consul.validate(self.name)
         self.consul.post_install()
 
 
 class PrepareCmd(Cmd):
-
     """Prepare Setup Cmd."""
+
     name = "prepare"
 
     def __init__(self, args: dict):
@@ -100,69 +102,78 @@ class PrepareCmd(Cmd):
         self.consul = Consul(args.config)
 
     def process(self):
+        """Process cmd."""
         self.consul.validate(self.name)
         self.consul.prepare()
 
 
 class ConfigCmd(Cmd):
-
     """Setup Config Cmd."""
+
     name = "config"
 
     def __init__(self, args):
+        """Config cmd."""
         super().__init__(args)
         self.consul = Consul(args.config)
 
     def process(self):
+        """Process cmd."""
         self.consul.validate(self.name)
         self.consul.config()
 
 
 class InitCmd(Cmd):
-
     """Init Setup Cmd."""
+
     name = "init"
 
     def __init__(self, args):
+        """Init cmd."""
         super().__init__(args)
         self.consul = Consul(args.config)
 
     def process(self):
+        """Process cmd."""
         self.consul.validate(self.name)
         self.consul.init()
 
 
 class TestCmd(Cmd):
-
     """Test Setup Cmd."""
+
     name = "test"
 
     def __init__(self, args):
+        """Test cmd."""
         super().__init__(args)
         self.consul = Consul(args.config)
 
     def process(self):
+        """Process cmd."""
         self.consul.validate(self.name)
         self.consul.test()
 
 
 class ResetCmd(Cmd):
-
     """Reset Setup Cmd."""
+
     name = "reset"
 
     def __init__(self, args):
+        """Reset cmd."""
         super().__init__(args)
         self.consul = Consul(args.config)
 
     def process(self):
+        """Process cmd."""
         self.consul.validate(self.name)
         self.consul.reset()
 
 
 class CleanupCmd(Cmd):
-
     """Cleanup Setup Cmd."""
+
     name = "cleanup"
 
     @staticmethod
@@ -172,42 +183,49 @@ class CleanupCmd(Cmd):
                             help='Factory cleanup.')
 
     def __init__(self, args):
+        """Cleanup cmd."""
         super().__init__(args)
         self.consul = Consul(args.config)
         self.pre_factory = args.pre_factory
 
     def process(self):
+        """Process cmd."""
         self.consul.validate(self.name)
         self.consul.cleanup(self.pre_factory)
 
 
 class PreUpgradeCmd(Cmd):
-
     """Pre Upgrade Setup Cmd."""
+
     name = "preupgrade"
 
     def __init__(self, args):
+        """Preupgrade cmd."""
         super().__init__(args)
         self.consul = Consul(args.config)
 
     def process(self):
+        """Process cmd."""
         self.consul.preupgrade()
 
 
 class PostUpgradeCmd(Cmd):
-
     """Post Upgrade Setup Cmd."""
+
     name = "postupgrade"
 
     def __init__(self, args):
+        """Postupgrade cmd."""
         super().__init__(args)
         self.consul = Consul(args.config)
 
     def process(self):
+        """Process cmd."""
         self.consul.postupgrade()
 
 
 def main(argv: dict):
+    """Main function."""
     try:
         desc = "CORTX Consul Setup command"
         command = Cmd.get_command(desc, argv[1:])

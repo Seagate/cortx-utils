@@ -22,7 +22,7 @@ class DiscoveryError(BaseError):
     """Generic Exception with error code and output."""
 
     def __init__(self, rc=0, desc=None, message_id=None, message_args=None):
-        """Initialize DiscoveryError"""
+        """Initialize DiscoveryError."""
         super(DiscoveryError, self).__init__(
               rc, '%s' % desc, message_id, message_args)
 

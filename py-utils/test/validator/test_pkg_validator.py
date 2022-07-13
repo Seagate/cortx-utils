@@ -22,6 +22,7 @@ from cortx.utils.validator.error import VError
 
 class TestRpmValidator(unittest.TestCase):
     """Test rpm related validations."""
+
     pkg = ['openssl']
     # host = 'localhost'
 

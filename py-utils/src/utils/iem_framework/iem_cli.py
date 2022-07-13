@@ -29,12 +29,13 @@ from cortx.utils.conf_store import Conf
 
 
 class IemCli:
-    """ CLI for the IEM """
+    """CLI for the IEM."""
 
     @staticmethod
     def _get_empty_send_args():
         """
-        Creates a dict of required parameters for send
+        Creates a dict of required parameters for send.
+
         and initialises with None
         """
         blank_send_args: dict = {
@@ -55,15 +56,14 @@ class IemCli:
 
     @staticmethod
     def _parse_send_args(args) -> dict:
-        """ Maps values from cmd line args to send_args dict """
-
+        """Maps values from cmd line args to send_args dict."""
         send_args = IemCli._get_empty_send_args()
         try:
             send_args['component'], send_args['module'] = args.source.split(':')
-            send_args['source_type'], send_args['severity'] \
+            send_args['source_type'], send_args['severity']\
                 = args.info.split(':')
             if ':' in args.contents:
-                send_args['event_id'], send_args['message'] \
+                send_args['event_id'], send_args['message']\
                     = args.contents.split(':')
             elif args.file:
                 send_args['event_id'] = args.contents
@@ -74,7 +74,7 @@ class IemCli:
             raise EventMessageError(errno.EINVAL, "Invalid send arguments!")
 
         if args.location:
-            cluster_id, site_id, node_id, rack_id, host = \
+            cluster_id, site_id, node_id, rack_id, host =\
                 args.location.split(':')
             send_args['problem_cluster_id'] = cluster_id
             send_args['problem_site_id'] = site_id
@@ -100,8 +100,7 @@ class IemCli:
 
     @staticmethod
     def send(args_parse):
-        """ send IE message """
-
+        """Send IE message."""
         send_args = IemCli._parse_send_args(args_parse)
         message_server_endpoints, cluster_id = IemCli._get_cluster_data(send_args['cluster_conf'])
         EventMessage.init(
@@ -126,8 +125,8 @@ class IemCli:
     @staticmethod
     def receive(args) -> str:
         """
-        Receives IEM Message and returns to the caller, If file[-f] is passed,
-        writes message to file and returns blank string to caller
+        Receives IEM Message and returns to the caller, If file[-f] is passed,.
+        writes message to file and returns blank string to caller.
         """
         endpoints, _ = IemCli._get_cluster_data(args.config)
         IemCli.subscribe(component=args.source,\
@@ -152,7 +151,7 @@ class IemCli:
 
 
 class SendCmd:
-    """ send Cmd Structure """
+    """Send Cmd Structure."""
 
     @staticmethod
     def add_args(sub_parser) -> None:
@@ -167,14 +166,14 @@ class SendCmd:
         req_s_parser.add_argument('-s', '--source', help='component:module')
         req_s_parser.add_argument('-i', '--info', help='source_type:severity')
         req_s_parser.add_argument('-c', '--contents', help='event_id:message')
-        req_s_parser.add_argument('-l', '--location', \
+        req_s_parser.add_argument('-l', '--location',\
             help='cluster_id:site_id:node_id:rack_id:host')
         req_s_parser.add_argument('--config', dest='config',\
             help='ConfStore URL for the cluster.conf')
 
 
 class ReceiveCmd:
-    """ receive Cmd Structure """
+    """Receive Cmd Structure."""
 
     @staticmethod
     def add_args(sub_parser) -> None:

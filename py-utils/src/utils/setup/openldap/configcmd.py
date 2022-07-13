@@ -29,6 +29,7 @@ from pathlib import Path
 
 class ConfigCmd(SetupCmd):
   """Config Setup Cmd."""
+
   name = "config"
   utils_tmp_dir = "/var/tmp"
   Log.init('OpenldapProvisioning','/var/log/cortx/utils/openldap',level='DEBUG')
@@ -77,7 +78,7 @@ class ConfigCmd(SetupCmd):
       server_nodes_list = self.get_confkey(
         'CONFIG>CONFSTORE_STORAGE_SET_SERVER_NODES_KEY').replace("cluster-id", self.cluster_id).replace("storage-set-count", str(index))
       server_nodes_list = self.get_confvalue(server_nodes_list)
-      if type(server_nodes_list) is str:
+      if isinstance(server_nodes_list, str):
         # list is stored as string in the confstore file
         server_nodes_list = literal_eval(server_nodes_list)
       if len(server_nodes_list) > 1:

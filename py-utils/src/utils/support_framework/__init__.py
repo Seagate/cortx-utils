@@ -14,7 +14,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 """
-support_framework package will be having modules
+Support_framework package will be having modules.
 
 module:     support_bundle
 module:     bundle
