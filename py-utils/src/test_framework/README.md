@@ -21,7 +21,7 @@ please email opensource@seagate.com or cortx-questions@seagate.com.
 
 ## Prerequisite for running tests
 
-1.  cortx-py-utils, Kafka server and cortx-py-utils-test must be installed, if not please follow [Link](https://github.com/Seagate/cortx-utils/blob/main/py-utils/test/README.md)
+1.  cortx-py-utils, Kafka server(for message_bus and IEM tests), Consul server(for consul_service and kv_store, conf_store with consul as backend tests) and cortx-py-utils-test must be installed, if not please follow [Link](https://github.com/Seagate/cortx-utils/blob/main/py-utils/test/README.md)
 
 ## Test command structure in <plane_name>.pln file
 
@@ -39,7 +39,7 @@ please email opensource@seagate.com or cortx-questions@seagate.com.
 
 **Note:** Here, `<plane_name>.pln` file can have a combination of both the test command structures. Directory_name is the name of directories under /py-utils/test
 
-## Procedure to run py-utils unittests through utils test framework with Test RPM installed
+## Procedure to run py-utils unittests through utils test framework with cortx-py-utils-test RPM installed
 
 *   Running tests from entrypoint by passing path of a plan
 ```bash
@@ -58,7 +58,7 @@ run_test -c <cluster.conf path> -t /usr/lib/python3.6/site-packages/cortx/utils/
 
 **Note:** Here, `<plan_name>.pln` should exist in plans directory under /py-utils/test, i.e, `cortx-utils/py-utils/test/plans/`
 
-## Procedure to run py-utils unittests through utils test framework without Test RPM
+## Procedure to run py-utils unittests through utils test framework without cortx-py-utils-test RPM
 
 *   After cloning cortx-utils repo and installing prerequisites, Go to `py-utils/test` directory and execute the below command
 ```bash
@@ -67,4 +67,5 @@ python3 run_test.py -t <plan_file_path> -c <cluster.conf path>
 
 ## Test report generation
 
-*   Post test execution, test framework will generate a `py_utils_test_report.html` file with test execution status under `/tmp` directory.
+*   Post test execution, test framework will generate `/tmp/py_utils_test_report.html` file with test execution status
+
