@@ -68,4 +68,3 @@ python3 run_test.py -t <plan_file_path> -c <cluster.conf path>
 ## Test report generation
 
 *   Post test execution, test framework will generate `/tmp/py_utils_test_report.html` file with test execution status
-
