@@ -102,6 +102,12 @@ class TestStore(unittest.TestCase):
         TestStore.loaded_consul[0].delete(['test>child_key>leaf_key'])
         self.assertEqual(['test>child_key>leaf_key'], out)
 
+    def test_consul_store_h_search_without_val(self):
+        """Test consul search without search_val."""
+        TestStore.loaded_consul[0].set(['test>child_key>leaf_key'],['value'])
+        out = TestStore.loaded_consul[0].search('test', 'leaf_key')
+        TestStore.loaded_consul[0].delete(['test>child_key>leaf_key'])
+        self.assertEqual(['test>child_key>leaf_key'], out)
 
 if __name__ == '__main__':
     import sys
