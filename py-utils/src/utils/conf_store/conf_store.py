@@ -271,8 +271,6 @@ class ConfStore:
             if key not in self._cache[dest_index].get_keys():
                 self._cache[dest_index].set(key, self._cache[src_index].get(key))
 
-<<<<<<< HEAD
-=======
     def lock(self, index:str, **kwargs):
         """ """
         if index not in self._cache.keys():
@@ -336,7 +334,6 @@ class ConfStore:
         assert self._lock_key, 'key is required for testing lock.'
         return self._cache[index].test_lock(self._lock_key)
 
->>>>>>> e18138a... Conf_Lock:CORTX-32734: generic interface for locking config
 
 class Conf:
     """Singleton class instance based on conf_store."""
