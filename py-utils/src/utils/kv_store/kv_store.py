@@ -116,7 +116,6 @@ class KvStore:
         raise KvError(errno.ENOSYS, "%s:dump() not implemented",
                       type(self).__name__)
 
-
 class KvStoreFactory:
 
     """Factory class for File based KV Store."""

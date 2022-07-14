@@ -88,3 +88,6 @@ COMPONENT_NAME_MAP = {'CORTX': 'CORTX', 'cortx-motr': 'motr', 'cortx-rgw': 'rgw'
                     'cortx-hare': 'hare', 'cortx-py-utils': 'utils', 'cortx-csm_agent': 'csm',
                     'cortx-ha': 'ha', 'cortx-prvsnr': 'prvsnr'}
 VERSION_UPGRADE = "UPGRADE"
+
+# Distributed Session Lock related keys
+LOCK_KEY = "cortx>lock>locked_time"

@@ -21,6 +21,7 @@ from cortx.utils.conf_store.error import ConfError
 from cortx.utils.conf_store.conf_cache import ConfCache
 from cortx.utils.kv_store.kv_store import KvStoreFactory
 from cortx.utils import errors
+import cortx.utils.const as const
 
 
 class ConfStore:
@@ -38,6 +39,8 @@ class ConfStore:
         self._delim = delim
         self._cache = {}
         self._callbacks = {}
+        self._lock_key = const.LOCK_KEY
+        self._is_locked = False
         self._machine_id = self._get_machine_id()
 
     @property
@@ -268,6 +271,72 @@ class ConfStore:
             if key not in self._cache[dest_index].get_keys():
                 self._cache[dest_index].set(key, self._cache[src_index].get(key))
 
+<<<<<<< HEAD
+=======
+    def lock(self, index:str, **kwargs):
+        """ """
+        if index not in self._cache.keys():
+            raise ConfError(errno.EINVAL, "config index %s is not loaded",
+                index)
+        
+        fail_hard = False
+        for key, val in kwargs.items():
+            if key == "lock_key":
+                self._lock_key = val
+            elif key == "fail_hard":
+                if val not in [True, False]:
+                    raise ConfError(errno.EINVAL, "Invalid value for fail_hard %s", val)
+                fail_hard = val
+            else:
+                raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
+
+        assert self._lock_key, 'key is required for locking.'
+
+        if self.test_lock(index):
+            return False
+
+        is_success = self._cache[index].lock(self._lock_key)
+        if not is_success and fail_hard:
+            raise ConfError(errno.EINVAL, "Failed to acquire %s" % self._lock_key)
+        else:
+            self._is_locked = True
+            return is_success
+
+    def unlock(self, index:str, **kwargs):
+        """ """
+        if index not in self._cache.keys():
+            raise ConfError(errno.EINVAL, "config index %s is not loaded",
+                index)
+
+        for key, val in kwargs.items():
+            if key == "lock_key":
+                self._lock_key = val
+            else:
+                raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
+
+        assert self._lock_key, 'key is required for unlocking.'
+
+        if not self.test_lock(index):
+            return False
+
+        return self._cache[index].unlock(self._lock_key)
+
+    def test_lock(self, index:str, **kwargs):
+        """ """
+        if index not in self._cache.keys():
+            raise ConfError(errno.EINVAL, "config index %s is not loaded",
+                index)
+        
+        for key, val in kwargs.items():
+            if key == "lock_key":
+                self._lock_key = val
+            else:
+                raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
+
+        assert self._lock_key, 'key is required for testing lock.'
+        return self._cache[index].test_lock(self._lock_key)
+
+>>>>>>> e18138a... Conf_Lock:CORTX-32734: generic interface for locking config
 
 class Conf:
     """Singleton class instance based on conf_store."""
@@ -375,6 +444,20 @@ class Conf:
         """Add "num_xxx" keys for all the list items in ine KV Store."""
         Conf._conf.add_num_keys(index)
 
+    @staticmethod
+    def lock(index, **kwargs):
+        """ """
+        return Conf._conf.lock(index, **kwargs)
+
+    @staticmethod
+    def unlock(index, **kwargs):
+        """ """
+        return Conf._conf.unlock(index)
+
+    @staticmethod
+    def test_lock(index, **kwargs):
+        """ """
+        return Conf._conf.test_lock(index)
 
 class MappedConf:
     """CORTX Config Store with fixed target."""
