@@ -289,7 +289,7 @@ class ConfStore:
             if key == 'timeout' and type(value) is not int:
                 raise ConfError(errno.EINVAL, "Invalid value %s for parameter %s", value, key)
 
-            setattr(ConfStore, key, value)
+            setattr(self, key, value)
         
         if self.lock_owner is None:
             self.lock_owner = self.this_owner
@@ -337,7 +337,7 @@ class ConfStore:
                     value, key
                     )
 
-            setattr(ConfStore, key, value)
+            setattr(self, key, value)
         
         _is_locked = self.test_lock(
                 index, lock_key = self.lock_key, owner = self.lock_owner
@@ -351,13 +351,13 @@ class ConfStore:
         if index not in self._cache.keys():
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
-        self.owner = self.lock_owner
+        self.owner = self.this_owner
         allowed_keys = { 'lock_key', 'owner' }
         for key, value in kwargs.items():
             if key not in allowed_keys:
                 raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
 
-            setattr(ConfStore, key, value)
+            setattr(self, key, value)
         
         who_owner = self._get_lock_owner(index, self.lock_key)
         if who_owner is None:
