@@ -16,11 +16,9 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
-from datetime import datetime
 
 from cortx.utils.conf_store.error import ConfError
 from cortx.utils.kv_store.kv_store import KvStore
-import cortx.utils.const as const
 
 
 class ConfCache:
@@ -34,7 +32,6 @@ class ConfCache:
         self._kv_store = kv_store
         self._data = None
         self.recurse = recurse
-        self._started_locking = False
         self.load()
 
     def get_data(self):
@@ -87,20 +84,3 @@ class ConfCache:
         result = self._data.delete(key, force)
         self._dirty = True
         return result
-
-    def lock(self, lock_key:str):
-        """Lock the config."""
-        locked_at = str(datetime.timestamp(datetime.now()))
-        self.set(lock_key, locked_at)
-        self.test_lock(lock_key)
-        return True
-
-    def unlock(self, lock_key):
-        """Unlock the config."""
-        return self.delete(lock_key)
-
-    def test_lock(self, lock_key):
-        """Check lock status."""
-        if self.get(lock_key) is None:
-            return False
-        return True

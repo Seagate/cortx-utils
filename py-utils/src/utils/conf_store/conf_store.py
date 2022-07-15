@@ -16,6 +16,8 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
+from datetime import datetime
+from time import sleep
 
 from cortx.utils.conf_store.error import ConfError
 from cortx.utils.conf_store.conf_cache import ConfCache
@@ -39,9 +41,11 @@ class ConfStore:
         self._delim = delim
         self._cache = {}
         self._callbacks = {}
-        self._lock_key = const.LOCK_KEY
-        self._is_locked = False
         self._machine_id = self._get_machine_id()
+        self.this_owner =  self._machine_id.strip() if self._machine_id else None
+        self.lock_owner = None
+        self.lock_key = const.LOCK_KEY
+        self.timeout = const.DEFAULT_LOCK_TIMEOUT
 
     @property
     def machine_id(self):
@@ -271,68 +275,99 @@ class ConfStore:
             if key not in self._cache[dest_index].get_keys():
                 self._cache[dest_index].set(key, self._cache[src_index].get(key))
 
-    def lock(self, index:str, **kwargs):
+    def lock(self, index: str, **kwargs):
         """ """
         if index not in self._cache.keys():
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
-        
-        fail_hard = False
-        for key, val in kwargs.items():
-            if key == "lock_key":
-                self._lock_key = val
-            elif key == "fail_hard":
-                if val not in [True, False]:
-                    raise ConfError(errno.EINVAL, "Invalid value for fail_hard %s", val)
-                fail_hard = val
-            else:
+
+        allowed_keys = { 'lock_key', 'lock_owner', 'timeout' }
+        for key, value in kwargs.items():
+            if key not in allowed_keys:
                 raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
 
-        assert self._lock_key, 'key is required for locking.'
+            if key == 'timeout' and type(value) is not int:
+                raise ConfError(errno.EINVAL, "Invalid value %s for parameter %s", value, key)
 
-        if self.test_lock(index):
+            setattr(ConfStore, key, value)
+        
+        if self.lock_owner is None:
+            self.lock_owner = self.this_owner
+
+        if self.test_lock(index, lock_key = self.lock_key, owner = self.lock_owner):
+            return True
+        
+        while self.timeout > 1:
+            sleep(const.DEFAULT_RETRY_DELAY)
+            # TODO: Add condition_check scenario here
+            self.timeout -= 1
+
+        return self._lock(index, self.lock_key, self.lock_owner)
+
+    def _lock(self, index: str, lock_key: str, lock_owner: str):
+        """ """        
+        if self._get_lock_owner(index, lock_key) is not None:
+            return False
+        
+        locked_at = str(datetime.timestamp(datetime.now()))
+        self.set(index, const.LOCK_OWNER_KEY % lock_key, lock_owner)
+        self.set(index, const.LOCK_TIME_KEY % lock_key, locked_at)
+
+        _is_success = self.test_lock(
+            index, lock_key = lock_key, owner = lock_owner
+            )
+
+        return True if _is_success else False
+
+    def unlock(self, index: str, **kwargs):
+        """ """
+        if index not in self._cache.keys():
+            raise ConfError(errno.EINVAL, "config index %s is not loaded",
+                index)
+
+        self.force = False
+        allowed_keys = { 'lock_key', 'force' }
+        for key, value in kwargs.items():
+            if key not in allowed_keys:
+                raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
+
+            if key == 'force' and type(value) is not bool:
+                raise ConfError(
+                    errno.EINVAL, "Invalid value %s for parameter %s", 
+                    value, key
+                    )
+
+            setattr(ConfStore, key, value)
+        
+        _is_locked = self.test_lock(
+                index, lock_key = self.lock_key, owner = self.lock_owner
+                )
+
+        return self.delete(index, const.LOCK_OWNER_KEY % self.lock_key) if _is_locked \
+                or self.force else False
+
+    def test_lock(self, index: str, **kwargs):
+        """ """
+        if index not in self._cache.keys():
+            raise ConfError(errno.EINVAL, "config index %s is not loaded",
+                index)
+        self.owner = self.lock_owner
+        allowed_keys = { 'lock_key', 'owner' }
+        for key, value in kwargs.items():
+            if key not in allowed_keys:
+                raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
+
+            setattr(ConfStore, key, value)
+        
+        who_owner = self._get_lock_owner(index, self.lock_key)
+        if who_owner is None:
             return False
 
-        is_success = self._cache[index].lock(self._lock_key)
-        if not is_success and fail_hard:
-            raise ConfError(errno.EINVAL, "Failed to acquire %s" % self._lock_key)
-        else:
-            self._is_locked = True
-            return is_success
+        return who_owner == self.owner
 
-    def unlock(self, index:str, **kwargs):
+    def _get_lock_owner(self, index: str, lock_key: str):
         """ """
-        if index not in self._cache.keys():
-            raise ConfError(errno.EINVAL, "config index %s is not loaded",
-                index)
-
-        for key, val in kwargs.items():
-            if key == "lock_key":
-                self._lock_key = val
-            else:
-                raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
-
-        assert self._lock_key, 'key is required for unlocking.'
-
-        if not self.test_lock(index):
-            return False
-
-        return self._cache[index].unlock(self._lock_key)
-
-    def test_lock(self, index:str, **kwargs):
-        """ """
-        if index not in self._cache.keys():
-            raise ConfError(errno.EINVAL, "config index %s is not loaded",
-                index)
-        
-        for key, val in kwargs.items():
-            if key == "lock_key":
-                self._lock_key = val
-            else:
-                raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
-
-        assert self._lock_key, 'key is required for testing lock.'
-        return self._cache[index].test_lock(self._lock_key)
+        return self.get(index, const.LOCK_OWNER_KEY % lock_key)
 
 
 class Conf:
@@ -449,12 +484,12 @@ class Conf:
     @staticmethod
     def unlock(index, **kwargs):
         """ """
-        return Conf._conf.unlock(index)
+        return Conf._conf.unlock(index, **kwargs)
 
     @staticmethod
     def test_lock(index, **kwargs):
         """ """
-        return Conf._conf.test_lock(index)
+        return Conf._conf.test_lock(index, **kwargs)
 
 class MappedConf:
     """CORTX Config Store with fixed target."""
