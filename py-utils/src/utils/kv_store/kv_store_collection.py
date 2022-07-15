@@ -490,7 +490,7 @@ class ConsulKvPayload(KvPayload):
         return keys
 
     @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
-    def search(self, parent_key: str, search_key: str, search_val: str) -> list:
+    def search(self, parent_key: str, search_key: str, search_val: str = '') -> list:
         """
         Searches the given dictionary for the key and value.
 
@@ -502,8 +502,11 @@ class ConsulKvPayload(KvPayload):
         for key in keys:
             key_suffix = key.split(self._delim)[-1]
             if key_suffix == search_key:
-                value = self.get(key) if parent_key else ''
-                if value == search_val:
+                if search_val:
+                    value = self.get(key) if parent_key else ''
+                    if value == search_val:
+                        key_list.append(key)
+                else:
                     key_list.append(key)
         return key_list
 
