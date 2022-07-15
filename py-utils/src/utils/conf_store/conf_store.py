@@ -42,10 +42,8 @@ class ConfStore:
         self._cache = {}
         self._callbacks = {}
         self._machine_id = self._get_machine_id()
-        self.this_owner =  self._machine_id.strip() if self._machine_id else None
-        self.lock_owner = None
+        self.default_owner = self.lock_owner = self._machine_id.strip() if self._machine_id else None
         self.lock_key = const.LOCK_KEY
-        self.timeout = const.DEFAULT_LOCK_TIMEOUT
 
     @property
     def machine_id(self):
@@ -280,7 +278,10 @@ class ConfStore:
         if index not in self._cache.keys():
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
-
+        
+        self.timeout = const.DEFAULT_LOCK_TIMEOUT
+        self.lock_owner = self.default_owner
+        self.lock_key = const.LOCK_KEY
         allowed_keys = { 'lock_key', 'lock_owner', 'timeout' }
         for key, value in kwargs.items():
             if key not in allowed_keys:
@@ -290,34 +291,28 @@ class ConfStore:
                 raise ConfError(errno.EINVAL, "Invalid value %s for parameter %s", value, key)
 
             setattr(self, key, value)
-        
-        if self.lock_owner is None:
-            self.lock_owner = self.this_owner
 
-        if self.test_lock(index, lock_key = self.lock_key, owner = self.lock_owner):
-            return True
-        
+        who_owner = self._get_lock_owner(index, self.lock_key)
+        if who_owner is not None:
+            return who_owner == self.lock_owner
+
         while self.timeout > 1:
             sleep(const.DEFAULT_RETRY_DELAY)
             # TODO: Add condition_check scenario here
             self.timeout -= 1
 
-        return self._lock(index, self.lock_key, self.lock_owner)
+        if not self._lock(index, self.lock_key, self.lock_owner):
+            self.lock_owner = self.default_owner
+            return False
+        return True
 
     def _lock(self, index: str, lock_key: str, lock_owner: str):
         """ """        
-        if self._get_lock_owner(index, lock_key) is not None:
-            return False
-        
         locked_at = str(datetime.timestamp(datetime.now()))
         self.set(index, const.LOCK_OWNER_KEY % lock_key, lock_owner)
         self.set(index, const.LOCK_TIME_KEY % lock_key, locked_at)
 
-        _is_success = self.test_lock(
-            index, lock_key = lock_key, owner = lock_owner
-            )
-
-        return True if _is_success else False
+        return self._get_lock_owner(index, lock_key) == lock_owner
 
     def unlock(self, index: str, **kwargs):
         """ """
@@ -326,7 +321,9 @@ class ConfStore:
                 index)
 
         self.force = False
-        allowed_keys = { 'lock_key', 'force' }
+        self.lock_owner = self.default_owner
+        self.lock_key = const.LOCK_KEY
+        allowed_keys = { 'lock_key', 'lock_owner', 'force' }
         for key, value in kwargs.items():
             if key not in allowed_keys:
                 raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
@@ -338,11 +335,8 @@ class ConfStore:
                     )
 
             setattr(self, key, value)
-        
-        _is_locked = self.test_lock(
-                index, lock_key = self.lock_key, owner = self.lock_owner
-                )
 
+        _is_locked = self._get_lock_owner(index, self.lock_key) == self.lock_owner
         return self.delete(index, const.LOCK_OWNER_KEY % self.lock_key) if _is_locked \
                 or self.force else False
 
@@ -351,19 +345,15 @@ class ConfStore:
         if index not in self._cache.keys():
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
-        self.owner = self.this_owner
-        allowed_keys = { 'lock_key', 'owner' }
+        allowed_keys = { 'lock_key' }
+        self.lock_key = const.LOCK_KEY
         for key, value in kwargs.items():
             if key not in allowed_keys:
                 raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
 
             setattr(self, key, value)
         
-        who_owner = self._get_lock_owner(index, self.lock_key)
-        if who_owner is None:
-            return False
-
-        return who_owner == self.owner
+        return False if self._get_lock_owner(index, self.lock_key) is None else True
 
     def _get_lock_owner(self, index: str, lock_key: str):
         """ """
