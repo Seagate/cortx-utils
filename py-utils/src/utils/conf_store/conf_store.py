@@ -274,7 +274,7 @@ class ConfStore:
                 self._cache[dest_index].set(key, self._cache[src_index].get(key))
 
     def lock(self, index: str, **kwargs):
-        """ """
+        """Acquire lock on config."""  
         if index not in self._cache.keys():
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
@@ -307,7 +307,7 @@ class ConfStore:
         return True
 
     def _lock(self, index: str, lock_key: str, lock_owner: str):
-        """ """        
+        """Acquire lock on config."""        
         locked_at = str(datetime.timestamp(datetime.now()))
         self.set(index, const.LOCK_OWNER_KEY % lock_key, lock_owner)
         self.set(index, const.LOCK_TIME_KEY % lock_key, locked_at)
@@ -315,7 +315,7 @@ class ConfStore:
         return self._get_lock_owner(index, lock_key) == lock_owner
 
     def unlock(self, index: str, **kwargs):
-        """ """
+        """Release config lock."""
         if index not in self._cache.keys():
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
@@ -341,7 +341,7 @@ class ConfStore:
                 or self.force else False
 
     def test_lock(self, index: str, **kwargs):
-        """ """
+        """Check whether lock is acquired on the config."""
         if index not in self._cache.keys():
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
@@ -356,7 +356,7 @@ class ConfStore:
         return False if self._get_lock_owner(index, self.lock_key) is None else True
 
     def _get_lock_owner(self, index: str, lock_key: str):
-        """ """
+        """Get owner of the config lock."""
         return self.get(index, const.LOCK_OWNER_KEY % lock_key)
 
 
@@ -468,17 +468,41 @@ class Conf:
 
     @staticmethod
     def lock(index, **kwargs):
-        """ """
+        """
+        Attempt to acquire the config lock.
+        :param index(required): Identifier of the config.
+        :param lock_key(optional): Lock related key ex: conf>service>lock.
+        :param lock_owner(optional, default=machine_id): Identity of the lock holder.
+        :param timeout(optional): Time delay before attempting to acquire lock.
+
+        :return: True if the lock was successfully acquired,
+            false if it is already acquired by someone.
+        """
         return Conf._conf.lock(index, **kwargs)
 
     @staticmethod
     def unlock(index, **kwargs):
-        """ """
+        """
+        Attempt to release the config lock.
+        :param index(required): Identifier of the config.
+        :param lock_key(optional): Lock related key ex: conf>service>lock.
+        :param lock_owner(optional, default=machine_id): Identity of the lock holder.
+        :param force(optional, default=False): When true, lock is forcefully released.
+
+        :return: True if the lock was successfully released,
+            false if it there is no lock or acquired by someone else unless force=true.
+        """
         return Conf._conf.unlock(index, **kwargs)
 
     @staticmethod
     def test_lock(index, **kwargs):
-        """ """
+        """
+        Test whether Config is locked.
+        :param index(required): param index: Identifier of the config.
+        :param lock_key(optional): Lock related key ex: conf>service>lock.
+
+        :return: True if lock is acquired by somone else False
+        """
         return Conf._conf.test_lock(index, **kwargs)
 
 class MappedConf:
