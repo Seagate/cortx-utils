@@ -17,16 +17,33 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import unittest
+from urllib.parse import urlparse
 from consul import Consul
+
 from cortx.utils.conf_store import Conf
 from cortx.utils.validator.v_service import ServiceV
 
 
 class TestConsul(unittest.TestCase):
 
+# GConf url is supplied by CORTX provisioner during component mini-provisioning,
+# which is not available for tests here, so hardcoded Gconf address.
+# Added this as a class constant. This will enable to run this module independently.
+
+    GCONF = "consul://cortx-consul-server:8500/conf"
+
     @classmethod
     def setUpClass(cls) -> None:
-        cls.consul = Consul()
+        Conf.load("index", cls.GCONF, skip_reload=True)
+        num_consul_endpoints = Conf.get("index", f'cortx>external>consul>num_endpoints')
+        for i in range(int(num_consul_endpoints)):
+            endpoint = Conf.get("index", f'cortx>external>consul>endpoints[{i}]')
+            parsed_url = urlparse(endpoint)
+            if parsed_url.scheme == 'http':
+                consul_host = parsed_url.hostname
+                consul_port = parsed_url.port
+                break
+        cls.consul = Consul(host=consul_host, port=consul_port)
 
     def test_get(self):
         self.consul.kv.put(f"test/{Conf.machine_id}", 'spam')

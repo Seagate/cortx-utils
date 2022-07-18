@@ -41,12 +41,11 @@ class Utils:
     @staticmethod
     def _copy_cluster_map(config_path: str):
         Conf.load('cluster', config_path, skip_reload=True)
-        cluster_data = Conf.get('cluster', 'node')
-        for _, node_data in cluster_data.items():
-            hostname = node_data.get('hostname')
-            node_name = node_data.get('name')
-            Conf.set('cluster', f'cluster>{node_name}', hostname)
-        Conf.save('cluster')
+        node_keys = Conf.get_keys('cluster', starts_with='node')
+        hostname_keys = [x for x in node_keys if x.endswith('>hostname')]
+        machine_ids = [x.split('>')[1] for x in hostname_keys]
+        for mc_id in machine_ids:
+            Conf.set('cluster', 'cluster>'+Conf.get('cluster', f'node>{mc_id}>name'),  Conf.get('cluster', f'node>{mc_id}>hostname'))
 
     @staticmethod
     def _configure_rsyslog():
@@ -93,7 +92,7 @@ class Utils:
     def config(config_path: str):
         """Performs configurations."""
         # Load required files
-        Conf.load(GCONF_INDEX, config_path)
+        Conf.load(GCONF_INDEX, config_path, skip_reload=True)
 
         # set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map(config_path) # saving node and host from gconf
@@ -111,8 +110,11 @@ class Utils:
             # use gconf to create IEM topic
             Conf.load(GCONF_INDEX, config_path, skip_reload=True)
             message_bus_backend = Conf.get(GCONF_INDEX, MSG_BUS_BACKEND_KEY)
-            message_server_endpoints = Conf.get(GCONF_INDEX,\
-                f'{EXTERNAL_KEY}>{message_bus_backend}>endpoints')
+            msg_srvr_num_endpoints = Conf.get(GCONF_INDEX,\
+                f'{EXTERNAL_KEY}>{message_bus_backend}>num_endpoints')
+            message_server_endpoints = [ Conf.get( \
+                GCONF_INDEX, f'{EXTERNAL_KEY}>{message_bus_backend}>endpoints[{i}]') \
+                    for i in range(int(msg_srvr_num_endpoints)) ]
             MessageBus.init(message_server_endpoints)
             admin = MessageBusAdmin(admin_id='register')
             admin.register_message_type(message_types=['IEM',\
@@ -156,8 +158,11 @@ class Utils:
             from cortx.utils.message_bus import MessageProducer
             Conf.load(GCONF_INDEX, config_path, skip_reload=True)
             message_bus_backend = Conf.get('config', MSG_BUS_BACKEND_KEY)
-            message_server_endpoints = Conf.get('config',\
-                f'{EXTERNAL_KEY}>{message_bus_backend}>endpoints')
+            msg_srvr_num_endpoints = Conf.get(GCONF_INDEX,\
+                f'{EXTERNAL_KEY}>{message_bus_backend}>num_endpoints')
+            message_server_endpoints = [ Conf.get( \
+                GCONF_INDEX, f'{EXTERNAL_KEY}>{message_bus_backend}>endpoints[{i}]') \
+                    for i in range(int(msg_srvr_num_endpoints)) ]
             MessageBus.init(message_server_endpoints)
             mb = MessageBusAdmin(admin_id='reset')
             message_types_list = mb.list_message_types()
@@ -185,8 +190,11 @@ class Utils:
             from cortx.utils.message_bus import MessageBus, MessageBusAdmin
             Conf.load(GCONF_INDEX, config_path, skip_reload=True)
             message_bus_backend = Conf.get(GCONF_INDEX, MSG_BUS_BACKEND_KEY)
-            message_server_endpoints = Conf.get(GCONF_INDEX,\
-                f'{EXTERNAL_KEY}>{message_bus_backend}>endpoints')
+            msg_srvr_num_endpoints = Conf.get(GCONF_INDEX,\
+                f'{EXTERNAL_KEY}>{message_bus_backend}>num_endpoints')
+            message_server_endpoints = [ Conf.get( \
+                GCONF_INDEX, f'{EXTERNAL_KEY}>{message_bus_backend}>endpoints[{i}]') \
+                    for i in range(int(msg_srvr_num_endpoints)) ]
             MessageBus.init(message_server_endpoints)
             mb = MessageBusAdmin(admin_id='cleanup')
             message_types_list = mb.list_message_types()
