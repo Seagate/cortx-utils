@@ -274,11 +274,11 @@ class ConfStore:
                 self._cache[dest_index].set(key, self._cache[src_index].get(key))
 
     def lock(self, index: str, **kwargs):
-        """Acquire lock on config."""  
+        """Acquire lock on config."""
         if index not in self._cache.keys():
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
-        
+
         self.timeout = const.DEFAULT_LOCK_TIMEOUT
         self.lock_owner = self.default_owner
         self.lock_key = const.LOCK_KEY
@@ -287,7 +287,7 @@ class ConfStore:
             if key not in allowed_keys:
                 raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
 
-            if key == 'timeout' and type(value) is not int:
+            if key == 'timeout' and not isinstance(value, int):
                 raise ConfError(errno.EINVAL, "Invalid value %s for parameter %s", value, key)
 
             setattr(self, key, value)
@@ -328,9 +328,9 @@ class ConfStore:
             if key not in allowed_keys:
                 raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
 
-            if key == 'force' and type(value) is not bool:
+            if key == 'force' and not isinstance(value, bool):
                 raise ConfError(
-                    errno.EINVAL, "Invalid value %s for parameter %s", 
+                    errno.EINVAL, "Invalid value %s for parameter %s",
                     value, key
                     )
 
@@ -462,12 +462,12 @@ class Conf:
         return Conf._conf.search(index, parent_key, search_key, search_val)
 
     @staticmethod
-    def add_num_keys(index):
+    def add_num_keys(index: str):
         """Add "num_xxx" keys for all the list items in ine KV Store."""
         Conf._conf.add_num_keys(index)
 
     @staticmethod
-    def lock(index, **kwargs):
+    def lock(index: str, **kwargs):
         """
         Attempt to acquire the config lock.
         :param index(required): Identifier of the config.
@@ -481,7 +481,7 @@ class Conf:
         return Conf._conf.lock(index, **kwargs)
 
     @staticmethod
-    def unlock(index, **kwargs):
+    def unlock(index: str, **kwargs):
         """
         Attempt to release the config lock.
         :param index(required): Identifier of the config.
@@ -495,7 +495,7 @@ class Conf:
         return Conf._conf.unlock(index, **kwargs)
 
     @staticmethod
-    def test_lock(index, **kwargs):
+    def test_lock(index: str, **kwargs):
         """
         Test whether Config is locked.
         :param index(required): param index: Identifier of the config.
