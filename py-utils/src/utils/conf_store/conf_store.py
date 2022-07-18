@@ -307,7 +307,7 @@ class ConfStore:
         return True
 
     def _lock(self, index: str, lock_key: str, lock_owner: str):
-        """Acquire lock on config."""   
+        """Acquire lock on config."""
         locked_at = str(datetime.timestamp(datetime.now()))
         self.set(index, const.LOCK_OWNER_KEY % lock_key, lock_owner)
         self.set(index, const.LOCK_TIME_KEY % lock_key, locked_at)
