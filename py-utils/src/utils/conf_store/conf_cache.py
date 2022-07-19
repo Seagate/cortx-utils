@@ -16,6 +16,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
+
 from cortx.utils.conf_store.error import ConfError
 from cortx.utils.kv_store.kv_store import KvStore
 
