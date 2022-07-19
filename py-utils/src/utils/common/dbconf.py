@@ -41,9 +41,10 @@ class DbConf:
     @classmethod
     def _get_consul_netloc(cls):
         """Get Consul KV netlocation."""
-        eps = Conf.get(cls._cluster_index, f'cortx>external>consul>endpoints')
-        for ep in eps:
-            parsed_url = urlparse(ep)
+        num_consul_endpoints = Conf.get(cls._cluster_index, 'cortx>external>consul>num_endpoints')
+        for i in range(int(num_consul_endpoints)):
+            endpoint = Conf.get(cls._cluster_index, f'cortx>external>consul>endpoints[{i}]')
+            parsed_url = urlparse(endpoint)
             if parsed_url.scheme == 'http':
                 cls._consul_host = parsed_url.hostname
                 cls._consul_port = parsed_url.port
