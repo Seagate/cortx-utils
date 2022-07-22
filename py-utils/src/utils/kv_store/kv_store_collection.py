@@ -522,7 +522,8 @@ class ConsulKvPayload(KvPayload):
         """
         kv_data = {}
         for kv in self._consul.kv.get(self._store_path, recurse=True)[1]:
-            _key = kv['Key'].split(self._store_path)[1]
+            _key = kv['Key'].split(self._store_path)[1] if self._store_path \
+                else kv['Key']
             kv_data[_key] = kv['Value'].decode('utf-8') if kv['Value']\
                 is not None else ''
 
