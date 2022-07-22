@@ -17,6 +17,7 @@
 
 import errno
 import os
+import re
 from typing import Union
 from consul import Consul, ConsulException
 from requests.exceptions import RequestException
@@ -534,7 +535,7 @@ class ConsulKvPayload(KvPayload):
         _with_num_keys = set(_kv_payload.get_keys())
         _num_keys = list(_with_num_keys - _without_num_keys)
 
-        for key in num_keys : self.set(key, _kv_payload.get(key))
+        for key in _num_keys : self.set(key, _kv_payload.get(key))
 
 
 class ConsulKVStore(KvStore):
