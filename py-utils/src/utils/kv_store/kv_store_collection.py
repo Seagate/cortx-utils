@@ -533,7 +533,7 @@ class ConsulKvPayload(KvPayload):
         _kv_payload.add_num_keys()
         _with_num_keys = set(_kv_payload.get_keys())
         _num_keys = list(_with_num_keys - _without_num_keys)
-        
+
         for key in num_keys : self.set(key, _kv_payload.get(key))
 
 
