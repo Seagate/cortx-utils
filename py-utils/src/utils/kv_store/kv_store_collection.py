@@ -510,6 +510,33 @@ class ConsulKvPayload(KvPayload):
                     key_list.append(key)
         return key_list
 
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
+    def add_num_keys(self, *args, **kwargs) -> None:
+        """
+        Adds KV parent>num_x: n, where n is the count of key members
+        parent>x[0],
+        parent>>x[1]..
+        so on until
+        parent>x[n-1].
+        """
+        kv_data = {}
+        for kv in self._consul.kv.get(self._store_path, recurse=True)[1]:
+            _key = kv['Key'].split(self._store_path)[1]
+            kv_data[_key] = kv['Value'].decode('utf-8') if kv['Value']\
+                is not None else ''
+
+        _kv_payload = KvPayload()
+        for k, v in kv_data.items():
+            if len(re.split(r'\[([0-9]+)\]', k)) > 1:
+                _kv_payload.set(k, v)
+        _without_num_keys = set(_kv_payload.get_keys())
+        _kv_payload.add_num_keys()
+        _with_num_keys = set(_kv_payload.get_keys())
+        _num_keys = list(_with_num_keys - _without_num_keys)
+        
+        for key in num_keys : self.set(key, _kv_payload.get(key))
+
+
 class ConsulKVStore(KvStore):
     """Consul basedKV store."""
 
