@@ -18,7 +18,6 @@
 
 import os
 import unittest
-import datetime
 
 from cortx.utils.conf_store import Conf
 
@@ -61,6 +60,7 @@ class TestConfStoreConsul(unittest.TestCase):
     def tearDown(self):
         """Clean Up."""
         pass
+
 
 if __name__ == '__main__':
     unittest.main()
