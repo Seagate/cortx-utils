@@ -520,17 +520,10 @@ class ConsulKvPayload(KvPayload):
         so on until
         parent>x[n-1].
         """
-        kv_data = {}
-        for kv in self._consul.kv.get(self._store_path, recurse=True)[1]:
-            _key = kv['Key'].split(self._store_path)[1] if self._store_path \
-                else kv['Key']
-            kv_data[_key] = kv['Value'].decode('utf-8') if kv['Value']\
-                is not None else ''
-
         _kv_payload = KvPayload()
-        for k, v in kv_data.items():
+        for k in self.get_keys():
             if len(re.split(r'\[([0-9]+)\]', k)) > 1:
-                _kv_payload.set(k, v)
+                _kv_payload.set(k, '_')
         _without_num_keys = set(_kv_payload.get_keys())
         _kv_payload.add_num_keys()
         _with_num_keys = set(_kv_payload.get_keys())
