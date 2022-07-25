@@ -28,10 +28,10 @@ class SaltV:
     def validate(self, v_type, args):
         """
         Process salt validations.
+
         Usage (arguments to be provided):
         1. salt minions <nodes>
         """
-
         if not isinstance(args, list):
             raise VError(errno.EINVAL, "Invalid parameters %s" % args)
 
@@ -46,7 +46,6 @@ class SaltV:
 
     def validate_salt_minion_connectivity(self, nodes):
         """Check salt minion connectivity."""
-
         if os.environ.get('USER') != 'root':
             res = ("validate_salt_minion: "
                    "This interface requires root privileges.")

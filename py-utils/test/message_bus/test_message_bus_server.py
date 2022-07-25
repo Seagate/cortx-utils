@@ -25,7 +25,6 @@ from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
 
 class TestMessage(unittest.TestCase):
-
     """Test MessageBus rest server functionality."""
 
     _base_url = 'http://0.0.0.0:28300/MessageBus/message/'

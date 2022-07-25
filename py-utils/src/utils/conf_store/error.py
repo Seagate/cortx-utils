@@ -16,7 +16,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 class ConfError(Exception):
-    """ Generic Exception with error code and output """
+    """Generic Exception with error code and output."""
 
     def __init__(self, rc, message, *args):
         self._rc = rc

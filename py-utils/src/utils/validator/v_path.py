@@ -44,11 +44,11 @@ class PathV:
 	def validate(self, v_type: str, args: list, host: str = None):
 		"""
 		Process path validations.
-		Usage (arguments to be provided):
+
+                Usage (arguments to be provided):
 		1. path exists host (optional) [<type>:<absolute_path>]
                    Note: Supported type keywords: file, dir, link, device.
-		"""
-
+                """
 		# Ensure we can perform passwordless ssh and there are no prompts
 		if host:
 			NetworkV().validate('passwordless',
@@ -62,7 +62,6 @@ class PathV:
 
 	def validate_paths(self, host, paths):
 		"""Check if path are found and matching."""
-
 		for path in paths:
 			if ":" not in path:
 				raise VError(errno.EINVAL,

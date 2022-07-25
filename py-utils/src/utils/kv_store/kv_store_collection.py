@@ -31,7 +31,7 @@ from cortx.utils.common import ExponentialBackoff
 
 
 class JsonKvStore(KvStore):
-    """ Represents a JSON File Store """
+    """Represents a JSON File Store."""
 
     name = "json"
 
@@ -43,7 +43,7 @@ class JsonKvStore(KvStore):
                 json.dump({}, f, indent=2)
 
     def load(self, **kwargs) -> KvPayload:
-        """ Reads from the file """
+        """Reads from the file."""
         import json
         from json.decoder import JSONDecodeError
         data = {}
@@ -59,14 +59,14 @@ class JsonKvStore(KvStore):
         return KvPayload(data, self._delim, recurse=recurse)
 
     def dump(self, data) -> None:
-        """ Saves data onto the file """
+        """Saves data onto the file."""
         import json
         with open(self._store_path, 'w') as f:
             json.dump(data.get_data(), f, indent=2)
 
 
 class YamlKvStore(KvStore):
-    """ Represents a YAML File Store """
+    """Represents a YAML File Store."""
 
     name = "yaml"
 
@@ -77,7 +77,7 @@ class YamlKvStore(KvStore):
                 pass
 
     def load(self, **kwargs) -> KvPayload:
-        """ Reads from the file """
+        """Reads from the file."""
         import yaml
         with open(self._store_path, 'r') as f:
             try:
@@ -91,14 +91,15 @@ class YamlKvStore(KvStore):
         return KvPayload(data, self._delim, recurse=recurse)
 
     def dump(self, data) -> None:
-        """ Saves data onto the file """
+        """Saves data onto the file."""
         import yaml
         with open(self._store_path, 'w') as f:
             yaml.dump(data.get_data(), f, default_flow_style=False)
 
 
 class DirKvStore(KvStore):
-    """ Organizes Key Values in a dir structure """
+    """Organizes Key Values in a dir structure."""
+
     name = "dir"
 
     def __init__(self, store_loc, store_path, delim='>'):
@@ -107,17 +108,21 @@ class DirKvStore(KvStore):
             os.mkdir(self._store_path)
 
     def load(self, **kwargs):
-        """ Return Empty Set. Cant read dir structure. Not supported """
+        """
+        Return Empty Set.
+
+        Cant read dir structure. Not supported
+        """
         return KvPayload()
 
     def dump(self, payload: dict):
-        """ Stores payload onto the store """
+        """Stores payload onto the store."""
         keys = payload.get_keys()
         vals = [payload[key] for key in keys]
         self.set(keys, vals)
 
     def get_keys(self, key_prefix: str = None):
-        """ Returns the list of keys starting with given prefix """
+        """Returns the list of keys starting with given prefix."""
         _, key_file = self._get_key_path(key_prefix)
         if os.path.isfile(key_file):
             return [key_file.split("/").join(self._delim)]
@@ -144,7 +149,7 @@ class DirKvStore(KvStore):
         self.dump(payload)
 
     def _get_key_path(self, key):
-        """ breaks key into dir path e.g. a>b>c to /root/a/b/c """
+        """Breaks key into dir path e.g. a>b>c to /root/a/b/c."""
         if key is None:
             return self._store_path, self._store_path
         key_list = key.split(self._delim)
@@ -153,7 +158,7 @@ class DirKvStore(KvStore):
         return key_dir, key_file
 
     def set(self, keys: list, vals: list):
-        """ stores given keys and values into the store """
+        """Stores given keys and values into the store."""
         if len(keys) != len(vals):
             raise KvError(errno.EINVAL, "Mismatched keys & values %s:%s",
                           keys, vals)
@@ -170,7 +175,7 @@ class DirKvStore(KvStore):
                 f.write(val)
 
     def get(self, keys: list):
-        """ Obtains values corresponding to the keys from the store """
+        """Obtains values corresponding to the keys from the store."""
         vals = []
         for key in keys:
             _, key_file = self._get_key_path(key)
@@ -182,7 +187,7 @@ class DirKvStore(KvStore):
         return vals
 
     def delete(self, keys: list):
-        """ Deletes given set of keys from the store """
+        """Deletes given set of keys from the store."""
         for key in keys:
             _, key_file = self._get_key_path(key)
             try:
@@ -193,18 +198,18 @@ class DirKvStore(KvStore):
 
 
 class TomlKvStore(KvStore):
-    """ Represents a TOML File Store """
+    """Represents a TOML File Store."""
 
     name = "toml"
 
     def __init__(self, store_loc, store_path, delim='>'):
         KvStore.__init__(self, store_loc, store_path, delim)
         if not os.path.exists(self._store_path):
-            with open(self._store_path, 'w+') as f:
+            with open(self._store_path, 'w+'):
                 pass
 
     def load(self, **kwargs) -> KvPayload:
-        """ Reads from the file """
+        """Reads from the file."""
         import toml
         with open(self._store_path, 'r') as f:
             try:
@@ -218,14 +223,15 @@ class TomlKvStore(KvStore):
         return KvPayload(data, self._delim, recurse=recurse)
 
     def dump(self, data) -> None:
-        """ Saves data onto the file """
+        """Saves data onto the file."""
         import toml
         with open(self._store_path, 'w') as f:
             toml.dump(data.get_data(), f)
 
 
 class IniKvPayload(KvPayload):
-    """ In memory representation of INI conf data """
+    """In memory representation of INI conf data."""
+
     def __init__(self, config, delim='>'):
         super().__init__(config, delim)
 
@@ -276,7 +282,7 @@ class IniKvPayload(KvPayload):
 
 
 class IniKvStore(KvStore):
-    """ Represents a Ini File Store """
+    """Represents a Ini File Store."""
 
     name = "ini"
 
@@ -286,7 +292,7 @@ class IniKvStore(KvStore):
         self._config.optionxform = lambda option: option
 
     def load(self, **kwargs) -> IniKvPayload:
-        """ Reads from the file """
+        """Reads from the file."""
         try:
             self._config.read(self._store_path)
         except Exception as err:
@@ -295,14 +301,14 @@ class IniKvStore(KvStore):
         return IniKvPayload(self._config, self._delim)
 
     def dump(self, data) -> None:
-        """ Saves data onto the file """
+        """Saves data onto the file."""
         config = data.get_data()
         with open(self._store_path, 'w') as f:
             config.write(f)
 
 
 class DictKvStore(KvStore):
-    """ Represents Dictionary Without file """
+    """Represents Dictionary Without file."""
 
     name = "dict"
 
@@ -310,7 +316,7 @@ class DictKvStore(KvStore):
         KvStore.__init__(self, store_loc, store_path, delim)
 
     def load(self, **kwargs) -> KvPayload:
-        """ Reads from the file """
+        """Reads from the file."""
         import json
         from json.decoder import JSONDecodeError
 
@@ -326,18 +332,18 @@ class DictKvStore(KvStore):
         return KvPayload(self.data, self._delim, recurse=recurse)
 
     def dump(self, data) -> None:
-        """ Saves data onto dictionary itself """
+        """Saves data onto dictionary itself."""
         self._store_path = data.get_data()
 
 
 class JsonMessageKvStore(DictKvStore):
-    """ Represents and In Memory JSON Message """
+    """Represents and In Memory JSON Message."""
 
     name = "jsonmessage"
 
 
 class PropertiesKvStore(KvStore):
-    """ Represents a Properties File Store """
+    """Represents a Properties File Store."""
 
     name = "properties"
 
@@ -345,7 +351,7 @@ class PropertiesKvStore(KvStore):
         KvStore.__init__(self, store_loc, store_path, delim)
 
     def load(self, **kwargs) -> KvPayload:
-        """ Loads data from properties file """
+        """Loads data from properties file."""
         data = {}
         with open(self._store_path, 'r') as f:
             try:
@@ -361,7 +367,7 @@ class PropertiesKvStore(KvStore):
         return KvPayload(data, self._delim)
 
     def dump(self, data) -> None:
-        """ Dump the data to desired file or to the source """
+        """Dump the data to desired file or to the source."""
         kv_list = data.get_data()
         with open(self._store_path, 'w') as f:
             for key, val in kv_list.items():
@@ -369,7 +375,8 @@ class PropertiesKvStore(KvStore):
 
 
 class PillarStore(KvStore):
-    """ Salt Pillar based KV Store """
+    """Salt Pillar based KV Store."""
+
     name = "salt"
 
     def __init__(self, store_loc, store_path, delim='>'):
@@ -409,7 +416,7 @@ class PillarStore(KvStore):
 
 
 class ConsulKvPayload(KvPayload):
-    """ Backend adapter for consul api. """
+    """Backend adapter for consul api."""
 
     def __init__(self, consul: Consul, store_path: str = '', delim: str = '>'):
         if len(delim) > 1:
@@ -425,9 +432,7 @@ class ConsulKvPayload(KvPayload):
 
     @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def get(self, key: str, *args, **kwargs) -> str:
-        """ Get value for consul key. """
-        if not key in self._keys:
-            return None
+        """Get value for consul key."""
         index, data = self._consul.kv.get(self._store_path + key)
         if isinstance(data, dict):
             if data['Value'] is None:
@@ -436,26 +441,26 @@ class ConsulKvPayload(KvPayload):
         elif data is None:
             return None
         else:
-            raise KvError(errno.EINVAL, \
+            raise KvError(errno.EINVAL,\
                 "Invalid response from consul: %d:%s", index, data)
 
     @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def _set(self, key: str, val: str, *args, **kwargs) -> Union[bool, None]:
-        """ Set the value to the key in consul kv. """
+        """Set the value to the key in consul kv."""
         return self._consul.kv.put(self._store_path + key, str(val))
 
     @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def _delete(self, key: str, data: dict, force: bool = False, *args, **kwargs) -> Union[bool, None]:
-        """ Delete the key:value for the input key. """
+        """Delete the key:value for the input key."""
         return self._consul.kv.delete(key = self._store_path + key, recurse = force)
 
     @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def get_data(self, format_type: str = None, *args, **kwargs):
-        """ Return a dict of kv pair. """
+        """Return a dict of kv pair."""
         self._data = {}
         from cortx.utils.schema import Format
         for kv in self._consul.kv.get('', recurse=True)[1]:
-            self._data[kv['Key']] = kv['Value'].decode('utf-8') if kv['Value'] \
+            self._data[kv['Key']] = kv['Value'].decode('utf-8') if kv['Value']\
                 is not None else ''
         if not format_type:
             return self._data
@@ -463,7 +468,7 @@ class ConsulKvPayload(KvPayload):
 
     @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def get_keys(self, starts_with: str = '', *args, **kwargs) -> list:
-        """ Return a list of all the keys present. """
+        """Return a list of all the keys present."""
         keys=[]
         if starts_with:
             if not isinstance(starts_with, str):
@@ -483,9 +488,10 @@ class ConsulKvPayload(KvPayload):
         return keys
 
     @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
-    def search(self, parent_key: str, search_key: str, search_val: str) -> list:
+    def search(self, parent_key: str, search_key: str, search_val: str = '') -> list:
         """
         Searches the given dictionary for the key and value.
+
         Returns matching keys.
         """
 
@@ -494,13 +500,16 @@ class ConsulKvPayload(KvPayload):
         for key in keys:
             key_suffix = key.split(self._delim)[-1]
             if key_suffix == search_key:
-                value = self.get(key) if parent_key else ''
-                if value == search_val:
+                if search_val:
+                    value = self.get(key) if parent_key else ''
+                    if value == search_val:
+                        key_list.append(key)
+                else:
                     key_list.append(key)
         return key_list
 
 class ConsulKVStore(KvStore):
-    """ Consul basedKV store. """
+    """Consul basedKV store."""
 
     name = 'consul'
 
@@ -516,13 +525,13 @@ class ConsulKVStore(KvStore):
             self.c = Consul(host=host, port=port)
             self._payload = ConsulKvPayload(self.c, self._store_path, self._delim)
         except Exception as e:
-            raise KvError(errno.ECONNREFUSED, "Connection refused." \
-                "Failed to eshtablish a new connection to consul endpoint: %s.\n %s", \
+            raise KvError(errno.ECONNREFUSED, "Connection refused."\
+                "Failed to eshtablish a new connection to consul endpoint: %s.\n %s",\
                 store_loc, e)
 
     @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def load(self, **kwargs) -> ConsulKvPayload:
-        """ Return ConsulKvPayload object. """
+        """Return ConsulKvPayload object."""
         return self._payload
 
     def dump(self, data, *args, **kwargs):

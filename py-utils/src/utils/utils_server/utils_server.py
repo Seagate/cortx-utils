@@ -31,12 +31,14 @@ from cortx.utils.const import CLUSTER_CONF_LOG_KEY
 
 class UtilsServerError(UtilsError):
     """UtilsServerError exception with error code and output."""
+
     def __init__(self, rc, message, *args):
         super().__init__(rc, message, *args)
 
 
 class UtilsServer:
     """Base class for Cortx Rest Server implementation."""
+
     def __init__(self):
         self.app = web.Application()
 
@@ -47,6 +49,7 @@ class UtilsServer:
 
 class MessageServer(UtilsServer):
     """Base class for Cortx Rest Server implementation."""
+
     def __init__(self, message_server_endpoints, message_server_port=28300,\
         cluster_id=None):
         super().__init__()

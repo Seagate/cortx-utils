@@ -24,13 +24,13 @@ from cortx.utils.message_bus.error import MessageBusError
 
 
 class MessageBrokerFactory:
-    """ Factory class for Message Brokers """
+    """Factory class for Message Brokers."""
 
     _brokers = {}
 
     @staticmethod
     def get_instance(broker_type: str, broker_conf: dict):
-        Log.debug(f"MessageBrokerFactory: invoked with arguments broker_type:" \
+        Log.debug(f"MessageBrokerFactory: invoked with arguments broker_type:"\
             f" {broker_type}, broker_conf: {broker_conf}")
         if broker_type in MessageBrokerFactory._brokers:
             return MessageBrokerFactory._brokers[broker_type]
@@ -44,14 +44,15 @@ class MessageBrokerFactory:
                     MessageBrokerFactory._brokers[broker_type] = message_broker
                     return message_broker
 
-        Log.error(f"MessageBusError: {errors.ERR_INVALID_SERVICE_NAME}" \
+        Log.error(f"MessageBusError: {errors.ERR_INVALID_SERVICE_NAME}"\
             f" Invalid service name {broker_type}.")
-        raise MessageBusError(errors.ERR_INVALID_SERVICE_NAME, \
+        raise MessageBusError(errors.ERR_INVALID_SERVICE_NAME,\
             "Invalid service name %s.", broker_type)
 
     @staticmethod
     def get_server_list(message_server_endpoints: list) -> tuple:
-        """Fetches info of nodes in cluster from list of endpoints.
+        """
+        Fetches info of nodes in cluster from list of endpoints.
 
         Args:
             message_server_endpoints: list of endpoints
@@ -75,23 +76,23 @@ class MessageBrokerFactory:
 
                 message_server_list.append(server_info)
         except Exception as e:
-            raise MessageBusError(errno.EINVAL, "Invalid endpoint information." \
+            raise MessageBusError(errno.EINVAL, "Invalid endpoint information."\
                 " %s", e)
 
         return message_server_list
 
 
 class MessageBroker:
-    """ A common interface of Message Brokers"""
+    """A common interface of Message Brokers."""
 
     def __init__(self, broker_conf: dict):
-        self._servers = ','.join(x['server']+':'+x['port'] for x in \
+        self._servers = ','.join(x['server']+':'+x['port'] for x in\
                                 broker_conf['cluster'])
 
     def init_client(self, **client_conf: dict):
         pass
 
-    def send(self, producer_id: str, message_type: str, method: str, \
+    def send(self, producer_id: str, message_type: str, method: str,\
         messages: list):
         pass
 

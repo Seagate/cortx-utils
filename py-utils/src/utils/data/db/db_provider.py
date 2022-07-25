@@ -39,9 +39,8 @@ class ServiceStatus(Enum):
 
 
 class DBSettings(Model):
-    """
-    Settings for database server
-    """
+    """Settings for database server."""
+
     hosts = ListType(StringType, required=True, default=DEFAULT_HOST)
     port = IntType(required=True, default=None)
     login = StringType()
@@ -50,26 +49,21 @@ class DBSettings(Model):
 
 
 class DBConfig(Model):
-    """
-    Database driver configuration description
-    """
+    """Database driver configuration description."""
 
     import_path = StringType(required=True)
     config = ModelType(DBSettings)  # db-specific configuration
 
 
 class ModelSettings(Model):
-    """
-    Configuration for base model like collection as example
-    """
+    """Configuration for base model like collection as example."""
+
     collection = StringType(required=True)
     create_schema = BooleanType(required=False, default=True)
 
 
 class DBModelConfig(Model):
-    """
-    Description of how a specific model is expected to be stored
-    """
+    """Description of how a specific model is expected to be stored."""
 
     import_path = StringType(required=True)
     database = StringType(required=True)
@@ -78,16 +72,14 @@ class DBModelConfig(Model):
 
 
 class GeneralConfig(Model):
-    """
-    Layout of full database configuration
-    """
+    """Layout of full database configuration."""
 
     databases = DictType(ModelType(DBConfig), str)
     models = ListType(ModelType(DBModelConfig))
 
 
 class ProxyStorageCallDecorator:
-    """Class to decorate proxy call"""
+    """Class to decorate proxy call."""
 
     def __init__(self, async_storage, model: Type[BaseModel], attr_name: str, event: ThreadSafeEvent):
         self._async_storage = async_storage
@@ -123,20 +115,14 @@ class ProxyStorageCallDecorator:
         return self._proxy_call_coroutine
 
     def __del__(self):
-        """
-        Close proxy call coroutine if it was never awaited
-
-        :return:
-        """
+        """Close proxy call coroutine if it was never awaited."""
         if self._proxy_call_coroutine is not None:
             self._proxy_call_coroutine.close()
 
 
 # TODO: class can't be inherited from IDataBase
 class AsyncDataBase:
-    """
-    Decorates all storage async calls and async db drivers and db storages initializations
-    """
+    """Decorates all storage async calls and async db drivers and db storages initializations."""
 
     def __init__(self, model: Type[BaseModel], model_config: DBModelConfig,
                  db_config: GeneralConfig):

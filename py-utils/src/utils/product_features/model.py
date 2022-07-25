@@ -29,6 +29,7 @@ class UnsupportedFeaturesModel(BaseModel):
     def create_feature_id(*key_data):
         """
         This method creates the key for saving feature in DB.
+
         Format:
             /cortx/base/config/obj/<component_name>/UNSUPPORTED_FEATURE/<feature_name>
         :param key_data: Parameters for Feature Consul Key. :type: Tuple
@@ -41,6 +42,7 @@ class UnsupportedFeaturesModel(BaseModel):
     def instantiate_decision(feature_id, feature_name, component_name):
         """
         Generate the unsupported feature DB model object.
+
         :param feature_id: Created Key for Feature. :type: String.
         :param feature_name: Name of Feature Not Supported in the System. :type: String.
         :param component_name: Name of Component :type: String.

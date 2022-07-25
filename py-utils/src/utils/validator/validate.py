@@ -30,7 +30,6 @@ class ValidatorCommandFactory:
     @staticmethod
     def usage(prog):
         """Print usage instructions."""
-
         usage_string = (f"usage: {prog}\n"
                         "\t[-h]\n"
                         "\t[network connectivity <ip1> <ip2> <...>]\n"
@@ -54,7 +53,6 @@ class ValidatorCommandFactory:
     @staticmethod
     def get_command(description, argv):
         """Return the Command after parsing the command line."""
-
         parser = argparse.ArgumentParser(description)
 
         subparsers = parser.add_subparsers()

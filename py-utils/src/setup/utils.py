@@ -32,7 +32,8 @@ from cortx.utils.const import ( GCONF_INDEX, MSG_BUS_BACKEND_KEY, EXTERNAL_KEY,
 
 
 class Utils:
-    """ Represents Utils and Performs setup related actions """
+    """Represents Utils and Performs setup related actions."""
+
     utils_path = '/opt/seagate/cortx/utils'
 
     # Utils private methods
@@ -40,18 +41,15 @@ class Utils:
     @staticmethod
     def _copy_cluster_map(config_path: str):
         Conf.load('cluster', config_path, skip_reload=True)
-        cluster_data = Conf.get('cluster', 'node')
-        for _, node_data in cluster_data.items():
-            hostname = node_data.get('hostname')
-            node_name = node_data.get('name')
-            Conf.set('cluster', f'cluster>{node_name}', hostname)
-        Conf.save('cluster')
+        node_keys = Conf.get_keys('cluster', starts_with='node')
+        hostname_keys = [x for x in node_keys if x.endswith('>hostname')]
+        machine_ids = [x.split('>')[1] for x in hostname_keys]
+        for mc_id in machine_ids:
+            Conf.set('cluster', 'cluster>'+Conf.get('cluster', f'node>{mc_id}>name'),  Conf.get('cluster', f'node>{mc_id}>hostname'))
 
     @staticmethod
     def _configure_rsyslog():
-        """
-        Restart rsyslog service for reflecting supportbundle rsyslog config
-        """
+        """Restart rsyslog service for reflecting supportbundle rsyslog config."""
         try:
             Log.info("Restarting rsyslog service")
             service_obj = Service("rsyslog.service")
@@ -61,20 +59,19 @@ class Utils:
 
     @staticmethod
     def _copy_database_conf(config_path: str):
-        """Copy database configuration from provided source to Consul KV"""
+        """Copy database configuration from provided source to Consul KV."""
         DbConf.init(config_path)
         DbConf.import_database_conf(f'yaml://{Utils.utils_path}/conf/database.yaml')
 
     @staticmethod
     def validate(phase: str):
-        """ Perform validtions """
-
+        """Perform validtions."""
         # Perform RPM validations
         pass
 
     @staticmethod
     def post_install(config_path: str):
-        """ Performs post install operations """
+        """Performs post install operations."""
         default_sb_path = '/var/log/cortx/support_bundle'
         os.makedirs(default_sb_path, exist_ok=True)
 
@@ -95,7 +92,7 @@ class Utils:
     def config(config_path: str):
         """Performs configurations."""
         # Load required files
-        Conf.load(GCONF_INDEX, config_path)
+        Conf.load(GCONF_INDEX, config_path, skip_reload=True)
 
         # set cluster nodename:hostname mapping to cluster.conf
         Utils._copy_cluster_map(config_path) # saving node and host from gconf
@@ -104,7 +101,7 @@ class Utils:
 
     @staticmethod
     def init(config_path: str):
-        """ Perform initialization """
+        """Perform initialization."""
         # Create message_type for Event Message
         from cortx.utils.message_bus import MessageBus, MessageBusAdmin
         from cortx.utils.message_bus.error import MessageBusError
@@ -113,11 +110,14 @@ class Utils:
             # use gconf to create IEM topic
             Conf.load(GCONF_INDEX, config_path, skip_reload=True)
             message_bus_backend = Conf.get(GCONF_INDEX, MSG_BUS_BACKEND_KEY)
-            message_server_endpoints = Conf.get(GCONF_INDEX, \
-                f'{EXTERNAL_KEY}>{message_bus_backend}>endpoints')
+            msg_srvr_num_endpoints = Conf.get(GCONF_INDEX,\
+                f'{EXTERNAL_KEY}>{message_bus_backend}>num_endpoints')
+            message_server_endpoints = [ Conf.get( \
+                GCONF_INDEX, f'{EXTERNAL_KEY}>{message_bus_backend}>endpoints[{i}]') \
+                    for i in range(int(msg_srvr_num_endpoints)) ]
             MessageBus.init(message_server_endpoints)
             admin = MessageBusAdmin(admin_id='register')
-            admin.register_message_type(message_types=['IEM', \
+            admin.register_message_type(message_types=['IEM',\
                 'audit_messages'], partitions=1)
         except MessageBusError as e:
             if 'TOPIC_ALREADY_EXISTS' not in e.desc:
@@ -127,13 +127,13 @@ class Utils:
 
     @staticmethod
     def test(config_path: str, plan: str):
-        """ Perform configuration testing """
+        """Perform configuration testing."""
         # Runs cortx-py-utils unittests as per test plan
         try:
             Log.info("Validating cortx-py-utils-test rpm")
             PkgV().validate('rpms', ['cortx-py-utils-test'])
             import cortx.utils.test as test_dir
-            plan_path = os.path.join(os.path.dirname(test_dir.__file__), \
+            plan_path = os.path.join(os.path.dirname(test_dir.__file__),\
                 'plans/', plan + '.pln')
             Log.info("Running test plan: %s", plan)
             cmd = "%s/bin/run_test -c %s -t %s" %(Utils.utils_path, config_path, plan_path)
@@ -158,14 +158,17 @@ class Utils:
             from cortx.utils.message_bus import MessageProducer
             Conf.load(GCONF_INDEX, config_path, skip_reload=True)
             message_bus_backend = Conf.get('config', MSG_BUS_BACKEND_KEY)
-            message_server_endpoints = Conf.get('config', \
-                f'{EXTERNAL_KEY}>{message_bus_backend}>endpoints')
+            msg_srvr_num_endpoints = Conf.get(GCONF_INDEX,\
+                f'{EXTERNAL_KEY}>{message_bus_backend}>num_endpoints')
+            message_server_endpoints = [ Conf.get( \
+                GCONF_INDEX, f'{EXTERNAL_KEY}>{message_bus_backend}>endpoints[{i}]') \
+                    for i in range(int(msg_srvr_num_endpoints)) ]
             MessageBus.init(message_server_endpoints)
             mb = MessageBusAdmin(admin_id='reset')
             message_types_list = mb.list_message_types()
             if message_types_list:
                 for message_type in message_types_list:
-                    producer = MessageProducer(producer_id=message_type, \
+                    producer = MessageProducer(producer_id=message_type,\
                         message_type=message_type, method='sync')
                     producer.delete()
 
@@ -187,8 +190,11 @@ class Utils:
             from cortx.utils.message_bus import MessageBus, MessageBusAdmin
             Conf.load(GCONF_INDEX, config_path, skip_reload=True)
             message_bus_backend = Conf.get(GCONF_INDEX, MSG_BUS_BACKEND_KEY)
-            message_server_endpoints = Conf.get(GCONF_INDEX, \
-                f'{EXTERNAL_KEY}>{message_bus_backend}>endpoints')
+            msg_srvr_num_endpoints = Conf.get(GCONF_INDEX,\
+                f'{EXTERNAL_KEY}>{message_bus_backend}>num_endpoints')
+            message_server_endpoints = [ Conf.get( \
+                GCONF_INDEX, f'{EXTERNAL_KEY}>{message_bus_backend}>endpoints[{i}]') \
+                    for i in range(int(msg_srvr_num_endpoints)) ]
             MessageBus.init(message_server_endpoints)
             mb = MessageBusAdmin(admin_id='cleanup')
             message_types_list = mb.list_message_types()
@@ -240,7 +246,7 @@ class Utils:
 
     @staticmethod
     def pre_upgrade(level: str):
-        """ pre upgrade hook for node and cluster level """
+        """Pre upgrade hook for node and cluster level."""
         if level == 'node':
             # TODO Perform corresponding actions for node
             pass
@@ -251,7 +257,7 @@ class Utils:
 
     @staticmethod
     def post_upgrade(level: str):
-        """ post upgrade hook for node and cluster level """
+        """Post upgrade hook for node and cluster level."""
         if level == 'node':
             # TODO Perform corresponding actions for node
             pass

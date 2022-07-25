@@ -21,7 +21,7 @@ from prettytable import PrettyTable
 from cortx.utils.cli_framework import const
 
 class Command:
-    """CLI Command Base Class"""
+    """CLI Command Base Class."""
 
     def __init__(self, name, options, args):
         self._method = options["comm"]["method"]
@@ -67,21 +67,22 @@ class Command:
         return self._sub_command_name
 
     def process_response(self, response, out, err):
-        """Process Response as per display method in format else normal display"""
+        """Process Response as per display method in format else normal display."""
         output_obj = Output(self, response)
         return output_obj.dump(out, err, **self._output,
             output_type=self._options.get("format","success"))
 
 
 class Output:
-    """CLI Response Display Class"""
+    """CLI Response Display Class."""
+
     def __init__(self, command, response):
         self.command = command
         self.rc = response.rc()
         self.output = response.output()
 
     def dump(self, out, err, output_type, **kwargs) -> None:
-        """Dump the Output on CLI"""
+        """Dump the Output on CLI."""
         # Todo: Need to fetch the response messages from a file for localization.
         # TODO: Check 201 response code also for creation requests.
         if self.rc not in  (200, 201, const.OPERATION_SUCESSFUL) :
@@ -101,6 +102,7 @@ class Output:
     def dump_success(output: Any, **kwargs) -> str:
         """
         Accepts String as Output and Returns the Same.
+
         :param output: Output String
         :return: str
         """
@@ -108,7 +110,7 @@ class Output:
 
     @staticmethod
     def error(rc: int, message: str, stacktrace=None) -> str:
-        """Format for Error message"""
+        """Format for Error message."""
         if not stacktrace:
             return f"error({rc}): {message}\n"
         return f"error({rc}): Error:- {stacktrace.get('message')}"
@@ -185,7 +187,8 @@ class Output:
     @staticmethod
     def dump_table(data: Any, table: Dict, **kwargs: Dict) -> str:
         """
-        Format for Table Data
+        Format for Table Data.
+
         :param data: data to be displayed in Table :type:dict
         :param table: Table Output From Json :type:dict
         :return: Created Table. :type Str
@@ -199,10 +202,10 @@ class Output:
 
     @staticmethod
     def dump_xml(data, **kwargs: Dict) -> str:
-        """Format for XML Data"""
+        """Format for XML Data."""
         return dict2xml(data)
 
     @staticmethod
     def dump_json(data, **kwargs: Dict) -> str:
-        """Format for Json Data"""
+        """Format for Json Data."""
         return json.dumps(data, indent=4, sort_keys=True)

@@ -23,7 +23,7 @@ from typing import Dict, Any
 
 
 class ArgumentParser(argparse.ArgumentParser):
-    """Overwritten ArgumentParser class for internal purposes"""
+    """Overwritten ArgumentParser class for internal purposes."""
 
     def error(self, message):
         # todo:  Need to Modify the changes for Fetching Error Messages from config file
@@ -32,9 +32,7 @@ class ArgumentParser(argparse.ArgumentParser):
 
 
 class CommandParser:
-    """
-    This Class Parses the Commands from the dictionary object
-    """
+    """This Class Parses the Commands from the dictionary object."""
 
     def __init__(self, cmd_data: Dict, permissions: Dict):
         self.command = cmd_data
@@ -43,7 +41,8 @@ class CommandParser:
 
     def _handle_main_parse(self, subparsers):
         """
-        This Function Handles the Parsing of Single-Level and Multi-Level
+        This Function Handles the Parsing of Single-Level and Multi-Level.
+
         Command Arguments
         :param subparsers: argparser Object
         :return:
@@ -56,7 +55,8 @@ class CommandParser:
 
     def _handle_subparsers(self, sub_parser, data: Dict, name, add_parser_flag=True):
         """
-        This Function will handle multiple sub-parsing commands
+        This Function will handle multiple sub-parsing commands.
+
         :param sub_parser: Arg-parser Object
         :param data: Data for parsing the commands :type: Dict
         :param name: Name of the Command :type:Str
@@ -73,7 +73,8 @@ class CommandParser:
 
     def _check_permissions(self, sub_command):
         """
-        filter sub_command if found any permissions tag
+        Filter sub_command if found any permissions tag.
+
         if no permissions tag is found it returns true
         """
         allowed = False
@@ -85,6 +86,7 @@ class CommandParser:
     def _handle_comm(self, each_args):
         """
         This method will handle the rest params and create the necessary object.
+
         :param each_args:
         :return:
         """
@@ -100,6 +102,7 @@ class CommandParser:
     def _add_args(self, sub_command: Dict, parser: Any, name):
         """
         This Function will add the cmd_args from the Json to the structure.
+
         :param sub_command: Action for which the command needs to be added
         :type: str
         :param parser: ArgParse Parser Object :type: Any
@@ -123,7 +126,8 @@ class CommandParser:
                             module_obj = import_module(each_args.pop("type_target"))
                             each_args["type"] = getattr(module_obj, f'{type_method}')
                     else:
-                        each_args["type"] = eval(each_args["type"])
+                        import builtins
+                        each_args["type"] = getattr(builtins, each_args["type"])
                 if each_args.get("suppress_help", False):
                     each_args.pop("suppress_help")
                     each_args["help"] = argparse.SUPPRESS

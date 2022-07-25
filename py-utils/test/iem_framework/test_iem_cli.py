@@ -23,12 +23,13 @@ from cortx.utils.process import SimpleProcess
 
 
 class TestIemCli(unittest.TestCase):
-    """ Test case will test available API's of IemCli """
+    """Test case will test available API's of IemCli."""
+
     _cluster_conf_path = ''
 
     @classmethod
     def setUpClass(cls, cluster_conf_path: str = 'yaml:///etc/cortx/cluster.conf'):
-        """ Defining commands for test """
+        """Defining commands for test."""
         if TestIemCli._cluster_conf_path:
             cls.cluster_conf_path = TestIemCli._cluster_conf_path
         else:
@@ -63,8 +64,7 @@ class TestIemCli(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls) -> None:
-        """ Runs once after all tests are run """
-
+        """Runs once after all tests are run."""
         SimpleProcess("rm /tmp/iem_receive.log").run()
 
     # POSITIVE SCENARIOS SEND

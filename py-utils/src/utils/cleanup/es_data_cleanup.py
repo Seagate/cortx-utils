@@ -23,8 +23,10 @@ import json
 import logging
 
 class esCleanup(object):
+    """Es cleanup object."""
 
     def __init__(self, service_name, path):
+        """Es cleanup object."""
         self._path = path
         self.logger = self.get_logger(service_name, path)
 
@@ -51,7 +53,7 @@ class esCleanup(object):
         return
 
     def get_logger(self, filename, path):
-        """ check/create directory for common logs"""
+        """Check/create directory for common logs."""
         try:
             if not os.path.exists(path): os.makedirs(path)
         except OSError as err:

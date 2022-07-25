@@ -27,10 +27,10 @@ class ConsulV:
     def validate(self, v_type, args):
         """
         Process consul validations.
+
         Usage (arguments to be provided):
         1. consul service localhost 8500
         """
-
         if not isinstance(args, list):
             raise VError(errno.EINVAL, "Invalid parameters %s" % args)
 
@@ -45,7 +45,6 @@ class ConsulV:
 
     def validate_service_status(self, host, port):
         """Validate Consul service status."""
-
         url = f"http://{host}:{port}/v1/status/leader"
 
         try:

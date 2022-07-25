@@ -13,4 +13,6 @@
 # For any questions about this software or licensing,
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
+"""Cmd framework."""
+
 from cortx.utils.cmd_framework.cmd import Cmd

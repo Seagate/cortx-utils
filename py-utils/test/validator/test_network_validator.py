@@ -27,7 +27,6 @@ class TestNetworkValidator(unittest.TestCase):
 
     def test_connectivity_error(self):
         """Check IP connectivity failure."""
-
         fake_ip1 = '11.230.249.110'
         fake_ip2 = '12.230.249.110'
         self.assertRaises(VError, NetworkV().validate, 'connectivity',
@@ -39,7 +38,6 @@ class TestNetworkValidator(unittest.TestCase):
 
     def test_host_connectivity_error(self):
         """Check host connectivity failure."""
-
         fake_host = 'www1.google.com'
         self.assertRaises(VError, NetworkV().validate, 'connectivity',
                           [fake_host])
@@ -56,44 +54,37 @@ class TestNetworkValidator(unittest.TestCase):
                           args)
 
     def test_ofed_install_ok(self):
-        """Check OFED Installed"""
-
+        """Check OFED Installed."""
         NetworkV().validate('drivers', ["mlnx-ofed", 'srvnode-1'])
 
     def test_ofed_driver_error(self):
         """Check OFED Installed - ERROR."""
-
         self.assertRaises(VError, NetworkV().validate, 'drivers',
                           ["abcd", 'srvnode-1'])
 
     def test_ofed_install_error(self):
         """Check OFED Installed - ERROR."""
-
         dummy_hosts = ['srv-1', 'srv-2']
         self.assertRaises(VError, NetworkV().validate, 'drivers',
                           ["mlnx-ofed", dummy_hosts])
 
     def test_hca_present(self):
         """Check HCA present - CHECK."""
-
         NetworkV().validate('hca', ["mellanox", 'srvnode-1'])
 
     def test_hca_type_error(self):
         """Check HCA v_type - ERROR."""
-
         self.assertRaises(VError, NetworkV().validate, 'abcd',
                           ["mellanox", 'srvnode-1'])
 
     def test_hca_provider_error(self):
         """Check HCA provider - ERROR."""
-
         dummy_hosts = ['srv-1', 'srv-2']
         self.assertRaises(VError, NetworkV().validate, 'hca',
                           ["abcd", dummy_hosts])
 
     def test_hca_host_error(self):
         """Check HCA hosts - ERROR."""
-
         dummy_hosts = ['srv-1', 'srv-2']
         self.assertRaises(VError, NetworkV().validate, 'hca',
                           ["mellanox", dummy_hosts])

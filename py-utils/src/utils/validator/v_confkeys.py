@@ -26,10 +26,10 @@ class ConfKeysV:
     def validate(self, v_type: str, index: str, keylist: list):
         """
         Process confstore key validations.
+
         Usage (arguments to be provided):
         1.  exists keylist <i.e. ['k1', 'k2>k3', ...]>
         """
-
         if v_type == "exists":
             return self.validate_keys(index, keylist)
         else:

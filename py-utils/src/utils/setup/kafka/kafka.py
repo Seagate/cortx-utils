@@ -30,15 +30,15 @@ from cortx.utils.process import SimpleProcess
 
 
 class KafkaSetupError(UtilsError):
-
     """Generic Exception with error code and output."""
+
     def __init__(self, rc, message, *args):
         super().__init__(rc, message, *args)
 
 
 class Kafka:
-
     """Represents Kafka and Performs setup related actions."""
+
     input_config_index = 'kafka_config'
 
     def __init__(self):
@@ -47,8 +47,7 @@ class Kafka:
 
     @staticmethod
     def _validate_kafka_installation():
-        """validates kafka is installed and kafka user and group are present
-        """
+        """Validates kafka is installed and kafka user and group are present."""
         # check kafka package installed
         try:
             PkgV().validate('rpms', ['kafka'])
@@ -77,12 +76,13 @@ class Kafka:
                 if rc not in (0, 9, 12):
                     Log.debug(f"Failed in running command :{cmd}")
                     Log.error(f"Failed in creating kafka user/group:{err}")
-                    raise KafkaSetupError(rc, \
+                    raise KafkaSetupError(rc,\
                         "Failed in creating kafka user and group", err)
 
     @staticmethod
     def _create_dir_and_set_kafka_ownership(directory: str):
-        """Creats directory if dosent exist and changes ownership to kafka:kafka
+        """
+        Creats directory if dosent exist and changes ownership to kafka:kafka.
 
         Args:
             directory (str): directory to be created
@@ -101,7 +101,8 @@ class Kafka:
 
     @staticmethod
     def _update_properties_file(file_path: str, properties: dict):
-        """Updates/Add properties in provided file while retaining comments
+        """
+        Updates/Add properties in provided file while retaining comments.
 
         Args:
             properties (dict): Key value pair of properties to be updated
@@ -127,7 +128,8 @@ class Kafka:
 
     @staticmethod
     def _delete_properties_from_file(file_path: str, properties: list):
-        """Deletes properties in provided file while retaining comments
+        """
+        Deletes properties in provided file while retaining comments.
 
         Args:
             properties (list): Key of properties to be deleted
@@ -144,7 +146,8 @@ class Kafka:
 
     @staticmethod
     def _set_kafka_config(hostname: str, port: str, kafka_servers: list):
-        """Updates server.properties and zookeeper.properties with required keys
+        """
+        Updates server.properties and zookeeper.properties with required keys.
 
         Args:
             hostname (str): current host name
@@ -155,7 +158,7 @@ class Kafka:
             int: Returns 0 on success
         """
         server_properties_file = '/opt/kafka/config/server.properties'
-        hosts = [server.split(':')[0] if ':' in server else server \
+        hosts = [server.split(':')[0] if ':' in server else server\
             for server in kafka_servers]
         zookeeper_connect = ", ".join(f'{host}:2181' for host in hosts)
         server_properties = {
@@ -213,13 +216,21 @@ class Kafka:
 
 
     def validate(self, *args, **kwargs):
-        """Perform validtions. Raises exceptions if validation fails."""
+        """
+        Perform validtions.
+
+        Raises exceptions if validation fails.
+        """
 
         # Perform RPM validations
         return
 
     def post_install(self, *args, **kwargs):
-        """Performs post install operations. Raises KafkaSetupError on error."""
+        """
+        Performs post install operations.
+
+        Raises KafkaSetupError on error.
+        """
         Log.info("Starting post_install phase")
         try:
             Kafka._validate_kafka_installation()
@@ -230,19 +241,27 @@ class Kafka:
         return 0
 
     def prepare(self, *args, **kwargs):
-        """Perform prepration. Raises exception on error."""
+        """
+        Perform prepration.
+
+        Raises exception on error.
+        """
 
         # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
         return 0
 
     def init(self, *args, **kwargs):
-        """Perform initialization. Raises exception on error."""
+        """
+        Perform initialization.
+
+        Raises exception on error.
+        """
         Log.info("Starting init phase")
         Kafka._validate_kafka_installation()
         kafka_servers = args[0]
         curr_host_fqdn = gethostname()
         curr_host_ip = gethostbyname(curr_host_fqdn)
-        hosts = [server.split(':')[0] if ':' in server else server \
+        hosts = [server.split(':')[0] if ':' in server else server\
             for server in kafka_servers]
 
         if not (curr_host_fqdn in hosts or curr_host_ip in hosts) :
@@ -274,14 +293,18 @@ class Kafka:
         return 0
 
     def config(self, *args, **kwargs):
-        """Performs configurations. Raises exception on error."""
+        """
+        Performs configurations.
+
+        Raises exception on error.
+        """
         Log.info("Starting config phase")
         kafka_servers = args[0]
         curr_host_fqdn = gethostname()
         curr_host_ip = gethostbyname(curr_host_fqdn)
 
         for server in kafka_servers:
-            host, port = server.split(':') if ':' in server \
+            host, port = server.split(':') if ':' in server\
                 else (server, '9092')
             if (host in [curr_host_fqdn, curr_host_ip]):
                 Kafka._validate_kafka_installation()
@@ -290,13 +313,21 @@ class Kafka:
         return 0
 
     def test(self, *args, **kwargs):
-        """Perform configuration testing. Raises exception on error."""
+        """
+        Perform configuration testing.
+
+        Raises exception on error.
+        """
 
         # TODO: Perform actual steps. Obtain inputs using Conf.get(index, ..)
         return 0
 
     def reset(self, *args, **kwargs):
-        """Performs reset. Deletes all meta data and logs."""
+        """
+        Performs reset.
+
+        Deletes all meta data and logs.
+        """
         Log.info("Starting reset phase")
         directories = [
             '/var/log/kafka', '/tmp/kafka-logs', '/var/log/zookeeper',
@@ -315,7 +346,11 @@ class Kafka:
         return 0
 
     def cleanup(self, *args, **kwargs):
-        """Performs Configuraiton cleanup. Raises exception on error."""
+        """
+        Performs Configuraiton cleanup.
+
+        Raises exception on error.
+        """
         Log.info("starting cleanup phase")
         server_properties_file = '/opt/kafka/config/server.properties'
         default_server_properties = {

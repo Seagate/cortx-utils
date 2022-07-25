@@ -56,7 +56,6 @@ class NetworkVCommand(VCommand):
 
     def process(self):
         """Validate network connectivity ip1 ip2 ip3..."""
-
         self._network.validate(self.v_type, self.args)
 
 
@@ -74,7 +73,6 @@ class ConsulVCommand(VCommand):
 
     def process(self):
         """Validate consul status."""
-
         self._consul.validate(self.v_type, self.args)
 
 
@@ -92,7 +90,6 @@ class StorageVCommand(VCommand):
 
     def process(self):
         """Validate storage status."""
-
         self._storage.validate(self.v_type, self.args)
 
 
@@ -110,7 +107,6 @@ class SaltVCommand(VCommand):
 
     def process(self):
         """Validate salt minion connectivity <nodes>..."""
-
         self._salt.validate(self.v_type, self.args)
 
 
@@ -128,7 +124,6 @@ class BmcVCommand(VCommand):
 
     def process(self):
         """Validate bmc status."""
-
         self._bmc.validate(self.v_type, self.args)
 
 
@@ -146,7 +141,6 @@ class ElasticsearchVCommand(VCommand):
 
     def process(self):
         """Validate elasticsearch status."""
-
         self._elasticsearch.validate(self.v_type, self.args)
 
 
@@ -164,7 +158,6 @@ class ControllerVCommand(VCommand):
 
     def process(self):
         """Validate controller status."""
-
         self._controller.validate(self.v_type, self.args)
 
 class PkgVCommand(VCommand):
@@ -181,7 +174,6 @@ class PkgVCommand(VCommand):
 
     def process(self):
         """Validate pkg status."""
-
         self._pkg.validate(self.v_type, self.args)
 
 class ServiceVCommand(VCommand):
@@ -198,7 +190,6 @@ class ServiceVCommand(VCommand):
 
     def process(self):
         """Validate service status."""
-
         self._service.validate(self.v_type, self.args)
 
 class PathVCommand(VCommand):
@@ -215,7 +206,6 @@ class PathVCommand(VCommand):
 
     def process(self):
         """Validate Path, file and directory check related status."""
-
         self._path.validate(self.v_type, self.args)
 
 class ConfKeysVCommand(VCommand):
@@ -232,5 +222,4 @@ class ConfKeysVCommand(VCommand):
 
     def process(self):
         """Validate if confstore contains the provided keys."""
-
         self._confkeys.validate(self.v_type, self.args)

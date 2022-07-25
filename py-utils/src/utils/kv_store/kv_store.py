@@ -24,10 +24,12 @@ from cortx.utils.kv_store.kv_payload import KvPayload
 
 
 class KvStore:
-    """ Abstraction over all kinds of KV based Storage """
+    """Abstraction over all kinds of KV based Storage."""
 
     def __init__(self, store_loc, store_path, delim='>'):
         """
+        Constructor method.
+
         Args:
         store_loc: store location
         store_path: store path from where to load data
@@ -50,12 +52,12 @@ class KvStore:
         return self._delim
 
     def get_keys(self, key_prefix: str):
-        """ returns list of keys starting with given prefix """
+        """Returns list of keys starting with given prefix."""
         payload = self.load()
         return filter(lambda x: x.startswith(key_prefix), payload.get_keys())
 
     def search(self, parent_key: str, search_key: str, search_val: str = None):
-        """searches for the given key and returs list of matching keys."""
+        """Searches for the given key and returs list of matching keys."""
         payload = self.load()
         return payload.search(parent_key, search_key, search_val)
 
@@ -70,13 +72,17 @@ class KvStore:
         return payload.get_data(format_type)
 
     def set_data(self, payload: KvPayload):
-        """ Updates input payload and writes into backend """
+        """Updates input payload and writes into backend."""
         p_payload = self.load()
         _ = map(lambda x: p_payload.set(x, payload.get[x]), payload.get_keys())
         self.dump(p_payload)
 
     def get(self, keys: list) -> list:
-        """ Obtains values of keys. Return list of values. """
+        """
+        Obtains values of keys.
+
+        Return list of values.
+        """
         payload = self.load()
         vals = []
         for key in keys:
@@ -84,7 +90,7 @@ class KvStore:
         return vals
 
     def set(self, keys: list, vals: list):
-        """ Updates a given set of keys and values """
+        """Updates a given set of keys and values."""
         if len(keys) != len(vals):
             raise KvError(errno.EINVAL, "Mismatched keys & values %s:%s",
                           keys, vals)
@@ -94,36 +100,35 @@ class KvStore:
         self.dump(payload)
 
     def delete(self, keys: list):
-        """ Deletes given set of keys from the store """
+        """Deletes given set of keys from the store."""
         payload = self.load()
         for key in keys:
             payload.delete(key)
         self.dump(payload)
 
     def load(self, delim='>'):
-        """ Loads and returns data from KV storage """
+        """Loads and returns data from KV storage."""
         raise KvError(errno.ENOSYS, "%s:load() not implemented",
                       type(self).__name__)
 
     def dump(self, payload, delim='>'):
-        """ Dumps data onto the KV Storage """
+        """Dumps data onto the KV Storage."""
         raise KvError(errno.ENOSYS, "%s:dump() not implemented",
                       type(self).__name__)
 
-
 class KvStoreFactory:
-    """ Factory class for File based KV Store """
+
+    """Factory class for File based KV Store."""
 
     _stores = {}
 
     def __init__(self):
-        """ Initializing KvStoreFactory """
+        """Initializing KvStoreFactory."""
         pass
 
     @staticmethod
     def get_instance(store_url: str, delim='>') -> KvStore:
-        """ Obtain instance of KvStore for given file_type """
-
+        """Obtain instance of KvStore for given file_type."""
         url_spec = urlparse(store_url)
         store_type = url_spec.scheme
         store_loc = url_spec.netloc

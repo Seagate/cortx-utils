@@ -53,7 +53,6 @@ invalid_rpath = "node>notexist[0]"
 
 
 class TestDiscovery(unittest.TestCase):
-
     """Test Discovery module interfaces."""
 
     @classmethod

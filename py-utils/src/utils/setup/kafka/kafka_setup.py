@@ -30,7 +30,8 @@ from cortx.utils.const import CLUSTER_CONF, CLUSTER_CONF_LOG_KEY
 
 
 class Cmd:
-    """ Setup Command """
+    """Setup Command."""
+
     _index = "setup"
 
     def __init__(self, args: dict):
@@ -52,8 +53,7 @@ class Cmd:
 
     @staticmethod
     def usage(prog: str):
-        """ Print usage instructions """
-
+        """Print usage instructions."""
         sys.stderr.write(
             f"usage: {prog} [-h] <cmd> --config <url> <args>...\n"
             f"where:\n"
@@ -63,7 +63,6 @@ class Cmd:
     @staticmethod
     def get_command(desc: str, argv: dict):
         """Return the Command after parsing the command line."""
-
         parser = argparse.ArgumentParser(desc)
 
         subparsers = parser.add_subparsers()
@@ -77,13 +76,12 @@ class Cmd:
 
     @staticmethod
     def _add_extended_args(parser):
-        """ Override this method to add extended args """
+        """Override this method to add extended args."""
         pass
 
     @staticmethod
     def add_args(parser: str, cls: str, name: str):
-        """ Add Command args for parsing """
-
+        """Add Command args for parsing."""
         parser1 = parser.add_parser(cls.name, help='setup %s' % name)
         parser1.add_argument('--config', help='Conf Store URL', type=str)
         parser1.add_argument('--cluster_conf', help='cluster.conf url',
@@ -94,7 +92,8 @@ class Cmd:
 
 
 class PostInstallCmd(Cmd):
-    """ PostInstall Setup Cmd """
+    """PostInstall Setup Cmd."""
+
     name = "post_install"
 
     def __init__(self, args: dict):
@@ -110,7 +109,8 @@ class PostInstallCmd(Cmd):
 
 
 class PrepareCmd(Cmd):
-    """ Prepare Setup Cmd """
+    """Prepare Setup Cmd."""
+
     name = "prepare"
 
     def __init__(self, args: dict):
@@ -124,7 +124,8 @@ class PrepareCmd(Cmd):
 
 
 class ConfigCmd(Cmd):
-    """ Setup Config Cmd """
+    """Setup Config Cmd."""
+
     name = "config"
 
     def __init__(self, args):
@@ -138,7 +139,8 @@ class ConfigCmd(Cmd):
 
 
 class InitCmd(Cmd):
-    """ Init Setup Cmd """
+    """Init Setup Cmd."""
+
     name = "init"
 
     def __init__(self, args):
@@ -152,7 +154,8 @@ class InitCmd(Cmd):
 
 
 class TestCmd(Cmd):
-    """ Test Setup Cmd """
+    """Test Setup Cmd."""
+
     name = "test"
 
     @staticmethod
@@ -171,7 +174,8 @@ class TestCmd(Cmd):
 
 
 class ResetCmd(Cmd):
-    """ Reset Setup Cmd """
+    """Reset Setup Cmd."""
+
     name = "reset"
 
     def __init__(self, args):
@@ -185,7 +189,8 @@ class ResetCmd(Cmd):
 
 
 class CleanupCmd(Cmd):
-    """ Cleanup Setup Cmd """
+    """Cleanup Setup Cmd."""
+
     name = "cleanup"
 
     def __init__(self, args):
@@ -211,7 +216,7 @@ def main(argv: dict):
         log_dir = cluster_conf.get(CLUSTER_CONF_LOG_KEY)
         log_path = os.path.join(log_dir, f'utils/{Conf.machine_id}')
         log_level = cluster_conf.get('utils>log_level', 'INFO')
-        Log.init('kafka_setup', log_path, level=log_level, backup_count=5, \
+        Log.init('kafka_setup', log_path, level=log_level, backup_count=5,\
             file_size_in_mb=5)
 
         rc = command.process(kafka_servers)

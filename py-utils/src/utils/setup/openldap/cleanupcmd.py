@@ -27,6 +27,7 @@ from cortx.utils.setup.openldap.setupReplication import Replication
 
 class CleanupCmd(SetupCmd):
     """Cleanup cmd initialization."""
+
     Log.init('OpenldapProvisioning','/var/log/cortx/utils/openldap',\
              level='DEBUG')
     def __init__(self, config: str):

@@ -29,28 +29,28 @@ sys.path.append(utils_root)
 
 
 class TestSSHChannel(unittest.TestCase):
-    """ Check ssh connection related validations """
+    """Check ssh connection related validations."""
 
     @classmethod
     def setUpClass(cls):
-        """ Create temporary user for doing ssh on localhost """
+        """Create temporary user for doing ssh on localhost."""
         cls.hostname = "localhost"
         cls.__user = "utiltester"
         cls.__passwd = "P@ssw0rd"
         e_pass = crypt.crypt(cls.__passwd, "22")
-        os.system(f"sudo useradd -M -p {e_pass} {cls.__user}")
+        os.system(f"useradd -M -p {e_pass} {cls.__user}")
 
         # Let ssh connection be alive across all tests
         cls.session = SSHChannel(cls.hostname, cls.__user, cls.__passwd, sftp_enabled=True)
 
     def test_connection_ok(self):
-        """ Check if ssh connection is alive """
+        """Check if ssh connection is alive."""
         if not self.session.is_connection_alive():
             raise VError(errno.EINVAL,
                 f"Connection is lost with client '{self.session.host}'")
 
     def test_command_execution_ok(self):
-        """ Check if command is executed successfully """
+        """Check if command is executed successfully."""
         cmd = "whoami"
         rc, output = self.session.execute(cmd)
         if rc !=0  or self.__user not in output:
@@ -60,7 +60,7 @@ class TestSSHChannel(unittest.TestCase):
                                 Return Code: {rc}")
 
     def test_reconnect_ok(self):
-        """ Check ssh re-connect after disconnection caller """
+        """Check ssh re-connect after disconnection caller."""
         # Close ssh connection
         self.session.disconnect()
         if self.session.is_connection_alive():
@@ -101,9 +101,9 @@ class TestSSHChannel(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        """ Cleanup the setup """
+        """Cleanup the setup."""
         cls.session.disconnect()
-        os.system(f"sudo userdel {cls.__user}")
+        os.system(f"userdel {cls.__user}")
 
 
 if __name__ == '__main__':
