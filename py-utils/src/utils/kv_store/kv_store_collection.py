@@ -113,7 +113,8 @@ class DirKvStore(KvStore):
 
         Cant read dir structure. Not supported
         """
-        return KvPayload()
+        kv_data = self.get_data(self._store_path)
+        return KvPayload(kv_data, self._delim, recurse=True)
 
     def dump(self, payload: dict):
         """Stores payload onto the store."""
