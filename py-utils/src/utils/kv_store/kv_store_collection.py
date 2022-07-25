@@ -433,8 +433,6 @@ class ConsulKvPayload(KvPayload):
     @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
     def get(self, key: str, *args, **kwargs) -> str:
         """Get value for consul key."""
-        if not key in self._keys:
-            return None
         index, data = self._consul.kv.get(self._store_path + key)
         if isinstance(data, dict):
             if data['Value'] is None:
