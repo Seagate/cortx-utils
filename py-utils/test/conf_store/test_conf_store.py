@@ -73,8 +73,7 @@ class TestConfStore(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         setup_and_generate_sample_files()
-        Conf.load('src_index', 'consul://ssc-vm-g2-rhev4-3409.colo.seagate.com:8500/jeek')
-        #Conf.load('src_index', 'yaml:///tmp/test_conf_merge.conf.sample')
+        Conf.load('src_index', 'yaml:///tmp/test_conf_merge.conf.sample')
         Conf.load('dest_index', 'yaml:///tmp/test_conf_merge.conf')
         dict_data = {'k1': 'v1', 'k2': {'k3': 'v3', 'k4': {'k5':\
             [25,'v5',27], 'k6': {'k7': 'v7', 'k8': 'v8'}}}}
@@ -465,7 +464,7 @@ class TestConfStore(unittest.TestCase):
         _index = 'src_index'
         _val = 'val'
         _keys = [
-            'no_num', 'test_val[0]', 'test_val[1]', 'test_nested>2[0]>1>3[0]', 
+            'no_num', 'test_val[0]', 'test_val[1]', 'test_nested>2[0]>1>3[0]',
             'test_nested>2[0]>1>3[1]', 'test_nested>2[0]>1>3[2]',
         ]
         for _key in _keys:
