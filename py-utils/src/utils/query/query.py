@@ -16,6 +16,8 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import os
+import json
+
 from cortx.utils.conf_store import Conf
 
 
@@ -77,7 +79,10 @@ class QueryDeployment:
     def _get_cortx_topology(data: dict) -> dict:
         """ """
         _config = {}
-        return _config
+        with open('sample_topology.yaml') as f:
+            _config = json.load(f)
+        
+        return dict(_config)
 
 class QueryCortxConfError:
     pass
