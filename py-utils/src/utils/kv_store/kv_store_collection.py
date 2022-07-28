@@ -17,6 +17,7 @@
 
 import errno
 import os
+import re
 from typing import Union
 from consul import Consul, ConsulException
 from requests.exceptions import RequestException
@@ -507,6 +508,27 @@ class ConsulKvPayload(KvPayload):
                 else:
                     key_list.append(key)
         return key_list
+
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
+    def add_num_keys(self, *args, **kwargs) -> None:
+        """
+        Adds KV parent>num_x: n, where n is the count of key members
+        parent>x[0],
+        parent>>x[1]..
+        so on until
+        parent>x[n-1].
+        """
+        _kv_payload = KvPayload()
+        for k in self.get_keys():
+            if len(re.split(r'\[([0-9]+)\]', k)) > 1:
+                _kv_payload.set(k, '_')
+        _without_num_keys = set(_kv_payload.get_keys())
+        _kv_payload.add_num_keys()
+        _with_num_keys = set(_kv_payload.get_keys())
+        _num_keys = list(_with_num_keys - _without_num_keys)
+
+        for key in _num_keys : self.set(key, _kv_payload.get(key))
+
 
 class ConsulKVStore(KvStore):
     """Consul basedKV store."""
