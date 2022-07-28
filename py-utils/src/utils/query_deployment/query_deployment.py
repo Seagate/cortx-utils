@@ -59,8 +59,8 @@ class Topology:
                     ]
                   }
                 ],
-                "nodes": {
-                  "c4a32f1a4a3a43c1c65563511d9536b0": {
+                "nodes": [
+                    {"machine_id":"c4a32f1a4a3a43c1c65563511d9536b0",
                     "cluster_id": "0007ec45379e36d9fa089a3d615c32a3",
                     "hostname": "data1-node2",
                     "name": "data1-node2",
@@ -104,7 +104,7 @@ class Topology:
                       }
                     ]
                   }
-                }
+                ]
         }
 
 
@@ -137,7 +137,6 @@ class QueryConfData:
         _cs = ConfStore()
         _cs.load(QueryConfData._data_idx,  QueryConfData._local_conf)
         _data = _cs.get_data(QueryConfData._data_idx)
-        print(_data)
         return _data.get_data()
 
 
