@@ -35,7 +35,7 @@ class QueryConfData:
     """Query Data."""
     _query_idx = "query_idx"
     _data_idx = "data_idx"
-    _local_file = '/tmp/local_conf.conf'
+    _local_file = "/tmp/local_conf.conf"
     _local_conf = "yaml://" + _local_file
 
     def __init__(self):
