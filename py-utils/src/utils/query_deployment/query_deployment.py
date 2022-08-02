@@ -28,8 +28,8 @@ class Topology:
                "release": {}
                 }
              },
-             "cluster": [],
-              "nodes": []
+            "cluster": [],
+            "nodes": [],
             }
 class QueryConfData:
     """Query Data."""
@@ -48,7 +48,6 @@ class QueryConfData:
 
     def _get_data(self, kv_url: str):
         """Return data in dict format."""
-        not_required_keys=['num_','nodes']
         Conf.load(QueryConfData._query_idx, kv_url)
         _data_keys = Conf.get_keys(QueryConfData._query_idx)
 
@@ -58,8 +57,6 @@ class QueryConfData:
         for key in Conf.get_keys(QueryConfData._data_idx):
             if 'num_'in key:
                 Conf.delete(QueryConfData._data_idx, key)
-            # if 'nodes'in key:
-            #     Conf.delete(QueryConfData._data_idx, key,force=True)
         Conf.save(QueryConfData._data_idx)
 
         from cortx.utils.conf_store import ConfStore
@@ -88,45 +85,44 @@ class QueryDeployment:
         _data = QueryDeployment._query_conf.get_data(kv_url)
         if not len(_data) > 0:
             raise QueryDeploymentError(errno.EINVAL, f"Invalid data in {kv_url}")
-
         return QueryDeployment._get_cortx_topology(_data)
 
     def _get_cortx_topology(data: dict) -> dict:
         """ Map gconf fields to topology """
-        nd=lambda: defaultdict(nd)
-        _config=Topology.topology
+        nd = lambda: defaultdict(nd)
+        _config = Topology.topology
         
-        #cortx_info
-        _config["cortx"]["common"]["release"]=data["cortx"]["common"]["release"]
-
-        #cluster info
+        # to fetch cortx info
+        _config["cortx"]["common"]["release"] = data["cortx"]["common"]["release"]
+        
+        # to fetch cluster_info
         for cluster_key, cluster_val in data['cluster'].items():
-            cluster_info=nd()
-            storage_set_info=nd()
+            cluster_info = nd()
+            storage_set_info = nd()
             storage_set_list=[]
-            cluster_info['security']=data['cortx']['common']['security']
-            if cluster_key=='storage_set':
+            cluster_info['security'] = data['cortx']['common']['security']
+            if cluster_key == 'storage_set':
                 for storage_info in data['cluster']['storage_set']:
                     for storage_key,storage_val in storage_info.items():
-                        if storage_key!='nodes':
-                            storage_set_info[storage_key]=storage_val
+                        if storage_key != 'nodes':
+                            storage_set_info[storage_key] = storage_val
                 storage_set_list.append(storage_set_info)
-                cluster_info['storage_set']=storage_set_list
+                cluster_info['storage_set'] = storage_set_list
             else:
-                cluster_info[cluster_key]=cluster_val
+                cluster_info[cluster_key] = cluster_val
         _config['cluster'].append((json.dumps(cluster_info)))
 
-        # Nodes Info
-        for nodes_key, nodes_value in data['node'].items():
-            nodes_info=nd()
+        # to fetch Nodes Info
+        for nodes_key in data['node'].keys():
+            nodes_info = nd()
             nodes_info['machine_id'] = nodes_key
             for key, val in data['node'][nodes_key].items():
-                if key=='provisioning':
+                if key =='provisioning':
                     # TODO: uncomment below once deployment time is supported by provisioner
-                    # nodes_info['deployment_time']=data['node'][nodes_key]['provisioning']['time']
-                    nodes_info['version']=data['node'][nodes_key]['provisioning']['version']
+                    # nodes_info['deployment_time'] = data['node'][nodes_key]['provisioning']['time']
+                    nodes_info['version'] = data['node'][nodes_key]['provisioning']['version']
                 else:
-                    nodes_info[key]=val
+                    nodes_info[key] = val
                 #TBD json dumps to dict
             _config["nodes"].append(json.dumps(nodes_info))
         return _config
