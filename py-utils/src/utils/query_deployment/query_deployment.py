@@ -90,6 +90,8 @@ class QueryDeployment:
         """ Map gconf fields to topology """
         nested_dict = lambda: defaultdict(nested_dict)
         _config = Topology.topology
+
+        # To fetch common_info
         _config["cortx"]["common"]["release"] = data['cortx']['common']['release']
 
         # To fetch cluster_info
