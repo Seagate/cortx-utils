@@ -20,6 +20,8 @@ import json
 import errno
 from collections import defaultdict
 from cortx.utils.conf_store import Conf
+from cortx.utils.conf_store import ConfStore
+from cortx.utils.query_deployment.error import QueryDeploymentError
 
 class Topology:
     topology = {
@@ -32,15 +34,14 @@ class Topology:
             "nodes": [],
             }
 class QueryConfData:
-    """Query Data."""
+    """Query Configuration Data."""
     _query_idx = "query_idx"
     _data_idx = "data_idx"
     _local_file = "/tmp/local_conf.conf"
     _local_conf = "yaml://" + _local_file
 
     def __init__(self):
-        _f = QueryConfData._local_file
-        if os.path.exists(_f): os.remove(_f)
+        pass
 
     def get_data(self, kv_url: str):
         """Get data related to the parent key from config."""
@@ -58,8 +59,6 @@ class QueryConfData:
             if 'num_'in key:
                 Conf.delete(QueryConfData._data_idx, key)
         Conf.save(QueryConfData._data_idx)
-
-        from cortx.utils.conf_store import ConfStore
         _cs = ConfStore()
         _cs.load(QueryConfData._data_idx,  QueryConfData._local_conf)
         _data = _cs.get_data(QueryConfData._data_idx)
@@ -89,14 +88,14 @@ class QueryDeployment:
 
     def _get_cortx_topology(data: dict) -> dict:
         """ Map gconf fields to topology """
-        nd = lambda: defaultdict(nd)
+        nested_dict = lambda: defaultdict(nested_dict)
         _config = Topology.topology
-        # to fetch cortx info
-        _config["cortx"]["common"]["release"] = data["cortx"]["common"]["release"]
-        # to fetch cluster_info
+        _config["cortx"]["common"]["release"] = data['cortx']['common']['release']
+
+        # To fetch cluster_info
         for cluster_key, cluster_val in data['cluster'].items():
-            cluster_info = nd()
-            storage_set_info = nd()
+            cluster_info = nested_dict()
+            storage_set_info = nested_dict()
             storage_set_list=[]
             cluster_info['security'] = data['cortx']['common']['security']
             if cluster_key == 'storage_set':
@@ -109,30 +108,19 @@ class QueryDeployment:
             else:
                 cluster_info[cluster_key] = cluster_val
         _config['cluster'].append((json.dumps(cluster_info)))
-        # to fetch Nodes Info
+
+        # To fetch Nodes Info
         for nodes_key in data['node'].keys():
-            nodes_info = nd()
+            nodes_info = nested_dict()
             nodes_info['machine_id'] = nodes_key
             for key, val in data['node'][nodes_key].items():
-                if key =='provisioning':
+                if key == 'provisioning':
                     # TODO: uncomment below once deployment time is supported by provisioner
                     # nodes_info['deployment_time'] = data['node'][nodes_key]['provisioning']['time']
                     nodes_info['version'] = data['node'][nodes_key]['provisioning']['version']
                 else:
                     nodes_info[key] = val
-                #TBD json dumps to dict
             _config["nodes"].append(json.dumps(nodes_info))
+        if os.path.exists(QueryConfData._local_file):
+            os.remove(QueryConfData._local_file)
         return _config
-
-class QueryDeploymentError(Exception):
-    """Generic Exception with error code and output."""
-
-    def __init__(self, rc, message, *args):
-        """Initialize self."""
-        self._rc = rc
-        self._desc = message % (args)
-
-    def __str__(self):
-        """Return str(self)."""
-        if self._rc == 0: return self._desc
-        return "error(%d): %s" % (self._rc, self._desc)
