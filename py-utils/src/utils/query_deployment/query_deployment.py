@@ -91,7 +91,6 @@ class QueryDeployment:
         """ Map gconf fields to topology """
         nd = lambda: defaultdict(nd)
         _config = Topology.topology
-        
         # to fetch cortx info
         _config["cortx"]["common"]["release"] = data["cortx"]["common"]["release"]
         
