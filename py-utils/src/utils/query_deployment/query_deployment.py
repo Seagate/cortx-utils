@@ -93,7 +93,6 @@ class QueryDeployment:
         _config = Topology.topology
         # to fetch cortx info
         _config["cortx"]["common"]["release"] = data["cortx"]["common"]["release"]
-        
         # to fetch cluster_info
         for cluster_key, cluster_val in data['cluster'].items():
             cluster_info = nd()
@@ -110,7 +109,6 @@ class QueryDeployment:
             else:
                 cluster_info[cluster_key] = cluster_val
         _config['cluster'].append((json.dumps(cluster_info)))
-
         # to fetch Nodes Info
         for nodes_key in data['node'].keys():
             nodes_info = nd()
