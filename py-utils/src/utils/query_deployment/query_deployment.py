@@ -117,8 +117,7 @@ class QueryDeployment:
             nodes_info['machine_id'] = nodes_key
             for key, val in data['node'][nodes_key].items():
                 if key == 'provisioning':
-                    # TODO: uncomment below once deployment time is supported by provisioner
-                    # nodes_info['deployment_time'] = data['node'][nodes_key]['provisioning']['time']
+                    nodes_info['deployment_time'] = data['node'][nodes_key]['provisioning']['time']
                     nodes_info['version'] = data['node'][nodes_key]['provisioning']['version']
                 else:
                     nodes_info[key] = val
