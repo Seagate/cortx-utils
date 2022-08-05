@@ -109,7 +109,7 @@ class QueryDeployment:
                 cluster_info['storage_set'] = storage_set_list
             else:
                 cluster_info[cluster_key] = cluster_val
-        _config['cluster'].append((json.dumps(cluster_info)))
+        _config['cluster'].append((json.loads(json.dumps(cluster_info))))
 
         # To fetch Nodes Info
         for nodes_key in data['node'].keys():
@@ -121,7 +121,7 @@ class QueryDeployment:
                     nodes_info['version'] = data['node'][nodes_key]['provisioning']['version']
                 else:
                     nodes_info[key] = val
-            _config["nodes"].append(json.dumps(nodes_info))
+            _config["nodes"].append(json.loads(json.dumps(nodes_info)))
         if os.path.exists(QueryConfData._local_file):
             os.remove(QueryConfData._local_file)
         return _config
