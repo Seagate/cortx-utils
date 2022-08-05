@@ -16,8 +16,7 @@
 # please email opensource@seagate.com or cortx-questions@seagate.com.
 
 import errno
-from datetime import datetime
-from time import sleep
+from datetime import datetime, timedelta
 
 from cortx.utils.conf_store.error import ConfError
 from cortx.utils.conf_store.conf_cache import ConfCache
@@ -279,40 +278,19 @@ class ConfStore:
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
 
-        self.timeout = const.DEFAULT_LOCK_TIMEOUT
+        self.duration = const.DEFAULT_LOCK_DURATION
         self.lock_owner = self.default_owner
         self.lock_key = const.LOCK_KEY
-        allowed_keys = { 'lock_key', 'lock_owner', 'timeout' }
-        for key, value in kwargs.items():
-            if key not in allowed_keys:
-                raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
+        allowed_keys = { 'lock_key', 'lock_owner', 'duration' }
+        _ = [self.__setattr__(key, kwargs.get(key)) for key in allowed_keys]
 
-            if key == 'timeout' and not isinstance(value, int):
-                raise ConfError(errno.EINVAL, "Invalid value %s for parameter %s", value, key)
-
-            setattr(self, key, value)
-
-        who_owner = self._get_lock_owner(index, self.lock_key)
-        if who_owner is not None:
-            return who_owner == self.lock_owner
-
-        while self.timeout > 1:
-            sleep(const.DEFAULT_RETRY_DELAY)
-            # TODO: Add condition_check scenario here
-            self.timeout -= 1
-
-        if not self._lock(index, self.lock_key, self.lock_owner):
-            self.lock_owner = self.default_owner
-            return False
-        return True
-
-    def _lock(self, index: str, lock_key: str, lock_owner: str):
-        """Acquire lock on config."""
-        locked_at = str(datetime.timestamp(datetime.now()))
-        self.set(index, const.LOCK_OWNER_KEY % lock_key, lock_owner)
-        self.set(index, const.LOCK_TIME_KEY % lock_key, locked_at)
-
-        return self._get_lock_owner(index, lock_key) == lock_owner
+        rc = False
+        if not self.test_lock(index, lock_owner=self.lock_owner, lock_key=self.lock_key):
+            self.set(index, const.LOCK_OWNER_KEY % self.lock_key, self.lock_owner)
+            lock_end_time = datetime.now() + timedelta(seconds=self.duration)
+            self.set(index, const.LOCK_END_TIME_KEY % self.lock_key, str(lock_end_time))
+            rc = True
+        return rc
 
     def unlock(self, index: str, **kwargs):
         """Release config lock."""
@@ -324,36 +302,35 @@ class ConfStore:
         self.lock_owner = self.default_owner
         self.lock_key = const.LOCK_KEY
         allowed_keys = { 'lock_key', 'lock_owner', 'force' }
-        for key, value in kwargs.items():
-            if key not in allowed_keys:
-                raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
+        _ = [self.__setattr__(key, kwargs.get(key)) for key in allowed_keys]
 
-            if key == 'force' and not isinstance(value, bool):
-                raise ConfError(
-                    errno.EINVAL, "Invalid value %s for parameter %s",
-                    value, key
-                    )
-
-            setattr(self, key, value)
-
-        _is_locked = self._get_lock_owner(index, self.lock_key) == self.lock_owner
-        return self.delete(index, const.LOCK_OWNER_KEY % self.lock_key) if _is_locked \
-                or self.force else False
+        rc = False
+        if self._get_lock_owner(index, self.lock_key) == self.lock_owner or self.force:
+            self.delete(index, const.LOCK_OWNER_KEY % self.lock_key)
+            self.delete(index, const.LOCK_END_TIME_KEY % self.lock_key)
+            rc = True
+        return rc
 
     def test_lock(self, index: str, **kwargs):
         """Check whether lock is acquired on the config."""
         if index not in self._cache.keys():
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
-        allowed_keys = { 'lock_key' }
         self.lock_key = const.LOCK_KEY
-        for key, value in kwargs.items():
-            if key not in allowed_keys:
-                raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
+        self.lock_owner = self.default_owner
+        allowed_keys = { 'lock_key' , 'lock_owner'}
+        _ = [self.__setattr__(key, kwargs.get(key)) for key in allowed_keys]
 
-            setattr(self, key, value)
+        if self._get_lock_owner(index, self.lock_key) in [None, "", self.lock_owner]:
+            return False
 
-        return False if self._get_lock_owner(index, self.lock_key) is None else True
+        lock_end_time = self.get(index, const.LOCK_END_TIME_KEY % self.lock_key)
+        if lock_end_time in [None, ""]:
+            return False
+        lock_end_time = datetime.strptime(lock_end_time, "%Y-%m-%d %H:%M:%S.%f")
+        if lock_end_time < datetime.now():
+            return False
+        return True
 
     def _get_lock_owner(self, index: str, lock_key: str):
         """Get owner of the config lock."""
@@ -473,7 +450,7 @@ class Conf:
         :param index(required): Identifier of the config.
         :param lock_key(optional): Lock related key ex: conf>service>lock.
         :param lock_owner(optional, default=machine_id): Identity of the lock holder.
-        :param timeout(optional): Time delay before attempting to acquire lock.
+        :param duration(optional): Obtains the lock for the give duration in terms of seconds.
 
         :return: True if the lock was successfully acquired,
             false if it is already acquired by someone.
@@ -500,8 +477,9 @@ class Conf:
         Test whether Config is locked.
         :param index(required): param index: Identifier of the config.
         :param lock_key(optional): Lock related key ex: conf>service>lock.
+        :param lock_owner(optional, default=machine_id): Identity of owner who is sending test lock request.
 
-        :return: True if lock is acquired by somone else False
+        :return: True if lock is acquired by someone else False
         """
         return Conf._conf.test_lock(index, **kwargs)
 
