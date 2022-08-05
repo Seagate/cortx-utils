@@ -95,8 +95,8 @@ class QueryDeployment:
         _config["cortx"]["common"]["release"] = data['cortx']['common']['release']
 
         # To fetch cluster_info
+        cluster_info = nested_dict()
         for cluster_key, cluster_val in data['cluster'].items():
-            cluster_info = nested_dict()
             storage_set_info = nested_dict()
             storage_set_list=[]
             cluster_info['security'] = data['cortx']['common']['security']
@@ -109,7 +109,7 @@ class QueryDeployment:
                 cluster_info['storage_set'] = storage_set_list
             else:
                 cluster_info[cluster_key] = cluster_val
-        _config['clusters'].append((json.loads(json.dumps(cluster_info))))
+            _config['clusters'].append((json.loads(json.dumps(cluster_info))))
 
         # To fetch Nodes Info
         for nodes_key in data['node'].keys():
