@@ -282,7 +282,7 @@ class ConfStore:
         self.lock_owner = self.default_owner
         self.lock_key = const.LOCK_KEY
         allowed_keys = { 'lock_key', 'lock_owner', 'duration' }
-        _ = [self.__setattr__(key, kwargs.get(key)) for key in allowed_keys]
+        _ = [self.__setattr__(key, val) for key, val in kwargs.items() if key in allowed_keys]
 
         rc = False
         if not self.test_lock(index, lock_owner=self.lock_owner, lock_key=self.lock_key):
@@ -302,7 +302,7 @@ class ConfStore:
         self.lock_owner = self.default_owner
         self.lock_key = const.LOCK_KEY
         allowed_keys = { 'lock_key', 'lock_owner', 'force' }
-        _ = [self.__setattr__(key, kwargs.get(key)) for key in allowed_keys]
+        _ = [self.__setattr__(key, val) for key, val in kwargs.items() if key in allowed_keys]
 
         rc = False
         if self._get_lock_owner(index, self.lock_key) == self.lock_owner or self.force:
@@ -319,7 +319,7 @@ class ConfStore:
         self.lock_key = const.LOCK_KEY
         self.lock_owner = self.default_owner
         allowed_keys = { 'lock_key' , 'lock_owner'}
-        _ = [self.__setattr__(key, kwargs.get(key)) for key in allowed_keys]
+        _ = [self.__setattr__(key, val) for key, val in kwargs.items() if key in allowed_keys]
 
         if self._get_lock_owner(index, self.lock_key) in [None, "", self.lock_owner]:
             return False
