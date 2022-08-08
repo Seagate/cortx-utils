@@ -30,7 +30,7 @@ class Topology:
                'release': {}
                 }
              },
-            'clusters': [],
+            'cluster': [],
             'nodes': [],
             }
 class QueryConfData:
@@ -109,7 +109,7 @@ class QueryDeployment:
                 cluster_info['storage_set'] = storage_set_list
             else:
                 cluster_info[cluster_key] = cluster_val
-        _config['clusters'].append((json.loads(json.dumps(cluster_info))))
+        _config['cluster'].append((json.loads(json.dumps(cluster_info))))
 
         # To fetch Nodes Info
         for nodes_key in data['node'].keys():
