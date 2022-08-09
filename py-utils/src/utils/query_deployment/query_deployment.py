@@ -49,10 +49,15 @@ class QueryConfData:
 
     def _get_data(self, kv_url: str):
         """Return data in dict format."""
-        Conf.load(QueryConfData._query_idx, kv_url)
+        try:
+            Conf.load(QueryConfData._query_idx, kv_url)
+        except:
+            pass
         _data_keys = Conf.get_keys(QueryConfData._query_idx)
-
-        Conf.load(QueryConfData._data_idx, QueryConfData._local_conf)
+        try:
+            Conf.load(QueryConfData._data_idx, QueryConfData._local_conf)
+        except:
+            pass
         Conf.copy(QueryConfData._query_idx, QueryConfData._data_idx, _data_keys)
         Conf.save(QueryConfData._data_idx)
         for key in Conf.get_keys(QueryConfData._data_idx):
