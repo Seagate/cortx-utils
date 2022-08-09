@@ -41,9 +41,9 @@ class ConfStore:
         self._cache = {}
         self._callbacks = {}
         self._machine_id = self._get_machine_id()
-        self.lock_owner = self._get_machine_id()
-        self.domain = const.DEFAULT_LOCK_DOMAIN
-        self.duration = const.DEFAULT_LOCK_DURATION
+        self._lock_owner = self._get_machine_id()
+        self._lock_domain = const.DEFAULT_LOCK_DOMAIN
+        self._lock_duration = const.DEFAULT_LOCK_DURATION
 
     @property
     def machine_id(self):
@@ -280,7 +280,7 @@ class ConfStore:
         Parameters:
         index(required): Identifier of the config.
         domain(optional): Identity of the lock holder.
-        lock_owner(optional, default=machine_id): Unique instance of domain who is sending lock request.
+        owner(optional): Instance of domain who is sending lock request.
         duration(optional): Obtains the lock for the give duration in terms of seconds.
 
         return: True if the lock was successfully acquired,
@@ -290,22 +290,24 @@ class ConfStore:
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
 
-        allowed_keys = { 'domain', 'lock_owner', 'duration' }
-        for key, value in kwargs.items():
+        allowed_keys = { 'domain', 'owner', 'duration' }
+        for key in kwargs.keys():
             if key not in allowed_keys:
                 raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
 
-            if key == 'duration' and not isinstance(value, int):
-                raise ConfError(errno.EINVAL, "Invalid value %s for parameter %s", value, key)
+        owner = self._lock_owner if 'owner' not in kwargs.keys() else kwargs['owner']
+        domain = self._lock_domain if 'domain' not in kwargs.keys() else kwargs['domain']
+        duration = self._lock_duration if 'duration' not in kwargs.keys() else kwargs['duration']
 
-            setattr(self, key, value)
         rc = False
-        if self.test_lock(index, lock_owner=self.lock_owner, domain=self.domain):
-            self.set(index, const.LOCK_OWNER_PREFIX % self.domain, self.lock_owner)
-            lock_end_time = time.time() + self.duration
-            self.set(index, const.LOCK_END_TIME_PREFIX % self.domain, str(lock_end_time))
+        if self.test_lock(index, owner=owner, domain=domain):
+            self.set(index, const.LOCK_OWNER_KEY_PREFIX % domain, owner)
+            lock_end_time = time.time() + duration
+            self.set(index, const.LOCK_END_TIME_KEY_PREFIX % domain, str(lock_end_time))
+            # To avoid race condition check weather lock requester is same is
+            # current lock holder
             time.sleep(0.2)
-            if self.get(index, const.LOCK_OWNER_PREFIX % self.domain) == self.lock_owner:
+            if self.get(index, const.LOCK_OWNER_KEY_PREFIX % domain) == owner:
                 rc = True
         return rc
 
@@ -316,7 +318,7 @@ class ConfStore:
         Parameters:
         index(required): Identifier of the config.
         domain(optional): Identity of the Lock Holder.
-        lock_owner(optional, default=machine_id): Unique instance of the domain who is sending  unlock request.
+        owner(optional): Instance of the domain sending  unlock request.
         force(optional, default=False): When true, lock is forcefully released.
 
         return: True if the lock was successfully released,
@@ -326,21 +328,21 @@ class ConfStore:
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
 
-        self.force = False
-        allowed_keys = { 'domain', 'lock_owner', 'force' }
-        for key, value in kwargs.items():
+        force = False
+        allowed_keys = { 'domain', 'owner', 'force' }
+        for key in kwargs.keys():
             if key not in allowed_keys:
                 raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
+            if key == 'force' and not isinstance(kwargs['force'], bool):
+                raise ConfError(errno.EINVAL, "Invalid value %s for parameter %s", kwargs['force'], key)
 
-            if key == 'force' and not isinstance(value, bool):
-                raise ConfError(errno.EINVAL, "Invalid value %s for parameter %s", value, key)
-
-            setattr(self, key, value)
+        owner = self._lock_owner if 'owner' not in kwargs.keys() else kwargs['owner']
+        domain = self._lock_domain if 'domain' not in kwargs.keys() else kwargs['domain']
 
         rc = False
-        if self.get(index, const.LOCK_OWNER_PREFIX % self.domain) == self.lock_owner or self.force:
-            self.delete(index, const.LOCK_OWNER_PREFIX % self.domain)
-            self.delete(index, const.LOCK_END_TIME_PREFIX % self.domain)
+        if self.get(index, const.LOCK_OWNER_KEY_PREFIX % domain) == owner or force:
+            self.delete(index, const.LOCK_OWNER_KEY_PREFIX % domain)
+            self.delete(index, const.LOCK_END_TIME_KEY_PREFIX % domain)
             rc = True
         return rc
 
@@ -351,7 +353,7 @@ class ConfStore:
         Parameters:
         index(required): param index: Identifier of the config.
         domain(optional): Identity of the Lock Holder.
-        lock_owner(optional, default=machine_id): Unique instance of domain who needs to test lock.
+        owner(optional): Instance of domain who needs to test lock.
 
         return: True if lock can be acquired by someone else False
         """
@@ -359,22 +361,23 @@ class ConfStore:
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
 
-        allowed_keys = { 'domain' , 'lock_owner'}
-        for key, value in kwargs.items():
+        allowed_keys = { 'domain' , 'owner'}
+        for key in kwargs.keys():
             if key not in allowed_keys:
                 raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
 
-            setattr(self, key, value)
+        owner = self._lock_owner if 'owner' not in kwargs.keys() else kwargs['owner']
+        domain = self._lock_domain if 'domain' not in kwargs.keys() else kwargs['domain']
 
-        current_lock_owner= self.get(index, const.LOCK_OWNER_PREFIX % self.domain)
-        if current_lock_owner in [None, "", self.lock_owner]:
+        _current_owner= self.get(index, const.LOCK_OWNER_KEY_PREFIX % domain)
+        if _current_owner in [None, "", owner]:
             return True
 
-        lock_end_time = self.get(index, const.LOCK_END_TIME_PREFIX % self.domain)
-        if lock_end_time in [None, ""]:
+        _end_time = self.get(index, const.LOCK_END_TIME_KEY_PREFIX % domain)
+        if _end_time in [None, ""]:
             return True
 
-        if float(lock_end_time) < time.time():
+        if float(_end_time) < time.time():
             return True
         return False
 
@@ -491,7 +494,7 @@ class Conf:
         Attempt to acquire the config lock.
         :param index(required): Identifier of the config.
         :param domain(optional): Identity of the lock holder.
-        :param lock_owner(optional, default=machine_id): Unique instance of domain who is sending lock request.
+        :param owner(optional): Instance of domain sending lock request.
         :param duration(optional): Obtains the lock for the give duration in terms of seconds.
 
         :return: True if the lock was successfully acquired,
@@ -505,7 +508,7 @@ class Conf:
         Attempt to release the config lock.
         :param index(required): Identifier of the config.
         :param domain(optional): Identity of the Lock Holder.
-        :param lock_owner(optional, default=machine_id): Unique instance of the domain who is sending unlock request.
+        :param owner(optional): Instance of the domain sending unlock request.
         :param force(optional, default=False): When true, lock is forcefully released.
 
         :return: True if the lock was successfully released,
@@ -519,7 +522,7 @@ class Conf:
         Test whether Config is locked.
         :param index(required): param index: Identifier of the config.
         :param domain(optional): Identity of the Lock Holder.
-        :param lock_owner(optional, default=machine_id): Unique instance of domain who needs to test lock.
+        :param owner(optional): Instance of domain who needs to test lock.
 
         :return: True if lock can be acquired by someone else False
         """
