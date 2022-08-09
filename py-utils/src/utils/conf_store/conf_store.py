@@ -291,9 +291,11 @@ class ConfStore:
                 index)
 
         allowed_keys = { 'domain', 'owner', 'duration' }
-        for key in kwargs.keys():
+        for key, val in kwargs.items():
             if key not in allowed_keys:
                 raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
+            if key == 'duration' and not isinstance(val, int):
+                raise ConfError(errno.EINVAL, "Invalid value %s for parameter %s", val, key)
 
         owner = self._lock_owner if 'owner' not in kwargs.keys() else kwargs['owner']
         domain = self._lock_domain if 'domain' not in kwargs.keys() else kwargs['domain']
@@ -304,9 +306,10 @@ class ConfStore:
             self.set(index, const.LOCK_OWNER_KEY_PREFIX % domain, owner)
             lock_end_time = time.time() + duration
             self.set(index, const.LOCK_END_TIME_KEY_PREFIX % domain, str(lock_end_time))
-            # To avoid race condition check weather lock requester is same is
-            # current lock holder
-            time.sleep(0.2)
+            # simulate a timedelay for checking race condition
+            time.sleep(0.01)
+            # check weather lock requester is same is
+            # current lock holder to avoid race condition
             if self.get(index, const.LOCK_OWNER_KEY_PREFIX % domain) == owner:
                 rc = True
         return rc
@@ -330,11 +333,11 @@ class ConfStore:
 
         force = False
         allowed_keys = { 'domain', 'owner', 'force' }
-        for key in kwargs.keys():
+        for key, val in kwargs.items():
             if key not in allowed_keys:
                 raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
-            if key == 'force' and not isinstance(kwargs['force'], bool):
-                raise ConfError(errno.EINVAL, "Invalid value %s for parameter %s", kwargs['force'], key)
+            if key == 'force' and not isinstance(val, bool):
+                raise ConfError(errno.EINVAL, "Invalid value %s for parameter %s", val, key)
 
         owner = self._lock_owner if 'owner' not in kwargs.keys() else kwargs['owner']
         domain = self._lock_domain if 'domain' not in kwargs.keys() else kwargs['domain']
@@ -362,7 +365,7 @@ class ConfStore:
                 index)
 
         allowed_keys = { 'domain' , 'owner'}
-        for key in kwargs.keys():
+        for key, _ in kwargs.items():
             if key not in allowed_keys:
                 raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
 
