@@ -17,6 +17,7 @@
 
 import errno
 import os
+import re
 from typing import Union
 from consul import Consul, ConsulException
 from requests.exceptions import RequestException
@@ -97,6 +98,101 @@ class YamlKvStore(KvStore):
             yaml.dump(data.get_data(), f, default_flow_style=False)
 
 
+class DirKvPayload(KvPayload):
+    """ In memory representation of DIR conf data """
+    def __init__(self, dir_path, delim='>'):
+        super().__init__(dir_path, delim)
+
+    def _key_to_path(self, key: str) -> str:
+        """ Converts key to dir path e.g. a>b>c to /root/a/b/c """
+        if key is None:
+            return self._data, self._data
+        key_list = key.split(self._delim)
+        key_dir = os.path.join(self._data, *key_list[0:-1])
+        key_path = os.path.join(key_dir, key_list[-1])
+        return key_dir, key_path
+
+    def _path_to_key(self, path: str):
+        """Converts a given path to key, e.g. /root/a/b/c to a>b>c"""
+        path = path.replace(f'{self._data}/', '')
+        return self._delim.join(path.split("/"))
+
+    def _set(self, key: str, val: str, dir_path: str) -> None:
+        """ Sets the value for the given key """
+        key_dir, key_path = self._key_to_path(key)
+        try:
+            os.makedirs(key_dir, exist_ok = True)
+        except Exception as e:
+            raise KvError(errno.EACCES, "Cant set key %s. %s", key, e)
+
+        if os.path.exists(key_path) and not os.path.isfile(key_path):
+            raise KvError(errno.EINVAL, "Invalid Key %s" % key)
+
+        with open(key_path, 'w') as f:
+            f.write(val)
+            f.close()
+
+    def get(self, key: str) -> str:
+        """ Obtains the value corresponding to given key """
+        _, key_path = self._key_to_path(key)
+        if os.path.isdir(key_path):
+            raise KeyError(errno.EINVAL, 'Incomplete key %s. Use Complete Key', key)
+
+        if not os.path.exists(key_path):
+            return None
+
+        try:
+            with open(key_path, 'r') as f:
+                return f.read()
+        except OSError as e:
+            raise KvError(e.errno, "Cant obtain value for key %s. %s", key, e)
+        except Exception as e:
+            raise KvError(errno.EACCESS, "Cant obtain value for key %s. %s",
+                key, e)
+
+    def _delete(self, key: str, dir_path: str, force: bool = False) -> None:
+        """ Deletes given set of keys from the store """
+        _, key_path = self._key_to_path(key)
+        if not os.path.exists(key_path):
+            return
+        if os.path.isdir(key_path):
+            if force:
+                shutil.rmtree(key_path)
+                return
+            raise KeyError(errno.EINVAL, 'Incomplete key %s. Use Complete Key', key)
+
+        try:
+            os.remove(key_path)
+        except OSError as e:
+            raise KvError(e.errno, "Can not delete entry %s" % (key_file))
+
+
+    def get_keys(self, key_prefix: str = None):
+        """ Returns the list of keys starting with given prefix """
+        _, prefix_key_path = self._key_to_path(key_prefix)
+        if os.path.isfile(prefix_key_path):
+            return [self._path_to_key(prefix_key_path)]
+
+        keys = []
+        for dir_path, _, file_names in os.walk(prefix_key_path):
+            for key_file_name in file_names:
+                key_file = os.path.join(dir_path, key_file_name)
+                keys.append(self._path_to_key(key_file))
+        return keys
+
+
+    def search(self, parent_key: str, search_key: str, search_val: str = '') -> list:
+        """Searches the given directory for the key and value"""
+
+        key_list = []
+        keys = self.get_keys(parent_key)
+        for key in keys:
+            if key.endswith(search_key):
+                if search_val == self.get(key):
+                   key_list.append(key)
+        return key_list
+
+
 class DirKvStore(KvStore):
     """Organizes Key Values in a dir structure."""
 
@@ -113,7 +209,7 @@ class DirKvStore(KvStore):
 
         Cant read dir structure. Not supported
         """
-        return KvPayload()
+        return DirKvPayload(self._store_path)
 
     def dump(self, payload: dict):
         """Stores payload onto the store."""
@@ -507,6 +603,27 @@ class ConsulKvPayload(KvPayload):
                 else:
                     key_list.append(key)
         return key_list
+
+    @ExponentialBackoff(exception=(ConsulException, HTTPError, RequestException), tries=4)
+    def add_num_keys(self, *args, **kwargs) -> None:
+        """
+        Adds KV parent>num_x: n, where n is the count of key members
+        parent>x[0],
+        parent>>x[1]..
+        so on until
+        parent>x[n-1].
+        """
+        _kv_payload = KvPayload()
+        for k in self.get_keys():
+            if len(re.split(r'\[([0-9]+)\]', k)) > 1:
+                _kv_payload.set(k, '_')
+        _without_num_keys = set(_kv_payload.get_keys())
+        _kv_payload.add_num_keys()
+        _with_num_keys = set(_kv_payload.get_keys())
+        _num_keys = list(_with_num_keys - _without_num_keys)
+
+        for key in _num_keys : self.set(key, _kv_payload.get(key))
+
 
 class ConsulKVStore(KvStore):
     """Consul basedKV store."""

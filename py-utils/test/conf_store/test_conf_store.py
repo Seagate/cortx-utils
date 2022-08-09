@@ -461,20 +461,21 @@ class TestConfStore(unittest.TestCase):
 
     def test_conf_store_add_num_keys(self):
         """Test Confstore Add Num keys to KV store."""
-        Conf.set('src_index', 'test_val[0]', '1')
-        Conf.set('src_index', 'test_val[1]', '2')
-        Conf.set('src_index', 'test_val[2]', '3')
-        Conf.set('src_index', 'test_val[3]', '4')
-        Conf.set('src_index', 'test_val[4]', '5')
-        Conf.set('src_index', 'test_nested', '2')
-        Conf.set('src_index', 'test_nested>2[0]', '1')
-        Conf.set('src_index', 'test_nested>2>1[0]', '1')
-        Conf.set('src_index', 'test_nested>2>1[1]', '2')
-        Conf.set('src_index', 'test_nested>2>1[2]', '3')
-        Conf.save('src_index')
-        Conf.add_num_keys('src_index')
-        self.assertEqual(5, Conf.get('src_index', 'num_test_val'))
-        self.assertEqual(3, Conf.get('src_index', 'test_nested>2>num_1'))
+        _index = 'src_index'
+        _val = 'val'
+        _keys = [
+            'no_num', 'test_val[0]', 'test_val[1]', 'test_nested>2[0]>1>3[0]',
+            'test_nested>2[0]>1>3[1]', 'test_nested>2[0]>1>3[2]',
+        ]
+        for _key in _keys:
+            Conf.set(_index, _key, _val)
+        Conf.add_num_keys(_index)
+        self.assertIsNone(Conf.get(_index, 'num_no_num'))
+        self.assertEqual(2, int(Conf.get(_index, 'num_test_val')))
+        self.assertEqual(1, int(Conf.get(_index, 'test_nested>num_2')))
+        self.assertEqual(3, int(Conf.get(_index, 'test_nested>2[0]>1>num_3')))
+        for _key in _keys:
+            Conf.delete(_index, _key, _val)
 
     def test_delete(self):
         Conf.load('test_file_1', 'yaml:///tmp/test_file_1.yaml')
