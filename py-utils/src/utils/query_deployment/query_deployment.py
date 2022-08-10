@@ -24,7 +24,8 @@ from cortx.utils.conf_store import ConfStore
 from cortx.utils.query_deployment.error import QueryDeploymentError
 
 class Topology:
-    topology = {
+    def __init__(self):
+        self.topology = {
            'cortx': {
             'common': {
                'release': {}
@@ -94,7 +95,8 @@ class QueryDeployment:
     def _get_cortx_topology(data: dict) -> dict:
         """ Map gconf fields to topology """
         nested_dict = lambda: defaultdict(nested_dict)
-        _config = Topology.topology
+        topology_obj = Topology()
+        _config = topology_obj.topology
 
         # To fetch common_info
         _config["cortx"]["common"]["release"] = data['cortx']['common']['release']
@@ -129,4 +131,5 @@ class QueryDeployment:
             _config["nodes"].append(json.loads(json.dumps(nodes_info)))
         if os.path.exists(QueryConfData._local_file):
             os.remove(QueryConfData._local_file)
+        del topology_obj
         return _config
