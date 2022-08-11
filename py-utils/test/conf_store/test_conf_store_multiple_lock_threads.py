@@ -24,7 +24,7 @@ class TestConfStoreLock(object):
             Conf.load(_index, self.url)
             _conf_process = Process(target=self.do_lock, args=(_index, repeat, 2), kwargs={ "owner": _index, "duration":self.duration})
             _process_store.append(_conf_process)
-        
+
         for _proc in _process_store:
             _proc.start()
 
@@ -43,7 +43,7 @@ class TestConfStoreLock(object):
             _proc.start()
             _proc.join()
     
-    def test_multiple_lock_reset_lock(self, thread_count:int=2, repeat=1):
+    def test_multiple_lock_reset_lock(self, thread_count:int = 2, repeat = 1):
         """Test race condition with lock."""
         _index = None
         _conf_index = TestConfStoreLock._generate_index()
@@ -58,7 +58,7 @@ class TestConfStoreLock(object):
             _proc.start()
             _proc.join()
 
-    def test_multiple_lock_and_test_lock(self, thread_count=2, repeat=1):
+    def test_multiple_lock_and_test_lock(self, thread_count = 2, repeat=1):
         """Test race condition with lock."""
         _index = None
         _conf_index = TestConfStoreLock._generate_index()
@@ -73,7 +73,7 @@ class TestConfStoreLock(object):
             _proc.start()
             _proc.join()
 
-    def test_process_lock_recover(self, thread_count=2, repeat=1):
+    def test_process_lock_recover(self, thread_count = 2, repeat=1):
         """Test race condition with lock."""
         _index = None
         first_index = None
@@ -131,7 +131,7 @@ class TestConfStoreLock(object):
             print(f"Test Lock Rep {index} {rep+1}")
             print(f"{datetime.now()} Test Lock Status for {index}: {Conf.test_lock(index, owner=index)}")
 
-    def do_lock(self, index, repeat=1, sleep_time=0, **kwargs):
+    def do_lock(self, index, repeat = 1, sleep_time = 0, **kwargs):
         """lock config."""
         for rep in range(0, repeat):
             print(f"Lock Rep {index} {rep+1}")
@@ -170,6 +170,7 @@ class TestConfStoreLock(object):
         digits = random.choices(string.digits, k=2)
         letters = random.choices(string.ascii_uppercase, k=9)
         return ''.join(random.sample(digits + letters, 11))
+
 
 if __name__ == '__main__':
     run_count = int(input("Run Count: "))
