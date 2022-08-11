@@ -297,9 +297,9 @@ class ConfStore:
             if key == 'duration' and not isinstance(val, int):
                 raise ConfError(errno.EINVAL, "Invalid value %s for parameter %s", val, key)
 
-        owner = self._lock_owner if 'owner' not in kwargs.keys() else kwargs['owner']
-        domain = self._lock_domain if 'domain' not in kwargs.keys() else kwargs['domain']
-        duration = self._lock_duration if 'duration' not in kwargs.keys() else kwargs['duration']
+        owner = self._lock_owner if 'owner' not in kwargs else kwargs['owner']
+        domain = self._lock_domain if 'domain' not in kwargs else kwargs['domain']
+        duration = self._lock_duration if 'duration' not in kwargs else kwargs['duration']
 
         rc = False
         if self.test_lock(index, owner=owner, domain=domain):
@@ -339,8 +339,8 @@ class ConfStore:
             if key == 'force' and not isinstance(val, bool):
                 raise ConfError(errno.EINVAL, "Invalid value %s for parameter %s", val, key)
 
-        owner = self._lock_owner if 'owner' not in kwargs.keys() else kwargs['owner']
-        domain = self._lock_domain if 'domain' not in kwargs.keys() else kwargs['domain']
+        owner = self._lock_owner if 'owner' not in kwargs else kwargs['owner']
+        domain = self._lock_domain if 'domain' not in kwargs else kwargs['domain']
 
         rc = False
         if self.get(index, const.LOCK_OWNER_KEY_PREFIX % domain) == owner or force:
@@ -369,8 +369,8 @@ class ConfStore:
             if key not in allowed_keys:
                 raise ConfError(errno.EINVAL, "Invalid parameter %s", key)
 
-        owner = self._lock_owner if 'owner' not in kwargs.keys() else kwargs['owner']
-        domain = self._lock_domain if 'domain' not in kwargs.keys() else kwargs['domain']
+        owner = self._lock_owner if 'owner' not in kwargs else kwargs['owner']
+        domain = self._lock_domain if 'domain' not in kwargs else kwargs['domain']
 
         _current_owner= self.get(index, const.LOCK_OWNER_KEY_PREFIX % domain)
         if _current_owner in [None, "", owner]:

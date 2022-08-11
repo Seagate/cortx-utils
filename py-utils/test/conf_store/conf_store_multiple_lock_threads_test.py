@@ -1,5 +1,3 @@
-import os
-import sys
 from multiprocessing import Process
 import random
 from datetime import datetime
@@ -10,11 +8,11 @@ from cortx.utils.conf_store import Conf
 class TestConfStoreLock(object):
     """Test Confstore lock."""
     lock_status = []
-    def __init__(self, URL="consul://ssc-vm-g3-rhev4-3306.colo.seagate.com/conf10"):
+    def __init__(self, URL="consul://cortx-consul-server:8500/test_lock"):
         self.url = URL
         self.duration = 20
 
-    def test_lock_race(self, thread_count:int=2, repeat=1):
+    def test_lock_race(self, thread_count:int = 2, repeat = 1):
         """Test race condition with lock."""
         _index = None
         _conf_index = TestConfStoreLock._generate_index()
@@ -28,7 +26,7 @@ class TestConfStoreLock(object):
         for _proc in _process_store:
             _proc.start()
 
-    def test_multiple_lock_unlock(self, thread_count:int=2, repeat=1):
+    def test_multiple_lock_unlock(self, thread_count:int = 2, repeat = 1):
         """Test race condition with lock."""
         _index = None
         _conf_index = TestConfStoreLock._generate_index()
@@ -38,11 +36,11 @@ class TestConfStoreLock(object):
             Conf.load(_index, self.url)
             _conf_process = Process(target=self.lock_unlock, args=(_index, repeat), kwargs={ "owner": _index, "duration":self.duration})
             _process_store.append(_conf_process)
-        
+
         for _proc in _process_store:
             _proc.start()
             _proc.join()
-    
+
     def test_multiple_lock_reset_lock(self, thread_count:int = 2, repeat = 1):
         """Test race condition with lock."""
         _index = None
@@ -53,7 +51,7 @@ class TestConfStoreLock(object):
             Conf.load(_index, self.url)
             _conf_process = Process(target=self.lock_reset_lock, args=(_index, repeat), kwargs={ "owner": _index })
             _process_store.append(_conf_process)
-        
+
         for _proc in _process_store:
             _proc.start()
             _proc.join()
@@ -108,7 +106,7 @@ class TestConfStoreLock(object):
             self.do_lock(index, 1, **kwargs)
             sleep(1)
             self.do_unlock(index, 1)
-    
+
     def lock_reset_lock(self, index, repeat, **kwargs):
         for rep in range(0, repeat):
             print(f"Rep {index} {rep+1}")
@@ -125,7 +123,7 @@ class TestConfStoreLock(object):
             self.do_unlock(index,1)
             sleep(1)
             self._test_lock(index, 1)
-    
+
     def _test_lock(self, index, repeat):
         for rep in range(0, repeat):
             print(f"Test Lock Rep {index} {rep+1}")
