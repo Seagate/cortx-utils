@@ -19,6 +19,8 @@ import os
 import json
 import errno
 from collections import defaultdict
+
+from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
 from cortx.utils.conf_store import ConfStore
 from cortx.utils.query_deployment.error import QueryDeploymentError
@@ -53,12 +55,12 @@ class QueryConfData:
         try:
             Conf.load(QueryConfData._query_idx, kv_url)
         except:
-            pass
+            Log.debug(f"confstore {QueryConfData._query_idx} is already loaded")
         _data_keys = Conf.get_keys(QueryConfData._query_idx)
         try:
             Conf.load(QueryConfData._data_idx, QueryConfData._local_conf)
         except:
-            pass
+            Log.debug(f"confstore {QueryConfData._query_idx} is already loaded")
         Conf.copy(QueryConfData._query_idx, QueryConfData._data_idx, _data_keys)
         Conf.save(QueryConfData._data_idx)
         for key in Conf.get_keys(QueryConfData._data_idx):
