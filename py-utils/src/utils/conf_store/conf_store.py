@@ -331,7 +331,6 @@ class ConfStore:
             raise ConfError(errno.EINVAL, "config index %s is not loaded",
                 index)
 
-        force = False
         allowed_keys = { 'domain', 'owner', 'force' }
         for key, val in kwargs.items():
             if key not in allowed_keys:
@@ -341,6 +340,7 @@ class ConfStore:
 
         owner = self._lock_owner if 'owner' not in kwargs else kwargs['owner']
         domain = self._lock_domain if 'domain' not in kwargs else kwargs['domain']
+        force = False if 'force' not in kwargs else kwargs['force']
 
         rc = False
         if self.get(index, const.LOCK_OWNER_KEY_PREFIX % domain) == owner or force:
