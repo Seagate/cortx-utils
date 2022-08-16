@@ -96,6 +96,7 @@ class TestConfStoreLockUnlock(unittest.TestCase):
     def tearDownClass(self):
         shutil.rmtree(self._dir)
 
+
 if __name__ == '__main__':
     # Start test
     unittest.main()
