@@ -19,19 +19,22 @@ import os
 import json
 import errno
 from collections import defaultdict
+
+from cortx.utils.log import Log
 from cortx.utils.conf_store import Conf
 from cortx.utils.conf_store import ConfStore
 from cortx.utils.query_deployment.error import QueryDeploymentError
 
 class Topology:
-    topology = {
-           "cortx": {
-            "common": {
-               "release": {}
+    def __init__(self):
+        self.topology = {
+           'cortx': {
+            'common': {
+               'release': {}
                 }
              },
-            "cluster": [],
-            "nodes": [],
+            'cluster': [],
+            'nodes': [],
             }
 class QueryConfData:
     """Query Configuration Data."""
@@ -49,10 +52,15 @@ class QueryConfData:
 
     def _get_data(self, kv_url: str):
         """Return data in dict format."""
-        Conf.load(QueryConfData._query_idx, kv_url)
+        try:
+            Conf.load(QueryConfData._query_idx, kv_url)
+        except Exception:
+            Log.debug(f"confstore {QueryConfData._query_idx} is already loaded")
         _data_keys = Conf.get_keys(QueryConfData._query_idx)
-
-        Conf.load(QueryConfData._data_idx, QueryConfData._local_conf)
+        try:
+            Conf.load(QueryConfData._data_idx, QueryConfData._local_conf)
+        except Exception:
+            Log.debug(f"confstore {QueryConfData._query_idx} is already loaded")
         Conf.copy(QueryConfData._query_idx, QueryConfData._data_idx, _data_keys)
         Conf.save(QueryConfData._data_idx)
         for key in Conf.get_keys(QueryConfData._data_idx):
@@ -89,14 +97,15 @@ class QueryDeployment:
     def _get_cortx_topology(data: dict) -> dict:
         """ Map gconf fields to topology """
         nested_dict = lambda: defaultdict(nested_dict)
-        _config = Topology.topology
+        topology_obj = Topology()
+        _config = topology_obj.topology
 
         # To fetch common_info
         _config["cortx"]["common"]["release"] = data['cortx']['common']['release']
 
         # To fetch cluster_info
+        cluster_info = nested_dict()
         for cluster_key, cluster_val in data['cluster'].items():
-            cluster_info = nested_dict()
             storage_set_info = nested_dict()
             storage_set_list=[]
             cluster_info['security'] = data['cortx']['common']['security']
@@ -109,7 +118,7 @@ class QueryDeployment:
                 cluster_info['storage_set'] = storage_set_list
             else:
                 cluster_info[cluster_key] = cluster_val
-        _config['cluster'].append((json.dumps(cluster_info)))
+        _config['cluster'].append((json.loads(json.dumps(cluster_info))))
 
         # To fetch Nodes Info
         for nodes_key in data['node'].keys():
@@ -121,7 +130,8 @@ class QueryDeployment:
                     nodes_info['version'] = data['node'][nodes_key]['provisioning']['version']
                 else:
                     nodes_info[key] = val
-            _config["nodes"].append(json.dumps(nodes_info))
+            _config["nodes"].append(json.loads(json.dumps(nodes_info)))
         if os.path.exists(QueryConfData._local_file):
             os.remove(QueryConfData._local_file)
+        del topology_obj
         return _config
