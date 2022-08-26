@@ -184,7 +184,8 @@ class FilterLog:
         start_time, end_time = FilterLog._parse_duration(duration)
         for file in os.listdir(src_dir):
             op_file = os.path.join(dest_dir, 'tmp_' + file)
-            if file.startswith(file_name_reg_ex):
+            # TODO: Handle time based log collection for rotated files('.gz') files
+            if file.startswith(file_name_reg_ex) and not file.endswith('.gz'):
                 in_file = os.path.join(src_dir, file)
                 with open(in_file, 'r') as fd_in, open(op_file, 'a') as fd_out:
                     line = fd_in.readline()
