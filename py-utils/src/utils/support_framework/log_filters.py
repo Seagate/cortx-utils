@@ -23,6 +23,7 @@ import shutil
 import gzip
 import pathlib
 from datetime import datetime, timedelta
+from cortx.utils.log import Log
 
 from cortx.utils.support_framework.errors import BundleError
 
@@ -194,12 +195,13 @@ class FilterLog:
             file_extension = pathlib.Path(file).suffix
             # Ignore processing of other file format.
             if file_extension not in supported_file_types:
+                Log.warn(f'{file} file is skipped..')
                 continue
             op_file = os.path.join(dest_dir, 'tmp_' + file)
             if file.startswith(file_name_reg_ex):
                 in_file = os.path.join(src_dir, file)
                 if file.endswith('.gz'):
-                    # Reading gzip file content without extracting
+                    # Reading .gz file content without extracting.
                     with gzip.open(in_file, 'rt') as fd_in:
                         lines = fd_in.readlines()
                 else:
@@ -209,12 +211,12 @@ class FilterLog:
                 continue
             if file.endswith('.gz'):
                 with gzip.open(op_file, 'a') as fd_out:
-                    is_log_exceeded, is_log_written_to_file = FilterLog._add_logs_in_dest_file(
+                    log_scope_exceeded, is_log_written_to_file = FilterLog._add_logs_in_dest_file(
                         lines, log_timestamp_regex, datetime_format,
                         duration, fd_out, encode=True)
             else:
                 with open(op_file, 'a') as fd_out:
-                    is_log_exceeded, is_log_written_to_file = FilterLog._add_logs_in_dest_file(
+                    log_scope_exceeded, is_log_written_to_file = FilterLog._add_logs_in_dest_file(
                         lines, log_timestamp_regex, datetime_format,
                         duration, fd_out)
             try:
@@ -223,7 +225,7 @@ class FilterLog:
                     os.rename(op_file, final_op_file)
                 else:
                     os.remove(op_file)
-                if is_log_exceeded:
+                if log_scope_exceeded:
                     break
             except OSError as e:
                 raise BundleError(errno.EINVAL, "Failed to filter log " +
@@ -234,7 +236,7 @@ class FilterLog:
         datetime_format: str, duration: str, fd_out, encode=False):
         """The logs which are in given time duration add those logs in dest_dir."""
         include_lines_without_timestamp = False
-        is_log_exceeded = False
+        log_scope_exceeded = False
         is_log_written_to_file = False
         start_time, end_time = FilterLog._parse_duration(duration)
         for line in contents:
@@ -252,7 +254,7 @@ class FilterLog:
                         fd_out.write(line)
                     elif log_time > end_time and include_lines_without_timestamp:
                         include_lines_without_timestamp = False
-                        is_log_exceeded = True
+                        log_scope_exceeded = True
                         break
                 # There will be some log lines which lies under passed duration,
                 # but has no timestamp, those lines will throw ValueError while
@@ -265,4 +267,4 @@ class FilterLog:
                         if encode:
                             line = line.encode('utf-8')
                         fd_out.write(line)
-        return is_log_exceeded, is_log_written_to_file
+        return log_scope_exceeded, is_log_written_to_file
