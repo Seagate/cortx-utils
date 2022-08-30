@@ -20,7 +20,10 @@ import os
 import re
 import errno
 import shutil
+import gzip
+import pathlib
 from datetime import datetime, timedelta
+from cortx.utils.log import Log
 
 from cortx.utils.support_framework.errors import BundleError
 
@@ -159,7 +162,7 @@ class FilterLog:
         Args:
             src_dir [str]: source directory from where logs will be fetched
             dest_dir [str]: destination directory where logs will be dumped
-            duration [str]: Duraion in ISO 8601 format,
+            duration [str]: Duration in ISO 8601 format,
                             eg: 2020-09-06T05:30:00P5DT3H3S
             file_name_reg_ex [str]: File name regex
             log_timestamp_regex [str] : regex format for timestamp to be
@@ -175,45 +178,93 @@ class FilterLog:
             log_timestamp_regex:
             '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}'
         """
+        supported_file_types = ['.log', '.gz']
         invalid_chars = re.findall("[^PTDHMS0-9-:]+", duration)
         if invalid_chars:
-            raise BundleError(errno.EINVAL,"Invalid duration passed! "
-            + f"unexpected charecters: {invalid_chars}")
+            raise BundleError(errno.EINVAL, "Invalid duration passed! "
+            + f"unexpected characters: {invalid_chars}")
 
-        include_lines_without_timestamp = False
-        start_time, end_time = FilterLog._parse_duration(duration)
-        for file in os.listdir(src_dir):
+        # sort files based on timestamp
+        list_of_files = filter(lambda f: os.path.isfile(os.path.join(src_dir, f)),
+            os.listdir(src_dir))
+        # sort the files based on last modification time in descending order
+        list_of_files = sorted(list_of_files,
+            key=lambda f: os.path.getmtime(os.path.join(src_dir, f)),
+            reverse=True)
+        for file in list_of_files:
+            file_extension = pathlib.Path(file).suffix
+            # Ignore processing of other file format.
+            if file_extension not in supported_file_types:
+                Log.warn(f'{file} file is skipped..')
+                continue
             op_file = os.path.join(dest_dir, 'tmp_' + file)
-            # TODO: Handle time based log collection for rotated files('.gz') files
-            if file.startswith(file_name_reg_ex) and not file.endswith('.gz'):
+            if file.startswith(file_name_reg_ex):
                 in_file = os.path.join(src_dir, file)
-                with open(in_file, 'r') as fd_in, open(op_file, 'a') as fd_out:
-                    line = fd_in.readline()
-                    while(line):
-                        regex_res = re.search(log_timestamp_regex, line)
-                        log_duration = regex_res.group(0) if regex_res else None
-                        if log_duration:
-                            # convert log timestamp to datetime object
-                            try:
-                                log_time = datetime.strptime(log_duration, datetime_format)
-                                if start_time <= log_time and log_time <= end_time:
-                                    include_lines_without_timestamp = True
-                                    fd_out.write(line)
-                                elif log_time > end_time and include_lines_without_timestamp:
-                                        include_lines_without_timestamp = False
-                                        break
-                            # There will be some log lines which lies under passed duration,
-                            # but has no timestamp, those lines will throw ValueError while
-                            # trying to fetch log timestamp,
-                            # to capture such logs, we have set a flag
-                            # include_lines_without_timestamp = True
-                            except ValueError:
-                                if include_lines_without_timestamp:
-                                    fd_out.write(line)
-                        line = fd_in.readline()
-                try:
+                if file.endswith('.gz'):
+                    # Reading .gz file content without extracting.
+                    with gzip.open(in_file, 'rt') as fd_in:
+                        lines = fd_in.readlines()
+                else:
+                    with open(in_file, 'r') as fd_in:
+                        lines = fd_in.readlines()
+            if not lines:
+                continue
+            if file.endswith('.gz'):
+                with gzip.open(op_file, 'a') as fd_out:
+                    log_scope_exceeded, is_log_written_to_file = FilterLog._add_logs_in_dest_file(
+                        lines, log_timestamp_regex, datetime_format,
+                        duration, fd_out, encode=True)
+            else:
+                with open(op_file, 'a') as fd_out:
+                    log_scope_exceeded, is_log_written_to_file = FilterLog._add_logs_in_dest_file(
+                        lines, log_timestamp_regex, datetime_format,
+                        duration, fd_out)
+            try:
+                if is_log_written_to_file:
                     final_op_file = os.path.join(dest_dir, file)
                     os.rename(op_file, final_op_file)
-                except OSError as e:
-                    raise BundleError(errno.EINVAL, "Failed to filter log " +
-                        f"file based on time duration. ERROR:{e}")
+                else:
+                    os.remove(op_file)
+                if log_scope_exceeded:
+                    break
+            except OSError as e:
+                raise BundleError(errno.EINVAL, "Failed to filter log " +
+                    f"file based on time duration. ERROR:{e}")
+
+    @staticmethod
+    def _add_logs_in_dest_file(contents: list, timestamp_regex: str,
+        datetime_format: str, duration: str, fd_out, encode=False):
+        """The logs which are in given time duration add those logs in dest_dir."""
+        include_lines_without_timestamp = False
+        log_scope_exceeded = False
+        is_log_written_to_file = False
+        start_time, end_time = FilterLog._parse_duration(duration)
+        for line in contents:
+            regex_res = re.search(timestamp_regex, line)
+            log_duration = regex_res.group(0) if regex_res else None
+            if log_duration:
+                # convert log timestamp to datetime object
+                try:
+                    log_time = datetime.strptime(log_duration, datetime_format)
+                    if start_time <= log_time and log_time <= end_time:
+                        include_lines_without_timestamp = True
+                        is_log_written_to_file = True
+                        if encode:
+                            line = line.encode('utf-8')
+                        fd_out.write(line)
+                    elif log_time > end_time and include_lines_without_timestamp:
+                        include_lines_without_timestamp = False
+                        log_scope_exceeded = True
+                        break
+                # There will be some log lines which lies under passed duration,
+                # but has no timestamp, those lines will throw ValueError while
+                # trying to fetch log timestamp,
+                # to capture such logs, we have set a flag
+                # include_lines_without_timestamp = True
+                except ValueError:
+                    if include_lines_without_timestamp:
+                        is_log_written_to_file = True
+                        if encode:
+                            line = line.encode('utf-8')
+                        fd_out.write(line)
+        return log_scope_exceeded, is_log_written_to_file
