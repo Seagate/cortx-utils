@@ -100,7 +100,7 @@ OS_ID=$(awk -F= '$1=="ID" { print $2 ;}' /etc/os-release|tr -d '"')
 [[ $OS_ID = rocky ]] && python_dbus="python3-dbus" || python_dbus="python36-dbus"
 
 # Create the rpm
-/bin/python3.6 setup.py bdist_rpm --requires python36,$python_dbus \
+/bin/python3.8 setup.py bdist_rpm --requires python38,$python_dbus \
 --release="$REL" --pre-install utils-pre-install \
 --post-install utils-post-install --post-uninstall utils-post-uninstall
 if [ $? -ne 0 ]; then
