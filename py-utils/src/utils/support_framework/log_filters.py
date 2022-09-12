@@ -183,32 +183,30 @@ class FilterLog:
             + f"unexpected characters: {invalid_chars}")
 
         include_lines_without_timestamp = False
-        supported_file_types = ['.log', '.gz']
+        supported_file_types = ['.log', '.txt']
         start_time, end_time = FilterLog._parse_duration(duration)
         Log.info(f'start_time = {start_time}, end_time = {end_time}')
         # sort files based on timestamp
-        list_of_files = filter(lambda f: os.path.isfile(os.path.join(src_dir, f)),
-            os.listdir(src_dir))
+        list_of_files = filter(lambda f: os.path.isfile(
+            os.path.join(src_dir, f)), os.listdir(src_dir))
         # sort the files based on last modification time in descending order
         list_of_files = sorted(list_of_files,
             key=lambda f: os.path.getmtime(os.path.join(src_dir, f)),
             reverse=True)
         for file in list_of_files:
             log_scope_exceeded = False
-            is_log_written_to_file = False
-            file_extension = pathlib.Path(file).suffix
-            # Ignore processing of other file format.
-            if file_extension not in supported_file_types:
-                Log.warn(f'{file} file is skipped..')
-                continue
+            log_written_to_file = False
             op_file = os.path.join(dest_dir, 'tmp_' + file)
             if file.startswith(file_name_reg_ex):
                 in_file = os.path.join(src_dir, file)
-                if file.endswith('.gz'):
-                    # File modification time is in
+                file_extension = pathlib.Path(file).suffix
+                if file_extension not in supported_file_types:
                     FilterLog._collect_rotated_log_file(
                         in_file, dest_dir, start_time, end_time)
                     continue
+                # TODO: Parse log lines using timestamp in more optimal way,
+                # like using divide & conquer approach, to decide log lines
+                # falling with in time range.
                 with open(in_file, 'r') as fd_in, open(op_file, 'a') as fd_out:
                     line = fd_in.readline()
                     while (line):
@@ -220,7 +218,7 @@ class FilterLog:
                                 log_time = datetime.strptime(log_duration, datetime_format)
                                 if start_time <= log_time and log_time <= end_time:
                                     include_lines_without_timestamp = True
-                                    is_log_written_to_file = True
+                                    log_written_to_file = True
                                     fd_out.write(line)
                                 elif log_time > end_time and include_lines_without_timestamp:
                                     include_lines_without_timestamp = False
@@ -233,11 +231,11 @@ class FilterLog:
                             # flag include_lines_without_timestamp = True
                             except ValueError:
                                 if include_lines_without_timestamp:
-                                    is_log_written_to_file = True
+                                    log_written_to_file = True
                                     fd_out.write(line)
                         line = fd_in.readline()
                 try:
-                    if is_log_written_to_file:
+                    if log_written_to_file:
                         final_op_file = os.path.join(dest_dir, file)
                         os.rename(op_file, final_op_file)
                     else:
