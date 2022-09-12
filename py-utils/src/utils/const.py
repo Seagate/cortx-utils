@@ -88,3 +88,10 @@ COMPONENT_NAME_MAP = {'CORTX': 'CORTX', 'cortx-motr': 'motr', 'cortx-rgw': 'rgw'
                     'cortx-hare': 'hare', 'cortx-py-utils': 'utils', 'cortx-csm_agent': 'csm',
                     'cortx-ha': 'ha', 'cortx-prvsnr': 'prvsnr'}
 VERSION_UPGRADE = "UPGRADE"
+
+# Confstore lock keys
+LOCK_END_TIME_KEY_PREFIX = "lock>%s>end_time"
+LOCK_OWNER_KEY_PREFIX = "lock>%s>owner"
+DEFAULT_LOCK_DURATION = 10
+DEFAULT_RETRY_DELAY = 1
+DEFAULT_LOCK_DOMAIN = "default"

@@ -93,13 +93,15 @@ class SupportBundle:
         components_list = []
         service_per_comp = {}
         if not components:
-            components = cortx_config_store.get(f'node>{node_id}>components')
-            num_components = len(components)
+            num_components = int(cortx_config_store.get(f'node>{node_id}>num_components'))
             for comp_idx in range(0, num_components):
-                services = cortx_config_store.get(
-                        f'node>{node_id}>components[{comp_idx}]>services')
-                service = 'all' if services is None else ','.join(services)
-                comp_name = components[comp_idx]['name']
+                services = []
+                num_services = cortx_config_store.get(f'node>{node_id}>components[{comp_idx}]>num_services')
+                if num_services is not None:
+                    for svc_index in range(0, int(num_services)):
+                        services.append(cortx_config_store.get(f'node>{node_id}>components[{comp_idx}]>services[{svc_index}]'))
+                service = 'all' if len(services) == 0 else ','.join(services)
+                comp_name = cortx_config_store.get(f'node>{node_id}>components[{comp_idx}]>name')
                 components_list.append(comp_name)
                 service_per_comp[comp_name] = service
         else:
