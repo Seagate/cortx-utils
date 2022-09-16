@@ -81,7 +81,20 @@ class KafkaMessageBroker(MessageBroker):
             if self._clients[client_type][client_conf['client_id']] != {}:
                 # Check if message_type exists to send/receive
                 client = self._clients[client_type][client_conf['client_id']]
-                available_message_types = client.list_topics().topics.keys()
+                try:
+                    available_message_types = client.list_topics(timeout=self._admin_api_timeout).topics.keys()
+                except KafkaException as e:
+                    Log.error(f"MessageBusError: {errors.ERR_OP_FAILED}. "\
+                        f"list_topics() failed. {e} Check if Kafka service is "\
+                        f"running successfully")
+                    raise MessageBusError(errors.ERR_OP_FAILED, "list_topics() " +\
+                        "failed. %s. Check if Kafka service is running successfully", e)
+                except Exception as e:
+                    Log.error(f"MessageBusError: {errors.ERR_OP_FAILED}. "\
+                        f"list_topics() failed. {e} Check if Kafka service is "\
+                        f"running successfully")
+                    raise MessageBusError(errors.ERR_OP_FAILED, "list_topics() " +\
+                        "failed. %s. Check if Kafka service is running successfully", e)
                 if client_type == 'producer':
                     if client_conf['message_type'] not in\
                         available_message_types:
