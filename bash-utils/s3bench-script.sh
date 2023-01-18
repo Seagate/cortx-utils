@@ -61,7 +61,7 @@ echo "Initial Run Completed!!!"
 
 
 FILE_NAME="$(date +"perf-%Y-%m-%d-%T")"
-echo "Operation       Throughput      RPS     TTFB" > perf-reports/$FILE_NAME.log
+echo "Operation       Throughput      RPS     TTFB" > perf-reports/"$FILE_NAME".log
 # init write/read files for updated output
 echo "" > write_thr.log
 echo "" > read_thr.log
@@ -76,11 +76,11 @@ echo "Object,Clients,Samples,Write(MB/s),Read(MB/s),WriteErr,ReadErr" > perf-rep
 
 for ((i=0;i<ARR_SIZE;i++));
 do
-        echo -e  "\n\nIO Tests for Object Size: ${OBJ_SIZE[i]}  Samples: ${SAMPLES[i]}  Clients: ${CLIENTS[i]}"  >>  perf-reports/$FILE_NAME.log
+        echo -e  "\n\nIO Tests for Object Size: ${OBJ_SIZE[i]}  Samples: ${SAMPLES[i]}  Clients: ${CLIENTS[i]}"  >>  perf-reports/"$FILE_NAME".log
         echo "IO Tests for Object Size : ${OBJ_SIZE[i]}  Samples: ${SAMPLES[i]}  Clients: ${CLIENTS[i]}" #display in terminal
         for ((j=1;j<=LOOP_COUNT;j++));
         do
-                echo "Iteration :  $j" >>  perf-reports/$FILE_NAME.log
+                echo "Iteration :  $j" >>  perf-reports/"$FILE_NAME".log
                 echo "Iteration :  $j" #display in terminal
 
                 s3bench -accessKey "$ACCESS_KEY" -accessSecret "$SECRET_KEY" -bucket "$BUCKET" -endpoint "$ENDPOINT" -numClients "${CLIENTS[i]}" -numSamples "${SAMPLES[i]}" -objectNamePrefix=s3workload -objectSize "${OBJ_SIZE[i]}"  -region us-east-1 > tmp.log
@@ -105,9 +105,9 @@ do
                 #VALIDATE_RPS="$(sed -n '3p' RPS.log | grep -Eo "[0-9]+\.[0-9]+")"
                 #VALIDATE_TTFB="$(sed -n '3p' ttfb.log | grep -Eo "[0-9]+\.[0-9]+")"
 
-                echo "Write            $WRITE_THROUGHPUT        $WRITE_RPS    $WRITE_TTFB" >>  perf-reports/$FILE_NAME.log
-                echo "Read             $READ_THROUGHPUT        $READ_RPS    $READ_TTFB" >>  perf-reports/$FILE_NAME.log
-                #echo "  VALIDATE         $VALIDATE_THROUGHPUT        $VALIDATE_RPS    $VALIDATE_TTFB       " >>  perf-reports/$FILE_NAME.log
+                echo "Write            $WRITE_THROUGHPUT        $WRITE_RPS    $WRITE_TTFB" >>  perf-reports/"$FILE_NAME".log
+                echo "Read             $READ_THROUGHPUT        $READ_RPS    $READ_TTFB" >>  perf-reports/"$FILE_NAME".log
+                #echo "  VALIDATE         $VALIDATE_THROUGHPUT        $VALIDATE_RPS    $VALIDATE_TTFB       " >>  perf-reports/"$FILE_NAME".log
 
 
                 echo "$WRITE_THROUGHPUT" >> write_thr.log
