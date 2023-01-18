@@ -36,9 +36,9 @@ ENDPOINT="http://192.168.49.6:8000"
 #CLIENTS=(30 30 30 30 30 30 30 30 30 30 30 30 30 30 30 30 30 30 30 30 30 30)
 
 
-OBJ_SIZE=("4Kb" "4Kb" "1Mb" "1Mb" "4Mb" "4Mb" "64Mb" "64Mb" "128Mb" "128Mb")
-SAMPLES=(2000 2000 2000 2000 2000 2000 2000 2000 2000 2000)
-CLIENTS=(1 30 1 30 1 30 1 30 1 30)
+OBJ_SIZE=("1Mb" "4Mb")
+SAMPLES=(200 200)
+CLIENTS=(30 30)
 LOOP_COUNT=3
 ARR_SIZE=${#OBJ_SIZE[*]}
 
@@ -61,7 +61,7 @@ echo "Initial Run Completed!!!"
 
 
 FILE_NAME="$(date +"perf-%Y-%m-%d-%T")"
-echo "  Operation       Throughput      RPS     TTFB    " > perf-reports/$FILE_NAME.log
+echo "Operation       Throughput      RPS     TTFB" > perf-reports/$FILE_NAME.log
 # init write/read files for updated output
 echo "" > write_thr.log
 echo "" > read_thr.log
@@ -74,16 +74,16 @@ echo "Object,Clients,Samples,Write(MB/s),Read(MB/s),WriteErr,ReadErr" > perf-rep
 # ======================================================================================================
 
 
-for ((i=0;i<$ARR_SIZE;i++));
+for ((i=0;i<ARR_SIZE;i++));
 do
-        echo -e  "\n\nIO Tests for Object Size:" ${OBJ_SIZE[i]} " Samples:" ${SAMPLES[i]} " Clients:" ${CLIENTS[i]}  >>  perf-reports/$FILE_NAME.log
-        echo "IO Tests for Object Size :" ${OBJ_SIZE[i]} " Samples:" ${SAMPLES[i]} " Clients:" ${CLIENTS[i]} #display in terminal
-        for ((j=1;j<=$LOOP_COUNT;j++));
+        echo -e  "\n\nIO Tests for Object Size: ${OBJ_SIZE[i]}  Samples: ${SAMPLES[i]}  Clients: ${CLIENTS[i]}"  >>  perf-reports/$FILE_NAME.log
+        echo "IO Tests for Object Size : ${OBJ_SIZE[i]}  Samples: ${SAMPLES[i]}  Clients: ${CLIENTS[i]}" #display in terminal
+        for ((j=1;j<=LOOP_COUNT;j++));
         do
-                echo "Iteration : " $j >>  perf-reports/$FILE_NAME.log
-                echo "Iteration : " $j #display in terminal
+                echo "Iteration :  $j" >>  perf-reports/$FILE_NAME.log
+                echo "Iteration :  $j" #display in terminal
 
-                s3bench -accessKey $ACCESS_KEY -accessSecret $SECRET_KEY -bucket $BUCKET -endpoint $ENDPOINT -numClients ${CLIENTS[i]} -numSamples ${SAMPLES[i]} -objectNamePrefix=s3workload -objectSize ${OBJ_SIZE[i]}  -region us-east-1 > tmp.log
+                s3bench -accessKey "$ACCESS_KEY" -accessSecret "$SECRET_KEY" -bucket "$BUCKET" -endpoint "$ENDPOINT" -numClients "${CLIENTS[i]}" -numSamples "${SAMPLES[i]}" -objectNamePrefix=s3workload -objectSize "${OBJ_SIZE[i]}"  -region us-east-1 > tmp.log
                 grep 'Total Throughput' tmp.log > throughput.log
                 grep 'RPS' tmp.log > RPS.log
                 grep 'Ttfb Avg' tmp.log > ttfb.log
@@ -105,15 +105,15 @@ do
                 #VALIDATE_RPS="$(sed -n '3p' RPS.log | grep -Eo "[0-9]+\.[0-9]+")"
                 #VALIDATE_TTFB="$(sed -n '3p' ttfb.log | grep -Eo "[0-9]+\.[0-9]+")"
 
-                echo "  Write            $WRITE_THROUGHPUT        $WRITE_RPS    $WRITE_TTFB       " >>  perf-reports/$FILE_NAME.log
-                echo "  Read             $READ_THROUGHPUT        $READ_RPS    $READ_TTFB       " >>  perf-reports/$FILE_NAME.log
+                echo "Write            $WRITE_THROUGHPUT        $WRITE_RPS    $WRITE_TTFB" >>  perf-reports/$FILE_NAME.log
+                echo "Read             $READ_THROUGHPUT        $READ_RPS    $READ_TTFB" >>  perf-reports/$FILE_NAME.log
                 #echo "  VALIDATE         $VALIDATE_THROUGHPUT        $VALIDATE_RPS    $VALIDATE_TTFB       " >>  perf-reports/$FILE_NAME.log
 
 
-                echo $WRITE_THROUGHPUT >> write_thr.log
-                echo $READ_THROUGHPUT >> read_thr.log
-                echo $WRITE_ERROR >> write_error.log
-                echo $READ_ERROR >> read_error.log
+                echo "$WRITE_THROUGHPUT" >> write_thr.log
+                echo "$READ_THROUGHPUT" >> read_thr.log
+                echo "$WRITE_ERROR" >> write_error.log
+                echo "$READ_ERROR" >> read_error.log
 
 
 
@@ -137,10 +137,10 @@ done
 COUNTER=2
 #LINE_NUMBER="${COUNTER}p"
 
-                for ((k=0;k<$ARR_SIZE;k++));
+                for ((k=0;k<ARR_SIZE;k++));
                 do
 
-                        for ((l=0;l<$LOOP_COUNT;l++));
+                        for ((l=0;l<LOOP_COUNT;l++));
                         do
                                 LINE_NUMBER="${COUNTER}p"
                                 #echo $LINE_NUMBER
@@ -156,7 +156,7 @@ COUNTER=2
                                 #echo $READ_THR
                                 #echo  ${OBJ_SIZE[k]} "," ${CLIENTS[k]} "," $WRITE_THR "," $READ_THR >> perf-reports/new-perf.csv
 
-                                echo  ${OBJ_SIZE[k]} "," ${CLIENTS[k]} "," ${SAMPLES[k]}  "," $WRITE_THR "," $READ_THR "," $WRITE_ERR "," $READ_ERR >> perf-reports/new-perf.csv
+                                echo  "${OBJ_SIZE[k]} , ${CLIENTS[k]} , ${SAMPLES[k]}  , $WRITE_THR , $READ_THR , $WRITE_ERR , $READ_ERR" >> perf-reports/new-perf.csv
 
 
                                 #echo $l
