@@ -1,5 +1,6 @@
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/7a9e01a97d1a442cb14a66cedf2e7343)](https://www.codacy.com/gh/Seagate/cortx-utils/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Seagate/cortx-utils&amp;utm_campaign=Badge_Grade) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://github.com/Seagate/cortx-utils/blob/main/LICENSE) [![Slack](https://img.shields.io/badge/chat-on%20Slack-blue")](https://join.slack.com/t/cortxcommunity/shared_invite/zt-femhm3zm-yiCs5V9NBxh89a_709FFXQ?) [![YouTube](https://img.shields.io/badge/Video-YouTube-red)](https://cortx.link/videos) [![GitHub contributors](https://img.shields.io/github/contributors/Seagate/cortx-utils)](https://github.com/Seagate/cortx-utils/graphs/contributors/)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://github.com/Seagate/cortx-utils/blob/main/LICENSE) [![Slack](https://img.shields.io/badge/chat-on%20Slack-blue")](https://join.slack.com/t/cortxcommunity/shared_invite/zt-femhm3zm-yiCs5V9NBxh89a_709FFXQ?) [![YouTube](https://img.shields.io/badge/Video-YouTube-red)](https://cortx.link/videos) [![GitHub contributors](https://img.shields.io/github/contributors/Seagate/cortx-utils)](https://github.com/Seagate/cortx-utils/graphs/contributors/)
 
+# Disclaimer: This project is not maintained anymore
 # CORTX-Utils
 
 The cortx-utils repository contains utility tools and code for various CORTX submodules. For example, S3 and NFS submodules use code from the cortx-utils repos.
